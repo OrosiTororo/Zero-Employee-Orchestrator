@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(do touch:*)",
+      "Bash(uv sync:*)",
+      "Bash(pnpm create:*)",
+      "Bash(npm create:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm dlx:*)",
+      "Bash(npx tsc:*)",
+      "Bash(pnpm build:*)",
+      "Bash(python:*)",
+      "Bash(uv run:*)",
+      "Bash(winget install:*)",
+      "Bash(gh auth:*)",
+      "Bash(git:*)",
+      "Bash(export:*)"
+    ]
+  }
+}

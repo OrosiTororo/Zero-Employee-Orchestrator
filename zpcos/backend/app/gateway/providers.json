@@ -1,0 +1,55 @@
+{
+  "models": [
+    {
+      "model_name": "fast",
+      "litellm_params": {
+        "model": "openrouter/google/gemini-3-flash-preview",
+        "api_key_env": "OPENROUTER_API_KEY"
+      }
+    },
+    {
+      "model_name": "think",
+      "litellm_params": {
+        "model": "openrouter/google/gemini-3.1-pro-preview",
+        "api_key_env": "OPENROUTER_API_KEY"
+      }
+    },
+    {
+      "model_name": "quality",
+      "litellm_params": {
+        "model": "openrouter/anthropic/claude-sonnet-4.6",
+        "api_key_env": "OPENROUTER_API_KEY"
+      }
+    },
+    {
+      "model_name": "free",
+      "litellm_params": {
+        "model": "openrouter/meta-llama/llama-4-maverick:free",
+        "api_key_env": "OPENROUTER_API_KEY"
+      }
+    },
+    {
+      "model_name": "reason",
+      "litellm_params": {
+        "model": "openrouter/deepseek/deepseek-r1",
+        "api_key_env": "OPENROUTER_API_KEY"
+      }
+    },
+    {
+      "model_name": "value",
+      "litellm_params": {
+        "model": "openrouter/deepseek/deepseek-v3.2",
+        "api_key_env": "OPENROUTER_API_KEY"
+      }
+    }
+  ],
+  "router_settings": {
+    "routing_strategy": "simple-shuffle",
+    "num_retries": 3,
+    "retry_after": 2,
+    "allowed_fails": 3,
+    "cooldown_time": 30,
+    "cache_responses": false
+  },
+  "_note": "api_key_env は参照名。実際のキーは token_store 経由で取得し Router 初期化時に注入。"
+}

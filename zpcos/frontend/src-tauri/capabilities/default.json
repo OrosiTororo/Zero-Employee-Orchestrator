@@ -1,0 +1,10 @@
+{
+  "identifier": "default",
+  "description": "ZPCOS default capabilities",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "shell:allow-spawn",
+    "shell:allow-execute"
+  ]
+}

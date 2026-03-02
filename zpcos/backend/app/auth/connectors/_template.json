@@ -1,0 +1,11 @@
+{
+  "service": "",
+  "display_name": "",
+  "auth_type": "oauth2_code | oauth2_pkce | oauth2_installed_app | api_key",
+  "authorize_url": "",
+  "token_url": "",
+  "callback_url": "",
+  "scopes": [],
+  "params": {},
+  "setup_instructions": ""
+}

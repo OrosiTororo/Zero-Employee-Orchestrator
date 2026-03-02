@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+.venv/
+
+# Build outputs
+dist/
+target/
+__pycache__/
+*.pyc
+
+# Lock files (keep pnpm-lock.yaml and uv.lock)
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+
+# Pytest
+.pytest_cache/
+
+# Tauri
+frontend/src-tauri/target/
+frontend_temp/
