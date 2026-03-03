@@ -2,7 +2,7 @@
 
 > 作成日: 2026-03-03
 > 対象バージョン: v11.2
-> プロジェクト名: ZPCOS（Zero-Prompt Cross-model Orchestration System）
+> プロジェクト名: ZPCOS（Zero-Person Campany Orchestration System）
 
 ---
 
