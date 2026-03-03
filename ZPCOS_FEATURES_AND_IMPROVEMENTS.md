@@ -202,7 +202,7 @@ YouTubeのSkillsはあくまで、 SNS分析という複雑なワークフロー
 2. CI/CD（pytest + ruff）の設定
 3. .env.example 作成
 4. README.md 整備
-5. DESIGN_v11.md MASTER_GUIDE.md section2〜7 整備
+5. DESIGN_v11.md, MASTER_GUIDE.md, section2〜7 整備
 
 ### Phase B: 品質向上
 5. ログ基盤（structlog）導入
