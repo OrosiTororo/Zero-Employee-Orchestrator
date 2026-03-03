@@ -129,7 +129,7 @@ YouTubeのSkillsはあくまで、 SNS分析という複雑なワークフロー
 
 | # | 改善案 | 優先度 | 詳細 |
 |---|--------|--------|------|
-| 1 | **CI/CD パイプライン構築** | 高 | .github/workflows/ ディレクトリは存在するが中身がない。pytest + ruff lint の自動実行を設定 プッシュ済みか確認 |
+| 1 | **CI/CD パイプライン構築** | 高 | .github/workflows/ ディレクトリは存在するが中身がない。pytest + ruff lint の自動実行を設定 GitHub がプッシュ済みか確認 |
 | 2 | **Docker 開発環境** | 中 | バックエンド開発のポータビリティ向上。docker-compose で FastAPI + 依存サービスを一発起動 |
 | 3 | **環境変数管理の統一** | 高 | .env.example を用意して必要な環境変数を明示化 |
 
@@ -190,7 +190,7 @@ YouTubeのSkillsはあくまで、 SNS分析という複雑なワークフロー
 | 29 | **API ドキュメント自動生成** | 中 | FastAPI の OpenAPI スキーマを活用した Swagger UI の公開 |
 | 30 | **Skill 開発者向けガイド** | 中 | コミュニティ Skill 開発のチュートリアル（Skill Registry 活用のため必須） |
 | 31 | **README.md 整備** | 高 | プロジェクトルートに概要・セットアップ手順・アーキテクチャ図を記載 |
-| 32 | **README.md 整備** | 高 | プロジェクトルートに概要・セットアップ手順・アーキテクチャ図を記載 |
+| 32 | **DESIGN_v11.md MASTER_GUIDE.md 整備** | 最高 | DESIGN_v11.mdとMASTER_GUIDE.mdはシステム構築前の資料ですので、構築後の最新版に更新してください。 |
 
 
 ---
@@ -202,6 +202,7 @@ YouTubeのSkillsはあくまで、 SNS分析という複雑なワークフロー
 2. CI/CD（pytest + ruff）の設定
 3. .env.example 作成
 4. README.md 整備
+5. DESIGN_v11.md MASTER_GUIDE.md 整備
 
 ### Phase B: 品質向上
 5. ログ基盤（structlog）導入
