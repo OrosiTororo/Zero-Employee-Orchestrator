@@ -118,7 +118,7 @@ YouTubeのSkillsはあくまで、 SNS分析という複雑なワークフロー
 | YouTube 5 Skills + Local Context | ファイル作成済み |
 | テスト 14 ファイル | ファイル作成済み |
 | Tauri 統合 | 設定ファイル準備済み |
-| Git リモート | 設定済み（GitHub リポジトリ作成済み |
+| Git リモート | 設定済み（GitHub リポジトリ作成済み） |
 | 初回コミット | 実行済み |
 
 ---
