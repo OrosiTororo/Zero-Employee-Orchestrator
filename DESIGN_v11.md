@@ -24,7 +24,7 @@ AIにすべてを任せることは、効率化であると同時に思考停止
 
 ## 設計思想（Philosophy）
 
-ZPCOS（Zero Person Campany Orchestration System）は「AI を道具から組織に進化させる」
+ZPCOS（Zero-Person Campany Orchestration System）は「AI を道具から組織に進化させる」
 **ローカル常駐型デスクトップ OS** であり、**人間のアイデアとの壁打ち構造を保ったまま、業務実行だけを自律化するOS**である。
 
 
