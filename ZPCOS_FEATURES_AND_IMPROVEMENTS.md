@@ -190,7 +190,7 @@ YouTubeのSkillsはあくまで、 SNS分析という複雑なワークフロー
 | 29 | **API ドキュメント自動生成** | 中 | FastAPI の OpenAPI スキーマを活用した Swagger UI の公開 |
 | 30 | **Skill 開発者向けガイド** | 中 | コミュニティ Skill 開発のチュートリアル（Skill Registry 活用のため必須） |
 | 31 | **README.md 整備** | 高 | プロジェクトルートに概要・セットアップ手順・アーキテクチャ図を記載 |
-| 32 | **DESIGN_v11.md MASTER_GUIDE.md  sectionファイル 整備** | 最高 | DESIGN_v11.mdとMASTER_GUIDE.mdとsectionファイル2〜6はシステム構築前の資料ですので、構築後の最新版に更新してください。 |
+| 32 | **DESIGN_v11.md MASTER_GUIDE.md  sectionファイル 整備** | 最高 | DESIGN_v11.mdとMASTER_GUIDE.mdとsectionファイル2〜7はシステム構築前の資料ですので、構築後の最新版に更新してください。 |
 
 
 ---
@@ -202,7 +202,7 @@ YouTubeのSkillsはあくまで、 SNS分析という複雑なワークフロー
 2. CI/CD（pytest + ruff）の設定
 3. .env.example 作成
 4. README.md 整備
-5. DESIGN_v11.md MASTER_GUIDE.md section2〜6 整備
+5. DESIGN_v11.md MASTER_GUIDE.md section2〜7 整備
 
 ### Phase B: 品質向上
 5. ログ基盤（structlog）導入
