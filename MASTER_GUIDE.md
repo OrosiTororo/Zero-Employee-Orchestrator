@@ -1,11 +1,10 @@
 # ZPCOS v11.2 マスター実行ガイド
 
 > 作成日: 2026-03-02
-> v11.2: 追加要素22件統合（v11.1の19件 + Self-Healing DAG, Local Context Skill, Skill Registry）
 
 ---
 
-注）ZPCOS_FEATURES_AND_IMPROVEMENTS.mdを参考に根本から変更してください。
+注）ZPCOS_FEATURES_AND_IMPROVEMENTS.mdを参考に根本から変更してください。Skillとプラグインの定義が曖昧なので修正してください。
 
 ---
 
@@ -13,19 +12,19 @@
 
 | ファイル | 内容 | 渡す先 | 更新 |
 |---------|------|--------|------|
-| DESIGN_v11.md | 改訂設計書（9層アーキテクチャ） | 参照用 | ★v11.2 |
-| instructions_section2_init.md | リポジトリ初期化 | **Claude Code** | ★v11.2 |
-| instructions_section3_backend.md | バックエンド全構築（17モジュール） | **Claude Code** | ★v11.2 |
-| instructions_section4_frontend.md | フロントエンド全構築（7画面+Self-Healing可視化） | **Antigravity** | ★v11.2 |
-| instructions_section5_skills.md | YouTube 5 Skills + Local Context Skill | **Claude Code** | ★v11.2 |
-| instructions_section6_tauri.md | Tauri 統合・ビルド | **両方** | 変更なし |
-| instructions_section7_test.md | テスト・ベンチマーク | **Claude Code** | ★v11.2 |
+| DESIGN_v11.md | 改訂設計書（9層アーキテクチャ） | 参照用 |
+| instructions_section2_init.md | リポジトリ初期化 | **Claude Code** |
+| instructions_section3_backend.md | バックエンド全構築（17モジュール） | **Claude Code** |
+| instructions_section4_frontend.md | フロントエンド全構築（7画面+Self-Healing可視化） | **Antigravity** |
+| instructions_section5_skills.md | YouTube 5 Skills + Local Context Skill | **Claude Code** |
+| instructions_section6_tauri.md | Tauri 統合・ビルド | **両方** |
+| instructions_section7_test.md | テスト・ベンチマーク | **Claude Code** |
 
 ---
 
-## v11.0 → v11.1 → v11.2 の変更サマリー
+## サマリー
 
-### v11.1 新モジュール（バックエンド +13 ファイル）
+### モジュール（バックエンド +13 ファイル）
 
 - interview/interviewer.py — Design Interview + Spec Writer
 - judge/pre_check.py — Two-stage Detection (Stage 1)
@@ -40,14 +39,11 @@
 - gateway/model_catalog.py — Model Catalog Auto-Update
 - skills/gap_detector.py — Skill Gap Negotiation
 - skills/roi_explainer.py — Skill ROI Explainer
-
-### v11.2 新モジュール（バックエンド +3 ファイル）
-
 - orchestrator/self_healing.py — Self-Healing DAG（動的DAG再構築エンジン）
 - skills/builtins/local_context/ — Local Context Skill（ローカルファイル分析）
 - skills/registry.py — Skill Registry（エコシステム基盤）
 
-### 新エンドポイント（v11.1: +7、v11.2: +6、合計33）
+### エンドポイント
 
 - POST /api/interview/start, /respond, /finalize
 - POST /api/orchestrate/{id}/approve-plan
@@ -59,12 +55,12 @@
 - GET /api/registry/search, POST /api/registry/publish ★v11.2
 - POST /api/registry/install, GET /api/registry/popular ★v11.2
 
-### 新画面（+1、合計7 + Self-Healing可視化パネル）
+### 画面
 
 - /interview — Design Interview
 - Orchestration画面にSelf-Healing試行履歴パネル追加 ★v11.2
 
-### 新テスト（v11.1: +7、v11.2: +3）
+### テスト
 
 - test_policy_pack, test_pre_check, test_failure_taxonomy
 - test_experience_memory, test_cost_guard, test_quality_sla, test_gap_detector
@@ -83,21 +79,13 @@
 
 ---
 
-## 未踏 MVP デモシナリオ（v11.2 版）
-
-### 背景ストーリー（起心動念）
-
-「YouTubeチャンネルを伸ばしたい。でもトレンド分析に3時間、台本作成に5時間、
-競合調査に2時間…毎週10時間以上が『作業』に消える。本当にやりたい企画会議や
-撮影に時間が割けない。この苦しみを、AI組織に全部任せたい。」
-
 ### デモフロー
 
 ユーザー: 「YouTubeチャンネルを伸ばして」
 
 1. **Design Interview**: AI が深い質問（ターゲット層は？予算は？現在の課題は？）
 2. ユーザーが回答 → **Spec 生成** → 承認
-3. **Local Context Skill** ★v11.2: ローカルにある過去の動画企画書・分析シートを
+3. **Local Context Skill** : ローカルにある過去の動画企画書・分析シートを
    セキュアに読み込み、チャンネルの文脈を深く理解（クラウドAIにはできない）
 4. **Plan 生成**: 6 Skill の DAG + **コスト見積り** + **品質モード選択**
 5. **Skill Gap チェック**: 不足があれば提示（なければスキップ）
@@ -143,14 +131,13 @@
 
 ---
 
-## 未踏提案での差別化ポイント（v11.2）
+## AIエージェントとの差別化ポイント
 
 | ポイント | 対策PM | 訴求内容 |
 |---------|--------|---------|
-| ローカル特権アクセス | 竹迫PM・落合PM | 機密データを含むローカルファイルをセキュアにAI組織が操作。クラウドAIにはできない |
-| Self-Healing DAG | 田中PM | 失敗からAIが自律的にDAGを再構築する自己修復機構。「とてつもなく難しい実装」 |
-| 起心動念のストーリー | 稲見PM・曾川PM | 作業に奪われる時間への憎悪から生まれた、泥臭いペインの解決 |
-| Skill Registry | 竹迫PM他 | 世界中の開発者がSkillを公開し合うエコシステム。プロジェクト終了後の波及効果 |
+| ローカル特権アクセス | 機密データを含むローカルファイルをセキュアにAI組織が操作。クラウドAIにはできない |
+| Self-Healing DAG | 失敗からAIが自律的にDAGを再構築する自己修復機構。「とてつもなく難しい実装」 |
+| Skill Registry | 世界中の開発者がSkill・プラグインを公開し合うエコシステム。プロジェクト終了後の波及効果 |
 
 ---
 
@@ -158,7 +145,3 @@
 
 SkillsだけでなくMCPにも対応し、Work IQにも繋げられるようにしたい。
 ユーザーが自然言語だけでSkillsを作成できる点を活かして、Skillを公開し合うエコシステムを構築したい。
-
----
-
-以上。Phase 1 → 6 を順に実行すれば ZPCOS v11.2 MVP が完成する。
