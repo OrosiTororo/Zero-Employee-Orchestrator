@@ -50,21 +50,21 @@
 - POST /api/orchestrate/{id}/repropose
 - GET /api/orchestrate/{id}/cost, /diff
 - GET /api/skills/gaps
-- POST /api/orchestrate/{id}/self-heal ★v11.2
-- GET /api/orchestrate/{id}/heal-history ★v11.2
-- GET /api/registry/search, POST /api/registry/publish ★v11.2
-- POST /api/registry/install, GET /api/registry/popular ★v11.2
+- POST /api/orchestrate/{id}/self-heal 
+- GET /api/orchestrate/{id}/heal-history 
+- GET /api/registry/search, POST /api/registry/publish
+- POST /api/registry/install, GET /api/registry/popular 
 
 ### 画面
 
 - /interview — Design Interview
-- Orchestration画面にSelf-Healing試行履歴パネル追加 ★v11.2
+- Orchestration画面にSelf-Healing試行履歴パネル追加
 
 ### テスト
 
 - test_policy_pack, test_pre_check, test_failure_taxonomy
 - test_experience_memory, test_cost_guard, test_quality_sla, test_gap_detector
-- test_self_healing, test_local_context, test_skill_registry ★v11.2
+- test_self_healing, test_local_context, test_skill_registry 
 
 ---
 
@@ -89,10 +89,10 @@
    セキュアに読み込み、チャンネルの文脈を深く理解（クラウドAIにはできない）
 4. **Plan 生成**: 6 Skill の DAG + **コスト見積り** + **品質モード選択**
 5. **Skill Gap チェック**: 不足があれば提示（なければスキップ）
-   → 不足Skillは **Skill Registry** ★v11.2 からコミュニティSkillを提案
+   → 不足Skillは **Skill Registry** コミュニティSkillを提案
 6. ユーザーが **Plan 承認** → 実行開始
 7. 各 Skill 実行 → **Two-stage Judge**（Stage1安価チェック → Stage2 Cross-Model）
-8. **Self-Healing** ★v11.2: もしSkillが失敗したら、AI組織が自律的にDAGを
+8. **Self-Healing** もしSkillが失敗したら、AI組織が自律的にDAGを
    再構築して別のアプローチでリトライ（人間に戻さず自動回復）
 9. 統合レポート → **Policy Pack** でコンプラチェック
 10. Human Review → 承認 or **Re-Propose**（Change Request ベースの再提案）
@@ -126,8 +126,6 @@
 | **20** | **Self-Healing DAG** ★v11.2 | orchestrator/self_healing.py | /api/orchestrate/{id}/self-heal, heal-history |
 | **21** | **Local Context Skill** ★v11.2 | skills/builtins/local_context/ | Skill Layer内部 |
 | **22** | **Skill Registry** ★v11.2 | skills/registry.py | /api/registry/* |
-
----
 
 ---
 
