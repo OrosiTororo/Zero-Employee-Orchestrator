@@ -1,12 +1,11 @@
-# ZPCOS 完全構築設計書 v11.2
+# ZPCOS 完全構築設計書
 
 > 作成日: 2026-03-02
-> 基底: v11.1 + 改善4件統合（ローカル特権・Self-Healing・起心動念・Skill Registry）
 > 対象環境: Windows 11 / RAM 32 GB / GPU 16 GB VRAM / CPU 16コア
 
 ---
 
-注）ZPCOS_FEATURES_AND_IMPROVEMENTS.mdの内容を参考に背景と動機を含む全てを根本から変更してください。
+注）ZPCOS_FEATURES_AND_IMPROVEMENTS.mdの内容を参考に背景と動機を含む全てを根本から変更してください。またSkillやプラグインの定義を正してください。
 
 ---
 
@@ -48,15 +47,15 @@ ZPCOS が「デスクトップ OS」である必然性は以下にある:
 4. **ローカル推論力 × 外部 API の融合**: ローカル環境の特権的アクセスと OpenRouter 経由の
    最先端モデルの推論力を組み合わせることで、どちらか一方では実現できない価値を生む。
 
-### v11.2 設計原則
+### 設計原則
 
 1. 実行前に必ず合意形成する（Design Interview → Spec → Plan 承認）
 2. AI は勝手に実行しない。提案し、人間が判断する（責任境界の維持）
 3. 無駄撃ちを回避する（Cost Guard + Two-stage Detection）
 4. 失敗から学ぶ（Failure Taxonomy + Experience Memory）
 5. 差し戻しではなく再提案（Re-Propose + Plan Diff）
-6. **失敗で終わらない——AI 組織が自律的に計画を練り直す（Self-Healing DAG）** ★v11.2
-7. **ローカルファイルは最大の資産——セキュアに読み込み、文脈として活用する** ★v11.2
+6. **失敗で終わらない——AI 組織が自律的に計画を練り直す（Self-Healing DAG）**
+7. **ローカルファイルは最大の資産——セキュアに読み込み、文脈として活用する**
 
 ---
 
@@ -65,39 +64,39 @@ ZPCOS が「デスクトップ OS」である必然性は以下にある:
 ```
 ① User Layer
        ↓
-② Design Interview（壁打ち・すり合わせ）       ★v11.1
+② Design Interview（壁打ち・すり合わせ）
        ↓
 ③ Task Orchestrator（司令塔）
-   ├── Spec Writer        ★v11.1
+   ├── Spec Writer 
    ├── Plan/DAG 提案
-   ├── Cost Guard         ★v11.1
-   ├── Quality SLA        ★v11.1
-   └── Self-Healing DAG   ★v11.2  ← 失敗時に自律的にDAGを再構築
+   ├── Cost Guard
+   ├── Quality SLA
+   └── Self-Healing DAG ← 失敗時に自律的にDAGを再構築
        ↓
 ④ Skill Layer
-   ├── Skill Gap Negotiation  ★v11.1
-   ├── Skill ROI Explainer    ★v11.1
-   └── Local Context Skill    ★v11.2  ← ローカルファイル読み込み・分析
+   ├── Skill Gap Negotiation 
+   ├── Skill ROI Explainer
+   └── Local Context Skill  ← ローカルファイル読み込み・分析
        ↓
 ⑤ Judge Layer
-   ├── Two-stage Detection    ★v11.1
-   └── Policy Pack            ★v11.1
+   ├── Two-stage Detection 
+   └── Policy Pack
        ↓
-⑥ Re-Propose Layer            ★v11.1
-   └── Dynamic DAG Rebuild    ★v11.2  ← Judge差し戻し時の自動再計画
+⑥ Re-Propose Layer 
+   └── Dynamic DAG Rebuild    ← Judge差し戻し時の自動再計画
        ↓
 ⑦ State & Memory
-   ├── Experience Memory       ★v11.1
-   ├── Artifact Bridge         ★v11.1
-   ├── Failure Taxonomy        ★v11.1
-   └── Knowledge Refresh       ★v11.1
+   ├── Experience Memory  
+   ├── Artifact Bridge    
+   ├── Failure Taxonomy  
+   └── Knowledge Refresh   
        ↓
 ⑧ Provider Interface
    ├── LiteLLM Gateway
-   ├── Recommendation Ladder   ★v11.1
-   └── Model Catalog Auto-Update ★v11.1
+   ├── Recommendation Ladder  
+   └── Model Catalog Auto-Update 
        ↓
-⑨ Skill Registry（エコシステム）  ★v11.2
+⑨ Skill Registry（エコシステム） 
    ├── Skill パッケージング
    ├── Skill 公開・検索
    └── コミュニティ Skill インストール
@@ -133,9 +132,9 @@ ZPCOS が「デスクトップ OS」である必然性は以下にある:
     11. Design Interview + Spec Writer
     12. Task Orchestrator + Cost Guard + Quality SLA + Re-Propose
     13. Knowledge Refresh
-    14. Self-Healing DAG（動的DAG再構築エンジン）                    ★v11.2
-    15. Local Context Skill（ローカルファイル読み込み・分析 Skill）    ★v11.2
-    16. Skill Registry（パッケージング・公開・検索基盤）              ★v11.2
+    14. Self-Healing DAG（動的DAG再構築エンジン）                   
+    15. Local Context Skill（ローカルファイル読み込み・分析 Skill）    
+    16. Skill Registry（パッケージング・公開・検索基盤）              
     17. main.py 全エンドポイント統合
 
 全 API エンドポイント（33個: 27+6新規）:
@@ -151,12 +150,12 @@ ZPCOS が「デスクトップ OS」である必然性は以下にある:
 
     # Orchestrate（8: 6+2新規）
     POST /api/orchestrate, GET /api/orchestrate/{id}
-    POST /api/orchestrate/{id}/approve-plan   ★v11.1
-    POST /api/orchestrate/{id}/repropose      ★v11.1
-    GET  /api/orchestrate/{id}/cost           ★v11.1
-    GET  /api/orchestrate/{id}/diff           ★v11.1
-    POST /api/orchestrate/{id}/self-heal      ★v11.2  ← Self-Healing DAG再構築トリガー
-    GET  /api/orchestrate/{id}/heal-history   ★v11.2  ← 自己修復の試行履歴
+    POST /api/orchestrate/{id}/approve-plan   
+    POST /api/orchestrate/{id}/repropose      
+    GET  /api/orchestrate/{id}/cost           
+    GET  /api/orchestrate/{id}/diff           
+    POST /api/orchestrate/{id}/self-heal        ← Self-Healing DAG再構築トリガー
+    GET  /api/orchestrate/{id}/heal-history     ← 自己修復の試行履歴
 
     # コア（2）
     POST /api/chat, POST /api/judge
@@ -166,9 +165,9 @@ ZPCOS が「デスクトップ OS」である必然性は以下にある:
 
     # Skill（4）
     GET /api/skills, POST /api/skills/execute
-    POST /api/skills/generate, GET /api/skills/gaps  ★v11.1
-
-    # Skill Registry（4）★v11.2
+    POST /api/skills/generate, GET /api/skills/gaps  
+    
+    # Skill Registry（4）
     GET  /api/registry/search                ← コミュニティSkill検索
     POST /api/registry/publish               ← Skill公開
     POST /api/registry/install               ← Skill インストール
@@ -179,7 +178,7 @@ ZPCOS が「デスクトップ OS」である必然性は以下にある:
 
 ---
 
-## 追加要素22件の技術仕様（19件 + v11.2 3件）
+## 追加要素22件の技術仕様
 
 ### #1-3: Design Interview + Spec Writer
 
@@ -300,7 +299,7 @@ gateway/model_catalog.py:
 - 候補抽出 → スモークベンチ → 適用 → ロールバック
 - 既定 ON、失敗率上昇で自動ロールバック
 
-### #20: Self-Healing DAG（動的DAG再構築）★v11.2
+### #20: Self-Healing DAG（動的DAG再構築）
 
 orchestrator/self_healing.py:
 
@@ -339,7 +338,7 @@ async def get_heal_history(orchestration_id: str) -> list[HealAttempt]:
     ...
 ```
 
-### #21: Local Context Skill（ローカルファイル分析）★v11.2
+### #21: Local Context Skill（ローカルファイル分析）
 
 skills/builtins/local_context/executor.py:
 
@@ -364,7 +363,7 @@ class Executor(SkillBase):
         ...
 ```
 
-### #22: Skill Registry（エコシステム基盤）★v11.2
+### #22: Skill Registry（エコシステム基盤）
 
 skills/registry.py:
 
@@ -422,8 +421,7 @@ async def install_skill(skill_id: str) -> bool:
 
 ---
 
-## 未踏提案のハイライト（v11.2 強化ポイント）
-
+## 未踏提案のハイライト
 1. **「ローカルに常駐するOSだからこそ、機密データを含めたコンテキストをAI組織がセキュアに操作できる」**
    — 他社クラウドエージェントとの完全な差別化
 
@@ -433,9 +431,9 @@ async def install_skill(skill_id: str) -> bool:
 3. **「自分のクリエイティブな時間を奪う『作業』への憎悪（起心動念）から生まれた、超実用的なMVP」**
    — 情熱と熱量
 
-4. **「世界中の開発者が業務自動化Skillを公開し合うプラットフォーム」**
+4. **「世界中の開発者が業務自動化Skill及びプラグインを公開し合うプラットフォーム」**
    — Skill Registryによるコミュニティ駆動のエコシステム
 
 ---
 
-以上が ZPCOS 完全構築設計書 v11.2 である。
+以上が ZPCOS 完全構築設計書である。
