@@ -1,7 +1,6 @@
 # ZPCOS 機能一覧・改善案・要望まとめ
 
 > 作成日: 2026-03-03
-> 対象バージョン: v11.2
 > プロジェクト名: Zero-PCOS（Zero-Person Campany Orchestration System）
 
 ---
@@ -46,7 +45,7 @@
 - **Cost Guard**: API コスト事前見積り、予算超過時に代替 Plan 自動提案
 - **Quality SLA**: 3段階（FASTEST / BALANCED / HIGH_QUALITY）の品質モード選択
 - **Re-Propose**: 差し戻し時の Change Request ベース再提案、Plan Diff 表示
-- **Self-Healing DAG** (v11.2): 失敗時に AI が自律的に DAG を再構築
+- **Self-Healing DAG** : 失敗時に AI が自律的に DAG を再構築
   - 4戦略: RETRY_SAME / SWAP_SKILL / REPLAN / DECOMPOSE
   - 最大3回リトライ、超過で人間にエスカレーション
   - `POST /api/orchestrate/{id}/self-heal`, `GET /api/orchestrate/{id}/heal-history`
@@ -62,7 +61,7 @@
   - `yt-trend`: トレンド分析（急上昇動画・検索トレンド）
   - `yt-performance`: パフォーマンス分析（YouTube Analytics API）
   - `yt-next-move`: 次の一手提案（全 Skill の成果物を統合分析）
-- **Local Context Skill** (v11.2): ローカルファイルをセキュアに読み込み AI 分析
+- **Local Context Skill** : ローカルファイルをセキュアに読み込み AI 分析
   - 対応: .txt, .md, .csv, .pdf, .docx, .png, .jpg
   - 許可ディレクトリ制限、外部送信時はユーザー承認必須
 
@@ -74,7 +73,7 @@
 
 ### Layer 6: Re-Propose Layer
 - 再実行粒度: FULL_REGENERATE / FROM_STEP_N / PLAN_MODIFY
-- Dynamic DAG Rebuild（v11.2）: Judge 差し戻し時の自動再計画
+- Dynamic DAG Rebuild: Judge 差し戻し時の自動再計画
 
 ### Layer 7: State & Memory
 - **状態機械**: draft → ai_executing → ai_completed → judging → human_review → approved → committed
@@ -88,7 +87,7 @@
 - **Model Catalog Auto-Update**: OpenRouter API からカタログ自動取得→スモークベンチ→適用→失敗時ロールバック
 - **Recommendation Ladder**: AI 内部の「今すぐやる / 次にやる / やらないこと」思考フレーム
 
-### Layer 9: Skill Registry（v11.2）
+### Layer 9: Skill Registry
 - コミュニティ Skill の公開・検索・インストール
 - パッケージ形式: SKILL.json + executor.py + README.md を ZIP 化
 - `GET /api/registry/search`, `POST /api/registry/publish`, `POST /api/registry/install`, `GET /api/registry/popular`
@@ -196,7 +195,7 @@
 | 29 | **API ドキュメント自動生成** | 中 | FastAPI の OpenAPI スキーマを活用した Swagger UI の公開 |
 | 30 | **Skill 開発者向けガイド** | 中 | コミュニティ Skill 開発のチュートリアル（Skill Registry 活用のため必須） |
 | 31 | **README.md 整備** | 高 | プロジェクトルートに概要・セットアップ手順・アーキテクチャ図を記載 |
-| 32 | **DESIGN_v11.md MASTER_GUIDE.md  sectionファイル 整備** | 最高 | DESIGN_v11.mdとMASTER_GUIDE.mdを**この文章を元に根本から変更してください。**sectionファイル2〜7はシステム構築前の資料ですので、構築・変更後の最新版に更新してください。 |
+| 32 | **DESIGN.md MASTER_GUIDE.md  sectionファイル 整備** | 最高 | DESIGN.mdとMASTER_GUIDE.mdを**この文章を元に根本から変更してください。**sectionファイル2〜7はシステム構築前の資料ですので、構築・変更後の最新版に更新してください。 |
 | 33 | **資料参考・学習・反映** | 最高 | 既存の業務のマニュアルやルールを読み込んだり、ユーザー側にそれらのファイルが入ったフォルダを指定してもらい、活用する。 |
 | 34 | **インターネット検索やAI組織間での業務の自動情報更新・把握** | 最高 | 最新の情報やトレンド、業務間での過去、現状、未来予測の把握をAI組織が行えるようにする。（ユーザーにはスケジューラ機能の報告を伝える） |
 
