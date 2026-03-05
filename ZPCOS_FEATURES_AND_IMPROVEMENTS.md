@@ -257,7 +257,8 @@
 ### UIや使用について（重要）
 
 - SkillsをVSCodeの拡張機能のように追加可能であり、各Skillsやプラグインの内容を確認でき、そこから機能の追加と削除ができる。
-- VSCodeと同じようなUIにする。VSCodeの根幹となるソースコードは右のURLにある。（https://github.com/microsoft/vscode）
+- VSCodeと同じようなUIにする。VSCodeの根幹となるソースコードは下のURLにある。
+- https://github.com/microsoft/vscode
 - 全体的にVSCodeのように使用可能。独自の AI エディタを VSCode ベースで作る。Code - OSS をビルドして独自ロゴに変更する。
 - プロンプトから業務遂行のためのSkills・プラグインの作成と、業務の状況や追加削除ができる。
 - インストローラーを作ること。自動アップデート機能を付ける。
