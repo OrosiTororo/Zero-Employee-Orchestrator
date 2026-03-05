@@ -296,6 +296,25 @@
 - https://github.com/BerriAI/litellm
 - AIエージェントにおける脆弱性は「設定ファイルがそのまま攻撃ベクターになる」という構造的な問題だ。従来の開発では、.gitignoreやpackage.jsonを「ただのメタデータ」として扱ってきた。コードレビューでも設定ファイルの変更は流し見されがちだ。しかしAIエージェントの登場で、設定ファイルは「実行ロジックの定義」に変貌した。これはAI開発ツールが増えるほど、「設定ファイル＝信頼できるメタデータ」という前提は崩壊していく。**最も重要な教訓: 信頼できないリポジトリは、AI開発ツールで開く前に設定ファイルを必ず確認すること。**
 
+### 活用の参考情報
+
+MCPサーバーが必要であることなど様々な活用が必要になる。以下のサイトはClaudeでの詳しいやり方があるため流用すること。
+
+- https://anthropic.skilljar.com/
+- https://anthropic.skilljar.com/claude-code-in-action
+- https://anthropic.skilljar.com/claude-101
+- https://anthropic.skilljar.com/ai-fluency-framework-foundations
+- https://anthropic.skilljar.com/claude-with-the-anthropic-api
+- https://anthropic.skilljar.com/introduction-to-model-context-protocol
+- https://anthropic.skilljar.com/ai-fluency-for-educators
+- https://anthropic.skilljar.com/ai-fluency-for-students
+- https://anthropic.skilljar.com/model-context-protocol-advanced-topics
+- https://anthropic.skilljar.com/claude-in-amazon-bedrock
+- https://anthropic.skilljar.com/claude-with-google-vertex
+- https://anthropic.skilljar.com/teaching-ai-fluency
+- https://anthropic.skilljar.com/ai-fluency-for-nonprofits
+- https://anthropic.skilljar.com/introduction-to-agent-skills
+
 ### AIエージェントについて（重要）
 
 - Zero-PCOSにおけるAIエージェントはClaude Code Agent Teamsのように複数の独立したAIエージェントを「チーム」として組織し、複雑なタスクを並列かつ自律的に解決させることができるエージェントチーム (Agent Teams)で構成されます。
