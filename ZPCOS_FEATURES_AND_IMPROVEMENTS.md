@@ -281,19 +281,20 @@
 - セッション共有可能
 - スクリプトとの統合
 - GUIアプリケーションではなく、コマンドラインツール
-- ターミナルでAIアシスタントを使える
-ただしOpenCodeと違い非エンジニアでも使えるよう以下のようにカスタマイズも可能です。
+- ターミナルでAIアシスタントを使える。
+ただしOpenCodeと違い非エンジニアでも使えるよう以下のようにカスタマイズも可能にすること。
 - **コマンドラインツールとしてターミナルでも使用可能だが、GUIアプリケーション版もあり、どちらも共通で使用可能。**
 - **コマンドラインツールのUIはOpenCode、GUIアプリケーションはVSCodeを参考にする。**
 - OpenCodeについては以下を参照。
 - https://github.com/anomalyco/opencode
-- VSCodeについては以下を参照
+- VSCodeについては以下を参照。
 - https://github.com/microsoft/vscode
-- Markdownベースのナレッジ管理ツールObsidianと連携、Obsidianは以下を参照
+- Markdownベースのナレッジ管理ツールObsidianと連携、またObsidianのようなナレッジ管理を可能にする。Obsidianは以下の二つを参照
 - https://github.com/obsidianmd/obsidian-releases
-- Rust製の次世代エディタZedのように軽快な動作とネイティブなAI統合が可能。Zedは以下を参照
+- https://github.com/logancyang/obsidian-copilot
+- Rust製の次世代エディタZedのように軽快な動作とネイティブなAI統合が可能にする。Zedは以下を参照
 - https://github.com/zed-industries/zed
-- KiloCodeのように既存のワークフローに自然に統合できます。マルチモードシステムにより、状況に応じて最適なAIアシスタントを使い分けられる。KiloCodeは以下を参照
+- KiloCodeのように既存のワークフローに自然に統合でき、。マルチモードシステムにより、状況に応じて最適なAIアシスタントを使い分けられる。KiloCodeは以下を参照
 - https://github.com/Kilo-Org/kilocode
 
 ### UIや使用について（重要）
