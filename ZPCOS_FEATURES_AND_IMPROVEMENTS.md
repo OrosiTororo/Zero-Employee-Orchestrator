@@ -1,4 +1,4 @@
-# ZPCOS 機能一覧・改善案・要望まとめ
+# Zero-PCOS 機能一覧・改善案・要望まとめ
 
 > 作成日: 2026-03-03
 > プロジェクト名: Zero-PCOS（Zero-Person Campany Orchestration System）
