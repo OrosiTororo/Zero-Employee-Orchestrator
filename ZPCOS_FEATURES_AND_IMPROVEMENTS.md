@@ -288,6 +288,8 @@
 - ターミナルでAIアシスタントを使える。
 - **BedrockやAzureOpenAI・Vertex、少しニッチになるとCerebrasやCloudflareAI・Z.ai、更には、OllamaやLM StudioなどのローカルLLMソフトウェアにさえ繋ぐことができます。（逆にProvider定義されていない＆独自プロトコルで繋げれない商用サービスがあるか知りたいくらい。）また、opencode自体が運営しているopencode ZenというLLM Providerもあります。こちらはcluadeやgpt-5シリーズ、glmなど一通り使えるプロバイダーです。Zero-PCOSもこれらのプロバイダーに接続出来るようにしてください。**
 - **Zero-PCOSをOpenRouterのログイン無しで使えるようにする。**
+- Claude Code対応にする。Claude Codeについては以下を参照
+- https://github.com/anthropics/claude-code
 - Codex対応にする。Codexについては以下を参照
 - https://github.com/openai/codex
 
