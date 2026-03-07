@@ -1,11 +1,7 @@
-# ZPCOS 完全構築設計書
+# CommandWeave 完全構築設計書
 
 > 作成日: 2026-03-02
 > 対象環境: Windows 11 / RAM 32 GB / GPU 16 GB VRAM / CPU 16コア
-
----
-
-注）ZPCOS_FEATURES_AND_IMPROVEMENTS.mdの内容を参考に背景と動機を含む全てを根本から変更してください。またSkillやプラグインの定義を正してください。
 
 ---
 
