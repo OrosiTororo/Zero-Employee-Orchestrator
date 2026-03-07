@@ -1,10 +1,6 @@
-# ZPCOS v11.2 マスター実行ガイド
+# CommandWeave  マスター実行ガイド
 
 > 作成日: 2026-03-02
-
----
-
-注）ZPCOS_FEATURES_AND_IMPROVEMENTS.mdを参考に根本から変更してください。Skillとプラグインの定義が曖昧なので修正してください。
 
 ---
 
