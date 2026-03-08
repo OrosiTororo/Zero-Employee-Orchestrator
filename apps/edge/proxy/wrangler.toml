@@ -1,0 +1,10 @@
+name = "zeo-proxy"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+[vars]
+BACKEND_ORIGIN = "http://localhost:18234"
+
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "placeholder-id"

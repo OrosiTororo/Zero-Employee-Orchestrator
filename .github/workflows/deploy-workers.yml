@@ -1,0 +1,73 @@
+name: Deploy to Cloudflare Workers
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Deploy mode"
+        required: true
+        type: choice
+        options:
+          - proxy
+          - full
+          - pages
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # ---------- Proxy mode ----------
+      - name: Install dependencies (proxy)
+        if: inputs.mode == 'proxy'
+        working-directory: apps/edge/proxy
+        run: npm ci
+
+      - name: Deploy Workers Proxy
+        if: inputs.mode == 'proxy'
+        working-directory: apps/edge/proxy
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      # ---------- Full mode ----------
+      - name: Install dependencies (full)
+        if: inputs.mode == 'full'
+        working-directory: apps/edge/full
+        run: npm ci
+
+      - name: Deploy Full Workers
+        if: inputs.mode == 'full'
+        working-directory: apps/edge/full
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      # ---------- Pages mode ----------
+      - name: Install dependencies (pages)
+        if: inputs.mode == 'pages'
+        working-directory: apps/desktop/ui
+        run: npm ci
+
+      - name: Build frontend
+        if: inputs.mode == 'pages'
+        working-directory: apps/desktop/ui
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        if: inputs.mode == 'pages'
+        working-directory: apps/desktop/ui
+        run: npx wrangler pages deploy dist --project-name=zeo-ui
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
