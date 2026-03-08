@@ -1,0 +1,23 @@
+{
+  "slug": "youtube",
+  "name": "YouTube 運用 Plugin",
+  "description": "YouTube チャンネル運用のための統合 Plugin。トレンド分析、台本作成、競合調査、パフォーマンス分析を含む。",
+  "version": "0.1.0",
+  "status": "experimental",
+  "author": "",
+  "skills": [
+    "youtube-trend-analysis",
+    "youtube-script-generator",
+    "youtube-competitor-analysis",
+    "youtube-performance-analysis",
+    "youtube-next-action"
+  ],
+  "permissions": {
+    "external_api": true,
+    "read_local": true,
+    "write_local": false,
+    "external_send": false
+  },
+  "required_providers": ["openrouter"],
+  "note": "本 Plugin は Zero-Employee Orchestrator の代表デモとして位置づけられる検証テーマです。本体の本質はここに限定されません。"
+}

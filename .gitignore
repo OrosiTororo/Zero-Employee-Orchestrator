@@ -7,12 +7,18 @@ dist/
 target/
 __pycache__/
 *.pyc
+*.py[cod]
+*.egg-info/
+build/
 
-# Lock files (keep pnpm-lock.yaml and uv.lock)
+# Lock files (keep pnpm-lock.yaml)
+uv.lock
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # OS
 .DS_Store
@@ -21,10 +27,25 @@ Thumbs.db
 # Environment
 .env
 .env.local
+client_secret.json
+*.enc
 
 # Pytest
 .pytest_cache/
+.coverage
+htmlcov/
+test_zpcos.db
+
+# Database
+zpcos.db
+*.db-journal
 
 # Tauri
-frontend/src-tauri/target/
-frontend_temp/
+**/src-tauri/target/
+**/src-tauri/binaries/*.exe
+
+# Build artifacts
+*.msi
+*.nsis
+*.AppImage
+*.dmg
