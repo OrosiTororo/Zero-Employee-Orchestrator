@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    ports:
+      - "18234:18234"
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./zero_employee_orchestrator.db
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - DEBUG=false
+      - CORS_ORIGINS=["http://localhost:5173"]
+    volumes:
+      - api-data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18234/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  ui:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.ui
+    ports:
+      - "5173:5173"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    command: python -m apps.worker.main
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./zero_employee_orchestrator.db
+    volumes:
+      - api-data:/app/data
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  api-data:

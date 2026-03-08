@@ -1,0 +1,12 @@
+{
+  "name": "oauth",
+  "version": "0.1.0",
+  "description": "OAuth認証拡張 - Google, GitHub等のOAuth PKCE認証を提供",
+  "type": "extension",
+  "status": "experimental",
+  "required_permissions": ["credential_access"],
+  "external_connections": ["accounts.google.com", "github.com"],
+  "dangerous_operations": false,
+  "approval_required_operations": ["credential_update"],
+  "author": "Zero-Employee Orchestrator Team"
+}

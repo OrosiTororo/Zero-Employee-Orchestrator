@@ -1,0 +1,12 @@
+{
+  "name": "notifications",
+  "version": "0.1.0",
+  "description": "通知機能拡張 - Slack, Discord, LINE, メール等への通知を提供",
+  "type": "extension",
+  "status": "experimental",
+  "required_permissions": ["external_send"],
+  "external_connections": ["slack.com", "discord.com", "line.me"],
+  "dangerous_operations": false,
+  "approval_required_operations": ["send_notification"],
+  "author": "Zero-Employee Orchestrator Team"
+}

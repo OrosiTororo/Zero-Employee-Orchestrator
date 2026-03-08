@@ -1,0 +1,14 @@
+{
+  "name": "backoffice",
+  "version": "0.1.0",
+  "description": "バックオフィスPlugin - 経理、事務、書類整理の自動化",
+  "type": "plugin",
+  "status": "experimental",
+  "skills": ["document_generation", "data_entry", "report_formatting"],
+  "required_permissions": ["file_write"],
+  "external_connections": [],
+  "dangerous_operations": false,
+  "approval_required_operations": ["send_document", "delete_file"],
+  "use_cases": ["請求書作成", "レポート生成", "ファイル整理"],
+  "author": "Zero-Employee Orchestrator Team"
+}

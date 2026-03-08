@@ -1,0 +1,24 @@
+FROM node:20-slim
+
+WORKDIR /app
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@9 --activate
+
+# Copy package files
+COPY apps/desktop/ui/package.json apps/desktop/ui/pnpm-lock.yaml* ./
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile || pnpm install
+
+# Copy application code
+COPY apps/desktop/ui/ .
+
+# Build for production
+RUN pnpm build
+
+# Serve with lightweight server
+RUN npm install -g serve
+EXPOSE 5173
+
+CMD ["serve", "-s", "dist", "-l", "5173"]

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicbarker/tauri/next/crates/tauri-cli/config.schema.json",
+  "productName": "Zero-Employee Orchestrator",
+  "version": "0.1.0",
+  "identifier": "com.zero-employee-orchestrator.app",
+  "build": {
+    "frontendDist": "../ui/dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "cd ../ui && pnpm dev",
+    "beforeBuildCommand": "cd ../ui && pnpm build"
+  },
+  "app": {
+    "title": "Zero-Employee Orchestrator",
+    "windows": [
+      {
+        "title": "Zero-Employee Orchestrator",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 960,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "shortDescription": "AI業務オーケストレーション基盤",
+    "longDescription": "自然言語で業務を設計し、複数AIを組織的に協働させる、人間の承認と監査可能性を備えた業務実行基盤"
+  }
+}

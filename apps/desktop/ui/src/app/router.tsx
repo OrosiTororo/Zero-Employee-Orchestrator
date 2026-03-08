@@ -1,10 +1,12 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { App } from './App'
 import { LoginPage } from '@/pages/LoginPage'
+import { SetupPage } from '@/pages/SetupPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { OrgChartPage } from '@/pages/OrgChartPage'
 import { TicketListPage } from '@/pages/TicketListPage'
 import { TicketDetailPage } from '@/pages/TicketDetailPage'
+import { InterviewPage } from '@/pages/InterviewPage'
 import { SpecPlanPage } from '@/pages/SpecPlanPage'
 import { ApprovalsPage } from '@/pages/ApprovalsPage'
 import { ArtifactsPage } from '@/pages/ArtifactsPage'
@@ -22,6 +24,10 @@ export const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
+    path: '/setup',
+    element: <SetupPage />,
+  },
+  {
     path: '/',
     element: <App />,
     children: [
@@ -29,6 +35,7 @@ export const router = createBrowserRouter([
       { path: 'org-chart', element: <OrgChartPage /> },
       { path: 'tickets', element: <TicketListPage /> },
       { path: 'tickets/:id', element: <TicketDetailPage /> },
+      { path: 'tickets/:id/interview', element: <InterviewPage /> },
       { path: 'tickets/:id/spec-plan', element: <SpecPlanPage /> },
       { path: 'approvals', element: <ApprovalsPage /> },
       { path: 'artifacts', element: <ArtifactsPage /> },
