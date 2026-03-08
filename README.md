@@ -4,32 +4,16 @@
 
 ---
 
-## ダウンロード
+## インストール
 
-### GUI版（デスクトップアプリ - 非エンジニア向け）
-
-[Releases ページ](https://github.com/TroroOrosi/Zero-Employee-Orchestrator/releases) から、お使いの OS に合ったインストーラーをダウンロードしてください：
-
-| OS | ファイル形式 |
-|----|------------|
-| Windows | `.msi` / `.exe` |
-| macOS | `.dmg` |
-| Linux | `.AppImage` / `.deb` |
-
-> インストール後、アカウント登録するだけで始められます。APIキーの手動入力は不要です。
-
-### CLI / TUI版（エンジニア向け）
-
-```bash
-pip install zero-employee-orchestrator
-```
-
-### ソースコードから（開発者向け）
+ソースコードからセットアップしてください：
 
 ```bash
 git clone https://github.com/TroroOrosi/Zero-Employee-Orchestrator.git
 cd Zero-Employee-Orchestrator
 ```
+
+> **Note:** デスクトップ向けインストーラー（`.msi` / `.dmg` / `.AppImage`）および pip パッケージは現在開発中です。現時点ではソースコードからのセットアップのみ対応しています。
 
 ---
 
