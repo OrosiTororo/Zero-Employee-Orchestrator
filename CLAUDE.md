@@ -9,7 +9,7 @@
 
 1. この `CLAUDE.md`
 2. `IMPLEMENTATION_PLAN.md`
-3. `docs/vision/CommandWeave_complete_with_dify_coze_additions.md` などの上位思想文書
+3. 上位思想文書である`CommandWeave.md`
 4. 既存コードと既存テスト
 
 ---
