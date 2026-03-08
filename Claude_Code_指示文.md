@@ -6,7 +6,7 @@
 2. `IMPLEMENTATION_PLAN.md`
 3. `CommandWeave.md`
 
-読み取り後は、思想文書を全部一気に実装しようとせず、`CLAUDE.md` と `IMPLEMENTATION_PLAN.md` を最優先の基準にしてください。
+読み取り後は、思想文書である`CommandWeave.md`を全部一気に実装しようとせず、`CLAUDE.md` と `IMPLEMENTATION_PLAN.md` を最優先の基準にしてください。
 
 今回の目的は、CommandWeave の MVP として以下の end-to-end を最小構成で通すことです。
 
