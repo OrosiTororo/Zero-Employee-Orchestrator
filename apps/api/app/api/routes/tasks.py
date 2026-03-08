@@ -1,4 +1,4 @@
-"""Task execution endpoints."""
+"""Task execution endpoints with state machine enforcement."""
 
 import uuid
 from datetime import datetime
@@ -10,6 +10,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
 from app.models.task import Task, TaskRun
+from app.services.task_service import (
+    start_task as svc_start_task,
+    complete_task as svc_complete_task,
+    request_task_approval as svc_request_approval,
+    validate_task_transition,
+)
+from app.services.approval_service import requires_forced_approval
 
 router = APIRouter()
 
@@ -42,14 +49,16 @@ async def create_task(plan_id: str, req: TaskCreate, db: AsyncSession = Depends(
 
 @router.post("/tasks/{task_id}/start")
 async def start_task(task_id: str, db: AsyncSession = Depends(get_db)):
-    """タスク実行開始"""
+    """タスク実行開始 (state machine enforced)"""
     result = await db.execute(select(Task).where(Task.id == uuid.UUID(task_id)))
     task = result.scalar_one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    task.status = "running"
-    task.started_at = datetime.utcnow()
-    return {"status": "running"}
+    try:
+        run = await svc_start_task(db, task)
+        return {"status": "running", "run_id": str(run.id), "run_no": run.run_no}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post("/tasks/{task_id}/complete")
@@ -59,9 +68,19 @@ async def complete_task(task_id: str, db: AsyncSession = Depends(get_db)):
     task = result.scalar_one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    task.status = "succeeded"
-    task.completed_at = datetime.utcnow()
-    return {"status": "succeeded"}
+
+    run_result = await db.execute(
+        select(TaskRun).where(TaskRun.task_id == task.id, TaskRun.status == "running")
+    )
+    run = run_result.scalar_one_or_none()
+    if not run:
+        raise HTTPException(status_code=400, detail="No running task run found")
+
+    try:
+        task = await svc_complete_task(db, task, run, success=True)
+        return {"status": task.status}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post("/tasks/{task_id}/retry")
@@ -71,7 +90,10 @@ async def retry_task(task_id: str, db: AsyncSession = Depends(get_db)):
     task = result.scalar_one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
+    if not validate_task_transition(task.status, "retrying"):
+        raise HTTPException(status_code=400, detail=f"Cannot retry from status: {task.status}")
     task.status = "retrying"
+    await db.commit()
     return {"status": "retrying"}
 
 
@@ -82,8 +104,11 @@ async def request_approval(task_id: str, db: AsyncSession = Depends(get_db)):
     task = result.scalar_one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    task.status = "awaiting_approval"
-    return {"status": "awaiting_approval"}
+    try:
+        task = await svc_request_approval(db, task)
+        return {"status": task.status}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post("/tasks/{task_id}/runs")
