@@ -1,4 +1,4 @@
-import { Heartbeat, Clock, CheckCircle, XCircle, Plus } from "lucide-react"
+import { HeartPulse, Clock, CheckCircle, XCircle, Plus } from "lucide-react"
 
 export function HeartbeatsPage() {
   // Placeholder data
@@ -23,7 +23,7 @@ export function HeartbeatsPage() {
       <div className="max-w-[900px] mx-auto px-6 py-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <Heartbeat size={18} className="text-[#007acc]" />
+            <HeartPulse size={18} className="text-[#007acc]" />
             <h2 className="text-[14px] font-medium text-[#cccccc]">
               ハートビート
             </h2>

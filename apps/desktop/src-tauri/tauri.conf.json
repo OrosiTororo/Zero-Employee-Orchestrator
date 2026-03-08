@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/nicbarker/tauri/next/crates/tauri-cli/config.schema.json",
   "productName": "Zero-Employee Orchestrator",
   "version": "0.1.0",
-  "identifier": "com.zero-employee-orchestrator.app",
+  "identifier": "com.zero-employee-orchestrator.desktop",
   "build": {
     "frontendDist": "../ui/dist",
     "devUrl": "http://localhost:5173",
@@ -10,7 +10,6 @@
     "beforeBuildCommand": "cd ../ui && pnpm build"
   },
   "app": {
-    "title": "Zero-Employee Orchestrator",
     "windows": [
       {
         "title": "Zero-Employee Orchestrator",

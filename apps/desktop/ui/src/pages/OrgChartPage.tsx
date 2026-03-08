@@ -1,4 +1,4 @@
-import { Network, Building2, Users, Bot } from "lucide-react"
+import { Network, Building2, Bot } from "lucide-react"
 
 export function OrgChartPage() {
   return (

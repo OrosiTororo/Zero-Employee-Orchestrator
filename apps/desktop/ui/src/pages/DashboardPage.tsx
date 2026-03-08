@@ -6,7 +6,7 @@ import {
   Ticket,
   ShieldCheck,
   Bot,
-  Heartbeat,
+  HeartPulse,
   Coins,
   AlertTriangle,
   Lightbulb,
@@ -148,7 +148,7 @@ export function DashboardPage() {
             onClick={() => navigate("/org-chart")}
           />
           <SummaryCard
-            icon={Heartbeat}
+            icon={HeartPulse}
             label="ハートビート"
             value="正常"
             sub="最終チェック: --"
