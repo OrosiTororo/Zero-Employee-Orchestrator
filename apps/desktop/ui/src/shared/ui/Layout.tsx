@@ -34,7 +34,7 @@ const navItems = [
   { icon: ScrollText, path: "/audit", label: "監査ログ" },
   { icon: Blocks, path: "/skills", label: "スキル" },
   { icon: Puzzle, path: "/plugins", label: "プラグイン" },
-  { icon: Download, path: "/releases", label: "リリース" },
+  { icon: Download, path: "/download", label: "ダウンロード" },
   { icon: Settings, path: "/settings", label: "設定" },
 ]
 
@@ -50,7 +50,7 @@ const pageTitles: Record<string, string> = {
   "/skills": "スキル",
   "/skills/create": "スキル作成",
   "/plugins": "プラグイン",
-  "/releases": "リリース",
+  "/download": "ダウンロード",
   "/settings": "設定",
 }
 
