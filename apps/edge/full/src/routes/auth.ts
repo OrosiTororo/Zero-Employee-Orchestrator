@@ -27,15 +27,25 @@ auth.post("/register", async (c) => {
     return c.json({ error: "Email already registered" }, 409);
   }
 
-  // Hash password using Web Crypto (SHA-256 + salt, suitable for edge)
+  // Hash password using PBKDF2 with Web Crypto API
   const salt = crypto.randomUUID();
   const encoder = new TextEncoder();
-  const data = encoder.encode(salt + body.password);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(body.password),
+    "PBKDF2",
+    false,
+    ["deriveBits"],
+  );
+  const hashBuffer = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", salt: encoder.encode(salt), iterations: 100000, hash: "SHA-256" },
+    keyMaterial,
+    256,
+  );
   const hashHex = Array.from(new Uint8Array(hashBuffer))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
-  const passwordHash = `${salt}:${hashHex}`;
+  const passwordHash = `pbkdf2:${salt}:${hashHex}`;
 
   const id = newId();
   const timestamp = now();
@@ -80,11 +90,25 @@ auth.post("/login", async (c) => {
     return c.json({ error: "Invalid credentials" }, 401);
   }
 
-  // Verify password
-  const [salt, storedHash] = user.password_hash.split(":");
+  // Verify password using PBKDF2
+  const parts = user.password_hash.split(":");
+  if (parts.length !== 3 || parts[0] !== "pbkdf2") {
+    return c.json({ error: "Invalid credentials" }, 401);
+  }
+  const [, salt, storedHash] = parts;
   const encoder = new TextEncoder();
-  const data = encoder.encode(salt + body.password);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(body.password),
+    "PBKDF2",
+    false,
+    ["deriveBits"],
+  );
+  const hashBuffer = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", salt: encoder.encode(salt), iterations: 100000, hash: "SHA-256" },
+    keyMaterial,
+    256,
+  );
   const hashHex = Array.from(new Uint8Array(hashBuffer))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");

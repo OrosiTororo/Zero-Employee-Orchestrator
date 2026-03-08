@@ -8,4 +8,5 @@ database_name = "zeo-orchestrator"
 database_id = "placeholder-id"
 
 [vars]
+# Development default only. For production, use: wrangler secret put JWT_SECRET
 JWT_SECRET = "change-me-in-production"

@@ -20,12 +20,16 @@ export const auditMiddleware = createMiddleware<{
   const path = new URL(c.req.url).pathname;
   const now = new Date().toISOString();
 
+  // Extract company_id from URL path if present (e.g. /api/companies/:id/...)
+  const companyMatch = path.match(/\/api\/companies\/([^/]+)/);
+  const companyId = companyMatch ? companyMatch[1] : "";
+
   try {
     await c.env.DB.prepare(
       `INSERT INTO audit_logs (id, company_id, actor_type, actor_user_id, event_type, target_type, target_id, created_at)
-       VALUES (lower(hex(randomblob(16))), '', 'user', ?, ?, ?, NULL, ?)`,
+       VALUES (lower(hex(randomblob(16))), ?, 'user', ?, ?, ?, NULL, ?)`,
     )
-      .bind(userId, `${method} ${path}`, path, now)
+      .bind(companyId, userId, `${method} ${path}`, path, now)
       .run();
   } catch {
     // Audit logging should not break the request
