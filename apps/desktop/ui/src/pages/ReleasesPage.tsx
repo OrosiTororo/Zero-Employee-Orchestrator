@@ -99,6 +99,79 @@ function findLatestAssetUrl(releases: Release[], os: OsFilter): string | null {
   return null
 }
 
+function getGuiAsset(assets: ReleaseAsset[], os: "windows" | "macos" | "linux"): ReleaseAsset | null {
+  for (const a of assets) {
+    const lower = a.name.toLowerCase()
+    if (os === "windows" && (lower.endsWith(".msi") || lower.endsWith(".exe"))) return a
+    if (os === "macos" && lower.endsWith(".dmg")) return a
+    if (os === "linux" && (lower.endsWith(".appimage") || lower.endsWith(".deb"))) return a
+  }
+  return null
+}
+
+function GuiInstallerGrid({ assets }: { assets: ReleaseAsset[] }) {
+  const winAsset = getGuiAsset(assets, "windows")
+  const macAsset = getGuiAsset(assets, "macos")
+  const linuxAsset = getGuiAsset(assets, "linux")
+
+  if (!winAsset && !macAsset && !linuxAsset) return null
+
+  const platforms: Array<{
+    icon: React.ComponentType<{ size?: number; className?: string }>
+    os: string
+    asset: ReleaseAsset | null
+  }> = [
+    { icon: Monitor, os: "Windows", asset: winAsset },
+    { icon: Apple, os: "macOS", asset: macAsset },
+    { icon: HardDrive, os: "Linux", asset: linuxAsset },
+  ]
+
+  return (
+    <div className="px-4 pt-3 pb-1">
+      <div className="text-[11px] uppercase tracking-wider text-[#6a6a6a] mb-2">
+        GUI インストーラー
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        {platforms.map(({ icon: Icon, os, asset }) =>
+          asset ? (
+            <a
+              key={os}
+              href={asset.browser_download_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col gap-1 px-3 py-2.5 rounded border border-[#3e3e42] bg-[#1e1e1e] hover:border-[#007acc] transition-colors no-underline group"
+              title={asset.name}
+            >
+              <div className="flex items-center gap-1.5">
+                <Icon size={13} className="text-[#007acc] shrink-0" />
+                <span className="text-[12px] font-medium text-[#cccccc]">{os}</span>
+              </div>
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-[10px] text-[#6a6a6a] truncate">
+                  {asset.name}
+                </span>
+                <Download size={11} className="text-[#6a6a6a] group-hover:text-[#007acc] shrink-0" />
+              </div>
+            </a>
+          ) : (
+            <div
+              key={os}
+              className="flex flex-col gap-1 px-3 py-2.5 rounded border border-[#3e3e42] bg-[#1e1e1e] opacity-40"
+            >
+              <div className="flex items-center gap-1.5">
+                <Icon size={13} className="text-[#6a6a6a] shrink-0" />
+                <span className="text-[12px] font-medium text-[#cccccc]">{os}</span>
+              </div>
+              <div className="text-[10px] text-[#6a6a6a]">準備中</div>
+            </div>
+          )
+        )}
+      </div>
+    </div>
+  )
+}
+
+
 function renderMarkdownBasic(text: string): string {
   return text
     .replace(/&/g, "&amp;")
@@ -326,10 +399,15 @@ export function ReleasesPage() {
 
                 {/* Assets */}
                 {release.assets.length > 0 && (
-                  <div className="px-4 py-3">
-                    <div className="text-[11px] uppercase tracking-wider text-[#6a6a6a] mb-2">
-                      ダウンロード
-                    </div>
+                  <div>
+                    {/* GUI Installer cards */}
+                    <GuiInstallerGrid assets={release.assets} />
+
+                    {/* Full asset list */}
+                    <div className="px-4 py-3">
+                      <div className="text-[11px] uppercase tracking-wider text-[#6a6a6a] mb-2">
+                        全アセット
+                      </div>
                     <div className="flex flex-col gap-1.5">
                       {release.assets.map((asset) => {
                         const Icon = getOsIcon(asset.name)
@@ -372,6 +450,7 @@ export function ReleasesPage() {
                           </a>
                         )
                       })}
+                    </div>
                     </div>
                   </div>
                 )}

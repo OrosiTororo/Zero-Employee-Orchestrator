@@ -66,7 +66,7 @@ jobs:
         with:
           projectPath: apps/desktop
           tagName: ${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}
-          releaseName: 'Zero-Employee Orchestrator ${{ github.event_name == ''workflow_dispatch'' && format(''v{0}'', github.event.inputs.version) || github.ref_name }}'
+          releaseName: "Zero-Employee Orchestrator ${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}"
           releaseBody: |
             ## Zero-Employee Orchestrator ${{ github.ref_name }}
 
