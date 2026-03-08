@@ -61,13 +61,15 @@ def estimate_cost(
     """モデルとトークン数からコストを見積もる."""
     table = cost_table or DEFAULT_COST_TABLE
 
-    # Find matching model in cost table (prefix match)
+    # Find matching model in cost table (longest prefix match)
     rates = {"input": 0.002, "output": 0.002}  # fallback
     model_lower = model_name.lower()
+    best_match_len = 0
     for key, value in table.items():
-        if model_lower.startswith(key.lower()):
+        key_lower = key.lower()
+        if model_lower.startswith(key_lower) and len(key_lower) > best_match_len:
             rates = value
-            break
+            best_match_len = len(key_lower)
 
     input_cost = (estimated_input_tokens / 1000) * rates["input"]
     output_cost = (estimated_output_tokens / 1000) * rates["output"]
