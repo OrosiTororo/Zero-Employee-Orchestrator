@@ -125,9 +125,98 @@ class PolicyPackJudge:
         )
 
 
+class CrossModelJudge:
+    """Cross-Model Verification: 複数モデルの出力を比較して品質を検証.
+
+    HIGH / CRITICAL 品質モードで使用し、異なる LLM の出力の
+    一致度を評価して信頼性を担保する。
+    """
+
+    def __init__(self, agreement_threshold: float = 0.7) -> None:
+        self.agreement_threshold = agreement_threshold
+
+    def evaluate(self, outputs: list[dict], context: dict | None = None) -> JudgeResult:
+        """複数モデル出力の一致度を評価する.
+
+        Args:
+            outputs: 各モデルの出力辞書リスト
+            context: 評価コンテキスト
+        """
+        if len(outputs) < 2:
+            return JudgeResult(
+                verdict=JudgeVerdict.WARN,
+                score=0.5,
+                reasons=["クロスモデル検証には2つ以上の出力が必要です"],
+                suggestions=["追加モデルでの検証を推奨します"],
+                policy_violations=[],
+                requires_human_review=False,
+            )
+
+        # Compare key overlap across outputs
+        all_keys: set[str] = set()
+        for out in outputs:
+            all_keys.update(out.keys())
+
+        if not all_keys:
+            return JudgeResult(
+                verdict=JudgeVerdict.WARN,
+                score=0.5,
+                reasons=["出力が空です"],
+                suggestions=[],
+                policy_violations=[],
+            )
+
+        # Structural agreement: fraction of keys present in all outputs
+        common_keys = all_keys.copy()
+        for out in outputs:
+            common_keys &= set(out.keys())
+        structural_score = len(common_keys) / len(all_keys) if all_keys else 0.0
+
+        # Value agreement: fraction of common keys with matching values
+        matching_values = 0
+        for key in common_keys:
+            values = [str(out.get(key, "")) for out in outputs]
+            if len(set(values)) == 1:
+                matching_values += 1
+        value_score = matching_values / len(common_keys) if common_keys else 0.0
+
+        overall_score = (structural_score + value_score) / 2
+        reasons = []
+        suggestions = []
+
+        if structural_score < self.agreement_threshold:
+            reasons.append(
+                f"構造一致度が低い: {structural_score:.0%} "
+                f"(閾値 {self.agreement_threshold:.0%})"
+            )
+        if value_score < self.agreement_threshold:
+            reasons.append(
+                f"値一致度が低い: {value_score:.0%} "
+                f"(閾値 {self.agreement_threshold:.0%})"
+            )
+
+        if overall_score < self.agreement_threshold:
+            verdict = JudgeVerdict.NEEDS_REVIEW
+            suggestions.append("人間レビューによる最終判断を推奨します")
+        elif reasons:
+            verdict = JudgeVerdict.WARN
+        else:
+            verdict = JudgeVerdict.PASS
+
+        return JudgeResult(
+            verdict=verdict,
+            score=round(overall_score, 3),
+            reasons=reasons,
+            suggestions=suggestions,
+            policy_violations=[],
+            requires_human_review=verdict == JudgeVerdict.NEEDS_REVIEW,
+        )
+
+
 # Default judge instances
 rule_judge = RuleBasedJudge()
 policy_judge = PolicyPackJudge()
+cross_model_judge = CrossModelJudge()
 
 
 def judge_output(
