@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import Base, engine
 from app.api.routes import api_router
+from app.api.ws.events import router as ws_router
 
 # Ensure all models are imported so Base.metadata is populated.
 import app.models  # noqa: F401
@@ -38,6 +39,9 @@ app.add_middleware(
 
 # API routes
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+
+# WebSocket routes
+app.include_router(ws_router)
 
 
 @app.get("/healthz", tags=["health"])

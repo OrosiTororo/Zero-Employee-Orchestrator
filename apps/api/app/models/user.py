@@ -18,6 +18,7 @@ class User(Base, TimestampMixin):
     role: Mapped[str] = mapped_column(String(30), default="user")
     status: Mapped[str] = mapped_column(String(30), default="active")
     auth_provider: Mapped[str | None] = mapped_column(String(60), nullable=True)
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 

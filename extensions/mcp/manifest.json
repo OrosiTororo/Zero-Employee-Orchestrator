@@ -1,0 +1,12 @@
+{
+  "name": "mcp",
+  "version": "0.1.0",
+  "description": "MCP接続拡張 - Model Context Protocol対応ツールとの接続を提供",
+  "type": "extension",
+  "status": "experimental",
+  "required_permissions": ["tool_connection"],
+  "external_connections": [],
+  "dangerous_operations": false,
+  "approval_required_operations": [],
+  "author": "Zero-Employee Orchestrator Team"
+}

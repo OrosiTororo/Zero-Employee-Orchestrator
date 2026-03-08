@@ -1,0 +1,14 @@
+{
+  "name": "research",
+  "version": "0.1.0",
+  "description": "リサーチPlugin - 競合分析、市場調査、情報収集を自動化",
+  "type": "plugin",
+  "status": "experimental",
+  "skills": ["web_search", "competitive_analysis", "data_summarization"],
+  "required_permissions": ["internet_access"],
+  "external_connections": [],
+  "dangerous_operations": false,
+  "approval_required_operations": ["publish_report"],
+  "use_cases": ["競合分析", "市場調査", "トレンド分析"],
+  "author": "Zero-Employee Orchestrator Team"
+}

@@ -1,0 +1,185 @@
+name: Release - Build & Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 0.1.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  # Build Tauri desktop app for all platforms
+  build-desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ubuntu-22.04
+            target: linux
+            artifact_name: zero-employee-orchestrator-linux
+          - platform: macos-latest
+            target: macos
+            artifact_name: zero-employee-orchestrator-macos
+          - platform: windows-latest
+            target: windows
+            artifact_name: zero-employee-orchestrator-windows
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Linux dependencies
+        if: matrix.target == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install frontend dependencies
+        working-directory: apps/desktop/ui
+        run: pnpm install
+
+      - name: Build frontend
+        working-directory: apps/desktop/ui
+        run: pnpm build
+
+      - name: Install Python backend
+        working-directory: apps/api
+        run: pip install -e "."
+
+      - name: Build Tauri app
+        if: hashFiles('apps/desktop/src-tauri/Cargo.toml') != ''
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: apps/desktop
+          tagName: v__VERSION__
+          releaseName: 'Zero-Employee Orchestrator v__VERSION__'
+          releaseBody: |
+            ## Zero-Employee Orchestrator
+
+            AI業務オーケストレーション基盤のリリースです。
+
+            ### ダウンロード方法
+            お使いのOSに合ったファイルをダウンロードしてください:
+            - **Windows**: `.msi` または `.exe` ファイル
+            - **macOS**: `.dmg` ファイル
+            - **Linux**: `.AppImage` または `.deb` ファイル
+
+            ### 初回セットアップ
+            1. ダウンロードしたファイルを実行
+            2. アカウント登録（メールアドレスとパスワード）
+            3. セットアップウィザードに従って設定
+            4. ダッシュボードから自然言語で業務を依頼
+
+            APIキーは後から設定画面で追加できます。
+          releaseDraft: true
+          prerelease: false
+
+      # Fallback: package frontend as standalone web app
+      - name: Package Web App
+        working-directory: apps/desktop/ui
+        run: |
+          pnpm build
+          tar -czf ../../../${{ matrix.artifact_name }}-web.tar.gz -C dist .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            ${{ matrix.artifact_name }}-web.tar.gz
+            apps/desktop/src-tauri/target/release/bundle/**/*
+
+  # Build Python CLI/TUI package
+  build-cli:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Build API package
+        working-directory: apps/api
+        run: |
+          uv pip install build --system
+          python -m build
+
+      - name: Upload CLI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zero-employee-orchestrator-cli
+          path: apps/api/dist/*
+
+  # Create GitHub Release
+  create-release:
+    needs: [build-desktop, build-cli]
+    runs-on: ubuntu-22.04
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          generate_release_notes: true
+          files: |
+            artifacts/**/*
+          body: |
+            ## Zero-Employee Orchestrator
+
+            AI業務オーケストレーション基盤
+
+            ### GUI版（デスクトップアプリ）
+            非エンジニアの方はこちらをダウンロードしてください：
+            - **Windows**: `.msi` ファイル
+            - **macOS**: `.dmg` ファイル
+            - **Linux**: `.AppImage` ファイル
+
+            ### CLI / TUI版（コマンドライン）
+            エンジニアの方はPythonパッケージをインストール：
+            ```bash
+            pip install zero-employee-orchestrator
+            ```
+
+            ### クイックスタート
+            1. アプリをインストール
+            2. アカウント登録（APIキー不要）
+            3. セットアップウィザードで初期設定
+            4. 自然言語で業務を依頼開始
