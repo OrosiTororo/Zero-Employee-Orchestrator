@@ -34,10 +34,10 @@ client_secret.json
 .pytest_cache/
 .coverage
 htmlcov/
-test_zpcos.db
+test_zero_employee_orchestrator.db
 
 # Database
-zpcos.db
+zero_employee_orchestrator.db
 *.db-journal
 
 # Tauri

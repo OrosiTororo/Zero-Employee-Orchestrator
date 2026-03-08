@@ -1,1 +1,0 @@
-"""Design Interview + Spec Writer."""
