@@ -18,6 +18,7 @@ import { SkillCreatePage } from '@/pages/SkillCreatePage'
 import { PluginsPage } from '@/pages/PluginsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { ReleasesPage } from '@/pages/ReleasesPage'
+import { DownloadPage } from '@/pages/DownloadPage'
 
 export const router = createBrowserRouter([
   {
@@ -48,6 +49,7 @@ export const router = createBrowserRouter([
       { path: 'plugins', element: <PluginsPage /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: 'releases', element: <ReleasesPage /> },
+      { path: 'download', element: <DownloadPage /> },
     ],
   },
 ])
