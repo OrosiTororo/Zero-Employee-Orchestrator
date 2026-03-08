@@ -5,6 +5,126 @@ from datetime import datetime, timezone
 from enum import Enum
 
 
+# ---------------------------------------------------------------------------
+# State Machine base
+# ---------------------------------------------------------------------------
+
+class StateMachineError(Exception):
+    """不正な状態遷移を試みた場合に発生する例外."""
+
+
+class BaseStateMachine:
+    """汎用状態機械: 遷移テーブルに基づいて状態遷移を検証・実行する."""
+
+    transitions: dict[str, list[str]] = {}
+
+    def __init__(self, initial_state: str) -> None:
+        if initial_state not in self.transitions:
+            raise StateMachineError(f"不明な初期状態: {initial_state}")
+        self._state = initial_state
+        self._history: list[dict[str, str]] = []
+
+    @property
+    def state(self) -> str:
+        return self._state
+
+    @property
+    def history(self) -> list[dict[str, str]]:
+        return list(self._history)
+
+    def can_transition(self, target: str) -> bool:
+        return target in self.transitions.get(self._state, [])
+
+    def transition(self, target: str, reason: str = "") -> str:
+        if not self.can_transition(target):
+            raise StateMachineError(
+                f"遷移不可: {self._state} → {target} "
+                f"(許可: {self.transitions.get(self._state, [])})"
+            )
+        old = self._state
+        self._state = target
+        self._history.append({
+            "from": old,
+            "to": target,
+            "reason": reason,
+            "at": datetime.now(timezone.utc).isoformat(),
+        })
+        return self._state
+
+    def available_transitions(self) -> list[str]:
+        return list(self.transitions.get(self._state, []))
+
+
+class TicketStateMachine(BaseStateMachine):
+    """Ticket の状態遷移を管理する."""
+
+    transitions: dict[str, list[str]] = {
+        "draft": ["open", "cancelled"],
+        "open": ["interviewing", "planning", "cancelled"],
+        "interviewing": ["open", "planning", "cancelled"],
+        "planning": ["ready", "open", "cancelled"],
+        "ready": ["in_progress", "cancelled"],
+        "in_progress": ["review", "blocked", "cancelled"],
+        "blocked": ["in_progress", "cancelled"],
+        "review": ["done", "rework", "cancelled"],
+        "rework": ["in_progress", "cancelled"],
+        "done": ["closed", "reopened"],
+        "reopened": ["in_progress", "cancelled"],
+        "closed": ["reopened"],
+        "cancelled": [],
+    }
+
+
+class TaskStateMachine(BaseStateMachine):
+    """Task の状態遷移を管理する."""
+
+    transitions: dict[str, list[str]] = {
+        "pending": ["ready", "cancelled"],
+        "ready": ["running", "blocked"],
+        "running": ["succeeded", "failed", "awaiting_approval", "blocked"],
+        "awaiting_approval": ["running", "cancelled"],
+        "blocked": ["ready", "cancelled"],
+        "failed": ["retrying", "cancelled"],
+        "retrying": ["running", "failed"],
+        "succeeded": ["verified", "archived"],
+        "verified": ["archived", "rework_requested"],
+        "rework_requested": ["ready", "running"],
+        "cancelled": [],
+        "archived": [],
+    }
+
+
+class ApprovalStateMachine(BaseStateMachine):
+    """承認リクエストの状態遷移を管理する."""
+
+    transitions: dict[str, list[str]] = {
+        "requested": ["approved", "rejected", "expired", "cancelled"],
+        "approved": ["executed"],
+        "rejected": ["superseded"],
+        "expired": ["requested", "cancelled"],
+        "cancelled": [],
+        "executed": [],
+        "superseded": [],
+    }
+
+
+class AgentStateMachine(BaseStateMachine):
+    """Agent の状態遷移を管理する."""
+
+    transitions: dict[str, list[str]] = {
+        "provisioning": ["idle", "error"],
+        "idle": ["busy", "paused", "decommissioned"],
+        "busy": ["idle", "error", "paused"],
+        "paused": ["idle", "decommissioned"],
+        "error": ["idle", "paused", "decommissioned"],
+        "decommissioned": [],
+    }
+
+
+# ---------------------------------------------------------------------------
+# Experience Memory
+# ---------------------------------------------------------------------------
+
 class MemoryType(str, Enum):
     CONVERSATION = "conversation_log"
     REUSABLE = "reusable_improvement"
