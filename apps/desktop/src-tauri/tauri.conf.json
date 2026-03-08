@@ -10,7 +10,6 @@
     "beforeBuildCommand": "cd ../ui && pnpm build"
   },
   "app": {
-    "title": "Zero-Employee Orchestrator",
     "windows": [
       {
         "title": "Zero-Employee Orchestrator",

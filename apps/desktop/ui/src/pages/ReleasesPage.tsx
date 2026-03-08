@@ -434,7 +434,7 @@ function DownloadCard({
   description,
   href,
 }: {
-  icon: React.ComponentType<{ size?: number }>
+  icon: React.ComponentType<{ size?: number; className?: string }>
   os: string
   format: string
   description: string
