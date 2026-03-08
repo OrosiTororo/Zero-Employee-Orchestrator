@@ -70,89 +70,16 @@ cd Zero-Employee-Orchestrator
 
 ## 前提条件
 
-| ツール | バージョン | 確認コマンド | インストール方法 |
-|--------|-----------|-------------|----------------|
-| Python | 3.12 以上 | `python3 --version` | [python.org](https://www.python.org/downloads/) |
-| Node.js | 20 以上 | `node -v` | [nodejs.org](https://nodejs.org/) |
-| pnpm | 9 以上 | `pnpm -v` | `npm install -g pnpm` |
-| Git | 任意 | `git --version` | [git-scm.com](https://git-scm.com/) |
+| ツール | バージョン | 確認コマンド |
+|--------|-----------|-------------|
+| Python | 3.12 以上 | `python3 --version` |
+| Node.js | 20 以上 | `node -v` |
+| pnpm | 9 以上 | `pnpm -v` |
+| Git | 任意 | `git --version` |
+
+各ツールは OS のパッケージマネージャー（`brew`, `apt`, `winget` 等）でインストールできます。
 
 > **Rust** はデスクトップアプリ（Tauri）をビルドする場合のみ必要です。Web ブラウザでの利用には不要です。
-
-### OS 別インストールガイド
-
-<details>
-<summary><strong>macOS</strong></summary>
-
-```bash
-# Homebrew で一括インストール
-brew install python@3.12 node pnpm git
-
-# バージョン確認
-python3 --version   # 3.12 以上
-node -v             # v20 以上
-pnpm -v             # 9 以上
-```
-
-</details>
-
-<details>
-<summary><strong>Windows</strong></summary>
-
-1. **Python 3.12+**: [python.org](https://www.python.org/downloads/) からインストーラーをダウンロード
-   - インストール時に「Add Python to PATH」にチェック
-2. **Node.js 20+**: [nodejs.org](https://nodejs.org/) から LTS 版をインストール
-3. **pnpm**: PowerShell で `npm install -g pnpm`
-4. **Git**: [git-scm.com](https://git-scm.com/download/win) からインストール
-
-> Windows では Git Bash または WSL2 でスクリプトを実行してください。
-
-```bash
-# Git Bash / WSL2 で実行
-./setup.sh
-./start.sh
-```
-
-**PowerShell で実行する場合（スクリプトを使わない方法）:**
-
-```powershell
-# バックエンド
-cd apps\api
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -e "."
-uvicorn app.main:app --reload --host 0.0.0.0 --port 18234
-
-# 別ターミナルでフロントエンド
-cd apps\desktop\ui
-pnpm install
-pnpm dev
-```
-
-</details>
-
-<details>
-<summary><strong>Linux (Ubuntu / Debian)</strong></summary>
-
-```bash
-# システムパッケージの更新
-sudo apt update && sudo apt upgrade -y
-
-# Python 3.12+
-sudo apt install -y python3 python3-venv python3-pip
-
-# Node.js 20+ (NodeSource)
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
-
-# pnpm
-npm install -g pnpm
-
-# Git
-sudo apt install -y git
-```
-
-</details>
 
 ---
 

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   Send,
@@ -12,20 +12,54 @@ import {
   Lightbulb,
   Target,
 } from "lucide-react"
+import { api } from "../shared/api/client"
 
 export function DashboardPage() {
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
+  const [activeTickets, setActiveTickets] = useState(0)
+  const [pendingApprovals, setPendingApprovals] = useState(0)
+  const [agentStatus, setAgentStatus] = useState("0 / 0")
   const navigate = useNavigate()
+  const companyId = localStorage.getItem("company_id") || ""
+
+  const fetchStats = useCallback(async () => {
+    if (!companyId) return
+    try {
+      const [tickets, approvals, agents] = await Promise.all([
+        api.get<any[]>(`/companies/${companyId}/tickets?status=in_progress`).catch(() => []),
+        api.get<any[]>(`/approvals?status=requested`).catch(() => []),
+        api.get<any[]>(`/companies/${companyId}/agents`).catch(() => []),
+      ])
+      setActiveTickets(tickets.length)
+      setPendingApprovals(approvals.length)
+      const active = agents.filter((a: any) => a.status === "active").length
+      setAgentStatus(`${active} / ${agents.length}`)
+    } catch {
+      // Stats will remain at defaults
+    }
+  }, [companyId])
+
+  useEffect(() => { fetchStats() }, [fetchStats])
 
   const handleSubmit = async () => {
     if (!input.trim() || loading) return
     setLoading(true)
     try {
-      // TODO: POST to /tickets with natural language input
-      navigate("/tickets")
+      if (companyId) {
+        const ticket = await api.post<{ id: string }>(`/companies/${companyId}/tickets`, {
+          title: input.trim(),
+          description: input.trim(),
+          priority: "medium",
+          source_type: "user",
+        })
+        navigate(`/tickets/${ticket.id}/interview`)
+      } else {
+        navigate("/tickets")
+      }
     } catch (e) {
       console.error("Failed:", e)
+      navigate("/tickets")
     } finally {
       setLoading(false)
     }
@@ -95,21 +129,21 @@ export function DashboardPage() {
           <SummaryCard
             icon={Ticket}
             label="アクティブチケット"
-            value="0"
+            value={String(activeTickets)}
             sub="進行中のタスク"
             onClick={() => navigate("/tickets")}
           />
           <SummaryCard
             icon={ShieldCheck}
             label="承認待ち"
-            value="0"
+            value={String(pendingApprovals)}
             sub="要対応"
             onClick={() => navigate("/approvals")}
           />
           <SummaryCard
             icon={Bot}
             label="エージェント稼働状況"
-            value="0 / 0"
+            value={agentStatus}
             sub="アクティブ / 全体"
             onClick={() => navigate("/org-chart")}
           />

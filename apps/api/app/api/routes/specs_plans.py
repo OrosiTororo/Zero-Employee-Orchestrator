@@ -11,6 +11,10 @@ from app.api.deps.database import get_db
 from app.models.spec import Spec
 from app.models.plan import Plan
 from app.models.task import Task
+from app.models.ticket import Ticket
+from app.models.audit import AuditLog
+from app.core.security import generate_uuid
+from app.orchestration.dag import ExecutionDAG, TaskNode
 
 router = APIRouter()
 
@@ -111,13 +115,66 @@ async def create_plan(ticket_id: str, req: PlanCreate, db: AsyncSession = Depend
 
 @router.post("/plans/{plan_id}/approve")
 async def approve_plan(plan_id: str, db: AsyncSession = Depends(get_db)):
-    """planを承認"""
-    result = await db.execute(select(Plan).where(Plan.id == uuid.UUID(plan_id)))
+    """planを承認 + DAG構築 + タスク生成"""
+    pid = uuid.UUID(plan_id)
+    result = await db.execute(select(Plan).where(Plan.id == pid))
     plan = result.scalar_one_or_none()
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
     plan.status = "approved"
-    return {"status": "approved"}
+
+    # Build DAG from plan_json and create Task records
+    plan_data = plan.plan_json or {}
+    tasks_data = plan_data.get("tasks", [])
+    created_tasks = []
+
+    for i, t in enumerate(tasks_data):
+        task = Task(
+            id=uuid.uuid4(),
+            company_id=plan.company_id,
+            ticket_id=plan.ticket_id,
+            plan_id=plan.id,
+            title=t.get("title", f"Task {i + 1}"),
+            description=t.get("description", ""),
+            sequence_no=i,
+            status="ready" if not t.get("depends_on") else "pending",
+            task_type=t.get("task_type", "execution"),
+            requires_approval=t.get("requires_approval", False),
+            depends_on_json=t.get("depends_on", []),
+            verification_json=t.get("verification", {}),
+        )
+        db.add(task)
+        created_tasks.append(task)
+
+    # Record audit
+    audit = AuditLog(
+        id=generate_uuid(),
+        company_id=plan.company_id,
+        actor_type="user",
+        event_type="plan.approved",
+        target_type="plan",
+        target_id=plan.id,
+        ticket_id=plan.ticket_id,
+        details_json={"tasks_created": len(created_tasks)},
+    )
+    db.add(audit)
+
+    # Update ticket status
+    ticket_result = await db.execute(
+        select(Ticket).where(Ticket.id == plan.ticket_id)
+    ) if hasattr(plan, "ticket_id") else None
+    if ticket_result:
+        ticket = ticket_result.scalar_one_or_none()
+        if ticket:
+            ticket.status = "in_progress"
+            ticket.current_plan_id = plan.id
+
+    await db.flush()
+    return {
+        "status": "approved",
+        "tasks_created": len(created_tasks),
+        "task_ids": [str(t.id) for t in created_tasks],
+    }
 
 
 @router.post("/plans/{plan_id}/reject")
