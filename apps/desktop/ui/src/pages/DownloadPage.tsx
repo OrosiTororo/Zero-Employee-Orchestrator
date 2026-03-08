@@ -9,10 +9,46 @@ import {
   Check,
   Package,
   Cpu,
+  RefreshCw,
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 
 const REPO = "TroroOrosi/Zero-Employee-Orchestrator"
+
+interface ReleaseAsset {
+  name: string
+  browser_download_url: string
+}
+
+interface Release {
+  tag_name: string
+  prerelease: boolean
+  assets: ReleaseAsset[]
+}
+
+type OsKey = "windows" | "macos" | "linux"
+
+function isGuiAsset(name: string, os: OsKey): boolean {
+  const lower = name.toLowerCase()
+  if (os === "windows") return lower.endsWith(".msi") || lower.endsWith(".exe")
+  if (os === "macos") return lower.endsWith(".dmg")
+  if (os === "linux") return lower.endsWith(".appimage") || lower.endsWith(".deb")
+  return false
+}
+
+function findAssetUrl(releases: Release[], os: OsKey): string | null {
+  for (const release of releases) {
+    if (release.prerelease) continue
+    for (const asset of release.assets) {
+      if (isGuiAsset(asset.name, os)) return asset.browser_download_url
+    }
+  }
+  return null
+}
+
+function findLatestVersion(releases: Release[]): string | null {
+  return releases.find((r) => !r.prerelease)?.tag_name ?? null
+}
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
@@ -55,6 +91,38 @@ function CommandBlock({ command, label }: { command: string; label?: string }) {
 }
 
 export function DownloadPage() {
+  const [releases, setReleases] = useState<Release[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchReleases = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${REPO}/releases`,
+        { headers: { Accept: "application/vnd.github.v3+json" } }
+      )
+      if (res.status === 403) {
+        throw new Error("GitHub API レート制限に達しました。しばらく待ってから再度お試しください。")
+      }
+      if (!res.ok) throw new Error("リリース情報を取得できませんでした。")
+      setReleases(await res.json())
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "リリース情報を取得できませんでした。")
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { fetchReleases() }, [fetchReleases])
+
+  const latestVersion = findLatestVersion(releases)
+  const winHref = findAssetUrl(releases, "windows")
+  const macHref = findAssetUrl(releases, "macos")
+  const linuxHref = findAssetUrl(releases, "linux")
+  const hasAnyAsset = winHref !== null || macHref !== null || linuxHref !== null
+
   return (
     <div className="h-full overflow-auto">
       <div className="max-w-[900px] mx-auto px-6 py-6">
@@ -76,6 +144,11 @@ export function DownloadPage() {
             <h2 className="text-[14px] font-medium text-[#cccccc]">
               デスクトップアプリ（GUI）
             </h2>
+            {latestVersion && (
+              <span className="text-[11px] text-[#4ec9b0] ml-1">
+                {latestVersion}
+              </span>
+            )}
           </div>
           <div className="rounded border border-[#3e3e42] bg-[#252526] p-5">
             <p className="text-[12px] text-[#9a9a9a] mb-4">
@@ -83,24 +156,42 @@ export function DownloadPage() {
               Windows / macOS / Linux 対応。
             </p>
 
+            {loading ? (
+              <div className="flex items-center gap-2 py-4 text-[12px] text-[#6a6a6a]">
+                <RefreshCw size={13} className="animate-spin" />
+                リリース情報を取得中...
+              </div>
+            ) : error ? (
+              <div className="rounded border border-[#f44747]/30 bg-[#f44747]/10 px-3 py-2 mb-4">
+                <p className="text-[12px] text-[#f44747] mb-1">{error}</p>
+                <button
+                  onClick={fetchReleases}
+                  className="flex items-center gap-1 text-[11px] text-[#007acc] hover:underline"
+                >
+                  <RefreshCw size={10} />
+                  再試行
+                </button>
+              </div>
+            ) : null}
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
               <PlatformCard
                 icon={Monitor}
                 os="Windows"
                 format=".msi / .exe"
-                available={false}
+                href={winHref}
               />
               <PlatformCard
                 icon={Apple}
                 os="macOS"
                 format=".dmg"
-                available={false}
+                href={macHref}
               />
               <PlatformCard
                 icon={HardDrive}
                 os="Linux"
                 format=".AppImage / .deb"
-                available={false}
+                href={linuxHref}
               />
             </div>
 
@@ -118,9 +209,11 @@ export function DownloadPage() {
               </div>
             </div>
 
-            <p className="text-[11px] text-[#6a6a6a] mt-3">
-              ビルド済みバイナリは、GitHub Releases に公開され次第ここからダウンロードできるようになります。
-            </p>
+            {!loading && !error && !hasAnyAsset && (
+              <p className="text-[11px] text-[#6a6a6a] mt-3">
+                ビルド済みバイナリは、GitHub Releases に公開され次第ここからダウンロードできるようになります。
+              </p>
+            )}
           </div>
         </section>
 
@@ -235,19 +328,18 @@ function PlatformCard({
   icon: Icon,
   os,
   format,
-  available,
+  href,
 }: {
   icon: React.ComponentType<{ size?: number; className?: string }>
   os: string
   format: string
-  available: boolean
+  href: string | null
 }) {
-  return (
-    <div
-      className={`rounded border border-[#3e3e42] bg-[#1e1e1e] px-4 py-3 ${
-        available ? "" : "opacity-60"
-      }`}
-    >
+  const available = href !== null
+  const baseClasses = `rounded border border-[#3e3e42] bg-[#1e1e1e] px-4 py-3 transition-colors`
+
+  const content = (
+    <>
       <div className="flex items-center gap-2 mb-1">
         <Icon
           size={16}
@@ -256,9 +348,35 @@ function PlatformCard({
         <span className="text-[13px] font-medium text-[#cccccc]">{os}</span>
       </div>
       <div className="text-[11px] text-[#6a6a6a]">{format}</div>
-      <div className="text-[11px] text-[#6a6a6a] mt-1">
-        {available ? "ダウンロード可能" : "準備中"}
+      <div className={`text-[11px] mt-1 flex items-center gap-1 ${available ? "text-[#4ec9b0]" : "text-[#6a6a6a]"}`}>
+        {available ? (
+          <>
+            <Download size={10} />
+            ダウンロード
+          </>
+        ) : (
+          "準備中"
+        )}
       </div>
+    </>
+  )
+
+  if (available) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`${baseClasses} hover:border-[#007acc] block no-underline`}
+      >
+        {content}
+      </a>
+    )
+  }
+
+  return (
+    <div className={`${baseClasses} opacity-60`}>
+      {content}
     </div>
   )
 }
