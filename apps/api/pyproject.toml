@@ -1,5 +1,5 @@
 [project]
-name = "zpcos-api"
+name = "zero-employee-orchestrator-api"
 version = "0.1.0"
 description = "Zero-Employee Orchestrator – API backend"
 requires-python = ">=3.12"

@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
 
     # Database
-    DATABASE_URL: str = "sqlite+aiosqlite:///./zpcos.db"
+    DATABASE_URL: str = "sqlite+aiosqlite:///./zero_employee_orchestrator.db"
 
 
 settings = Settings()

@@ -13,7 +13,7 @@ from app.core.database import Base
 from app.api.deps.database import get_db
 from app.main import app
 
-TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_zpcos.db"
+TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_zero_employee_orchestrator.db"
 
 engine = create_async_engine(TEST_DATABASE_URL, echo=False)
 TestSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
