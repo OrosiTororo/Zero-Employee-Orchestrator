@@ -110,7 +110,7 @@ def create_review_report(
         reviewer_type="auto",
         checklist=checklist,
         overall_score=round(score, 2),
-        summary=f"レビュースコア: {score:.0%} ({len(failed_items)} 件の要改善項目)",
+        summary=f"レビュースコア: {score:.1%} ({len(failed_items)} 件の要改善項目)",
         recommendations=recommendations,
         approval_recommended=score >= 0.8 and not failed_items,
     )

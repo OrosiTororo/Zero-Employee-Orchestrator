@@ -9,16 +9,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import generate_uuid
 from app.models.agent import Agent
 from app.models.audit import AuditLog
+from app.orchestration.state_machine import AgentStateMachine
 
-# Valid state transitions for agents
-AGENT_TRANSITIONS: dict[str, list[str]] = {
-    "provisioning": ["idle", "error"],
-    "idle": ["busy", "paused", "decommissioned"],
-    "busy": ["idle", "error", "paused"],
-    "paused": ["idle", "decommissioned"],
-    "error": ["idle", "paused", "decommissioned"],
-    "decommissioned": [],
-}
+# Re-export from the canonical source
+AGENT_TRANSITIONS = AgentStateMachine.transitions
 
 
 def validate_agent_transition(current: str, target: str) -> bool:
