@@ -343,6 +343,35 @@ CORS_ORIGINS=https://your-domain.com
 
 ---
 
+## ☁️ Cloudflare Workers デプロイ
+
+Workers 上での実行に対応しています。2つの方式から選択できます:
+
+| 方式 | ディレクトリ | 概要 |
+| --- | --- | --- |
+| **A: Proxy** | `apps/edge/proxy/` | 既存 FastAPI の前段にリバースプロキシ配置 |
+| **B: Full Workers** | `apps/edge/full/` | 主要 API を Hono + D1 でエッジ上に完全再実装 |
+
+### クイックスタート
+
+```bash
+# 方式 A: Proxy
+cd apps/edge/proxy && npm install && npm run dev
+
+# 方式 B: Full Workers
+cd apps/edge/full && npm install && npm run db:init && npm run dev
+
+# フロントエンド (Cloudflare Pages)
+cd apps/desktop/ui && npm run build
+npx wrangler pages deploy dist --project-name=zeo-ui
+```
+
+GitHub Actions (`Deploy to Cloudflare Workers` ワークフロー) による手動デプロイにも対応しています。
+
+詳細: [apps/edge/README.md](apps/edge/README.md)
+
+---
+
 ## ライセンス
 
 プライベートプロジェクト
