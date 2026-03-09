@@ -52,7 +52,7 @@ install_with_pkg_manager() {
     shift
     case "$PKG_MANAGER" in
         brew)   info "$name をインストールしています (brew)..."; brew install "$@" ;;
-        apt)    info "$name をインストールしています (apt)..."; sudo apt-get update -qq && sudo apt-get install -y -qq "$@" ;;
+        apt)    info "$name をインストールしています (apt)..."; sudo apt-get update -qq && sudo apt-get install -y "$@" ;;
         dnf)    info "$name をインストールしています (dnf)..."; sudo dnf install -y "$@" ;;
         pacman) info "$name をインストールしています (pacman)..."; sudo pacman -S --noconfirm "$@" ;;
         *)      return 1 ;;
@@ -78,7 +78,7 @@ else
         apt)    install_with_pkg_manager "Python" python3 python3-venv python3-pip && ok "Python をインストールしました" ;;
         dnf)    install_with_pkg_manager "Python" python3 python3-pip && ok "Python をインストールしました" ;;
         pacman) install_with_pkg_manager "Python" python python-pip && ok "Python をインストールしました" ;;
-        *)      FAILED+=("python3 (3.12+) — パッケージマネージャーが見つかりません") ;;
+        *)      FAILED+=("python3 (3.12+) -- パッケージマネージャーが見つかりません") ;;
     esac
     if ! command -v python3 &> /dev/null; then
         FAILED+=("python3 (3.12+)")
@@ -98,17 +98,10 @@ else
     info "Node.js が見つかりません。インストールを試みます..."
     case "$PKG_MANAGER" in
         brew)   install_with_pkg_manager "Node.js" node && ok "Node.js をインストールしました" ;;
-        apt)
-            # NodeSource リポジトリから Node.js 20 をインストール
-            if curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - 2>/dev/null; then
-                sudo apt-get install -y -qq nodejs && ok "Node.js をインストールしました"
-            else
-                FAILED+=("node (v20+)")
-            fi
-            ;;
+        apt)    install_with_pkg_manager "Node.js" nodejs npm && ok "Node.js をインストールしました" ;;
         dnf)    install_with_pkg_manager "Node.js" nodejs && ok "Node.js をインストールしました" ;;
         pacman) install_with_pkg_manager "Node.js" nodejs npm && ok "Node.js をインストールしました" ;;
-        *)      FAILED+=("node (v20+) — パッケージマネージャーが見つかりません") ;;
+        *)      FAILED+=("node (v20+) -- パッケージマネージャーが見つかりません") ;;
     esac
     if ! command -v node &> /dev/null; then
         FAILED+=("node (v20+)")
