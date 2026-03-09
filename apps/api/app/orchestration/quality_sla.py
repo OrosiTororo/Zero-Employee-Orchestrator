@@ -36,8 +36,8 @@ class QualitySLAConfig:
 DEFAULT_SLA_CONFIGS: dict[QualityMode, QualitySLAConfig] = {
     QualityMode.DRAFT: QualitySLAConfig(
         mode=QualityMode.DRAFT,
-        preferred_models=["gpt-4o-mini", "claude-3-haiku"],
-        fallback_models=["gpt-3.5-turbo"],
+        preferred_models=["gpt-5-mini", "claude-haiku-4-5"],
+        fallback_models=["gemini-2.5-flash-lite"],
         max_retries=1,
         judge_pass_threshold=0.5,
         requires_human_review=False,
@@ -46,8 +46,8 @@ DEFAULT_SLA_CONFIGS: dict[QualityMode, QualitySLAConfig] = {
     ),
     QualityMode.STANDARD: QualitySLAConfig(
         mode=QualityMode.STANDARD,
-        preferred_models=["gpt-4o", "claude-3.5-sonnet"],
-        fallback_models=["gpt-4o-mini", "claude-3-haiku"],
+        preferred_models=["gpt-5.4", "claude-sonnet-4-6"],
+        fallback_models=["gpt-5-mini", "claude-haiku-4-5"],
         max_retries=2,
         judge_pass_threshold=0.7,
         requires_human_review=False,
@@ -56,8 +56,8 @@ DEFAULT_SLA_CONFIGS: dict[QualityMode, QualitySLAConfig] = {
     ),
     QualityMode.HIGH: QualitySLAConfig(
         mode=QualityMode.HIGH,
-        preferred_models=["gpt-4o", "claude-3.5-sonnet"],
-        fallback_models=["claude-3-opus", "gpt-4"],
+        preferred_models=["gpt-5.4", "claude-sonnet-4-6"],
+        fallback_models=["claude-opus-4-6", "gemini-2.5-pro"],
         max_retries=3,
         judge_pass_threshold=0.85,
         requires_human_review=False,
@@ -66,8 +66,8 @@ DEFAULT_SLA_CONFIGS: dict[QualityMode, QualitySLAConfig] = {
     ),
     QualityMode.CRITICAL: QualitySLAConfig(
         mode=QualityMode.CRITICAL,
-        preferred_models=["claude-3-opus", "gpt-4"],
-        fallback_models=["claude-3.5-sonnet", "gpt-4o"],
+        preferred_models=["claude-opus-4-6", "gpt-5.4"],
+        fallback_models=["claude-sonnet-4-6", "gemini-2.5-pro"],
         max_retries=5,
         judge_pass_threshold=0.95,
         requires_human_review=True,
