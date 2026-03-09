@@ -4,16 +4,24 @@
 
 ---
 
-## インストール
+## ダウンロード
 
-ソースコードからセットアップしてください：
+GUI（デスクトップアプリ）版は [Releases ページ](https://github.com/TroroOrosi/Zero-Employee-Orchestrator/releases) からダウンロードできます。
+
+| OS | 形式 | ダウンロード |
+|----|------|-------------|
+| Windows | `.msi` / `.exe` | [最新リリース](https://github.com/TroroOrosi/Zero-Employee-Orchestrator/releases/latest) |
+| macOS | `.dmg` | [最新リリース](https://github.com/TroroOrosi/Zero-Employee-Orchestrator/releases/latest) |
+| Linux | `.AppImage` / `.deb` | [最新リリース](https://github.com/TroroOrosi/Zero-Employee-Orchestrator/releases/latest) |
+
+> 各 OS 向けのインストーラーは [Releases](https://github.com/TroroOrosi/Zero-Employee-Orchestrator/releases) の Assets セクションに掲載されています。
+
+### ソースコードからのセットアップ
 
 ```bash
 git clone https://github.com/TroroOrosi/Zero-Employee-Orchestrator.git
 cd Zero-Employee-Orchestrator
 ```
-
-> **Note:** デスクトップ向けインストーラー（`.msi` / `.dmg` / `.AppImage`）および pip パッケージは現在開発中です。現時点ではソースコードからのセットアップのみ対応しています。
 
 ---
 
