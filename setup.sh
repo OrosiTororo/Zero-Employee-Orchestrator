@@ -26,24 +26,42 @@ echo "=============================================="
 echo ""
 
 # ---------------------------------------------------------------------------
-# 1. 前提条件チェック
+# 1. 前提条件の確認と自動インストール
 # ---------------------------------------------------------------------------
 info "前提条件を確認しています..."
 
-check_command() {
-    if command -v "$1" &> /dev/null; then
-        local ver
-        ver=$("$1" --version 2>&1 | head -1)
-        ok "$1 が見つかりました: $ver"
-        return 0
+# パッケージマネージャーの検出
+detect_pkg_manager() {
+    if command -v brew &> /dev/null; then
+        echo "brew"
+    elif command -v apt-get &> /dev/null; then
+        echo "apt"
+    elif command -v dnf &> /dev/null; then
+        echo "dnf"
+    elif command -v pacman &> /dev/null; then
+        echo "pacman"
     else
-        return 1
+        echo ""
     fi
 }
 
-MISSING=()
+PKG_MANAGER=$(detect_pkg_manager)
 
-# Python 3.12+
+install_with_pkg_manager() {
+    local name="$1"
+    shift
+    case "$PKG_MANAGER" in
+        brew)   info "$name をインストールしています (brew)..."; brew install "$@" ;;
+        apt)    info "$name をインストールしています (apt)..."; sudo apt-get update -qq && sudo apt-get install -y -qq "$@" ;;
+        dnf)    info "$name をインストールしています (dnf)..."; sudo dnf install -y "$@" ;;
+        pacman) info "$name をインストールしています (pacman)..."; sudo pacman -S --noconfirm "$@" ;;
+        *)      return 1 ;;
+    esac
+}
+
+FAILED=()
+
+# --- Python 3.12+ ---
 if command -v python3 &> /dev/null; then
     PY_VER=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
     PY_MAJOR=$(echo "$PY_VER" | cut -d. -f1)
@@ -54,10 +72,20 @@ if command -v python3 &> /dev/null; then
         warn "Python $PY_VER が見つかりましたが 3.12 以上が推奨です"
     fi
 else
-    MISSING+=("python3 (3.12+)")
+    info "Python が見つかりません。インストールを試みます..."
+    case "$PKG_MANAGER" in
+        brew)   install_with_pkg_manager "Python" python@3.12 && ok "Python をインストールしました" ;;
+        apt)    install_with_pkg_manager "Python" python3 python3-venv python3-pip && ok "Python をインストールしました" ;;
+        dnf)    install_with_pkg_manager "Python" python3 python3-pip && ok "Python をインストールしました" ;;
+        pacman) install_with_pkg_manager "Python" python python-pip && ok "Python をインストールしました" ;;
+        *)      FAILED+=("python3 (3.12+) — パッケージマネージャーが見つかりません") ;;
+    esac
+    if ! command -v python3 &> /dev/null; then
+        FAILED+=("python3 (3.12+)")
+    fi
 fi
 
-# Node.js 20+
+# --- Node.js 20+ ---
 if command -v node &> /dev/null; then
     NODE_VER=$(node -v | sed 's/v//')
     NODE_MAJOR=$(echo "$NODE_VER" | cut -d. -f1)
@@ -67,27 +95,43 @@ if command -v node &> /dev/null; then
         warn "Node.js v$NODE_VER が見つかりましたが v20 以上が推奨です"
     fi
 else
-    MISSING+=("node (v20+)")
-fi
-
-# pnpm
-if check_command pnpm; then
-    :
-else
-    warn "pnpm が見つかりません。インストールを試みます..."
-    if command -v npm &> /dev/null; then
-        npm install -g pnpm
-        ok "pnpm をインストールしました"
-    elif command -v corepack &> /dev/null; then
-        corepack enable
-        corepack prepare pnpm@latest --activate
-        ok "pnpm を corepack でインストールしました"
-    else
-        MISSING+=("pnpm (9+)")
+    info "Node.js が見つかりません。インストールを試みます..."
+    case "$PKG_MANAGER" in
+        brew)   install_with_pkg_manager "Node.js" node && ok "Node.js をインストールしました" ;;
+        apt)
+            # NodeSource リポジトリから Node.js 20 をインストール
+            if curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - 2>/dev/null; then
+                sudo apt-get install -y -qq nodejs && ok "Node.js をインストールしました"
+            else
+                FAILED+=("node (v20+)")
+            fi
+            ;;
+        dnf)    install_with_pkg_manager "Node.js" nodejs && ok "Node.js をインストールしました" ;;
+        pacman) install_with_pkg_manager "Node.js" nodejs npm && ok "Node.js をインストールしました" ;;
+        *)      FAILED+=("node (v20+) — パッケージマネージャーが見つかりません") ;;
+    esac
+    if ! command -v node &> /dev/null; then
+        FAILED+=("node (v20+)")
     fi
 fi
 
-# pip / uv
+# --- pnpm ---
+if command -v pnpm &> /dev/null; then
+    ok "pnpm $(pnpm -v)"
+else
+    info "pnpm が見つかりません。インストールを試みます..."
+    if command -v npm &> /dev/null; then
+        npm install -g pnpm && ok "pnpm をインストールしました (npm)"
+    elif command -v corepack &> /dev/null; then
+        corepack enable && corepack prepare pnpm@latest --activate && ok "pnpm をインストールしました (corepack)"
+    elif [ "$PKG_MANAGER" = "brew" ]; then
+        install_with_pkg_manager "pnpm" pnpm && ok "pnpm をインストールしました (brew)"
+    else
+        FAILED+=("pnpm (9+)")
+    fi
+fi
+
+# --- pip / uv ---
 HAS_UV=false
 HAS_PIP=false
 if command -v uv &> /dev/null; then
@@ -97,12 +141,12 @@ elif command -v pip3 &> /dev/null || command -v pip &> /dev/null; then
     ok "pip が見つかりました"
     HAS_PIP=true
 else
-    MISSING+=("pip または uv (Python パッケージマネージャー)")
+    FAILED+=("pip または uv (Python パッケージマネージャー)")
 fi
 
-if [ ${#MISSING[@]} -gt 0 ]; then
+if [ ${#FAILED[@]} -gt 0 ]; then
     echo ""
-    error "以下のツールがインストールされていません:\n  ${MISSING[*]}\n\nインストールしてから再実行してください。"
+    error "以下のツールを自動インストールできませんでした:\n  ${FAILED[*]}\n\n手動でインストールしてから再実行してください。"
 fi
 
 echo ""

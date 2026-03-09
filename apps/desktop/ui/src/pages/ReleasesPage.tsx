@@ -12,6 +12,14 @@ import {
   RefreshCw,
   Star,
   BarChart3,
+  MessageSquare,
+  FileText,
+  GitBranch,
+  Shield,
+  ScrollText,
+  Blocks,
+  Activity,
+  BrainCircuit,
 } from "lucide-react"
 
 interface ReleaseAsset {
@@ -253,6 +261,36 @@ export function ReleasesPage() {
             <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
             更新
           </button>
+        </div>
+
+        {/* Features */}
+        <div className="mb-8 rounded border border-[#3e3e42] bg-[#252526] p-5">
+          <h2 className="text-[14px] font-medium text-[#cccccc] mb-4">
+            主な機能
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {[
+              { icon: MessageSquare, label: "Design Interview", desc: "自然言語で業務を依頼し、AI が要件を深掘り" },
+              { icon: FileText, label: "Spec / Plan / Tasks", desc: "中間成果物を構造化保存、再利用・監査・差し戻し" },
+              { icon: GitBranch, label: "Task Orchestrator", desc: "DAG ベースの計画生成、コスト見積り、品質モード切替" },
+              { icon: BrainCircuit, label: "Judge Layer", desc: "ルール一次判定 + Cross-Model 高精度検証" },
+              { icon: Activity, label: "Self-Healing", desc: "障害時の自動再計画・再提案で業務を止めない" },
+              { icon: Blocks, label: "Skill / Plugin / Extension", desc: "3層の拡張体系で業務機能を自由に追加" },
+              { icon: Shield, label: "承認フロー", desc: "投稿・課金・削除など危険操作は人間承認を要求" },
+              { icon: ScrollText, label: "監査ログ", desc: "誰が何をなぜ実行したかを全て追跡可能" },
+            ].map(({ icon: Icon, label, desc }) => (
+              <div
+                key={label}
+                className="flex items-start gap-2.5 px-3 py-2.5 rounded bg-[#1e1e1e] border border-[#3e3e42]"
+              >
+                <Icon size={14} className="text-[#007acc] mt-0.5 shrink-0" />
+                <div>
+                  <div className="text-[12px] font-medium text-[#cccccc]">{label}</div>
+                  <div className="text-[11px] text-[#6a6a6a]">{desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Quick Download Section */}
