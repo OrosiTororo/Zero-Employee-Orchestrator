@@ -15,8 +15,10 @@ class CostDecision(str, Enum):
     BLOCK = "block"
 
 
-# Default cost estimates per model family (USD per 1K tokens)
-DEFAULT_COST_TABLE: dict[str, dict[str, float]] = {
+# Default cost estimates per model family (USD per 1K tokens).
+# Loaded dynamically from model_catalog.json via ModelRegistry when available.
+# This inline fallback is used only when the registry is unavailable.
+_FALLBACK_COST_TABLE: dict[str, dict[str, float]] = {
     "gpt-5.4": {"input": 0.005, "output": 0.015},
     "gpt-5-mini": {"input": 0.00015, "output": 0.0006},
     "claude-opus-4-6": {"input": 0.015, "output": 0.075},
@@ -26,6 +28,22 @@ DEFAULT_COST_TABLE: dict[str, dict[str, float]] = {
     "gemini-2.5-flash": {"input": 0.0001, "output": 0.0004},
     "gemini-2.5-flash-lite": {"input": 0.00005, "output": 0.0002},
 }
+
+
+def _load_cost_table() -> dict[str, dict[str, float]]:
+    """ModelRegistry からコストテーブルを読み込む."""
+    try:
+        from app.providers.model_registry import get_model_registry
+        registry = get_model_registry()
+        table = registry.get_cost_table()
+        if table:
+            return table
+    except Exception:
+        pass
+    return _FALLBACK_COST_TABLE
+
+
+DEFAULT_COST_TABLE: dict[str, dict[str, float]] = _load_cost_table()
 
 
 @dataclass

@@ -110,6 +110,8 @@ apps/
 5. **spec / plan / tasks を構造化保存** — 会話ログで済ませない
 6. **状態遷移をコードに明示** — 状態機械で管理
 7. **監査ログを後付けにしない** — 重要操作は最初から記録
+8. **エージェント判断の透明性** — 推論トレースで「なぜその判断をしたか」を記録
+9. **マルチエージェント協調の可視化** — 通信ログで委譲・フィードバック・エスカレーションを追跡
 
 ## DB スキーマ概要
 
@@ -137,38 +139,42 @@ policy_packs, secret_refs, audit_logs
 - `/companies/{id}/budgets` — 予算・コスト
 - `/companies/{id}/audit-logs` — 監査ログ
 - `/registry` — Skill/Plugin/Extension
+- `/models` — モデルカタログ管理（動的モデル管理 API）
+- `/traces` — 推論トレース（エージェントの判断過程）
+- `/communications` — エージェント間通信ログ
+- `/monitor` — リアルタイム実行監視
 - `/ws/events` — WebSocket リアルタイム
 
-## 対応 LLM モデル（2026-03 時点）
+## 対応 LLM モデル（動的管理）
 
-### Quality モード
-- anthropic/claude-opus-4-6
-- openai/gpt-5.4
-- gemini/gemini-2.5-pro
+対応モデルは `apps/api/model_catalog.json` で一元管理される。
+モデルの追加・削除・廃止・後継指定・コスト更新はこのファイルを編集するか、
+Model Registry API (`/api/v1/models/*`) 経由で行う。
+**コード変更なしにモデルを入れ替え可能。**
 
-### Speed モード
-- anthropic/claude-haiku-4-5-20251001
-- openai/gpt-5-mini
-- gemini/gemini-2.5-flash
+### 廃止モデルの自動フォールバック
+各モデルに `deprecated` フラグと `successor`（後継モデルID）を設定可能。
+廃止されたモデルが指定された場合、自動的に後継モデルに切り替わる。
 
-### Cost モード
-- anthropic/claude-haiku-4-5-20251001
-- openai/gpt-5-mini
-- gemini/gemini-2.5-flash-lite
-- deepseek/deepseek-chat
+### 実行モード別の推奨モデル（model_catalog.json で定義）
+- **Quality**: 最高品質モデル（例: Claude Opus, GPT-5.4, Gemini 2.5 Pro）
+- **Speed**: 高速応答モデル（例: Claude Haiku, GPT-5 Mini, Gemini 2.5 Flash）
+- **Cost**: 低コストモデル（例: Haiku, Mini, Flash Lite, DeepSeek）
+- **Free**: 無料モデル（Gemini 無料枠, g4f, Ollama ローカル）
+- **Subscription**: API キー不要（g4f 経由）
 
-### Free モード
-- gemini/gemini-2.5-flash (Google AI Studio 無料枠)
-- g4f/GeminiPro, g4f/Copilot, g4f/OpenaiChat, g4f/Claude, g4f/DeepInfra
-- ollama/llama3.2, ollama/mistral, ollama/phi3
+### Model Registry API
+- `GET /api/v1/models` — 全モデル一覧
+- `GET /api/v1/models/modes` — 実行モード別カタログ
+- `GET /api/v1/models/health` — プロバイダー可用性チェック
+- `GET /api/v1/models/deprecated` — 廃止モデル一覧
+- `POST /api/v1/models/deprecate` — モデル廃止マーク
+- `POST /api/v1/models/update-cost` — コスト情報更新
+- `POST /api/v1/models/reload` — カタログ再読み込み
 
-### Ollama ローカルモード（追加対応モデル）
-- ollama/qwen3:8b, ollama/qwen3:32b — Qwen3（高品質推論）
-- ollama/qwen3-coder:30b — Qwen3 Coder（コーディング特化）
-- ollama/deepseek-coder-v2 — DeepSeek Coder V2
-- ollama/codellama — Code Llama（Meta コード特化）
-- ollama/gemma2 — Gemma 2（Google 軽量モデル）
-- ※ Ollama にインストール済みのモデルは自動検出される
+### Ollama ローカルモード
+- Ollama にインストール済みのモデルは自動検出される
+- 推奨: qwen3:8b, qwen3:32b, qwen3-coder:30b, deepseek-coder-v2, codellama, gemma2
 
 ## Ollama 統合 (vibe-local inspired)
 
@@ -204,6 +210,10 @@ zero-employee pull qwen3:8b      # モデルダウンロード
 
 ## バックエンド補足モジュール
 
+- **providers/model_registry.py**: 動的モデルレジストリ（model_catalog.json 読込・廃止自動フォールバック・コスト管理）
+- **orchestration/reasoning_trace.py**: 推論トレース（エージェントの思考過程・判断理由の記録）
+- **orchestration/agent_communication.py**: エージェント間通信ログ（委譲・フィードバック・エスカレーション）
+- **orchestration/execution_monitor.py**: リアルタイム実行監視（WebSocket配信・アクティブタスク追跡）
 - **repositories/**: DB 入出力の抽象化（BaseRepository + エンティティ別）
 - **heartbeat/**: Heartbeat スケジューラ（9 種類の発火契機に対応）
 - **policies/**: 承認ゲート（12 カテゴリの危険操作検出）＋自律実行境界
@@ -211,6 +221,19 @@ zero-employee pull qwen3:8b      # モデルダウンロード
 - **tools/**: 外部ツール接続（MCP / Webhook / REST API / OAuth）
 - **orchestration/knowledge_refresh.py**: Knowledge Pipeline（7 段階管理）
 - **orchestration/artifact_bridge.py**: 工程間の成果物受け渡し
+
+## 最新情報取得に関する制約
+
+本システム内の AI エージェントは **Web 検索やリアルタイムインターネットアクセス機能を持たない**。
+最新情報の取得が必要な場合は以下の方法で対応する:
+
+1. **MCP / Tool Connection 経由** — 外部 API（ニュース API、検索 API 等）を Tool Connection として
+   登録し、Skill から呼び出す（`tools/connector.py`）
+2. **ローカル RAG** — 手動でドキュメントを追加し、RAG 検索で参照する
+3. **Knowledge Pipeline** — 過去の実行結果から知識を蓄積・再利用する
+
+モデルの可用性・最新性については Model Registry API のヘルスチェック機能で
+プロバイダーの稼働状況を確認できる。
 
 ## 禁止事項
 

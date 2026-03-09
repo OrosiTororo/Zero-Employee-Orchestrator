@@ -32,49 +32,91 @@ class QualitySLAConfig:
     max_tokens: int
 
 
+# ---------------------------------------------------------------------------
 # デフォルト品質モード設定
-DEFAULT_SLA_CONFIGS: dict[QualityMode, QualitySLAConfig] = {
-    QualityMode.DRAFT: QualitySLAConfig(
-        mode=QualityMode.DRAFT,
-        preferred_models=["gpt-5-mini", "claude-haiku-4-5-20251001"],
-        fallback_models=["gemini-2.5-flash-lite"],
-        max_retries=1,
-        judge_pass_threshold=0.5,
-        requires_human_review=False,
-        cross_model_verification=False,
-        max_tokens=2000,
-    ),
-    QualityMode.STANDARD: QualitySLAConfig(
-        mode=QualityMode.STANDARD,
-        preferred_models=["gpt-5.4", "claude-sonnet-4-6"],
-        fallback_models=["gpt-5-mini", "claude-haiku-4-5-20251001"],
-        max_retries=2,
-        judge_pass_threshold=0.7,
-        requires_human_review=False,
-        cross_model_verification=False,
-        max_tokens=4000,
-    ),
-    QualityMode.HIGH: QualitySLAConfig(
-        mode=QualityMode.HIGH,
-        preferred_models=["gpt-5.4", "claude-sonnet-4-6"],
-        fallback_models=["claude-opus-4-6", "gemini-2.5-pro"],
-        max_retries=3,
-        judge_pass_threshold=0.85,
-        requires_human_review=False,
-        cross_model_verification=True,
-        max_tokens=8000,
-    ),
-    QualityMode.CRITICAL: QualitySLAConfig(
-        mode=QualityMode.CRITICAL,
-        preferred_models=["claude-opus-4-6", "gpt-5.4"],
-        fallback_models=["claude-sonnet-4-6", "gemini-2.5-pro"],
-        max_retries=5,
-        judge_pass_threshold=0.95,
-        requires_human_review=True,
-        cross_model_verification=True,
-        max_tokens=16000,
-    ),
+# ModelRegistry (model_catalog.json) からモデルリストを動的に読み込む。
+# カタログが利用できない場合はインラインのフォールバックを使用。
+# ---------------------------------------------------------------------------
+
+_SLA_STATIC = {
+    QualityMode.DRAFT: {
+        "max_retries": 1,
+        "judge_pass_threshold": 0.5,
+        "requires_human_review": False,
+        "cross_model_verification": False,
+        "max_tokens": 2000,
+    },
+    QualityMode.STANDARD: {
+        "max_retries": 2,
+        "judge_pass_threshold": 0.7,
+        "requires_human_review": False,
+        "cross_model_verification": False,
+        "max_tokens": 4000,
+    },
+    QualityMode.HIGH: {
+        "max_retries": 3,
+        "judge_pass_threshold": 0.85,
+        "requires_human_review": False,
+        "cross_model_verification": True,
+        "max_tokens": 8000,
+    },
+    QualityMode.CRITICAL: {
+        "max_retries": 5,
+        "judge_pass_threshold": 0.95,
+        "requires_human_review": True,
+        "cross_model_verification": True,
+        "max_tokens": 16000,
+    },
 }
+
+# Inline fallback model lists (used only when model_catalog.json is missing)
+_FALLBACK_SLA_MODELS = {
+    QualityMode.DRAFT: {
+        "preferred": ["gpt-5-mini", "claude-haiku-4-5-20251001"],
+        "fallback": ["gemini-2.5-flash-lite"],
+    },
+    QualityMode.STANDARD: {
+        "preferred": ["gpt-5.4", "claude-sonnet-4-6"],
+        "fallback": ["gpt-5-mini", "claude-haiku-4-5-20251001"],
+    },
+    QualityMode.HIGH: {
+        "preferred": ["gpt-5.4", "claude-sonnet-4-6"],
+        "fallback": ["claude-opus-4-6", "gemini-2.5-pro"],
+    },
+    QualityMode.CRITICAL: {
+        "preferred": ["claude-opus-4-6", "gpt-5.4"],
+        "fallback": ["claude-sonnet-4-6", "gemini-2.5-pro"],
+    },
+}
+
+
+def _load_sla_models(mode: QualityMode) -> dict[str, list[str]]:
+    """ModelRegistry から品質モード別のモデルリストを読み込む."""
+    mode_key = mode.value  # "draft", "standard", etc.
+    try:
+        from app.providers.model_registry import get_model_registry
+        registry = get_model_registry()
+        if registry.model_count > 0:
+            return registry.get_sla_models(mode_key)
+    except Exception:
+        pass
+    return _FALLBACK_SLA_MODELS[mode]
+
+
+def _build_sla_configs() -> dict[QualityMode, QualitySLAConfig]:
+    configs: dict[QualityMode, QualitySLAConfig] = {}
+    for mode, params in _SLA_STATIC.items():
+        models = _load_sla_models(mode)
+        configs[mode] = QualitySLAConfig(
+            mode=mode,
+            preferred_models=models["preferred"],
+            fallback_models=models["fallback"],
+            **params,
+        )
+    return configs
+
+
+DEFAULT_SLA_CONFIGS: dict[QualityMode, QualitySLAConfig] = _build_sla_configs()
 
 
 def get_sla_config(mode: QualityMode | str) -> QualitySLAConfig:

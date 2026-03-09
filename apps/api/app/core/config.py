@@ -62,6 +62,10 @@ class Settings(BaseSettings):
     # Default execution mode: quality | speed | cost | free | subscription
     DEFAULT_EXECUTION_MODE: str = "quality"
 
+    # Model catalog path (for dynamic model registry)
+    # Default: apps/api/model_catalog.json
+    MODEL_CATALOG_PATH: str = ""
+
 
 settings = Settings()
 

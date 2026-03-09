@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-03-09
+
+### Added
+
+- **Dynamic Model Registry** (`providers/model_registry.py`)
+  - `model_catalog.json` による LLM モデルの外部設定ファイル管理
+  - モデルの追加・削除・廃止・後継指定がコード変更なしで可能
+  - 廃止モデルの自動フォールバック（successor 指定で後継モデルに自動切替）
+  - プロバイダーヘルスチェック（API 可用性の定期確認）
+  - コスト情報の動的更新
+- **Model Registry API** (`/api/v1/models/*`)
+  - モデル一覧・モード別カタログ・プロバイダーヘルスチェック
+  - モデル廃止マーク・コスト更新・カタログ再読み込み
+- `model_catalog.json` — モデルカタログ定義ファイル（全モデル・モード・品質SLA）
+- **Observability — 推論トレース・通信ログ・実行監視**
+  - `orchestration/reasoning_trace.py` — エージェントの推論過程を段階的に記録（19種類のステップ・4段階の確信度）
+  - `orchestration/agent_communication.py` — マルチエージェント間の全通信を記録（18種類のメッセージ・スレッド管理）
+  - `orchestration/execution_monitor.py` — リアルタイム実行監視・WebSocket配信
+  - `api/routes/observability.py` — Observability API（推論トレース・通信ログ・監視ダッシュボード）
+  - フロントエンド TypeScript 型定義（ReasoningTrace, AgentMessage, ActiveExecution 等）
+
+### Changed
+
+- `gateway.py`: ハードコードされたモデルカタログを ModelRegistry からの動的読み込みに変更
+- `cost_guard.py`: コストテーブルを ModelRegistry から動的生成するように変更
+- `quality_sla.py`: 品質モード別モデルリストを ModelRegistry から動的読み込みに変更
+- `docs/FEATURES.md`: 旧モデル名修正、動的管理の説明追加、Observabilityセクション追加
+- `CLAUDE.md`: ハードコードモデルリスト → 動的管理、設計原則にエージェント透明性を追加
+
 ## [0.2.0] - 2026-03-09
 
 ### Changed
