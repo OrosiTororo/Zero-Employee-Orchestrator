@@ -11,6 +11,7 @@ from app.api.routes import (
     budgets,
     companies,
     heartbeats,
+    ollama,
     projects,
     registry,
     settings,
@@ -35,3 +36,4 @@ api_router.include_router(budgets.router, tags=["budgets"])
 api_router.include_router(audit.router, tags=["audit"])
 api_router.include_router(registry.router, prefix="/registry", tags=["registry"])
 api_router.include_router(settings.router, tags=["settings"])
+api_router.include_router(ollama.router, tags=["ollama"])

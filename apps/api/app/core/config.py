@@ -45,6 +45,15 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: str = ""
     GEMINI_API_KEY: str = ""
     OLLAMA_BASE_URL: str = "http://localhost:11434"
+    OLLAMA_DEFAULT_MODEL: str = ""  # auto-detect if empty
+    OLLAMA_TIMEOUT: int = 300  # seconds (local LLMs can be slow on CPU)
+    OLLAMA_DIRECT: bool = True  # use direct HTTP instead of LiteLLM for Ollama
+
+    # Local RAG store directory (for file-based vector DB)
+    RAG_STORE_DIR: str = ".zero_employee/rag_store"
+
+    # Language: ja (Japanese) / en (English) / zh (Chinese)
+    LANGUAGE: str = "ja"
 
     # g4f (subscription/no-API-key mode)
     # When true, g4f is loaded at startup enabling free AI access without API keys.
