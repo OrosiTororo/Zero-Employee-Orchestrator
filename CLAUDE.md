@@ -110,6 +110,8 @@ apps/
 5. **spec / plan / tasks を構造化保存** — 会話ログで済ませない
 6. **状態遷移をコードに明示** — 状態機械で管理
 7. **監査ログを後付けにしない** — 重要操作は最初から記録
+8. **エージェント判断の透明性** — 推論トレースで「なぜその判断をしたか」を記録
+9. **マルチエージェント協調の可視化** — 通信ログで委譲・フィードバック・エスカレーションを追跡
 
 ## DB スキーマ概要
 
@@ -138,6 +140,9 @@ policy_packs, secret_refs, audit_logs
 - `/companies/{id}/audit-logs` — 監査ログ
 - `/registry` — Skill/Plugin/Extension
 - `/models` — モデルカタログ管理（動的モデル管理 API）
+- `/traces` — 推論トレース（エージェントの判断過程）
+- `/communications` — エージェント間通信ログ
+- `/monitor` — リアルタイム実行監視
 - `/ws/events` — WebSocket リアルタイム
 
 ## 対応 LLM モデル（動的管理）
@@ -206,6 +211,9 @@ zero-employee pull qwen3:8b      # モデルダウンロード
 ## バックエンド補足モジュール
 
 - **providers/model_registry.py**: 動的モデルレジストリ（model_catalog.json 読込・廃止自動フォールバック・コスト管理）
+- **orchestration/reasoning_trace.py**: 推論トレース（エージェントの思考過程・判断理由の記録）
+- **orchestration/agent_communication.py**: エージェント間通信ログ（委譲・フィードバック・エスカレーション）
+- **orchestration/execution_monitor.py**: リアルタイム実行監視（WebSocket配信・アクティブタスク追跡）
 - **repositories/**: DB 入出力の抽象化（BaseRepository + エンティティ別）
 - **heartbeat/**: Heartbeat スケジューラ（9 種類の発火契機に対応）
 - **policies/**: 承認ゲート（12 カテゴリの危険操作検出）＋自律実行境界

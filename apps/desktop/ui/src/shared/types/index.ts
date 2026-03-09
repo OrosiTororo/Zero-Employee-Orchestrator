@@ -369,3 +369,158 @@ export interface AuditLog {
   trace_id?: string
   created_at: string
 }
+
+// ── 推論トレース（Observability） ─────────────────────
+
+export type ReasoningStepType =
+  | 'context_gathering'
+  | 'knowledge_retrieval'
+  | 'constraint_check'
+  | 'option_enumeration'
+  | 'option_evaluation'
+  | 'risk_assessment'
+  | 'decision'
+  | 'delegation'
+  | 'approval_request'
+  | 'model_selection'
+  | 'tool_selection'
+  | 'prompt_construction'
+  | 'execution'
+  | 'quality_check'
+  | 'judge_result'
+  | 'self_correction'
+  | 'error_analysis'
+  | 'fallback_decision'
+  | 'replan_trigger'
+
+export type ReasoningConfidence = 'high' | 'medium' | 'low' | 'uncertain'
+
+export interface ReasoningStep {
+  step_id: string
+  step_type: ReasoningStepType
+  summary: string
+  details: Record<string, unknown>
+  confidence: ReasoningConfidence
+  timestamp: number
+  duration_ms: number
+  parent_step_id?: string
+}
+
+export interface ReasoningTrace {
+  trace_id: string
+  task_id?: string
+  agent_id?: string
+  started_at: number
+  finished_at?: number
+  outcome?: string
+  summary: string
+  total_decisions: number
+  total_fallbacks: number
+  duration_ms?: number
+  steps: ReasoningStep[]
+}
+
+// ── エージェント間通信 ────────────────────────────────
+
+export type AgentMessageType =
+  | 'delegation'
+  | 'delegation_accept'
+  | 'delegation_reject'
+  | 'task_update'
+  | 'artifact_handoff'
+  | 'artifact_request'
+  | 'feedback'
+  | 'question'
+  | 'answer'
+  | 'instruction'
+  | 'quality_review'
+  | 'approval_request'
+  | 'approval_response'
+  | 'escalation'
+  | 'error_report'
+  | 'help_request'
+  | 'broadcast'
+  | 'heartbeat_ping'
+
+export type MessagePriority = 'low' | 'normal' | 'high' | 'urgent'
+
+export interface AgentMessage {
+  message_id: string
+  msg_type: AgentMessageType
+  sender_agent_id?: string
+  receiver_agent_id?: string
+  task_id?: string
+  content: string
+  structured_data: Record<string, unknown>
+  priority: MessagePriority
+  in_reply_to?: string
+  thread_id?: string
+  timestamp: number
+  acknowledged: boolean
+}
+
+export interface ConversationThread {
+  thread_id: string
+  task_id?: string
+  participants: string[]
+  subject: string
+  message_count: number
+  messages: AgentMessage[]
+  started_at: number
+  closed_at?: number
+}
+
+// ── 実行監視 ──────────────────────────────────────────
+
+export interface ActiveExecution {
+  task_id: string
+  agent_id: string
+  company_id: string
+  started_at: number
+  status: string
+  progress_pct: number
+  current_step: string
+  trace_id?: string
+  model_used?: string
+  tokens_used: number
+  cost_usd: number
+  reasoning_steps: number
+  elapsed_ms: number
+}
+
+export interface MonitorSummary {
+  active_executions: number
+  total_events: number
+  recent_errors: number
+  recent_escalations: number
+  active_agents: string[]
+}
+
+export interface MonitorDashboard {
+  summary: MonitorSummary
+  active: ActiveExecution[]
+  recent_events: Record<string, unknown>[]
+}
+
+// ── モデルレジストリ ──────────────────────────────────
+
+export interface ModelEntry {
+  id: string
+  provider: string
+  display_name: string
+  cost_per_1k_input: number
+  cost_per_1k_output: number
+  max_tokens: number
+  supports_tools: boolean
+  supports_vision: boolean
+  deprecated: boolean
+  successor?: string
+  tags: string[]
+}
+
+export interface ProviderHealth {
+  provider: string
+  available: boolean
+  available_models: string[]
+  error?: string
+}
