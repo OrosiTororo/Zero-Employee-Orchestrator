@@ -1,9 +1,12 @@
 """FastAPI application entry point."""
 
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+logger = logging.getLogger(__name__)
 
 from app.core.config import settings
 from app.core.database import Base, engine
@@ -16,9 +19,23 @@ import app.models  # noqa: F401
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
-    """Create database tables on startup (dev convenience)."""
+    """Create database tables on startup and initialize providers."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+    # Initialize Ollama provider (non-blocking, best-effort)
+    try:
+        from app.providers.ollama_provider import ollama_provider
+
+        is_up = await ollama_provider.health_check()
+        if is_up:
+            models = await ollama_provider.list_models()
+            logger.info("Ollama available with %d models", len(models))
+        else:
+            logger.info("Ollama not available (local mode disabled)")
+    except Exception as exc:
+        logger.debug("Ollama init check failed: %s", exc)
+
     yield
 
 
