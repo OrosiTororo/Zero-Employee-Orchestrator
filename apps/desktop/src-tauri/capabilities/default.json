@@ -10,6 +10,7 @@
     "core:window:allow-maximize",
     "core:window:allow-set-title",
     "core:window:allow-set-size",
-    "core:webview:default"
+    "core:webview:default",
+    "updater:default"
   ]
 }
