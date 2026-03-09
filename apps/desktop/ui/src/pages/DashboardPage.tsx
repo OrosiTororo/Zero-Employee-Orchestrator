@@ -13,6 +13,7 @@ import {
   Target,
 } from "lucide-react"
 import { api } from "../shared/api/client"
+import { useT } from "@/shared/i18n"
 
 export function DashboardPage() {
   const [input, setInput] = useState("")
@@ -21,6 +22,7 @@ export function DashboardPage() {
   const [pendingApprovals, setPendingApprovals] = useState(0)
   const [agentStatus, setAgentStatus] = useState("0 / 0")
   const navigate = useNavigate()
+  const t = useT()
   const companyId = localStorage.getItem("company_id") || ""
 
   const fetchStats = useCallback(async () => {
@@ -80,7 +82,7 @@ export function DashboardPage() {
           <div className="flex items-center gap-2 mb-3">
             <Sparkles size={18} className="text-[var(--accent)]" />
             <h2 className="text-[14px] font-medium text-[var(--text-primary)]">
-              業務を依頼する
+              {t.dashboard.requestTask}
             </h2>
           </div>
           <div className="rounded-md overflow-hidden border border-[var(--border)] bg-[var(--bg-surface)] focus-within:border-[var(--accent)] transition-colors">
@@ -88,7 +90,7 @@ export function DashboardPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="例: 新規顧客向けのオンボーディングフローを設計してください"
+              placeholder={t.dashboard.inputPlaceholder}
               className="w-full resize-none px-4 py-3 text-[13px] outline-none bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
               style={{ minHeight: "80px" }}
               rows={3}
@@ -106,7 +108,7 @@ export function DashboardPage() {
                 }}
               >
                 <Send size={13} />
-                {loading ? "送信中..." : "依頼する"}
+                {loading ? t.dashboard.submitting : t.dashboard.submit}
               </button>
             </div>
           </div>
@@ -117,11 +119,11 @@ export function DashboardPage() {
           <div className="flex items-center gap-2 mb-1">
             <Target size={14} className="text-[var(--accent)]" />
             <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-medium">
-              企業ミッション
+              {t.dashboard.companyMission}
             </span>
           </div>
           <p className="text-[13px] text-[var(--text-primary)]">
-            まだミッションが設定されていません。設定画面から登録してください。
+            {t.dashboard.noMission}
           </p>
         </div>
 
@@ -129,30 +131,30 @@ export function DashboardPage() {
         <div className="grid grid-cols-2 gap-3 mb-6">
           <SummaryCard
             icon={Ticket}
-            label="アクティブチケット"
+            label={t.dashboard.activeTickets}
             value={String(activeTickets)}
-            sub="進行中のタスク"
+            sub={t.dashboard.activeSub}
             onClick={() => navigate("/tickets")}
           />
           <SummaryCard
             icon={ShieldCheck}
-            label="承認待ち"
+            label={t.dashboard.pendingApprovals}
             value={String(pendingApprovals)}
-            sub="要対応"
+            sub={t.dashboard.pendingSub}
             onClick={() => navigate("/approvals")}
           />
           <SummaryCard
             icon={Bot}
-            label="エージェント稼働状況"
+            label={t.dashboard.agentStatus}
             value={agentStatus}
-            sub="アクティブ / 全体"
+            sub={t.dashboard.agentSub}
             onClick={() => navigate("/org-chart")}
           />
           <SummaryCard
             icon={HeartPulse}
-            label="ハートビート"
-            value="正常"
-            sub="最終チェック: --"
+            label={t.dashboard.heartbeat}
+            value={t.dashboard.heartbeatNormal}
+            sub={t.dashboard.heartbeatSub}
             onClick={() => navigate("/heartbeats")}
           />
         </div>
@@ -162,7 +164,7 @@ export function DashboardPage() {
           <div className="flex items-center gap-2 mb-2">
             <Coins size={14} className="text-[var(--warning)]" />
             <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-medium">
-              コストサマリー
+              {t.dashboard.costSummary}
             </span>
           </div>
           <div className="grid grid-cols-3 gap-4">
@@ -170,19 +172,19 @@ export function DashboardPage() {
               <div className="text-[18px] font-semibold text-[var(--text-primary)]">
                 $0.00
               </div>
-              <div className="text-[11px] text-[var(--text-muted)]">今日</div>
+              <div className="text-[11px] text-[var(--text-muted)]">{t.dashboard.today}</div>
             </div>
             <div>
               <div className="text-[18px] font-semibold text-[var(--text-primary)]">
                 $0.00
               </div>
-              <div className="text-[11px] text-[var(--text-muted)]">今週</div>
+              <div className="text-[11px] text-[var(--text-muted)]">{t.dashboard.thisWeek}</div>
             </div>
             <div>
               <div className="text-[18px] font-semibold text-[var(--text-primary)]">
                 $0.00
               </div>
-              <div className="text-[11px] text-[var(--text-muted)]">今月</div>
+              <div className="text-[11px] text-[var(--text-muted)]">{t.dashboard.thisMonth}</div>
             </div>
           </div>
         </div>
@@ -192,11 +194,11 @@ export function DashboardPage() {
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle size={14} className="text-[var(--error)]" />
             <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-medium">
-              エラー / ブロック
+              {t.dashboard.errorsBlocks}
             </span>
           </div>
           <p className="text-[12px] text-[var(--text-muted)]">
-            現在エラーやブロックされたタスクはありません。
+            {t.dashboard.noErrors}
           </p>
         </div>
 
@@ -205,21 +207,21 @@ export function DashboardPage() {
           <div className="flex items-center gap-2 mb-2">
             <Lightbulb size={14} className="text-[var(--success-fg)]" />
             <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-medium">
-              推奨アクション
+              {t.dashboard.recommendedActions}
             </span>
           </div>
           <ul className="flex flex-col gap-1">
             <li className="text-[12px] text-[var(--text-primary)] flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
-              企業ミッションを設定する
+              {t.dashboard.action1}
             </li>
             <li className="text-[12px] text-[var(--text-primary)] flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
-              プロバイダー接続を構成する
+              {t.dashboard.action2}
             </li>
             <li className="text-[12px] text-[var(--text-primary)] flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
-              最初のチケットを作成する
+              {t.dashboard.action3}
             </li>
           </ul>
         </div>

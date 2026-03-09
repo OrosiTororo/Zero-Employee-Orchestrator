@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   ChevronRight,
@@ -48,15 +48,18 @@ export function SetupPage() {
   const [providerType, setProviderType] = useState("openrouter")
   const [executionMode, setExecutionMode] = useState("quality")
   const [firstAgentName, setFirstAgentName] = useState(t.setup.agent.defaultName)
-  const prevDefaultName = useRef(t.setup.agent.defaultName)
+  const [agentNameEdited, setAgentNameEdited] = useState(false)
 
-  useEffect(() => {
-    const newDefault = t.setup.agent.defaultName
-    if (prevDefaultName.current !== newDefault && firstAgentName === prevDefaultName.current) {
-      setFirstAgentName(newDefault)
+  const handleLocaleChange = (newLocale: Locale) => {
+    setLocale(newLocale)
+    // If the user hasn't manually edited the agent name, sync it with the new locale
+    if (!agentNameEdited) {
+      // We need to get the new default from the locale data directly
+      // since useT() won't have updated yet in this handler
+      const defaults: Record<Locale, string> = { ja: "アシスタント", en: "Assistant" }
+      setFirstAgentName(defaults[newLocale])
     }
-    prevDefaultName.current = newDefault
-  }, [t.setup.agent.defaultName, firstAgentName])
+  }
 
   const stepLabels: Record<Step, string> = {
     language: t.setup.steps.language,
@@ -145,7 +148,7 @@ export function SetupPage() {
                 {(Object.keys(LOCALE_LABELS) as Locale[]).map((loc) => (
                   <button
                     key={loc}
-                    onClick={() => setLocale(loc)}
+                    onClick={() => handleLocaleChange(loc)}
                     className="relative flex flex-col items-center gap-3 px-8 py-6 rounded-md border-2 transition-colors cursor-pointer"
                     style={{
                       background:
@@ -366,7 +369,7 @@ export function SetupPage() {
                 </label>
                 <input
                   value={firstAgentName}
-                  onChange={(e) => setFirstAgentName(e.target.value)}
+                  onChange={(e) => { setFirstAgentName(e.target.value); setAgentNameEdited(true) }}
                   placeholder={t.setup.agent.agentNamePlaceholder}
                   className="w-full px-3 py-2.5 rounded-md text-[13px] bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] outline-none"
                 />

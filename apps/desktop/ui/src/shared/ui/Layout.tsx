@@ -20,41 +20,10 @@ import {
 } from "lucide-react"
 import { useAuthStore } from "@/shared/hooks/use-auth"
 import { LogoMark } from "@/shared/ui/Logo"
+import { useT } from "@/shared/i18n"
 
 interface LayoutProps {
   children: React.ReactNode
-}
-
-const navItems = [
-  { icon: LayoutDashboard, path: "/", label: "ダッシュボード" },
-  { icon: Network, path: "/org-chart", label: "組織図" },
-  { icon: Ticket, path: "/tickets", label: "チケット" },
-  { icon: ShieldCheck, path: "/approvals", label: "承認" },
-  { icon: FileBox, path: "/artifacts", label: "成果物" },
-  { icon: HeartPulse, path: "/heartbeats", label: "ハートビート" },
-  { icon: Coins, path: "/costs", label: "コスト" },
-  { icon: ScrollText, path: "/audit", label: "監査ログ" },
-  { icon: Blocks, path: "/skills", label: "スキル" },
-  { icon: Puzzle, path: "/plugins", label: "プラグイン" },
-  { icon: Download, path: "/releases", label: "ダウンロード" },
-  { icon: Settings, path: "/settings", label: "設定" },
-]
-
-const pageTitles: Record<string, string> = {
-  "/": "ダッシュボード",
-  "/org-chart": "組織図",
-  "/tickets": "チケット",
-  "/approvals": "承認",
-  "/artifacts": "成果物",
-  "/heartbeats": "ハートビート",
-  "/costs": "コスト管理",
-  "/audit": "監査ログ",
-  "/skills": "スキル",
-  "/skills/create": "スキル作成",
-  "/plugins": "プラグイン",
-  "/download": "ダウンロード",
-  "/releases": "ダウンロード",
-  "/settings": "設定",
 }
 
 export function Layout({ children }: LayoutProps) {
@@ -62,10 +31,43 @@ export function Layout({ children }: LayoutProps) {
   const location = useLocation()
   const logout = useAuthStore((s) => s.logout)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const t = useT()
+
+  const navItems = [
+    { icon: LayoutDashboard, path: "/", label: t.nav.dashboard },
+    { icon: Network, path: "/org-chart", label: t.nav.orgChart },
+    { icon: Ticket, path: "/tickets", label: t.nav.tickets },
+    { icon: ShieldCheck, path: "/approvals", label: t.nav.approvals },
+    { icon: FileBox, path: "/artifacts", label: t.nav.artifacts },
+    { icon: HeartPulse, path: "/heartbeats", label: t.nav.heartbeats },
+    { icon: Coins, path: "/costs", label: t.nav.costs },
+    { icon: ScrollText, path: "/audit", label: t.nav.audit },
+    { icon: Blocks, path: "/skills", label: t.nav.skills },
+    { icon: Puzzle, path: "/plugins", label: t.nav.plugins },
+    { icon: Download, path: "/releases", label: t.nav.releases },
+    { icon: Settings, path: "/settings", label: t.nav.settings },
+  ]
+
+  const pageTitles: Record<string, string> = {
+    "/": t.nav.dashboard,
+    "/org-chart": t.nav.orgChart,
+    "/tickets": t.nav.tickets,
+    "/approvals": t.nav.approvals,
+    "/artifacts": t.nav.artifacts,
+    "/heartbeats": t.nav.heartbeats,
+    "/costs": t.nav.costManagement,
+    "/audit": t.nav.audit,
+    "/skills": t.nav.skills,
+    "/skills/create": t.nav.skillCreate,
+    "/plugins": t.nav.plugins,
+    "/download": t.nav.releases,
+    "/releases": t.nav.releases,
+    "/settings": t.nav.settings,
+  }
 
   const currentTitle =
     pageTitles[location.pathname] ??
-    (location.pathname.startsWith("/tickets/") ? "チケット詳細" : "")
+    (location.pathname.startsWith("/tickets/") ? t.nav.ticketDetail : "")
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-[var(--bg-base)]">
@@ -85,7 +87,7 @@ export function Layout({ children }: LayoutProps) {
           </span>
         </div>
         <div className="flex-1" />
-        <div className="px-3 text-[11px] text-[var(--text-muted)]">v0.1.0</div>
+        <div className="px-3 text-[11px] text-[var(--text-muted)]">{t.common.version}</div>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
@@ -140,7 +142,7 @@ export function Layout({ children }: LayoutProps) {
         >
           <div className="h-[35px] flex items-center justify-between px-4 shrink-0">
             <span className="uppercase text-[11px] tracking-wider text-[var(--text-secondary)] font-medium">
-              ナビゲーション
+              {t.nav.navigation}
             </span>
             <button
               onClick={() => setSidebarCollapsed(true)}
@@ -219,11 +221,11 @@ export function Layout({ children }: LayoutProps) {
         }}
       >
         <div className="flex items-center gap-4">
-          <span className="font-medium">Zero-Employee Orchestrator</span>
+          <span className="font-medium">{t.common.appName}</span>
         </div>
         <div className="flex-1" />
         <div className="flex items-center gap-4 text-white/70">
-          <span>TypeScript React</span>
+          <span>{t.common.typescriptReact}</span>
         </div>
       </div>
     </div>
