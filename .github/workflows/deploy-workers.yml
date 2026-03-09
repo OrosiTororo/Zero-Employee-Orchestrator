@@ -19,6 +19,24 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Validate required secrets
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          missing=()
+          if [ -z "$CF_API_TOKEN" ]; then
+            missing+=("CLOUDFLARE_API_TOKEN")
+          fi
+          if [ -z "$CF_ACCOUNT_ID" ]; then
+            missing+=("CLOUDFLARE_ACCOUNT_ID")
+          fi
+          if [ ${#missing[@]} -ne 0 ]; then
+            echo "::error::Required secrets are not configured: ${missing[*]}. Add them in Settings > Secrets and variables > Actions. See https://developers.cloudflare.com/fundamentals/api/get-started/create-token/"
+            exit 1
+          fi
+          echo "✅ All required secrets are configured"
+
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
