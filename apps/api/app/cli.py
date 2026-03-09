@@ -88,6 +88,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     """CLI メインエントリーポイント."""
+    from app.banner import print_banner
+
+    print_banner()
+
     parser = build_parser()
     args = parser.parse_args()
 
