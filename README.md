@@ -6,133 +6,47 @@
 
 ## インストール
 
-ソースコードからセットアップしてください：
+### GUI 版（デスクトップアプリ）
+
+[Releases ページ](https://github.com/TroroOrosi/Zero-Employee-Orchestrator/releases) からインストーラーをダウンロードして実行してください。
+必要な依存関係はインストーラーにすべて含まれています。
+
+| OS | 形式 | ダウンロード |
+|----|------|-------------|
+| Windows | `.msi` / `.exe` | [最新リリース](https://github.com/TroroOrosi/Zero-Employee-Orchestrator/releases/latest) |
+| macOS | `.dmg` | [最新リリース](https://github.com/TroroOrosi/Zero-Employee-Orchestrator/releases/latest) |
+| Linux | `.AppImage` / `.deb` | [最新リリース](https://github.com/TroroOrosi/Zero-Employee-Orchestrator/releases/latest) |
+
+### CLI / TUI 版（エンジニア向け）
 
 ```bash
-git clone https://github.com/TroroOrosi/Zero-Employee-Orchestrator.git
-cd Zero-Employee-Orchestrator
+pip install zero-employee-orchestrator
 ```
 
-> **Note:** デスクトップ向けインストーラー（`.msi` / `.dmg` / `.AppImage`）および pip パッケージは現在開発中です。現時点ではソースコードからのセットアップのみ対応しています。
+または [uv](https://docs.astral.sh/uv/) を使用:
+
+```bash
+uv pip install zero-employee-orchestrator
+```
+
+> 各バージョンの詳細・リリースノートは [Releases ページ](https://github.com/TroroOrosi/Zero-Employee-Orchestrator/releases) を参照してください。
 
 ---
 
-## クイックスタート（3ステップで起動）
-
-### 1. リポジトリのクローン
+## クイックスタート（ソースから起動）
 
 ```bash
 git clone https://github.com/TroroOrosi/Zero-Employee-Orchestrator.git
 cd Zero-Employee-Orchestrator
-```
-
-### 2. セットアップ（初回のみ）
-
-```bash
-./setup.sh
-```
-
-このスクリプトが自動で以下を実行します:
-
-- 前提条件（Python, Node.js, pnpm）の確認
-- Python 仮想環境の作成と依存関係のインストール
-- フロントエンド依存関係のインストール
-- 環境変数ファイル（`.env`）の自動生成
-- SQLite データベースの初期化
-
-### 3. 起動
-
-```bash
-./start.sh
+./setup.sh   # 依存関係の自動インストール・環境構築
+./start.sh   # バックエンド + フロントエンドを起動
 ```
 
 起動後、ブラウザで **http://localhost:5173** にアクセスしてください。
 
+> `setup.sh` は Python・Node.js・pnpm が未インストールの場合、OS のパッケージマネージャーを使って自動でインストールを試みます。手動で個別にインストールする必要はありません。
+
 > 停止するには `Ctrl+C` を押します。
-
----
-
-## 前提条件
-
-| ツール | バージョン | 確認コマンド |
-|--------|-----------|-------------|
-| Python | 3.12 以上 | `python3 --version` |
-| Node.js | 20 以上 | `node -v` |
-| pnpm | 9 以上 | `pnpm -v` |
-| Git | 任意 | `git --version` |
-
-各ツールは OS のパッケージマネージャー（`brew`, `apt`, `winget` 等）でインストールできます。
-
-> **Rust** はデスクトップアプリ（Tauri）をビルドする場合のみ必要です。Web ブラウザでの利用には不要です。
-
----
-
-## 手動セットアップ（スクリプトを使わない場合）
-
-### 1. リポジトリのクローン
-
-```bash
-git clone https://github.com/TroroOrosi/Zero-Employee-Orchestrator.git
-cd Zero-Employee-Orchestrator
-```
-
-### 2. 環境変数の設定
-
-```bash
-cp .env.example apps/api/.env
-```
-
-`apps/api/.env` を開き、必要に応じて値を編集します:
-
-```env
-# データベース (デフォルトは SQLite)
-DATABASE_URL=sqlite+aiosqlite:///./zero_employee_orchestrator.db
-
-# セキュリティ（本番では必ず変更してください）
-SECRET_KEY=your-random-secret-key
-
-# デバッグモード
-DEBUG=true
-
-# LLM API キー（AI 機能を使う場合は設定してください）
-OPENROUTER_API_KEY=your-api-key
-```
-
-### 3. バックエンドのセットアップ
-
-```bash
-cd apps/api
-
-# 仮想環境を作成
-python3 -m venv .venv
-
-# 仮想環境を有効化
-source .venv/bin/activate        # macOS / Linux
-# .venv\Scripts\Activate.ps1     # Windows PowerShell
-
-# 依存関係をインストール
-pip install -e "."
-
-# API サーバーを起動
-uvicorn app.main:app --reload --host 0.0.0.0 --port 18234
-```
-
-起動すると自動的にデータベーステーブルが作成されます。
-
-### 4. フロントエンドのセットアップ
-
-```bash
-# 別のターミナルを開いて実行
-cd apps/desktop/ui
-
-# 依存関係をインストール
-pnpm install
-
-# 開発サーバーを起動
-pnpm dev
-```
-
-### 5. 動作確認
 
 | サービス | URL |
 |---------|-----|
