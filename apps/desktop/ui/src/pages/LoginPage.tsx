@@ -1,7 +1,8 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuthStore } from "@/shared/hooks/use-auth"
-import { LogIn, UserPlus, Zap, Mail, Lock, User } from "lucide-react"
+import { LogIn, UserPlus, Mail, Lock, User, ArrowRight } from "lucide-react"
+import { Logo } from "@/shared/ui/Logo"
 import { api } from "@/shared/api/client"
 
 export function LoginPage() {
@@ -62,139 +63,215 @@ export function LoginPage() {
     }
   }
 
+  const inputClass =
+    "w-full pl-10 pr-4 py-2.5 rounded-md text-[13px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] placeholder:text-[var(--text-muted)]"
+
   return (
-    <div className="h-screen w-screen flex items-center justify-center bg-[#1e1e1e]">
-      <div className="flex flex-col items-center gap-6 max-w-[420px] w-full px-8">
-        {/* Logo */}
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-12 h-12 rounded flex items-center justify-center bg-[#007acc]">
-            <Zap size={28} color="#ffffff" />
+    <div className="h-screen w-screen flex bg-[var(--bg-base)]">
+      {/* Left brand panel */}
+      <div
+        className="hidden lg:flex flex-col justify-between w-[420px] shrink-0 p-10"
+        style={{
+          background: "linear-gradient(160deg, #0078d4 0%, #5b21b6 100%)",
+        }}
+      >
+        <div>
+          <Logo size={48} />
+          <h1 className="mt-8 text-[28px] font-bold leading-tight text-white">
+            Zero-Employee
+            <br />
+            Orchestrator
+          </h1>
+          <p className="mt-3 text-[14px] leading-relaxed text-white/70">
+            AI業務オーケストレーション基盤
+          </p>
+        </div>
+
+        <div className="space-y-6">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 w-8 h-8 rounded-md bg-white/15 flex items-center justify-center shrink-0">
+              <ArrowRight size={16} className="text-white/90" />
+            </div>
+            <div>
+              <p className="text-[13px] font-medium text-white/90">
+                自然言語で業務を設計
+              </p>
+              <p className="text-[12px] text-white/50 mt-0.5">
+                複数AIを組織的に協働させる
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-semibold text-[#cccccc]">
-              Zero-Employee Orchestrator
-            </h1>
-            <p className="text-[12px] text-[#6a6a6a]">
-              AI業務オーケストレーション基盤
-            </p>
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 w-8 h-8 rounded-md bg-white/15 flex items-center justify-center shrink-0">
+              <ArrowRight size={16} className="text-white/90" />
+            </div>
+            <div>
+              <p className="text-[13px] font-medium text-white/90">
+                人間の承認と監査可能性
+              </p>
+              <p className="text-[12px] text-white/50 mt-0.5">
+                危険操作は必ず承認を経て実行
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 w-8 h-8 rounded-md bg-white/15 flex items-center justify-center shrink-0">
+              <ArrowRight size={16} className="text-white/90" />
+            </div>
+            <div>
+              <p className="text-[13px] font-medium text-white/90">
+                Self-Healing DAG
+              </p>
+              <p className="text-[12px] text-white/50 mt-0.5">
+                障害時に自動的に再計画・復旧
+              </p>
+            </div>
           </div>
         </div>
 
-        <p className="text-center text-[13px] leading-relaxed text-[#969696]">
-          自然言語で業務を設計し、複数AIを組織的に協働させる
-          <br />
-          人間の承認と監査可能性を備えた業務実行基盤
-        </p>
+        <p className="text-[11px] text-white/30">v0.1.0</p>
+      </div>
 
-        {/* Mode Toggle */}
-        <div className="flex w-full rounded overflow-hidden border border-[#3e3e42]">
-          <button
-            onClick={() => { setMode("login"); setError("") }}
-            className="flex-1 py-2 text-[13px] font-medium transition-colors"
-            style={{
-              background: mode === "login" ? "#007acc" : "transparent",
-              color: mode === "login" ? "#fff" : "#969696",
-            }}
-          >
-            ログイン
-          </button>
-          <button
-            onClick={() => { setMode("register"); setError("") }}
-            className="flex-1 py-2 text-[13px] font-medium transition-colors"
-            style={{
-              background: mode === "register" ? "#007acc" : "transparent",
-              color: mode === "register" ? "#fff" : "#969696",
-            }}
-          >
-            新規登録
-          </button>
-        </div>
+      {/* Right form panel */}
+      <div className="flex-1 flex items-center justify-center px-6">
+        <div className="w-full max-w-[380px]">
+          {/* Mobile logo */}
+          <div className="lg:hidden flex items-center gap-3 mb-8">
+            <Logo size={36} />
+            <div>
+              <h1 className="text-[16px] font-semibold text-[var(--text-primary)]">
+                Zero-Employee Orchestrator
+              </h1>
+              <p className="text-[11px] text-[var(--text-muted)]">
+                AI業務オーケストレーション基盤
+              </p>
+            </div>
+          </div>
 
-        {/* Form */}
-        <div className="w-full flex flex-col gap-3">
-          {mode === "register" && (
+          <h2 className="text-[20px] font-semibold text-[var(--text-primary)] mb-1">
+            {mode === "login" ? "ログイン" : "アカウント作成"}
+          </h2>
+          <p className="text-[13px] text-[var(--text-secondary)] mb-6">
+            {mode === "login"
+              ? "メールアドレスとパスワードでサインインしてください。"
+              : "新しいアカウントを作成して始めましょう。"}
+          </p>
+
+          {/* Form */}
+          <div className="flex flex-col gap-3.5">
+            {mode === "register" && (
+              <div className="relative">
+                <User
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+                />
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="表示名（組織名または氏名）"
+                  className={inputClass}
+                />
+              </div>
+            )}
+
             <div className="relative">
-              <User
-                size={14}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6a6a6a]"
+              <Mail
+                size={15}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
               />
               <input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="表示名（組織名または氏名）"
-                className="w-full pl-9 pr-3 py-2.5 rounded text-[13px] outline-none bg-[#3c3c3c] text-[#cccccc] border border-[#3e3e42] focus:border-[#007acc]"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="メールアドレス"
+                className={inputClass}
               />
             </div>
-          )}
 
-          <div className="relative">
-            <Mail
-              size={14}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6a6a6a]"
-            />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="メールアドレス"
-              className="w-full pl-9 pr-3 py-2.5 rounded text-[13px] outline-none bg-[#3c3c3c] text-[#cccccc] border border-[#3e3e42] focus:border-[#007acc]"
-            />
-          </div>
+            <div className="relative">
+              <Lock
+                size={15}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+              />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) =>
+                  e.key === "Enter" &&
+                  (mode === "login" ? handleLogin() : handleRegister())
+                }
+                placeholder="パスワード"
+                className={inputClass}
+              />
+            </div>
 
-          <div className="relative">
-            <Lock
-              size={14}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6a6a6a]"
-            />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) =>
-                e.key === "Enter" &&
-                (mode === "login" ? handleLogin() : handleRegister())
-              }
-              placeholder="パスワード"
-              className="w-full pl-9 pr-3 py-2.5 rounded text-[13px] outline-none bg-[#3c3c3c] text-[#cccccc] border border-[#3e3e42] focus:border-[#007acc]"
-            />
-          </div>
-
-          {error && (
-            <div className="text-[12px] text-[#f44747] text-center">{error}</div>
-          )}
-
-          <button
-            onClick={mode === "login" ? handleLogin : handleRegister}
-            disabled={loading}
-            className="flex items-center justify-center gap-2 px-6 py-2.5 rounded text-[13px] font-medium transition-colors"
-            style={{
-              background: loading ? "#3e3e42" : "#007acc",
-              color: "#ffffff",
-              cursor: loading ? "not-allowed" : "pointer",
-            }}
-          >
-            {mode === "login" ? (
-              <>
-                <LogIn size={16} />
-                {loading ? "接続中..." : "ログイン"}
-              </>
-            ) : (
-              <>
-                <UserPlus size={16} />
-                {loading ? "登録中..." : "アカウント作成"}
-              </>
+            {error && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-md text-[12px] text-[var(--error)] bg-[#f4474712] border border-[#f4474730]">
+                {error}
+              </div>
             )}
-          </button>
-        </div>
 
-        <div className="text-[11px] text-center text-[#6a6a6a] space-y-1">
-          <p>
-            {mode === "login"
-              ? "アカウントをお持ちでない方は「新規登録」タブから登録できます。"
-              : "登録後、初期セットアップウィザードで簡単に設定できます。"}
-          </p>
-          <p>APIキーの手動入力は不要です。設定画面から後で追加できます。</p>
+            <button
+              onClick={mode === "login" ? handleLogin : handleRegister}
+              disabled={loading}
+              className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-md text-[13px] font-medium text-white"
+              style={{
+                background: loading
+                  ? "var(--bg-active)"
+                  : "linear-gradient(135deg, #0078d4, #6d28d9)",
+              }}
+            >
+              {mode === "login" ? (
+                <>
+                  <LogIn size={15} />
+                  {loading ? "接続中..." : "ログイン"}
+                </>
+              ) : (
+                <>
+                  <UserPlus size={15} />
+                  {loading ? "登録中..." : "アカウント作成"}
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Toggle */}
+          <div className="mt-6 pt-6 border-t border-[var(--border)] text-center">
+            <p className="text-[12px] text-[var(--text-muted)]">
+              {mode === "login" ? (
+                <>
+                  アカウントをお持ちでない方は{" "}
+                  <button
+                    onClick={() => {
+                      setMode("register")
+                      setError("")
+                    }}
+                    className="text-[var(--accent)] hover:underline font-medium"
+                  >
+                    新規登録
+                  </button>
+                </>
+              ) : (
+                <>
+                  すでにアカウントをお持ちの方は{" "}
+                  <button
+                    onClick={() => {
+                      setMode("login")
+                      setError("")
+                    }}
+                    className="text-[var(--accent)] hover:underline font-medium"
+                  >
+                    ログイン
+                  </button>
+                </>
+              )}
+            </p>
+            <p className="text-[11px] text-[var(--text-muted)] mt-2">
+              APIキーの手動入力は不要です。設定画面から後で追加できます。
+            </p>
+          </div>
         </div>
       </div>
     </div>

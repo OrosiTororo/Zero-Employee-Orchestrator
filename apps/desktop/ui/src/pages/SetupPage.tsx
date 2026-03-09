@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
-  Zap,
   ChevronRight,
   ChevronLeft,
   Building2,
@@ -10,6 +9,7 @@ import {
   Sparkles,
   Check,
 } from "lucide-react"
+import { Logo } from "@/shared/ui/Logo"
 
 type Step = "welcome" | "organization" | "provider" | "first_agent" | "complete"
 
@@ -49,26 +49,26 @@ export function SetupPage() {
   }
 
   return (
-    <div className="h-screen w-screen flex items-center justify-center bg-[#1e1e1e]">
+    <div className="h-screen w-screen flex items-center justify-center bg-[var(--bg-base)]">
       <div className="max-w-[600px] w-full px-8">
         {/* Progress */}
         <div className="flex items-center gap-2 mb-8">
           {steps.map((step, i) => (
             <div key={step.id} className="flex items-center gap-2">
               <div
-                className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-medium"
+                className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-medium transition-colors"
                 style={{
-                  background: i <= stepIndex ? "#007acc" : "#3e3e42",
-                  color: i <= stepIndex ? "#fff" : "#6a6a6a",
+                  background: i <= stepIndex ? "var(--accent)" : "var(--border)",
+                  color: i <= stepIndex ? "#fff" : "var(--text-muted)",
                 }}
               >
                 {i < stepIndex ? <Check size={14} /> : i + 1}
               </div>
               {i < steps.length - 1 && (
                 <div
-                  className="w-8 h-[2px]"
+                  className="w-8 h-[2px] transition-colors"
                   style={{
-                    background: i < stepIndex ? "#007acc" : "#3e3e42",
+                    background: i < stepIndex ? "var(--accent)" : "var(--border)",
                   }}
                 />
               )}
@@ -80,13 +80,11 @@ export function SetupPage() {
         <div className="min-h-[300px]">
           {currentStep === "welcome" && (
             <div className="flex flex-col items-center gap-6 text-center">
-              <div className="w-16 h-16 rounded-lg flex items-center justify-center bg-[#007acc]">
-                <Zap size={36} color="#fff" />
-              </div>
-              <h2 className="text-2xl font-semibold text-[#cccccc]">
+              <Logo size={64} />
+              <h2 className="text-2xl font-semibold text-[var(--text-primary)]">
                 Zero-Employee Orchestrator へようこそ
               </h2>
-              <p className="text-[14px] text-[#969696] leading-relaxed max-w-[450px]">
+              <p className="text-[14px] text-[var(--text-secondary)] leading-relaxed max-w-[450px]">
                 このウィザードでは、AI組織の基本設定を行います。
                 <br />
                 <br />
@@ -102,28 +100,28 @@ export function SetupPage() {
           {currentStep === "organization" && (
             <div className="flex flex-col gap-6">
               <div className="flex items-center gap-3">
-                <Building2 size={24} className="text-[#007acc]" />
-                <h2 className="text-xl font-semibold text-[#cccccc]">
+                <Building2 size={24} className="text-[var(--accent)]" />
+                <h2 className="text-xl font-semibold text-[var(--text-primary)]">
                   組織の設定
                 </h2>
               </div>
-              <p className="text-[13px] text-[#969696]">
+              <p className="text-[13px] text-[var(--text-secondary)]">
                 AI組織の名前とミッションを設定します。後から変更できます。
               </p>
               <div className="flex flex-col gap-4">
                 <div>
-                  <label className="text-[12px] text-[#969696] mb-1 block">
+                  <label className="text-[12px] text-[var(--text-secondary)] mb-1 block">
                     組織名
                   </label>
                   <input
                     value={orgName}
                     onChange={(e) => setOrgName(e.target.value)}
                     placeholder="例: マイカンパニー"
-                    className="w-full px-3 py-2.5 rounded text-[13px] bg-[#3c3c3c] text-[#cccccc] border border-[#3e3e42] focus:border-[#007acc] outline-none"
+                    className="w-full px-3 py-2.5 rounded-md text-[13px] bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-[12px] text-[#969696] mb-1 block">
+                  <label className="text-[12px] text-[var(--text-secondary)] mb-1 block">
                     ミッション（任意）
                   </label>
                   <textarea
@@ -131,7 +129,7 @@ export function SetupPage() {
                     onChange={(e) => setOrgMission(e.target.value)}
                     placeholder="例: AIを活用して効率的な業務運営を実現する"
                     rows={3}
-                    className="w-full px-3 py-2.5 rounded text-[13px] bg-[#3c3c3c] text-[#cccccc] border border-[#3e3e42] focus:border-[#007acc] outline-none resize-none"
+                    className="w-full px-3 py-2.5 rounded-md text-[13px] bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] outline-none resize-none"
                   />
                 </div>
               </div>
@@ -141,12 +139,12 @@ export function SetupPage() {
           {currentStep === "provider" && (
             <div className="flex flex-col gap-6">
               <div className="flex items-center gap-3">
-                <Key size={24} className="text-[#007acc]" />
-                <h2 className="text-xl font-semibold text-[#cccccc]">
+                <Key size={24} className="text-[var(--accent)]" />
+                <h2 className="text-xl font-semibold text-[var(--text-primary)]">
                   AI接続の設定
                 </h2>
               </div>
-              <p className="text-[13px] text-[#969696]">
+              <p className="text-[13px] text-[var(--text-secondary)]">
                 AIモデルへの接続方法を選択します。後で設定画面から変更・追加できます。
                 <br />
                 APIキーがなくても、まずはスキップして体験できます。
@@ -183,37 +181,47 @@ export function SetupPage() {
                   <button
                     key={p.id}
                     onClick={() => setProviderType(p.id)}
-                    className="flex items-center gap-3 px-4 py-3 rounded border text-left transition-colors"
+                    className="flex items-center gap-3 px-4 py-3 rounded-md border text-left transition-colors"
                     style={{
                       background:
-                        providerType === p.id ? "#007acc15" : "transparent",
+                        providerType === p.id
+                          ? "rgba(0, 120, 212, 0.08)"
+                          : "transparent",
                       borderColor:
-                        providerType === p.id ? "#007acc" : "#3e3e42",
+                        providerType === p.id
+                          ? "var(--accent)"
+                          : "var(--border)",
                     }}
                   >
                     <div
                       className="w-4 h-4 rounded-full border-2 flex items-center justify-center"
                       style={{
                         borderColor:
-                          providerType === p.id ? "#007acc" : "#6a6a6a",
+                          providerType === p.id
+                            ? "var(--accent)"
+                            : "var(--text-muted)",
                       }}
                     >
                       {providerType === p.id && (
-                        <div className="w-2 h-2 rounded-full bg-[#007acc]" />
+                        <div className="w-2 h-2 rounded-full bg-[var(--accent)]" />
                       )}
                     </div>
                     <div>
-                      <div className="text-[13px] text-[#cccccc] font-medium">
+                      <div className="text-[13px] text-[var(--text-primary)] font-medium">
                         {p.name}
                       </div>
-                      <div className="text-[11px] text-[#6a6a6a]">{p.desc}</div>
+                      <div className="text-[11px] text-[var(--text-muted)]">
+                        {p.desc}
+                      </div>
                     </div>
                   </button>
                 ))}
               </div>
 
               <div className="flex flex-col gap-3 mt-2">
-                <span className="text-[12px] text-[#969696]">実行モード</span>
+                <span className="text-[12px] text-[var(--text-secondary)]">
+                  実行モード
+                </span>
                 <div className="flex gap-2">
                   {[
                     { id: "quality", label: "品質重視" },
@@ -224,13 +232,17 @@ export function SetupPage() {
                     <button
                       key={m.id}
                       onClick={() => setExecutionMode(m.id)}
-                      className="flex-1 px-3 py-2 rounded text-[12px] border transition-colors"
+                      className="flex-1 px-3 py-2 rounded-md text-[12px] border transition-colors"
                       style={{
                         background:
-                          executionMode === m.id ? "#007acc20" : "transparent",
+                          executionMode === m.id
+                            ? "rgba(0, 120, 212, 0.12)"
+                            : "transparent",
                         borderColor:
-                          executionMode === m.id ? "#007acc" : "#3e3e42",
-                        color: "#cccccc",
+                          executionMode === m.id
+                            ? "var(--accent)"
+                            : "var(--border)",
+                        color: "var(--text-primary)",
                       }}
                     >
                       {m.label}
@@ -244,28 +256,30 @@ export function SetupPage() {
           {currentStep === "first_agent" && (
             <div className="flex flex-col gap-6">
               <div className="flex items-center gap-3">
-                <Bot size={24} className="text-[#007acc]" />
-                <h2 className="text-xl font-semibold text-[#cccccc]">
+                <Bot size={24} className="text-[var(--accent)]" />
+                <h2 className="text-xl font-semibold text-[var(--text-primary)]">
                   最初のAIエージェント
                 </h2>
               </div>
-              <p className="text-[13px] text-[#969696]">
+              <p className="text-[13px] text-[var(--text-secondary)]">
                 最初のAIエージェントを作成します。このエージェントが業務の窓口となり、
                 必要に応じて他のエージェントを組織します。
               </p>
               <div>
-                <label className="text-[12px] text-[#969696] mb-1 block">
+                <label className="text-[12px] text-[var(--text-secondary)] mb-1 block">
                   エージェント名
                 </label>
                 <input
                   value={firstAgentName}
                   onChange={(e) => setFirstAgentName(e.target.value)}
                   placeholder="例: アシスタント"
-                  className="w-full px-3 py-2.5 rounded text-[13px] bg-[#3c3c3c] text-[#cccccc] border border-[#3e3e42] focus:border-[#007acc] outline-none"
+                  className="w-full px-3 py-2.5 rounded-md text-[13px] bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] outline-none"
                 />
               </div>
-              <div className="bg-[#252526] border border-[#3e3e42] rounded p-4 text-[12px] text-[#969696] space-y-2">
-                <p className="text-[#cccccc] font-medium">このエージェントができること:</p>
+              <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-md p-4 text-[12px] text-[var(--text-secondary)] space-y-2">
+                <p className="text-[var(--text-primary)] font-medium">
+                  このエージェントができること:
+                </p>
                 <ul className="list-disc list-inside space-y-1">
                   <li>自然言語での業務依頼の受付</li>
                   <li>要件の深掘り（Design Interview）</li>
@@ -273,7 +287,7 @@ export function SetupPage() {
                   <li>タスクの実行と品質確認</li>
                   <li>承認が必要な操作の申請</li>
                 </ul>
-                <p className="text-[#6a6a6a] mt-2">
+                <p className="text-[var(--text-muted)] mt-2">
                   ※ 外部送信、公開、課金などの重要操作は必ずあなたの承認が必要です
                 </p>
               </div>
@@ -282,21 +296,23 @@ export function SetupPage() {
 
           {currentStep === "complete" && (
             <div className="flex flex-col items-center gap-6 text-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center bg-[#16825d]">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center bg-[var(--success)]">
                 <Sparkles size={32} color="#fff" />
               </div>
-              <h2 className="text-2xl font-semibold text-[#cccccc]">
+              <h2 className="text-2xl font-semibold text-[var(--text-primary)]">
                 セットアップ完了！
               </h2>
-              <p className="text-[14px] text-[#969696] leading-relaxed max-w-[450px]">
+              <p className="text-[14px] text-[var(--text-secondary)] leading-relaxed max-w-[450px]">
                 AI組織の準備が整いました。
                 <br />
                 <br />
                 ダッシュボードの入力欄に自然言語で業務を依頼してみましょう。
                 AIチームが計画を立て、あなたの承認のもとで実行します。
               </p>
-              <div className="bg-[#252526] border border-[#3e3e42] rounded p-4 text-[12px] text-[#969696] text-left max-w-[400px] w-full">
-                <p className="text-[#cccccc] font-medium mb-2">試してみましょう:</p>
+              <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-md p-4 text-[12px] text-[var(--text-secondary)] text-left max-w-[400px] w-full">
+                <p className="text-[var(--text-primary)] font-medium mb-2">
+                  試してみましょう:
+                </p>
                 <ul className="space-y-2">
                   <li>「競合分析をして、レポートにまとめて」</li>
                   <li>「今月のSNS投稿計画を作って」</li>
@@ -312,7 +328,7 @@ export function SetupPage() {
           {stepIndex > 0 && currentStep !== "complete" ? (
             <button
               onClick={prev}
-              className="flex items-center gap-1 px-4 py-2 rounded text-[13px] text-[#cccccc] border border-[#3e3e42] hover:bg-[#2a2d2e]"
+              className="flex items-center gap-1 px-4 py-2 rounded-md text-[13px] text-[var(--text-primary)] border border-[var(--border)] hover:bg-[var(--bg-hover)]"
             >
               <ChevronLeft size={16} />
               戻る
@@ -324,7 +340,10 @@ export function SetupPage() {
           {currentStep === "complete" ? (
             <button
               onClick={finishSetup}
-              className="flex items-center gap-2 px-6 py-2.5 rounded text-[13px] font-medium bg-[#007acc] text-white"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-md text-[13px] font-medium text-white"
+              style={{
+                background: "linear-gradient(135deg, #0078d4, #6d28d9)",
+              }}
             >
               <Sparkles size={16} />
               ダッシュボードへ
@@ -332,7 +351,10 @@ export function SetupPage() {
           ) : (
             <button
               onClick={next}
-              className="flex items-center gap-1 px-6 py-2.5 rounded text-[13px] font-medium bg-[#007acc] text-white"
+              className="flex items-center gap-1 px-6 py-2.5 rounded-md text-[13px] font-medium text-white"
+              style={{
+                background: "linear-gradient(135deg, #0078d4, #6d28d9)",
+              }}
             >
               次へ
               <ChevronRight size={16} />

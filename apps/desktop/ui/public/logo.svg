@@ -1,0 +1,19 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0078d4"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="52" fill="url(#bg)"/>
+  <line x1="128" y1="72" x2="76" y2="180" stroke="white" stroke-width="7" stroke-linecap="round"/>
+  <line x1="128" y1="72" x2="180" y2="180" stroke="white" stroke-width="7" stroke-linecap="round"/>
+  <line x1="76" y1="180" x2="180" y2="180" stroke="white" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="128" cy="132" r="12" fill="white"/>
+  <line x1="128" y1="72" x2="128" y2="120" stroke="white" stroke-width="5" stroke-linecap="round"/>
+  <line x1="128" y1="144" x2="76" y2="180" stroke="white" stroke-width="5" stroke-linecap="round"/>
+  <line x1="128" y1="144" x2="180" y2="180" stroke="white" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="128" cy="68" r="18" fill="white"/>
+  <circle cx="72" cy="184" r="18" fill="white"/>
+  <circle cx="184" cy="184" r="18" fill="white"/>
+</svg>
