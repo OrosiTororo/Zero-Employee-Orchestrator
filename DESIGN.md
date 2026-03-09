@@ -428,23 +428,29 @@ GitHub Actions による手動デプロイ (`.github/workflows/deploy-workers.ym
 - `PUT /api/settings`
 - `GET /api/health`
 
-### 10.3 状態遷移初期案
+### 10.3 状態遷移（実装済み）
 
 #### Ticket
-- draft → scoped → planned → approved → running → review → done
-- failed / blocked / cancelled は各状態から遷移可能
+- draft → open → interviewing → planning → ready → in_progress → review → done → closed
+- rework, blocked, cancelled は各状態から遷移可能
+- reopened: done / closed / cancelled から再開可能
 
 #### Task
-- pending → ready → running → succeeded
-- pending / ready / running → failed
-- failed → retrying / replanned / blocked
+- pending → ready → running → succeeded → verified → archived
+- running → failed → retrying → running
+- running → awaiting_approval → running
+- running → blocked → ready
+- rework_requested → ready / running
 
 #### Approval
 - requested → approved / rejected / expired / cancelled
+- approved → executed
+- rejected → superseded
 
 #### Agent
-- idle → assigned → running → waiting_review → idle
-- running → failed / paused
+- provisioning → active → busy → paused → archived
+- active → budget_blocked / policy_blocked / error
+- error → active / paused
 
 ### 10.4 画面一覧初期案
 
@@ -460,40 +466,50 @@ GitHub Actions による手動デプロイ (`.github/workflows/deploy-workers.ym
 - Audit Log Viewer
 - Settings / Connections / Policies
 
-### 10.5 ディレクトリ構成初期案
+### 10.5 ディレクトリ構成（実装済み）
 
 ```text
-zero-employee-orchestrator/
+Zero-Employee-Orchestrator/
 ├─ apps/
-│  ├─ desktop/
-│  ├─ web/
-│  └─ api/
-├─ packages/
-│  ├─ shared-types/
-│  ├─ ui/
-│  └─ sdk/
-├─ backend/
-│  ├─ api/
-│  ├─ auth/
-│  ├─ interview/
-│  ├─ orchestrator/
-│  ├─ judge/
-│  ├─ state/
-│  ├─ skills/
-│  ├─ plugins/
-│  ├─ extensions/
-│  ├─ registry/
-│  ├─ providers/
-│  ├─ audit/
-│  └─ db/
-├─ skills/
-│  ├─ builtins/
-│  └─ community/
-├─ docs/
-│  ├─ DESIGN.md
-│  ├─ MASTER_GUIDE.md
-│  └─ instructions/
-└─ tests/
+│  ├─ api/                    # FastAPI バックエンド
+│  │  ├─ app/
+│  │  │  ├─ core/             # 設定・DB・セキュリティ
+│  │  │  ├─ api/routes/       # REST API エンドポイント
+│  │  │  ├─ api/ws/           # WebSocket
+│  │  │  ├─ api/deps/         # 依存性注入
+│  │  │  ├─ models/           # SQLAlchemy ORM モデル
+│  │  │  ├─ schemas/          # Pydantic DTO
+│  │  │  ├─ services/         # ビジネスロジック
+│  │  │  ├─ repositories/     # DB 入出力抽象化
+│  │  │  ├─ orchestration/    # DAG・Judge・状態機械・Knowledge
+│  │  │  ├─ heartbeat/        # Heartbeat スケジューラ
+│  │  │  ├─ providers/        # LLM ゲートウェイ・g4f
+│  │  │  ├─ tools/            # 外部ツール接続
+│  │  │  ├─ policies/         # 承認ゲート・自律境界
+│  │  │  ├─ security/         # シークレット管理・サニタイズ
+│  │  │  ├─ audit/            # 監査ログ
+│  │  │  └─ tests/            # テスト
+│  │  └─ alembic/             # DB マイグレーション
+│  ├─ desktop/                # Tauri + React UI
+│  │  ├─ src-tauri/           # Rust (Tauri v2)
+│  │  └─ ui/src/
+│  │     ├─ pages/            # 19 画面コンポーネント
+│  │     ├─ features/         # 機能別モジュール
+│  │     ├─ shared/           # 共通 API・型・hooks・UI
+│  │     └─ app/              # ルーティング・エントリ
+│  ├─ edge/                   # Cloudflare Workers
+│  └─ worker/                 # バックグラウンドワーカー
+│     ├─ runners/             # タスク・Heartbeat 実行
+│     ├─ executors/           # LLM・サンドボックス実行
+│     ├─ dispatchers/         # イベント配信
+│     └─ sandbox/             # 隔離実行環境
+├─ skills/builtin/            # 組み込み Skill
+├─ plugins/                   # Plugin 定義
+├─ extensions/                # Extension 定義
+├─ packages/                  # 共有パッケージ
+├─ docs/                      # ドキュメント
+├─ scripts/                   # 開発・デプロイスクリプト
+└─ docker/                    # Docker 設定
 ```
 
 ---

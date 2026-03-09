@@ -6,9 +6,9 @@ key** by routing requests through free and subscription-based AI services.
 Free tier (no account needed)
 ------------------------------
 * ``g4f/GeminiPro``    — Google Gemini 2.5 Flash via a free web endpoint
-* ``g4f/Copilot``      — Microsoft Copilot (GPT-4o backbone)
-* ``g4f/OpenaiChat``   — ChatGPT web interface (free tier)
-* ``g4f/Claude``       — Anthropic Claude via a free relay
+* ``g4f/Copilot``      — Microsoft Copilot (GPT-5.4 backbone)
+* ``g4f/OpenaiChat``   — ChatGPT web interface (free tier, GPT-5-mini)
+* ``g4f/Claude``       — Anthropic Claude via a free relay (Claude Haiku 4.5)
 * ``g4f/DeepInfra``    — Various open-weight models (Llama, Mistral, …)
 * ``g4f/ApiAirforce``  — Multi-model free relay
 
@@ -56,21 +56,21 @@ _G4F_MODEL_MAP: dict[str, dict] = {
     },
     "g4f/Copilot": {
         "provider": "Copilot",
-        "model": "gpt-4o",
+        "model": "gpt-5.4",
         "needs_auth": False,
-        "description": "Microsoft Copilot / GPT-4o (free, no API key)",
+        "description": "Microsoft Copilot / GPT-5.4 (free, no API key)",
     },
     "g4f/OpenaiChat": {
         "provider": "OpenaiChat",
-        "model": "gpt-4o-mini",
+        "model": "gpt-5-mini",
         "needs_auth": False,
-        "description": "ChatGPT web interface (free tier, no API key)",
+        "description": "ChatGPT web interface (free tier, GPT-5-mini, no API key)",
     },
     "g4f/Claude": {
         "provider": "Claude",
-        "model": "claude-haiku-4-5",
+        "model": "claude-haiku-4-5-20251001",
         "needs_auth": False,
-        "description": "Anthropic Claude via free relay (no API key)",
+        "description": "Anthropic Claude Haiku 4.5 via free relay (no API key)",
     },
     "g4f/DeepInfra": {
         "provider": "DeepInfra",
@@ -80,9 +80,9 @@ _G4F_MODEL_MAP: dict[str, dict] = {
     },
     "g4f/ApiAirforce": {
         "provider": "ApiAirforce",
-        "model": "gpt-4o-mini",
+        "model": "gpt-5-mini",
         "needs_auth": False,
-        "description": "Multi-model free relay (no API key)",
+        "description": "Multi-model free relay (GPT-5-mini, no API key)",
     },
     # ── Subscription / authenticated providers ──────────────────────────────
     "g4f/Gemini": {
@@ -93,9 +93,9 @@ _G4F_MODEL_MAP: dict[str, dict] = {
     },
     "g4f/CopilotAccount": {
         "provider": "CopilotAccount",
-        "model": "gpt-4o",
+        "model": "gpt-5.4",
         "needs_auth": True,
-        "description": "Microsoft Copilot Pro subscription",
+        "description": "Microsoft Copilot Pro subscription (GPT-5.4)",
     },
 }
 

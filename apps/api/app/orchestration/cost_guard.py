@@ -21,7 +21,7 @@ DEFAULT_COST_TABLE: dict[str, dict[str, float]] = {
     "gpt-5-mini": {"input": 0.00015, "output": 0.0006},
     "claude-opus-4-6": {"input": 0.015, "output": 0.075},
     "claude-sonnet-4-6": {"input": 0.003, "output": 0.015},
-    "claude-haiku-4-5": {"input": 0.001, "output": 0.005},
+    "claude-haiku-4-5-20251001": {"input": 0.001, "output": 0.005},
     "gemini-2.5-pro": {"input": 0.00125, "output": 0.005},
     "gemini-2.5-flash": {"input": 0.0001, "output": 0.0004},
     "gemini-2.5-flash-lite": {"input": 0.00005, "output": 0.0002},
