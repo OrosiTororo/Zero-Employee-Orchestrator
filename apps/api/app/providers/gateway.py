@@ -76,24 +76,24 @@ class CompletionResponse:
 MODEL_CATALOG: dict[ExecutionMode, list[str]] = {
     ExecutionMode.QUALITY: [
         "anthropic/claude-opus-4-6",
-        "openai/gpt-4o",
-        "gemini/gemini-2.0-flash",     # direct Gemini API
-        "google/gemini-2.0-flash",     # Gemini via OpenRouter
+        "openai/gpt-5.4",
+        "gemini/gemini-2.5-pro",       # direct Gemini API (stable)
+        "google/gemini-2.5-pro",       # Gemini via OpenRouter
     ],
     ExecutionMode.SPEED: [
         "anthropic/claude-haiku-4-5-20251001",
-        "openai/gpt-4o-mini",
-        "gemini/gemini-1.5-flash",     # direct Gemini API
-        "google/gemini-2.0-flash",     # Gemini via OpenRouter
+        "openai/gpt-5-mini",
+        "gemini/gemini-2.5-flash",     # direct Gemini API
+        "google/gemini-2.5-flash",     # Gemini via OpenRouter
     ],
     ExecutionMode.COST: [
         "anthropic/claude-haiku-4-5-20251001",
-        "openai/gpt-4o-mini",
-        "gemini/gemini-1.5-flash",     # direct Gemini API
+        "openai/gpt-5-mini",
+        "gemini/gemini-2.5-flash-lite", # direct Gemini API
         "deepseek/deepseek-chat",
     ],
     ExecutionMode.FREE: [
-        "gemini/gemini-1.5-flash",   # Google AI Studio free-tier quota
+        "gemini/gemini-2.5-flash",   # Google AI Studio free-tier quota
         "g4f/GeminiPro",             # Gemini 2.5 Flash via g4f (no API key)
         "g4f/Copilot",               # Microsoft Copilot via g4f (no API key)
         "ollama/llama3.2",
@@ -152,11 +152,13 @@ class LLMGateway:
                 api_key=openrouter_key,
                 base_url="https://openrouter.ai/api/v1",
                 models=[
-                    "openai/gpt-4o",
-                    "openai/gpt-4o-mini",
+                    "openai/gpt-5.4",
+                    "openai/gpt-5-mini",
                     "anthropic/claude-opus-4-6",
+                    "anthropic/claude-sonnet-4-6",
                     "anthropic/claude-haiku-4-5-20251001",
-                    "google/gemini-2.0-flash",
+                    "google/gemini-2.5-pro",
+                    "google/gemini-2.5-flash",
                     "deepseek/deepseek-chat",
                 ],
             )
@@ -168,7 +170,7 @@ class LLMGateway:
             self.configure_provider(
                 "openai",
                 api_key=openai_key,
-                models=["openai/gpt-4o", "openai/gpt-4o-mini"],
+                models=["openai/gpt-5.4", "openai/gpt-5-mini"],
             )
             logger.info("Configured provider: openai")
 
@@ -180,6 +182,7 @@ class LLMGateway:
                 api_key=anthropic_key,
                 models=[
                     "anthropic/claude-opus-4-6",
+                    "anthropic/claude-sonnet-4-6",
                     "anthropic/claude-haiku-4-5-20251001",
                 ],
             )
@@ -192,9 +195,9 @@ class LLMGateway:
                 "gemini",
                 api_key=gemini_key,
                 models=[
-                    "gemini/gemini-2.0-flash",
-                    "gemini/gemini-1.5-pro",
-                    "gemini/gemini-1.5-flash",
+                    "gemini/gemini-2.5-pro",
+                    "gemini/gemini-2.5-flash",
+                    "gemini/gemini-2.5-flash-lite",
                 ],
             )
             logger.info("Configured provider: gemini")
@@ -258,7 +261,7 @@ class LLMGateway:
                     return candidate
 
         # Fall back to first candidate regardless of configuration
-        return candidates[0] if candidates else "openai/gpt-4o-mini"
+        return candidates[0] if candidates else "openai/gpt-5-mini"
 
     async def complete(self, request: CompletionRequest) -> CompletionResponse:
         """Send completion request, routing g4f models to the g4f provider."""
@@ -388,13 +391,12 @@ class LLMGateway:
             "anthropic/claude-opus-4-6": (0.015, 0.075),
             "anthropic/claude-sonnet-4-6": (0.003, 0.015),
             "anthropic/claude-haiku-4-5-20251001": (0.001, 0.005),
-            "openai/gpt-4o": (0.005, 0.015),
-            "openai/gpt-4o-mini": (0.00015, 0.0006),
-            "gemini/gemini-2.0-flash": (0.0001, 0.0004),
-            # gemini-1.5-flash: free up to the Google AI Studio quota limit,
-            # billed at standard rates after quota exhaustion.
-            "gemini/gemini-1.5-flash": (0.0, 0.0),
-            "gemini/gemini-1.5-pro": (0.00125, 0.005),
+            "openai/gpt-5.4": (0.005, 0.015),
+            "openai/gpt-5-mini": (0.00015, 0.0006),
+            "gemini/gemini-2.5-pro": (0.00125, 0.005),
+            "gemini/gemini-2.5-flash": (0.0001, 0.0004),
+            # gemini-2.5-flash-lite: lowest cost Gemini model
+            "gemini/gemini-2.5-flash-lite": (0.0, 0.0),
             "deepseek/deepseek-chat": (0.00014, 0.00028),
             # Local models are always free
             "ollama/llama3.2": (0.0, 0.0),

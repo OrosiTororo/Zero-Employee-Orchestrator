@@ -17,14 +17,14 @@ class CostDecision(str, Enum):
 
 # Default cost estimates per model family (USD per 1K tokens)
 DEFAULT_COST_TABLE: dict[str, dict[str, float]] = {
-    "gpt-4": {"input": 0.03, "output": 0.06},
-    "gpt-4o": {"input": 0.005, "output": 0.015},
-    "gpt-4o-mini": {"input": 0.00015, "output": 0.0006},
-    "gpt-3.5-turbo": {"input": 0.0005, "output": 0.0015},
-    "claude-3-opus": {"input": 0.015, "output": 0.075},
-    "claude-3-sonnet": {"input": 0.003, "output": 0.015},
-    "claude-3-haiku": {"input": 0.00025, "output": 0.00125},
-    "claude-3.5-sonnet": {"input": 0.003, "output": 0.015},
+    "gpt-5.4": {"input": 0.005, "output": 0.015},
+    "gpt-5-mini": {"input": 0.00015, "output": 0.0006},
+    "claude-opus-4-6": {"input": 0.015, "output": 0.075},
+    "claude-sonnet-4-6": {"input": 0.003, "output": 0.015},
+    "claude-haiku-4-5": {"input": 0.001, "output": 0.005},
+    "gemini-2.5-pro": {"input": 0.00125, "output": 0.005},
+    "gemini-2.5-flash": {"input": 0.0001, "output": 0.0004},
+    "gemini-2.5-flash-lite": {"input": 0.00005, "output": 0.0002},
 }
 
 

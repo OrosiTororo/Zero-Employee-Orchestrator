@@ -68,7 +68,7 @@ _G4F_MODEL_MAP: dict[str, dict] = {
     },
     "g4f/Claude": {
         "provider": "Claude",
-        "model": "claude-3-haiku",
+        "model": "claude-haiku-4-5",
         "needs_auth": False,
         "description": "Anthropic Claude via free relay (no API key)",
     },
@@ -87,7 +87,7 @@ _G4F_MODEL_MAP: dict[str, dict] = {
     # ── Subscription / authenticated providers ──────────────────────────────
     "g4f/Gemini": {
         "provider": "Gemini",
-        "model": "gemini-2.0-flash",   # authenticated Gemini; g4f uses this identifier
+        "model": "gemini-2.5-flash",   # authenticated Gemini; g4f uses this identifier
         "needs_auth": True,
         "description": "Google Gemini with Google account (Gemini Advanced subscription)",
     },
