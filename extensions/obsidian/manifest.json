@@ -1,0 +1,19 @@
+{
+  "name": "obsidian",
+  "version": "0.1.0",
+  "description": "Obsidian 連携拡張 — Obsidian Vault を Knowledge Source として読み込み、Experience Memory や Spec/Plan/Tasks を Markdown ファイルとして Vault に出力する。",
+  "type": "extension",
+  "status": "experimental",
+  "required_permissions": ["read_local", "file_write"],
+  "external_connections": [],
+  "dangerous_operations": false,
+  "approval_required_operations": ["write_to_vault"],
+  "capabilities": {
+    "import": "Obsidian Vault 内の Markdown/Canvas ファイルを Knowledge Source として取得",
+    "export": "Spec/Plan/Tasks/成果物を Vault 内に Markdown で出力",
+    "bidirectional_link": "Obsidian のリンク構造を活かした知識グラフ参照",
+    "template": "Obsidian テンプレートとの連携"
+  },
+  "note": "完全オフラインで動作。Vault のパスを設定するだけで連携可能。Obsidian 本体の購入やアカウントは不要。",
+  "author": "Zero-Employee Orchestrator Team"
+}
