@@ -39,6 +39,20 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "sqlite+aiosqlite:///./zero_employee_orchestrator.db"
 
+    # LLM Providers (all optional — configure at least one to enable AI execution)
+    OPENROUTER_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""
+    ANTHROPIC_API_KEY: str = ""
+    GEMINI_API_KEY: str = ""
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
+
+    # g4f (subscription/no-API-key mode)
+    # When true, g4f is loaded at startup enabling free AI access without API keys.
+    USE_G4F: bool = True
+
+    # Default execution mode: quality | speed | cost | free | subscription
+    DEFAULT_EXECUTION_MODE: str = "quality"
+
 
 settings = Settings()
 

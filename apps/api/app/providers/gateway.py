@@ -1,10 +1,23 @@
 """LLM Gateway via LiteLLM - Multi-provider support.
 
-Supports OpenRouter, OpenAI, Anthropic, Google, Azure, local models (Ollama),
-and any OpenAI-compatible API.
+Supports OpenRouter, OpenAI, Anthropic, Google (Gemini), Azure,
+local models (Ollama / LM Studio), and any OpenAI-compatible API.
+
+Note on subscriptions vs API keys
+----------------------------------
+Consumer subscription plans (ChatGPT Plus, Gemini Advanced, Claude Pro …) are
+web/app services and do **not** grant programmatic API access.  API access is a
+separate paid product billed per token.
+
+To use this system without spending money you have two options:
+  1. **Ollama** – run open-weight LLMs locally (Llama 3, Mistral, etc.).
+     Set OLLAMA_BASE_URL and choose ``ExecutionMode.FREE``.
+  2. **Google Gemini free tier** – Google AI Studio provides a free API key
+     with generous rate limits.  Set GEMINI_API_KEY.
 """
 
 import logging
+import os
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -16,6 +29,7 @@ class ExecutionMode(str, Enum):
     SPEED = "speed"
     COST = "cost"
     FREE = "free"
+    SUBSCRIPTION = "subscription"  # no API key — uses g4f free/subscription providers
 
 
 @dataclass
@@ -52,26 +66,50 @@ class CompletionResponse:
     finish_reason: str = "stop"
 
 
-# Model catalog with recommendations per mode
+# Model catalog with recommendations per mode.
+# Prefix convention:
+#   gemini/       → direct Gemini API (GEMINI_API_KEY)
+#   google/       → Gemini via OpenRouter (OPENROUTER_API_KEY)
+#   openai/       → OpenAI direct or via OpenRouter
+#   ollama/       → local Ollama instance (no key required)
+#   g4f/<Name>    → free/subscription provider via gpt4free (no API key)
 MODEL_CATALOG: dict[ExecutionMode, list[str]] = {
     ExecutionMode.QUALITY: [
         "anthropic/claude-opus-4-6",
         "openai/gpt-4o",
-        "google/gemini-2.0-flash",
+        "gemini/gemini-2.0-flash",     # direct Gemini API
+        "google/gemini-2.0-flash",     # Gemini via OpenRouter
     ],
     ExecutionMode.SPEED: [
         "anthropic/claude-haiku-4-5-20251001",
         "openai/gpt-4o-mini",
-        "google/gemini-2.0-flash",
+        "gemini/gemini-1.5-flash",     # direct Gemini API
+        "google/gemini-2.0-flash",     # Gemini via OpenRouter
     ],
     ExecutionMode.COST: [
         "anthropic/claude-haiku-4-5-20251001",
         "openai/gpt-4o-mini",
+        "gemini/gemini-1.5-flash",     # direct Gemini API
         "deepseek/deepseek-chat",
     ],
     ExecutionMode.FREE: [
+        "gemini/gemini-1.5-flash",   # Google AI Studio free-tier quota
+        "g4f/GeminiPro",             # Gemini 2.5 Flash via g4f (no API key)
+        "g4f/Copilot",               # Microsoft Copilot via g4f (no API key)
         "ollama/llama3.2",
         "ollama/mistral",
+        "ollama/phi3",
+    ],
+    # SUBSCRIPTION mode: works without any paid API key.
+    # Free g4f providers need no account at all.
+    # Authenticated g4f providers (g4f/Gemini) use a Google session cookie.
+    ExecutionMode.SUBSCRIPTION: [
+        "g4f/GeminiPro",             # Gemini 2.5 Flash — free, no account
+        "g4f/Copilot",               # Microsoft Copilot — free, no account
+        "g4f/OpenaiChat",            # ChatGPT web — free tier, no account
+        "g4f/Claude",                # Claude via free relay, no account
+        "g4f/Gemini",                # Google Gemini with Google account
+        "g4f/DeepInfra",             # Llama 3.1 70B via DeepInfra, no account
     ],
 }
 
@@ -82,6 +120,10 @@ class LLMGateway:
     def __init__(self) -> None:
         self._providers: dict[str, dict] = {}
         self._default_mode = ExecutionMode.QUALITY
+
+    # ------------------------------------------------------------------
+    # Provider configuration
+    # ------------------------------------------------------------------
 
     def configure_provider(
         self,
@@ -96,16 +138,137 @@ class LLMGateway:
             "models": models or [],
         }
 
+    def configure_from_env(self) -> None:
+        """Auto-configure providers from environment variables.
+
+        Reads the standard LLM API key variables and registers providers
+        automatically.  Call this once at application startup.
+        """
+        # OpenRouter — recommended multi-provider gateway
+        openrouter_key = os.environ.get("OPENROUTER_API_KEY", "")
+        if openrouter_key:
+            self.configure_provider(
+                "openrouter",
+                api_key=openrouter_key,
+                base_url="https://openrouter.ai/api/v1",
+                models=[
+                    "openai/gpt-4o",
+                    "openai/gpt-4o-mini",
+                    "anthropic/claude-opus-4-6",
+                    "anthropic/claude-haiku-4-5-20251001",
+                    "google/gemini-2.0-flash",
+                    "deepseek/deepseek-chat",
+                ],
+            )
+            logger.info("Configured provider: openrouter")
+
+        # OpenAI direct
+        openai_key = os.environ.get("OPENAI_API_KEY", "")
+        if openai_key:
+            self.configure_provider(
+                "openai",
+                api_key=openai_key,
+                models=["openai/gpt-4o", "openai/gpt-4o-mini"],
+            )
+            logger.info("Configured provider: openai")
+
+        # Anthropic direct
+        anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "")
+        if anthropic_key:
+            self.configure_provider(
+                "anthropic",
+                api_key=anthropic_key,
+                models=[
+                    "anthropic/claude-opus-4-6",
+                    "anthropic/claude-haiku-4-5-20251001",
+                ],
+            )
+            logger.info("Configured provider: anthropic")
+
+        # Google Gemini (free tier available via Google AI Studio)
+        gemini_key = os.environ.get("GEMINI_API_KEY", "")
+        if gemini_key:
+            self.configure_provider(
+                "gemini",
+                api_key=gemini_key,
+                models=[
+                    "gemini/gemini-2.0-flash",
+                    "gemini/gemini-1.5-pro",
+                    "gemini/gemini-1.5-flash",
+                ],
+            )
+            logger.info("Configured provider: gemini")
+
+        # Ollama — local models, no API key required
+        ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+        self.configure_provider(
+            "ollama",
+            api_key=None,
+            base_url=ollama_url,
+            models=["ollama/llama3.2", "ollama/mistral", "ollama/phi3"],
+        )
+        # Ollama is always registered; actual availability depends on runtime
+
+        # g4f — subscription / no-API-key mode
+        # Enabled by default; set USE_G4F=false to disable
+        use_g4f = os.environ.get("USE_G4F", "true").lower() not in ("false", "0", "no")
+        if use_g4f:
+            try:
+                from app.providers.g4f_provider import g4f_provider, FREE_G4F_MODELS
+                if g4f_provider.available:
+                    self.configure_provider(
+                        "g4f",
+                        api_key=None,
+                        base_url=None,
+                        models=list(FREE_G4F_MODELS),
+                    )
+                    logger.info(
+                        "Configured provider: g4f (subscription/no-API-key mode) "
+                        "with %d free models",
+                        len(FREE_G4F_MODELS),
+                    )
+            except Exception as exc:
+                logger.debug("g4f provider not loaded: %s", exc)
+
+    def _configured_models(self) -> list[str]:
+        """Return all models registered across configured providers."""
+        models: list[str] = []
+        for cfg in self._providers.values():
+            models.extend(cfg.get("models") or [])
+        return models
+
+    # ------------------------------------------------------------------
+    # Model selection
+    # ------------------------------------------------------------------
+
     def select_model(self, mode: ExecutionMode) -> str:
-        """Select best model for the given execution mode."""
+        """Select best model for the given execution mode.
+
+        Prefers models that belong to a configured provider so the caller
+        is less likely to encounter authentication errors.
+        For SUBSCRIPTION mode g4f models are always considered available.
+        """
         candidates = MODEL_CATALOG.get(mode, MODEL_CATALOG[ExecutionMode.QUALITY])
-        # In production, check which models are available via configured providers
+        available = set(self._configured_models())
+
+        if available:
+            for candidate in candidates:
+                # g4f models are always "available" if g4f is installed
+                if candidate.startswith("g4f/") or candidate in available:
+                    return candidate
+
+        # Fall back to first candidate regardless of configuration
         return candidates[0] if candidates else "openai/gpt-4o-mini"
 
     async def complete(self, request: CompletionRequest) -> CompletionResponse:
-        """Send completion request via LiteLLM."""
+        """Send completion request, routing g4f models to the g4f provider."""
         model = request.model or self.select_model(request.mode)
 
+        # ── Route g4f/* models through the subscription/no-API-key provider ─
+        if model.startswith("g4f/"):
+            return await self._complete_via_g4f(model, request)
+
+        # ── Standard path via LiteLLM ──────────────────────────────────────
         try:
             import litellm
 
@@ -158,19 +321,90 @@ class LLMGateway:
                 finish_reason="error",
             )
 
+    async def _complete_via_g4f(
+        self, model: str, request: CompletionRequest
+    ) -> CompletionResponse:
+        """Route a completion request through the g4f subscription provider."""
+        try:
+            from app.providers.g4f_provider import g4f_provider, complete_with_fallback
+
+            if not g4f_provider.available:
+                return CompletionResponse(
+                    content=(
+                        "[g4f not installed. Run: pip install g4f  "
+                        "or choose a different provider / execution mode]"
+                    ),
+                    model_used=model,
+                    provider="g4f_unavailable",
+                    finish_reason="error",
+                )
+
+            # SUBSCRIPTION mode: always use the fallback chain across free models
+            # for maximum resilience. For other modes the caller already selected
+            # a specific g4f model, so we call it directly.
+            if request.mode == ExecutionMode.SUBSCRIPTION:
+                from app.providers.g4f_provider import FREE_G4F_MODELS
+                g4f_resp = await complete_with_fallback(
+                    provider=g4f_provider,
+                    models=list(FREE_G4F_MODELS),
+                    messages=request.messages,
+                    max_tokens=request.max_tokens,
+                    temperature=request.temperature,
+                )
+            else:
+                g4f_resp = await g4f_provider.complete(
+                    model=model,
+                    messages=request.messages,
+                    max_tokens=request.max_tokens,
+                    temperature=request.temperature,
+                )
+
+            return CompletionResponse(
+                content=g4f_resp.content,
+                model_used=g4f_resp.model_used,
+                provider=g4f_resp.provider,
+                tokens_input=g4f_resp.tokens_input,
+                tokens_output=g4f_resp.tokens_output,
+                cost_usd=0.0,  # g4f providers have no direct API cost
+                finish_reason=g4f_resp.finish_reason,
+            )
+        except Exception as exc:
+            logger.error("g4f completion error: %s", exc)
+            return CompletionResponse(
+                content=f"[g4f error: {exc}]",
+                model_used=model,
+                provider="g4f_error",
+                finish_reason="error",
+            )
+
     def estimate_cost(self, model: str, input_tokens: int, output_tokens: int) -> float:
         """Estimate API cost for a given model and token count."""
-        # Rough estimates per 1K tokens
+        # g4f models have no direct API billing — always $0
+        if model.startswith("g4f/"):
+            return 0.0
+
+        # Rough estimates per 1K tokens (0.0 means free / no billing)
         costs = {
             "anthropic/claude-opus-4-6": (0.015, 0.075),
             "anthropic/claude-sonnet-4-6": (0.003, 0.015),
             "anthropic/claude-haiku-4-5-20251001": (0.001, 0.005),
             "openai/gpt-4o": (0.005, 0.015),
             "openai/gpt-4o-mini": (0.00015, 0.0006),
+            "gemini/gemini-2.0-flash": (0.0001, 0.0004),
+            # gemini-1.5-flash: free up to the Google AI Studio quota limit,
+            # billed at standard rates after quota exhaustion.
+            "gemini/gemini-1.5-flash": (0.0, 0.0),
+            "gemini/gemini-1.5-pro": (0.00125, 0.005),
+            "deepseek/deepseek-chat": (0.00014, 0.00028),
+            # Local models are always free
+            "ollama/llama3.2": (0.0, 0.0),
+            "ollama/mistral": (0.0, 0.0),
+            "ollama/phi3": (0.0, 0.0),
         }
         input_rate, output_rate = costs.get(model, (0.001, 0.002))
         return (input_tokens / 1000 * input_rate) + (output_tokens / 1000 * output_rate)
 
 
-# Global gateway instance
+# Global gateway instance — auto-configured from environment variables
 llm_gateway = LLMGateway()
+llm_gateway.configure_from_env()
