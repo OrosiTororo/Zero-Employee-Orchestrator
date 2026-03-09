@@ -18,6 +18,7 @@ Zero-Employee Orchestrator を Cloudflare Workers 上にデプロイするため
 | **セットアップ難易度** | 低 | 中 |
 | **レイテンシ** | バックエンド依存 | 非常に低い |
 | **コスト** | Workers 無料枠 + サーバー費用 | Workers + D1 無料枠のみ |
+| **対応 API** | 全 API (プロキシ) | Auth, Companies, Tickets, Agents, Tasks, Approvals, Specs, Plans, Audit, Budgets, Projects, Registry, Artifacts, Heartbeats, Reviews |
 
 ## 選び方ガイド
 
