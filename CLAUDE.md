@@ -162,6 +162,46 @@ policy_packs, secret_refs, audit_logs
 - g4f/GeminiPro, g4f/Copilot, g4f/OpenaiChat, g4f/Claude, g4f/DeepInfra
 - ollama/llama3.2, ollama/mistral, ollama/phi3
 
+### Ollama ローカルモード（追加対応モデル）
+- ollama/qwen3:8b, ollama/qwen3:32b — Qwen3（高品質推論）
+- ollama/qwen3-coder:30b — Qwen3 Coder（コーディング特化）
+- ollama/deepseek-coder-v2 — DeepSeek Coder V2
+- ollama/codellama — Code Llama（Meta コード特化）
+- ollama/gemma2 — Gemma 2（Google 軽量モデル）
+- ※ Ollama にインストール済みのモデルは自動検出される
+
+## Ollama 統合 (vibe-local inspired)
+
+[vibe-local](https://github.com/ochyai/vibe-local) のアーキテクチャを参考に、
+クラウドAPI不要の完全ローカル動作モードを追加。
+
+### 主要コンポーネント
+- **`providers/ollama_provider.py`** — Ollama 直接HTTP接続（LiteLLM不要）
+  - モデル自動検出・ヘルスチェック・モデルプル
+  - ストリーミング対応・XML形式ツールコール抽出
+  - SSRF 防止（プライベートIPバリデーション）
+- **`providers/local_rag.py`** — ファイルベースベクトルDB
+  - TF-IDF ベクトル化 + コサイン類似度（三角関数）
+  - CJK（日本語・中国語）対応トークナイザー
+  - JSON ファイルストレージ（外部DB不要）
+- **`core/i18n.py`** — 国際化（日本語・英語・中国語）
+
+### CLI コマンド
+```
+zero-employee local              # ローカルチャットモード
+zero-employee local --model qwen3:8b --lang ja
+zero-employee models             # インストール済みモデル一覧
+zero-employee pull qwen3:8b      # モデルダウンロード
+```
+
+### API エンドポイント
+- `/ollama/health` — Ollama ヘルスチェック
+- `/ollama/models` — モデル一覧
+- `/ollama/pull` — モデルダウンロード
+- `/ollama/chat` — ダイレクトチャット
+- `/ollama/rag/search` — ローカル RAG 検索
+- `/ollama/rag/add` — ドキュメント追加
+
 ## バックエンド補足モジュール
 
 - **repositories/**: DB 入出力の抽象化（BaseRepository + エンティティ別）

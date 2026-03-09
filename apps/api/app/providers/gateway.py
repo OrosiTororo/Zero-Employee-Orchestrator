@@ -203,7 +203,9 @@ class LLMGateway:
             logger.info("Configured provider: gemini")
 
         # Ollama — local models, no API key required
+        # Uses enhanced OllamaProvider for direct HTTP, model discovery, etc.
         ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+        self._ollama_url = ollama_url
         self.configure_provider(
             "ollama",
             api_key=None,
@@ -211,6 +213,7 @@ class LLMGateway:
             models=["ollama/llama3.2", "ollama/mistral", "ollama/phi3"],
         )
         # Ollama is always registered; actual availability depends on runtime
+        # Dynamic model discovery happens asynchronously via discover_ollama_models()
 
         # g4f — subscription / no-API-key mode
         # Enabled by default; set USE_G4F=false to disable
@@ -264,8 +267,12 @@ class LLMGateway:
         return candidates[0] if candidates else "openai/gpt-5-mini"
 
     async def complete(self, request: CompletionRequest) -> CompletionResponse:
-        """Send completion request, routing g4f models to the g4f provider."""
+        """Send completion request, routing to appropriate provider."""
         model = request.model or self.select_model(request.mode)
+
+        # ── Route ollama/* models through the enhanced direct provider ──────
+        if model.startswith("ollama/"):
+            return await self._complete_via_ollama_direct(model, request)
 
         # ── Route g4f/* models through the subscription/no-API-key provider ─
         if model.startswith("g4f/"):
@@ -377,6 +384,75 @@ class LLMGateway:
                 content=f"[g4f error: {exc}]",
                 model_used=model,
                 provider="g4f_error",
+                finish_reason="error",
+            )
+
+    # ------------------------------------------------------------------
+    # Enhanced Ollama integration
+    # ------------------------------------------------------------------
+
+    async def discover_ollama_models(self) -> list[str]:
+        """Dynamically discover models available on the local Ollama instance.
+
+        Updates the internal model catalog with actually installed models.
+        """
+        try:
+            from app.providers.ollama_provider import ollama_provider
+
+            models = await ollama_provider.list_models()
+            if models:
+                model_names = [f"ollama/{m.name}" for m in models]
+                # Update the provider config with discovered models
+                self._providers["ollama"]["models"] = model_names
+                logger.info(
+                    "Discovered %d Ollama models: %s",
+                    len(model_names),
+                    ", ".join(m.name for m in models),
+                )
+                return model_names
+        except Exception as exc:
+            logger.debug("Ollama model discovery failed: %s", exc)
+        return []
+
+    async def ollama_health(self) -> bool:
+        """Check if Ollama is reachable."""
+        try:
+            from app.providers.ollama_provider import ollama_provider
+            return await ollama_provider.health_check()
+        except Exception:
+            return False
+
+    async def _complete_via_ollama_direct(
+        self, model: str, request: CompletionRequest
+    ) -> CompletionResponse:
+        """Route request directly to Ollama via enhanced provider (bypasses LiteLLM)."""
+        try:
+            from app.providers.ollama_provider import ollama_provider
+
+            resp = await ollama_provider.complete(
+                messages=request.messages,
+                model=model,
+                temperature=request.temperature,
+                max_tokens=request.max_tokens,
+                tools=request.tools,
+            )
+
+            return CompletionResponse(
+                content=resp.content,
+                model_used=f"ollama/{resp.model_used}" if not resp.model_used.startswith("ollama/") else resp.model_used,
+                provider=resp.provider,
+                tokens_input=resp.tokens_input,
+                tokens_output=resp.tokens_output,
+                cost_usd=0.0,
+                tool_calls=resp.tool_calls,
+                finish_reason=resp.finish_reason,
+            )
+        except Exception as exc:
+            logger.error("Ollama direct completion failed: %s", exc)
+            return CompletionResponse(
+                content=f"[Ollama error: {exc}]",
+                model_used=model,
+                provider="ollama_error",
                 finish_reason="error",
             )
 
