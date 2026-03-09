@@ -1,0 +1,26 @@
+{
+  "slug": "discord-bot",
+  "name": "Discord Bot Plugin",
+  "description": "Discord からマルチエージェントに指示を送信し、結果を受け取る Plugin。Bot 経由でチケット作成、進捗確認、承認操作が可能。",
+  "version": "0.1.0",
+  "status": "experimental",
+  "type": "plugin",
+  "skills": [
+    "discord-message-receive",
+    "discord-command-parse",
+    "discord-response-send",
+    "discord-approval-prompt"
+  ],
+  "required_permissions": ["external_send", "internet_access"],
+  "external_connections": ["discord.com", "gateway.discord.gg"],
+  "dangerous_operations": false,
+  "approval_required_operations": ["send_message", "execute_task_from_discord"],
+  "use_cases": [
+    "Discord からチケット作成",
+    "Discord で進捗確認",
+    "Discord 経由の承認フロー",
+    "チャンネルへの成果物通知"
+  ],
+  "note": "Bot Token の設定が必要。本体には含まれず、Plugin として追加導入する。",
+  "author": "Zero-Employee Orchestrator Team"
+}

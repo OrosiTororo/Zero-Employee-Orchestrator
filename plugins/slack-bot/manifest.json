@@ -1,0 +1,27 @@
+{
+  "slug": "slack-bot",
+  "name": "Slack Bot Plugin",
+  "description": "Slack からマルチエージェントに指示を送信し、結果を受け取る Plugin。Slash Command やメンションでチケット作成、進捗確認、承認操作が可能。",
+  "version": "0.1.0",
+  "status": "experimental",
+  "type": "plugin",
+  "skills": [
+    "slack-message-receive",
+    "slack-command-parse",
+    "slack-response-send",
+    "slack-approval-prompt"
+  ],
+  "required_permissions": ["external_send", "internet_access"],
+  "external_connections": ["slack.com", "api.slack.com"],
+  "dangerous_operations": false,
+  "approval_required_operations": ["send_message", "execute_task_from_slack"],
+  "use_cases": [
+    "Slack からチケット作成",
+    "Slack で進捗確認",
+    "Slack 経由の承認フロー",
+    "チャンネルへの成果物通知",
+    "Slash Command による操作"
+  ],
+  "note": "Slack App Token の設定が必要。本体には含まれず、Plugin として追加導入する。",
+  "author": "Zero-Employee Orchestrator Team"
+}
