@@ -33,11 +33,12 @@ jobs:
 
       - name: Deploy Workers Proxy
         if: inputs.mode == 'proxy'
-        working-directory: apps/edge/proxy
-        run: npx wrangler deploy
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/edge/proxy
+          command: deploy
 
       # ---------- Full mode ----------
       - name: Install dependencies (full)
@@ -47,27 +48,34 @@ jobs:
 
       - name: Deploy Full Workers
         if: inputs.mode == 'full'
-        working-directory: apps/edge/full
-        run: npx wrangler deploy
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/edge/full
+          command: deploy
 
       # ---------- Pages mode ----------
+      - name: Setup pnpm
+        if: inputs.mode == 'pages'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - name: Install dependencies (pages)
         if: inputs.mode == 'pages'
-        working-directory: apps/desktop/ui
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Build frontend
         if: inputs.mode == 'pages'
         working-directory: apps/desktop/ui
-        run: npm run build
+        run: pnpm build
 
       - name: Deploy to Cloudflare Pages
         if: inputs.mode == 'pages'
-        working-directory: apps/desktop/ui
-        run: npx wrangler pages deploy dist --project-name=zeo-ui
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/desktop/ui
+          command: pages deploy dist --project-name=zeo-ui
