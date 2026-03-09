@@ -46,7 +46,11 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     OLLAMA_BASE_URL: str = "http://localhost:11434"
 
-    # Default execution mode: quality | speed | cost | free
+    # g4f (subscription/no-API-key mode)
+    # When true, g4f is loaded at startup enabling free AI access without API keys.
+    USE_G4F: bool = True
+
+    # Default execution mode: quality | speed | cost | free | subscription
     DEFAULT_EXECUTION_MODE: str = "quality"
 
 
