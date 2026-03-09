@@ -36,7 +36,7 @@ class QualitySLAConfig:
 DEFAULT_SLA_CONFIGS: dict[QualityMode, QualitySLAConfig] = {
     QualityMode.DRAFT: QualitySLAConfig(
         mode=QualityMode.DRAFT,
-        preferred_models=["gpt-5-mini", "claude-haiku-4-5"],
+        preferred_models=["gpt-5-mini", "claude-haiku-4-5-20251001"],
         fallback_models=["gemini-2.5-flash-lite"],
         max_retries=1,
         judge_pass_threshold=0.5,
@@ -47,7 +47,7 @@ DEFAULT_SLA_CONFIGS: dict[QualityMode, QualitySLAConfig] = {
     QualityMode.STANDARD: QualitySLAConfig(
         mode=QualityMode.STANDARD,
         preferred_models=["gpt-5.4", "claude-sonnet-4-6"],
-        fallback_models=["gpt-5-mini", "claude-haiku-4-5"],
+        fallback_models=["gpt-5-mini", "claude-haiku-4-5-20251001"],
         max_retries=2,
         judge_pass_threshold=0.7,
         requires_human_review=False,
