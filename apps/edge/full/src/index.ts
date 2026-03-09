@@ -18,12 +18,35 @@ import heartbeats from "./routes/heartbeats";
 import reviews from "./routes/reviews";
 import health from "./routes/health";
 
+const INSECURE_DEFAULTS = new Set([
+  "change-me-in-production",
+  "CHANGE-ME-in-production",
+  "change-this-to-a-random-secret-key",
+]);
+
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
 /* ------------------------------------------------------------------ */
 /*  Global middleware                                                   */
 /* ------------------------------------------------------------------ */
 app.use("*", corsMiddleware);
+
+/* Block API requests when JWT_SECRET is still the insecure default. */
+app.use("/api/*", async (c, next) => {
+  if (INSECURE_DEFAULTS.has(c.env.JWT_SECRET)) {
+    return c.json(
+      {
+        error: "Insecure configuration",
+        detail:
+          "JWT_SECRET is set to an insecure default value. " +
+          "Run: wrangler secret put JWT_SECRET",
+      },
+      503,
+    );
+  }
+  await next();
+});
+
 app.use("/api/*", auditMiddleware);
 
 /* ------------------------------------------------------------------ */

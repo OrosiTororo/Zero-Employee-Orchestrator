@@ -1,6 +1,19 @@
 """Application configuration using pydantic-settings."""
 
+import logging
+import warnings
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_INSECURE_DEFAULT_KEYS = frozenset(
+    {
+        "CHANGE-ME-in-production",
+        "change-me-in-production",
+        "change-this-to-a-random-secret-key",
+    }
+)
+
+logger = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
@@ -29,3 +42,22 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+# ---------------------------------------------------------------------------
+# Startup safety check: reject insecure defaults in production (DEBUG=false)
+# ---------------------------------------------------------------------------
+if settings.SECRET_KEY in _INSECURE_DEFAULT_KEYS:
+    if settings.DEBUG:
+        warnings.warn(
+            "SECRET_KEY is set to an insecure default. "
+            "Set a strong random value before deploying to production.",
+            UserWarning,
+            stacklevel=1,
+        )
+    else:
+        raise RuntimeError(
+            "SECRET_KEY is still set to an insecure default value. "
+            "Generate a secure key with: python -c \"import secrets; print(secrets.token_urlsafe(32))\" "
+            "and set it in your .env file or environment variables. "
+            "If this is intentional for local development, set DEBUG=true."
+        )

@@ -1,8 +1,12 @@
 """Test configuration and fixtures."""
 
 import asyncio
+import os
 import uuid
 from collections.abc import AsyncGenerator
+
+# Ensure config module accepts the insecure default SECRET_KEY during tests.
+os.environ.setdefault("DEBUG", "true")
 
 import pytest
 import pytest_asyncio
