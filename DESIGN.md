@@ -297,6 +297,41 @@ Zero-Employee Orchestrator の核である、
 - LLM Gateway: LiteLLM 互換層
 - 認証: OAuth + ローカルセッション
 
+### 9.4 Cloudflare Workers デプロイ
+
+ローカル実行に加え、Cloudflare Workers 上での実行にも対応する。  
+Workers デプロイは以下の2方式を提供する。
+
+| | 方式 A: Proxy | 方式 B: Full Workers |
+|---|---|---|
+| ディレクトリ | `apps/edge/proxy/` | `apps/edge/full/` |
+| 概要 | 既存 FastAPI の前段にリバースプロキシ配置 | 主要 API を Hono + D1 でエッジ上に完全再実装 |
+| データベース | 不要（既存 DB を利用） | D1 (SQLite 互換) |
+| 認証 | バックエンドに委譲 | JWT (jose) |
+| フレームワーク | Hono | Hono + jose |
+| 外部サーバー | 必要 | 不要 |
+
+方式 B (Full Workers) では以下の API をエッジ上で提供する。
+
+- 認証 (register / login / me)
+- 会社管理 (CRUD / dashboard)
+- チケット管理 (一覧 / 作成 / 詳細)
+- エージェント管理 (一覧 / 作成 / 一時停止 / 再開)
+- タスク管理 (作成 / 開始 / 完了)
+- 承認管理 (一覧 / 承認 / 却下)
+- Spec / Plan 管理 (作成 / 詳細 / 承認)
+- 監査ログ (一覧 / フィルタ)
+- 予算管理 (ポリシー作成 / コスト一覧)
+- プロジェクト管理 (CRUD)
+- レジストリ (Skills / Plugins / Extensions 検索)
+- 成果物管理 (一覧 / 作成 / 詳細)
+- Heartbeat (ポリシー作成 / 実行履歴)
+- レビュー (作成 / 一覧 / 詳細)
+- ヘルスチェック
+
+フロントエンドは Cloudflare Pages にデプロイ可能。  
+GitHub Actions による手動デプロイ (`.github/workflows/deploy-workers.yml`) にも対応する。
+
 ---
 
 ## 10. AI エージェントが着手できる実装前提仕様

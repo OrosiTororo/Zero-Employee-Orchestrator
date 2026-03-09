@@ -8,6 +8,14 @@ import tickets from "./routes/tickets";
 import agents from "./routes/agents";
 import tasks from "./routes/tasks";
 import approvals from "./routes/approvals";
+import specs from "./routes/specs";
+import audit from "./routes/audit";
+import budgets from "./routes/budgets";
+import projects from "./routes/projects";
+import registry from "./routes/registry";
+import artifacts from "./routes/artifacts";
+import heartbeats from "./routes/heartbeats";
+import reviews from "./routes/reviews";
 import health from "./routes/health";
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
@@ -39,6 +47,14 @@ app.route("/api", tickets);
 app.route("/api", agents);
 app.route("/api", tasks);
 app.route("/api", approvals);
+app.route("/api", specs);
+app.route("/api", audit);
+app.route("/api", budgets);
+app.route("/api", projects);
+app.route("/api", registry);
+app.route("/api", artifacts);
+app.route("/api", heartbeats);
+app.route("/api", reviews);
 
 /* ------------------------------------------------------------------ */
 /*  Fallback                                                           */

@@ -98,6 +98,9 @@ Zero-Employee-Orchestrator/
 │   │           ├── pages/  # 画面コンポーネント
 │   │           ├── shared/ # 共通ユーティリティ
 │   │           └── ...
+│   ├── edge/               # Cloudflare Workers デプロイ
+│   │   ├── proxy/          # 方式A: リバースプロキシ
+│   │   └── full/           # 方式B: エッジ完全移植 (Hono + D1)
 │   └── worker/             # バックグラウンドワーカー
 ├── scripts/                # 開発・運用スクリプト
 ├── setup.sh                # セットアップスクリプト（初回のみ）
