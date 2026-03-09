@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-03-09
+
+### Added
+
+- **Dynamic Model Registry** (`providers/model_registry.py`)
+  - `model_catalog.json` による LLM モデルの外部設定ファイル管理
+  - モデルの追加・削除・廃止・後継指定がコード変更なしで可能
+  - 廃止モデルの自動フォールバック（successor 指定で後継モデルに自動切替）
+  - プロバイダーヘルスチェック（API 可用性の定期確認）
+  - コスト情報の動的更新
+- **Model Registry API** (`/api/v1/models/*`)
+  - モデル一覧・モード別カタログ・プロバイダーヘルスチェック
+  - モデル廃止マーク・コスト更新・カタログ再読み込み
+- `model_catalog.json` — モデルカタログ定義ファイル（全モデル・モード・品質SLA）
+
+### Changed
+
+- `gateway.py`: ハードコードされたモデルカタログを ModelRegistry からの動的読み込みに変更
+- `cost_guard.py`: コストテーブルを ModelRegistry から動的生成するように変更
+- `quality_sla.py`: 品質モード別モデルリストを ModelRegistry から動的読み込みに変更
+- `docs/FEATURES.md`: 旧モデル名（GPT-4o, Claude 3 等）を最新モデル名に修正、動的管理の説明追加
+- `CLAUDE.md`: ハードコードされたモデルリストを動的管理の説明に置き換え
+
 ## [0.2.0] - 2026-03-09
 
 ### Changed

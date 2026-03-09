@@ -66,52 +66,69 @@ class CompletionResponse:
     finish_reason: str = "stop"
 
 
-# Model catalog with recommendations per mode.
-# Prefix convention:
-#   gemini/       → direct Gemini API (GEMINI_API_KEY)
-#   google/       → Gemini via OpenRouter (OPENROUTER_API_KEY)
-#   openai/       → OpenAI direct or via OpenRouter
-#   ollama/       → local Ollama instance (no key required)
-#   g4f/<Name>    → free/subscription provider via gpt4free (no API key)
-MODEL_CATALOG: dict[ExecutionMode, list[str]] = {
-    ExecutionMode.QUALITY: [
-        "anthropic/claude-opus-4-6",
-        "openai/gpt-5.4",
-        "gemini/gemini-2.5-pro",       # direct Gemini API (stable)
-        "google/gemini-2.5-pro",       # Gemini via OpenRouter
-    ],
-    ExecutionMode.SPEED: [
-        "anthropic/claude-haiku-4-5-20251001",
-        "openai/gpt-5-mini",
-        "gemini/gemini-2.5-flash",     # direct Gemini API
-        "google/gemini-2.5-flash",     # Gemini via OpenRouter
-    ],
-    ExecutionMode.COST: [
-        "anthropic/claude-haiku-4-5-20251001",
-        "openai/gpt-5-mini",
-        "gemini/gemini-2.5-flash-lite", # direct Gemini API
-        "deepseek/deepseek-chat",
-    ],
-    ExecutionMode.FREE: [
-        "gemini/gemini-2.5-flash",   # Google AI Studio free-tier quota
-        "g4f/GeminiPro",             # Gemini 2.5 Flash via g4f (no API key)
-        "g4f/Copilot",               # Microsoft Copilot via g4f (no API key)
-        "ollama/llama3.2",
-        "ollama/mistral",
-        "ollama/phi3",
-    ],
-    # SUBSCRIPTION mode: works without any paid API key.
-    # Free g4f providers need no account at all.
-    # Authenticated g4f providers (g4f/Gemini) use a Google session cookie.
-    ExecutionMode.SUBSCRIPTION: [
-        "g4f/GeminiPro",             # Gemini 2.5 Flash — free, no account
-        "g4f/Copilot",               # Microsoft Copilot — free, no account
-        "g4f/OpenaiChat",            # ChatGPT web — free tier, no account
-        "g4f/Claude",                # Claude via free relay, no account
-        "g4f/Gemini",                # Google Gemini with Google account
-        "g4f/DeepInfra",             # Llama 3.1 70B via DeepInfra, no account
-    ],
-}
+# ---------------------------------------------------------------------------
+# Model catalog — loaded from model_catalog.json via ModelRegistry.
+# Falls back to hardcoded defaults only when the catalog file is missing.
+# To update models, edit model_catalog.json (no code change required).
+# ---------------------------------------------------------------------------
+
+def _load_model_catalog() -> dict[ExecutionMode, list[str]]:
+    """Load model catalog from the dynamic ModelRegistry."""
+    try:
+        from app.providers.model_registry import get_model_registry
+        registry = get_model_registry()
+        if registry.model_count > 0:
+            return {
+                ExecutionMode.QUALITY: registry.get_models_for_mode("quality"),
+                ExecutionMode.SPEED: registry.get_models_for_mode("speed"),
+                ExecutionMode.COST: registry.get_models_for_mode("cost"),
+                ExecutionMode.FREE: registry.get_models_for_mode("free"),
+                ExecutionMode.SUBSCRIPTION: registry.get_models_for_mode("subscription"),
+            }
+    except Exception as exc:
+        logger.warning("Failed to load model catalog from registry: %s", exc)
+
+    # Hardcoded fallback (used only when model_catalog.json is missing)
+    logger.info("Using hardcoded fallback model catalog")
+    return {
+        ExecutionMode.QUALITY: [
+            "anthropic/claude-opus-4-6",
+            "openai/gpt-5.4",
+            "gemini/gemini-2.5-pro",
+            "google/gemini-2.5-pro",
+        ],
+        ExecutionMode.SPEED: [
+            "anthropic/claude-haiku-4-5-20251001",
+            "openai/gpt-5-mini",
+            "gemini/gemini-2.5-flash",
+            "google/gemini-2.5-flash",
+        ],
+        ExecutionMode.COST: [
+            "anthropic/claude-haiku-4-5-20251001",
+            "openai/gpt-5-mini",
+            "gemini/gemini-2.5-flash-lite",
+            "deepseek/deepseek-chat",
+        ],
+        ExecutionMode.FREE: [
+            "gemini/gemini-2.5-flash",
+            "g4f/GeminiPro",
+            "g4f/Copilot",
+            "ollama/llama3.2",
+            "ollama/mistral",
+            "ollama/phi3",
+        ],
+        ExecutionMode.SUBSCRIPTION: [
+            "g4f/GeminiPro",
+            "g4f/Copilot",
+            "g4f/OpenaiChat",
+            "g4f/Claude",
+            "g4f/Gemini",
+            "g4f/DeepInfra",
+        ],
+    }
+
+
+MODEL_CATALOG: dict[ExecutionMode, list[str]] = _load_model_catalog()
 
 
 class LLMGateway:
@@ -457,30 +474,21 @@ class LLMGateway:
             )
 
     def estimate_cost(self, model: str, input_tokens: int, output_tokens: int) -> float:
-        """Estimate API cost for a given model and token count."""
-        # g4f models have no direct API billing — always $0
-        if model.startswith("g4f/"):
-            return 0.0
+        """Estimate API cost for a given model and token count.
 
-        # Rough estimates per 1K tokens (0.0 means free / no billing)
-        costs = {
-            "anthropic/claude-opus-4-6": (0.015, 0.075),
-            "anthropic/claude-sonnet-4-6": (0.003, 0.015),
-            "anthropic/claude-haiku-4-5-20251001": (0.001, 0.005),
-            "openai/gpt-5.4": (0.005, 0.015),
-            "openai/gpt-5-mini": (0.00015, 0.0006),
-            "gemini/gemini-2.5-pro": (0.00125, 0.005),
-            "gemini/gemini-2.5-flash": (0.0001, 0.0004),
-            # gemini-2.5-flash-lite: lowest cost Gemini model
-            "gemini/gemini-2.5-flash-lite": (0.0, 0.0),
-            "deepseek/deepseek-chat": (0.00014, 0.00028),
-            # Local models are always free
-            "ollama/llama3.2": (0.0, 0.0),
-            "ollama/mistral": (0.0, 0.0),
-            "ollama/phi3": (0.0, 0.0),
-        }
-        input_rate, output_rate = costs.get(model, (0.001, 0.002))
-        return (input_tokens / 1000 * input_rate) + (output_tokens / 1000 * output_rate)
+        Cost data is loaded from model_catalog.json via the ModelRegistry.
+        Falls back to a conservative default for unknown models.
+        """
+        try:
+            from app.providers.model_registry import get_model_registry
+            return get_model_registry().estimate_cost(model, input_tokens, output_tokens)
+        except Exception:
+            pass
+
+        # Inline fallback if registry is unavailable
+        if model.startswith(("g4f/", "ollama/")):
+            return 0.0
+        return (input_tokens / 1000 * 0.001) + (output_tokens / 1000 * 0.002)
 
 
 # Global gateway instance — auto-configured from environment variables
