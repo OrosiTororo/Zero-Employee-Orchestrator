@@ -1,0 +1,48 @@
+{
+  "slug": "ai-secretary",
+  "name": "AI Secretary Plugin (秘書AI)",
+  "description": "ユーザーの秘書として機能する AI エージェント Plugin。スケジュール把握、タスク優先度の提案、次のアクションのリマインド、AI 組織とユーザーの橋渡しを行う。ユーザーと AI 組織をつなぐハブとしての役割を担う。",
+  "version": "0.1.0",
+  "status": "experimental",
+  "type": "plugin",
+  "skills": [
+    "secretary-schedule-tracker",
+    "secretary-priority-advisor",
+    "secretary-daily-briefing",
+    "secretary-reminder",
+    "secretary-delegation-router",
+    "secretary-progress-summarizer"
+  ],
+  "required_permissions": ["read_local", "internet_access"],
+  "external_connections": [],
+  "dangerous_operations": false,
+  "approval_required_operations": [
+    "send_reminder",
+    "create_ticket_on_behalf",
+    "reschedule_task"
+  ],
+  "use_cases": [
+    "朝のブリーフィング: 今日の予定・承認待ち・進行中タスクの要約",
+    "次のアクション提案: 優先度に基づいて次にやるべきことを提示",
+    "進捗サマリー: AI 組織の活動状況をユーザーに分かりやすく報告",
+    "リマインド: 期限が近いタスク・承認待ちの通知",
+    "委任ルーティング: ユーザーの指示を適切なエージェントに振り分け",
+    "週次レポート: 1 週間の成果・コスト・改善提案をまとめて報告"
+  ],
+  "capabilities": {
+    "daily_briefing": "毎朝の業務サマリー生成（承認待ち、進行中タスク、本日の予定）",
+    "priority_scoring": "タスクの緊急度・重要度を判定し、推奨順序を提示",
+    "progress_tracking": "全チケット・タスクの進捗を監視し、遅延を検出",
+    "user_bridge": "AI 組織の内部状態をユーザーが理解しやすい形に翻訳",
+    "proactive_notification": "重要なイベント（障害、予算超過、承認期限）を能動的に通知",
+    "calendar_integration": "外部カレンダー（Google Calendar 等）との連携（Extension 経由）"
+  },
+  "integration": {
+    "heartbeat": "Heartbeat ポリシーと連携して定期ブリーフィングを自動実行",
+    "approval_flow": "承認待ちキューの要約と優先度付けを提供",
+    "experience_memory": "過去のブリーフィング内容と改善フィードバックを蓄積",
+    "chat_plugins": "Discord/Slack/LINE Bot Plugin と連携し、チャットアプリ経由でブリーフィングを配信"
+  },
+  "note": "秘書AI はユーザーと AI 組織の間のコミュニケーションハブとして機能する。チケット作成やタスク変更の権限は限定的で、重要な操作は常にユーザーの承認を経る。",
+  "author": "Zero-Employee Orchestrator Team"
+}

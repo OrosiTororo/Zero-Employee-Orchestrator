@@ -1,27 +1,46 @@
 {
   "slug": "slack-bot",
   "name": "Slack Bot Plugin",
-  "description": "Slack からマルチエージェントに指示を送信し、結果を受け取る Plugin。Slash Command やメンションでチケット作成、進捗確認、承認操作が可能。",
-  "version": "0.1.0",
+  "description": "Slack からマルチエージェントに指示を送信し、結果を受け取る Plugin。Slash Command やメンションでチケット作成、進捗確認、承認操作が可能。秘書AI・分身AI Plugin と連携して、Slack 上でブリーフィングの受信やユーザー代理応答も行える。",
+  "version": "0.2.0",
   "status": "experimental",
   "type": "plugin",
   "skills": [
     "slack-message-receive",
     "slack-command-parse",
     "slack-response-send",
-    "slack-approval-prompt"
+    "slack-approval-prompt",
+    "slack-thread-conversation",
+    "slack-briefing-delivery",
+    "slack-interactive-block"
   ],
   "required_permissions": ["external_send", "internet_access"],
   "external_connections": ["slack.com", "api.slack.com"],
   "dangerous_operations": false,
   "approval_required_operations": ["send_message", "execute_task_from_slack"],
   "use_cases": [
-    "Slack からチケット作成",
-    "Slack で進捗確認",
-    "Slack 経由の承認フロー",
+    "Slack からチケット作成（自然言語メッセージ or Slash Command）",
+    "Slack で進捗確認・ステータス照会",
+    "Slack 経由の承認フロー（Block Kit ボタン）",
     "チャンネルへの成果物通知",
+    "スレッド内での AI エージェントとの対話",
+    "秘書AI からの朝のブリーフィング配信",
+    "分身AI 経由でのユーザー代理レスポンス（承認済み範囲内）",
     "Slash Command による操作"
   ],
+  "integration": {
+    "ai_secretary": "秘書AI Plugin のブリーフィング・リマインドを Slack チャンネルに配信",
+    "ai_avatar": "分身AI Plugin の代理応答を Slack スレッドに投稿（承認済み範囲内）",
+    "notifications": "通知 Extension と連携して Slack をデフォルト通知先に設定可能"
+  },
+  "commands": {
+    "/zeo ticket <description>": "新しいチケットを作成",
+    "/zeo status [ticket_id]": "チケット・タスクの状態確認",
+    "/zeo approve <approval_id>": "承認操作",
+    "/zeo reject <approval_id>": "却下操作",
+    "/zeo briefing": "現在の業務サマリーを取得",
+    "/zeo ask <question>": "AI 組織に質問（Design Interview 的な対話）"
+  },
   "note": "Slack App Token の設定が必要。本体には含まれず、Plugin として追加導入する。",
   "author": "Zero-Employee Orchestrator Team"
 }
