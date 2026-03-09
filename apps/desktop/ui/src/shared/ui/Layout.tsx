@@ -114,7 +114,7 @@ export function Layout({ children }: LayoutProps) {
                   className="group-hover:text-[var(--text-primary)] transition-colors"
                 />
                 {/* Tooltip */}
-                <span className="pointer-events-none absolute left-[52px] px-2 py-1 rounded text-[11px] text-white bg-[#383838] border border-[var(--border)] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-lg">
+                <span className="pointer-events-none absolute left-[52px] px-2 py-1 rounded text-[11px] text-white bg-[#383838] border border-[var(--border)] whitespace-nowrap opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity z-50 shadow-lg">
                   {item.label}
                 </span>
               </button>
