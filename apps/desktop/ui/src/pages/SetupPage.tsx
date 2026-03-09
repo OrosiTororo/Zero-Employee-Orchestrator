@@ -13,7 +13,7 @@ import {
   CheckCircle,
 } from "lucide-react"
 import { Logo } from "@/shared/ui/Logo"
-import { useT, useI18n, LOCALE_LABELS, type Locale } from "@/shared/i18n"
+import { useT, useI18n, LOCALE_LABELS, locales, type Locale } from "@/shared/i18n"
 
 type Step =
   | "language"
@@ -52,12 +52,8 @@ export function SetupPage() {
 
   const handleLocaleChange = (newLocale: Locale) => {
     setLocale(newLocale)
-    // If the user hasn't manually edited the agent name, sync it with the new locale
     if (!agentNameEdited) {
-      // We need to get the new default from the locale data directly
-      // since useT() won't have updated yet in this handler
-      const defaults: Record<Locale, string> = { ja: "アシスタント", en: "Assistant" }
-      setFirstAgentName(defaults[newLocale])
+      setFirstAgentName(locales[newLocale].setup.agent.defaultName)
     }
   }
 

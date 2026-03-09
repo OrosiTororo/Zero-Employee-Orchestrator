@@ -82,7 +82,8 @@ export function LoginPage() {
     try {
       const res = await api.get<{ url: string }>("/auth/google/authorize")
       window.location.href = res.url
-    } catch {
+    } catch (e) {
+      console.error("Google auth failed:", e)
       setError(t.auth.loginFailed)
       setLoading(false)
     }

@@ -11,7 +11,7 @@ export const LOCALE_LABELS: Record<Locale, string> = {
 
 type Messages = typeof jaLocale
 
-const locales: Record<Locale, Messages> = {
+export const locales: Record<Locale, Messages> = {
   ja: jaLocale,
   en: enLocale as unknown as Messages,
 }
@@ -23,8 +23,12 @@ interface I18nState {
 }
 
 function getInitialLocale(): Locale {
-  const stored = localStorage.getItem("locale")
-  if (stored === "ja" || stored === "en") return stored
+  try {
+    const stored = localStorage.getItem("locale")
+    if (stored === "ja" || stored === "en") return stored
+  } catch {
+    // localStorage unavailable (SSR or restricted context)
+  }
   const browserLang = navigator.language.toLowerCase()
   if (browserLang.startsWith("ja")) return "ja"
   return "en"
@@ -36,7 +40,7 @@ export const useI18n = create<I18nState>((set) => {
     locale: initial,
     messages: locales[initial],
     setLocale: (locale: Locale) => {
-      localStorage.setItem("locale", locale)
+      try { localStorage.setItem("locale", locale) } catch { /* noop */ }
       document.documentElement.lang = locale
       set({ locale, messages: locales[locale] })
     },
