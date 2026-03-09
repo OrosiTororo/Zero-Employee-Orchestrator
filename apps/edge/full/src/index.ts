@@ -20,7 +20,6 @@ import health from "./routes/health";
 
 const INSECURE_DEFAULTS = new Set([
   "change-me-in-production",
-  "CHANGE-ME-in-production",
   "change-this-to-a-random-secret-key",
 ]);
 
@@ -33,7 +32,7 @@ app.use("*", corsMiddleware);
 
 /* Block API requests when JWT_SECRET is still the insecure default. */
 app.use("/api/*", async (c, next) => {
-  if (INSECURE_DEFAULTS.has(c.env.JWT_SECRET)) {
+  if (INSECURE_DEFAULTS.has(c.env.JWT_SECRET.toLowerCase())) {
     return c.json(
       {
         error: "Insecure configuration",

@@ -7,7 +7,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _INSECURE_DEFAULT_KEYS = frozenset(
     {
-        "CHANGE-ME-in-production",
         "change-me-in-production",
         "change-this-to-a-random-secret-key",
     }
@@ -46,7 +45,7 @@ settings = Settings()
 # ---------------------------------------------------------------------------
 # Startup safety check: reject insecure defaults in production (DEBUG=false)
 # ---------------------------------------------------------------------------
-if settings.SECRET_KEY in _INSECURE_DEFAULT_KEYS:
+if settings.SECRET_KEY.lower() in _INSECURE_DEFAULT_KEYS:
     if settings.DEBUG:
         warnings.warn(
             "SECRET_KEY is set to an insecure default. "
