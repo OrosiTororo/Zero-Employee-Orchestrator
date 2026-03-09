@@ -1,8 +1,14 @@
 """Test configuration and fixtures."""
 
 import asyncio
+import os
 import uuid
 from collections.abc import AsyncGenerator
+
+# Allow tests to run with the default SECRET_KEY by enabling DEBUG mode.
+# config.py raises RuntimeError when SECRET_KEY is an insecure placeholder
+# and DEBUG=false, preventing accidental production use of default secrets.
+os.environ.setdefault("DEBUG", "true")
 
 import pytest
 import pytest_asyncio
