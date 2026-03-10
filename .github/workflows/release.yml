@@ -56,15 +56,15 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Install frontend dependencies
-        working-directory: apps/desktop/ui
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build Tauri app
-        uses: tauri-apps/tauri-action@v0.6.1
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: apps/desktop
+          tauriScript: pnpm tauri
           tagName: ${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}
           releaseName: "Zero-Employee Orchestrator ${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}"
           releaseBody: |
@@ -84,12 +84,9 @@ jobs:
 
             | OS | ファイル / File | 説明 / Description |
             |---|---|---|
-            | **Windows** | `_x64_ja-JP.msi` | 日本語 Windows インストーラー |
-            | **Windows** | `_x64_en-US.msi` | English Windows installer |
-            | **Windows** | `_x64_zh-CN.msi` | 中文 Windows 安装程序 |
-            | **Windows** | `_x64-setup.exe` | NSIS installer (if .msi doesn't work) |
-            | **macOS** | `_universal.dmg` | macOS (Intel + Apple Silicon) |
-            | **macOS** | `_aarch64.dmg` | macOS Apple Silicon only |
+            | **Windows** | `_x64_en-US.msi` | Windows installer (.msi) |
+            | **Windows** | `_x64-setup.exe` | Windows installer (.exe / NSIS) |
+            | **macOS** | `_aarch64.dmg` | macOS (Apple Silicon) |
             | **Linux** | `_amd64.AppImage` | Portable (no install needed) |
             | **Linux** | `_amd64.deb` | Debian / Ubuntu |
             | **Linux** | `_x86_64.rpm` | Fedora / RHEL |

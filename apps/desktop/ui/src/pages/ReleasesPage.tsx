@@ -214,13 +214,10 @@ interface BuiltinAsset {
 }
 
 const EXPECTED_ASSETS: BuiltinAsset[] = [
-  { name: `Zero-Employee-Orchestrator_0.1.0_x64_ja-JP.msi`, os: "Windows", description: "日本語 Windows インストーラー" },
-  { name: `Zero-Employee-Orchestrator_0.1.0_x64_en-US.msi`, os: "Windows", description: "English Windows installer" },
-  { name: `Zero-Employee-Orchestrator_0.1.0_x64_zh-CN.msi`, os: "Windows", description: "中文 Windows 安装程序" },
-  { name: `Zero-Employee-Orchestrator_0.1.0_x64-setup.exe`, os: "Windows", description: "NSIS installer" },
-  { name: `Zero-Employee-Orchestrator_0.1.0_universal.dmg`, os: "macOS", description: "macOS (Intel + Apple Silicon)" },
-  { name: `Zero-Employee-Orchestrator_0.1.0_aarch64.dmg`, os: "macOS", description: "macOS Apple Silicon only" },
-  { name: `Zero-Employee-Orchestrator_0.1.0_amd64.AppImage`, os: "Linux", description: "Portable (no install needed)" },
+  { name: `Zero-Employee-Orchestrator_0.1.0_x64_en-US.msi`, os: "Windows", description: "Windows インストーラー (.msi)" },
+  { name: `Zero-Employee-Orchestrator_0.1.0_x64-setup.exe`, os: "Windows", description: "Windows インストーラー (.exe / NSIS)" },
+  { name: `Zero-Employee-Orchestrator_0.1.0_aarch64.dmg`, os: "macOS", description: "macOS (Apple Silicon)" },
+  { name: `Zero-Employee-Orchestrator_0.1.0_amd64.AppImage`, os: "Linux", description: "Portable (インストール不要)" },
   { name: `Zero-Employee-Orchestrator_0.1.0_amd64.deb`, os: "Linux", description: "Debian / Ubuntu" },
   { name: `Zero-Employee-Orchestrator_0.1.0_x86_64.rpm`, os: "Linux", description: "Fedora / RHEL" },
 ]
