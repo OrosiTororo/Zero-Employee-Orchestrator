@@ -12,6 +12,9 @@ on:
 
 jobs:
   claude-review:
+    # Dependabotのブランチはスキップ（OIDCトークン検証エラー回避のため）
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
+
     # Optional: Filter by PR author
     # if: |
     #   github.event.pull_request.user.login == 'external-contributor' ||
