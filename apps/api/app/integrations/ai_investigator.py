@@ -285,9 +285,7 @@ class AIInvestigator:
                 from sqlalchemy import literal_column
 
                 result = await db.execute(
-                    select(func.count()).select_from(
-                        literal_column(table)
-                    )
+                    select(func.count()).select_from(literal_column(table))
                 )
                 row = result.one_or_none()
                 metrics[f"{table}_count"] = row[0] if row else 0
