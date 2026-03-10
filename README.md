@@ -378,6 +378,68 @@ rm apps/api/zero_employee_orchestrator.db
 
 </details>
 
+## Cloudflare Workers デプロイ / Deploy
+
+Workers 上での実行に対応しています。2つの方式から選択できます:
+
+| 方式 / Method | ディレクトリ / Directory | 概要 / Overview |
+|--------------|------------------------|----------------|
+| **A: Proxy** | `apps/edge/proxy/` | 既存 FastAPI の前段にリバースプロキシ配置 |
+| **B: Full Workers** | `apps/edge/full/` | 主要 API を Hono + D1 でエッジ上に完全再実装 |
+
+```bash
+# Method A: Proxy
+cd apps/edge/proxy && npm install && npm run dev
+
+# Method B: Full Workers
+cd apps/edge/full && npm install && npm run db:init && npm run dev
+```
+
+詳細 / Details: [apps/edge/README.md](apps/edge/README.md)
+
+---
+
+## 本番環境 / Production
+
+<details>
+<summary>本番環境での運用 / Production Setup</summary>
+
+### PostgreSQL
+
+```env
+# apps/api/.env
+DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/zero_employee_orchestrator
+```
+
+```bash
+cd apps/api && source .venv/bin/activate
+pip install asyncpg
+```
+
+### セキュリティ / Security
+
+```env
+SECRET_KEY=<ランダムな文字列を生成して設定>
+DEBUG=false
+CORS_ORIGINS=https://your-domain.com
+```
+
+</details>
+
+---
+
+## ライセンス / License
+
+プライベートプロジェクト / Private Project
+
+## 関連文書 / Related Documents
+
+- `ABOUT.md` — このシステムのメリット・従来システムとの違い
+- `USER_GUIDE.md` — 初心者向けユーザーガイド
+- `Zero-Employee Orchestrator.md` — 最上位基準文書（思想・要件・改善方針）
+- `DESIGN.md` — 実装設計書（DB・API・画面・状態遷移）
+- `MASTER_GUIDE.md` — 実装運用ガイド（進め方と判断基準）
+
 ---
 
 ## English
@@ -806,67 +868,3 @@ rm apps/api/zero_employee_orchestrator.db
 ```
 
 </details>
-
----
-
-## Cloudflare Workers デプロイ / Deploy
-
-Workers 上での実行に対応しています。2つの方式から選択できます:
-
-| 方式 / Method | ディレクトリ / Directory | 概要 / Overview |
-|--------------|------------------------|----------------|
-| **A: Proxy** | `apps/edge/proxy/` | 既存 FastAPI の前段にリバースプロキシ配置 |
-| **B: Full Workers** | `apps/edge/full/` | 主要 API を Hono + D1 でエッジ上に完全再実装 |
-
-```bash
-# Method A: Proxy
-cd apps/edge/proxy && npm install && npm run dev
-
-# Method B: Full Workers
-cd apps/edge/full && npm install && npm run db:init && npm run dev
-```
-
-詳細 / Details: [apps/edge/README.md](apps/edge/README.md)
-
----
-
-## 本番環境 / Production
-
-<details>
-<summary>本番環境での運用 / Production Setup</summary>
-
-### PostgreSQL
-
-```env
-# apps/api/.env
-DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/zero_employee_orchestrator
-```
-
-```bash
-cd apps/api && source .venv/bin/activate
-pip install asyncpg
-```
-
-### セキュリティ / Security
-
-```env
-SECRET_KEY=<ランダムな文字列を生成して設定>
-DEBUG=false
-CORS_ORIGINS=https://your-domain.com
-```
-
-</details>
-
----
-
-## ライセンス / License
-
-プライベートプロジェクト / Private Project
-
-## 関連文書 / Related Documents
-
-- `ABOUT.md` — このシステムのメリット・従来システムとの違い
-- `USER_GUIDE.md` — 初心者向けユーザーガイド
-- `Zero-Employee Orchestrator.md` — 最上位基準文書（思想・要件・改善方針）
-- `DESIGN.md` — 実装設計書（DB・API・画面・状態遷移）
-- `MASTER_GUIDE.md` — 実装運用ガイド（進め方と判断基準）
