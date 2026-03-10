@@ -211,21 +211,59 @@ class CloudSandbox:
 
     async def _run_shell(self, code: str, start: float) -> SandboxResult:
         """シェルコマンドの実行（制限付き）."""
+        import re
+        import shlex
         import time
 
-        # 安全性チェック
-        dangerous = ["rm -rf", "mkfs", "dd if=", ":(){ :|:", "chmod 777 /"]
-        for d in dangerous:
-            if d in code:
+        # Dangerous patterns (comprehensive blocklist)
+        _DANGEROUS_PATTERNS = [
+            r"rm\s+(-\w*[rRf])",     # rm with recursive/force flags
+            r"mkfs",                  # filesystem format
+            r"dd\s+if=",             # disk write
+            r":\(\)\s*\{",           # fork bomb
+            r"chmod\s+777",          # world-writable
+            r">\s*/dev/sd",          # overwrite disk
+            r"/etc/passwd",          # password file access
+            r"/etc/shadow",          # shadow file access
+            r"curl\s+.*\|\s*sh",     # pipe to shell
+            r"wget\s+.*\|\s*sh",     # pipe to shell
+            r"eval\s*\(",            # eval
+            r"\$\(",                 # command substitution
+            r"`[^`]+`",              # backtick substitution
+            r"sudo\s",              # privilege escalation
+            r"su\s",                # user switch
+            r"chown\s",             # ownership change
+            r"mount\s",             # filesystem mount
+            r"kill\s+-9",           # force kill
+            r"pkill\s",            # process kill
+            r"shutdown",            # system shutdown
+            r"reboot",              # system reboot
+            r">\s*/etc/",           # overwrite system files
+        ]
+        for pattern in _DANGEROUS_PATTERNS:
+            if re.search(pattern, code, re.IGNORECASE):
                 return SandboxResult(
                     success=False,
-                    error=f"Dangerous command blocked: {d}",
+                    error=f"Dangerous command pattern blocked: {pattern}",
                     mode="local",
                 )
 
+        # Use shlex.split + create_subprocess_exec for safer execution
         try:
-            proc = await asyncio.create_subprocess_shell(
-                code,
+            args = shlex.split(code)
+        except ValueError as e:
+            return SandboxResult(
+                success=False,
+                error=f"Invalid command syntax: {e}",
+                mode="local",
+            )
+
+        if not args:
+            return SandboxResult(success=False, error="Empty command", mode="local")
+
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                *args,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )

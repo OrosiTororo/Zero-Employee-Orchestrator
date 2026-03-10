@@ -80,21 +80,77 @@ async def emit_event(
 
 @router.websocket("/ws/events")
 async def websocket_events(websocket: WebSocket):
-    """WebSocket endpoint for real-time event streaming.
+    """WebSocket endpoint for real-time event streaming and user-agent interaction.
 
     Client should send initial message with company_id to subscribe.
+
+    Supported client message types:
+    - ping: keep-alive heartbeat
+    - user_message: send a message to an agent (requires agent_id, content)
+    - approval_response: respond to an approval request (requires approval_id, decision)
+    - intervention: interrupt or redirect an agent task
     """
     company_id = websocket.query_params.get("company_id", "default")
     await manager.connect(websocket, company_id)
     try:
         while True:
-            # Keep connection alive, handle client messages
             data = await websocket.receive_text()
             try:
                 msg = json.loads(data)
-                if msg.get("type") == "ping":
+                msg_type = msg.get("type", "")
+
+                if msg_type == "ping":
                     await websocket.send_text(json.dumps({"type": "pong"}))
+
+                elif msg_type == "user_message":
+                    # User sends a message to a specific agent
+                    await websocket.send_text(json.dumps({
+                        "type": "message_received",
+                        "agent_id": msg.get("agent_id"),
+                        "content": msg.get("content", ""),
+                        "status": "delivered",
+                    }))
+                    # Broadcast to other listeners so agent workers can pick it up
+                    await manager.broadcast(company_id, {
+                        "event_type": "user.message",
+                        "target_type": "agent",
+                        "target_id": msg.get("agent_id"),
+                        "data": {
+                            "content": msg.get("content", ""),
+                            "ticket_id": msg.get("ticket_id"),
+                            "task_id": msg.get("task_id"),
+                        },
+                    })
+
+                elif msg_type == "approval_response":
+                    # User responds to an approval request via WebSocket
+                    await manager.broadcast(company_id, {
+                        "event_type": "approval.decided",
+                        "target_type": "approval",
+                        "target_id": msg.get("approval_id"),
+                        "data": {
+                            "decision": msg.get("decision"),
+                            "reason": msg.get("reason", ""),
+                        },
+                    })
+
+                elif msg_type == "intervention":
+                    # User intervenes in agent execution (pause, redirect, cancel)
+                    await manager.broadcast(company_id, {
+                        "event_type": "user.intervention",
+                        "target_type": msg.get("target_type", "task"),
+                        "target_id": msg.get("target_id"),
+                        "data": {
+                            "action": msg.get("action"),  # pause, resume, cancel, redirect
+                            "reason": msg.get("reason", ""),
+                            "new_instructions": msg.get("new_instructions"),
+                        },
+                    })
+
             except json.JSONDecodeError:
-                pass
+                await websocket.send_text(json.dumps({
+                    "type": "error",
+                    "message": "Invalid JSON",
+                }))
     except WebSocketDisconnect:
         manager.disconnect(websocket, company_id)

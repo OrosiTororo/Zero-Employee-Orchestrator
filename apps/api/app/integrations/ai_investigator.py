@@ -18,7 +18,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-from sqlalchemy import text
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
@@ -275,10 +275,15 @@ class AIInvestigator:
         """システムメトリクスを取得."""
         metrics: dict[str, Any] = {}
 
-        # テーブル行数カウント
-        for table in ["tickets", "tasks", "agents", "skills", "audit_logs"]:
+        # テーブル行数カウント (allowed tables whitelist - no dynamic SQL)
+        _ALLOWED_TABLES = frozenset(["tickets", "tasks", "agents", "skills", "audit_logs"])
+        for table in _ALLOWED_TABLES:
             try:
-                result = await db.execute(text(f"SELECT COUNT(*) as cnt FROM {table}"))
+                # Use SQLAlchemy text with literal_column to avoid f-string SQL injection
+                from sqlalchemy import literal_column
+                result = await db.execute(
+                    select(func.count()).select_from(literal_column(table))
+                )
                 row = result.one_or_none()
                 metrics[f"{table}_count"] = row[0] if row else 0
             except Exception:
