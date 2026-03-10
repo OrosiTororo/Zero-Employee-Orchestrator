@@ -82,6 +82,15 @@ async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
     )
 
 
+@router.get("/google/authorize")
+async def google_authorize():
+    """Google OAuth 認可URL取得 (未実装スタブ)"""
+    raise HTTPException(
+        status_code=501,
+        detail="Google OAuth は準備中です。メール登録をご利用ください。",
+    )
+
+
 @router.post("/oauth/login", response_model=LoginResponse)
 async def oauth_login(req: OAuthLoginRequest, db: AsyncSession = Depends(get_db)):
     """OAuth プロバイダー経由のログイン (Google, GitHub等)"""
