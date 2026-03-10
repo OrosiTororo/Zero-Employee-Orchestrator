@@ -412,13 +412,26 @@ GitHub Actions による手動デプロイ (`.github/workflows/deploy-workers.ym
 - `POST /api/reviews`
 - `POST /api/approvals`
 
-#### Skills / Plugins / Extensions
-- `GET /api/skills`
-- `POST /api/skills/execute`
-- `POST /api/skills/generate`
-- `GET /api/skills/gaps`
-- `GET /api/plugins`
-- `GET /api/extensions`
+#### Skills / Plugins / Extensions (v0.1 実装済み)
+- `GET /api/v1/registry/skills` — Skill 一覧（status, skill_type, include_disabled フィルタ）
+- `GET /api/v1/registry/skills/{id}` — Skill 個別取得
+- `POST /api/v1/registry/skills` — Skill 作成
+- `POST /api/v1/registry/skills/install` — Skill インストール
+- `PATCH /api/v1/registry/skills/{id}` — Skill 更新（保護スキル無効化拒否）
+- `DELETE /api/v1/registry/skills/{id}` — Skill 削除（保護スキル削除拒否）
+- `POST /api/v1/registry/skills/generate` — 自然言語スキル生成（安全性チェック付き）
+- `POST /api/skills/execute` — Skill 実行
+- `GET /api/skills/gaps` — Skill ギャップ検出
+- `GET /api/v1/registry/plugins` — Plugin 一覧
+- `GET /api/v1/registry/plugins/{id}` — Plugin 個別取得
+- `POST /api/v1/registry/plugins` — Plugin 作成
+- `PATCH /api/v1/registry/plugins/{id}` — Plugin 更新
+- `DELETE /api/v1/registry/plugins/{id}` — Plugin 削除（保護プラグイン削除拒否）
+- `GET /api/v1/registry/extensions` — Extension 一覧
+- `GET /api/v1/registry/extensions/{id}` — Extension 個別取得
+- `POST /api/v1/registry/extensions` — Extension 作成
+- `PATCH /api/v1/registry/extensions/{id}` — Extension 更新
+- `DELETE /api/v1/registry/extensions/{id}` — Extension 削除（保護拡張削除拒否）
 
 #### Registry / Audit / Settings
 - `GET /api/registry/search`

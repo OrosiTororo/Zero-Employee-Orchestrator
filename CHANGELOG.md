@@ -5,6 +5,68 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-03-10 — Skills Management v0.1
+
+### Added
+
+- **自然言語スキル生成エンジン** (`services/skill_service.py`)
+  - 自然言語でスキルの機能を説明するだけで、マニフェスト (skill.json) と実行コード (executor.py) を自動生成
+  - LLM ベース生成 + テンプレートベースフォールバック（LLM 不可時でも動作保証）
+  - 生成コードの自動安全性チェック（16 種類の危険パターン検出）
+  - 安全性レポート生成（risk_level: low/medium/high、権限要件、外部接続検出）
+  - `POST /api/v1/registry/skills/generate` エンドポイント
+- **Skill / Plugin / Extension 完全 CRUD API**
+  - 全エンティティで GET (一覧・個別) / POST (作成) / PATCH (更新) / DELETE (削除) 対応
+  - slug ベースの重複チェック
+  - 有効/無効の切り替え（`enabled` フラグ）
+  - フィルタリング: status, skill_type, include_disabled
+- **システム保護スキル機能** (`is_system_protected`)
+  - システム動作に必須な 6 つのビルトインスキルを保護
+    - spec-writer, plan-writer, task-breakdown, review-assistant, artifact-summarizer, local-context
+  - 保護スキルの削除を API レベルで拒否（HTTP 403）
+  - 保護スキルの無効化を API レベルで拒否（HTTP 403）
+  - アプリケーション起動時にシステムスキルの自動登録・保護フラグ設定
+- **Plugin / Extension 管理サービス** (`services/registry_service.py`)
+  - Plugin: 完全 CRUD + システム保護 + 有効/無効切替
+  - Extension: 完全 CRUD + システム保護 + 有効/無効切替
+  - 保護 Plugin/Extension の削除・無効化拒否
+- **フロントエンド スキル管理 UI** (`SkillsPage.tsx`)
+  - API 連携によるスキル一覧表示（リアルタイム取得）
+  - スキルの有効/無効切替トグル
+  - スキルの削除（システム保護スキルは UI レベルでもロック表示）
+  - システム保護バッジ表示
+  - 検索フィルタ（名前・説明・slug）
+- **フロントエンド スキル生成 UI** (`SkillCreatePage.tsx`)
+  - 自然言語入力エリア（10-5000 文字、文字数カウンター）
+  - 安全性チェック結果の視覚表示（合格/不合格、リスクレベル表示）
+  - 生成されたマニフェスト (JSON) とコード (Python) のプレビュー
+  - 安全性チェック合格後の「スキル登録」ボタン
+  - 安全性レポート詳細表示
+- **フロントエンド プラグイン管理 UI** (`PluginsPage.tsx`)
+  - API 連携による一覧表示
+  - 新規プラグイン追加フォーム
+  - 有効/無効切替・削除（保護プラグインはロック表示）
+  - 検索フィルタ
+
+### Changed
+
+- **Skill / Plugin / Extension モデル** (`models/skill.py`)
+  - `is_system_protected` カラム追加（Boolean, default=False）
+  - `enabled` カラム追加（Boolean, default=True）
+  - `generated_code` カラム追加（Skill のみ、Text）
+  - slug に `unique=True` 制約追加
+- **レジストリ API** (`api/routes/registry.py`)
+  - 基本的な list/install のみ → 完全 CRUD + 自然言語生成に全面書き換え
+  - サービス層経由に変更（直接 SQLAlchemy → services.skill_service / registry_service）
+  - 適切な HTTP ステータスコード（201 Created, 403 Forbidden, 404 Not Found, 409 Conflict）
+- **レジストリスキーマ** (`schemas/registry.py`)
+  - `SkillUpdate`, `PluginUpdate`, `ExtensionUpdate` 追加
+  - `SkillGenerateRequest`, `SkillGenerateResponse` 追加
+  - `RegistryDeleteResponse` 追加
+  - 全 Read スキーマに `is_system_protected`, `enabled` フィールド追加
+- **アプリケーション起動** (`main.py`)
+  - 起動時にシステム必須スキルの自動登録処理を追加
+
 ## [0.4.0] - 2026-03-09
 
 ### Added
