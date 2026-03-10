@@ -1401,8 +1401,8 @@ pnpm lint
 
 | 文書 | 役割 |
 |------|------|
-| `Zero-Employee Orchestrator.md` | 最上位基準文書（思想・要件） |
-| `DESIGN.md` | 実装設計書（DB・API・画面・状態遷移） |
-| `MASTER_GUIDE.md` | 実装運用ガイド |
+| `docs/Zero-Employee Orchestrator.md` | 最上位基準文書（思想・要件） |
+| `docs/dev/DESIGN.md` | 実装設計書（DB・API・画面・状態遷移） |
+| `docs/dev/MASTER_GUIDE.md` | 実装運用ガイド |
 | `docs/FEATURES.md` | 機能一覧（本ガイドの姉妹文書） |
-| `instructions_section2〜7` | 各領域の実装指示 |
+| `docs/dev/instructions_section2〜7` | 各領域の実装指示 |
