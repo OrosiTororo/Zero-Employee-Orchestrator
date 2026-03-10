@@ -702,7 +702,7 @@ React 19 + TypeScript + Tailwind CSS で構築された 20 以上の画面を提
 | `/budgets` | 3 | ポリシー CRUD、コストサマリー |
 | `/registry` | 6 | Skill / Plugin / Extension の検索・導入 |
 | `/projects` | 4 | プロジェクト CRUD、ゴール管理 |
-| `/settings` | 4 | 会社設定、ツール接続管理 |
+| `/settings` | 6 | LLM API キー設定、実行モード、会社設定、ツール接続管理 |
 | `/health` | 2 | ヘルスチェック（liveness / readiness） |
 | `/models` | 7 | モデルカタログ管理、ヘルスチェック、廃止管理 |
 | `/traces` | 4 | 推論トレース一覧、詳細、判断抽出 |
@@ -841,6 +841,33 @@ uv pip install zero-employee-orchestrator
 ```
 
 エントリーポイント: `zero-employee` コマンド
+
+### CLI コマンド一覧
+
+| コマンド | 説明 |
+|---------|------|
+| `zero-employee serve` | API サーバーを起動 |
+| `zero-employee config list` | 全設定値の一覧表示 |
+| `zero-employee config set <KEY> [VALUE]` | 設定値を保存（VALUE 省略時はプロンプト入力、機密値はエコーなし） |
+| `zero-employee config get <KEY>` | 設定値を取得 |
+| `zero-employee config delete <KEY>` | 設定値を削除（デフォルトに戻す） |
+| `zero-employee config keys` | 設定可能なキーの一覧 |
+| `zero-employee local` | ローカルチャットモード（Ollama） |
+| `zero-employee models` | インストール済み Ollama モデル一覧 |
+| `zero-employee pull <model>` | Ollama モデルをダウンロード |
+| `zero-employee db upgrade` | DB マイグレーション実行 |
+| `zero-employee health` | ヘルスチェック |
+
+### ランタイム設定管理
+
+API キーや実行モードを `.env` ファイルを直接編集せずに設定できます。
+
+**3 通りの設定方法:**
+1. **設定画面**: アプリの「設定」→「LLM API キー設定」から入力
+2. **CLI**: `zero-employee config set GEMINI_API_KEY`（機密値はプロンプトで安全に入力）
+3. **.env ファイル**: 従来通り `apps/api/.env` を直接編集
+
+設定の優先順位: 環境変数 > `~/.zero-employee/config.json` > `.env` > デフォルト値
 
 ---
 

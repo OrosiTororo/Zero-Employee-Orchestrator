@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **ランタイム設定管理 — .env 不要の API キー設定** (`core/config_manager.py`, `api/routes/config.py`)
+  - CLI コマンド `zero-employee config set/get/list/delete/keys` で API キーや実行モードを設定
+  - Web API `GET/PUT /api/v1/config` でアプリ内から設定変更
+  - 設定画面（SettingsPage）に LLM API キー入力 UI を追加
+  - 設定は `~/.zero-employee/config.json` に保存（ファイル権限 600 で保護）
+  - 優先順位: 環境変数 > config.json > .env > デフォルト値
+  - 機密値のマスク表示、プロバイダー接続状態 API
 - **ナレッジストア — ユーザー設定・ファイル権限の永続記憶** (`orchestration/knowledge_store.py`)
   - ファイル/フォルダの操作権限記憶（計画時に再度聞かない）
   - 業務資料フォルダの場所記憶
