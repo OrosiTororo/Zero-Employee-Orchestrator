@@ -6,6 +6,9 @@ on:
 
 jobs:
   claude-review:
+    if: >-
+      github.event.pull_request.user.type != 'Bot' &&
+      github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -14,18 +17,12 @@ jobs:
       id-token: write
 
     steps:
-      - name: Skip bot-authored PRs
-        if: github.event.pull_request.user.type == 'Bot'
-        run: echo "Skipping review for bot-authored PR"
-
       - name: Checkout repository
-        if: github.event.pull_request.user.type != 'Bot'
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
       - name: Run Claude Code Review
-        if: github.event.pull_request.user.type != 'Bot'
         id: claude-review
         uses: anthropics/claude-code-action@v1
         with:
