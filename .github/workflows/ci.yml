@@ -2,9 +2,9 @@ name: CI
 
 on:
   pull_request:
-    branches: [main]
+    branches: [master]
   push:
-    branches: [main]
+    branches: [master]
 
 permissions:
   contents: read
@@ -45,19 +45,16 @@ jobs:
   frontend-check:
     name: Frontend Check
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/desktop/ui
     steps:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
@@ -65,7 +62,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Type check
+        working-directory: apps/desktop/ui
         run: pnpm tsc --noEmit
 
       - name: Build
+        working-directory: apps/desktop/ui
         run: pnpm build
