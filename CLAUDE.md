@@ -155,6 +155,36 @@ agent_sessions, experience_memory, failure_taxonomy, iam_policies, ai_service_ac
 - `/investigate` — AI調査（DB/ログ参照）
 - `/hypotheses` — 仮説の並行検証
 - `/sessions` — エージェントセッション管理
+- `/config` — ランタイム設定管理（API キー・実行モード）
+
+## ランタイム設定管理
+
+API キーや実行モードを .env ファイルを直接編集せずに設定できる。
+
+### 設定方法（3 通り）
+1. **設定画面**: アプリの「設定」→「LLM API キー設定」
+2. **CLI**: `zero-employee config set/get/list/delete/keys`
+3. **.env ファイル**: 従来通り `apps/api/.env` を直接編集
+
+### 優先順位
+環境変数 > `~/.zero-employee/config.json` > `.env` > デフォルト値
+
+### CLI コマンド
+```
+zero-employee config list              # 全設定値を表示
+zero-employee config set <KEY> [VALUE] # 設定値を保存（VALUE省略時はプロンプト入力）
+zero-employee config get <KEY>         # 設定値を取得
+zero-employee config delete <KEY>      # 設定値を削除（デフォルトに戻す）
+zero-employee config keys              # 設定可能なキーの一覧
+```
+
+### Config API
+- `GET /api/v1/config` — 全設定値（機密値はマスク）
+- `GET /api/v1/config/providers` — プロバイダー接続状態
+- `PUT /api/v1/config` — 設定値の更新
+- `PUT /api/v1/config/batch` — 一括更新
+- `DELETE /api/v1/config/{key}` — 設定値の削除
+- `GET /api/v1/config/keys` — 設定可能なキーの一覧
 
 ## 対応 LLM モデル（動的管理）
 
@@ -205,10 +235,18 @@ Model Registry API (`/api/v1/models/*`) 経由で行う。
 
 ### CLI コマンド
 ```
+zero-employee serve              # API サーバーを起動
+zero-employee config list        # 設定値の一覧表示
+zero-employee config set <KEY>   # API キー等の設定（機密値はプロンプト入力）
+zero-employee config get <KEY>   # 設定値の取得
+zero-employee config delete <KEY> # 設定値の削除
+zero-employee config keys        # 設定可能なキーの一覧
 zero-employee local              # ローカルチャットモード
 zero-employee local --model qwen3:8b --lang ja
 zero-employee models             # インストール済みモデル一覧
 zero-employee pull qwen3:8b      # モデルダウンロード
+zero-employee db upgrade         # DB マイグレーション
+zero-employee health             # ヘルスチェック
 ```
 
 ### API エンドポイント

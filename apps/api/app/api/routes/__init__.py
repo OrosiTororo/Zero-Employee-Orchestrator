@@ -10,6 +10,7 @@ from app.api.routes import (
     auth,
     budgets,
     companies,
+    config,
     heartbeats,
     knowledge,
     models,
@@ -40,6 +41,7 @@ api_router.include_router(budgets.router, tags=["budgets"])
 api_router.include_router(audit.router, tags=["audit"])
 api_router.include_router(registry.router, prefix="/registry", tags=["registry"])
 api_router.include_router(settings.router, tags=["settings"])
+api_router.include_router(config.router, tags=["config"])
 api_router.include_router(models.router, tags=["models"])
 api_router.include_router(observability.router, tags=["observability"])
 api_router.include_router(ollama.router, tags=["ollama"])

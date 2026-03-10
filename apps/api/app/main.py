@@ -26,6 +26,13 @@ import app.security.iam  # noqa: F401
 @asynccontextmanager
 async def lifespan(application: FastAPI):
     """Create database tables on startup and initialize providers."""
+    # Apply runtime config from ~/.zero-employee/config.json
+    try:
+        from app.core.config_manager import apply_runtime_config
+        apply_runtime_config()
+    except Exception as exc:
+        logger.debug("Runtime config apply failed (non-fatal): %s", exc)
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 

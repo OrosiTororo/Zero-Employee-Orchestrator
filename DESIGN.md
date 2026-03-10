@@ -443,6 +443,14 @@ GitHub Actions による手動デプロイ (`.github/workflows/deploy-workers.ym
 - `PUT /api/settings`
 - `GET /api/health`
 
+#### ランタイム設定管理 (v0.1 実装済み)
+- `GET /api/v1/config` — 全設定値（機密値はマスク済み）
+- `GET /api/v1/config/providers` — プロバイダー接続状態
+- `PUT /api/v1/config` — 設定値の更新（API キー・実行モード等）
+- `PUT /api/v1/config/batch` — 一括更新
+- `DELETE /api/v1/config/{key}` — 設定値の削除（デフォルトに戻す）
+- `GET /api/v1/config/keys` — 設定可能なキーの一覧
+
 ### 10.3 状態遷移（実装済み）
 
 #### Ticket

@@ -113,6 +113,93 @@ def cmd_pull(args: argparse.Namespace) -> None:
     asyncio.run(_pull())
 
 
+def cmd_config(args: argparse.Namespace) -> None:
+    """設定値の表示・変更を行う."""
+    from app.core.config_manager import (
+        CONFIGURABLE_KEYS,
+        get_all_config,
+        get_config_value,
+        set_config_value,
+        delete_config_value,
+    )
+
+    action = args.config_action
+
+    if action == "list":
+        config = get_all_config()
+        print()
+        print("  \033[1mZero-Employee Orchestrator — Configuration\033[0m")
+        print()
+        current_category = ""
+        for key, info in config.items():
+            cat = info["category"]
+            if cat != current_category:
+                current_category = cat
+                print(f"  \033[38;5;75m[{cat}]\033[0m")
+            status = "\033[38;5;78mSET\033[0m" if info["is_set"] else "\033[38;5;245m---\033[0m"
+            source = f"\033[38;5;245m({info['source']})\033[0m"
+            value_display = info["value"] if info["is_set"] else ""
+            print(f"    {status} {key:30s} {value_display:20s} {source}")
+        print()
+        print(f"  Config file: ~/.zero-employee/config.json")
+        print()
+
+    elif action == "get":
+        if not args.key:
+            print("  Usage: zero-employee config get <KEY>")
+            sys.exit(1)
+        value = get_config_value(args.key)
+        if value:
+            print(f"  {args.key} = {value}")
+        else:
+            print(f"  {args.key} is not set")
+
+    elif action == "set":
+        if not args.key:
+            print("  Usage: zero-employee config set <KEY> <VALUE>")
+            sys.exit(1)
+        if args.key not in CONFIGURABLE_KEYS:
+            print(f"  Unknown key: {args.key}")
+            print(f"  Available keys: {', '.join(sorted(CONFIGURABLE_KEYS))}")
+            sys.exit(1)
+
+        value = args.value
+        if not value:
+            # 機密値の場合は入力プロンプトを表示（エコーなし）
+            import getpass
+            meta = CONFIGURABLE_KEYS[args.key]
+            if meta.get("sensitive") == "true":
+                value = getpass.getpass(f"  Enter value for {args.key}: ")
+            else:
+                value = input(f"  Enter value for {args.key}: ")
+
+        set_config_value(args.key, value)
+        print(f"  \033[38;5;78mSaved:\033[0m {args.key}")
+
+    elif action == "delete":
+        if not args.key:
+            print("  Usage: zero-employee config delete <KEY>")
+            sys.exit(1)
+        removed = delete_config_value(args.key)
+        if removed:
+            print(f"  \033[38;5;78mRemoved:\033[0m {args.key}")
+        else:
+            print(f"  {args.key} was not set in config file")
+
+    elif action == "keys":
+        print()
+        print("  \033[1mConfigurable keys:\033[0m")
+        print()
+        for key, meta in CONFIGURABLE_KEYS.items():
+            desc = meta.get("description_ja", meta.get("description", ""))
+            sensitive = " [sensitive]" if meta.get("sensitive") == "true" else ""
+            print(f"    \033[38;5;75m{key:30s}\033[0m {desc}{sensitive}")
+        print()
+
+    else:
+        print("  Usage: zero-employee config <list|get|set|delete|keys>")
+
+
 def cmd_local(args: argparse.Namespace) -> None:
     """ローカルチャットモード — Ollama で完全オフラインの対話型業務エージェント."""
 
@@ -389,6 +476,22 @@ def build_parser() -> argparse.ArgumentParser:
     health_parser.add_argument("--host", default="127.0.0.1", help="ホスト")
     health_parser.add_argument("--port", type=int, default=18234, help="ポート")
     health_parser.set_defaults(func=cmd_health)
+
+    # config — 設定管理
+    config_parser = subparsers.add_parser(
+        "config",
+        help="設定管理 (API キー・実行モード等)",
+    )
+    config_parser.add_argument(
+        "config_action",
+        nargs="?",
+        default="list",
+        choices=["list", "get", "set", "delete", "keys"],
+        help="Action: list | get | set | delete | keys",
+    )
+    config_parser.add_argument("key", nargs="?", default="", help="Config key name")
+    config_parser.add_argument("value", nargs="?", default="", help="Config value (for set)")
+    config_parser.set_defaults(func=cmd_config)
 
     # local — ローカルチャットモード
     local_parser = subparsers.add_parser(
