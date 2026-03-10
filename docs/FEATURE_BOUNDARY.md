@@ -1,6 +1,6 @@
 # 機能境界定義 — コア機能 vs Skill / Plugin / Extension
 
-> 作成日: 2026-03-09
+> 作成日: 2026-03-09 / 更新: 2026-03-10 (v0.1)
 > 目的: 本体に最初から含めるべき機能と、Skill / Plugin / Extension で後から追加する機能の境界を明文化する
 
 ---
@@ -147,9 +147,32 @@
 | `proxy-network` | 社内プロキシ・VPN 対応 |
 | `google-drive` | Google Drive 連携 |
 | `github-integration` | GitHub Issues / PR 連携 |
+| `gws-integration` | Google Workspace CLI (gws) 連携 |
 | `vscode-ui` | VS Code 風 UI テーマ |
 | `generative-ui` | フォーム・表・グラフによる動的レスポンス |
 | `auto-update` | 自動アップデート機構 |
+| `ipaas-bridge` | Make / Zapier / n8n 連携ブリッジ |
+| `security-audit` | セキュリティ自己テスト（ホワイトハッカー班） |
+
+---
+
+## コミュニティプラグイン共有の方針 (v0.1)
+
+ユーザーが Plugin を共有・公開できる仕組みを提供することで、開発者の追加作業なしに外部サービス連携が拡大します。
+
+### 共有の仕組み
+
+1. ユーザーがプラグインを開発し、GitHub リポジトリに `plugin.json` マニフェスト付きで公開
+2. リポジトリに `zeo-plugin` トピックを付与
+3. 他のユーザーが `POST /registry/plugins/search-external` で検索
+4. `POST /registry/plugins/import` でワンクリックインストール
+
+### 安全性の担保
+
+- インポート時に自動安全性チェック（16 種類の危険パターン検出）
+- 外部通信・認証情報アクセス・破壊的操作の検出と警告
+- 攻撃的・有害なプラグインの作成・共有・公開は禁止
+- インストール前にユーザーへリスクレベルを表示し確認を求める
 
 ---
 

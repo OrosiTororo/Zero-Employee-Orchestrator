@@ -293,3 +293,207 @@ def _git_to_raw_url(repo_url: str) -> str:
 
 # Global singleton
 skill_importer = ExternalSkillImporter()
+
+
+@dataclass
+class ExternalPluginManifest:
+    """外部プラグインのマニフェスト."""
+
+    name: str
+    slug: str
+    description: str
+    version: str = "0.1.0"
+    source_uri: str = ""
+    author: str = ""
+    license: str = ""
+    tags: list[str] = field(default_factory=list)
+    skills: list[str] = field(default_factory=list)
+    config_schema: dict[str, Any] = field(default_factory=dict)
+    manifest_json: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class PluginSearchResult:
+    """プラグイン検索結果."""
+
+    name: str
+    slug: str
+    description: str
+    source_uri: str
+    version: str = ""
+    author: str = ""
+    stars: int = 0
+    downloads: int = 0
+
+
+class ExternalPluginImporter:
+    """外部GitHubリポジトリからプラグインをインポートするマネージャー."""
+
+    # 既知のプラグインソース
+    KNOWN_SOURCES = {
+        "github": {
+            "base_url": "https://api.github.com",
+            "search_topics": ["zeo-plugin", "ai-orchestrator-plugin"],
+            "description": "GitHub Plugin リポジトリ",
+        },
+        "community_registry": {
+            "base_url": "https://plugins.zeo.dev",
+            "api_path": "/api/v1/plugins",
+            "description": "コミュニティプラグインレジストリ",
+        },
+    }
+
+    def __init__(self) -> None:
+        self._cached_searches: dict[str, list[PluginSearchResult]] = {}
+
+    async def search_plugins(
+        self,
+        query: str,
+        limit: int = 20,
+    ) -> list[PluginSearchResult]:
+        """GitHubおよびコミュニティレジストリからプラグインを検索."""
+        cache_key = f"{query}:{limit}"
+        if cache_key in self._cached_searches:
+            return self._cached_searches[cache_key]
+
+        results: list[PluginSearchResult] = []
+        results.extend(await self._search_github(query, limit))
+        results.extend(await self._search_community_registry(query, limit))
+
+        results = results[:limit]
+        self._cached_searches[cache_key] = results
+        return results
+
+    async def _search_github(
+        self, query: str, limit: int,
+    ) -> list[PluginSearchResult]:
+        """GitHub リポジトリをzeo-plugin / ai-orchestrator-pluginトピックで検索."""
+        results: list[PluginSearchResult] = []
+        try:
+            import aiohttp
+
+            async with aiohttp.ClientSession() as session:
+                for topic in ("zeo-plugin", "ai-orchestrator-plugin"):
+                    url = (
+                        f"https://api.github.com/search/repositories"
+                        f"?q={query}+topic:{topic}&per_page={limit}"
+                    )
+                    async with session.get(
+                        url,
+                        headers={"Accept": "application/vnd.github.v3+json"},
+                    ) as resp:
+                        if resp.status != 200:
+                            continue
+                        data = await resp.json()
+                        for item in data.get("items", [])[:limit]:
+                            results.append(
+                                PluginSearchResult(
+                                    name=item["name"],
+                                    slug=_slugify(item["name"]),
+                                    description=item.get("description", ""),
+                                    source_uri=item["html_url"],
+                                    author=item["owner"]["login"],
+                                    stars=item.get("stargazers_count", 0),
+                                )
+                            )
+        except ImportError:
+            logger.debug("aiohttp not available for GitHub plugin search")
+        except Exception as exc:
+            logger.warning("GitHub plugin search failed: %s", exc)
+
+        # 重複排除（同一slug）
+        seen: set[str] = set()
+        unique: list[PluginSearchResult] = []
+        for r in results:
+            if r.slug not in seen:
+                seen.add(r.slug)
+                unique.append(r)
+        return unique[:limit]
+
+    async def _search_community_registry(
+        self, query: str, limit: int,
+    ) -> list[PluginSearchResult]:
+        """コミュニティプラグインレジストリを検索."""
+        try:
+            import aiohttp
+
+            async with aiohttp.ClientSession() as session:
+                url = f"https://plugins.zeo.dev/api/v1/plugins/search?q={query}&limit={limit}"
+                async with session.get(url) as resp:
+                    if resp.status != 200:
+                        return []
+                    data = await resp.json()
+                    return [
+                        PluginSearchResult(
+                            name=item["name"],
+                            slug=item.get("slug", _slugify(item["name"])),
+                            description=item.get("description", ""),
+                            source_uri=item.get("source_uri", ""),
+                            version=item.get("version", ""),
+                            author=item.get("author", ""),
+                            downloads=item.get("downloads", 0),
+                        )
+                        for item in data.get("plugins", [])[:limit]
+                    ]
+        except Exception as exc:
+            logger.debug("Community plugin registry search failed: %s", exc)
+            return []
+
+    async def fetch_plugin_manifest(
+        self,
+        source_uri: str,
+    ) -> ExternalPluginManifest | None:
+        """GitHubリポジトリからプラグインマニフェスト(plugin.json / manifest.json)を取得."""
+        try:
+            import aiohttp
+
+            raw_url = _git_to_raw_url(source_uri)
+            async with aiohttp.ClientSession() as session:
+                for manifest_name in ("plugin.json", "manifest.json"):
+                    url = f"{raw_url}/{manifest_name}"
+                    async with session.get(url) as resp:
+                        if resp.status != 200:
+                            continue
+                        data = await resp.json()
+                        return ExternalPluginManifest(
+                            name=data.get("name", ""),
+                            slug=data.get("slug", _slugify(data.get("name", ""))),
+                            description=data.get("description", ""),
+                            version=data.get("version", "0.1.0"),
+                            source_uri=source_uri,
+                            author=data.get("author", ""),
+                            license=data.get("license", ""),
+                            tags=data.get("tags", []),
+                            skills=data.get("skills", []),
+                            config_schema=data.get("config_schema", {}),
+                            manifest_json=data,
+                        )
+        except ImportError:
+            logger.debug("aiohttp not available for plugin manifest fetch")
+        except Exception as exc:
+            logger.error(
+                "Failed to fetch plugin manifest from %s: %s", source_uri, exc,
+            )
+        return None
+
+    def to_plugin_create_data(
+        self, manifest: ExternalPluginManifest,
+    ) -> dict[str, Any]:
+        """マニフェストをPluginCreate用のデータに変換."""
+        return {
+            "slug": manifest.slug,
+            "name": manifest.name,
+            "description": manifest.description,
+            "version": manifest.version,
+            "source_uri": manifest.source_uri,
+            "author": manifest.author,
+            "license": manifest.license,
+            "tags": manifest.tags,
+            "skills": manifest.skills,
+            "config_schema": manifest.config_schema,
+            "manifest_json": manifest.manifest_json,
+        }
+
+
+# Global singleton
+plugin_importer = ExternalPluginImporter()

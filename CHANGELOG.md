@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [0.6.0] - 2026-03-10 — Platform v0.1
+## [v0.1] - 2026-03-10 — Platform v0.1 (Consolidated Release)
 
 ### Added
 
@@ -96,6 +96,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `app/router.tsx`: PermissionsPage, AgentMonitorPage ルート追加
 - `shared/ui/Layout.tsx`: サイドバーにエージェント監視・権限管理ナビ追加
 - `pages/LoginPage.tsx`: 「ログインせずに始める」ボタン追加
+
+- **外部ツール連携強化** (`tools/connector.py`)
+  - CLI ツール接続タイプ追加（gws / gh / aws / gcloud / az 等の CLI ツールに対応）
+  - gRPC・GraphQL 接続タイプ追加
+  - サービスアカウント認証タイプ追加
+- **Plugin の GitHub インポート機能** (`integrations/external_skills.py`)
+  - GitHub リポジトリからプラグインを直接検索・インポート（`topic:zeo-plugin`）
+  - コミュニティプラグインレジストリからの検索・インポート
+  - `POST /api/v1/registry/plugins/search-external` — 外部プラグイン検索
+  - `POST /api/v1/registry/plugins/import` — GitHub からプラグインインポート
+  - ユーザーがプラグインを共有・公開し、開発者の追加作業なしで外部サービス連携が可能
+- **ドキュメント多言語化** (USER_GUIDE.md, README.md)
+  - USER_GUIDE.md: 日本語・英語・中国語の3言語対応
+  - README.md: Releases セクションを非エンジニア向けに3言語で解説
+  - ダウンロードファイルの選び方ガイドを追加
+- **レガシーファイル移行**
+  - `ZPCOS_FEATURES_AND_IMPROVEMENTS.md` の有用なアイデアを既存ドキュメントに統合
+  - メタスキル概念・セキュリティ自己テスト・iPaaS 連携等のアイデアを DESIGN.md / FEATURES.md に反映
+  - レガシーファイル削除
+
+### Changed
+
+- 全ドキュメントのバージョン表記を v0.1 に統一
+- `CHANGELOG.md`: 全リリースを v0.1 として統合
+- `docs/FEATURES.md`: 外部ツール連携・コミュニティプラグインセクション追加
+- `docs/FEATURE_BOUNDARY.md`: コミュニティプラグイン共有の方針追加
+- `ABOUT.md`: v0.1 表記統一
+- `docs/OVERVIEW.md`: v0.1 表記統一
 
 ## [0.5.0] - 2026-03-10 — Skills Management v0.1
 
@@ -288,4 +316,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - README・DESIGN.md・MASTER_GUIDE.md
   - 各セクション実装ガイド (instructions_section2〜7)
 
+[v0.1]: https://github.com/TroroOrosi/Zero-Employee-Orchestrator/releases/tag/v0.1
 [0.1.0]: https://github.com/TroroOrosi/Zero-Employee-Orchestrator/releases/tag/v0.1.0

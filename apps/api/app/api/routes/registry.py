@@ -14,6 +14,7 @@ from app.schemas.registry import (
     ExtensionRead,
     ExtensionUpdate,
     PluginCreate,
+    PluginImportRequest,
     PluginRead,
     PluginUpdate,
     RegistryDeleteResponse,
@@ -231,6 +232,55 @@ async def delete_plugin(
         raise HTTPException(status_code=403, detail=message)
     await db.commit()
     return RegistryDeleteResponse(deleted=True, message=message)
+
+
+@router.post("/plugins/search-external")
+async def search_external_plugins(
+    query: str = "",
+    limit: int = 20,
+):
+    """外部ソース（GitHub 等）からプラグインを検索する."""
+    from app.integrations.external_skills import plugin_importer
+    results = await plugin_importer.search_plugins(query, limit)
+    return [
+        {
+            "name": r.name,
+            "slug": r.slug,
+            "description": r.description,
+            "source_uri": r.source_uri,
+            "author": r.author,
+            "stars": r.stars,
+        }
+        for r in results
+    ]
+
+
+@router.post("/plugins/import", response_model=PluginRead, status_code=201)
+async def import_plugin(
+    source_uri: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """GitHub リポジトリからプラグインをインポート・インストールする."""
+    from app.integrations.external_skills import plugin_importer
+    manifest = await plugin_importer.fetch_plugin_manifest(source_uri)
+    if manifest is None:
+        raise HTTPException(
+            status_code=404,
+            detail="指定されたソースからプラグインマニフェストが見つかりません",
+        )
+
+    existing = await registry_service.get_plugin_by_slug(db, manifest.slug)
+    if existing:
+        raise HTTPException(
+            status_code=409,
+            detail=f"プラグイン '{manifest.slug}' は既に存在します",
+        )
+
+    create_data = plugin_importer.to_plugin_create_data(manifest)
+    from app.schemas.registry import PluginCreate
+    plugin = await registry_service.create_plugin(db, PluginCreate(**create_data))
+    await db.commit()
+    return _plugin_to_read(plugin)
 
 
 # ===================================================================
