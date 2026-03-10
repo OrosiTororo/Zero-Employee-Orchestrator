@@ -105,12 +105,14 @@ async def websocket_events(websocket: WebSocket):
                 elif msg_type == "user_message":
                     # User sends a message to a specific agent
                     await websocket.send_text(
-                        json.dumps({
-                            "type": "message_received",
-                            "agent_id": msg.get("agent_id"),
-                            "content": msg.get("content", ""),
-                            "status": "delivered",
-                        }),
+                        json.dumps(
+                            {
+                                "type": "message_received",
+                                "agent_id": msg.get("agent_id"),
+                                "content": msg.get("content", ""),
+                                "status": "delivered",
+                            },
+                        ),
                     )
                     # Broadcast to other listeners so agent workers can pick it up
                     await manager.broadcast(
@@ -160,10 +162,12 @@ async def websocket_events(websocket: WebSocket):
 
             except json.JSONDecodeError:
                 await websocket.send_text(
-                    json.dumps({
-                        "type": "error",
-                        "message": "Invalid JSON",
-                    }),
+                    json.dumps(
+                        {
+                            "type": "error",
+                            "message": "Invalid JSON",
+                        },
+                    ),
                 )
     except WebSocketDisconnect:
         manager.disconnect(websocket, company_id)

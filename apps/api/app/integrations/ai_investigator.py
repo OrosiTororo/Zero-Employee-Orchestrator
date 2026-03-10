@@ -277,7 +277,7 @@ class AIInvestigator:
 
         # テーブル行数カウント (allowed tables whitelist - no dynamic SQL)
         _ALLOWED_TABLES = frozenset(
-            ["tickets", "tasks", "agents", "skills", "audit_logs"]
+            ["tickets", "tasks", "agents", "skills", "audit_logs"],
         )
         for table in _ALLOWED_TABLES:
             try:

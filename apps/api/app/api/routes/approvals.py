@@ -122,7 +122,11 @@ async def batch_decide_approvals(
             event_type=f"approval.{req.decision}",
             target_type=approval.target_type,
             target_id=approval.target_id,
-            details_json={"decision": req.decision, "reason": req.reason, "batch": True},
+            details_json={
+                "decision": req.decision,
+                "reason": req.reason,
+                "batch": True,
+            },
         )
         db.add(audit)
         decided.append(str(approval.id))
