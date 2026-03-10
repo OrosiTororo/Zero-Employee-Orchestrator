@@ -99,7 +99,9 @@ async def batch_decide_approvals(
     Used during planning phase to handle all pending approvals together.
     """
     if req.decision not in ("approved", "rejected"):
-        raise HTTPException(status_code=400, detail="Decision must be 'approved' or 'rejected'")
+        raise HTTPException(
+            status_code=400, detail="Decision must be 'approved' or 'rejected'"
+        )
 
     decided = []
     for aid in req.approval_ids:
@@ -120,7 +122,11 @@ async def batch_decide_approvals(
             event_type=f"approval.{req.decision}",
             target_type=approval.target_type,
             target_id=approval.target_id,
-            details_json={"decision": req.decision, "reason": req.reason, "batch": True},
+            details_json={
+                "decision": req.decision,
+                "reason": req.reason,
+                "batch": True,
+            },
         )
         db.add(audit)
         decided.append(str(approval.id))
@@ -139,7 +145,10 @@ async def approve(approval_id: str, db: AsyncSession = Depends(get_db)):
     if not approval:
         raise HTTPException(status_code=404, detail="Approval not found")
     if approval.status != "requested":
-        raise HTTPException(status_code=400, detail=f"Cannot approve: current status is {approval.status}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot approve: current status is {approval.status}",
+        )
     approval.status = "approved"
     approval.decided_at = datetime.now(timezone.utc)
     await db.commit()
@@ -158,7 +167,10 @@ async def reject(
     if not approval:
         raise HTTPException(status_code=404, detail="Approval not found")
     if approval.status != "requested":
-        raise HTTPException(status_code=400, detail=f"Cannot reject: current status is {approval.status}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot reject: current status is {approval.status}",
+        )
     approval.status = "rejected"
     approval.decided_at = datetime.now(timezone.utc)
     await db.commit()
