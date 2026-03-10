@@ -1,5 +1,7 @@
 # Changelog
 
+> 日本語 | [English](en/CHANGELOG.md) | [中文](zh/CHANGELOG.md)
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/),

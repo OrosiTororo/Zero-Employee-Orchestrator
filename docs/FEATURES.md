@@ -1,5 +1,7 @@
 # Zero-Employee Orchestrator — 機能一覧
 
+> 日本語 | [English](en/FEATURES.md) | [中文](zh/FEATURES.md)
+
 > 最終更新: 2026-03-10
 > 対象バージョン: v0.1
 

@@ -1,5 +1,7 @@
 # Zero-Employee Orchestrator — なぜこのシステムが必要なのか
 
+> 日本語 | [English](en/ABOUT.md) | [中文](zh/ABOUT.md)
+
 > AI を「使う」時代から AI に「働かせる」時代へ。
 
 ---

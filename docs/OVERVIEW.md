@@ -1,5 +1,7 @@
 # Zero-Employee Orchestrator — 総合ガイド
 
+> 日本語 | [English](en/OVERVIEW.md) | [中文](zh/OVERVIEW.md)
+
 > 初めてこのプロジェクトを見る方へ向けた、思想・機能・構造のすべてを解説するドキュメントです。
 
 ---
