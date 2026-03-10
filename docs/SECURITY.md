@@ -72,7 +72,26 @@ Update `CORS_ORIGINS` in `.env` to match your actual production domain(s). The d
 - Development uses SQLite (fine for local use)
 - Production should use PostgreSQL: `DATABASE_URL=postgresql+asyncpg://user:pass@host/dbname`
 
-### 8. Recommendations
+### 8. Authentication & API Security
+
+> **v0.1 Note**: The current API routes do not enforce per-endpoint authentication in development mode. Before deploying to production, add authentication middleware to all endpoints.
+
+- [ ] Add authentication checks to all API endpoints (use FastAPI `Depends` with `get_current_user`)
+- [ ] Add WebSocket authentication (verify JWT before accepting connections)
+- [ ] Install `bcrypt` for secure password hashing: `pip install bcrypt`
+- [ ] Replace `localStorage` token storage with `httpOnly` / `Secure` cookies in production
+- [ ] Add rate limiting middleware (e.g., `slowapi`)
+- [ ] Restrict CORS `allow_methods` and `allow_headers` to only what's needed
+
+### 9. Secret Storage
+
+The built-in `SecretManager` uses base64 encoding (not encryption) for development convenience. For production:
+
+- [ ] Use `cryptography.Fernet` for local encryption, or
+- [ ] Integrate AWS Secrets Manager / HashiCorp Vault / GCP Secret Manager
+- [ ] Never store plaintext secrets in the database
+
+### 10. Recommendations
 
 - [ ] Enable [GitHub Secret Scanning](https://docs.github.com/en/code-security/secret-scanning) on the repository
 - [ ] Enable [Dependabot](https://docs.github.com/en/code-security/dependabot) for dependency vulnerability alerts

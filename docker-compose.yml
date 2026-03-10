@@ -16,7 +16,7 @@ services:
     environment:
       - DEBUG=true
       - DATABASE_URL=sqlite+aiosqlite:///./data/zero_employee_orchestrator.db
-      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set. Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"}
       - SENTRY_DSN=${SENTRY_DSN:-}
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
     volumes:
@@ -38,7 +38,7 @@ services:
     ports:
       - "8787:8787"
     environment:
-      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set. Generate with: openssl rand -base64 32}
       - API_BACKEND_URL=http://api:18234
     user: "1000:1000"
     depends_on:
