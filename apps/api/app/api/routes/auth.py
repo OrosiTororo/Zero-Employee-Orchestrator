@@ -117,3 +117,108 @@ async def refresh_token(user: User = Depends(get_current_user)):
     """トークンの更新"""
     token = create_access_token(str(user.id))
     return {"access_token": token, "token_type": "bearer"}
+
+
+@router.post("/anonymous-session")
+async def create_anonymous_session(db: AsyncSession = Depends(get_db)):
+    """ログイン不要の匿名セッション.
+
+    ログインしなくても基本機能が使える。
+    ログインすると、複数デバイスでの状態共有が可能になる。
+    匿名セッションのデータは後からアカウントに紐付け可能。
+    """
+    anon_id = generate_uuid()
+    user = User(
+        id=anon_id,
+        email=None,
+        display_name=f"Anonymous-{str(anon_id)[:8]}",
+        role="anonymous",
+        status="active",
+        auth_provider="anonymous",
+    )
+    db.add(user)
+
+    company = Company(
+        id=generate_uuid(),
+        slug=f"anon-{str(anon_id)[:8]}",
+        name="Anonymous Workspace",
+        mission="",
+        description="",
+        status="active",
+    )
+    db.add(company)
+
+    member = CompanyMember(
+        id=generate_uuid(),
+        company_id=company.id,
+        user_id=user.id,
+        company_role="owner",
+        status="active",
+        joined_at=datetime.now(timezone.utc),
+    )
+    db.add(member)
+
+    await db.commit()
+
+    token = create_access_token(str(user.id))
+    return {
+        "access_token": token,
+        "user_id": str(user.id),
+        "company_id": str(company.id),
+        "display_name": user.display_name,
+        "is_anonymous": True,
+        "message": "ログインすると複数デバイスでの状態共有が可能になります",
+    }
+
+
+@router.post("/link-account")
+async def link_anonymous_to_account(
+    email: str,
+    password: str,
+    display_name: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """匿名セッションを正式アカウントに紐付け.
+
+    ログイン不要で使い始めた後、アカウントを作成して
+    既存のデータを引き継ぐ。
+    """
+    if user.role != "anonymous":
+        raise HTTPException(status_code=400, detail="既にアカウントに紐付けられています")
+
+    # メールの重複チェック
+    result = await db.execute(select(User).where(User.email == email))
+    if result.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="このメールアドレスは既に登録されています")
+
+    user.email = email
+    user.display_name = display_name
+    user.role = "user"
+    user.auth_provider = "local"
+    user.password_hash = hash_sha256(password)
+
+    await db.commit()
+
+    token = create_access_token(str(user.id))
+    return {
+        "access_token": token,
+        "user_id": str(user.id),
+        "display_name": display_name,
+        "linked": True,
+        "message": "アカウントが作成されました。複数デバイスでの共有が有効です",
+    }
+
+
+async def get_optional_user(
+    db: AsyncSession = Depends(get_db),
+    authorization: str | None = Header(None),
+) -> User | None:
+    """認証は任意 — トークンがあればユーザーを返し、なければNone."""
+    if not authorization:
+        return None
+    token = authorization.replace("Bearer ", "")
+    user_id = decode_access_token(token)
+    if not user_id:
+        return None
+    return await get_user_by_id(db, user_id)

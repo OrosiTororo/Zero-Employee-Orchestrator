@@ -66,6 +66,18 @@ class Settings(BaseSettings):
     # Default: apps/api/model_catalog.json
     MODEL_CATALOG_PATH: str = ""
 
+    # Sentry DSN for error monitoring (optional)
+    SENTRY_DSN: str = ""
+
+    # Sandbox mode: local | docker | workers
+    SANDBOX_MODE: str = "local"
+
+    # Cloudflare account ID (for Workers deployment)
+    CLOUDFLARE_ACCOUNT_ID: str = ""
+
+    # Credential store directory (AI agents cannot access this)
+    CREDENTIAL_DIR: str = "/etc/zero-employee/credentials"
+
 
 settings = Settings()
 

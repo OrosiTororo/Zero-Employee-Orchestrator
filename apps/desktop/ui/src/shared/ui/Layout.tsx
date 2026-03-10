@@ -17,6 +17,8 @@ import {
   LogOut,
   PanelLeftClose,
   PanelLeft,
+  Activity,
+  Shield,
 } from "lucide-react"
 import { useAuthStore } from "@/shared/hooks/use-auth"
 import { LogoMark } from "@/shared/ui/Logo"
@@ -44,6 +46,8 @@ export function Layout({ children }: LayoutProps) {
     { icon: ScrollText, path: "/audit", label: t.nav.audit },
     { icon: Blocks, path: "/skills", label: t.nav.skills },
     { icon: Puzzle, path: "/plugins", label: t.nav.plugins },
+    { icon: Activity, path: "/monitor", label: "エージェント監視" },
+    { icon: Shield, path: "/permissions", label: "権限管理" },
     { icon: Download, path: "/releases", label: t.nav.releases },
     { icon: Settings, path: "/settings", label: t.nav.settings },
   ]
@@ -62,6 +66,8 @@ export function Layout({ children }: LayoutProps) {
     "/plugins": t.nav.plugins,
     "/download": t.nav.releases,
     "/releases": t.nav.releases,
+    "/monitor": "エージェント監視",
+    "/permissions": "権限管理",
     "/settings": t.nav.settings,
   }
 

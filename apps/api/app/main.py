@@ -16,6 +16,12 @@ from app.api.ws.events import router as ws_router
 # Ensure all models are imported so Base.metadata is populated.
 import app.models  # noqa: F401
 
+# Import new v0.1 models for table creation
+import app.orchestration.knowledge_store  # noqa: F401
+import app.orchestration.agent_session  # noqa: F401
+import app.orchestration.experience_memory  # noqa: F401
+import app.security.iam  # noqa: F401
+
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
@@ -47,6 +53,25 @@ async def lifespan(application: FastAPI):
             logger.info("Ollama not available (local mode disabled)")
     except Exception as exc:
         logger.debug("Ollama init check failed: %s", exc)
+
+    # Initialize Sentry (best-effort)
+    try:
+        from app.integrations.sentry_integration import sentry, create_sentry_integration
+        if settings.SENTRY_DSN:
+            new_sentry = create_sentry_integration(
+                dsn=settings.SENTRY_DSN,
+                environment="production" if not settings.DEBUG else "development",
+            )
+            logger.info("Sentry integration initialized")
+    except Exception as exc:
+        logger.debug("Sentry init failed (non-fatal): %s", exc)
+
+    # Initialize MCP server
+    try:
+        from app.integrations.mcp_server import mcp_server
+        logger.info("MCP server ready (%d tools)", len(mcp_server._tools))
+    except Exception as exc:
+        logger.debug("MCP init failed (non-fatal): %s", exc)
 
     yield
 

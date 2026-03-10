@@ -21,6 +21,8 @@ export function App() {
     )
   }
 
+  // ログイン不要: 未認証でも匿名セッションで利用可能
+  // ログインすると複数デバイスでの状態共有が有効に
   if (!authenticated) {
     return <Navigate to="/login" replace />
   }

@@ -280,6 +280,33 @@ export function LoginPage() {
             </button>
           </div>
 
+          {/* Anonymous session - ログイン不要で開始 */}
+          <div className="mt-4">
+            <button
+              onClick={async () => {
+                setLoading(true)
+                setError("")
+                try {
+                  const { startAnonymous } = useAuthStore.getState()
+                  await startAnonymous()
+                  navigate("/")
+                } catch (e: any) {
+                  setError(e.message || "匿名セッションの開始に失敗しました")
+                } finally {
+                  setLoading(false)
+                }
+              }}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-[13px] border border-dashed border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+            >
+              <ArrowRight size={15} />
+              ログインせずに始める
+            </button>
+            <p className="text-[10px] text-[var(--text-muted)] mt-1.5 text-center">
+              ログインすると複数デバイスでの状態共有が可能になります
+            </p>
+          </div>
+
           {/* Toggle */}
           <div className="mt-6 pt-6 border-t border-[var(--border)] text-center">
             <p className="text-[12px] text-[var(--text-muted)]">

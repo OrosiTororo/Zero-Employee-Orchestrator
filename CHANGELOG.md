@@ -5,6 +5,98 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] - 2026-03-10 — Platform v0.1
+
+### Added
+
+- **ナレッジストア — ユーザー設定・ファイル権限の永続記憶** (`orchestration/knowledge_store.py`)
+  - ファイル/フォルダの操作権限記憶（計画時に再度聞かない）
+  - 業務資料フォルダの場所記憶
+  - ユーザー設定・好みの永続化
+  - 変更検知（前回の情報との差分検出・通知）
+  - Knowledge API（`/knowledge/*`）— 記憶・検索・変更確認
+- **ログイン不要の匿名セッション**
+  - `POST /auth/anonymous-session` で即座に利用開始
+  - 後からアカウント紐付け（`POST /auth/link-account`）
+  - ログインすると複数デバイスでの状態共有が可能
+  - フロントエンド: 「ログインせずに始める」ボタン追加
+- **Webダッシュボード — エージェント監視** (`pages/AgentMonitorPage.tsx`)
+  - ブラウザからリアルタイムでエージェント状態を監視
+  - 実行中タスク・セッション・仮説検証・エラー監視の4タブ
+  - 5秒自動リフレッシュ
+  - Sentry連携のエラー統計表示
+- **権限管理ダッシュボード** (`pages/PermissionsPage.tsx`)
+  - ファイル/フォルダ権限の設定UI
+  - 業務フォルダ位置の登録UI
+  - 変更検知の確認UI
+- **サンドボックス環境** (`worker/app/sandbox/cloud_sandbox.py`)
+  - ローカル実行・Docker実行・Cloudflare Workers実行のマルチモード
+  - ローカルコードの直接編集（権限チェック付き）
+  - Workers上でのJavaScript/TypeScript実行
+  - Cloudflare Workersへのワンクリックデプロイ
+- **Rootlessコンテナ対応** (`Dockerfile`, `docker-compose.yml`)
+  - root権限なしでコンテナ上で動作
+  - non-root ユーザー (UID 1000) で実行
+  - Docker Compose で全サービス一括起動
+- **外部スキルインポート** (`integrations/external_skills.py`)
+  - GitHub Agent Skills リポジトリからの検索・インポート
+  - skills.sh プラットフォームからの検索・インポート
+  - OpenClaw / Claude Code 形式のスキル変換
+  - 任意のGitリポジトリからのマニフェスト取得
+  - `POST /skills/external/search` / `POST /skills/external/import`
+- **MCP サーバー** (`integrations/mcp_server.py`)
+  - Model Context Protocol 準拠のサーバー実装
+  - 8つの組み込みツール（チケット・タスク・スキル・ナレッジ・監査・監視・仮説検証）
+  - 4つのリソース（ダッシュボード・エージェント・スキル・ナレッジ）
+  - 2つのプロンプトテンプレート
+  - MCP API（`/mcp/*`）
+- **Cloudflareデプロイ対応**
+  - 既存の `apps/edge/full/` Workers アプリ
+  - `deploy_to_workers()` メソッドでワンクリックデプロイ
+  - wrangler.toml 自動生成
+- **AI調査ツール** (`integrations/ai_investigator.py`)
+  - AIがログ・DBを参照して調査を完結
+  - 安全なSELECTのみのDB読み取りクエリ
+  - 監査ログ検索・エラーパターン分析・タスク実行履歴
+  - システムメトリクス取得
+  - SQLインジェクション防止（禁止キーワード・SELECT文のみ）
+  - Investigation API（`/investigate/*`）
+- **Sentry連携** (`integrations/sentry_integration.py`)
+  - Sentry SDKとの連携（SDKがない場合はビルトインイベントストア）
+  - 例外キャプチャ・メッセージキャプチャ・パフォーマンストランザクション
+  - エラー統計・イベント一覧
+  - アラートコールバック機能
+  - Sentry API（`/sentry/*`）
+- **人間/AIアカウント分離（IAM）** (`security/iam.py`)
+  - AIエージェント専用サービスアカウント
+  - 人間用・AI用で異なるスコープの権限管理
+  - AIに禁止された権限（シークレット読取・管理者・承認）の自動除外
+  - 認証情報ファイルの保護（owner read only パーミッション）
+  - IAM API（`/iam/*`）
+- **仮説の並行検証エンジン** (`orchestration/hypothesis_engine.py`)
+  - マルチエージェントによる仮説検証とレビューのループ
+  - エビデンスの支持/反証スコア計算
+  - クロスレビューによるコンセンサス判定
+  - 仮説の状態管理（提案→調査→エビデンス→レビュー→確認/反証）
+  - Hypothesis API（`/hypotheses/*`）
+- **エージェントセッション管理** (`orchestration/agent_session.py`)
+  - コンテキストを保持したまま複数ラウンドのやり取り
+  - idle状態での待機（コンテキスト保持）と復帰
+  - ワーキングメモリ（セッション内の一時記憶）
+  - DB永続化とインメモリのハイブリッド
+  - Session API（`/sessions/*`）
+
+### Changed
+
+- `core/config.py`: SENTRY_DSN, SANDBOX_MODE, CLOUDFLARE_ACCOUNT_ID, CREDENTIAL_DIR 設定追加
+- `main.py`: 新モデル（knowledge_store, agent_session, iam）のインポート追加、Sentry/MCP初期化追加
+- `api/routes/__init__.py`: knowledge, platform ルーター追加
+- `api/routes/auth.py`: 匿名セッション・アカウント紐付け・オプション認証追加
+- `shared/hooks/use-auth.ts`: isAnonymous状態・startAnonymous/linkAccount メソッド追加
+- `app/router.tsx`: PermissionsPage, AgentMonitorPage ルート追加
+- `shared/ui/Layout.tsx`: サイドバーにエージェント監視・権限管理ナビ追加
+- `pages/LoginPage.tsx`: 「ログインせずに始める」ボタン追加
+
 ## [0.5.0] - 2026-03-10 — Skills Management v0.1
 
 ### Added
