@@ -330,54 +330,6 @@ Zero-Employee-Orchestrator/
 | 下書き作成 | 課金・削除 |
 | 情報整理 | 権限変更・外部送信 |
 
-### トラブルシューティング
-
-<details>
-<summary>よくある問題と解決法</summary>
-
-**`./setup.sh` が実行できない**
-
-```bash
-chmod +x setup.sh start.sh
-./setup.sh
-```
-
-**ポートが使用中**
-
-```bash
-lsof -i :18234   # バックエンド
-lsof -i :5173    # フロントエンド
-kill <PID>
-./start.sh
-```
-
-**Python の仮想環境エラー**
-
-```bash
-cd apps/api
-rm -rf .venv
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e "."
-```
-
-**pnpm install が失敗する**
-
-```bash
-cd apps/desktop/ui
-rm -rf node_modules
-pnpm install
-```
-
-**データベースをリセットしたい**
-
-```bash
-rm apps/api/zero_employee_orchestrator.db
-./start.sh
-```
-
-</details>
-
 ### Cloudflare Workers デプロイ / Deploy
 
 Workers 上での実行に対応しています。2つの方式から選択できます:
@@ -439,6 +391,54 @@ CORS_ORIGINS=https://your-domain.com
 - `Zero-Employee Orchestrator.md` — 最上位基準文書（思想・要件・改善方針）
 - `DESIGN.md` — 実装設計書（DB・API・画面・状態遷移）
 - `MASTER_GUIDE.md` — 実装運用ガイド（進め方と判断基準）
+
+### トラブルシューティング
+
+<details>
+<summary>よくある問題と解決法</summary>
+
+**`./setup.sh` が実行できない**
+
+```bash
+chmod +x setup.sh start.sh
+./setup.sh
+```
+
+**ポートが使用中**
+
+```bash
+lsof -i :18234   # バックエンド
+lsof -i :5173    # フロントエンド
+kill <PID>
+./start.sh
+```
+
+**Python の仮想環境エラー**
+
+```bash
+cd apps/api
+rm -rf .venv
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e "."
+```
+
+**pnpm install が失敗する**
+
+```bash
+cd apps/desktop/ui
+rm -rf node_modules
+pnpm install
+```
+
+**データベースをリセットしたい**
+
+```bash
+rm apps/api/zero_employee_orchestrator.db
+./start.sh
+```
+
+</details>
 
 ---
 
