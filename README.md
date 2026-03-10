@@ -349,12 +349,10 @@ cd apps/edge/full && npm install && npm run db:init && npm run dev
 
 詳細 / Details: [apps/edge/README.md](apps/edge/README.md)
 
----
-
-## 本番環境 / Production
+## 本番環境
 
 <details>
-<summary>本番環境での運用 / Production Setup</summary>
+<summary>本番環境での運用
 
 ### PostgreSQL
 
@@ -368,7 +366,7 @@ cd apps/api && source .venv/bin/activate
 pip install asyncpg
 ```
 
-### セキュリティ / Security
+### セキュリティ
 
 ```env
 SECRET_KEY=<ランダムな文字列を生成して設定>
@@ -380,11 +378,11 @@ CORS_ORIGINS=https://your-domain.com
 
 ---
 
-## ライセンス / License
+## ライセンス
 
-プライベートプロジェクト / Private Project
+プライベートプロジェクト
 
-## 関連文書 / Related Documents
+## 関連文書
 
 - `ABOUT.md` — このシステムのメリット・従来システムとの違い
 - `USER_GUIDE.md` — 初心者向けユーザーガイド
