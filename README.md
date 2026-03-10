@@ -380,6 +380,76 @@ After startup, open **http://localhost:5173** in your browser.
 | Auth | OAuth PKCE, local encrypted store |
 | Database | SQLite (dev), PostgreSQL (production) |
 
+### Directory Structure
+
+```
+Zero-Employee-Orchestrator/
+├── apps/
+│   ├── api/                    # FastAPI Backend
+│   │   ├── app/
+│   │   │   ├── core/           # Config, DB, Security, i18n
+│   │   │   ├── api/
+│   │   │   │   ├── routes/     # REST API Endpoints (20 routes)
+│   │   │   │   ├── ws/         # WebSocket
+│   │   │   │   └── deps/       # Dependency Injection
+│   │   │   ├── models/         # SQLAlchemy ORM Models (18 files)
+│   │   │   ├── schemas/        # Pydantic DTOs (16 files)
+│   │   │   ├── services/       # Business Logic (9 services)
+│   │   │   ├── repositories/   # DB Abstraction Layer
+│   │   │   ├── orchestration/  # DAG, Judge, State Machine, Memory (18 modules)
+│   │   │   ├── heartbeat/      # Scheduled Execution
+│   │   │   ├── providers/      # LLM Gateway, Ollama, g4f, RAG
+│   │   │   ├── tools/          # External Tool Connectors (MCP/Webhook/API/CLI)
+│   │   │   ├── policies/       # Approval Gates, Autonomy Boundaries
+│   │   │   ├── security/       # Secret Manager, Sanitizer, IAM
+│   │   │   ├── integrations/   # Sentry, MCP Server, External Skills
+│   │   │   ├── audit/          # Audit Logging
+│   │   │   └── tests/          # Tests
+│   │   ├── alembic/            # DB Migrations
+│   │   └── model_catalog.json  # LLM Model Catalog (dynamic management)
+│   ├── desktop/                # Tauri v2 Desktop App
+│   │   ├── src-tauri/          # Rust Backend
+│   │   └── ui/src/             # React Frontend
+│   │       ├── pages/          # 21 Page Components
+│   │       ├── features/       # Feature Modules
+│   │       ├── shared/         # Shared API, Types, Hooks, UI
+│   │       └── app/            # Routing & Entry
+│   ├── edge/                   # Cloudflare Workers
+│   │   ├── proxy/              # Method A: Reverse Proxy
+│   │   └── full/               # Method B: Hono + D1 Full Migration
+│   └── worker/                 # Background Worker
+│       ├── runners/            # Task & Heartbeat Runners
+│       ├── executors/          # LLM & Sandbox Executors
+│       ├── sandbox/            # Isolated Execution (Local/Docker/Workers)
+│       └── dispatchers/        # Event Dispatching
+├── skills/
+│   ├── builtin/                # Built-in Skills (6, system-protected)
+│   └── templates/              # Skill Templates
+├── plugins/                    # Plugin Manifests (8 Plugins)
+│   ├── ai-avatar/              # Avatar AI
+│   ├── ai-secretary/           # Secretary AI
+│   ├── discord-bot/            # Discord Bot
+│   ├── slack-bot/              # Slack Bot
+│   ├── line-bot/               # LINE Bot
+│   ├── youtube/                # YouTube Operations
+│   ├── research/               # Research
+│   └── backoffice/             # Back Office
+├── extensions/                 # Extension Manifests (4 Extensions)
+│   ├── oauth/                  # OAuth Authentication
+│   ├── mcp/                    # MCP Connection
+│   ├── notifications/          # Notifications
+│   └── obsidian/               # Obsidian Integration
+├── packages/                   # Shared NPM Packages
+├── docs/                       # Documentation
+├── assets/                     # Logo & Images
+├── scripts/                    # Dev & Deploy Scripts
+├── Dockerfile                  # Rootless Container
+├── docker-compose.yml          # Full Stack Orchestration
+├── setup.sh                    # Setup Script
+├── start.sh                    # Start Script
+└── README.md
+```
+
 ### Troubleshooting
 
 <details>
@@ -514,6 +584,76 @@ cd Zero-Employee-Orchestrator
 8. **Provider Interface** — LLM 网关 (LiteLLM)
 9. **Skill Registry** — Skill/Plugin 的发布、搜索、安装
 
+### 目录结构
+
+```
+Zero-Employee-Orchestrator/
+├── apps/
+│   ├── api/                    # FastAPI 后端
+│   │   ├── app/
+│   │   │   ├── core/           # 配置、数据库、安全、国际化
+│   │   │   ├── api/
+│   │   │   │   ├── routes/     # REST API 端点（20 个路由）
+│   │   │   │   ├── ws/         # WebSocket
+│   │   │   │   └── deps/       # 依赖注入
+│   │   │   ├── models/         # SQLAlchemy ORM 模型（18 个文件）
+│   │   │   ├── schemas/        # Pydantic DTO（16 个文件）
+│   │   │   ├── services/       # 业务逻辑（9 个服务）
+│   │   │   ├── repositories/   # 数据库抽象层
+│   │   │   ├── orchestration/  # DAG、Judge、状态机、Memory（18 个模块）
+│   │   │   ├── heartbeat/      # 定时执行调度器
+│   │   │   ├── providers/      # LLM 网关、Ollama、g4f、RAG
+│   │   │   ├── tools/          # 外部工具连接（MCP/Webhook/API/CLI）
+│   │   │   ├── policies/       # 审批门控、自主执行边界
+│   │   │   ├── security/       # 密钥管理、数据脱敏、IAM
+│   │   │   ├── integrations/   # Sentry、MCP Server、外部技能
+│   │   │   ├── audit/          # 审计日志
+│   │   │   └── tests/          # 测试
+│   │   ├── alembic/            # 数据库迁移
+│   │   └── model_catalog.json  # LLM 模型目录（动态管理）
+│   ├── desktop/                # Tauri v2 桌面应用
+│   │   ├── src-tauri/          # Rust 后端
+│   │   └── ui/src/             # React 前端
+│   │       ├── pages/          # 21 个页面组件
+│   │       ├── features/       # 功能模块
+│   │       ├── shared/         # 共享 API、类型、hooks、UI
+│   │       └── app/            # 路由和入口
+│   ├── edge/                   # Cloudflare Workers
+│   │   ├── proxy/              # 方式A：反向代理
+│   │   └── full/               # 方式B：Hono + D1 完全迁移
+│   └── worker/                 # 后台工作进程
+│       ├── runners/            # 任务和 Heartbeat 执行器
+│       ├── executors/          # LLM 和沙箱执行器
+│       ├── sandbox/            # 隔离执行环境（本地/Docker/Workers）
+│       └── dispatchers/        # 事件分发
+├── skills/
+│   ├── builtin/                # 内置技能（6 个，系统保护）
+│   └── templates/              # 技能模板
+├── plugins/                    # 插件清单（8 个插件）
+│   ├── ai-avatar/              # 分身AI
+│   ├── ai-secretary/           # 秘书AI
+│   ├── discord-bot/            # Discord Bot
+│   ├── slack-bot/              # Slack Bot
+│   ├── line-bot/               # LINE Bot
+│   ├── youtube/                # YouTube 运营
+│   ├── research/               # 调研
+│   └── backoffice/             # 后台办公
+├── extensions/                 # 扩展清单（4 个扩展）
+│   ├── oauth/                  # OAuth 认证
+│   ├── mcp/                    # MCP 连接
+│   ├── notifications/          # 通知
+│   └── obsidian/               # Obsidian 集成
+├── packages/                   # 共享 NPM 包
+├── docs/                       # 文档
+├── assets/                     # 标志和图片
+├── scripts/                    # 开发和部署脚本
+├── Dockerfile                  # Rootless 容器
+├── docker-compose.yml          # 全栈编排
+├── setup.sh                    # 安装脚本
+├── start.sh                    # 启动脚本
+└── README.md
+```
+
 ### 故障排除
 
 <details>
@@ -546,47 +686,73 @@ rm apps/api/zero_employee_orchestrator.db
 
 ---
 
-## ディレクトリ構成 / Directory Structure
+### ディレクトリ構成
 
 ```
 Zero-Employee-Orchestrator/
 ├── apps/
-│   ├── api/                # FastAPI バックエンド / Backend
+│   ├── api/                    # FastAPI バックエンド
 │   │   ├── app/
-│   │   │   ├── core/       # 設定・DB・セキュリティ
-│   │   │   ├── api/        # ルーティング
-│   │   │   ├── models/     # SQLAlchemy ORM モデル
-│   │   │   ├── schemas/    # Pydantic DTO
-│   │   │   ├── services/   # ビジネスロジック（Skill管理・Plugin/Extension管理）
-│   │   │   └── banner.py   # CLI バナー表示
-│   │   ├── alembic/        # DB マイグレーション
-│   │   └── pyproject.toml
-│   ├── desktop/            # Tauri デスクトップアプリ
-│   │   └── ui/             # React フロントエンド
-│   │       └── src/
-│   │           ├── pages/
-│   │           ├── shared/
-│   │           └── ...
-│   ├── edge/               # Cloudflare Workers デプロイ
-│   │   ├── proxy/          # 方式A: リバースプロキシ
-│   │   └── full/           # 方式B: エッジ完全移植 (Hono + D1)
-│   └── worker/             # バックグラウンドワーカー
-├── plugins/                # Plugin マニフェスト
-│   ├── ai-avatar/          # 分身AI
-│   ├── ai-secretary/       # 秘書AI
-│   ├── discord-bot/        # Discord Bot
-│   ├── slack-bot/          # Slack Bot
-│   ├── line-bot/           # LINE Bot
-│   ├── youtube/            # YouTube 運用
-│   ├── research/           # リサーチ
-│   └── backoffice/         # バックオフィス
-├── extensions/             # Extension マニフェスト
-├── skills/                 # Skill 定義
-├── assets/                 # ロゴ・画像
-│   └── logo.svg
-├── scripts/                # 開発・運用スクリプト
-├── setup.sh                # セットアップスクリプト
-├── start.sh                # 起動スクリプト
+│   │   │   ├── core/           # 設定・DB・セキュリティ・i18n
+│   │   │   ├── api/
+│   │   │   │   ├── routes/     # REST API エンドポイント（20 ルート）
+│   │   │   │   ├── ws/         # WebSocket
+│   │   │   │   └── deps/       # 依存性注入
+│   │   │   ├── models/         # SQLAlchemy ORM モデル（18 ファイル）
+│   │   │   ├── schemas/        # Pydantic DTO（16 ファイル）
+│   │   │   ├── services/       # ビジネスロジック（9 サービス）
+│   │   │   ├── repositories/   # DB 入出力抽象化
+│   │   │   ├── orchestration/  # DAG・Judge・状態機械・Memory（18 モジュール）
+│   │   │   ├── heartbeat/      # 定期実行スケジューラ
+│   │   │   ├── providers/      # LLM Gateway・Ollama・g4f・RAG
+│   │   │   ├── tools/          # 外部ツール接続（MCP/Webhook/API/CLI）
+│   │   │   ├── policies/       # 承認ゲート・自律実行境界
+│   │   │   ├── security/       # Secret Manager・Sanitizer・IAM
+│   │   │   ├── integrations/   # Sentry・MCP Server・外部スキル
+│   │   │   ├── audit/          # 監査ログ
+│   │   │   └── tests/          # テスト
+│   │   ├── alembic/            # DB マイグレーション
+│   │   └── model_catalog.json  # LLM モデルカタログ（動的管理）
+│   ├── desktop/                # Tauri v2 デスクトップアプリ
+│   │   ├── src-tauri/          # Rust バックエンド
+│   │   └── ui/src/             # React フロントエンド
+│   │       ├── pages/          # 21 画面コンポーネント
+│   │       ├── features/       # 機能別モジュール
+│   │       ├── shared/         # 共通 API・型・hooks・UI
+│   │       └── app/            # ルーティング・エントリ
+│   ├── edge/                   # Cloudflare Workers
+│   │   ├── proxy/              # 方式A: リバースプロキシ
+│   │   └── full/               # 方式B: Hono + D1 完全移植
+│   └── worker/                 # バックグラウンドワーカー
+│       ├── runners/            # タスク・Heartbeat 実行
+│       ├── executors/          # LLM・サンドボックス実行
+│       ├── sandbox/            # 隔離実行環境（Local/Docker/Workers）
+│       └── dispatchers/        # イベント配信
+├── skills/
+│   ├── builtin/                # 組み込み Skill（6 個・システム保護）
+│   └── templates/              # Skill テンプレート
+├── plugins/                    # Plugin マニフェスト（8 Plugin）
+│   ├── ai-avatar/              # 分身AI
+│   ├── ai-secretary/           # 秘書AI
+│   ├── discord-bot/            # Discord Bot
+│   ├── slack-bot/              # Slack Bot
+│   ├── line-bot/               # LINE Bot
+│   ├── youtube/                # YouTube 運用
+│   ├── research/               # リサーチ
+│   └── backoffice/             # バックオフィス
+├── extensions/                 # Extension マニフェスト（4 Extension）
+│   ├── oauth/                  # OAuth 認証
+│   ├── mcp/                    # MCP 接続
+│   ├── notifications/          # 通知
+│   └── obsidian/               # Obsidian 連携
+├── packages/                   # 共有 NPM パッケージ
+├── docs/                       # ドキュメント
+├── assets/                     # ロゴ・画像
+├── scripts/                    # 開発・運用スクリプト
+├── Dockerfile                  # Rootless コンテナ
+├── docker-compose.yml          # 全サービス一括起動
+├── setup.sh                    # セットアップスクリプト
+├── start.sh                    # 起動スクリプト
 └── README.md
 ```
 

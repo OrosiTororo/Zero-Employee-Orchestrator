@@ -496,19 +496,20 @@ Zero-Employee-Orchestrator/
 │  │  │  ├─ schemas/          # Pydantic DTO
 │  │  │  ├─ services/         # ビジネスロジック
 │  │  │  ├─ repositories/     # DB 入出力抽象化
-│  │  │  ├─ orchestration/    # DAG・Judge・状態機械・Knowledge
+│  │  │  ├─ orchestration/    # DAG・Judge・状態機械・Knowledge・Memory
 │  │  │  ├─ heartbeat/        # Heartbeat スケジューラ
-│  │  │  ├─ providers/        # LLM ゲートウェイ・g4f
-│  │  │  ├─ tools/            # 外部ツール接続
-│  │  │  ├─ policies/         # 承認ゲート・自律境界
-│  │  │  ├─ security/         # シークレット管理・サニタイズ
+│  │  │  ├─ providers/        # LLM ゲートウェイ・Ollama・g4f・RAG
+│  │  │  ├─ tools/            # 外部ツール接続（MCP/Webhook/API/CLI）
+│  │  │  ├─ policies/         # 承認ゲート・自律実行境界
+│  │  │  ├─ security/         # シークレット管理・サニタイズ・IAM
+│  │  │  ├─ integrations/     # Sentry・MCP Server・外部スキル（※拡張機能）
 │  │  │  ├─ audit/            # 監査ログ
 │  │  │  └─ tests/            # テスト
 │  │  └─ alembic/             # DB マイグレーション
 │  ├─ desktop/                # Tauri + React UI
 │  │  ├─ src-tauri/           # Rust (Tauri v2)
 │  │  └─ ui/src/
-│  │     ├─ pages/            # 19 画面コンポーネント
+│  │     ├─ pages/            # 21 画面コンポーネント
 │  │     ├─ features/         # 機能別モジュール
 │  │     ├─ shared/           # 共通 API・型・hooks・UI
 │  │     └─ app/              # ルーティング・エントリ

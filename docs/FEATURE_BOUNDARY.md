@@ -1,6 +1,6 @@
 # 機能境界定義 — コア機能 vs Skill / Plugin / Extension
 
-> 作成日: 2026-03-09 / 更新: 2026-03-10 (v0.1)
+> 作成日: 2026-03-09 / 更新: 2026-03-10 (v0.1 — 機能境界見直し)
 > 目的: 本体に最初から含めるべき機能と、Skill / Plugin / Extension で後から追加する機能の境界を明文化する
 
 ---
@@ -140,10 +140,28 @@
 | `notifications` | Slack / Discord / LINE / メール通知 | manifest あり |
 | `obsidian` | Obsidian Vault との双方向連携 | **新規追加** |
 
+### v0.1 機能肥大化レビューによる整理
+
+以下の機能はコードベースに存在するが、**コア機能ではなく拡張機能として位置づける**。
+v0.1 では同梱されているが、将来的に Extension / Skill / Plugin として分離予定。
+
+| 機能 | 現在の場所 | 移行先 | 理由 |
+|------|-----------|--------|------|
+| **Sentry 連携** | `integrations/sentry_integration.py` | Extension | エラー監視は有用だが、コアの承認・監査・実行制御には不要 |
+| **AI 調査ツール** | `integrations/ai_investigator.py` | Skill | DB/ログ調査は単一目的タスクであり、Skill として提供すべき |
+| **仮説検証エンジン** | `orchestration/hypothesis_engine.py` | Plugin | マルチエージェント仮説検証は高度な機能であり、基本的なオーケストレーションには不要 |
+| **MCP サーバー** | `integrations/mcp_server.py` | Extension | MCP 対応は接続先拡張であり、コア必須ではない |
+| **外部スキルインポート** | `integrations/external_skills.py` | Extension | GitHub からのスキル検索・インポートは Registry の拡張機能 |
+
+> **注意**: 上記の機能は v0.1 ではコードベースに同梱されていますが、コア機能の判断基準
+> 「それがないと承認・監査・実行制御が成立しないか？」に照らして、拡張機能に分類されます。
+> 将来のバージョンで独立した Extension / Skill / Plugin パッケージとして分離します。
+
 ### 将来の Extension 候補
 
 | Extension | 用途 |
 |-----------|------|
+| `sentry` | Sentry 互換のエラー・パフォーマンス監視 |
 | `proxy-network` | 社内プロキシ・VPN 対応 |
 | `google-drive` | Google Drive 連携 |
 | `github-integration` | GitHub Issues / PR 連携 |
@@ -153,6 +171,13 @@
 | `auto-update` | 自動アップデート機構 |
 | `ipaas-bridge` | Make / Zapier / n8n 連携ブリッジ |
 | `security-audit` | セキュリティ自己テスト（ホワイトハッカー班） |
+
+### 将来の Skill 候補
+
+| Skill | 用途 |
+|-------|------|
+| `ai-investigator` | AI による DB/ログ調査 |
+| `hypothesis-tester` | 仮説の並行検証 |
 
 ---
 

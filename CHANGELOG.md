@@ -116,14 +116,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - メタスキル概念・セキュリティ自己テスト・iPaaS 連携等のアイデアを DESIGN.md / FEATURES.md に反映
   - レガシーファイル削除
 
-### Changed
-
 - 全ドキュメントのバージョン表記を v0.1 に統一
 - `CHANGELOG.md`: 全リリースを v0.1 として統合
-- `docs/FEATURES.md`: 外部ツール連携・コミュニティプラグインセクション追加
-- `docs/FEATURE_BOUNDARY.md`: コミュニティプラグイン共有の方針追加
-- `ABOUT.md`: v0.1 表記統一
-- `docs/OVERVIEW.md`: v0.1 表記統一
+- `docs/FEATURES.md`: 外部ツール連携・コミュニティプラグインセクション追加、機能肥大化レビュー結果追加
+- `docs/FEATURE_BOUNDARY.md`: コミュニティプラグイン共有の方針追加、v0.1 機能境界見直し追加
+- `ABOUT.md`: v0.1 表記統一、比較対象を AI エージェントに変更
+- `docs/OVERVIEW.md`: v0.1 表記統一、画面数 21 に更新、機能肥大化レビュー追加
+- `USER_GUIDE.md`: 方法C（サブスクリプションモード）のプロバイダー情報を正確に修正、比較対象を AI エージェントに変更
+- `README.md`: ディレクトリ構成を三か国語（日本語・英語・中国語）で各セクションに追加、最新構造に更新
+- `DESIGN.md`: 画面数 21 に更新、ディレクトリ構成に integrations/ と security/IAM を追加
+- `CLAUDE.md`: integrations/ モジュールの拡張機能分類を追記
+
+### Architectural — v0.1 機能肥大化レビュー
+
+以下の機能をコア機能から拡張機能に再分類（コードベースには同梱、将来分離予定）:
+- `integrations/sentry_integration.py` → Extension
+- `integrations/ai_investigator.py` → Skill
+- `orchestration/hypothesis_engine.py` → Plugin
+- `integrations/mcp_server.py` → Extension
+- `integrations/external_skills.py` → Extension
 
 ## [0.5.0] - 2026-03-10 — Skills Management v0.1
 
