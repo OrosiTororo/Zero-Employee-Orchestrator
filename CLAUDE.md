@@ -264,17 +264,18 @@ zero-employee pull qwen3:8b      # モデルダウンロード
 ### ナレッジストア & 変更検知
 - **orchestration/knowledge_store.py**: ユーザー設定・ファイル権限・フォルダ位置の永続記憶 + 変更検知
 
-### 仮説検証 & レビュー
+### 仮説検証 & レビュー（※将来 Plugin として分離予定）
 - **orchestration/hypothesis_engine.py**: マルチエージェントによる仮説の並行検証・エビデンス・クロスレビュー
 
 ### エージェントセッション
 - **orchestration/agent_session.py**: コンテキスト永続化・idle/resume・ワーキングメモリ・DB永続化
 
-### 統合モジュール (integrations/)
-- **integrations/sentry_integration.py**: Sentry互換のエラー・パフォーマンス監視（SDK連携 + ビルトインストア）
-- **integrations/mcp_server.py**: MCP (Model Context Protocol) サーバー（8ツール・4リソース・2プロンプト）
-- **integrations/external_skills.py**: 外部スキルインポート（GitHub/skills.sh/OpenClaw/Claude Code）
-- **integrations/ai_investigator.py**: AI用DB/ログ調査ツール（安全なSELECTクエリ・監査ログ検索）
+### 統合モジュール (integrations/) — ※コア機能ではなく拡張機能として分類
+以下は v0.1 ではコードベースに同梱されているが、将来 Extension/Skill として分離予定:
+- **integrations/sentry_integration.py**: Sentry互換のエラー・パフォーマンス監視 → **Extension 候補**
+- **integrations/mcp_server.py**: MCP サーバー → **Extension 候補**
+- **integrations/external_skills.py**: 外部スキルインポート → **Extension 候補**
+- **integrations/ai_investigator.py**: AI用DB/ログ調査ツール → **Skill 候補**
 
 ### IAM
 - **security/iam.py**: 人間/AIアカウント分離・権限管理・認証情報保護

@@ -1,6 +1,6 @@
 # Zero-Employee Orchestrator — 構築ガイド
 
-> 最終更新: 2026-03-09  
+> 最終更新: 2026-03-10 (v0.1)
 > 本ドキュメントは、Zero-Employee Orchestrator をゼロから構築する手順をフェーズごとにコード付きで解説します。
 
 ---

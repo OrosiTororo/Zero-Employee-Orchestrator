@@ -1017,7 +1017,25 @@ uv pip install zero-employee-orchestrator
 
 ---
 
-## 30. メタスキル概念 (v0.1)
+## 30. v0.1 機能肥大化レビュー — コアと拡張の境界
+
+v0.1 では以下の機能がコードベースに同梱されているが、**コア機能の判断基準**（「それがないと承認・監査・実行制御が成立しないか？」）に照らして、**拡張機能**として分類される。将来のバージョンで独立パッケージとして分離予定。
+
+| 機能 | 現在の場所 | 分類先 | 状態 |
+|------|-----------|--------|------|
+| **Sentry 連携** | `integrations/sentry_integration.py` | Extension | v0.1 同梱・将来分離 |
+| **AI 調査ツール** | `integrations/ai_investigator.py` | Skill | v0.1 同梱・将来分離 |
+| **仮説検証エンジン** | `orchestration/hypothesis_engine.py` | Plugin | v0.1 同梱・将来分離 |
+| **MCP サーバー** | `integrations/mcp_server.py` | Extension | v0.1 同梱・将来分離 |
+| **外部スキルインポート** | `integrations/external_skills.py` | Extension | v0.1 同梱・将来分離 |
+
+> **注意**: 上記の機能は v0.1 では利用可能ですが、コアの安定性を維持するために
+> 将来のバージョンで Extension / Skill / Plugin として独立させる計画です。
+> 詳細は [FEATURE_BOUNDARY.md](FEATURE_BOUNDARY.md) を参照。
+
+---
+
+## 31. メタスキル概念 (v0.1)
 
 AI エージェントに「学び方を学ぶ能力」を持たせる設計概念です。
 
