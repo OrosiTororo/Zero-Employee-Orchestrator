@@ -23,6 +23,18 @@ async def lifespan(application: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
+    # Register system-protected skills on startup
+    try:
+        from app.core.database import async_session_factory
+        from app.services.skill_service import ensure_system_skills
+
+        async with async_session_factory() as session:
+            await ensure_system_skills(session)
+            await session.commit()
+            logger.info("System skills verified")
+    except Exception as exc:
+        logger.warning("System skills init failed (non-fatal): %s", exc)
+
     # Initialize Ollama provider (non-blocking, best-effort)
     try:
         from app.providers.ollama_provider import ollama_provider

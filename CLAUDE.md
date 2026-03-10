@@ -208,6 +208,32 @@ zero-employee pull qwen3:8b      # モデルダウンロード
 - `/ollama/rag/search` — ローカル RAG 検索
 - `/ollama/rag/add` — ドキュメント追加
 
+## Skill 管理 (v0.1)
+
+### 自然言語スキル生成
+- `POST /api/v1/registry/skills/generate` で自然言語からスキルを自動生成
+- LLM ベース生成 + テンプレートフォールバック
+- 自動安全性チェック（16 種類の危険パターン検出）
+
+### システム保護スキル
+以下の 6 つのビルトインスキルは `is_system_protected=True` で、削除・無効化不可:
+- `spec-writer` — 仕様書生成
+- `plan-writer` — 実行計画生成
+- `task-breakdown` — タスク DAG 分解
+- `review-assistant` — 品質レビュー
+- `artifact-summarizer` — 成果物要約
+- `local-context` — ローカルコンテキスト
+
+### Skill/Plugin/Extension 管理 API
+全エンティティで GET / POST / PATCH / DELETE 対応:
+- `/registry/skills` — Skill CRUD + `POST /skills/generate` (自然言語生成)
+- `/registry/plugins` — Plugin CRUD
+- `/registry/extensions` — Extension CRUD
+
+### サービス層
+- **services/skill_service.py**: スキル CRUD・自然言語生成・安全性チェック・システム保護
+- **services/registry_service.py**: Plugin/Extension CRUD・システム保護
+
 ## バックエンド補足モジュール
 
 - **providers/model_registry.py**: 動的モデルレジストリ（model_catalog.json 読込・廃止自動フォールバック・コスト管理）
