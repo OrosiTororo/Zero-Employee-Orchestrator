@@ -242,6 +242,76 @@ GEMINI_API_KEY=AIzaSy-xxxxxxxxxxxx
 | 認証 | OAuth PKCE, ローカル暗号化ストア |
 | データベース | SQLite (開発), PostgreSQL (本番推奨) |
 
+### ディレクトリ構成
+
+```
+Zero-Employee-Orchestrator/
+├── apps/
+│   ├── api/                    # FastAPI バックエンド
+│   │   ├── app/
+│   │   │   ├── core/           # 設定・DB・セキュリティ・i18n
+│   │   │   ├── api/
+│   │   │   │   ├── routes/     # REST API エンドポイント（20 ルート）
+│   │   │   │   ├── ws/         # WebSocket
+│   │   │   │   └── deps/       # 依存性注入
+│   │   │   ├── models/         # SQLAlchemy ORM モデル（18 ファイル）
+│   │   │   ├── schemas/        # Pydantic DTO（16 ファイル）
+│   │   │   ├── services/       # ビジネスロジック（9 サービス）
+│   │   │   ├── repositories/   # DB 入出力抽象化
+│   │   │   ├── orchestration/  # DAG・Judge・状態機械・Memory（18 モジュール）
+│   │   │   ├── heartbeat/      # 定期実行スケジューラ
+│   │   │   ├── providers/      # LLM Gateway・Ollama・g4f・RAG
+│   │   │   ├── tools/          # 外部ツール接続（MCP/Webhook/API/CLI）
+│   │   │   ├── policies/       # 承認ゲート・自律実行境界
+│   │   │   ├── security/       # Secret Manager・Sanitizer・IAM
+│   │   │   ├── integrations/   # Sentry・MCP Server・外部スキル
+│   │   │   ├── audit/          # 監査ログ
+│   │   │   └── tests/          # テスト
+│   │   ├── alembic/            # DB マイグレーション
+│   │   └── model_catalog.json  # LLM モデルカタログ（動的管理）
+│   ├── desktop/                # Tauri v2 デスクトップアプリ
+│   │   ├── src-tauri/          # Rust バックエンド
+│   │   └── ui/src/             # React フロントエンド
+│   │       ├── pages/          # 21 画面コンポーネント
+│   │       ├── features/       # 機能別モジュール
+│   │       ├── shared/         # 共通 API・型・hooks・UI
+│   │       └── app/            # ルーティング・エントリ
+│   ├── edge/                   # Cloudflare Workers
+│   │   ├── proxy/              # 方式A: リバースプロキシ
+│   │   └── full/               # 方式B: Hono + D1 完全移植
+│   └── worker/                 # バックグラウンドワーカー
+│       ├── runners/            # タスク・Heartbeat 実行
+│       ├── executors/          # LLM・サンドボックス実行
+│       ├── sandbox/            # 隔離実行環境（Local/Docker/Workers）
+│       └── dispatchers/        # イベント配信
+├── skills/
+│   ├── builtin/                # 組み込み Skill（6 個・システム保護）
+│   └── templates/              # Skill テンプレート
+├── plugins/                    # Plugin マニフェスト（8 Plugin）
+│   ├── ai-avatar/              # 分身AI
+│   ├── ai-secretary/           # 秘書AI
+│   ├── discord-bot/            # Discord Bot
+│   ├── slack-bot/              # Slack Bot
+│   ├── line-bot/               # LINE Bot
+│   ├── youtube/                # YouTube 運用
+│   ├── research/               # リサーチ
+│   └── backoffice/             # バックオフィス
+├── extensions/                 # Extension マニフェスト（4 Extension）
+│   ├── oauth/                  # OAuth 認証
+│   ├── mcp/                    # MCP 接続
+│   ├── notifications/          # 通知
+│   └── obsidian/               # Obsidian 連携
+├── packages/                   # 共有 NPM パッケージ
+├── docs/                       # ドキュメント
+├── assets/                     # ロゴ・画像
+├── scripts/                    # 開発・運用スクリプト
+├── Dockerfile                  # Rootless コンテナ
+├── docker-compose.yml          # 全サービス一括起動
+├── setup.sh                    # セットアップスクリプト
+├── start.sh                    # 起動スクリプト
+└── README.md
+```
+
 ### 権限モデル
 
 | ロール | 権限 |
@@ -736,78 +806,6 @@ rm apps/api/zero_employee_orchestrator.db
 ```
 
 </details>
-
----
-
-### ディレクトリ構成
-
-```
-Zero-Employee-Orchestrator/
-├── apps/
-│   ├── api/                    # FastAPI バックエンド
-│   │   ├── app/
-│   │   │   ├── core/           # 設定・DB・セキュリティ・i18n
-│   │   │   ├── api/
-│   │   │   │   ├── routes/     # REST API エンドポイント（20 ルート）
-│   │   │   │   ├── ws/         # WebSocket
-│   │   │   │   └── deps/       # 依存性注入
-│   │   │   ├── models/         # SQLAlchemy ORM モデル（18 ファイル）
-│   │   │   ├── schemas/        # Pydantic DTO（16 ファイル）
-│   │   │   ├── services/       # ビジネスロジック（9 サービス）
-│   │   │   ├── repositories/   # DB 入出力抽象化
-│   │   │   ├── orchestration/  # DAG・Judge・状態機械・Memory（18 モジュール）
-│   │   │   ├── heartbeat/      # 定期実行スケジューラ
-│   │   │   ├── providers/      # LLM Gateway・Ollama・g4f・RAG
-│   │   │   ├── tools/          # 外部ツール接続（MCP/Webhook/API/CLI）
-│   │   │   ├── policies/       # 承認ゲート・自律実行境界
-│   │   │   ├── security/       # Secret Manager・Sanitizer・IAM
-│   │   │   ├── integrations/   # Sentry・MCP Server・外部スキル
-│   │   │   ├── audit/          # 監査ログ
-│   │   │   └── tests/          # テスト
-│   │   ├── alembic/            # DB マイグレーション
-│   │   └── model_catalog.json  # LLM モデルカタログ（動的管理）
-│   ├── desktop/                # Tauri v2 デスクトップアプリ
-│   │   ├── src-tauri/          # Rust バックエンド
-│   │   └── ui/src/             # React フロントエンド
-│   │       ├── pages/          # 21 画面コンポーネント
-│   │       ├── features/       # 機能別モジュール
-│   │       ├── shared/         # 共通 API・型・hooks・UI
-│   │       └── app/            # ルーティング・エントリ
-│   ├── edge/                   # Cloudflare Workers
-│   │   ├── proxy/              # 方式A: リバースプロキシ
-│   │   └── full/               # 方式B: Hono + D1 完全移植
-│   └── worker/                 # バックグラウンドワーカー
-│       ├── runners/            # タスク・Heartbeat 実行
-│       ├── executors/          # LLM・サンドボックス実行
-│       ├── sandbox/            # 隔離実行環境（Local/Docker/Workers）
-│       └── dispatchers/        # イベント配信
-├── skills/
-│   ├── builtin/                # 組み込み Skill（6 個・システム保護）
-│   └── templates/              # Skill テンプレート
-├── plugins/                    # Plugin マニフェスト（8 Plugin）
-│   ├── ai-avatar/              # 分身AI
-│   ├── ai-secretary/           # 秘書AI
-│   ├── discord-bot/            # Discord Bot
-│   ├── slack-bot/              # Slack Bot
-│   ├── line-bot/               # LINE Bot
-│   ├── youtube/                # YouTube 運用
-│   ├── research/               # リサーチ
-│   └── backoffice/             # バックオフィス
-├── extensions/                 # Extension マニフェスト（4 Extension）
-│   ├── oauth/                  # OAuth 認証
-│   ├── mcp/                    # MCP 接続
-│   ├── notifications/          # 通知
-│   └── obsidian/               # Obsidian 連携
-├── packages/                   # 共有 NPM パッケージ
-├── docs/                       # ドキュメント
-├── assets/                     # ロゴ・画像
-├── scripts/                    # 開発・運用スクリプト
-├── Dockerfile                  # Rootless コンテナ
-├── docker-compose.yml          # 全サービス一括起動
-├── setup.sh                    # セットアップスクリプト
-├── start.sh                    # 起動スクリプト
-└── README.md
-```
 
 ---
 
