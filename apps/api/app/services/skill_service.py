@@ -28,14 +28,16 @@ logger = logging.getLogger(__name__)
 # システム必須スキル — 削除・無効化不可
 # ---------------------------------------------------------------------------
 
-SYSTEM_PROTECTED_SLUGS: set[str] = frozenset({
-    "spec-writer",
-    "plan-writer",
-    "task-breakdown",
-    "review-assistant",
-    "artifact-summarizer",
-    "local-context",
-})
+SYSTEM_PROTECTED_SLUGS: set[str] = frozenset(
+    {
+        "spec-writer",
+        "plan-writer",
+        "task-breakdown",
+        "review-assistant",
+        "artifact-summarizer",
+        "local-context",
+    }
+)
 
 # ---------------------------------------------------------------------------
 # 安全性チェック用パターン
@@ -49,17 +51,33 @@ _DANGEROUS_PATTERNS: list[tuple[str, str, str]] = [
     (r"\bexec\s*\(", "exec() の使用", "has_dangerous_code"),
     (r"\bcompile\s*\(", "compile() の使用", "has_dangerous_code"),
     (r"\bopen\s*\(.*(w|a)", "ファイル書き込み操作", "has_dangerous_code"),
-    (r"\brequests\.(post|put|delete|patch)\b", "外部 HTTP 送信", "has_external_communication"),
-    (r"\bhttpx\.(post|put|delete|patch)\b", "外部 HTTP 送信", "has_external_communication"),
+    (
+        r"\brequests\.(post|put|delete|patch)\b",
+        "外部 HTTP 送信",
+        "has_external_communication",
+    ),
+    (
+        r"\bhttpx\.(post|put|delete|patch)\b",
+        "外部 HTTP 送信",
+        "has_external_communication",
+    ),
     (r"\baiohttp\b", "外部 HTTP 通信ライブラリ", "has_external_communication"),
     (r"\bsmtplib\b", "メール送信", "has_external_communication"),
     (r"\bsocket\b", "ソケット通信", "has_external_communication"),
-    (r"(api_key|secret|password|token|credential)", "認証情報へのアクセス", "has_credential_access"),
+    (
+        r"(api_key|secret|password|token|credential)",
+        "認証情報へのアクセス",
+        "has_credential_access",
+    ),
     (r"\bos\.environ\b", "環境変数アクセス", "has_credential_access"),
     (r"\bshutil\.rmtree\b", "ディレクトリ削除", "has_destructive_operations"),
     (r"\bos\.remove\b", "ファイル削除", "has_destructive_operations"),
     (r"\bos\.unlink\b", "ファイル削除", "has_destructive_operations"),
-    (r"DROP\s+TABLE|DELETE\s+FROM|TRUNCATE", "SQL 破壊操作", "has_destructive_operations"),
+    (
+        r"DROP\s+TABLE|DELETE\s+FROM|TRUNCATE",
+        "SQL 破壊操作",
+        "has_destructive_operations",
+    ),
 ]
 
 
@@ -92,7 +110,9 @@ def analyze_code_safety(code: str) -> RegistrySafetyReport:
         report.risk_level = "low"
 
     report.summary = (
-        f"検出された問題: {len(issues)} 件" if issues else "安全性の問題は検出されませんでした"
+        f"検出された問題: {len(issues)} 件"
+        if issues
+        else "安全性の問題は検出されませんでした"
     )
 
     return report
@@ -154,15 +174,17 @@ async def generate_skill_from_description(
     try:
         from app.providers.gateway import llm_gateway, CompletionRequest, ExecutionMode
 
-        llm_response = await llm_gateway.complete(CompletionRequest(
-            messages=[
-                {"role": "system", "content": _SKILL_GENERATE_SYSTEM_PROMPT},
-                {"role": "user", "content": request.description},
-            ],
-            temperature=0.3,
-            max_tokens=4096,
-            mode=ExecutionMode.QUALITY,
-        ))
+        llm_response = await llm_gateway.complete(
+            CompletionRequest(
+                messages=[
+                    {"role": "system", "content": _SKILL_GENERATE_SYSTEM_PROMPT},
+                    {"role": "user", "content": request.description},
+                ],
+                temperature=0.3,
+                max_tokens=4096,
+                mode=ExecutionMode.QUALITY,
+            )
+        )
 
         content = llm_response.content
 
@@ -310,6 +332,7 @@ async def execute(context: dict) -> dict:
 # CRUD 操作
 # ---------------------------------------------------------------------------
 
+
 async def list_skills(
     db: AsyncSession,
     *,
@@ -384,9 +407,7 @@ async def update_skill(
 
     # システム保護スキルは無効化不可
     if skill.is_system_protected and updates.get("enabled") is False:
-        raise ValueError(
-            f"システム必須スキル '{skill.slug}' は無効化できません"
-        )
+        raise ValueError(f"システム必須スキル '{skill.slug}' は無効化できません")
 
     for key, value in updates.items():
         setattr(skill, key, value)

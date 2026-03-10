@@ -31,6 +31,7 @@ class SkillSourceType(str, Enum):
 @dataclass
 class ExternalSkillManifest:
     """外部スキルのマニフェスト."""
+
     name: str
     slug: str
     description: str
@@ -50,6 +51,7 @@ class ExternalSkillManifest:
 @dataclass
 class SkillSearchResult:
     """スキル検索結果."""
+
     name: str
     slug: str
     description: str
@@ -102,9 +104,12 @@ class ExternalSkillImporter:
         """GitHub Agent Skillsリポジトリを検索."""
         try:
             import aiohttp
+
             async with aiohttp.ClientSession() as session:
                 url = f"https://api.github.com/search/repositories?q={query}+topic:agent-skills&per_page={limit}"
-                async with session.get(url, headers={"Accept": "application/vnd.github.v3+json"}) as resp:
+                async with session.get(
+                    url, headers={"Accept": "application/vnd.github.v3+json"}
+                ) as resp:
                     if resp.status != 200:
                         return []
                     data = await resp.json()
@@ -127,10 +132,13 @@ class ExternalSkillImporter:
             logger.warning("GitHub search failed: %s", exc)
             return []
 
-    async def _search_skills_sh(self, query: str, limit: int) -> list[SkillSearchResult]:
+    async def _search_skills_sh(
+        self, query: str, limit: int
+    ) -> list[SkillSearchResult]:
         """skills.sh プラットフォームを検索."""
         try:
             import aiohttp
+
             async with aiohttp.ClientSession() as session:
                 url = f"https://skills.sh/api/v1/skills/search?q={query}&limit={limit}"
                 async with session.get(url) as resp:
@@ -180,9 +188,14 @@ class ExternalSkillImporter:
         # manifest.json または skill.json を探す
         try:
             import aiohttp
+
             raw_url = _git_to_raw_url(repo_url)
             async with aiohttp.ClientSession() as session:
-                for manifest_name in ["manifest.json", "skill.json", "agent-skill.json"]:
+                for manifest_name in [
+                    "manifest.json",
+                    "skill.json",
+                    "agent-skill.json",
+                ]:
                     url = f"{raw_url}/{manifest_name}"
                     async with session.get(url) as resp:
                         if resp.status == 200:
@@ -205,10 +218,13 @@ class ExternalSkillImporter:
     async def _fetch_from_github(self, repo_url: str) -> ExternalSkillManifest | None:
         return await self._fetch_from_git(repo_url)
 
-    async def _fetch_claude_code_skill(self, source_uri: str) -> ExternalSkillManifest | None:
+    async def _fetch_claude_code_skill(
+        self, source_uri: str
+    ) -> ExternalSkillManifest | None:
         """Claude Code形式のスキルを変換して取得."""
         try:
             import aiohttp
+
             async with aiohttp.ClientSession() as session:
                 async with session.get(source_uri) as resp:
                     if resp.status != 200:
@@ -223,7 +239,9 @@ class ExternalSkillImporter:
                     return ExternalSkillManifest(
                         name=data.get("name", "claude-code-skill"),
                         slug=_slugify(data.get("name", "claude-code-skill")),
-                        description=data.get("description", "Claude Code imported skill"),
+                        description=data.get(
+                            "description", "Claude Code imported skill"
+                        ),
                         source_type=SkillSourceType.CLAUDE_CODE,
                         source_uri=source_uri,
                         skill_type="prompt",
@@ -234,10 +252,13 @@ class ExternalSkillImporter:
             logger.debug("Claude Code skill fetch failed: %s", exc)
         return None
 
-    async def _fetch_openclaw_skill(self, source_uri: str) -> ExternalSkillManifest | None:
+    async def _fetch_openclaw_skill(
+        self, source_uri: str
+    ) -> ExternalSkillManifest | None:
         """OpenClaw形式のスキルを変換して取得."""
         try:
             import aiohttp
+
             async with aiohttp.ClientSession() as session:
                 async with session.get(source_uri) as resp:
                     if resp.status != 200:
@@ -365,7 +386,9 @@ class ExternalPluginImporter:
         return results
 
     async def _search_github(
-        self, query: str, limit: int,
+        self,
+        query: str,
+        limit: int,
     ) -> list[PluginSearchResult]:
         """GitHub リポジトリをzeo-plugin / ai-orchestrator-pluginトピックで検索."""
         results: list[PluginSearchResult] = []
@@ -411,7 +434,9 @@ class ExternalPluginImporter:
         return unique[:limit]
 
     async def _search_community_registry(
-        self, query: str, limit: int,
+        self,
+        query: str,
+        limit: int,
     ) -> list[PluginSearchResult]:
         """コミュニティプラグインレジストリを検索."""
         try:
@@ -472,12 +497,15 @@ class ExternalPluginImporter:
             logger.debug("aiohttp not available for plugin manifest fetch")
         except Exception as exc:
             logger.error(
-                "Failed to fetch plugin manifest from %s: %s", source_uri, exc,
+                "Failed to fetch plugin manifest from %s: %s",
+                source_uri,
+                exc,
             )
         return None
 
     def to_plugin_create_data(
-        self, manifest: ExternalPluginManifest,
+        self,
+        manifest: ExternalPluginManifest,
     ) -> dict[str, Any]:
         """マニフェストをPluginCreate用のデータに変換."""
         return {

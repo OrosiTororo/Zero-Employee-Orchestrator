@@ -71,7 +71,7 @@ ZEO はこれらを**アーキテクチャレベルで解決**します。
 ### 起動
 
 ```bash
-git clone https://github.com/TroroOrosi/Zero-Employee-Orchestrator.git
+git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
 cd Zero-Employee-Orchestrator
 ./setup.sh   # 依存関係の自動インストール
 ./start.sh   # バックエンド + フロントエンドを起動

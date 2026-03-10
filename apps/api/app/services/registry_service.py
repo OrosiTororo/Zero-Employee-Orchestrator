@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 # Plugin CRUD
 # ---------------------------------------------------------------------------
 
+
 async def list_plugins(
     db: AsyncSession,
     *,
@@ -88,9 +89,7 @@ async def update_plugin(
     updates = data.model_dump(exclude_unset=True)
 
     if plugin.is_system_protected and updates.get("enabled") is False:
-        raise ValueError(
-            f"システム必須プラグイン '{plugin.slug}' は無効化できません"
-        )
+        raise ValueError(f"システム必須プラグイン '{plugin.slug}' は無効化できません")
 
     for key, value in updates.items():
         setattr(plugin, key, value)
@@ -99,9 +98,7 @@ async def update_plugin(
     return plugin
 
 
-async def delete_plugin(
-    db: AsyncSession, plugin_id: uuid.UUID
-) -> tuple[bool, str]:
+async def delete_plugin(db: AsyncSession, plugin_id: uuid.UUID) -> tuple[bool, str]:
     plugin = await get_plugin(db, plugin_id)
     if plugin is None:
         return False, "プラグインが見つかりません"
@@ -121,6 +118,7 @@ async def delete_plugin(
 # ---------------------------------------------------------------------------
 # Extension CRUD
 # ---------------------------------------------------------------------------
+
 
 async def list_extensions(
     db: AsyncSession,
@@ -181,9 +179,7 @@ async def update_extension(
     updates = data.model_dump(exclude_unset=True)
 
     if ext.is_system_protected and updates.get("enabled") is False:
-        raise ValueError(
-            f"システム必須拡張 '{ext.slug}' は無効化できません"
-        )
+        raise ValueError(f"システム必須拡張 '{ext.slug}' は無効化できません")
 
     for key, value in updates.items():
         setattr(ext, key, value)
@@ -192,9 +188,7 @@ async def update_extension(
     return ext
 
 
-async def delete_extension(
-    db: AsyncSession, ext_id: uuid.UUID
-) -> tuple[bool, str]:
+async def delete_extension(db: AsyncSession, ext_id: uuid.UUID) -> tuple[bool, str]:
     ext = await get_extension(db, ext_id)
     if ext is None:
         return False, "拡張が見つかりません"

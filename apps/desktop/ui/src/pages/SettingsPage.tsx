@@ -11,8 +11,6 @@ import {
   Eye,
   EyeOff,
   Check,
-  AlertCircle,
-  RefreshCw,
 } from "lucide-react"
 import { api } from "../shared/api/client"
 
@@ -20,16 +18,6 @@ interface ProviderInfo {
   name: string
   description: string
   configured: boolean
-}
-
-interface ConfigValue {
-  value: string
-  is_set: boolean
-  source: string
-  category: string
-  description: string
-  description_ja: string
-  sensitive: boolean
 }
 
 const PROVIDER_KEYS = [
@@ -106,20 +94,20 @@ export function SettingsPage() {
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({})
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({})
   const [providerStatus, setProviderStatus] = useState<Record<string, ProviderInfo>>({})
-  const [configLoading, setConfigLoading] = useState(true)
+  const [_configLoading, setConfigLoading] = useState(true)
 
   const loadConfig = useCallback(async () => {
     try {
       setConfigLoading(true)
       const [configRes, providerRes] = await Promise.all([
-        api.get("/config"),
-        api.get("/config/providers"),
+        api.get("/config") as Promise<Record<string, unknown>>,
+        api.get("/config/providers") as Promise<Record<string, unknown>>,
       ])
       if (configRes.execution_mode) {
-        setExecutionMode(configRes.execution_mode)
+        setExecutionMode(configRes.execution_mode as string)
       }
       if (providerRes.providers) {
-        setProviderStatus(providerRes.providers)
+        setProviderStatus(providerRes.providers as Record<string, ProviderInfo>)
       }
     } catch {
       // API may not be available yet

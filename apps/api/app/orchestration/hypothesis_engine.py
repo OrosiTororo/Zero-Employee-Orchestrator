@@ -36,6 +36,7 @@ class ReviewVerdict(str, Enum):
 @dataclass
 class Evidence:
     """仮説を支持または反証するエビデンス."""
+
     evidence_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     hypothesis_id: str = ""
     agent_id: str = ""
@@ -50,6 +51,7 @@ class Evidence:
 @dataclass
 class Review:
     """仮説に対するレビュー."""
+
     review_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     hypothesis_id: str = ""
     reviewer_agent_id: str = ""
@@ -63,6 +65,7 @@ class Review:
 @dataclass
 class Hypothesis:
     """検証対象の仮説."""
+
     hypothesis_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     task_id: str | None = None
     company_id: str | None = None
@@ -160,19 +163,18 @@ class HypothesisEngine:
         )
         if len(self._hypotheses) >= self._max:
             resolved = [
-                k for k, v in self._hypotheses.items()
+                k
+                for k, v in self._hypotheses.items()
                 if v.status in (HypothesisStatus.CONFIRMED, HypothesisStatus.REFUTED)
             ]
-            for k in resolved[:len(resolved) // 2]:
+            for k in resolved[: len(resolved) // 2]:
                 del self._hypotheses[k]
 
         self._hypotheses[h.hypothesis_id] = h
         logger.info("Hypothesis proposed: %s by %s", title, proposer_agent_id)
         return h
 
-    def assign_investigator(
-        self, hypothesis_id: str, agent_id: str
-    ) -> bool:
+    def assign_investigator(self, hypothesis_id: str, agent_id: str) -> bool:
         """仮説の調査担当エージェントを割り当て."""
         h = self._hypotheses.get(hypothesis_id)
         if not h:
@@ -241,9 +243,7 @@ class HypothesisEngine:
         h.updated_at = time.time()
         return review
 
-    def resolve(
-        self, hypothesis_id: str, confirmed: bool
-    ) -> bool:
+    def resolve(self, hypothesis_id: str, confirmed: bool) -> bool:
         """仮説を解決（確認/反証）."""
         h = self._hypotheses.get(hypothesis_id)
         if not h:
@@ -261,7 +261,8 @@ class HypothesisEngine:
 
     def get_active(self, company_id: str | None = None) -> list[Hypothesis]:
         result = [
-            h for h in self._hypotheses.values()
+            h
+            for h in self._hypotheses.values()
             if h.status not in (HypothesisStatus.CONFIRMED, HypothesisStatus.REFUTED)
         ]
         if company_id:
@@ -270,8 +271,10 @@ class HypothesisEngine:
 
     def get_needing_review(self, company_id: str | None = None) -> list[Hypothesis]:
         result = [
-            h for h in self._hypotheses.values()
-            if h.status in (HypothesisStatus.EVIDENCE_FOUND, HypothesisStatus.NEEDS_REVIEW)
+            h
+            for h in self._hypotheses.values()
+            if h.status
+            in (HypothesisStatus.EVIDENCE_FOUND, HypothesisStatus.NEEDS_REVIEW)
         ]
         if company_id:
             result = [h for h in result if h.company_id == company_id]

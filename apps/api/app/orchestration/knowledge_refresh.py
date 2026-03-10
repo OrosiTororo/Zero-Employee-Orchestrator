@@ -23,26 +23,26 @@ from enum import Enum
 class KnowledgeStatus(str, Enum):
     """知識のステータス."""
 
-    RAW = "raw"                   # 未処理
-    EXTRACTED = "extracted"       # 抽出済み
-    INDEXED = "indexed"           # インデックス済み
-    VERIFIED = "verified"         # 検証済み
-    EXPERIMENTAL = "experimental" # 実験的
-    REJECTED = "rejected"         # 却下
+    RAW = "raw"  # 未処理
+    EXTRACTED = "extracted"  # 抽出済み
+    INDEXED = "indexed"  # インデックス済み
+    VERIFIED = "verified"  # 検証済み
+    EXPERIMENTAL = "experimental"  # 実験的
+    REJECTED = "rejected"  # 却下
 
 
 class KnowledgeType(str, Enum):
     """知識の種類（§8.0.1, §8.5）."""
 
-    CONVERSATION_LOG = "conversation_log"          # 会話履歴
+    CONVERSATION_LOG = "conversation_log"  # 会話履歴
     REUSABLE_IMPROVEMENT = "reusable_improvement"  # 再利用可能な改善知識
-    EXPERIMENTAL = "experimental_knowledge"         # 実験的知識
-    VERIFIED = "verified_knowledge"                 # 検証済み知識
-    EXPERIENCE_MEMORY = "experience_memory"         # 成功パターン
-    FAILURE_TAXONOMY = "failure_taxonomy"            # 失敗分類
-    POLICY_MEMORY = "policy_memory"                 # 承認条件・禁止事項
-    SKILL_IMPROVEMENT = "skill_improvement"         # Skill 改善知識
-    PLUGIN_OPERATION = "plugin_operation"            # Plugin 運用ノウハウ
+    EXPERIMENTAL = "experimental_knowledge"  # 実験的知識
+    VERIFIED = "verified_knowledge"  # 検証済み知識
+    EXPERIENCE_MEMORY = "experience_memory"  # 成功パターン
+    FAILURE_TAXONOMY = "failure_taxonomy"  # 失敗分類
+    POLICY_MEMORY = "policy_memory"  # 承認条件・禁止事項
+    SKILL_IMPROVEMENT = "skill_improvement"  # Skill 改善知識
+    PLUGIN_OPERATION = "plugin_operation"  # Plugin 運用ノウハウ
 
 
 @dataclass
@@ -105,7 +105,10 @@ class KnowledgeStore:
                 continue
             if status and entry.status != status:
                 continue
-            if query_lower in entry.title.lower() or query_lower in entry.content.lower():
+            if (
+                query_lower in entry.title.lower()
+                or query_lower in entry.content.lower()
+            ):
                 results.append(entry)
             if len(results) >= limit:
                 break

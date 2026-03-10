@@ -1,6 +1,5 @@
 """Authentication endpoints - registration, login, session management."""
 
-import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Header
@@ -10,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps.database import get_db
 from app.models.user import CompanyMember, User
 from app.models.company import Company
-from app.core.security import generate_uuid, hash_sha256, verify_hash
+from app.core.security import generate_uuid, hash_sha256
 from app.schemas.auth import (
     LoginRequest,
     LoginResponse,
@@ -52,7 +51,9 @@ async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
     # Check if email already exists
     result = await db.execute(select(User).where(User.email == req.email))
     if result.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="このメールアドレスは既に登録されています")
+        raise HTTPException(
+            status_code=400, detail="このメールアドレスは既に登録されています"
+        )
 
     user = await register_user(db, req.email, req.password, req.display_name)
     token = create_access_token(str(user.id))
@@ -69,13 +70,24 @@ async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
     """メール/パスワードでログイン"""
     user = await authenticate_user(db, req.email, req.password)
     if not user:
-        raise HTTPException(status_code=401, detail="メールアドレスまたはパスワードが正しくありません")
+        raise HTTPException(
+            status_code=401, detail="メールアドレスまたはパスワードが正しくありません"
+        )
 
     token = create_access_token(str(user.id))
     return LoginResponse(
         access_token=token,
         user_id=str(user.id),
         display_name=user.display_name,
+    )
+
+
+@router.get("/google/authorize")
+async def google_authorize():
+    """Google OAuth 認可URL取得 (未実装スタブ)"""
+    raise HTTPException(
+        status_code=501,
+        detail="Google OAuth は準備中です。メール登録をご利用ください。",
     )
 
 
@@ -185,12 +197,16 @@ async def link_anonymous_to_account(
     既存のデータを引き継ぐ。
     """
     if user.role != "anonymous":
-        raise HTTPException(status_code=400, detail="既にアカウントに紐付けられています")
+        raise HTTPException(
+            status_code=400, detail="既にアカウントに紐付けられています"
+        )
 
     # メールの重複チェック
     result = await db.execute(select(User).where(User.email == email))
     if result.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="このメールアドレスは既に登録されています")
+        raise HTTPException(
+            status_code=400, detail="このメールアドレスは既に登録されています"
+        )
 
     user.email = email
     user.display_name = display_name

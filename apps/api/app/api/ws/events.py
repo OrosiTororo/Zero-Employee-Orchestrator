@@ -4,7 +4,6 @@ Events: ticket.updated, task.updated, approval.requested,
 heartbeat.finished, cost.threshold_reached, etc.
 """
 
-import asyncio
 import json
 import logging
 from typing import Any
@@ -68,12 +67,15 @@ async def emit_event(
     data: dict | None = None,
 ) -> None:
     """Helper to emit a WebSocket event."""
-    await manager.broadcast(company_id, {
-        "event_type": event_type,
-        "target_type": target_type,
-        "target_id": str(target_id) if target_id else None,
-        "data": data or {},
-    })
+    await manager.broadcast(
+        company_id,
+        {
+            "event_type": event_type,
+            "target_type": target_type,
+            "target_id": str(target_id) if target_id else None,
+            "data": data or {},
+        },
+    )
 
 
 @router.websocket("/ws/events")

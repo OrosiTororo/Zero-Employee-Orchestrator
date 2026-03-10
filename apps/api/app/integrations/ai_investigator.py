@@ -24,25 +24,53 @@ from sqlalchemy.ext.asyncio import AsyncSession
 logger = logging.getLogger(__name__)
 
 # AIがアクセス可能なテーブル（読み取り専用）
-ALLOWED_TABLES = frozenset({
-    "tickets", "tasks", "task_runs", "agents", "skills",
-    "audit_logs", "experience_memory", "failure_taxonomy",
-    "knowledge_store", "change_detections", "agent_sessions",
-    "specs", "plans", "artifacts", "reviews",
-    "heartbeat_runs", "cost_ledgers",
-})
+ALLOWED_TABLES = frozenset(
+    {
+        "tickets",
+        "tasks",
+        "task_runs",
+        "agents",
+        "skills",
+        "audit_logs",
+        "experience_memory",
+        "failure_taxonomy",
+        "knowledge_store",
+        "change_detections",
+        "agent_sessions",
+        "specs",
+        "plans",
+        "artifacts",
+        "reviews",
+        "heartbeat_runs",
+        "cost_ledgers",
+    }
+)
 
 # SQLインジェクション防止: 禁止キーワード
-FORBIDDEN_SQL_KEYWORDS = frozenset({
-    "DROP", "DELETE", "UPDATE", "INSERT", "ALTER", "CREATE",
-    "TRUNCATE", "EXEC", "EXECUTE", "GRANT", "REVOKE",
-    "INTO OUTFILE", "INTO DUMPFILE", "LOAD_FILE",
-})
+FORBIDDEN_SQL_KEYWORDS = frozenset(
+    {
+        "DROP",
+        "DELETE",
+        "UPDATE",
+        "INSERT",
+        "ALTER",
+        "CREATE",
+        "TRUNCATE",
+        "EXEC",
+        "EXECUTE",
+        "GRANT",
+        "REVOKE",
+        "INTO OUTFILE",
+        "INTO DUMPFILE",
+        "LOAD_FILE",
+    }
+)
 
 
 @dataclass
 class InvestigationResult:
     """調査結果."""
+
     query: str
     success: bool
     data: list[dict[str, Any]] = field(default_factory=list)
@@ -66,6 +94,7 @@ class InvestigationResult:
 @dataclass
 class LogEntry:
     """ログエントリ."""
+
     timestamp: float
     level: str
     source: str
@@ -118,7 +147,7 @@ class AIInvestigator:
             rows = result.mappings().all()
             duration_ms = int((time.time() - start) * 1000)
 
-            data = [dict(row) for row in rows[:self._max_rows]]
+            data = [dict(row) for row in rows[: self._max_rows]]
             # datetime等をシリアライズ可能にする
             for row in data:
                 for k, v in row.items():
@@ -242,9 +271,7 @@ class AIInvestigator:
 
         return await self.query_db(db, query, params)
 
-    async def get_system_metrics(
-        self, db: AsyncSession
-    ) -> dict[str, Any]:
+    async def get_system_metrics(self, db: AsyncSession) -> dict[str, Any]:
         """システムメトリクスを取得."""
         metrics: dict[str, Any] = {}
 
@@ -263,14 +290,16 @@ class AIInvestigator:
         self, inv_type: str, query: str, result: InvestigationResult
     ) -> None:
         """調査の記録."""
-        self._investigation_log.append({
-            "type": inv_type,
-            "query": query,
-            "success": result.success,
-            "row_count": result.row_count,
-            "duration_ms": result.duration_ms,
-            "timestamp": time.time(),
-        })
+        self._investigation_log.append(
+            {
+                "type": inv_type,
+                "query": query,
+                "success": result.success,
+                "row_count": result.row_count,
+                "duration_ms": result.duration_ms,
+                "timestamp": time.time(),
+            }
+        )
         # 古いログを削除
         if len(self._investigation_log) > 1000:
             self._investigation_log = self._investigation_log[-500:]

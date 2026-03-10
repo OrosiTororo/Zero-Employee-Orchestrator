@@ -34,7 +34,6 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "en": "No login · No cloud · Fully local · Powered by Ollama",
         "zh": "无需登录 · 无需云端 · 完全本地 · 由 Ollama 驱动",
     },
-
     # -- Status labels --
     "label_model": {
         "ja": "モデル",
@@ -81,7 +80,6 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "en": "Pending Approvals",
         "zh": "待审批",
     },
-
     # -- Mode names --
     "mode_orchestrator": {
         "ja": "オーケストレーター",
@@ -98,7 +96,6 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "en": "Manual-Approve",
         "zh": "手动审批",
     },
-
     # -- Chat messages --
     "chat_welcome": {
         "ja": "何をお手伝いしましょうか？自然言語で業務を指示できます。",
@@ -107,7 +104,7 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "chat_first_time": {
         "ja": "初めての方は: 「売上レポートを作成して」と入力してみてください",
-        "en": "First time? Try: \"Create a sales report\"",
+        "en": 'First time? Try: "Create a sales report"',
         "zh": "第一次使用？试试输入：「创建销售报告」",
     },
     "chat_help_hint": {
@@ -135,7 +132,6 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "en": "Goodbye.",
         "zh": "再见。",
     },
-
     # -- Error messages --
     "error_no_ollama": {
         "ja": "Ollama が起動していません。起動: ollama serve",
@@ -157,7 +153,6 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "en": "Connection error: {detail}",
         "zh": "连接错误: {detail}",
     },
-
     # -- Orchestration --
     "orch_task_created": {
         "ja": "タスクを作成しました: {title}",
@@ -189,7 +184,6 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "en": "Execution plan generated ({n_tasks} tasks)",
         "zh": "执行计划已生成（{n_tasks} 个任务）",
     },
-
     # -- Audit --
     "audit_dangerous_op": {
         "ja": "危険操作を検出: {op}（承認が必要）",
@@ -248,6 +242,7 @@ def t(key: str, **kwargs: str) -> str:
 # ---------------------------------------------------------------------------
 # Initialize from environment
 # ---------------------------------------------------------------------------
+
 
 def init_language_from_env() -> None:
     """Initialize language from LANGUAGE env var or config."""

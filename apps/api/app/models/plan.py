@@ -1,9 +1,17 @@
 """Plan model."""
 
 import uuid
-from datetime import datetime
 
-from sqlalchemy import Boolean, ForeignKey, Integer, JSON, Numeric, String, Text, Uuid, func
+from sqlalchemy import (
+    Boolean,
+    ForeignKey,
+    Integer,
+    JSON,
+    Numeric,
+    String,
+    Text,
+    Uuid,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base, TimestampMixin
@@ -19,9 +27,7 @@ class Plan(Base, TimestampMixin):
     ticket_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("tickets.id"), index=True
     )
-    spec_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("specs.id"), index=True
-    )
+    spec_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("specs.id"), index=True)
     version_no: Mapped[int] = mapped_column(Integer)
     status: Mapped[str] = mapped_column(String(30))
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)

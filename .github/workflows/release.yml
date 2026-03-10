@@ -29,10 +29,10 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
 
@@ -99,6 +99,6 @@ jobs:
             4. 設定画面で LLM API キーを入力 / Enter LLM API key in Settings
             5. ダッシュボードから自然言語で業務を依頼 / Request tasks in natural language
 
-            > 📖 詳細: [README](https://github.com/TroroOrosi/Zero-Employee-Orchestrator#readme) | [User Guide](https://github.com/TroroOrosi/Zero-Employee-Orchestrator/blob/master/USER_GUIDE.md)
+            > 📖 詳細: [README](https://github.com/OrosiTororo/Zero-Employee-Orchestrator#readme) | [User Guide](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/USER_GUIDE.md)
           releaseDraft: true
           prerelease: false

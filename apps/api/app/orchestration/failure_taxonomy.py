@@ -12,23 +12,23 @@ from enum import Enum
 class FailureCategory(str, Enum):
     """障害の大分類."""
 
-    LLM_ERROR = "llm_error"              # LLM プロバイダ障害
-    TOOL_ERROR = "tool_error"            # ツール実行障害
+    LLM_ERROR = "llm_error"  # LLM プロバイダ障害
+    TOOL_ERROR = "tool_error"  # ツール実行障害
     VALIDATION_ERROR = "validation_error"  # 入出力検証障害
-    BUDGET_ERROR = "budget_error"        # 予算超過
-    TIMEOUT_ERROR = "timeout_error"      # タイムアウト
+    BUDGET_ERROR = "budget_error"  # 予算超過
+    TIMEOUT_ERROR = "timeout_error"  # タイムアウト
     PERMISSION_ERROR = "permission_error"  # 権限不足
     DEPENDENCY_ERROR = "dependency_error"  # 依存タスク障害
     HUMAN_REJECTION = "human_rejection"  # 人間による差し戻し
-    SYSTEM_ERROR = "system_error"        # システム内部エラー
+    SYSTEM_ERROR = "system_error"  # システム内部エラー
 
 
 class FailureSeverity(str, Enum):
     """障害の重大度."""
 
-    LOW = "low"          # 軽微 (自動リトライで回復可能)
-    MEDIUM = "medium"    # 中程度 (代替手段で回復可能)
-    HIGH = "high"        # 重大 (人間介入が必要)
+    LOW = "low"  # 軽微 (自動リトライで回復可能)
+    MEDIUM = "medium"  # 中程度 (代替手段で回復可能)
+    HIGH = "high"  # 重大 (人間介入が必要)
     CRITICAL = "critical"  # 致命的 (即座にエスカレーション)
 
 
@@ -139,12 +139,14 @@ class FailureTaxonomy:
         for record in self.records:
             if category and record.category != category:
                 continue
-            results.append({
-                "category": record.category.value,
-                "subcategory": record.subcategory,
-                "prevention": record.prevention_strategy,
-                "recovery_rate": f"{record.recovery_success_rate:.0%}",
-            })
+            results.append(
+                {
+                    "category": record.category.value,
+                    "subcategory": record.subcategory,
+                    "prevention": record.prevention_strategy,
+                    "recovery_rate": f"{record.recovery_success_rate:.0%}",
+                }
+            )
         return results
 
 

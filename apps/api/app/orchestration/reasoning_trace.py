@@ -34,44 +34,46 @@ class ReasoningStepType(str, Enum):
     """推論ステップの種類."""
 
     # 情報収集フェーズ
-    CONTEXT_GATHERING = "context_gathering"       # 情報源からのコンテキスト収集
-    KNOWLEDGE_RETRIEVAL = "knowledge_retrieval"   # Experience Memory / RAG からの知識検索
-    CONSTRAINT_CHECK = "constraint_check"         # 制約条件・ポリシーの確認
+    CONTEXT_GATHERING = "context_gathering"  # 情報源からのコンテキスト収集
+    KNOWLEDGE_RETRIEVAL = (
+        "knowledge_retrieval"  # Experience Memory / RAG からの知識検索
+    )
+    CONSTRAINT_CHECK = "constraint_check"  # 制約条件・ポリシーの確認
 
     # 分析フェーズ
-    OPTION_ENUMERATION = "option_enumeration"     # 選択肢の列挙
-    OPTION_EVALUATION = "option_evaluation"       # 各選択肢の評価・スコアリング
-    RISK_ASSESSMENT = "risk_assessment"           # リスク評価
+    OPTION_ENUMERATION = "option_enumeration"  # 選択肢の列挙
+    OPTION_EVALUATION = "option_evaluation"  # 各選択肢の評価・スコアリング
+    RISK_ASSESSMENT = "risk_assessment"  # リスク評価
 
     # 意思決定フェーズ
-    DECISION = "decision"                         # 最終的な意思決定
-    DELEGATION = "delegation"                     # 他エージェントへの委譲判断
-    APPROVAL_REQUEST = "approval_request"         # 承認要求の判断
+    DECISION = "decision"  # 最終的な意思決定
+    DELEGATION = "delegation"  # 他エージェントへの委譲判断
+    APPROVAL_REQUEST = "approval_request"  # 承認要求の判断
 
     # 実行フェーズ
-    MODEL_SELECTION = "model_selection"           # LLM モデルの選択理由
-    TOOL_SELECTION = "tool_selection"             # ツール・Skill の選択理由
-    PROMPT_CONSTRUCTION = "prompt_construction"   # プロンプト構築の意図
-    EXECUTION = "execution"                       # 実行とその結果
+    MODEL_SELECTION = "model_selection"  # LLM モデルの選択理由
+    TOOL_SELECTION = "tool_selection"  # ツール・Skill の選択理由
+    PROMPT_CONSTRUCTION = "prompt_construction"  # プロンプト構築の意図
+    EXECUTION = "execution"  # 実行とその結果
 
     # 検証フェーズ
-    QUALITY_CHECK = "quality_check"               # 出力品質の自己評価
-    JUDGE_RESULT = "judge_result"                 # Judge Layer の判定結果
-    SELF_CORRECTION = "self_correction"           # 自己修正の判断
+    QUALITY_CHECK = "quality_check"  # 出力品質の自己評価
+    JUDGE_RESULT = "judge_result"  # Judge Layer の判定結果
+    SELF_CORRECTION = "self_correction"  # 自己修正の判断
 
     # 例外フェーズ
-    ERROR_ANALYSIS = "error_analysis"             # エラー原因の分析
-    FALLBACK_DECISION = "fallback_decision"       # フォールバック戦略の選択
-    REPLAN_TRIGGER = "replan_trigger"             # 再計画のトリガー
+    ERROR_ANALYSIS = "error_analysis"  # エラー原因の分析
+    FALLBACK_DECISION = "fallback_decision"  # フォールバック戦略の選択
+    REPLAN_TRIGGER = "replan_trigger"  # 再計画のトリガー
 
 
 class ReasoningConfidence(str, Enum):
     """推論の確信度."""
 
-    HIGH = "high"           # 明確な根拠あり
-    MEDIUM = "medium"       # 合理的だが他の選択肢もあり得る
-    LOW = "low"             # 不確実、より多くの情報が必要
-    UNCERTAIN = "uncertain" # 判断材料が不足
+    HIGH = "high"  # 明確な根拠あり
+    MEDIUM = "medium"  # 合理的だが他の選択肢もあり得る
+    LOW = "low"  # 不確実、より多くの情報が必要
+    UNCERTAIN = "uncertain"  # 判断材料が不足
 
 
 @dataclass
@@ -80,12 +82,12 @@ class ReasoningStep:
 
     step_id: str
     step_type: ReasoningStepType
-    summary: str                             # 人間が読める要約
-    details: dict[str, Any]                  # 構造化された詳細情報
+    summary: str  # 人間が読める要約
+    details: dict[str, Any]  # 構造化された詳細情報
     confidence: ReasoningConfidence = ReasoningConfidence.MEDIUM
     timestamp: float = field(default_factory=time.time)
-    duration_ms: int = 0                     # このステップの所要時間
-    parent_step_id: str | None = None        # 親ステップ（ネスト時）
+    duration_ms: int = 0  # このステップの所要時間
+    parent_step_id: str | None = None  # 親ステップ（ネスト時）
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -113,9 +115,9 @@ class ReasoningTrace:
     company_id: str | None = None
     started_at: float = field(default_factory=time.time)
     finished_at: float | None = None
-    outcome: str | None = None               # succeeded, failed, cancelled
+    outcome: str | None = None  # succeeded, failed, cancelled
     steps: list[ReasoningStep] = field(default_factory=list)
-    summary: str = ""                        # 全体の推論サマリー
+    summary: str = ""  # 全体の推論サマリー
     total_decisions: int = 0
     total_fallbacks: int = 0
 
@@ -149,7 +151,9 @@ class ReasoningTrace:
 
         return step
 
-    def add_context(self, summary: str, sources: list[str], data: dict | None = None) -> ReasoningStep:
+    def add_context(
+        self, summary: str, sources: list[str], data: dict | None = None
+    ) -> ReasoningStep:
         """コンテキスト収集ステップを追加（ショートカット）."""
         return self.add_step(
             ReasoningStepType.CONTEXT_GATHERING,
@@ -215,7 +219,9 @@ class ReasoningTrace:
             },
         )
 
-    def add_error(self, error: str, analysis: str, recovery_plan: str = "") -> ReasoningStep:
+    def add_error(
+        self, error: str, analysis: str, recovery_plan: str = ""
+    ) -> ReasoningStep:
         """エラー分析ステップを追加（ショートカット）."""
         return self.add_step(
             ReasoningStepType.ERROR_ANALYSIS,
@@ -235,7 +241,6 @@ class ReasoningTrace:
         if summary:
             self.summary = summary
         else:
-            decision_steps = [s for s in self.steps if s.step_type == ReasoningStepType.DECISION]
             self.summary = f"{len(self.steps)}ステップ, {self.total_decisions}判断, 結果: {outcome}"
 
     def to_dict(self) -> dict[str, Any]:
@@ -252,7 +257,9 @@ class ReasoningTrace:
             "total_decisions": self.total_decisions,
             "total_fallbacks": self.total_fallbacks,
             "steps": [s.to_dict() for s in self.steps],
-            "duration_ms": int((self.finished_at - self.started_at) * 1000) if self.finished_at else None,
+            "duration_ms": int((self.finished_at - self.started_at) * 1000)
+            if self.finished_at
+            else None,
         }
 
     def get_decisions(self) -> list[ReasoningStep]:
@@ -261,15 +268,21 @@ class ReasoningTrace:
 
     def get_errors(self) -> list[ReasoningStep]:
         """エラー関連ステップのみを抽出."""
-        return [s for s in self.steps if s.step_type in (
-            ReasoningStepType.ERROR_ANALYSIS,
-            ReasoningStepType.FALLBACK_DECISION,
-        )]
+        return [
+            s
+            for s in self.steps
+            if s.step_type
+            in (
+                ReasoningStepType.ERROR_ANALYSIS,
+                ReasoningStepType.FALLBACK_DECISION,
+            )
+        ]
 
 
 # ---------------------------------------------------------------------------
 # In-memory trace store (production では DB に永続化する)
 # ---------------------------------------------------------------------------
+
 
 class TraceStore:
     """推論トレースのインメモリストア.
@@ -301,7 +314,9 @@ class TraceStore:
         traces.sort(key=lambda t: t.started_at, reverse=True)
         return traces[:limit]
 
-    def get_recent(self, company_id: str | None = None, limit: int = 50) -> list[ReasoningTrace]:
+    def get_recent(
+        self, company_id: str | None = None, limit: int = 50
+    ) -> list[ReasoningTrace]:
         traces = list(self._traces.values())
         if company_id:
             traces = [t for t in traces if t.company_id == company_id]

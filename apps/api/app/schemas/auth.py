@@ -1,6 +1,6 @@
 """Auth-related DTOs."""
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
 
 class RegisterRequest(BaseModel):

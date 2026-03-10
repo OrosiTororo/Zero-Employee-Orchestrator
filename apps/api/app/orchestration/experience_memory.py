@@ -14,9 +14,6 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
 from app.core.security import generate_uuid
 from app.orchestration.state_machine import (
-    ExperienceMemory,
-    ExperienceMemoryEntry,
-    FailureTaxonomyEntry,
     MemoryType,
 )
 
@@ -24,6 +21,7 @@ from app.orchestration.state_machine import (
 # ---------------------------------------------------------------------------
 # DB Models for Experience Memory persistence
 # ---------------------------------------------------------------------------
+
 
 class ExperienceMemoryRecord(Base):
     """DB永続化された Experience Memory エントリ."""
@@ -71,6 +69,7 @@ class FailureTaxonomyRecord(Base):
 # Persistent Experience Memory
 # ---------------------------------------------------------------------------
 
+
 class PersistentExperienceMemory:
     """DB 永続化対応の Experience Memory.
 
@@ -80,7 +79,11 @@ class PersistentExperienceMemory:
 
     def __init__(self, db: AsyncSession, company_id: str | uuid.UUID) -> None:
         self._db = db
-        self._company_id = uuid.UUID(str(company_id)) if not isinstance(company_id, uuid.UUID) else company_id
+        self._company_id = (
+            uuid.UUID(str(company_id))
+            if not isinstance(company_id, uuid.UUID)
+            else company_id
+        )
 
     async def add_success_pattern(
         self,

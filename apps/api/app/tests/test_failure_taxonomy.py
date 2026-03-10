@@ -1,7 +1,5 @@
 """Failure Taxonomy tests."""
 
-import pytest
-
 from app.orchestration.failure_taxonomy import (
     FailureCategory,
     FailureRecord,

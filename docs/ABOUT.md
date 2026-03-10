@@ -285,7 +285,7 @@ SNS コンテンツ制作（週10本）
 
 ```bash
 # 1分で起動
-git clone https://github.com/TroroOrosi/Zero-Employee-Orchestrator.git
+git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
 cd Zero-Employee-Orchestrator
 ./setup.sh && ./start.sh
 ```

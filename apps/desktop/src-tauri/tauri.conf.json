@@ -43,7 +43,7 @@
   "plugins": {
     "updater": {
       "endpoints": [
-        "https://github.com/TroroOrosi/Zero-Employee-Orchestrator/releases/latest/download/latest.json"
+        "https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/latest/download/latest.json"
       ],
       "pubkey": ""
     }

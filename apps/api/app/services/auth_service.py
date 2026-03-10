@@ -11,7 +11,6 @@ from app.core.config import settings
 from app.core.security import generate_uuid, hash_sha256, verify_hash
 from app.models.user import CompanyMember, User
 from app.models.company import Company
-from app.schemas.auth import LoginResponse, UserRead
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24h

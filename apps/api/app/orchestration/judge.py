@@ -79,22 +79,36 @@ class PolicyPackJudge:
     def check_dangerous_operations(self, operations: list[str]) -> list[str]:
         """Check if any operations require forced approval."""
         dangerous = {
-            "external_send", "publish", "post", "delete",
-            "charge", "git_push", "git_release",
-            "file_overwrite_important", "permission_change",
-            "api_key_update", "credential_update",
+            "external_send",
+            "publish",
+            "post",
+            "delete",
+            "charge",
+            "git_push",
+            "git_release",
+            "file_overwrite_important",
+            "permission_change",
+            "api_key_update",
+            "credential_update",
         }
         return [op for op in operations if op in dangerous]
 
     def check_credential_exposure(self, content: str) -> bool:
         """Check if content might contain credential values."""
         suspicious_patterns = [
-            "sk-", "Bearer ", "api_key=", "password=",
-            "secret=", "token=", "AKIA",
+            "sk-",
+            "Bearer ",
+            "api_key=",
+            "password=",
+            "secret=",
+            "token=",
+            "AKIA",
         ]
         return any(p in content for p in suspicious_patterns)
 
-    def evaluate(self, output: dict, operations: list[str] | None = None) -> JudgeResult:
+    def evaluate(
+        self, output: dict, operations: list[str] | None = None
+    ) -> JudgeResult:
         violations = []
         suggestions = []
 
@@ -102,9 +116,9 @@ class PolicyPackJudge:
         if operations:
             dangerous = self.check_dangerous_operations(operations)
             if dangerous:
-                violations.extend([
-                    f"承認必須操作が含まれています: {op}" for op in dangerous
-                ])
+                violations.extend(
+                    [f"承認必須操作が含まれています: {op}" for op in dangerous]
+                )
 
         # Check credential exposure
         content = str(output)
@@ -245,6 +259,8 @@ def judge_output(
         score=combined_score,
         reasons=combined_reasons,
         suggestions=combined_suggestions,
-        policy_violations=rule_result.policy_violations + policy_result.policy_violations,
-        requires_human_review=rule_result.requires_human_review or policy_result.requires_human_review,
+        policy_violations=rule_result.policy_violations
+        + policy_result.policy_violations,
+        requires_human_review=rule_result.requires_human_review
+        or policy_result.requires_human_review,
     )

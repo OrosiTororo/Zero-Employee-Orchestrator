@@ -36,24 +36,34 @@ async def update_settings(company_id: str, settings: dict | None = None):
 async def list_connections(company_id: str, db: AsyncSession = Depends(get_db)):
     """接続先一覧"""
     cid = uuid.UUID(company_id)
-    result = await db.execute(select(ToolConnection).where(ToolConnection.company_id == cid))
+    result = await db.execute(
+        select(ToolConnection).where(ToolConnection.company_id == cid)
+    )
     connections = result.scalars().all()
     return [
         {
-            "id": str(c.id), "name": c.name, "connection_type": c.connection_type,
-            "status": c.status, "auth_type": c.auth_type,
+            "id": str(c.id),
+            "name": c.name,
+            "connection_type": c.connection_type,
+            "status": c.status,
+            "auth_type": c.auth_type,
         }
         for c in connections
     ]
 
 
 @router.post("/companies/{company_id}/tool-connections")
-async def create_connection(company_id: str, req: ConnectionCreate, db: AsyncSession = Depends(get_db)):
+async def create_connection(
+    company_id: str, req: ConnectionCreate, db: AsyncSession = Depends(get_db)
+):
     """接続先を追加"""
     conn = ToolConnection(
-        id=uuid.uuid4(), company_id=uuid.UUID(company_id),
-        name=req.name, connection_type=req.connection_type,
-        status="active", auth_type=req.auth_type,
+        id=uuid.uuid4(),
+        company_id=uuid.UUID(company_id),
+        name=req.name,
+        connection_type=req.connection_type,
+        status="active",
+        auth_type=req.auth_type,
         config_json=req.config_json or {},
     )
     db.add(conn)

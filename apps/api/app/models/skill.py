@@ -1,9 +1,8 @@
 """Skill, Plugin, and Extension models."""
 
 import uuid
-from datetime import datetime
 
-from sqlalchemy import Boolean, ForeignKey, JSON, String, Text, Uuid, func
+from sqlalchemy import Boolean, ForeignKey, JSON, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base, TimestampMixin

@@ -18,10 +18,10 @@ from enum import Enum
 class AutonomyLevel(str, Enum):
     """Agent の自律レベル."""
 
-    OBSERVE = "observe"       # 観察のみ
-    ASSIST = "assist"         # 補助（提案のみ）
-    SEMI_AUTO = "semi_auto"   # 半自動（承認後実行）
-    AUTONOMOUS = "autonomous" # 自律（安全範囲内で自動実行）
+    OBSERVE = "observe"  # 観察のみ
+    ASSIST = "assist"  # 補助（提案のみ）
+    SEMI_AUTO = "semi_auto"  # 半自動（承認後実行）
+    AUTONOMOUS = "autonomous"  # 自律（安全範囲内で自動実行）
 
 
 # 自律実行が許可される操作タイプ

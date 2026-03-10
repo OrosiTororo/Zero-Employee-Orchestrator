@@ -16,7 +16,7 @@ async def test_install_and_list_skills(client: AsyncClient):
             "skill_type": "custom",
         },
     )
-    assert install_resp.status_code == 200
+    assert install_resp.status_code == 201
     skill = install_resp.json()
     assert skill["name"] == "テストスキル"
     assert skill["status"] == "experimental"

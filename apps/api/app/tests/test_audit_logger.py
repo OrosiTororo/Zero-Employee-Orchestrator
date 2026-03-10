@@ -3,8 +3,6 @@
 import uuid
 
 import pytest
-import pytest_asyncio
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.audit.logger import (
@@ -12,7 +10,6 @@ from app.audit.logger import (
     record_dangerous_operation,
     record_state_change,
 )
-from app.models.audit import AuditLog
 
 
 @pytest.mark.asyncio

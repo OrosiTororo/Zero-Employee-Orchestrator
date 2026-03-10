@@ -64,14 +64,21 @@ async def remember_knowledge(
     """ナレッジを記憶する."""
     store = KnowledgeStore(db)
     record = await store.remember(
-        req.category, req.key, req.value,
+        req.category,
+        req.key,
+        req.value,
         company_id=req.company_id,
         user_id=req.user_id,
         metadata=req.metadata,
         source=req.source,
     )
     await db.commit()
-    return {"id": str(record.id), "category": record.category, "key": record.key, "stored": True}
+    return {
+        "id": str(record.id),
+        "category": record.category,
+        "key": record.key,
+        "stored": True,
+    }
 
 
 @router.post("/knowledge/recall")
@@ -82,7 +89,8 @@ async def recall_knowledge(
     """ナレッジを検索する."""
     store = KnowledgeStore(db)
     records = await store.recall(
-        req.category, req.key,
+        req.category,
+        req.key,
         company_id=req.company_id,
         user_id=req.user_id,
     )
@@ -111,12 +119,18 @@ async def remember_file_permission(
     """ファイル/フォルダの操作権限を記憶."""
     store = KnowledgeStore(db)
     record = await store.remember_file_permission(
-        req.path, req.permission,
+        req.path,
+        req.permission,
         company_id=req.company_id,
         user_id=req.user_id,
     )
     await db.commit()
-    return {"id": str(record.id), "path": req.path, "permission": req.permission, "stored": True}
+    return {
+        "id": str(record.id),
+        "path": req.path,
+        "permission": req.permission,
+        "stored": True,
+    }
 
 
 @router.post("/knowledge/folder-location")
@@ -127,7 +141,8 @@ async def remember_folder_location(
     """業務資料フォルダの場所を記憶."""
     store = KnowledgeStore(db)
     record = await store.remember_folder_location(
-        req.name, req.path,
+        req.name,
+        req.path,
         company_id=req.company_id,
         user_id=req.user_id,
     )
@@ -146,8 +161,7 @@ async def list_permissions(
     await db.commit()
     return {
         "permissions": [
-            {"id": str(r.id), "path": r.key, "permission": r.value}
-            for r in records
+            {"id": str(r.id), "path": r.key, "permission": r.value} for r in records
         ],
     }
 
@@ -162,10 +176,7 @@ async def list_folder_locations(
     records = await store.get_all_folder_locations(company_id)
     await db.commit()
     return {
-        "folders": [
-            {"id": str(r.id), "name": r.key, "path": r.value}
-            for r in records
-        ],
+        "folders": [{"id": str(r.id), "name": r.key, "path": r.value} for r in records],
     }
 
 

@@ -87,7 +87,7 @@ _G4F_MODEL_MAP: dict[str, dict] = {
     # ── Subscription / authenticated providers ──────────────────────────────
     "g4f/Gemini": {
         "provider": "Gemini",
-        "model": "gemini-2.5-flash",   # authenticated Gemini; g4f uses this identifier
+        "model": "gemini-2.5-flash",  # authenticated Gemini; g4f uses this identifier
         "needs_auth": True,
         "description": "Google Gemini with Google account (Gemini Advanced subscription)",
     },
@@ -114,6 +114,7 @@ SUBSCRIPTION_G4F_MODELS: list[str] = [
 # Response dataclass (matches gateway.CompletionResponse structure)
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class G4FResponse:
     content: str
@@ -128,6 +129,7 @@ class G4FResponse:
 # ---------------------------------------------------------------------------
 # Provider class
 # ---------------------------------------------------------------------------
+
 
 class G4FProvider:
     """Async LLM provider backed by gpt4free.
@@ -144,9 +146,12 @@ class G4FProvider:
     def _try_import(self) -> None:
         try:
             import g4f  # noqa: F401
+
             self._g4f = g4f
             self._available = True
-            logger.info("g4f provider available (subscription / no-API-key mode enabled)")
+            logger.info(
+                "g4f provider available (subscription / no-API-key mode enabled)"
+            )
         except ImportError:
             logger.warning(
                 "g4f not installed — subscription/no-API-key mode unavailable. "
@@ -279,6 +284,7 @@ class G4FProvider:
 # ---------------------------------------------------------------------------
 # Fallback chain helpers
 # ---------------------------------------------------------------------------
+
 
 async def complete_with_fallback(
     provider: G4FProvider,

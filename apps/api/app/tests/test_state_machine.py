@@ -5,7 +5,6 @@ import pytest
 from app.orchestration.state_machine import (
     AgentStateMachine,
     ApprovalStateMachine,
-    BaseStateMachine,
     StateMachineError,
     TaskStateMachine,
     TicketStateMachine,

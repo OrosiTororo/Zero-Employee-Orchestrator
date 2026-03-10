@@ -26,12 +26,18 @@ class ArtifactCreate(BaseModel):
 async def list_artifacts(ticket_id: str, db: AsyncSession = Depends(get_db)):
     """チケットの成果物一覧"""
     tid = uuid.UUID(ticket_id)
-    result = await db.execute(select(Artifact).where(Artifact.ticket_id == tid).order_by(Artifact.created_at.desc()))
+    result = await db.execute(
+        select(Artifact)
+        .where(Artifact.ticket_id == tid)
+        .order_by(Artifact.created_at.desc())
+    )
     artifacts = result.scalars().all()
     return [
         {
-            "id": str(a.id), "artifact_type": a.artifact_type,
-            "title": a.title, "mime_type": a.mime_type,
+            "id": str(a.id),
+            "artifact_type": a.artifact_type,
+            "title": a.title,
+            "mime_type": a.mime_type,
             "summary": a.summary,
         }
         for a in artifacts
@@ -39,7 +45,9 @@ async def list_artifacts(ticket_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/tickets/{ticket_id}/artifacts")
-async def create_artifact(ticket_id: str, req: ArtifactCreate, db: AsyncSession = Depends(get_db)):
+async def create_artifact(
+    ticket_id: str, req: ArtifactCreate, db: AsyncSession = Depends(get_db)
+):
     """成果物を追加"""
     artifact = Artifact(
         id=uuid.uuid4(),

@@ -64,14 +64,22 @@ async def list_tickets(
         query = query.where(Ticket.status == status)
     if priority:
         query = query.where(Ticket.priority == priority)
-    query = query.order_by(Ticket.updated_at.desc()).offset((page - 1) * page_size).limit(page_size)
+    query = (
+        query.order_by(Ticket.updated_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )
     result = await db.execute(query)
     tickets = result.scalars().all()
     return [
         TicketResponse(
-            id=str(t.id), ticket_no=t.ticket_no, title=t.title,
-            description=t.description or "", priority=t.priority,
-            status=t.status, source_type=t.source_type or "",
+            id=str(t.id),
+            ticket_no=t.ticket_no,
+            title=t.title,
+            description=t.description or "",
+            priority=t.priority,
+            status=t.status,
+            source_type=t.source_type or "",
             created_at=t.created_at,
         )
         for t in tickets
@@ -79,11 +87,15 @@ async def list_tickets(
 
 
 @router.post("/companies/{company_id}/tickets", response_model=TicketResponse)
-async def create_ticket(company_id: str, req: TicketCreate, db: AsyncSession = Depends(get_db)):
+async def create_ticket(
+    company_id: str, req: TicketCreate, db: AsyncSession = Depends(get_db)
+):
     """新規チケット作成 + Design Interview セッション初期化"""
     cid = uuid.UUID(company_id)
     max_no = await db.execute(
-        select(func.coalesce(func.max(Ticket.ticket_no), 0)).where(Ticket.company_id == cid)
+        select(func.coalesce(func.max(Ticket.ticket_no), 0)).where(
+            Ticket.company_id == cid
+        )
     )
     next_no = max_no.scalar() + 1
     ticket = Ticket(
@@ -117,9 +129,13 @@ async def create_ticket(company_id: str, req: TicketCreate, db: AsyncSession = D
     _interview_sessions[str(ticket.id)] = session
 
     return TicketResponse(
-        id=str(ticket.id), ticket_no=ticket.ticket_no, title=ticket.title,
-        description=ticket.description or "", priority=ticket.priority,
-        status=ticket.status, source_type=ticket.source_type or "",
+        id=str(ticket.id),
+        ticket_no=ticket.ticket_no,
+        title=ticket.title,
+        description=ticket.description or "",
+        priority=ticket.priority,
+        status=ticket.status,
+        source_type=ticket.source_type or "",
         created_at=ticket.created_at,
     )
 
@@ -156,7 +172,9 @@ class InterviewAnswer(BaseModel):
 
 
 @router.post("/tickets/{ticket_id}/interview/answer")
-async def answer_interview(ticket_id: str, req: InterviewAnswer, db: AsyncSession = Depends(get_db)):
+async def answer_interview(
+    ticket_id: str, req: InterviewAnswer, db: AsyncSession = Depends(get_db)
+):
     """Design Interview の質問に回答"""
     session = _interview_sessions.get(ticket_id)
     if not session:
@@ -237,7 +255,12 @@ async def get_ticket(ticket_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.patch("/tickets/{ticket_id}")
-async def update_ticket(ticket_id: str, title: str | None = None, status: str | None = None, db: AsyncSession = Depends(get_db)):
+async def update_ticket(
+    ticket_id: str,
+    title: str | None = None,
+    status: str | None = None,
+    db: AsyncSession = Depends(get_db),
+):
     """チケット更新"""
     result = await db.execute(select(Ticket).where(Ticket.id == uuid.UUID(ticket_id)))
     ticket = result.scalar_one_or_none()
@@ -251,7 +274,9 @@ async def update_ticket(ticket_id: str, title: str | None = None, status: str | 
 
 
 @router.post("/tickets/{ticket_id}/comments")
-async def add_comment(ticket_id: str, req: CommentCreate, db: AsyncSession = Depends(get_db)):
+async def add_comment(
+    ticket_id: str, req: CommentCreate, db: AsyncSession = Depends(get_db)
+):
     """チケットにコメント追加"""
     result = await db.execute(select(Ticket).where(Ticket.id == uuid.UUID(ticket_id)))
     ticket = result.scalar_one_or_none()
@@ -275,7 +300,9 @@ async def get_thread(ticket_id: str, db: AsyncSession = Depends(get_db)):
     """チケットのスレッドを取得"""
     tid = uuid.UUID(ticket_id)
     result = await db.execute(
-        select(TicketThread).where(TicketThread.ticket_id == tid).order_by(TicketThread.created_at)
+        select(TicketThread)
+        .where(TicketThread.ticket_id == tid)
+        .order_by(TicketThread.created_at)
     )
     threads = result.scalars().all()
     return [

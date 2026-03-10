@@ -29,9 +29,7 @@ class Task(Base, TimestampMixin):
     ticket_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("tickets.id"), index=True
     )
-    plan_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("plans.id"), index=True
-    )
+    plan_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("plans.id"), index=True)
     parent_task_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid, ForeignKey("tasks.id"), nullable=True
     )
@@ -57,9 +55,7 @@ class TaskRun(Base):
     company_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("companies.id"), index=True
     )
-    task_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("tasks.id"), index=True
-    )
+    task_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("tasks.id"), index=True)
     run_no: Mapped[int] = mapped_column(Integer)
     executor_agent_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid, ForeignKey("agents.id"), nullable=True

@@ -89,7 +89,9 @@ class ToolConnector:
         """ツール接続を登録する."""
         conn_id = str(uuid.uuid4())
         self._connections[conn_id] = config
-        logger.info("Tool connection registered: %s (%s)", config.name, config.connection_type)
+        logger.info(
+            "Tool connection registered: %s (%s)", config.name, config.connection_type
+        )
         return conn_id
 
     def get_connection(self, conn_id: str) -> ToolConnectionConfig | None:

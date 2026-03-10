@@ -12,10 +12,10 @@ from enum import Enum
 class QualityMode(str, Enum):
     """品質モード: タスクの重要度に応じたモデル選択指針."""
 
-    DRAFT = "draft"          # 高速・低コスト (下書き向き)
-    STANDARD = "standard"    # 標準品質
-    HIGH = "high"            # 高品質 (複数モデル検証)
-    CRITICAL = "critical"    # 最高品質 (人間レビュー必須)
+    DRAFT = "draft"  # 高速・低コスト (下書き向き)
+    STANDARD = "standard"  # 標準品質
+    HIGH = "high"  # 高品質 (複数モデル検証)
+    CRITICAL = "critical"  # 最高品質 (人間レビュー必須)
 
 
 @dataclass
@@ -95,6 +95,7 @@ def _load_sla_models(mode: QualityMode) -> dict[str, list[str]]:
     mode_key = mode.value  # "draft", "standard", etc.
     try:
         from app.providers.model_registry import get_model_registry
+
         registry = get_model_registry()
         if registry.model_count > 0:
             return registry.get_sla_models(mode_key)

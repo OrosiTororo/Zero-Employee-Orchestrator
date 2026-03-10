@@ -34,6 +34,7 @@ def _load_cost_table() -> dict[str, dict[str, float]]:
     """ModelRegistry からコストテーブルを読み込む."""
     try:
         from app.providers.model_registry import get_model_registry
+
         registry = get_model_registry()
         table = registry.get_cost_table()
         if table:
@@ -98,7 +99,10 @@ def estimate_cost(
         estimated_input_tokens=estimated_input_tokens,
         estimated_output_tokens=estimated_output_tokens,
         estimated_cost_usd=round(total, 6),
-        breakdown={"input_cost": round(input_cost, 6), "output_cost": round(output_cost, 6)},
+        breakdown={
+            "input_cost": round(input_cost, 6),
+            "output_cost": round(output_cost, 6),
+        },
     )
 
 
@@ -155,7 +159,9 @@ def pre_execution_check(
     stop_threshold_pct: float = 100.0,
 ) -> CostGuardResult:
     """タスク実行前の統合チェック: コスト見積もり + 予算チェック."""
-    estimate = estimate_cost(model_name, estimated_input_tokens, estimated_output_tokens)
+    estimate = estimate_cost(
+        model_name, estimated_input_tokens, estimated_output_tokens
+    )
     result = check_budget(
         estimated_cost_usd=estimate.estimated_cost_usd,
         budget_limit_usd=budget_limit_usd,

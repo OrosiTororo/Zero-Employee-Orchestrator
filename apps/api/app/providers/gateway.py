@@ -72,10 +72,12 @@ class CompletionResponse:
 # To update models, edit model_catalog.json (no code change required).
 # ---------------------------------------------------------------------------
 
+
 def _load_model_catalog() -> dict[ExecutionMode, list[str]]:
     """Load model catalog from the dynamic ModelRegistry."""
     try:
         from app.providers.model_registry import get_model_registry
+
         registry = get_model_registry()
         if registry.model_count > 0:
             return {
@@ -83,7 +85,9 @@ def _load_model_catalog() -> dict[ExecutionMode, list[str]]:
                 ExecutionMode.SPEED: registry.get_models_for_mode("speed"),
                 ExecutionMode.COST: registry.get_models_for_mode("cost"),
                 ExecutionMode.FREE: registry.get_models_for_mode("free"),
-                ExecutionMode.SUBSCRIPTION: registry.get_models_for_mode("subscription"),
+                ExecutionMode.SUBSCRIPTION: registry.get_models_for_mode(
+                    "subscription"
+                ),
             }
     except Exception as exc:
         logger.warning("Failed to load model catalog from registry: %s", exc)
@@ -238,6 +242,7 @@ class LLMGateway:
         if use_g4f:
             try:
                 from app.providers.g4f_provider import g4f_provider, FREE_G4F_MODELS
+
                 if g4f_provider.available:
                     self.configure_provider(
                         "g4f",
@@ -371,6 +376,7 @@ class LLMGateway:
             # a specific g4f model, so we call it directly.
             if request.mode == ExecutionMode.SUBSCRIPTION:
                 from app.providers.g4f_provider import FREE_G4F_MODELS
+
                 g4f_resp = await complete_with_fallback(
                     provider=g4f_provider,
                     models=list(FREE_G4F_MODELS),
@@ -435,6 +441,7 @@ class LLMGateway:
         """Check if Ollama is reachable."""
         try:
             from app.providers.ollama_provider import ollama_provider
+
             return await ollama_provider.health_check()
         except Exception:
             return False
@@ -456,7 +463,9 @@ class LLMGateway:
 
             return CompletionResponse(
                 content=resp.content,
-                model_used=f"ollama/{resp.model_used}" if not resp.model_used.startswith("ollama/") else resp.model_used,
+                model_used=f"ollama/{resp.model_used}"
+                if not resp.model_used.startswith("ollama/")
+                else resp.model_used,
                 provider=resp.provider,
                 tokens_input=resp.tokens_input,
                 tokens_output=resp.tokens_output,
@@ -481,7 +490,10 @@ class LLMGateway:
         """
         try:
             from app.providers.model_registry import get_model_registry
-            return get_model_registry().estimate_cost(model, input_tokens, output_tokens)
+
+            return get_model_registry().estimate_cost(
+                model, input_tokens, output_tokens
+            )
         except Exception:
             pass
 

@@ -85,8 +85,10 @@ def cmd_models(args: argparse.Namespace) -> None:
         print("  \033[1mInstalled Ollama models:\033[0m")
         print()
         for m in models:
-            size_gb = m.size / (1024 ** 3) if m.size else 0
-            size_str = f"{size_gb:.1f}GB" if size_gb >= 1.0 else f"{m.size / (1024**2):.0f}MB"
+            size_gb = m.size / (1024**3) if m.size else 0
+            size_str = (
+                f"{size_gb:.1f}GB" if size_gb >= 1.0 else f"{m.size / (1024**2):.0f}MB"
+            )
             rec = RECOMMENDED_MODELS.get(m.name, {})
             desc = rec.get("description", "")
             print(f"    \033[38;5;78m{m.name:30s}\033[0m {size_str:>8s}  {desc}")
@@ -136,12 +138,16 @@ def cmd_config(args: argparse.Namespace) -> None:
             if cat != current_category:
                 current_category = cat
                 print(f"  \033[38;5;75m[{cat}]\033[0m")
-            status = "\033[38;5;78mSET\033[0m" if info["is_set"] else "\033[38;5;245m---\033[0m"
+            status = (
+                "\033[38;5;78mSET\033[0m"
+                if info["is_set"]
+                else "\033[38;5;245m---\033[0m"
+            )
             source = f"\033[38;5;245m({info['source']})\033[0m"
             value_display = info["value"] if info["is_set"] else ""
             print(f"    {status} {key:30s} {value_display:20s} {source}")
         print()
-        print(f"  Config file: ~/.zero-employee/config.json")
+        print("  Config file: ~/.zero-employee/config.json")
         print()
 
     elif action == "get":
@@ -167,6 +173,7 @@ def cmd_config(args: argparse.Namespace) -> None:
         if not value:
             # 機密値の場合は入力プロンプトを表示（エコーなし）
             import getpass
+
             meta = CONFIGURABLE_KEYS[args.key]
             if meta.get("sensitive") == "true":
                 value = getpass.getpass(f"  Enter value for {args.key}: ")
@@ -303,14 +310,14 @@ def cmd_local(args: argparse.Namespace) -> None:
             ):
                 if first_chunk:
                     # Clear thinking indicator and start response
-                    print(f"\r  \033[38;5;78massistant:\033[0m ", end="", flush=True)
+                    print("\r  \033[38;5;78massistant:\033[0m ", end="", flush=True)
                     first_chunk = False
                 print(chunk, end="", flush=True)
                 response_text += chunk
 
             if first_chunk:
                 # No chunks received
-                print(f"\r  \033[38;5;220m(no response)\033[0m")
+                print("\r  \033[38;5;220m(no response)\033[0m")
             else:
                 print()  # newline after streaming
 
@@ -371,7 +378,7 @@ def _handle_command(cmd: str, language: str) -> str | None:
 
     Returns "quit" if the user wants to exit, None otherwise.
     """
-    from app.core.i18n import t, set_language
+    from app.core.i18n import set_language
 
     parts = cmd.strip().split()
     command = parts[0].lower()
@@ -460,9 +467,15 @@ def build_parser() -> argparse.ArgumentParser:
 
     # serve
     serve_parser = subparsers.add_parser("serve", help="API サーバーを起動")
-    serve_parser.add_argument("--host", default="0.0.0.0", help="ホスト (default: 0.0.0.0)")
-    serve_parser.add_argument("--port", type=int, default=18234, help="ポート (default: 18234)")
-    serve_parser.add_argument("--reload", action="store_true", help="ホットリロードを有効化")
+    serve_parser.add_argument(
+        "--host", default="0.0.0.0", help="ホスト (default: 0.0.0.0)"
+    )
+    serve_parser.add_argument(
+        "--port", type=int, default=18234, help="ポート (default: 18234)"
+    )
+    serve_parser.add_argument(
+        "--reload", action="store_true", help="ホットリロードを有効化"
+    )
     serve_parser.set_defaults(func=cmd_serve)
 
     # db
@@ -490,7 +503,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="Action: list | get | set | delete | keys",
     )
     config_parser.add_argument("key", nargs="?", default="", help="Config key name")
-    config_parser.add_argument("value", nargs="?", default="", help="Config value (for set)")
+    config_parser.add_argument(
+        "value", nargs="?", default="", help="Config value (for set)"
+    )
     config_parser.set_defaults(func=cmd_config)
 
     # local — ローカルチャットモード
@@ -499,20 +514,26 @@ def build_parser() -> argparse.ArgumentParser:
         help="ローカルチャットモード (Ollama / オフライン)",
     )
     local_parser.add_argument(
-        "--model", default="",
+        "--model",
+        default="",
         help="Ollama model name (auto-detect if empty)",
     )
     local_parser.add_argument(
-        "--lang", default="",
+        "--lang",
+        default="",
         choices=["ja", "en", "zh", ""],
         help="Language (ja/en/zh, default: auto)",
     )
     local_parser.add_argument(
-        "--temperature", type=float, default=0.7,
+        "--temperature",
+        type=float,
+        default=0.7,
         help="Sampling temperature (default: 0.7)",
     )
     local_parser.add_argument(
-        "--max-tokens", type=int, default=4096,
+        "--max-tokens",
+        type=int,
+        default=4096,
         help="Max output tokens (default: 4096)",
     )
     local_parser.set_defaults(func=cmd_local)

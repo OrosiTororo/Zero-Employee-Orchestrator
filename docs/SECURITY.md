@@ -10,7 +10,7 @@
 
 If you discover a security vulnerability, please **do NOT open a public issue**.
 
-Instead, report it via [GitHub Security Advisories](https://github.com/TroroOrosi/Zero-Employee-Orchestrator/security/advisories/new) (private).
+Instead, report it via [GitHub Security Advisories](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/security/advisories/new) (private).
 
 We will acknowledge receipt within 48 hours and aim to release a fix within 7 days for critical issues.
 

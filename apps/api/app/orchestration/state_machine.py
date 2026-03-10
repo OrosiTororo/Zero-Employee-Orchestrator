@@ -9,6 +9,7 @@ from enum import Enum
 # State Machine base
 # ---------------------------------------------------------------------------
 
+
 class StateMachineError(Exception):
     """不正な状態遷移を試みた場合に発生する例外."""
 
@@ -43,12 +44,14 @@ class BaseStateMachine:
             )
         old = self._state
         self._state = target
-        self._history.append({
-            "from": old,
-            "to": target,
-            "reason": reason,
-            "at": datetime.now(timezone.utc).isoformat(),
-        })
+        self._history.append(
+            {
+                "from": old,
+                "to": target,
+                "reason": reason,
+                "at": datetime.now(timezone.utc).isoformat(),
+            }
+        )
         return self._state
 
     def available_transitions(self) -> list[str]:
@@ -125,6 +128,7 @@ class AgentStateMachine(BaseStateMachine):
 # Experience Memory
 # ---------------------------------------------------------------------------
 
+
 class MemoryType(str, Enum):
     CONVERSATION = "conversation_log"
     REUSABLE = "reusable_improvement"
@@ -135,6 +139,7 @@ class MemoryType(str, Enum):
 @dataclass
 class ExperienceMemoryEntry:
     """A unit of reusable knowledge derived from execution history."""
+
     id: str
     memory_type: MemoryType
     category: str  # task_type, plugin_type, domain
@@ -155,6 +160,7 @@ class ExperienceMemoryEntry:
 @dataclass
 class FailureTaxonomyEntry:
     """Classification of a failure for learning and prevention."""
+
     category: str
     subcategory: str
     description: str
@@ -221,13 +227,18 @@ class ExperienceMemory:
         self.failures.append(entry)
         return entry
 
-    def search(self, query: str, category: str | None = None) -> list[ExperienceMemoryEntry]:
+    def search(
+        self, query: str, category: str | None = None
+    ) -> list[ExperienceMemoryEntry]:
         results = []
         query_lower = query.lower()
         for entry in self.entries:
             if category and entry.category != category:
                 continue
-            if query_lower in entry.title.lower() or query_lower in entry.content.lower():
+            if (
+                query_lower in entry.title.lower()
+                or query_lower in entry.content.lower()
+            ):
                 results.append(entry)
         return results
 
