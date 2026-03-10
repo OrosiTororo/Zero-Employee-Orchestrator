@@ -523,12 +523,99 @@ zero-employee config set GEMINI_API_KEY
 
 After startup, open **http://localhost:5173** in your browser.
 
+> `setup.sh` will attempt to automatically install Python, Node.js, and pnpm using your OS package manager if they are not already installed.
+
+> Press `Ctrl+C` to stop.
+
 | Service | URL |
 |---------|-----|
 | Frontend | http://localhost:5173 |
 | Backend API | http://localhost:18234 |
 | Health Check | http://localhost:18234/healthz |
 | API Docs (JSON) | http://localhost:18234/api/v1/openapi.json |
+
+### LLM API Key Configuration
+
+To use AI task execution, you need API access to an LLM provider.
+**API keys can be configured in 3 ways**: from the app settings screen / CLI command / .env file
+
+> **⚠️ Subscriptions and API access are separate**
+>
+> Subscriptions like ChatGPT Plus, Gemini Advanced, and Claude Pro are services for web app users. **They cannot be called directly from a program.** API access requires separate registration and billing.
+
+#### Getting Started for Free
+
+| Method | Description | Stability |
+|--------|-------------|-----------|
+| **Google Gemini (free tier)** ⭐ | Get a key from Google AI Studio. Free tier available, no credit card required | High |
+| **Ollama (local LLM)** | Run LLM on your PC. No API key required, fully offline, unlimited | Highest |
+| **Subscription mode** | Free use via g4f. No API key required | Low (for trial) |
+
+#### Setting API Keys (3 Methods)
+
+**Method 1: From the app settings screen (recommended)**
+
+Launch the app, go to the "Settings" screen in the sidebar → "LLM API Key Settings" to enter and save each provider's key. No need to edit .env files.
+
+**Method 2: From the CLI**
+
+```bash
+# Securely input API keys (no echo, like a password)
+zero-employee config set GEMINI_API_KEY
+zero-employee config set DEFAULT_EXECUTION_MODE free
+
+# Check current settings
+zero-employee config list
+
+# List configurable keys
+zero-employee config keys
+```
+
+**Method 3: Edit .env file directly**
+
+<details>
+<summary>How to get free API keys</summary>
+
+**Getting a Google Gemini free API key:**
+1. Go to [Google AI Studio](https://aistudio.google.com/)
+2. Click "Get API key" → "Create API key" to generate a key
+3. Add to `apps/api/.env`:
+   ```env
+   GEMINI_API_KEY=AIzaSy-xxxxxxxxxxxxxxxxxxxx
+   DEFAULT_EXECUTION_MODE=free
+   ```
+
+**Setting up Ollama (local model):**
+1. Install from [ollama.com](https://ollama.com/)
+2. Download a model in terminal: `ollama pull llama3.2`
+3. Add to `apps/api/.env`:
+   ```env
+   OLLAMA_BASE_URL=http://localhost:11434
+   DEFAULT_EXECUTION_MODE=free
+   ```
+
+</details>
+
+<details>
+<summary>Using paid API keys</summary>
+
+Set any of the following in `apps/api/.env` (or enter via the settings screen or CLI):
+
+```env
+# OpenRouter (multi-model support — recommended)
+OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxx
+
+# OpenAI
+OPENAI_API_KEY=sk-xxxxxxxxxxxx
+
+# Anthropic
+ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxx
+
+# Google Gemini
+GEMINI_API_KEY=AIzaSy-xxxxxxxxxxxx
+```
+
+</details>
 
 ### 9-Layer Architecture
 
@@ -623,6 +710,82 @@ Zero-Employee-Orchestrator/
 └── README.md
 ```
 
+### Permission Model
+
+| Role | Permissions |
+|------|-------------|
+| Owner | Full access |
+| Admin | Organization settings, partial approvals, audit logs |
+| User | Business requests, plan review, artifact review |
+| Auditor | View-only access to execution history and audit logs |
+| Developer | Develop Skills/Plugins/Extensions |
+
+### Autonomous Execution Boundaries
+
+| Can Execute Autonomously | Requires Approval |
+|--------------------------|-------------------|
+| Research & analysis | Publishing & posting |
+| Draft creation | Billing & deletion |
+| Information organization | Permission changes & external transmission |
+
+### Cloudflare Workers Deploy
+
+Execution on Workers is supported. Choose from two methods:
+
+| Method | Directory | Overview |
+|--------|-----------|---------|
+| **A: Proxy** | `apps/edge/proxy/` | Place a reverse proxy in front of the existing FastAPI |
+| **B: Full Workers** | `apps/edge/full/` | Fully re-implement key APIs on the edge with Hono + D1 |
+
+```bash
+# Method A: Proxy
+cd apps/edge/proxy && npm install && npm run dev
+
+# Method B: Full Workers
+cd apps/edge/full && npm install && npm run db:init && npm run dev
+```
+
+Details: [apps/edge/README.md](apps/edge/README.md)
+
+### Production Environment
+
+<details>
+<summary>Running in production
+
+### PostgreSQL
+
+```env
+# apps/api/.env
+DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/zero_employee_orchestrator
+```
+
+```bash
+cd apps/api && source .venv/bin/activate
+pip install asyncpg
+```
+
+### Security
+
+```env
+SECRET_KEY=<generate and set a random string>
+DEBUG=false
+CORS_ORIGINS=https://your-domain.com
+```
+
+</details>
+
+### License
+
+Private project
+
+### Related Documents
+
+- `ABOUT.md` — Benefits of this system and differences from conventional systems
+- `USER_GUIDE.md` — Beginner's user guide
+- `Zero-Employee Orchestrator.md` — Top-level specification document (philosophy, requirements, improvement policy)
+- `DESIGN.md` — Implementation design document (DB, API, screens, state transitions)
+- `MASTER_GUIDE.md` — Implementation & operations guide (process and decision criteria)
+
 ### Troubleshooting
 
 <details>
@@ -652,6 +815,14 @@ rm -rf .venv
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e "."
+```
+
+**pnpm install fails**
+
+```bash
+cd apps/desktop/ui
+rm -rf node_modules
+pnpm install
 ```
 
 **Database reset**
@@ -748,12 +919,99 @@ zero-employee config set GEMINI_API_KEY
 
 启动后，在浏览器中打开 **http://localhost:5173**。
 
+> `setup.sh` 如果未安装 Python、Node.js 或 pnpm，将尝试使用操作系统的包管理器自动安装。
+
+> 按 `Ctrl+C` 停止。
+
 | 服务 | URL |
 |------|-----|
 | 前端 | http://localhost:5173 |
 | 后端 API | http://localhost:18234 |
 | 健康检查 | http://localhost:18234/healthz |
 | API 文档 (JSON) | http://localhost:18234/api/v1/openapi.json |
+
+### LLM API 密钥配置
+
+使用AI任务执行功能需要连接 LLM 提供商的 API。
+**API 密钥可通过 3 种方式配置**：从应用设置页面 / CLI 命令 / .env 文件
+
+> **⚠️ 订阅服务与 API 访问是两回事**
+>
+> ChatGPT Plus、Gemini Advanced、Claude Pro 等订阅服务是面向 Web 应用用户的服务。**无法从程序直接调用。** API 访问需要单独申请和付费。
+
+#### 免费开始使用
+
+| 方法 | 说明 | 稳定性 |
+|------|------|--------|
+| **Google Gemini（免费额度）** ⭐ | 从 Google AI Studio 获取密钥。有免费额度，无需信用卡 | 高 |
+| **Ollama（本地 LLM）** | 在 PC 上运行 LLM。无需 API 密钥，完全离线，无限制 | 最高 |
+| **订阅模式** | 通过 g4f 免费使用。无需 API 密钥 | 低（适合试用） |
+
+#### API 密钥配置方法（3 种）
+
+**方法 1：从应用设置页面（推荐）**
+
+启动应用，进入侧边栏"设置"页面 → "LLM API 密钥设置"，输入并保存各提供商的密钥。无需编辑 .env 文件。
+
+**方法 2：通过 CLI 命令**
+
+```bash
+# 安全输入 API 密钥（无回显，类似密码）
+zero-employee config set GEMINI_API_KEY
+zero-employee config set DEFAULT_EXECUTION_MODE free
+
+# 查看当前设置
+zero-employee config list
+
+# 查看可配置的密钥列表
+zero-employee config keys
+```
+
+**方法 3：直接编辑 .env 文件**
+
+<details>
+<summary>如何获取免费 API 密钥</summary>
+
+**获取 Google Gemini 免费 API 密钥：**
+1. 访问 [Google AI Studio](https://aistudio.google.com/)
+2. 点击 "Get API key" → "Create API key" 生成密钥
+3. 添加到 `apps/api/.env`：
+   ```env
+   GEMINI_API_KEY=AIzaSy-xxxxxxxxxxxxxxxxxxxx
+   DEFAULT_EXECUTION_MODE=free
+   ```
+
+**配置 Ollama（本地模型）：**
+1. 从 [ollama.com](https://ollama.com/) 安装
+2. 在终端下载模型：`ollama pull llama3.2`
+3. 添加到 `apps/api/.env`：
+   ```env
+   OLLAMA_BASE_URL=http://localhost:11434
+   DEFAULT_EXECUTION_MODE=free
+   ```
+
+</details>
+
+<details>
+<summary>使用付费 API 密钥</summary>
+
+在 `apps/api/.env` 中设置以下任一内容（也可通过设置页面或 CLI 输入）：
+
+```env
+# OpenRouter（支持多模型 — 推荐）
+OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxx
+
+# OpenAI
+OPENAI_API_KEY=sk-xxxxxxxxxxxx
+
+# Anthropic
+ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxx
+
+# Google Gemini
+GEMINI_API_KEY=AIzaSy-xxxxxxxxxxxx
+```
+
+</details>
 
 ### 9层架构
 
@@ -837,6 +1095,82 @@ Zero-Employee-Orchestrator/
 └── README.md
 ```
 
+### 权限模型
+
+| 角色 | 权限 |
+|------|------|
+| Owner | 全部权限 |
+| Admin | 组织设置、部分审批、审计日志 |
+| User | 业务委托、计划确认、产出物确认 |
+| Auditor | 仅查看执行历史和审计日志 |
+| Developer | Skill/Plugin/Extension 的开发 |
+
+### 自主执行边界
+
+| 可自主执行 | 需要审批 |
+|-----------|---------|
+| 调查・分析 | 发布・投稿 |
+| 草稿创建 | 计费・删除 |
+| 信息整理 | 权限变更・对外发送 |
+
+### Cloudflare Workers 部署
+
+支持在 Workers 上运行。可从两种方式中选择：
+
+| 方式 | 目录 | 概述 |
+|------|------|------|
+| **A: Proxy** | `apps/edge/proxy/` | 在现有 FastAPI 前端部署反向代理 |
+| **B: Full Workers** | `apps/edge/full/` | 使用 Hono + D1 在边缘完全重新实现主要 API |
+
+```bash
+# 方式 A：Proxy
+cd apps/edge/proxy && npm install && npm run dev
+
+# 方式 B：Full Workers
+cd apps/edge/full && npm install && npm run db:init && npm run dev
+```
+
+详情：[apps/edge/README.md](apps/edge/README.md)
+
+### 生产环境
+
+<details>
+<summary>生产环境运营
+
+### PostgreSQL
+
+```env
+# apps/api/.env
+DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/zero_employee_orchestrator
+```
+
+```bash
+cd apps/api && source .venv/bin/activate
+pip install asyncpg
+```
+
+### 安全设置
+
+```env
+SECRET_KEY=<生成并设置随机字符串>
+DEBUG=false
+CORS_ORIGINS=https://your-domain.com
+```
+
+</details>
+
+### 许可证
+
+私有项目
+
+### 相关文档
+
+- `ABOUT.md` — 本系统的优势及与传统系统的差异
+- `USER_GUIDE.md` — 面向初学者的用户指南
+- `Zero-Employee Orchestrator.md` — 最高级规范文档（理念、需求、改进方针）
+- `DESIGN.md` — 实现设计文档（数据库、API、界面、状态转换）
+- `MASTER_GUIDE.md` — 实现运营指南（推进方式和判断标准）
+
 ### 故障排除
 
 <details>
@@ -856,6 +1190,24 @@ lsof -i :18234   # 后端
 lsof -i :5173    # 前端
 kill <PID>
 ./start.sh
+```
+
+**Python 虚拟环境错误**
+
+```bash
+cd apps/api
+rm -rf .venv
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e "."
+```
+
+**pnpm install 失败**
+
+```bash
+cd apps/desktop/ui
+rm -rf node_modules
+pnpm install
 ```
 
 **数据库重置**
