@@ -11,9 +11,11 @@ from app.api.routes import (
     budgets,
     companies,
     heartbeats,
+    knowledge,
     models,
     observability,
     ollama,
+    platform,
     projects,
     registry,
     settings,
@@ -41,3 +43,5 @@ api_router.include_router(settings.router, tags=["settings"])
 api_router.include_router(models.router, tags=["models"])
 api_router.include_router(observability.router, tags=["observability"])
 api_router.include_router(ollama.router, tags=["ollama"])
+api_router.include_router(knowledge.router, tags=["knowledge"])
+api_router.include_router(platform.router, tags=["platform"])

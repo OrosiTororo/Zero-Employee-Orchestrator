@@ -1,0 +1,51 @@
+# Zero-Employee Orchestrator — Docker Compose
+# root権限なしで全サービスを起動
+#
+# 使い方:
+#   docker compose up -d          # 全サービス起動
+#   docker compose up api         # APIのみ起動
+#   docker compose logs -f api    # ログ確認
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "18234:18234"
+    environment:
+      - DEBUG=true
+      - DATABASE_URL=sqlite+aiosqlite:///./data/zero_employee_orchestrator.db
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+    volumes:
+      - app-data:/app/data
+      - rag-store:/app/.zero_employee
+    user: "1000:1000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18234/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Cloudflare Workers Edge (optional)
+  edge:
+    build:
+      context: ./apps/edge/full
+      dockerfile: Dockerfile
+    ports:
+      - "8787:8787"
+    environment:
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - API_BACKEND_URL=http://api:18234
+    user: "1000:1000"
+    depends_on:
+      - api
+    profiles:
+      - edge
+
+volumes:
+  app-data:
+  rag-store:

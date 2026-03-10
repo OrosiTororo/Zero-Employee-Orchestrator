@@ -64,14 +64,15 @@ apps/
 │   │   ├── providers/      # LLM ゲートウェイ・g4f Provider
 │   │   ├── tools/          # 外部ツール接続 (MCP/Webhook/API)
 │   │   ├── policies/       # 承認ゲート・自律実行境界
-│   │   ├── security/       # シークレット管理・サニタイズ
+│   │   ├── security/       # シークレット管理・サニタイズ・IAM
+│   │   ├── integrations/   # Sentry・MCP・外部スキル・AI調査
 │   │   ├── audit/          # 監査ログ
 │   │   └── tests/          # テスト
 │   └── alembic/            # マイグレーション
 ├── desktop/          # Tauri + React UI
 │   ├── src-tauri/
 │   └── ui/src/
-│       ├── pages/    # 19 画面コンポーネント
+│       ├── pages/    # 21 画面コンポーネント
 │       ├── shared/   # 共通 API・型定義・hooks・UI
 │       ├── features/ # 機能別モジュール
 │       └── app/      # ルーティング・エントリ
@@ -79,6 +80,7 @@ apps/
 └── worker/           # バックグラウンドワーカー
     ├── runners/      # タスク・Heartbeat 実行
     ├── executors/    # LLM・サンドボックス実行
+    ├── sandbox/      # クラウドサンドボックス (Local/Docker/Workers)
     └── dispatchers/  # イベント配信
 ```
 
@@ -119,7 +121,8 @@ apps/
 tickets, ticket_threads, specs, plans, tasks, task_runs, artifacts, reviews,
 approval_requests, heartbeat_policies, heartbeat_runs, budget_policies,
 cost_ledgers, skills, plugins, extensions, tool_connections, tool_call_traces,
-policy_packs, secret_refs, audit_logs
+policy_packs, secret_refs, audit_logs, knowledge_store, change_detections,
+agent_sessions, experience_memory, failure_taxonomy, iam_policies, ai_service_accounts
 
 全テーブルに `id`, `company_id`, `created_at`, `updated_at` を基本カラムとして持つ。
 
@@ -144,6 +147,14 @@ policy_packs, secret_refs, audit_logs
 - `/communications` — エージェント間通信ログ
 - `/monitor` — リアルタイム実行監視
 - `/ws/events` — WebSocket リアルタイム
+- `/knowledge` — ナレッジストア・変更検知
+- `/mcp` — MCP サーバー（ツール・リソース・プロンプト）
+- `/skills/external` — 外部スキル検索・インポート
+- `/sentry` — Sentry連携（エラー統計・イベント）
+- `/iam` — IAM（AIサービスアカウント管理）
+- `/investigate` — AI調査（DB/ログ参照）
+- `/hypotheses` — 仮説の並行検証
+- `/sessions` — エージェントセッション管理
 
 ## 対応 LLM モデル（動的管理）
 
@@ -247,6 +258,38 @@ zero-employee pull qwen3:8b      # モデルダウンロード
 - **tools/**: 外部ツール接続（MCP / Webhook / REST API / OAuth）
 - **orchestration/knowledge_refresh.py**: Knowledge Pipeline（7 段階管理）
 - **orchestration/artifact_bridge.py**: 工程間の成果物受け渡し
+
+## v0.1 追加モジュール
+
+### ナレッジストア & 変更検知
+- **orchestration/knowledge_store.py**: ユーザー設定・ファイル権限・フォルダ位置の永続記憶 + 変更検知
+
+### 仮説検証 & レビュー
+- **orchestration/hypothesis_engine.py**: マルチエージェントによる仮説の並行検証・エビデンス・クロスレビュー
+
+### エージェントセッション
+- **orchestration/agent_session.py**: コンテキスト永続化・idle/resume・ワーキングメモリ・DB永続化
+
+### 統合モジュール (integrations/)
+- **integrations/sentry_integration.py**: Sentry互換のエラー・パフォーマンス監視（SDK連携 + ビルトインストア）
+- **integrations/mcp_server.py**: MCP (Model Context Protocol) サーバー（8ツール・4リソース・2プロンプト）
+- **integrations/external_skills.py**: 外部スキルインポート（GitHub/skills.sh/OpenClaw/Claude Code）
+- **integrations/ai_investigator.py**: AI用DB/ログ調査ツール（安全なSELECTクエリ・監査ログ検索）
+
+### IAM
+- **security/iam.py**: 人間/AIアカウント分離・権限管理・認証情報保護
+
+### サンドボックス
+- **worker/app/sandbox/cloud_sandbox.py**: マルチモードサンドボックス（Local/Docker/Workers）
+
+### コンテナ & デプロイ
+- **Dockerfile**: Rootlessコンテナ（non-root UID 1000実行）
+- **docker-compose.yml**: 全サービス一括起動
+- **apps/edge/full/wrangler.toml**: Cloudflare Workers デプロイ設定
+
+### フロントエンド追加画面
+- **pages/PermissionsPage.tsx**: 権限管理ダッシュボード（ファイル権限・フォルダ位置・変更検知）
+- **pages/AgentMonitorPage.tsx**: エージェント監視ダッシュボード（実行監視・セッション・仮説・エラー）
 
 ## 最新情報取得に関する制約
 
