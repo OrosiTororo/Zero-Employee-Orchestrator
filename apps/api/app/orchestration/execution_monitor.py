@@ -139,7 +139,7 @@ class ExecutionMonitor:
     """
 
     def __init__(self) -> None:
-        self._active: dict[str, ActiveExecution] = {}    # task_id → ActiveExecution
+        self._active: dict[str, ActiveExecution] = {}  # task_id → ActiveExecution
         self._recent_events: list[MonitorEvent] = []
         self._max_events = 500
 
@@ -151,10 +151,11 @@ class ExecutionMonitor:
         """イベントを WebSocket 経由で配信."""
         self._recent_events.append(event)
         if len(self._recent_events) > self._max_events:
-            self._recent_events = self._recent_events[-(self._max_events // 2):]
+            self._recent_events = self._recent_events[-(self._max_events // 2) :]
 
         try:
             from app.api.ws.events import emit_event
+
             await emit_event(
                 company_id=event.company_id,
                 event_type=event.event_type.value,
@@ -188,17 +189,19 @@ class ExecutionMonitor:
         )
         self._active[task_id] = execution
 
-        await self._emit(MonitorEvent(
-            event_type=MonitorEventType.TASK_STARTED,
-            company_id=company_id,
-            task_id=task_id,
-            agent_id=agent_id,
-            trace_id=trace_id,
-            data={
-                "model": model,
-                "message": f"エージェント {agent_id} がタスク実行を開始",
-            },
-        ))
+        await self._emit(
+            MonitorEvent(
+                event_type=MonitorEventType.TASK_STARTED,
+                company_id=company_id,
+                task_id=task_id,
+                agent_id=agent_id,
+                trace_id=trace_id,
+                data={
+                    "model": model,
+                    "message": f"エージェント {agent_id} がタスク実行を開始",
+                },
+            )
+        )
 
     async def on_task_progress(
         self,
@@ -214,15 +217,17 @@ class ExecutionMonitor:
             ex.current_step = current_step
             ex.last_updated = time.time()
 
-        await self._emit(MonitorEvent(
-            event_type=MonitorEventType.TASK_PROGRESS,
-            company_id=company_id,
-            task_id=task_id,
-            data={
-                "progress_pct": progress_pct,
-                "current_step": current_step,
-            },
-        ))
+        await self._emit(
+            MonitorEvent(
+                event_type=MonitorEventType.TASK_PROGRESS,
+                company_id=company_id,
+                task_id=task_id,
+                data={
+                    "progress_pct": progress_pct,
+                    "current_step": current_step,
+                },
+            )
+        )
 
     async def on_task_completed(
         self,
@@ -236,19 +241,23 @@ class ExecutionMonitor:
         """タスク完了."""
         execution = self._active.pop(task_id, None)
 
-        await self._emit(MonitorEvent(
-            event_type=MonitorEventType.TASK_COMPLETED,
-            company_id=company_id,
-            task_id=task_id,
-            agent_id=execution.agent_id if execution else None,
-            trace_id=execution.trace_id if execution else None,
-            data={
-                "outcome": outcome,
-                "tokens_used": tokens_used,
-                "cost_usd": cost_usd,
-                "duration_ms": int((time.time() - execution.started_at) * 1000) if execution else 0,
-            },
-        ))
+        await self._emit(
+            MonitorEvent(
+                event_type=MonitorEventType.TASK_COMPLETED,
+                company_id=company_id,
+                task_id=task_id,
+                agent_id=execution.agent_id if execution else None,
+                trace_id=execution.trace_id if execution else None,
+                data={
+                    "outcome": outcome,
+                    "tokens_used": tokens_used,
+                    "cost_usd": cost_usd,
+                    "duration_ms": int((time.time() - execution.started_at) * 1000)
+                    if execution
+                    else 0,
+                },
+            )
+        )
 
     async def on_task_failed(
         self,
@@ -260,21 +269,27 @@ class ExecutionMonitor:
     ) -> None:
         """タスク失敗."""
         execution = self._active.get(task_id)
-        event_type = MonitorEventType.TASK_RETRYING if will_retry else MonitorEventType.TASK_FAILED
+        event_type = (
+            MonitorEventType.TASK_RETRYING
+            if will_retry
+            else MonitorEventType.TASK_FAILED
+        )
 
         if not will_retry:
             self._active.pop(task_id, None)
 
-        await self._emit(MonitorEvent(
-            event_type=event_type,
-            company_id=company_id,
-            task_id=task_id,
-            agent_id=execution.agent_id if execution else None,
-            data={
-                "error": error,
-                "will_retry": will_retry,
-            },
-        ))
+        await self._emit(
+            MonitorEvent(
+                event_type=event_type,
+                company_id=company_id,
+                task_id=task_id,
+                agent_id=execution.agent_id if execution else None,
+                data={
+                    "error": error,
+                    "will_retry": will_retry,
+                },
+            )
+        )
 
     # ------------------------------------------------------------------
     # 推論トレースイベント
@@ -298,18 +313,22 @@ class ExecutionMonitor:
             self._active[task_id].last_updated = time.time()
 
         is_decision = step_type == "decision"
-        await self._emit(MonitorEvent(
-            event_type=MonitorEventType.REASONING_DECISION if is_decision else MonitorEventType.REASONING_STEP,
-            company_id=company_id,
-            task_id=task_id,
-            trace_id=trace_id,
-            data={
-                "step_type": step_type,
-                "summary": summary,
-                "confidence": confidence,
-                "details": details or {},
-            },
-        ))
+        await self._emit(
+            MonitorEvent(
+                event_type=MonitorEventType.REASONING_DECISION
+                if is_decision
+                else MonitorEventType.REASONING_STEP,
+                company_id=company_id,
+                task_id=task_id,
+                trace_id=trace_id,
+                data={
+                    "step_type": step_type,
+                    "summary": summary,
+                    "confidence": confidence,
+                    "details": details or {},
+                },
+            )
+        )
 
     async def on_reasoning_completed(
         self,
@@ -321,17 +340,19 @@ class ExecutionMonitor:
         outcome: str,
     ) -> None:
         """推論トレース完了."""
-        await self._emit(MonitorEvent(
-            event_type=MonitorEventType.REASONING_COMPLETED,
-            company_id=company_id,
-            task_id=task_id,
-            trace_id=trace_id,
-            data={
-                "total_steps": total_steps,
-                "total_decisions": total_decisions,
-                "outcome": outcome,
-            },
-        ))
+        await self._emit(
+            MonitorEvent(
+                event_type=MonitorEventType.REASONING_COMPLETED,
+                company_id=company_id,
+                task_id=task_id,
+                trace_id=trace_id,
+                data={
+                    "total_steps": total_steps,
+                    "total_decisions": total_decisions,
+                    "outcome": outcome,
+                },
+            )
+        )
 
     # ------------------------------------------------------------------
     # エージェント通信イベント
@@ -358,18 +379,20 @@ class ExecutionMonitor:
         else:
             event_type = MonitorEventType.AGENT_COMM
 
-        await self._emit(MonitorEvent(
-            event_type=event_type,
-            company_id=company_id,
-            task_id=task_id,
-            agent_id=sender_agent_id,
-            data={
-                "msg_type": msg_type,
-                "sender": sender_agent_id,
-                "receiver": receiver_agent_id,
-                "content": content,
-            },
-        ))
+        await self._emit(
+            MonitorEvent(
+                event_type=event_type,
+                company_id=company_id,
+                task_id=task_id,
+                agent_id=sender_agent_id,
+                data={
+                    "msg_type": msg_type,
+                    "sender": sender_agent_id,
+                    "receiver": receiver_agent_id,
+                    "content": content,
+                },
+            )
+        )
 
     # ------------------------------------------------------------------
     # 品質・ガバナンスイベント
@@ -384,16 +407,18 @@ class ExecutionMonitor:
         reasons: list[str],
     ) -> None:
         """Judge 判定結果."""
-        await self._emit(MonitorEvent(
-            event_type=MonitorEventType.JUDGE_RESULT,
-            company_id=company_id,
-            task_id=task_id,
-            data={
-                "verdict": verdict,
-                "score": score,
-                "reasons": reasons,
-            },
-        ))
+        await self._emit(
+            MonitorEvent(
+                event_type=MonitorEventType.JUDGE_RESULT,
+                company_id=company_id,
+                task_id=task_id,
+                data={
+                    "verdict": verdict,
+                    "score": score,
+                    "reasons": reasons,
+                },
+            )
+        )
 
     async def on_error(
         self,
@@ -405,16 +430,18 @@ class ExecutionMonitor:
         severity: str = "medium",
     ) -> None:
         """エラー通知."""
-        await self._emit(MonitorEvent(
-            event_type=MonitorEventType.ERROR,
-            company_id=company_id,
-            task_id=task_id,
-            agent_id=agent_id,
-            data={
-                "error": error,
-                "severity": severity,
-            },
-        ))
+        await self._emit(
+            MonitorEvent(
+                event_type=MonitorEventType.ERROR,
+                company_id=company_id,
+                task_id=task_id,
+                agent_id=agent_id,
+                data={
+                    "error": error,
+                    "severity": severity,
+                },
+            )
+        )
 
     # ------------------------------------------------------------------
     # 監視ダッシュボード用クエリ
@@ -462,14 +489,18 @@ class ExecutionMonitor:
             events = [e for e in events if e.company_id == company_id]
 
         errors = [e for e in events if e.event_type == MonitorEventType.ERROR]
-        escalations = [e for e in events if e.event_type == MonitorEventType.AGENT_ESCALATION]
+        escalations = [
+            e for e in events if e.event_type == MonitorEventType.AGENT_ESCALATION
+        ]
 
         return {
             "active_executions": len(active),
             "total_events": len(events),
             "recent_errors": len(errors[-10:]),
             "recent_escalations": len(escalations[-10:]),
-            "active_agents": list(set(e["agent_id"] for e in active if e.get("agent_id"))),
+            "active_agents": list(
+                set(e["agent_id"] for e in active if e.get("agent_id"))
+            ),
         }
 
     @property

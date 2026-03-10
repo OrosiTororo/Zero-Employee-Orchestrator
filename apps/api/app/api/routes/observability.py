@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +21,7 @@ router = APIRouter()
 # ---------------------------------------------------------------------------
 # Schemas
 # ---------------------------------------------------------------------------
+
 
 class TraceStepResponse(BaseModel):
     step_id: str
@@ -122,6 +123,7 @@ class EscalationResponse(BaseModel):
 # 推論トレース API
 # ---------------------------------------------------------------------------
 
+
 @router.get("/traces", response_model=TraceListResponse)
 async def list_traces(
     company_id: str | None = None,
@@ -210,6 +212,7 @@ async def get_trace_decisions(trace_id: str):
 # エージェント間通信 API
 # ---------------------------------------------------------------------------
 
+
 @router.get("/communications", response_model=CommListResponse)
 async def list_communications(
     company_id: str | None = None,
@@ -296,6 +299,7 @@ async def get_thread(thread_id: str):
 # 実行監視 API
 # ---------------------------------------------------------------------------
 
+
 @router.get("/monitor/dashboard", response_model=MonitorDashboardResponse)
 async def monitor_dashboard(company_id: str | None = None):
     """実行監視ダッシュボード.
@@ -353,13 +357,12 @@ async def list_monitor_events(
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _trace_to_response(trace, include_steps: bool = False) -> TraceResponse:
     d = trace.to_dict()
     steps = []
     if include_steps:
-        steps = [
-            TraceStepResponse(**s) for s in d.get("steps", [])
-        ]
+        steps = [TraceStepResponse(**s) for s in d.get("steps", [])]
     return TraceResponse(
         trace_id=d["trace_id"],
         task_id=d.get("task_id"),

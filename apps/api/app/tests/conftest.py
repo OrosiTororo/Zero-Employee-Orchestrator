@@ -2,7 +2,6 @@
 
 import asyncio
 import os
-import uuid
 from collections.abc import AsyncGenerator
 
 # Allow tests to run with the default SECRET_KEY by enabling DEBUG mode.
@@ -22,7 +21,9 @@ from app.main import app
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_zero_employee_orchestrator.db"
 
 engine = create_async_engine(TEST_DATABASE_URL, echo=False)
-TestSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+TestSessionLocal = async_sessionmaker(
+    engine, class_=AsyncSession, expire_on_commit=False
+)
 
 
 @pytest.fixture(scope="session")

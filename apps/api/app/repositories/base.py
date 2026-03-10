@@ -37,9 +37,7 @@ class BaseRepository(Generic[T]):
         offset: int = 0,
         limit: int = 50,
     ) -> Sequence[T]:
-        stmt = select(self.model_class).where(
-            self.model_class.company_id == company_id
-        )
+        stmt = select(self.model_class).where(self.model_class.company_id == company_id)
         if status:
             stmt = stmt.where(self.model_class.status == status)
         stmt = stmt.offset(offset).limit(limit)
@@ -49,8 +47,10 @@ class BaseRepository(Generic[T]):
     async def count_by_company(
         self, company_id: uuid.UUID, *, status: str | None = None
     ) -> int:
-        stmt = select(func.count()).select_from(self.model_class).where(
-            self.model_class.company_id == company_id
+        stmt = (
+            select(func.count())
+            .select_from(self.model_class)
+            .where(self.model_class.company_id == company_id)
         )
         if status:
             stmt = stmt.where(self.model_class.status == status)

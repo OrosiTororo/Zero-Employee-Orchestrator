@@ -36,6 +36,7 @@ class EventType(str, Enum):
 @dataclass
 class SentryEvent:
     """Sentry互換のイベント."""
+
     event_id: str = ""
     event_type: EventType = EventType.ERROR
     level: SeverityLevel = SeverityLevel.ERROR
@@ -61,7 +62,9 @@ class SentryEvent:
             "exception": {
                 "type": self.exception_type,
                 "value": self.exception_value,
-            } if self.exception_type else None,
+            }
+            if self.exception_type
+            else None,
             "tags": self.tags,
             "extra": self.extra,
             "breadcrumbs": self.breadcrumbs,
@@ -80,7 +83,9 @@ class SentryIntegration:
     なければ内蔵のイベントストアに記録する。
     """
 
-    def __init__(self, dsn: str | None = None, environment: str = "development") -> None:
+    def __init__(
+        self, dsn: str | None = None, environment: str = "development"
+    ) -> None:
         self._dsn = dsn
         self._environment = environment
         self._sdk_available = False
@@ -95,6 +100,7 @@ class SentryIntegration:
         """Sentry SDK の初期化を試行."""
         try:
             import sentry_sdk  # type: ignore[import-untyped]
+
             sentry_sdk.init(
                 dsn=dsn,
                 environment=environment,
@@ -127,6 +133,7 @@ class SentryIntegration:
         if self._sdk_available:
             try:
                 import sentry_sdk  # type: ignore[import-untyped]
+
                 with sentry_sdk.push_scope() as scope:
                     if tags:
                         for k, v in tags.items():
@@ -151,7 +158,9 @@ class SentryIntegration:
             stacktrace=[
                 {"filename": f.filename, "lineno": f.lineno, "function": f.name}
                 for f in tb.extract_tb(exc.__traceback__)
-            ] if exc.__traceback__ else [],
+            ]
+            if exc.__traceback__
+            else [],
             tags=tags or {},
             extra=extra or {},
             user=user or {},
@@ -177,6 +186,7 @@ class SentryIntegration:
         if self._sdk_available:
             try:
                 import sentry_sdk  # type: ignore[import-untyped]
+
                 sentry_sdk.capture_message(message, level=level.value)
             except Exception:
                 pass
@@ -212,6 +222,7 @@ class SentryIntegration:
         if self._sdk_available:
             try:
                 import sentry_sdk  # type: ignore[import-untyped]
+
                 sentry_sdk.add_breadcrumb(
                     message=message, category=category, level=level, data=data
                 )
@@ -242,7 +253,11 @@ class SentryIntegration:
         hour_ago = now - 3600
         day_ago = now - 86400
 
-        errors = [e for e in self._events if e.level in (SeverityLevel.ERROR, SeverityLevel.FATAL)]
+        errors = [
+            e
+            for e in self._events
+            if e.level in (SeverityLevel.ERROR, SeverityLevel.FATAL)
+        ]
         errors_1h = [e for e in errors if e.timestamp > hour_ago]
         errors_24h = [e for e in errors if e.timestamp > day_ago]
 
@@ -263,7 +278,7 @@ class SentryIntegration:
 
     def _store_event(self, event: SentryEvent) -> None:
         if len(self._events) >= self._max_events:
-            self._events = self._events[-(self._max_events // 2):]
+            self._events = self._events[-(self._max_events // 2) :]
         self._events.append(event)
 
     def _check_alerts(self, event: SentryEvent) -> None:
@@ -297,6 +312,7 @@ class TransactionContext:
         if self._sdk_available:
             try:
                 import sentry_sdk  # type: ignore[import-untyped]
+
                 self._sdk_transaction = sentry_sdk.start_transaction(
                     name=self._name, op=self._op
                 )
@@ -315,6 +331,7 @@ class TransactionContext:
                 pass
 
         import uuid
+
         event = SentryEvent(
             event_id=str(uuid.uuid4()),
             event_type=EventType.PERFORMANCE,

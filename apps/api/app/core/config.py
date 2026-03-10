@@ -95,7 +95,7 @@ if settings.SECRET_KEY.lower() in _INSECURE_DEFAULT_KEYS:
     else:
         raise RuntimeError(
             "SECRET_KEY is still set to an insecure default value. "
-            "Generate a secure key with: python -c \"import secrets; print(secrets.token_urlsafe(32))\" "
+            'Generate a secure key with: python -c "import secrets; print(secrets.token_urlsafe(32))" '
             "and set it in your .env file or environment variables. "
             "If this is intentional for local development, set DEBUG=true."
         )

@@ -39,7 +39,7 @@ interface Release {
   assets: ReleaseAsset[]
 }
 
-const REPO = "TroroOrosi/Zero-Employee-Orchestrator"
+const REPO = "OrosiTororo/Zero-Employee-Orchestrator"
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`

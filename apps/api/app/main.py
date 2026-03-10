@@ -3,24 +3,20 @@
 import logging
 from contextlib import asynccontextmanager
 
+import app.models  # noqa: F401
+import app.orchestration.agent_session  # noqa: F401
+import app.orchestration.experience_memory  # noqa: F401
+import app.orchestration.knowledge_store  # noqa: F401
+import app.security.iam  # noqa: F401
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-logger = logging.getLogger(__name__)
-
-from app.core.config import settings
-from app.core.database import Base, engine
 from app.api.routes import api_router
 from app.api.ws.events import router as ws_router
+from app.core.config import settings
+from app.core.database import Base, engine
 
-# Ensure all models are imported so Base.metadata is populated.
-import app.models  # noqa: F401
-
-# Import new v0.1 models for table creation
-import app.orchestration.knowledge_store  # noqa: F401
-import app.orchestration.agent_session  # noqa: F401
-import app.orchestration.experience_memory  # noqa: F401
-import app.security.iam  # noqa: F401
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -29,6 +25,7 @@ async def lifespan(application: FastAPI):
     # Apply runtime config from ~/.zero-employee/config.json
     try:
         from app.core.config_manager import apply_runtime_config
+
         apply_runtime_config()
     except Exception as exc:
         logger.debug("Runtime config apply failed (non-fatal): %s", exc)
@@ -63,9 +60,12 @@ async def lifespan(application: FastAPI):
 
     # Initialize Sentry (best-effort)
     try:
-        from app.integrations.sentry_integration import sentry, create_sentry_integration
+        from app.integrations.sentry_integration import (
+            create_sentry_integration,
+        )
+
         if settings.SENTRY_DSN:
-            new_sentry = create_sentry_integration(
+            create_sentry_integration(
                 dsn=settings.SENTRY_DSN,
                 environment="production" if not settings.DEBUG else "development",
             )
@@ -76,6 +76,7 @@ async def lifespan(application: FastAPI):
     # Initialize MCP server
     try:
         from app.integrations.mcp_server import mcp_server
+
         logger.info("MCP server ready (%d tools)", len(mcp_server._tools))
     except Exception as exc:
         logger.debug("MCP init failed (non-fatal): %s", exc)

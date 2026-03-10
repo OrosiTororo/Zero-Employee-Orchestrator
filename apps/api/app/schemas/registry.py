@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 # Skill
 # ---------------------------------------------------------------------------
 
+
 class SkillCreate(BaseModel):
     slug: str
     name: str
@@ -75,6 +76,7 @@ class SkillGenerateResponse(BaseModel):
 # Plugin
 # ---------------------------------------------------------------------------
 
+
 class PluginCreate(BaseModel):
     slug: str
     name: str
@@ -85,16 +87,23 @@ class PluginCreate(BaseModel):
 
 class PluginImportRequest(BaseModel):
     """GitHub リポジトリや外部ソースからプラグインをインポートするリクエスト."""
-    source_uri: str = Field(..., description="GitHub リポジトリ URL or plugin registry URI")
+
+    source_uri: str = Field(
+        ..., description="GitHub リポジトリ URL or plugin registry URI"
+    )
     auto_install: bool = False
+
 
 class PluginSearchRequest(BaseModel):
     """外部プラグインの検索リクエスト."""
+
     query: str = Field(..., min_length=1, max_length=200)
     limit: int = Field(default=20, ge=1, le=100)
 
+
 class PluginSearchResult(BaseModel):
     """外部プラグイン検索結果."""
+
     name: str
     slug: str
     description: str
@@ -134,6 +143,7 @@ class PluginRead(BaseModel):
 # Extension
 # ---------------------------------------------------------------------------
 
+
 class ExtensionCreate(BaseModel):
     slug: str
     name: str
@@ -171,6 +181,7 @@ class ExtensionRead(BaseModel):
 # ---------------------------------------------------------------------------
 # Common
 # ---------------------------------------------------------------------------
+
 
 class RegistryInstallRequest(BaseModel):
     source_type: str  # "local" | "git" | "registry"

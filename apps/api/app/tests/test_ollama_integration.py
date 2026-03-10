@@ -10,7 +10,6 @@ Validates the integration between Ollama/RAG and core orchestration modules:
 
 import json
 import os
-import tempfile
 
 import pytest
 
@@ -20,6 +19,7 @@ os.environ.setdefault("DEBUG", "true")
 # ---------------------------------------------------------------------------
 # Knowledge Pipeline integration tests
 # ---------------------------------------------------------------------------
+
 
 class TestKnowledgePipelineIntegration:
     """Test Knowledge Pipeline ↔ Ollama integration."""
@@ -101,6 +101,7 @@ class TestKnowledgePipelineIntegration:
 # Artifact Bridge integration tests
 # ---------------------------------------------------------------------------
 
+
 class TestArtifactBridgeIntegration:
     """Test Artifact Bridge ↔ Ollama integration."""
 
@@ -165,13 +166,17 @@ class TestArtifactBridgeIntegration:
 # OllamaEmbeddingStore auto-selection tests
 # ---------------------------------------------------------------------------
 
+
 class TestEmbeddingAutoSelection:
     """Test OllamaEmbeddingStore smart auto-selection."""
 
     @pytest.mark.asyncio
     async def test_fallback_to_tfidf(self):
         """When Ollama is not running, should fall back to TF-IDF store."""
-        from app.providers.ollama_integration import get_rag_store, reset_embedding_cache
+        from app.providers.ollama_integration import (
+            get_rag_store,
+            reset_embedding_cache,
+        )
         from app.providers.local_rag import LocalVectorStore
 
         # Reset cache to force re-check
@@ -184,18 +189,19 @@ class TestEmbeddingAutoSelection:
     def test_reset_cache(self):
         from app.providers.ollama_integration import (
             reset_embedding_cache,
-            _embedding_checked,
         )
 
         reset_embedding_cache()
         # After reset, the module-level flag should be False
         from app.providers import ollama_integration
+
         assert ollama_integration._embedding_checked is False
 
 
 # ---------------------------------------------------------------------------
 # Heartbeat result structure tests
 # ---------------------------------------------------------------------------
+
 
 class TestHeartbeatResult:
     """Test OllamaHeartbeatResult structure."""
@@ -228,6 +234,7 @@ class TestHeartbeatResult:
 # ---------------------------------------------------------------------------
 # SSE streaming format tests
 # ---------------------------------------------------------------------------
+
 
 class TestSSEStreamingFormat:
     """Test SSE event format for streaming chat."""
@@ -277,6 +284,7 @@ class TestSSEStreamingFormat:
 # ---------------------------------------------------------------------------
 # Schema validation tests
 # ---------------------------------------------------------------------------
+
 
 class TestSchemaValidation:
     """Test Pydantic schema validation for new request/response models."""

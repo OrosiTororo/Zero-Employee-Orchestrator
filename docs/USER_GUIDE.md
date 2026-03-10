@@ -296,7 +296,7 @@ GEMINI_API_KEY=AIzaSy-xxxxxxxxxxxx
 
 ### デスクトップアプリ（GUI 版・簡単）
 
-1. [Releases ページ](https://github.com/TroroOrosi/Zero-Employee-Orchestrator/releases) から最新版をダウンロード
+1. [Releases ページ](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases) から最新版をダウンロード
 2. インストーラーを実行（依存関係は含まれています）
 3. アプリを起動し、セットアップウィザードに従って設定
 
@@ -304,7 +304,7 @@ GEMINI_API_KEY=AIzaSy-xxxxxxxxxxxx
 
 ```bash
 # 1. リポジトリをクローン
-git clone https://github.com/TroroOrosi/Zero-Employee-Orchestrator.git
+git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
 cd Zero-Employee-Orchestrator
 
 # 2. セットアップ（初回のみ）
@@ -784,14 +784,14 @@ AI output is always verified in two stages:
 
 ### Desktop App (GUI — Easy)
 
-1. Download the latest version from the [Releases page](https://github.com/TroroOrosi/Zero-Employee-Orchestrator/releases)
+1. Download the latest version from the [Releases page](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases)
 2. Run the installer
 3. Launch the app and follow the setup wizard
 
 ### From Source (For Developers)
 
 ```bash
-git clone https://github.com/TroroOrosi/Zero-Employee-Orchestrator.git
+git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
 cd Zero-Employee-Orchestrator
 chmod +x setup.sh start.sh
 ./setup.sh
@@ -969,14 +969,14 @@ AI 输出始终经过两阶段验证：
 
 ### 桌面应用（GUI 版 —— 简单）
 
-1. 从 [Releases 页面](https://github.com/TroroOrosi/Zero-Employee-Orchestrator/releases) 下载最新版本
+1. 从 [Releases 页面](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases) 下载最新版本
 2. 运行安装程序
 3. 启动应用并按照设置向导操作
 
 ### 从源代码启动（面向开发者）
 
 ```bash
-git clone https://github.com/TroroOrosi/Zero-Employee-Orchestrator.git
+git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
 cd Zero-Employee-Orchestrator
 chmod +x setup.sh start.sh
 ./setup.sh

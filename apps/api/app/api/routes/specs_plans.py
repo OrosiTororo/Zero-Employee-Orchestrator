@@ -14,7 +14,6 @@ from app.models.task import Task
 from app.models.ticket import Ticket
 from app.models.audit import AuditLog
 from app.core.security import generate_uuid
-from app.orchestration.dag import ExecutionDAG, TaskNode
 
 router = APIRouter()
 
@@ -40,19 +39,26 @@ class PlanCreate(BaseModel):
 async def list_specs(ticket_id: str, db: AsyncSession = Depends(get_db)):
     """チケットのspec一覧"""
     tid = uuid.UUID(ticket_id)
-    result = await db.execute(select(Spec).where(Spec.ticket_id == tid).order_by(Spec.version_no.desc()))
+    result = await db.execute(
+        select(Spec).where(Spec.ticket_id == tid).order_by(Spec.version_no.desc())
+    )
     specs = result.scalars().all()
     return [
         {
-            "id": str(s.id), "version_no": s.version_no, "status": s.status,
-            "objective": s.objective, "risk_notes": s.risk_notes,
+            "id": str(s.id),
+            "version_no": s.version_no,
+            "status": s.status,
+            "objective": s.objective,
+            "risk_notes": s.risk_notes,
         }
         for s in specs
     ]
 
 
 @router.post("/tickets/{ticket_id}/specs")
-async def create_spec(ticket_id: str, req: SpecCreate, db: AsyncSession = Depends(get_db)):
+async def create_spec(
+    ticket_id: str, req: SpecCreate, db: AsyncSession = Depends(get_db)
+):
     """spec作成"""
     tid = uuid.UUID(ticket_id)
     existing = await db.execute(select(Spec).where(Spec.ticket_id == tid))
@@ -77,20 +83,28 @@ async def create_spec(ticket_id: str, req: SpecCreate, db: AsyncSession = Depend
 async def list_plans(ticket_id: str, db: AsyncSession = Depends(get_db)):
     """チケットのplan一覧"""
     tid = uuid.UUID(ticket_id)
-    result = await db.execute(select(Plan).where(Plan.ticket_id == tid).order_by(Plan.version_no.desc()))
+    result = await db.execute(
+        select(Plan).where(Plan.ticket_id == tid).order_by(Plan.version_no.desc())
+    )
     plans = result.scalars().all()
     return [
         {
-            "id": str(p.id), "version_no": p.version_no, "status": p.status,
-            "summary": p.summary, "estimated_cost_usd": float(p.estimated_cost_usd or 0),
-            "estimated_minutes": p.estimated_minutes, "risk_level": p.risk_level,
+            "id": str(p.id),
+            "version_no": p.version_no,
+            "status": p.status,
+            "summary": p.summary,
+            "estimated_cost_usd": float(p.estimated_cost_usd or 0),
+            "estimated_minutes": p.estimated_minutes,
+            "risk_level": p.risk_level,
         }
         for p in plans
     ]
 
 
 @router.post("/tickets/{ticket_id}/plans")
-async def create_plan(ticket_id: str, req: PlanCreate, db: AsyncSession = Depends(get_db)):
+async def create_plan(
+    ticket_id: str, req: PlanCreate, db: AsyncSession = Depends(get_db)
+):
     """plan作成"""
     tid = uuid.UUID(ticket_id)
     existing = await db.execute(select(Plan).where(Plan.ticket_id == tid))
@@ -160,9 +174,11 @@ async def approve_plan(plan_id: str, db: AsyncSession = Depends(get_db)):
     db.add(audit)
 
     # Update ticket status
-    ticket_result = await db.execute(
-        select(Ticket).where(Ticket.id == plan.ticket_id)
-    ) if hasattr(plan, "ticket_id") else None
+    ticket_result = (
+        await db.execute(select(Ticket).where(Ticket.id == plan.ticket_id))
+        if hasattr(plan, "ticket_id")
+        else None
+    )
     if ticket_result:
         ticket = ticket_result.scalar_one_or_none()
         if ticket:
@@ -178,7 +194,9 @@ async def approve_plan(plan_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/plans/{plan_id}/reject")
-async def reject_plan(plan_id: str, reason: str = "", db: AsyncSession = Depends(get_db)):
+async def reject_plan(
+    plan_id: str, reason: str = "", db: AsyncSession = Depends(get_db)
+):
     """planを却下"""
     result = await db.execute(select(Plan).where(Plan.id == uuid.UUID(plan_id)))
     plan = result.scalar_one_or_none()
@@ -192,12 +210,17 @@ async def reject_plan(plan_id: str, reason: str = "", db: AsyncSession = Depends
 async def list_plan_tasks(plan_id: str, db: AsyncSession = Depends(get_db)):
     """planのtask一覧"""
     pid = uuid.UUID(plan_id)
-    result = await db.execute(select(Task).where(Task.plan_id == pid).order_by(Task.sequence_no))
+    result = await db.execute(
+        select(Task).where(Task.plan_id == pid).order_by(Task.sequence_no)
+    )
     tasks = result.scalars().all()
     return [
         {
-            "id": str(t.id), "title": t.title, "sequence_no": t.sequence_no,
-            "status": t.status, "task_type": t.task_type,
+            "id": str(t.id),
+            "title": t.title,
+            "sequence_no": t.sequence_no,
+            "status": t.status,
+            "task_type": t.task_type,
             "requires_approval": t.requires_approval,
         }
         for t in tasks

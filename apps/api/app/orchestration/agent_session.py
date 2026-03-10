@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from sqlalchemy import JSON, Float, Integer, String, Text, Uuid, func, select
+from sqlalchemy import JSON, Float, Integer, String, Uuid, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -26,10 +26,10 @@ logger = logging.getLogger(__name__)
 
 
 class SessionStatus(str, Enum):
-    ACTIVE = "active"       # 作業中
-    IDLE = "idle"           # 待機中（コンテキスト保持）
-    SUSPENDED = "suspended" # 一時停止
-    EXPIRED = "expired"     # 期限切れ
+    ACTIVE = "active"  # 作業中
+    IDLE = "idle"  # 待機中（コンテキスト保持）
+    SUSPENDED = "suspended"  # 一時停止
+    EXPIRED = "expired"  # 期限切れ
     TERMINATED = "terminated"
 
 
@@ -40,7 +40,9 @@ class AgentSessionRecord(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     agent_id: Mapped[str] = mapped_column(String(255), index=True)
-    company_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True, index=True)
+    company_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, nullable=True, index=True
+    )
     task_id: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
     status: Mapped[str] = mapped_column(String(30), default="active")
     role: Mapped[str] = mapped_column(String(60), default="general")
@@ -65,6 +67,7 @@ class AgentSessionRecord(Base):
 @dataclass
 class InMemorySession:
     """インメモリのセッションデータ（高速アクセス用）."""
+
     session_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     agent_id: str = ""
     company_id: str | None = None
@@ -93,14 +96,18 @@ class InMemorySession:
     def is_expired(self) -> bool:
         return time.time() > self.started_at + self.ttl
 
-    def add_message(self, role: str, content: str, metadata: dict | None = None) -> None:
+    def add_message(
+        self, role: str, content: str, metadata: dict | None = None
+    ) -> None:
         """会話履歴にメッセージを追加."""
-        self.conversation_history.append({
-            "role": role,
-            "content": content,
-            "metadata": metadata or {},
-            "timestamp": time.time(),
-        })
+        self.conversation_history.append(
+            {
+                "role": role,
+                "content": content,
+                "metadata": metadata or {},
+                "timestamp": time.time(),
+            }
+        )
         self.message_count += 1
         self.last_active_at = time.time()
         if self.status == SessionStatus.IDLE:
@@ -201,7 +208,12 @@ class AgentSessionManager:
             self._agent_sessions[agent_id] = []
         self._agent_sessions[agent_id].append(session.session_id)
 
-        logger.info("Session created: %s for agent %s (role: %s)", session.session_id, agent_id, role)
+        logger.info(
+            "Session created: %s for agent %s (role: %s)",
+            session.session_id,
+            agent_id,
+            role,
+        )
         return session
 
     def get_session(self, session_id: str) -> InMemorySession | None:
@@ -216,7 +228,11 @@ class AgentSessionManager:
         session_ids = self._agent_sessions.get(agent_id, [])
         for sid in reversed(session_ids):
             s = self._sessions.get(sid)
-            if s and not s.is_expired() and s.status in (SessionStatus.ACTIVE, SessionStatus.IDLE):
+            if (
+                s
+                and not s.is_expired()
+                and s.status in (SessionStatus.ACTIVE, SessionStatus.IDLE)
+            ):
                 return s
         return None
 
@@ -262,7 +278,8 @@ class AgentSessionManager:
         if len(self._sessions) < self._max:
             return
         expired = [
-            sid for sid, s in self._sessions.items()
+            sid
+            for sid, s in self._sessions.items()
             if s.is_expired() or s.status == SessionStatus.TERMINATED
         ]
         for sid in expired:
@@ -273,8 +290,8 @@ class AgentSessionManager:
         result = await db.execute(
             select(AgentSessionRecord).where(
                 AgentSessionRecord.id == uuid.UUID(session.session_id)
-                if len(session.session_id) == 36 else
-                AgentSessionRecord.agent_id == session.agent_id
+                if len(session.session_id) == 36
+                else AgentSessionRecord.agent_id == session.agent_id
             )
         )
         existing = result.scalar_one_or_none()
@@ -282,7 +299,9 @@ class AgentSessionManager:
         if existing:
             existing.status = session.status.value
             existing.context_json = session.context
-            existing.conversation_history = {"messages": session.conversation_history[-100:]}
+            existing.conversation_history = {
+                "messages": session.conversation_history[-100:]
+            }
             existing.working_memory = session.working_memory
             existing.message_count = session.message_count
             existing.round_count = session.round_count
@@ -293,7 +312,9 @@ class AgentSessionManager:
             record = AgentSessionRecord(
                 id=uuid.uuid4(),
                 agent_id=session.agent_id,
-                company_id=uuid.UUID(session.company_id) if session.company_id else None,
+                company_id=uuid.UUID(session.company_id)
+                if session.company_id
+                else None,
                 task_id=session.task_id,
                 status=session.status.value,
                 role=session.role,
@@ -310,7 +331,9 @@ class AgentSessionManager:
             db.add(record)
         await db.flush()
 
-    async def restore_session(self, agent_id: str, db: AsyncSession) -> InMemorySession | None:
+    async def restore_session(
+        self, agent_id: str, db: AsyncSession
+    ) -> InMemorySession | None:
         """DBからセッションを復元."""
         result = await db.execute(
             select(AgentSessionRecord)
@@ -333,7 +356,9 @@ class AgentSessionManager:
             role=record.role,
             status=SessionStatus(record.status),
             context=record.context_json or {},
-            conversation_history=(record.conversation_history or {}).get("messages", []),
+            conversation_history=(record.conversation_history or {}).get(
+                "messages", []
+            ),
             working_memory=record.working_memory or {},
             message_count=record.message_count,
             round_count=record.round_count,

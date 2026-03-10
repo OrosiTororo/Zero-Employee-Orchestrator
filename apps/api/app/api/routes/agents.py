@@ -43,9 +43,13 @@ async def list_agents(company_id: str, db: AsyncSession = Depends(get_db)):
     agents = result.scalars().all()
     return [
         AgentResponse(
-            id=str(a.id), name=a.name, title=a.title or "",
-            agent_type=a.agent_type, provider_name=a.provider_name,
-            model_name=a.model_name, status=a.status,
+            id=str(a.id),
+            name=a.name,
+            title=a.title or "",
+            agent_type=a.agent_type,
+            provider_name=a.provider_name,
+            model_name=a.model_name,
+            status=a.status,
             autonomy_level=a.autonomy_level,
         )
         for a in agents
@@ -53,7 +57,9 @@ async def list_agents(company_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/companies/{company_id}/agents", response_model=AgentResponse)
-async def create_agent(company_id: str, req: AgentCreate, db: AsyncSession = Depends(get_db)):
+async def create_agent(
+    company_id: str, req: AgentCreate, db: AsyncSession = Depends(get_db)
+):
     """エージェント作成"""
     agent = Agent(
         id=uuid.uuid4(),
@@ -74,9 +80,13 @@ async def create_agent(company_id: str, req: AgentCreate, db: AsyncSession = Dep
     db.add(agent)
     await db.flush()
     return AgentResponse(
-        id=str(agent.id), name=agent.name, title=agent.title or "",
-        agent_type=agent.agent_type, provider_name=agent.provider_name,
-        model_name=agent.model_name, status=agent.status,
+        id=str(agent.id),
+        name=agent.name,
+        title=agent.title or "",
+        agent_type=agent.agent_type,
+        provider_name=agent.provider_name,
+        model_name=agent.model_name,
+        status=agent.status,
         autonomy_level=agent.autonomy_level,
     )
 
@@ -89,9 +99,13 @@ async def get_agent(agent_id: str, db: AsyncSession = Depends(get_db)):
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
     return AgentResponse(
-        id=str(agent.id), name=agent.name, title=agent.title or "",
-        agent_type=agent.agent_type, provider_name=agent.provider_name,
-        model_name=agent.model_name, status=agent.status,
+        id=str(agent.id),
+        name=agent.name,
+        title=agent.title or "",
+        agent_type=agent.agent_type,
+        provider_name=agent.provider_name,
+        model_name=agent.model_name,
+        status=agent.status,
         autonomy_level=agent.autonomy_level,
     )
 

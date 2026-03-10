@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 # Audit helpers — thin wrappers around audit.logger for Ollama events
 # ---------------------------------------------------------------------------
 
+
 async def audit_ollama_chat(
     db: AsyncSession,
     company_id: str | uuid.UUID,
@@ -151,6 +152,7 @@ async def audit_rag_search(
 # Heartbeat — Ollama health check integration
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class OllamaHeartbeatResult:
     """Result of an Ollama heartbeat health check."""
@@ -195,33 +197,40 @@ async def run_ollama_heartbeat(
     models = await ollama_provider.list_models() if is_up else []
     model_names = [m.name for m in models]
 
-    execution.add_action(HeartbeatAction(
-        action_type="check_ollama",
-        description="Ollama ヘルスチェック",
-        result="available" if is_up else "unavailable",
-    ))
+    execution.add_action(
+        HeartbeatAction(
+            action_type="check_ollama",
+            description="Ollama ヘルスチェック",
+            result="available" if is_up else "unavailable",
+        )
+    )
 
     # Check embedding support
     embedding_available = False
     if is_up:
         from app.providers.local_rag import OllamaEmbeddingStore
+
         embed_store = OllamaEmbeddingStore(
             ollama_url=ollama_provider.base_url,
         )
         embedding_available = await embed_store.check_embedding_support()
-        execution.add_action(HeartbeatAction(
-            action_type="check_embedding",
-            description="エンベディングモデルの確認",
-            result="available" if embedding_available else "unavailable",
-        ))
+        execution.add_action(
+            HeartbeatAction(
+                action_type="check_embedding",
+                description="エンベディングモデルの確認",
+                result="available" if embedding_available else "unavailable",
+            )
+        )
 
     # Check RAG store
     rag_count = local_rag.document_count
-    execution.add_action(HeartbeatAction(
-        action_type="check_rag",
-        description="RAG ベクトルストアの確認",
-        result=f"{rag_count} documents",
-    ))
+    execution.add_action(
+        HeartbeatAction(
+            action_type="check_rag",
+            description="RAG ベクトルストアの確認",
+            result=f"{rag_count} documents",
+        )
+    )
 
     execution.finish(
         success=is_up,
@@ -246,6 +255,7 @@ async def run_ollama_heartbeat(
 # ---------------------------------------------------------------------------
 # Knowledge Pipeline — RAG ↔ KnowledgeStore bridge
 # ---------------------------------------------------------------------------
+
 
 def store_ollama_experience(
     task_type: str,
@@ -325,14 +335,16 @@ def retrieve_ollama_knowledge(
         limit=5,
     )
     for entry in experiences:
-        results.append({
-            "id": entry.id,
-            "type": "experience",
-            "title": entry.title,
-            "content": entry.content,
-            "tags": entry.tags,
-            "status": entry.status.value,
-        })
+        results.append(
+            {
+                "id": entry.id,
+                "type": "experience",
+                "title": entry.title,
+                "content": entry.content,
+                "tags": entry.tags,
+                "status": entry.status.value,
+            }
+        )
 
     # Search failure taxonomy
     failures = knowledge_store.search(
@@ -341,14 +353,16 @@ def retrieve_ollama_knowledge(
         limit=3,
     )
     for entry in failures:
-        results.append({
-            "id": entry.id,
-            "type": "failure",
-            "title": entry.title,
-            "content": entry.content,
-            "tags": entry.tags,
-            "status": entry.status.value,
-        })
+        results.append(
+            {
+                "id": entry.id,
+                "type": "failure",
+                "title": entry.title,
+                "content": entry.content,
+                "tags": entry.tags,
+                "status": entry.status.value,
+            }
+        )
 
     return results
 
@@ -356,6 +370,7 @@ def retrieve_ollama_knowledge(
 # ---------------------------------------------------------------------------
 # Artifact Bridge — RAG ↔ Artifact registration
 # ---------------------------------------------------------------------------
+
 
 def register_rag_artifact(
     task_id: str,
@@ -444,7 +459,7 @@ async def get_rag_store():
     if _embedding_checked and _embedding_store_cache is not None:
         return _embedding_store_cache
 
-    from app.providers.local_rag import LocalVectorStore, OllamaEmbeddingStore
+    from app.providers.local_rag import OllamaEmbeddingStore
 
     try:
         from app.providers.ollama_provider import ollama_provider
@@ -464,6 +479,7 @@ async def get_rag_store():
 
     # Fallback to TF-IDF
     from app.providers.local_rag import local_rag
+
     _embedding_store_cache = local_rag
     _embedding_checked = True
     return local_rag
@@ -479,6 +495,7 @@ def reset_embedding_cache() -> None:
 # ---------------------------------------------------------------------------
 # Cost ledger helper
 # ---------------------------------------------------------------------------
+
 
 async def record_ollama_cost(
     db: AsyncSession,

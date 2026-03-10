@@ -31,7 +31,10 @@ _SECRET_PATTERNS: list[tuple[str, re.Pattern]] = [
     ("api_key", re.compile(r"(sk-or-v1-[a-zA-Z0-9]{20,})")),
     ("bearer_token", re.compile(r"(Bearer\s+[a-zA-Z0-9._\-]{20,})")),
     ("oauth_token", re.compile(r"(ya29\.[a-zA-Z0-9._\-]{20,})")),
-    ("password", re.compile(r'(?i)(password|passwd|secret)\s*[=:]\s*["\']?([^"\'}\s]+)')),
+    (
+        "password",
+        re.compile(r'(?i)(password|passwd|secret)\s*[=:]\s*["\']?([^"\'}\s]+)'),
+    ),
     ("email", re.compile(r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}")),
 ]
 
@@ -62,8 +65,14 @@ def sanitize_text(text: str) -> SanitizeResult:
 def sanitize_dict(data: dict, sensitive_keys: set[str] | None = None) -> dict:
     """辞書からセンシティブなキーの値をマスキングする."""
     default_sensitive = {
-        "password", "secret", "token", "api_key", "apikey",
-        "authorization", "credential", "private_key",
+        "password",
+        "secret",
+        "token",
+        "api_key",
+        "apikey",
+        "authorization",
+        "credential",
+        "private_key",
     }
     keys_to_mask = sensitive_keys or default_sensitive
     result = {}

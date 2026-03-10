@@ -9,7 +9,6 @@ vibe-local のTUIデザインを参考に、モデル情報・エンジン状態
 """
 
 import os
-import platform
 import shutil
 
 # ANSI カラーコード
@@ -27,12 +26,12 @@ _BOLD = "\033[1m"
 _RESET = "\033[0m"
 
 # ステータスラインのアイコン
-_ICON_MODEL = "\u25cf"     # ● (filled circle)
-_ICON_ENGINE = "\u2699"    # ⚙ (gear)
-_ICON_MODE = "\u26a1"      # ⚡ (lightning)
-_ICON_CWD = "\U0001f4c2"   # 📂 (folder)
+_ICON_MODEL = "\u25cf"  # ● (filled circle)
+_ICON_ENGINE = "\u2699"  # ⚙ (gear)
+_ICON_MODE = "\u26a1"  # ⚡ (lightning)
+_ICON_CWD = "\U0001f4c2"  # 📂 (folder)
 _ICON_LANG = "\U0001f310"  # 🌐 (globe)
-_ICON_STATUS = "\u2714"    # ✔ (checkmark)
+_ICON_STATUS = "\u2714"  # ✔ (checkmark)
 
 BANNER_ASCII = r"""
   ╔═══════════════════════════════════════════════╗
@@ -65,7 +64,17 @@ def print_banner(compact: bool = False) -> None:
 
     art = BANNER_ASCII_COMPACT if compact else BANNER_ASCII
     lines = art.strip("\n").split("\n")
-    colors = [_CYAN, _CYAN, _CYAN_DARK, _BLUE_LIGHT, _BLUE, _BLUE, _CYAN_DARK, _CYAN_DARK, _CYAN]
+    colors = [
+        _CYAN,
+        _CYAN,
+        _CYAN_DARK,
+        _BLUE_LIGHT,
+        _BLUE,
+        _BLUE,
+        _CYAN_DARK,
+        _CYAN_DARK,
+        _CYAN,
+    ]
 
     print()
     for i, line in enumerate(lines):
@@ -106,7 +115,9 @@ def print_local_banner(
     print(_separator())
 
     # Status lines (vibe-local style)
-    status_icon = f"{_GREEN}{_ICON_STATUS}{_RESET}" if ollama_available else f"{_YELLOW}✗{_RESET}"
+    status_icon = (
+        f"{_GREEN}{_ICON_STATUS}{_RESET}" if ollama_available else f"{_YELLOW}✗{_RESET}"
+    )
     model_display = model or "(auto-detect)"
     mode_display = t(f"mode_{mode}") if f"mode_{mode}" in _mode_keys() else mode
 
@@ -118,13 +129,23 @@ def print_local_banner(
     term_width = shutil.get_terminal_size((80, 24)).columns
     max_cwd = term_width - 30
     if len(cwd) > max_cwd:
-        cwd = "..." + cwd[-(max_cwd - 3):]
+        cwd = "..." + cwd[-(max_cwd - 3) :]
 
-    print(f"  {_CYAN}{_ICON_MODEL}{_RESET} {_BOLD}{t('label_model')}{_RESET}    {_WHITE}{model_display}{_RESET}")
-    print(f"  {_BLUE}{_ICON_ENGINE}{_RESET}  {_BOLD}{t('label_engine')}{_RESET}  Ollama ({engine_url})")
-    print(f"  {_TEAL}{_ICON_MODE}{_RESET} {_BOLD}{t('label_mode')}{_RESET}    {_GREEN}{mode_display}{_RESET}")
-    print(f"  {_BLUE_LIGHT}{_ICON_LANG}{_RESET} {_BOLD}{t('label_language')}{_RESET}  {lang_display}")
-    print(f"  {_GRAY}{_ICON_CWD}{_RESET} {_BOLD}{t('label_cwd')}{_RESET}  {_DIM}{cwd}{_RESET}")
+    print(
+        f"  {_CYAN}{_ICON_MODEL}{_RESET} {_BOLD}{t('label_model')}{_RESET}    {_WHITE}{model_display}{_RESET}"
+    )
+    print(
+        f"  {_BLUE}{_ICON_ENGINE}{_RESET}  {_BOLD}{t('label_engine')}{_RESET}  Ollama ({engine_url})"
+    )
+    print(
+        f"  {_TEAL}{_ICON_MODE}{_RESET} {_BOLD}{t('label_mode')}{_RESET}    {_GREEN}{mode_display}{_RESET}"
+    )
+    print(
+        f"  {_BLUE_LIGHT}{_ICON_LANG}{_RESET} {_BOLD}{t('label_language')}{_RESET}  {lang_display}"
+    )
+    print(
+        f"  {_GRAY}{_ICON_CWD}{_RESET} {_BOLD}{t('label_cwd')}{_RESET}  {_DIM}{cwd}{_RESET}"
+    )
     print(f"  {_GRAY}   {t('label_status')}{_RESET}  {status_icon} Ollama")
 
     print(_separator())

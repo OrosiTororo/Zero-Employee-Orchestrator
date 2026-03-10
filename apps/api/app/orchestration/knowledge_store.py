@@ -29,15 +29,16 @@ logger = logging.getLogger(__name__)
 
 class KnowledgeCategory(str, Enum):
     """ナレッジの種類."""
-    FILE_PERMISSION = "file_permission"       # ファイル・フォルダへのアクセス許可
-    FOLDER_LOCATION = "folder_location"       # 業務資料フォルダの場所
-    USER_PREFERENCE = "user_preference"       # ユーザーの好み・設定
-    TOOL_CONFIG = "tool_config"               # ツール接続設定
-    WORKFLOW_PATTERN = "workflow_pattern"      # よく使うワークフローパターン
-    AGENT_INSTRUCTION = "agent_instruction"   # エージェントへの恒久指示
-    ENVIRONMENT = "environment"               # 環境情報（OS、パスなど）
-    CREDENTIAL_HINT = "credential_hint"       # 認証情報のヒント（値自体は保存しない）
-    CHANGE_LOG = "change_log"                 # 変更履歴
+
+    FILE_PERMISSION = "file_permission"  # ファイル・フォルダへのアクセス許可
+    FOLDER_LOCATION = "folder_location"  # 業務資料フォルダの場所
+    USER_PREFERENCE = "user_preference"  # ユーザーの好み・設定
+    TOOL_CONFIG = "tool_config"  # ツール接続設定
+    WORKFLOW_PATTERN = "workflow_pattern"  # よく使うワークフローパターン
+    AGENT_INSTRUCTION = "agent_instruction"  # エージェントへの恒久指示
+    ENVIRONMENT = "environment"  # 環境情報（OS、パスなど）
+    CREDENTIAL_HINT = "credential_hint"  # 認証情報のヒント（値自体は保存しない）
+    CHANGE_LOG = "change_log"  # 変更履歴
 
 
 class KnowledgeRecord(Base):
@@ -46,7 +47,9 @@ class KnowledgeRecord(Base):
     __tablename__ = "knowledge_store"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    company_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True, index=True)
+    company_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, nullable=True, index=True
+    )
     user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True, index=True)
     category: Mapped[str] = mapped_column(String(60), index=True)
     key: Mapped[str] = mapped_column(String(500), index=True)
@@ -56,7 +59,9 @@ class KnowledgeRecord(Base):
     source: Mapped[str] = mapped_column(String(120), default="user_input")
     last_used_at: Mapped[datetime | None] = mapped_column(default=None, nullable=True)
     use_count: Mapped[int] = mapped_column(default=0)
-    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        default=func.now(), server_default=func.now()
+    )
     updated_at: Mapped[datetime] = mapped_column(
         default=func.now(), server_default=func.now(), onupdate=func.now()
     )
@@ -68,13 +73,17 @@ class ChangeDetectionRecord(Base):
     __tablename__ = "change_detections"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    company_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True, index=True)
+    company_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, nullable=True, index=True
+    )
     entity_type: Mapped[str] = mapped_column(String(60))
     entity_id: Mapped[str] = mapped_column(String(255))
     change_type: Mapped[str] = mapped_column(String(30))  # created, updated, deleted
     old_value: Mapped[str | None] = mapped_column(Text, nullable=True)
     new_value: Mapped[str | None] = mapped_column(Text, nullable=True)
-    detected_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())
+    detected_at: Mapped[datetime] = mapped_column(
+        default=func.now(), server_default=func.now()
+    )
     acknowledged: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
@@ -161,15 +170,25 @@ class KnowledgeStore:
         stmt = select(KnowledgeRecord).where(KnowledgeRecord.is_active.is_(True))
 
         if category:
-            cat = category.value if isinstance(category, KnowledgeCategory) else category
+            cat = (
+                category.value if isinstance(category, KnowledgeCategory) else category
+            )
             stmt = stmt.where(KnowledgeRecord.category == cat)
         if key:
             stmt = stmt.where(KnowledgeRecord.key == key)
         if company_id:
-            cid = uuid.UUID(str(company_id)) if not isinstance(company_id, uuid.UUID) else company_id
+            cid = (
+                uuid.UUID(str(company_id))
+                if not isinstance(company_id, uuid.UUID)
+                else company_id
+            )
             stmt = stmt.where(KnowledgeRecord.company_id == cid)
         if user_id:
-            uid = uuid.UUID(str(user_id)) if not isinstance(user_id, uuid.UUID) else user_id
+            uid = (
+                uuid.UUID(str(user_id))
+                if not isinstance(user_id, uuid.UUID)
+                else user_id
+            )
             stmt = stmt.where(KnowledgeRecord.user_id == uid)
 
         result = await self._db.execute(stmt)
@@ -198,7 +217,11 @@ class KnowledgeStore:
         record_id: str | uuid.UUID,
     ) -> bool:
         """ナレッジを無効化する（ソフトデリート）."""
-        rid = uuid.UUID(str(record_id)) if not isinstance(record_id, uuid.UUID) else record_id
+        rid = (
+            uuid.UUID(str(record_id))
+            if not isinstance(record_id, uuid.UUID)
+            else record_id
+        )
         result = await self._db.execute(
             select(KnowledgeRecord).where(KnowledgeRecord.id == rid)
         )
@@ -228,7 +251,11 @@ class KnowledgeStore:
         """変更検知の一覧を取得."""
         stmt = select(ChangeDetectionRecord)
         if company_id:
-            cid = uuid.UUID(str(company_id)) if not isinstance(company_id, uuid.UUID) else company_id
+            cid = (
+                uuid.UUID(str(company_id))
+                if not isinstance(company_id, uuid.UUID)
+                else company_id
+            )
             stmt = stmt.where(ChangeDetectionRecord.company_id == cid)
         if unacknowledged_only:
             stmt = stmt.where(ChangeDetectionRecord.acknowledged.is_(False))
@@ -239,7 +266,11 @@ class KnowledgeStore:
 
     async def acknowledge_change(self, change_id: str | uuid.UUID) -> bool:
         """変更を確認済みにする."""
-        cid = uuid.UUID(str(change_id)) if not isinstance(change_id, uuid.UUID) else change_id
+        cid = (
+            uuid.UUID(str(change_id))
+            if not isinstance(change_id, uuid.UUID)
+            else change_id
+        )
         result = await self._db.execute(
             select(ChangeDetectionRecord).where(ChangeDetectionRecord.id == cid)
         )
@@ -290,10 +321,14 @@ class KnowledgeStore:
         self, company_id: str | uuid.UUID | None = None
     ) -> list[KnowledgeRecord]:
         """全ファイル権限を取得."""
-        return await self.recall(KnowledgeCategory.FILE_PERMISSION, company_id=company_id)
+        return await self.recall(
+            KnowledgeCategory.FILE_PERMISSION, company_id=company_id
+        )
 
     async def get_all_folder_locations(
         self, company_id: str | uuid.UUID | None = None
     ) -> list[KnowledgeRecord]:
         """全フォルダ位置を取得."""
-        return await self.recall(KnowledgeCategory.FOLDER_LOCATION, company_id=company_id)
+        return await self.recall(
+            KnowledgeCategory.FOLDER_LOCATION, company_id=company_id
+        )

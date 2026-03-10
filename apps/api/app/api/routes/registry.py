@@ -14,7 +14,6 @@ from app.schemas.registry import (
     ExtensionRead,
     ExtensionUpdate,
     PluginCreate,
-    PluginImportRequest,
     PluginRead,
     PluginUpdate,
     RegistryDeleteResponse,
@@ -241,6 +240,7 @@ async def search_external_plugins(
 ):
     """外部ソース（GitHub 等）からプラグインを検索する."""
     from app.integrations.external_skills import plugin_importer
+
     results = await plugin_importer.search_plugins(query, limit)
     return [
         {
@@ -262,6 +262,7 @@ async def import_plugin(
 ):
     """GitHub リポジトリからプラグインをインポート・インストールする."""
     from app.integrations.external_skills import plugin_importer
+
     manifest = await plugin_importer.fetch_plugin_manifest(source_uri)
     if manifest is None:
         raise HTTPException(
@@ -278,6 +279,7 @@ async def import_plugin(
 
     create_data = plugin_importer.to_plugin_create_data(manifest)
     from app.schemas.registry import PluginCreate
+
     plugin = await registry_service.create_plugin(db, PluginCreate(**create_data))
     await db.commit()
     return _plugin_to_read(plugin)

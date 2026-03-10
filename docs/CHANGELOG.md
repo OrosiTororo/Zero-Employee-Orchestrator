@@ -332,4 +332,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - フロントエンド型定義 (`shared/types/index.ts`)
   - バックエンドスキーマ §38 に対応する全エンティティの TypeScript 型
 
-[0.1.0]: https://github.com/TroroOrosi/Zero-Employee-Orchestrator/releases/tag/v0.1.0
+[0.1.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.1.0

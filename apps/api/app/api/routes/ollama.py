@@ -32,6 +32,7 @@ router = APIRouter()
 # Schemas
 # ---------------------------------------------------------------------------
 
+
 class OllamaHealthResponse(BaseModel):
     available: bool
     base_url: str
@@ -100,7 +101,9 @@ class RAGSearchResponse(BaseModel):
 class RAGAddRequest(BaseModel):
     content: str = Field(..., description="Document content")
     metadata: dict = Field(default_factory=dict)
-    task_id: str | None = Field(None, description="Associated task ID for artifact tracking")
+    task_id: str | None = Field(
+        None, description="Associated task ID for artifact tracking"
+    )
 
 
 class RAGAddResponse(BaseModel):
@@ -119,7 +122,9 @@ class HeartbeatCheckResponse(BaseModel):
 
 
 class KnowledgeSearchRequest(BaseModel):
-    task_context: str = Field(..., description="Task description for knowledge retrieval")
+    task_context: str = Field(
+        ..., description="Task description for knowledge retrieval"
+    )
     max_tokens: int = 4000
 
 
@@ -145,6 +150,7 @@ class KnowledgeStoreResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
+
 
 @router.get("/ollama/health", response_model=OllamaHealthResponse)
 async def ollama_health():
@@ -178,16 +184,20 @@ async def ollama_models():
 
     result = []
     for m in models:
-        size_gb = m.size / (1024 ** 3) if m.size else 0
-        size_str = f"{size_gb:.1f}GB" if size_gb >= 1.0 else f"{m.size / (1024**2):.0f}MB"
+        size_gb = m.size / (1024**3) if m.size else 0
+        size_str = (
+            f"{size_gb:.1f}GB" if size_gb >= 1.0 else f"{m.size / (1024**2):.0f}MB"
+        )
         rec = RECOMMENDED_MODELS.get(m.name, {})
-        result.append(OllamaModelResponse(
-            name=m.name,
-            size=m.size,
-            size_display=size_str,
-            description=rec.get("description", ""),
-            modified_at=m.modified_at,
-        ))
+        result.append(
+            OllamaModelResponse(
+                name=m.name,
+                size=m.size,
+                size_display=size_str,
+                description=rec.get("description", ""),
+                modified_at=m.modified_at,
+            )
+        )
 
     return OllamaModelsResponse(models=result, total=len(result))
 
@@ -428,6 +438,7 @@ async def rag_add(
 # Heartbeat endpoint
 # ---------------------------------------------------------------------------
 
+
 @router.get("/ollama/heartbeat", response_model=HeartbeatCheckResponse)
 async def ollama_heartbeat():
     """Run an Ollama heartbeat health check.
@@ -452,6 +463,7 @@ async def ollama_heartbeat():
 # ---------------------------------------------------------------------------
 # Knowledge Pipeline endpoints
 # ---------------------------------------------------------------------------
+
 
 @router.post("/ollama/knowledge/search", response_model=KnowledgeSearchResponse)
 async def knowledge_search(req: KnowledgeSearchRequest):

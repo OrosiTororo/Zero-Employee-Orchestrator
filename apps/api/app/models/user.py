@@ -29,9 +29,7 @@ class CompanyMember(Base, TimestampMixin):
     company_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("companies.id"), index=True
     )
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("users.id"), index=True
-    )
+    user_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), index=True)
     company_role: Mapped[str] = mapped_column(String(60))
     status: Mapped[str] = mapped_column(String(30), default="active")
     joined_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())

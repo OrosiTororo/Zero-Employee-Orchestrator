@@ -7,7 +7,6 @@ model_catalog.json を編集せずに API 経由でモデル管理が可能。
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -20,6 +19,7 @@ router = APIRouter()
 # ---------------------------------------------------------------------------
 # Schemas
 # ---------------------------------------------------------------------------
+
 
 class ModelEntryResponse(BaseModel):
     id: str
@@ -88,6 +88,7 @@ class DeprecatedModelsResponse(BaseModel):
 # Routes
 # ---------------------------------------------------------------------------
 
+
 @router.get("/models", response_model=ModelListResponse)
 async def list_models(
     provider: str | None = None,
@@ -100,7 +101,9 @@ async def list_models(
     from app.providers.model_registry import get_model_registry
 
     registry = get_model_registry()
-    models = registry.list_models(provider=provider, include_deprecated=include_deprecated)
+    models = registry.list_models(
+        provider=provider, include_deprecated=include_deprecated
+    )
 
     return ModelListResponse(
         models=[
@@ -233,7 +236,9 @@ async def update_model_cost(req: UpdateCostRequest):
     from app.providers.model_registry import get_model_registry
 
     registry = get_model_registry()
-    ok = registry.update_cost(req.model_id, req.cost_per_1k_input, req.cost_per_1k_output)
+    ok = registry.update_cost(
+        req.model_id, req.cost_per_1k_input, req.cost_per_1k_output
+    )
     if not ok:
         raise HTTPException(status_code=404, detail=f"Model not found: {req.model_id}")
 

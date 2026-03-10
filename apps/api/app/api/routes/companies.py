@@ -49,9 +49,13 @@ async def list_companies(db: AsyncSession = Depends(get_db)):
     companies = result.scalars().all()
     return [
         CompanyResponse(
-            id=str(c.id), slug=c.slug, name=c.name,
-            mission=c.mission or "", description=c.description or "",
-            status=c.status, created_at=c.created_at,
+            id=str(c.id),
+            slug=c.slug,
+            name=c.name,
+            mission=c.mission or "",
+            description=c.description or "",
+            status=c.status,
+            created_at=c.created_at,
         )
         for c in companies
     ]
@@ -71,23 +75,33 @@ async def create_company(req: CompanyCreate, db: AsyncSession = Depends(get_db))
     db.add(company)
     await db.flush()
     return CompanyResponse(
-        id=str(company.id), slug=company.slug, name=company.name,
-        mission=company.mission or "", description=company.description or "",
-        status=company.status, created_at=company.created_at,
+        id=str(company.id),
+        slug=company.slug,
+        name=company.name,
+        mission=company.mission or "",
+        description=company.description or "",
+        status=company.status,
+        created_at=company.created_at,
     )
 
 
 @router.get("/{company_id}", response_model=CompanyResponse)
 async def get_company(company_id: str, db: AsyncSession = Depends(get_db)):
     """会社詳細を取得"""
-    result = await db.execute(select(Company).where(Company.id == uuid.UUID(company_id)))
+    result = await db.execute(
+        select(Company).where(Company.id == uuid.UUID(company_id))
+    )
     company = result.scalar_one_or_none()
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     return CompanyResponse(
-        id=str(company.id), slug=company.slug, name=company.name,
-        mission=company.mission or "", description=company.description or "",
-        status=company.status, created_at=company.created_at,
+        id=str(company.id),
+        slug=company.slug,
+        name=company.name,
+        mission=company.mission or "",
+        description=company.description or "",
+        status=company.status,
+        created_at=company.created_at,
     )
 
 
@@ -95,13 +109,28 @@ async def get_company(company_id: str, db: AsyncSession = Depends(get_db)):
 async def get_org_chart(company_id: str, db: AsyncSession = Depends(get_db)):
     """組織図を取得"""
     cid = uuid.UUID(company_id)
-    depts = (await db.execute(select(Department).where(Department.company_id == cid))).scalars().all()
-    teams = (await db.execute(select(Team).where(Team.company_id == cid))).scalars().all()
-    agents = (await db.execute(select(Agent).where(Agent.company_id == cid))).scalars().all()
+    depts = (
+        (await db.execute(select(Department).where(Department.company_id == cid)))
+        .scalars()
+        .all()
+    )
+    teams = (
+        (await db.execute(select(Team).where(Team.company_id == cid))).scalars().all()
+    )
+    agents = (
+        (await db.execute(select(Agent).where(Agent.company_id == cid))).scalars().all()
+    )
     return {
-        "departments": [{"id": str(d.id), "name": d.name, "code": d.code} for d in depts],
-        "teams": [{"id": str(t.id), "name": t.name, "purpose": t.purpose} for t in teams],
-        "agents": [{"id": str(a.id), "name": a.name, "title": a.title, "status": a.status} for a in agents],
+        "departments": [
+            {"id": str(d.id), "name": d.name, "code": d.code} for d in depts
+        ],
+        "teams": [
+            {"id": str(t.id), "name": t.name, "purpose": t.purpose} for t in teams
+        ],
+        "agents": [
+            {"id": str(a.id), "name": a.name, "title": a.title, "status": a.status}
+            for a in agents
+        ],
     }
 
 
@@ -117,13 +146,20 @@ async def list_departments(company_id: str, db: AsyncSession = Depends(get_db)):
     cid = uuid.UUID(company_id)
     result = await db.execute(select(Department).where(Department.company_id == cid))
     depts = result.scalars().all()
-    return [{"id": str(d.id), "name": d.name, "code": d.code, "description": d.description} for d in depts]
+    return [
+        {"id": str(d.id), "name": d.name, "code": d.code, "description": d.description}
+        for d in depts
+    ]
 
 
 @router.post("/{company_id}/departments")
-async def create_department(company_id: str, name: str = "", code: str = "", db: AsyncSession = Depends(get_db)):
+async def create_department(
+    company_id: str, name: str = "", code: str = "", db: AsyncSession = Depends(get_db)
+):
     """部署作成"""
-    dept = Department(id=uuid.uuid4(), company_id=uuid.UUID(company_id), name=name, code=code)
+    dept = Department(
+        id=uuid.uuid4(), company_id=uuid.UUID(company_id), name=name, code=code
+    )
     db.add(dept)
     await db.flush()
     return {"id": str(dept.id), "name": dept.name}
@@ -135,13 +171,27 @@ async def list_teams(company_id: str, db: AsyncSession = Depends(get_db)):
     cid = uuid.UUID(company_id)
     result = await db.execute(select(Team).where(Team.company_id == cid))
     teams = result.scalars().all()
-    return [{"id": str(t.id), "name": t.name, "purpose": t.purpose, "status": t.status} for t in teams]
+    return [
+        {"id": str(t.id), "name": t.name, "purpose": t.purpose, "status": t.status}
+        for t in teams
+    ]
 
 
 @router.post("/{company_id}/teams")
-async def create_team(company_id: str, name: str = "", purpose: str = "", db: AsyncSession = Depends(get_db)):
+async def create_team(
+    company_id: str,
+    name: str = "",
+    purpose: str = "",
+    db: AsyncSession = Depends(get_db),
+):
     """チーム作成"""
-    team = Team(id=uuid.uuid4(), company_id=uuid.UUID(company_id), name=name, purpose=purpose, status="active")
+    team = Team(
+        id=uuid.uuid4(),
+        company_id=uuid.UUID(company_id),
+        name=name,
+        purpose=purpose,
+        status="active",
+    )
     db.add(team)
     await db.flush()
     return {"id": str(team.id), "name": team.name}

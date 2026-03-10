@@ -6,7 +6,6 @@ import uuid
 from typing import Sequence
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.ticket import Ticket, TicketThread
 from app.repositories.base import BaseRepository
@@ -47,9 +46,7 @@ class TicketRepository(BaseRepository[Ticket]):
 class TicketThreadRepository(BaseRepository[TicketThread]):
     model_class = TicketThread
 
-    async def get_by_ticket(
-        self, ticket_id: uuid.UUID
-    ) -> Sequence[TicketThread]:
+    async def get_by_ticket(self, ticket_id: uuid.UUID) -> Sequence[TicketThread]:
         stmt = (
             select(TicketThread)
             .where(TicketThread.ticket_id == ticket_id)

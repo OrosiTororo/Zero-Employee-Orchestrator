@@ -19,7 +19,6 @@ import stat
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any
 
 from sqlalchemy import Boolean, JSON, String, Text, Uuid, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -38,6 +37,7 @@ class AccountType(str, Enum):
 
 class PermissionScope(str, Enum):
     """権限スコープ."""
+
     READ_TICKETS = "read:tickets"
     WRITE_TICKETS = "write:tickets"
     READ_CODE = "read:code"
@@ -58,25 +58,29 @@ class PermissionScope(str, Enum):
 
 
 # デフォルトのAIエージェント権限（人間より制限的）
-DEFAULT_AI_PERMISSIONS = frozenset({
-    PermissionScope.READ_TICKETS,
-    PermissionScope.WRITE_TICKETS,
-    PermissionScope.READ_CODE,
-    PermissionScope.WRITE_CODE,
-    PermissionScope.EXECUTE_TASKS,
-    PermissionScope.READ_KNOWLEDGE,
-    PermissionScope.WRITE_KNOWLEDGE,
-    PermissionScope.ACCESS_LOGS,
-    PermissionScope.READ_AUDIT,
-})
+DEFAULT_AI_PERMISSIONS = frozenset(
+    {
+        PermissionScope.READ_TICKETS,
+        PermissionScope.WRITE_TICKETS,
+        PermissionScope.READ_CODE,
+        PermissionScope.WRITE_CODE,
+        PermissionScope.EXECUTE_TASKS,
+        PermissionScope.READ_KNOWLEDGE,
+        PermissionScope.WRITE_KNOWLEDGE,
+        PermissionScope.ACCESS_LOGS,
+        PermissionScope.READ_AUDIT,
+    }
+)
 
 # AIエージェントに禁止される権限
-AI_DENIED_PERMISSIONS = frozenset({
-    PermissionScope.READ_SECRETS,
-    PermissionScope.ADMIN,
-    PermissionScope.MANAGE_IAM,
-    PermissionScope.APPROVE_ACTIONS,  # 承認は人間のみ
-})
+AI_DENIED_PERMISSIONS = frozenset(
+    {
+        PermissionScope.READ_SECRETS,
+        PermissionScope.ADMIN,
+        PermissionScope.MANAGE_IAM,
+        PermissionScope.APPROVE_ACTIONS,  # 承認は人間のみ
+    }
+)
 
 
 class IAMPolicy(Base):
@@ -85,7 +89,9 @@ class IAMPolicy(Base):
     __tablename__ = "iam_policies"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    company_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True, index=True)
+    company_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, nullable=True, index=True
+    )
     name: Mapped[str] = mapped_column(String(255))
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     account_type: Mapped[str] = mapped_column(String(30))
@@ -93,7 +99,9 @@ class IAMPolicy(Base):
     denied_permissions: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     conditions: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        default=func.now(), server_default=func.now()
+    )
 
 
 class AIServiceAccount(Base):
@@ -102,7 +110,9 @@ class AIServiceAccount(Base):
     __tablename__ = "ai_service_accounts"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    company_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True, index=True)
+    company_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, nullable=True, index=True
+    )
     agent_id: Mapped[str] = mapped_column(String(255), index=True)
     account_name: Mapped[str] = mapped_column(String(255))
     account_type: Mapped[str] = mapped_column(String(30), default="ai_agent")
@@ -111,14 +121,18 @@ class AIServiceAccount(Base):
     denied_resources: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     last_used_at: Mapped[datetime | None] = mapped_column(nullable=True)
-    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        default=func.now(), server_default=func.now()
+    )
 
 
 class IAMManager:
     """IAMアクセス制御マネージャー."""
 
     def __init__(self) -> None:
-        self._credential_dir = os.environ.get("CREDENTIAL_DIR", "/etc/zero-employee/credentials")
+        self._credential_dir = os.environ.get(
+            "CREDENTIAL_DIR", "/etc/zero-employee/credentials"
+        )
 
     async def create_ai_account(
         self,
@@ -140,7 +154,9 @@ class IAMManager:
 
         permissions = custom_permissions or [p.value for p in DEFAULT_AI_PERMISSIONS]
         # AIに禁止された権限を除外
-        permissions = [p for p in permissions if p not in {d.value for d in AI_DENIED_PERMISSIONS}]
+        permissions = [
+            p for p in permissions if p not in {d.value for d in AI_DENIED_PERMISSIONS}
+        ]
 
         account = AIServiceAccount(
             id=uuid.uuid4(),
@@ -155,7 +171,9 @@ class IAMManager:
         db.add(account)
         await db.flush()
 
-        logger.info("AI service account created: %s for agent %s", account_name, agent_id)
+        logger.info(
+            "AI service account created: %s for agent %s", account_name, agent_id
+        )
         return account, token
 
     async def verify_ai_token(
@@ -183,7 +201,11 @@ class IAMManager:
         required_permission: PermissionScope | str,
     ) -> bool:
         """権限チェック."""
-        perm = required_permission.value if isinstance(required_permission, PermissionScope) else required_permission
+        perm = (
+            required_permission.value
+            if isinstance(required_permission, PermissionScope)
+            else required_permission
+        )
 
         # 明示的に拒否されている場合
         if perm in {d.value for d in AI_DENIED_PERMISSIONS}:
@@ -248,7 +270,11 @@ class IAMManager:
         """AIサービスアカウント一覧."""
         stmt = select(AIServiceAccount).where(AIServiceAccount.is_active.is_(True))
         if company_id:
-            cid = uuid.UUID(str(company_id)) if not isinstance(company_id, uuid.UUID) else company_id
+            cid = (
+                uuid.UUID(str(company_id))
+                if not isinstance(company_id, uuid.UUID)
+                else company_id
+            )
             stmt = stmt.where(AIServiceAccount.company_id == cid)
         result = await db.execute(stmt)
         return list(result.scalars().all())
@@ -257,7 +283,11 @@ class IAMManager:
         self, db: AsyncSession, account_id: str | uuid.UUID
     ) -> bool:
         """AIサービスアカウントを無効化."""
-        aid = uuid.UUID(str(account_id)) if not isinstance(account_id, uuid.UUID) else account_id
+        aid = (
+            uuid.UUID(str(account_id))
+            if not isinstance(account_id, uuid.UUID)
+            else account_id
+        )
         result = await db.execute(
             select(AIServiceAccount).where(AIServiceAccount.id == aid)
         )

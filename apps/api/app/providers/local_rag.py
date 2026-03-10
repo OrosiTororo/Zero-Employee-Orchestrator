@@ -23,11 +23,10 @@ import hashlib
 import json
 import logging
 import math
-import os
 import re
 import time
 from collections import Counter
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Sequence
 
@@ -48,11 +47,11 @@ CHUNK_OVERLAP = 64
 
 # CJK character ranges for proper tokenization
 _CJK_RANGES = (
-    r"\u4e00-\u9fff"   # CJK Unified Ideographs
-    r"\u3040-\u309f"   # Hiragana
-    r"\u30a0-\u30ff"   # Katakana
-    r"\uff00-\uffef"   # Fullwidth Forms
-    r"\u3400-\u4dbf"   # CJK Unified Ideographs Extension A
+    r"\u4e00-\u9fff"  # CJK Unified Ideographs
+    r"\u3040-\u309f"  # Hiragana
+    r"\u30a0-\u30ff"  # Katakana
+    r"\uff00-\uffef"  # Fullwidth Forms
+    r"\u3400-\u4dbf"  # CJK Unified Ideographs Extension A
 )
 
 _TOKEN_PATTERN = re.compile(
@@ -60,31 +59,188 @@ _TOKEN_PATTERN = re.compile(
     re.UNICODE,
 )
 
-_STOPWORDS_EN = frozenset({
-    "the", "a", "an", "is", "are", "was", "were", "be", "been", "being",
-    "have", "has", "had", "do", "does", "did", "will", "would", "could",
-    "should", "may", "might", "shall", "can", "need", "dare", "ought",
-    "used", "to", "of", "in", "for", "on", "with", "at", "by", "from",
-    "as", "into", "through", "during", "before", "after", "above", "below",
-    "between", "out", "off", "over", "under", "again", "further", "then",
-    "once", "here", "there", "when", "where", "why", "how", "all", "both",
-    "each", "few", "more", "most", "other", "some", "such", "no", "nor",
-    "not", "only", "own", "same", "so", "than", "too", "very", "just",
-    "don", "now", "and", "but", "or", "if", "this", "that", "these",
-    "those", "it", "its", "i", "me", "my", "we", "our", "you", "your",
-    "he", "him", "his", "she", "her", "they", "them", "their", "what",
-    "which", "who", "whom",
-})
+_STOPWORDS_EN = frozenset(
+    {
+        "the",
+        "a",
+        "an",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "being",
+        "have",
+        "has",
+        "had",
+        "do",
+        "does",
+        "did",
+        "will",
+        "would",
+        "could",
+        "should",
+        "may",
+        "might",
+        "shall",
+        "can",
+        "need",
+        "dare",
+        "ought",
+        "used",
+        "to",
+        "of",
+        "in",
+        "for",
+        "on",
+        "with",
+        "at",
+        "by",
+        "from",
+        "as",
+        "into",
+        "through",
+        "during",
+        "before",
+        "after",
+        "above",
+        "below",
+        "between",
+        "out",
+        "off",
+        "over",
+        "under",
+        "again",
+        "further",
+        "then",
+        "once",
+        "here",
+        "there",
+        "when",
+        "where",
+        "why",
+        "how",
+        "all",
+        "both",
+        "each",
+        "few",
+        "more",
+        "most",
+        "other",
+        "some",
+        "such",
+        "no",
+        "nor",
+        "not",
+        "only",
+        "own",
+        "same",
+        "so",
+        "than",
+        "too",
+        "very",
+        "just",
+        "don",
+        "now",
+        "and",
+        "but",
+        "or",
+        "if",
+        "this",
+        "that",
+        "these",
+        "those",
+        "it",
+        "its",
+        "i",
+        "me",
+        "my",
+        "we",
+        "our",
+        "you",
+        "your",
+        "he",
+        "him",
+        "his",
+        "she",
+        "her",
+        "they",
+        "them",
+        "their",
+        "what",
+        "which",
+        "who",
+        "whom",
+    }
+)
 
-_STOPWORDS_JA = frozenset({
-    "の", "に", "は", "を", "た", "が", "で", "て", "と", "し", "れ",
-    "さ", "ある", "いる", "も", "する", "から", "な", "こと", "として",
-    "い", "や", "れる", "など", "なっ", "ない", "この", "ため", "その",
-    "あっ", "よう", "また", "もの", "という", "あり", "まで", "られ",
-    "なる", "へ", "か", "だ", "これ", "によって", "により", "おり",
-    "より", "による", "ず", "なり", "られる", "において", "ば", "なかっ",
-    "なく", "しかし", "について", "せ", "だっ", "み", "え", "よ", "ね",
-})
+_STOPWORDS_JA = frozenset(
+    {
+        "の",
+        "に",
+        "は",
+        "を",
+        "た",
+        "が",
+        "で",
+        "て",
+        "と",
+        "し",
+        "れ",
+        "さ",
+        "ある",
+        "いる",
+        "も",
+        "する",
+        "から",
+        "な",
+        "こと",
+        "として",
+        "い",
+        "や",
+        "れる",
+        "など",
+        "なっ",
+        "ない",
+        "この",
+        "ため",
+        "その",
+        "あっ",
+        "よう",
+        "また",
+        "もの",
+        "という",
+        "あり",
+        "まで",
+        "られ",
+        "なる",
+        "へ",
+        "か",
+        "だ",
+        "これ",
+        "によって",
+        "により",
+        "おり",
+        "より",
+        "による",
+        "ず",
+        "なり",
+        "られる",
+        "において",
+        "ば",
+        "なかっ",
+        "なく",
+        "しかし",
+        "について",
+        "せ",
+        "だっ",
+        "み",
+        "え",
+        "よ",
+        "ね",
+    }
+)
 
 STOPWORDS = _STOPWORDS_EN | _STOPWORDS_JA
 
@@ -100,12 +256,15 @@ def tokenize(text: str) -> list[str]:
     """
     tokens = _TOKEN_PATTERN.findall(text.lower())
     return [
-        t for t in tokens
+        t
+        for t in tokens
         if t not in STOPWORDS and (len(t) > 1 or _CJK_CHAR_RE.match(t))
     ]
 
 
-def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> list[str]:
+def chunk_text(
+    text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP
+) -> list[str]:
     """Split text into overlapping chunks for indexing."""
     words = text.split()
     if len(words) <= chunk_size:
@@ -126,9 +285,11 @@ def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVE
 # TF-IDF Vector
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class TFIDFVector:
     """Sparse TF-IDF vector represented as a dict of term→weight."""
+
     weights: dict[str, float] = field(default_factory=dict)
 
     def norm(self) -> float:
@@ -169,9 +330,11 @@ def cosine_similarity(a: TFIDFVector, b: TFIDFVector) -> float:
 # Document store
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class Document:
     """A stored document with its vector representation."""
+
     id: str
     content: str
     metadata: dict = field(default_factory=dict)
@@ -201,6 +364,7 @@ class Document:
 @dataclass
 class SearchResult:
     """A search result with relevance score."""
+
     document: Document
     score: float
     chunk_text: str = ""
@@ -209,6 +373,7 @@ class SearchResult:
 # ---------------------------------------------------------------------------
 # Local Vector Store
 # ---------------------------------------------------------------------------
+
 
 class LocalVectorStore:
     """File-based vector store using TF-IDF + cosine similarity.
@@ -276,10 +441,7 @@ class LocalVectorStore:
         """Persist documents and IDF to disk."""
         self._store_dir.mkdir(parents=True, exist_ok=True)
 
-        index_data = {
-            doc_id: doc.to_dict()
-            for doc_id, doc in self._documents.items()
-        }
+        index_data = {doc_id: doc.to_dict() for doc_id, doc in self._documents.items()}
         self._index_path().write_text(
             json.dumps(index_data, ensure_ascii=False, indent=2),
             encoding="utf-8",
@@ -308,8 +470,7 @@ class LocalVectorStore:
 
         # IDF = log(N / df) + 1  (smoothed)
         self._idf = {
-            term: math.log(n_docs / freq) + 1.0
-            for term, freq in doc_freq.items()
+            term: math.log(n_docs / freq) + 1.0 for term, freq in doc_freq.items()
         }
 
     def _compute_tfidf(self, text: str) -> TFIDFVector:
@@ -403,7 +564,11 @@ class LocalVectorStore:
                 doc = Document(
                     id=chunk_id,
                     content=chunk,
-                    metadata={**metadata, "chunk_index": i, "total_chunks": len(chunks)},
+                    metadata={
+                        **metadata,
+                        "chunk_index": i,
+                        "total_chunks": len(chunks),
+                    },
                     created_at=time.time(),
                 )
                 self._documents[chunk_id] = doc
@@ -468,18 +633,19 @@ class LocalVectorStore:
             # Apply metadata filter
             if metadata_filter:
                 if not all(
-                    doc.metadata.get(k) == v
-                    for k, v in metadata_filter.items()
+                    doc.metadata.get(k) == v for k, v in metadata_filter.items()
                 ):
                     continue
 
             score = cosine_similarity(query_vector, doc.vector)
             if score >= min_score:
-                results.append(SearchResult(
-                    document=doc,
-                    score=score,
-                    chunk_text=doc.content,
-                ))
+                results.append(
+                    SearchResult(
+                        document=doc,
+                        score=score,
+                        chunk_text=doc.content,
+                    )
+                )
 
         # Sort by score descending
         results.sort(key=lambda r: r.score, reverse=True)
@@ -515,6 +681,7 @@ class LocalVectorStore:
 # Ollama Embedding support (optional, higher quality)
 # ---------------------------------------------------------------------------
 
+
 class OllamaEmbeddingStore(LocalVectorStore):
     """Extended vector store that can use Ollama's embedding API.
 
@@ -536,6 +703,7 @@ class OllamaEmbeddingStore(LocalVectorStore):
         """Check if Ollama embedding model is available."""
         try:
             import httpx
+
             async with httpx.AsyncClient(timeout=5.0) as client:
                 resp = await client.post(
                     f"{self._ollama_url}/api/embeddings",
@@ -552,6 +720,7 @@ class OllamaEmbeddingStore(LocalVectorStore):
             return None
         try:
             import httpx
+
             async with httpx.AsyncClient(timeout=30.0) as client:
                 resp = await client.post(
                     f"{self._ollama_url}/api/embeddings",

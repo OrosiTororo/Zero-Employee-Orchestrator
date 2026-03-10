@@ -34,16 +34,16 @@ _HEALTH_CHECK_TTL = 300  # 5 minutes
 class ModelEntry:
     """個別モデルの定義."""
 
-    id: str                          # e.g. "anthropic/claude-opus-4-6"
-    provider: str                    # e.g. "anthropic"
-    display_name: str                # e.g. "Claude Opus 4.6"
+    id: str  # e.g. "anthropic/claude-opus-4-6"
+    provider: str  # e.g. "anthropic"
+    display_name: str  # e.g. "Claude Opus 4.6"
     cost_per_1k_input: float = 0.0
     cost_per_1k_output: float = 0.0
     max_tokens: int = 4096
     supports_tools: bool = False
     supports_vision: bool = False
-    deprecated: bool = False         # サービス終了フラグ
-    successor: str | None = None     # 後継モデル ID
+    deprecated: bool = False  # サービス終了フラグ
+    successor: str | None = None  # 後継モデル ID
     tags: list[str] = field(default_factory=list)  # e.g. ["quality", "speed"]
 
 
@@ -88,7 +88,9 @@ class ModelRegistry:
     """
 
     def __init__(self, catalog_path: str | Path | None = None) -> None:
-        self._catalog_path = Path(catalog_path) if catalog_path else _DEFAULT_CATALOG_PATH
+        self._catalog_path = (
+            Path(catalog_path) if catalog_path else _DEFAULT_CATALOG_PATH
+        )
         self._models: dict[str, ModelEntry] = {}
         self._mode_catalog = ModeCatalog()
         self._quality_sla = QualitySLAModels()
@@ -229,12 +231,15 @@ class ModelRegistry:
             if successor and not successor.deprecated:
                 logger.info(
                     "Model %s is deprecated, using successor %s",
-                    model_id, entry.successor,
+                    model_id,
+                    entry.successor,
                 )
                 return successor
         return entry
 
-    def list_models(self, provider: str | None = None, include_deprecated: bool = False) -> list[ModelEntry]:
+    def list_models(
+        self, provider: str | None = None, include_deprecated: bool = False
+    ) -> list[ModelEntry]:
         """モデル一覧を取得."""
         result = []
         for m in self._models.values():
@@ -272,7 +277,9 @@ class ModelRegistry:
             "fallback": self._resolve_deprecated(sla.get("fallback", [])),
         }
 
-    def estimate_cost(self, model_id: str, input_tokens: int, output_tokens: int) -> float:
+    def estimate_cost(
+        self, model_id: str, input_tokens: int, output_tokens: int
+    ) -> float:
         """モデルのコストを見積もる."""
         # g4f / ollama は常に無料
         if model_id.startswith(("g4f/", "ollama/")):
@@ -280,9 +287,8 @@ class ModelRegistry:
 
         entry = self._models.get(model_id)
         if entry:
-            return (
-                (input_tokens / 1000 * entry.cost_per_1k_input)
-                + (output_tokens / 1000 * entry.cost_per_1k_output)
+            return (input_tokens / 1000 * entry.cost_per_1k_input) + (
+                output_tokens / 1000 * entry.cost_per_1k_output
             )
         # フォールバック: 未知のモデルは中程度のコストを仮定
         return (input_tokens / 1000 * 0.001) + (output_tokens / 1000 * 0.002)
@@ -333,7 +339,9 @@ class ModelRegistry:
             return False
         entry.deprecated = True
         entry.successor = successor
-        logger.info("Marked model %s as deprecated (successor: %s)", model_id, successor)
+        logger.info(
+            "Marked model %s as deprecated (successor: %s)", model_id, successor
+        )
         return True
 
     def get_deprecated_models(self) -> list[ModelEntry]:
@@ -416,7 +424,8 @@ class ModelRegistry:
         has_key = bool(os.environ.get(env_key, ""))
 
         available_models = [
-            m.id for m in self._models.values()
+            m.id
+            for m in self._models.values()
             if m.provider == provider and not m.deprecated
         ]
 
@@ -432,8 +441,10 @@ class ModelRegistry:
         """g4f の可用性チェック."""
         try:
             import g4f  # noqa: F401
+
             available_models = [
-                m.id for m in self._models.values()
+                m.id
+                for m in self._models.values()
                 if m.provider == "g4f" and not m.deprecated
             ]
             return ProviderHealthStatus(

@@ -46,8 +46,9 @@ async def create_ticket(
 ) -> Ticket:
     # Auto-increment ticket_no within company
     result = await db.execute(
-        select(func.coalesce(func.max(Ticket.ticket_no), 0))
-        .where(Ticket.company_id == uuid.UUID(company_id))
+        select(func.coalesce(func.max(Ticket.ticket_no), 0)).where(
+            Ticket.company_id == uuid.UUID(company_id)
+        )
     )
     next_no = result.scalar() + 1
 

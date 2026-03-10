@@ -5,29 +5,36 @@ from httpx import AsyncClient
 
 
 @pytest.mark.asyncio
-async def test_login_creates_user(client: AsyncClient):
-    """ログインで新規ユーザーが作成される."""
+async def test_register_creates_user(client: AsyncClient):
+    """登録で新規ユーザーが作成される."""
     response = await client.post(
-        "/api/v1/auth/login",
-        json={"email": "test@example.com", "auth_provider": "local"},
+        "/api/v1/auth/register",
+        json={
+            "email": "test@example.com",
+            "password": "testpassword123",
+            "display_name": "test",
+        },
     )
     assert response.status_code == 200
     data = response.json()
     assert data["display_name"] == "test"
-    assert data["role"] == "owner"
-    assert "token" in data
+    assert "access_token" in data
 
 
 @pytest.mark.asyncio
 async def test_login_existing_user(client: AsyncClient):
     """既存ユーザーで再ログインできる."""
     await client.post(
-        "/api/v1/auth/login",
-        json={"email": "test@example.com", "auth_provider": "local"},
+        "/api/v1/auth/register",
+        json={
+            "email": "test2@example.com",
+            "password": "testpassword123",
+            "display_name": "test2",
+        },
     )
     response = await client.post(
         "/api/v1/auth/login",
-        json={"email": "test@example.com", "auth_provider": "local"},
+        json={"email": "test2@example.com", "password": "testpassword123"},
     )
     assert response.status_code == 200
 

@@ -52,7 +52,8 @@ class ExecutionDAG:
             if node.status != TaskNodeStatus.PENDING:
                 continue
             deps_satisfied = all(
-                self._node_map.get(dep_id, TaskNode(id="")).status == TaskNodeStatus.SUCCEEDED
+                self._node_map.get(dep_id, TaskNode(id="")).status
+                == TaskNodeStatus.SUCCEEDED
                 for dep_id in node.depends_on
             )
             if deps_satisfied:

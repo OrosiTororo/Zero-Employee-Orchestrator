@@ -24,7 +24,6 @@ Security (borrowed from vibe-local)
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import re
@@ -100,6 +99,7 @@ RECOMMENDED_MODELS: dict[str, dict] = {
 # Security helpers
 # ---------------------------------------------------------------------------
 
+
 def _is_private_ip(host: str) -> bool:
     """Check if a hostname resolves to a private/loopback IP address."""
     try:
@@ -122,6 +122,7 @@ def validate_ollama_url(base_url: str) -> bool:
     """
     try:
         from urllib.parse import urlparse
+
         parsed = urlparse(base_url)
         host = parsed.hostname or "localhost"
         return _is_private_ip(host)
@@ -133,9 +134,11 @@ def validate_ollama_url(base_url: str) -> bool:
 # Data classes
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class OllamaModelInfo:
     """Information about a model available on the Ollama instance."""
+
     name: str
     size: int = 0  # bytes
     modified_at: str = ""
@@ -146,6 +149,7 @@ class OllamaModelInfo:
 @dataclass
 class OllamaResponse:
     """Response from Ollama completion."""
+
     content: str
     model_used: str
     provider: str = "ollama_direct"
@@ -170,12 +174,12 @@ _TOOL_PATTERNS = [
     ),
     # <function=ToolName>{"key": "value"}</function>
     re.compile(
-        r'<function=(\w+)>(.*?)</function>',
+        r"<function=(\w+)>(.*?)</function>",
         re.DOTALL,
     ),
     # <tool_call>{"name": "...", "arguments": {...}}</tool_call>
     re.compile(
-        r'<tool_call>(.*?)</tool_call>',
+        r"<tool_call>(.*?)</tool_call>",
         re.DOTALL,
     ),
 ]
@@ -201,11 +205,13 @@ def extract_tool_calls_from_text(text: str) -> list[dict]:
         params = {}
         for param_match in _PARAM_PATTERN.finditer(body):
             params[param_match.group(1)] = param_match.group(2).strip()
-        tool_calls.append({
-            "id": f"toolu_local_{len(tool_calls)}",
-            "function": name,
-            "arguments": json.dumps(params),
-        })
+        tool_calls.append(
+            {
+                "id": f"toolu_local_{len(tool_calls)}",
+                "function": name,
+                "arguments": json.dumps(params),
+            }
+        )
 
     if tool_calls:
         return tool_calls
@@ -217,11 +223,13 @@ def extract_tool_calls_from_text(text: str) -> list[dict]:
             args = json.loads(match.group(2).strip())
         except json.JSONDecodeError:
             args = {"raw": match.group(2).strip()}
-        tool_calls.append({
-            "id": f"toolu_local_{len(tool_calls)}",
-            "function": name,
-            "arguments": json.dumps(args),
-        })
+        tool_calls.append(
+            {
+                "id": f"toolu_local_{len(tool_calls)}",
+                "function": name,
+                "arguments": json.dumps(args),
+            }
+        )
 
     if tool_calls:
         return tool_calls
@@ -230,11 +238,13 @@ def extract_tool_calls_from_text(text: str) -> list[dict]:
     for match in _TOOL_PATTERNS[2].finditer(text):
         try:
             data = json.loads(match.group(1).strip())
-            tool_calls.append({
-                "id": f"toolu_local_{len(tool_calls)}",
-                "function": data.get("name", "unknown"),
-                "arguments": json.dumps(data.get("arguments", {})),
-            })
+            tool_calls.append(
+                {
+                    "id": f"toolu_local_{len(tool_calls)}",
+                    "function": data.get("name", "unknown"),
+                    "arguments": json.dumps(data.get("arguments", {})),
+                }
+            )
         except json.JSONDecodeError:
             pass
 
@@ -244,6 +254,7 @@ def extract_tool_calls_from_text(text: str) -> list[dict]:
 # ---------------------------------------------------------------------------
 # Ollama Provider
 # ---------------------------------------------------------------------------
+
 
 class OllamaProvider:
     """Direct HTTP provider for Ollama.
@@ -312,13 +323,15 @@ class OllamaProvider:
 
             models = []
             for m in data.get("models", []):
-                models.append(OllamaModelInfo(
-                    name=m.get("name", ""),
-                    size=m.get("size", 0),
-                    modified_at=m.get("modified_at", ""),
-                    digest=m.get("digest", ""),
-                    details=m.get("details", {}),
-                ))
+                models.append(
+                    OllamaModelInfo(
+                        name=m.get("name", ""),
+                        size=m.get("size", 0),
+                        modified_at=m.get("modified_at", ""),
+                        digest=m.get("digest", ""),
+                        details=m.get("details", {}),
+                    )
+                )
 
             self._models_cache = models
             self._cache_time = now
@@ -371,10 +384,18 @@ class OllamaProvider:
 
         # Priority order for coding/orchestration tasks
         priority = [
-            "qwen3-coder", "qwen3:32b", "qwen3:8b", "qwen3",
-            "deepseek-coder-v2", "codellama",
-            "llama3.2", "llama3.1", "llama3",
-            "mistral", "phi3", "gemma2",
+            "qwen3-coder",
+            "qwen3:32b",
+            "qwen3:8b",
+            "qwen3",
+            "deepseek-coder-v2",
+            "codellama",
+            "llama3.2",
+            "llama3.1",
+            "llama3",
+            "mistral",
+            "phi3",
+            "gemma2",
         ]
 
         for preferred in priority:
@@ -469,11 +490,13 @@ class OllamaProvider:
             if message.get("tool_calls"):
                 for tc in message["tool_calls"]:
                     func = tc.get("function", {})
-                    tool_calls.append({
-                        "id": f"toolu_local_{len(tool_calls)}",
-                        "function": func.get("name", ""),
-                        "arguments": json.dumps(func.get("arguments", {})),
-                    })
+                    tool_calls.append(
+                        {
+                            "id": f"toolu_local_{len(tool_calls)}",
+                            "function": func.get("name", ""),
+                            "arguments": json.dumps(func.get("arguments", {})),
+                        }
+                    )
 
             # Fallback: extract XML-style tool calls from text
             if not tool_calls and tools and content:
@@ -600,6 +623,7 @@ class OllamaProvider:
 # Fallback chain for Ollama models
 # ---------------------------------------------------------------------------
 
+
 async def complete_with_ollama_fallback(
     provider: OllamaProvider,
     messages: list[dict],
@@ -627,7 +651,10 @@ async def complete_with_ollama_fallback(
 
     for model in models_to_try:
         # Skip models not actually installed
-        if not any(model in name or name.split(":")[0] == model.split(":")[0] for name in available):
+        if not any(
+            model in name or name.split(":")[0] == model.split(":")[0]
+            for name in available
+        ):
             continue
 
         resp = await provider.complete(

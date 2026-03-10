@@ -33,18 +33,30 @@ async def list_projects(company_id: str, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Project).where(Project.company_id == cid))
     projects = result.scalars().all()
     return [
-        {"id": str(p.id), "name": p.name, "goal": p.goal, "priority": p.priority, "status": p.status}
+        {
+            "id": str(p.id),
+            "name": p.name,
+            "goal": p.goal,
+            "priority": p.priority,
+            "status": p.status,
+        }
         for p in projects
     ]
 
 
 @router.post("/companies/{company_id}/projects")
-async def create_project(company_id: str, req: ProjectCreate, db: AsyncSession = Depends(get_db)):
+async def create_project(
+    company_id: str, req: ProjectCreate, db: AsyncSession = Depends(get_db)
+):
     """プロジェクト作成"""
     project = Project(
-        id=uuid.uuid4(), company_id=uuid.UUID(company_id),
-        name=req.name, goal=req.goal, description=req.description,
-        priority=req.priority, status="active",
+        id=uuid.uuid4(),
+        company_id=uuid.UUID(company_id),
+        name=req.name,
+        goal=req.goal,
+        description=req.description,
+        priority=req.priority,
+        status="active",
     )
     db.add(project)
     await db.flush()
@@ -58,18 +70,28 @@ async def list_goals(project_id: str, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Goal).where(Goal.project_id == pid))
     goals = result.scalars().all()
     return [
-        {"id": str(g.id), "title": g.title, "goal_level": g.goal_level, "status": g.status}
+        {
+            "id": str(g.id),
+            "title": g.title,
+            "goal_level": g.goal_level,
+            "status": g.status,
+        }
         for g in goals
     ]
 
 
 @router.post("/projects/{project_id}/goals")
-async def create_goal(project_id: str, req: GoalCreate, db: AsyncSession = Depends(get_db)):
+async def create_goal(
+    project_id: str, req: GoalCreate, db: AsyncSession = Depends(get_db)
+):
     """目標作成"""
     goal = Goal(
-        id=uuid.uuid4(), project_id=uuid.UUID(project_id),
-        title=req.title, description=req.description,
-        goal_level=req.goal_level, status="active",
+        id=uuid.uuid4(),
+        project_id=uuid.UUID(project_id),
+        title=req.title,
+        description=req.description,
+        goal_level=req.goal_level,
+        status="active",
     )
     db.add(goal)
     await db.flush()

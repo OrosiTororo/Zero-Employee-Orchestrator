@@ -73,7 +73,7 @@ class ArtifactBridge:
     def __init__(self) -> None:
         self._artifacts: dict[str, ArtifactRef] = {}
         self._task_outputs: dict[str, list[str]] = {}  # task_id -> [artifact_id, ...]
-        self._task_inputs: dict[str, list[str]] = {}   # task_id -> [artifact_id, ...]
+        self._task_inputs: dict[str, list[str]] = {}  # task_id -> [artifact_id, ...]
 
     def register_output(
         self,
@@ -127,9 +127,13 @@ class ArtifactBridge:
     def get_artifact(self, artifact_id: str) -> ArtifactRef | None:
         return self._artifacts.get(artifact_id)
 
-    def list_artifacts(self, artifact_type: ArtifactType | None = None) -> list[ArtifactRef]:
+    def list_artifacts(
+        self, artifact_type: ArtifactType | None = None
+    ) -> list[ArtifactRef]:
         if artifact_type:
-            return [a for a in self._artifacts.values() if a.artifact_type == artifact_type]
+            return [
+                a for a in self._artifacts.values() if a.artifact_type == artifact_type
+            ]
         return list(self._artifacts.values())
 
 

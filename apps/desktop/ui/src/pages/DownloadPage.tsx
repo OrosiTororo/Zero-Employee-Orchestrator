@@ -13,7 +13,7 @@ import {
 } from "lucide-react"
 import { useState, useEffect, useCallback } from "react"
 
-const REPO = "TroroOrosi/Zero-Employee-Orchestrator"
+const REPO = "OrosiTororo/Zero-Employee-Orchestrator"
 
 interface ReleaseAsset {
   name: string
@@ -200,7 +200,7 @@ export function DownloadPage() {
                 ソースからビルド
               </div>
               <div className="flex flex-col gap-2">
-                <CommandBlock command="git clone https://github.com/TroroOrosi/Zero-Employee-Orchestrator.git" />
+                <CommandBlock command="git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git" />
                 <CommandBlock command="cd Zero-Employee-Orchestrator/apps/desktop" />
                 <CommandBlock
                   command="pnpm install && pnpm tauri build"
@@ -247,7 +247,7 @@ export function DownloadPage() {
                 ソースから実行
               </div>
               <div className="flex flex-col gap-2">
-                <CommandBlock command="git clone https://github.com/TroroOrosi/Zero-Employee-Orchestrator.git" />
+                <CommandBlock command="git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git" />
                 <CommandBlock command="cd Zero-Employee-Orchestrator" />
                 <CommandBlock
                   command="uv sync && uv run python -m apps.api.app.main"

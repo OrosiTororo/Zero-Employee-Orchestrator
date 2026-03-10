@@ -34,7 +34,7 @@
 ### クイックセットアップ
 
 ```bash
-git clone https://github.com/TroroOrosi/Zero-Employee-Orchestrator.git
+git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
 cd Zero-Employee-Orchestrator
 ./setup.sh   # 依存関係の自動インストール・環境構築
 ./start.sh   # バックエンド + フロントエンドを起動

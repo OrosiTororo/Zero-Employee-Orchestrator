@@ -43,9 +43,7 @@ async def start_task(
     task.started_at = datetime.now(timezone.utc)
 
     # Count existing runs
-    result = await db.execute(
-        select(TaskRun).where(TaskRun.task_id == task.id)
-    )
+    result = await db.execute(select(TaskRun).where(TaskRun.task_id == task.id))
     existing_runs = len(result.scalars().all())
 
     run = TaskRun(

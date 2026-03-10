@@ -87,7 +87,9 @@ class HeartbeatExecution:
 
     def finish(self, success: bool = True, summary: str = "") -> None:
         self.finished_at = datetime.now(timezone.utc)
-        self.status = HeartbeatRunStatus.SUCCEEDED if success else HeartbeatRunStatus.FAILED
+        self.status = (
+            HeartbeatRunStatus.SUCCEEDED if success else HeartbeatRunStatus.FAILED
+        )
         self.summary = summary
 
 
@@ -119,22 +121,28 @@ async def execute_heartbeat(
 
     try:
         # 1. 未完了タスク確認
-        execution.add_action(HeartbeatAction(
-            action_type="check_tasks",
-            description="未完了タスクの確認",
-        ))
+        execution.add_action(
+            HeartbeatAction(
+                action_type="check_tasks",
+                description="未完了タスクの確認",
+            )
+        )
 
         # 2. 依存関係確認
-        execution.add_action(HeartbeatAction(
-            action_type="check_dependencies",
-            description="依存関係の確認",
-        ))
+        execution.add_action(
+            HeartbeatAction(
+                action_type="check_dependencies",
+                description="依存関係の確認",
+            )
+        )
 
         # 3. 予算・権限・期限確認
-        execution.add_action(HeartbeatAction(
-            action_type="check_constraints",
-            description="予算・権限・期限の確認",
-        ))
+        execution.add_action(
+            HeartbeatAction(
+                action_type="check_constraints",
+                description="予算・権限・期限の確認",
+            )
+        )
 
         execution.finish(success=True, summary="Heartbeat 完了: 全チェック正常")
 

@@ -16,7 +16,6 @@ from app.services.task_service import (
     request_task_approval as svc_request_approval,
     validate_task_transition,
 )
-from app.services.approval_service import requires_forced_approval
 
 router = APIRouter()
 
@@ -30,7 +29,9 @@ class TaskCreate(BaseModel):
 
 
 @router.post("/plans/{plan_id}/tasks")
-async def create_task(plan_id: str, req: TaskCreate, db: AsyncSession = Depends(get_db)):
+async def create_task(
+    plan_id: str, req: TaskCreate, db: AsyncSession = Depends(get_db)
+):
     """タスク作成"""
     task = Task(
         id=uuid.uuid4(),
@@ -91,7 +92,9 @@ async def retry_task(task_id: str, db: AsyncSession = Depends(get_db)):
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     if not validate_task_transition(task.status, "retrying"):
-        raise HTTPException(status_code=400, detail=f"Cannot retry from status: {task.status}")
+        raise HTTPException(
+            status_code=400, detail=f"Cannot retry from status: {task.status}"
+        )
     task.status = "retrying"
     await db.commit()
     return {"status": "retrying"}
@@ -133,11 +136,15 @@ async def create_task_run(task_id: str, db: AsyncSession = Depends(get_db)):
 async def list_task_runs(task_id: str, db: AsyncSession = Depends(get_db)):
     """タスク実行履歴"""
     tid = uuid.UUID(task_id)
-    result = await db.execute(select(TaskRun).where(TaskRun.task_id == tid).order_by(TaskRun.run_no.desc()))
+    result = await db.execute(
+        select(TaskRun).where(TaskRun.task_id == tid).order_by(TaskRun.run_no.desc())
+    )
     runs = result.scalars().all()
     return [
         {
-            "id": str(r.id), "run_no": r.run_no, "status": r.status,
+            "id": str(r.id),
+            "run_no": r.run_no,
+            "status": r.status,
             "started_at": r.started_at.isoformat() if r.started_at else None,
             "finished_at": r.finished_at.isoformat() if r.finished_at else None,
         }
