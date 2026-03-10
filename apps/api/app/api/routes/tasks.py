@@ -1,7 +1,7 @@
 """Task execution endpoints with state machine enforcement."""
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -125,7 +125,7 @@ async def create_task_run(task_id: str, db: AsyncSession = Depends(get_db)):
         task_id=tid,
         run_no=count + 1,
         status="running",
-        started_at=datetime.utcnow(),
+        started_at=datetime.now(timezone.utc),
     )
     db.add(run)
     await db.flush()

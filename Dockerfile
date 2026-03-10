@@ -51,7 +51,7 @@ USER zeapp
 # 環境変数
 ENV PYTHONPATH=/app/apps/api \
     DATABASE_URL=sqlite+aiosqlite:///./data/zero_employee_orchestrator.db \
-    DEBUG=true \
+    DEBUG=${DEBUG:-false} \
     RAG_STORE_DIR=/app/.zero_employee/rag_store \
     CREDENTIAL_DIR=/etc/zero-employee/credentials
 

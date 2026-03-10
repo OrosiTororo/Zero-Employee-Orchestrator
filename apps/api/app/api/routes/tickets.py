@@ -1,7 +1,7 @@
 """Ticket management endpoints."""
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -270,6 +270,7 @@ async def update_ticket(
         ticket.title = title
     if status:
         ticket.status = status
+    await db.commit()
     return {"status": "updated"}
 
 
@@ -325,7 +326,8 @@ async def close_ticket(ticket_id: str, db: AsyncSession = Depends(get_db)):
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
     ticket.status = "done"
-    ticket.closed_at = datetime.utcnow()
+    ticket.closed_at = datetime.now(timezone.utc)
+    await db.commit()
     return {"status": "closed"}
 
 
@@ -338,4 +340,5 @@ async def reopen_ticket(ticket_id: str, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Ticket not found")
     ticket.status = "reopened"
     ticket.closed_at = None
+    await db.commit()
     return {"status": "reopened"}

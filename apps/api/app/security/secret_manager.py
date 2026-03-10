@@ -99,7 +99,12 @@ class SecretStore:
         self._store: dict[str, str] = {}
 
     def store(self, name: str, value: str) -> SecretMetadata:
-        """シークレットを保存する（本番では暗号化保存を使用）."""
+        """シークレットを保存する.
+
+        WARNING: 現在の実装は base64 エンコーディングのみで暗号化されていません。
+        本番環境では cryptography.Fernet 等による暗号化、または
+        AWS Secrets Manager / HashiCorp Vault 等の外部 Secret Manager を使用してください。
+        """
         encoded = base64.b64encode(value.encode()).decode()
         self._store[name] = encoded
         return SecretMetadata(

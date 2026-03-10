@@ -152,7 +152,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `integrations/mcp_server.py` → Extension
 - `integrations/external_skills.py` → Extension
 
-### Initial Implementation (0.1.0-alpha — 2026-03-09)
+### Initial Implementation (Pre-release — 2026-03-09)
 
 - 9 層アーキテクチャの初期実装
   - User Layer / Design Interview / Task Orchestrator / Skill Layer / Judge Layer / Re-Propose Layer / State & Memory / Provider Interface / Skill Registry
@@ -179,7 +179,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - README・DESIGN.md・MASTER_GUIDE.md
   - 各セクション実装ガイド (instructions_section2〜7)
 
-## [0.5.0] - 2026-03-10 — Skills Management v0.1
+## Development History (Pre-release milestones, consolidated into v0.1.0)
+
+## [0.5.0] - 2026-03-10 — Skills Management
 
 ### Added
 

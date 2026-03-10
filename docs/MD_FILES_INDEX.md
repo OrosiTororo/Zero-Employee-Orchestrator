@@ -123,6 +123,17 @@
 
 ---
 
+### `docs/SCALING_AND_COSTS.md`
+
+| 項目 | 内容 |
+|------|------|
+| **場所** | `/docs/SCALING_AND_COSTS.md` |
+| **目的** | コスト・ハードウェア制約・大規模プロジェクト活用例をまとめたガイド |
+| **対象読者** | 導入検討者・運用者・経営者 |
+| **主な内容** | LLM API コスト一覧、無料利用範囲、ハードウェア要件、v0.1 未実装機能、5つの大規模プロジェクト活用例、コスト最適化戦略 |
+
+---
+
 ### `docs/MD_FILES_INDEX.md`
 
 | 項目 | 内容 |
@@ -260,6 +271,7 @@
 なぜ必要か       → docs/ABOUT.md
 セットアップ     → docs/USER_GUIDE.md または docs/dev/BUILD_GUIDE.md
 機能確認         → docs/FEATURES.md
+コスト・制約     → docs/SCALING_AND_COSTS.md
 デプロイ         → apps/edge/README.md + docs/SECURITY.md
 変更履歴         → docs/CHANGELOG.md
 ```

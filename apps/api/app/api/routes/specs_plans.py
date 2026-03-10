@@ -185,7 +185,7 @@ async def approve_plan(plan_id: str, db: AsyncSession = Depends(get_db)):
             ticket.status = "in_progress"
             ticket.current_plan_id = plan.id
 
-    await db.flush()
+    await db.commit()
     return {
         "status": "approved",
         "tasks_created": len(created_tasks),
@@ -203,6 +203,7 @@ async def reject_plan(
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
     plan.status = "rejected"
+    await db.commit()
     return {"status": "rejected"}
 
 

@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.core.security import generate_uuid, hash_sha256, verify_hash
+from app.core.security import generate_uuid, hash_password, verify_password
 from app.models.user import CompanyMember, User
 from app.models.company import Company
 
@@ -44,7 +44,7 @@ async def register_user(
         role="owner",
         status="active",
         auth_provider="local",
-        password_hash=hash_sha256(password),
+        password_hash=hash_password(password),
     )
     db.add(user)
 
@@ -86,7 +86,7 @@ async def authenticate_user(
         return None
     if not hasattr(user, "password_hash") or user.password_hash is None:
         return None
-    if not verify_hash(password, user.password_hash):
+    if not verify_password(password, user.password_hash):
         return None
     user.last_login_at = datetime.now(timezone.utc)
     await db.commit()
