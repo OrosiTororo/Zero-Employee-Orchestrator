@@ -204,6 +204,40 @@ const FEATURES = [
   { icon: ScrollText, label: "監査ログ", desc: "誰が何をなぜ実行したかを全て追跡可能" },
 ] as const
 
+const CURRENT_VERSION = "v0.1.0"
+const CURRENT_DATE = "2026-03-10"
+
+interface BuiltinAsset {
+  name: string
+  os: string
+  description: string
+}
+
+const EXPECTED_ASSETS: BuiltinAsset[] = [
+  { name: `Zero-Employee-Orchestrator_0.1.0_x64_ja-JP.msi`, os: "Windows", description: "日本語 Windows インストーラー" },
+  { name: `Zero-Employee-Orchestrator_0.1.0_x64_en-US.msi`, os: "Windows", description: "English Windows installer" },
+  { name: `Zero-Employee-Orchestrator_0.1.0_x64_zh-CN.msi`, os: "Windows", description: "中文 Windows 安装程序" },
+  { name: `Zero-Employee-Orchestrator_0.1.0_x64-setup.exe`, os: "Windows", description: "NSIS installer" },
+  { name: `Zero-Employee-Orchestrator_0.1.0_universal.dmg`, os: "macOS", description: "macOS (Intel + Apple Silicon)" },
+  { name: `Zero-Employee-Orchestrator_0.1.0_aarch64.dmg`, os: "macOS", description: "macOS Apple Silicon only" },
+  { name: `Zero-Employee-Orchestrator_0.1.0_amd64.AppImage`, os: "Linux", description: "Portable (no install needed)" },
+  { name: `Zero-Employee-Orchestrator_0.1.0_amd64.deb`, os: "Linux", description: "Debian / Ubuntu" },
+  { name: `Zero-Employee-Orchestrator_0.1.0_x86_64.rpm`, os: "Linux", description: "Fedora / RHEL" },
+]
+
+const RELEASE_HIGHLIGHTS = [
+  "9層アーキテクチャの完全実装（User Layer〜Skill Registry）",
+  "ランタイム設定管理 — .env 不要で API キーを設定可能",
+  "ナレッジストア — ユーザー設定・ファイル権限の永続記憶 + 変更検知",
+  "ログイン不要の匿名セッション（後からアカウント紐付け可能）",
+  "エージェント監視ダッシュボード（リアルタイム状態監視）",
+  "自然言語スキル生成エンジン（16種の安全性チェック付き）",
+  "Dynamic Model Registry（コード変更なしにモデル入替可能）",
+  "MCP サーバー（8ツール・4リソース・2プロンプト）",
+  "Tauri v2 デスクトップアプリ（Windows / macOS / Linux）",
+  "Cloudflare Workers デプロイ対応",
+]
+
 export function ReleasesPage() {
   const [releases, setReleases] = useState<Release[]>([])
   const [loading, setLoading] = useState(true)
@@ -256,11 +290,9 @@ export function ReleasesPage() {
               </h1>
               <p className="text-[12px] text-[#6a6a6a]">
                 Zero-Employee Orchestrator のダウンロード
-                {latestVersion && (
-                  <span className="ml-2 text-[#4ec9b0]">
-                    最新: {latestVersion}
-                  </span>
-                )}
+                <span className="ml-2 text-[#4ec9b0]">
+                  最新: {latestVersion ?? CURRENT_VERSION}
+                </span>
               </p>
             </div>
           </div>
@@ -299,11 +331,9 @@ export function ReleasesPage() {
         <div className="mb-8 rounded border border-[#3e3e42] bg-[#252526] p-5">
           <h2 className="text-[14px] font-medium text-[#cccccc] mb-4">
             クイックダウンロード
-            {latestVersion && (
-              <span className="ml-2 text-[11px] text-[#6a6a6a] font-normal">
-                ({latestVersion})
-              </span>
-            )}
+            <span className="ml-2 text-[11px] text-[#6a6a6a] font-normal">
+              ({latestVersion ?? CURRENT_VERSION})
+            </span>
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
@@ -365,23 +395,114 @@ export function ReleasesPage() {
         )}
 
         {!loading && !error && releases.length === 0 && (
-          <div className="rounded border border-[#3e3e42] bg-[#252526] px-6 py-12 text-center">
-            <Package size={32} className="mx-auto mb-3 text-[#6a6a6a]" />
-            <p className="text-[14px] text-[#cccccc] mb-2">
-              まだリリースがありません
-            </p>
-            <p className="text-[12px] text-[#6a6a6a]">
-              最初のリリースが公開されるとここに表示されます。
-            </p>
-            <a
-              href={`https://github.com/${REPO}/releases`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 mt-4 text-[12px] text-[#007acc] hover:underline"
-            >
-              GitHub Releases を確認
-              <ExternalLink size={11} />
-            </a>
+          <div className="mb-4 rounded border border-[#007acc]/50 bg-[#252526] overflow-hidden">
+            {/* Release Header */}
+            <div className="px-4 py-3 border-b border-[#3e3e42]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Tag size={14} className="text-[#007acc]" />
+                  <span className="text-[14px] font-medium text-[#cccccc]">
+                    Zero-Employee Orchestrator {CURRENT_VERSION} — Platform v0.1 (Consolidated Release)
+                  </span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#007acc]/20 text-[#007acc] flex items-center gap-1">
+                    <Star size={9} />
+                    Latest
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-[11px] text-[#6a6a6a]">
+                  <span className="flex items-center gap-1">
+                    <Clock size={11} />
+                    {formatDate(CURRENT_DATE)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Expected Assets */}
+            <div className="px-4 pt-3 pb-1">
+              <div className="text-[11px] uppercase tracking-wider text-[#6a6a6a] mb-2">
+                ダウンロード可能なアセット
+              </div>
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                {(["Windows", "macOS", "Linux"] as const).map((os) => {
+                  const Icon = os === "Windows" ? Monitor : os === "macOS" ? Apple : HardDrive
+                  const assets = EXPECTED_ASSETS.filter((a) => a.os === os)
+                  return (
+                    <div
+                      key={os}
+                      className="flex flex-col gap-1 px-3 py-2.5 rounded border border-[#3e3e42] bg-[#1e1e1e]"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <Icon size={13} className="text-[#007acc] shrink-0" />
+                        <span className="text-[12px] font-medium text-[#cccccc]">{os}</span>
+                      </div>
+                      {assets.map((a) => (
+                        <div key={a.name} className="text-[10px] text-[#6a6a6a] truncate" title={a.name}>
+                          {a.name}
+                        </div>
+                      ))}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="px-4 py-3">
+              <div className="text-[11px] uppercase tracking-wider text-[#6a6a6a] mb-2">
+                全アセット
+              </div>
+              <div className="flex flex-col gap-1.5">
+                {EXPECTED_ASSETS.map((asset) => {
+                  const Icon = asset.os === "Windows" ? Monitor : asset.os === "macOS" ? Apple : HardDrive
+                  return (
+                    <div
+                      key={asset.name}
+                      className="flex items-center justify-between px-3 py-2 rounded bg-[#1e1e1e]"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon size={14} className="text-[#6a6a6a]" />
+                        <span className="text-[12px] text-[#cccccc]">{asset.name}</span>
+                        <span className="text-[11px] text-[#6a6a6a]">({asset.os})</span>
+                      </div>
+                      <span className="text-[11px] text-[#6a6a6a]">{asset.description}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Release Highlights */}
+            <div className="px-4 py-3 border-t border-[#3e3e42]">
+              <details open>
+                <summary className="text-[12px] text-[#007acc] cursor-pointer hover:underline">
+                  リリースノート
+                </summary>
+                <div className="mt-2 text-[12px] text-[#9a9a9a] leading-relaxed space-y-1">
+                  <div className="text-[#569cd6] font-semibold text-[13px] mb-2">
+                    v0.1.0 — Platform v0.1 (Consolidated Release)
+                  </div>
+                  <div className="text-[#4ec9b0] font-medium mb-1">主な新機能・改善</div>
+                  {RELEASE_HIGHLIGHTS.map((item, i) => (
+                    <div key={i}>
+                      <span className="text-[#6a6a6a]">•</span> {item}
+                    </div>
+                  ))}
+                </div>
+              </details>
+            </div>
+
+            {/* Link to GitHub */}
+            <div className="px-4 py-2 border-t border-[#3e3e42]">
+              <a
+                href={`https://github.com/${REPO}/releases`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] text-[#6a6a6a] hover:text-[#007acc]"
+              >
+                GitHub で表示
+                <ExternalLink size={10} />
+              </a>
+            </div>
           </div>
         )}
 

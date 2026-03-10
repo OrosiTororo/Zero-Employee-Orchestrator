@@ -14,6 +14,7 @@ import {
 import { useState, useEffect, useCallback } from "react"
 
 const REPO = "OrosiTororo/Zero-Employee-Orchestrator"
+const CURRENT_VERSION = "v0.1.0"
 
 interface ReleaseAsset {
   name: string
@@ -117,7 +118,7 @@ export function DownloadPage() {
 
   useEffect(() => { fetchReleases() }, [fetchReleases])
 
-  const latestVersion = findLatestVersion(releases)
+  const latestVersion = findLatestVersion(releases) ?? CURRENT_VERSION
   const winHref = findAssetUrl(releases, "windows")
   const macHref = findAssetUrl(releases, "macos")
   const linuxHref = findAssetUrl(releases, "linux")

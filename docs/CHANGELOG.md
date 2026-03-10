@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [0.1.0] - 2026-03-10 — Platform v0.1 (Consolidated Release)
 
+### Fixed (post-release)
+
+- CI ワークフロー `claude-code-review.yml`: bot PR（Dependabot等）のレビュースキップ処理を修正
+- CI ワークフロー `create-release.yml`: CHANGELOG パスを `docs/CHANGELOG.md` に修正
+- リリースワークフロー `release.yml`: Tauri v2 ビルドアクション・アセットテーブルを最新化
+- フロントエンド `ReleasesPage.tsx`: GitHub Releases 未公開時のフォールバック表示を追加
+- ドキュメント整理: md ファイルを `docs/`（利用者向け）と `docs/dev/`（開発者向け）に再構成
+- セキュリティ: Dependabot 設定・セキュリティチェックスクリプト・公開前チェックリスト追加
+
 ### Added
 
 - **ランタイム設定管理 — .env 不要の API キー設定** (`core/config_manager.py`, `api/routes/config.py`)
@@ -333,3 +342,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - バックエンドスキーマ §38 に対応する全エンティティの TypeScript 型
 
 [0.1.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.1.0
+[0.2.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.2.0
+[0.3.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.3.0
+[0.4.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.4.0
+[0.5.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.5.0
