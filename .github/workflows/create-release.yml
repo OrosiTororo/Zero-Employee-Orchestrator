@@ -59,7 +59,7 @@ jobs:
             $0 ~ pat1 || $0 ~ pat2 || $0 ~ pat3 { found=1; next }
             found && /^## \[/ { exit }
             found { print }
-          ' CHANGELOG.md)
+          ' docs/CHANGELOG.md)
 
           if [ -z "$NOTES" ]; then
             NOTES="Release v${VERSION}"
