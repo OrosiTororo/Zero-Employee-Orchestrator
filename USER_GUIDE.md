@@ -187,10 +187,10 @@ USE_G4F=true
 | プロバイダー名 | 経由サービス | 利用される AI モデル | 備考 |
 |--------------|------------|-------------------|------|
 | `g4f/GeminiPro` | Google Gemini 無料枠 | Gemini 2.5 Flash | 比較的安定 |
-| `g4f/Copilot` | Microsoft Copilot | GPT-5.4 相当 | 応答速度にばらつきあり |
-| `g4f/OpenaiChat` | ChatGPT Web 無料版 | GPT-5 Mini 相当 | 制限が厳しい場合あり |
+| `g4f/Copilot` | Microsoft Copilot | GPT-4o 相当（変動あり） | 応答速度にばらつきあり |
+| `g4f/OpenaiChat` | ChatGPT Web 無料版 | GPT-4o Mini 相当（変動あり） | 制限が厳しい場合あり |
 | `g4f/DeepInfra` | DeepInfra 無料枠 | Llama 3.1 70B | オープンモデル |
-| `g4f/ApiAirforce` | マルチモデルリレー | GPT-5 Mini 相当 | 複数プロバイダーに自動切替 |
+| `g4f/AirForce` | マルチモデルリレー | GPT-4o Mini 相当（変動あり） | 複数プロバイダーに自動切替 |
 
 > **ヒント**: エラーが出た場合は別のプロバイダーに切り替えてください。
 > 最も安定しているのは `g4f/GeminiPro` です。
@@ -200,7 +200,7 @@ USE_G4F=true
 | プロバイダー名 | 必要なアカウント | 利用される AI モデル |
 |--------------|----------------|-------------------|
 | `g4f/Gemini` | Google アカウント（Gemini Advanced 推奨） | Gemini 2.5 Flash |
-| `g4f/CopilotAccount` | Microsoft アカウント（Copilot Pro 推奨） | GPT-5.4 |
+| `g4f/CopilotAccount` | Microsoft アカウント（Copilot Pro 推奨） | GPT-4o 相当（変動あり） |
 
 ---
 

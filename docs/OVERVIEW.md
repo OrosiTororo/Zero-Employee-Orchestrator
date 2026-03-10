@@ -554,7 +554,7 @@ Zero-Employee-Orchestrator/
 │   │   │   ├── core/           # 設定・DB・セキュリティ・i18n
 │   │   │   ├── api/routes/     # REST API (20 ルート)
 │   │   │   ├── api/ws/         # WebSocket
-│   │   │   ├── models/         # ORM モデル (18 ファイル)
+│   │   │   ├── models/         # ORM モデル（21 テーブル / 18 ファイル）
 │   │   │   ├── schemas/        # Pydantic DTO
 │   │   │   ├── services/       # ビジネスロジック
 │   │   │   ├── repositories/   # DB 入出力抽象化

@@ -127,7 +127,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `DESIGN.md`: 画面数 21 に更新、ディレクトリ構成に integrations/ と security/IAM を追加
 - `CLAUDE.md`: integrations/ モジュールの拡張機能分類を追記
 
-### Architectural — v0.1 機能肥大化レビュー
+### Changed — v0.1 機能境界レビュー
 
 以下の機能をコア機能から拡張機能に再分類（コードベースには同梱、将来分離予定）:
 - `integrations/sentry_integration.py` → Extension
