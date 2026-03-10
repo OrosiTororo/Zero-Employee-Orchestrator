@@ -276,7 +276,9 @@ class AIInvestigator:
         metrics: dict[str, Any] = {}
 
         # テーブル行数カウント (allowed tables whitelist - no dynamic SQL)
-        _ALLOWED_TABLES = frozenset(["tickets", "tasks", "agents", "skills", "audit_logs"])
+        _ALLOWED_TABLES = frozenset(
+            ["tickets", "tasks", "agents", "skills", "audit_logs"]
+        )
         for table in _ALLOWED_TABLES:
             try:
                 # Use SQLAlchemy text with literal_column to avoid f-string SQL injection
