@@ -9,7 +9,7 @@ services:
       - "18234:18234"
     environment:
       - DATABASE_URL=sqlite+aiosqlite:///./zero_employee_orchestrator.db
-      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set. Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"}
       - DEBUG=false
       - CORS_ORIGINS=["http://localhost:5173"]
     volumes:

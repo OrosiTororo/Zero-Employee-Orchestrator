@@ -382,7 +382,7 @@ CORS_ORIGINS=https://your-domain.com
 
 ## ライセンス
 
-プライベートプロジェクト
+MIT License — 詳細は [LICENSE](LICENSE) を参照
 
 ## 関連文書
 
@@ -784,7 +784,7 @@ CORS_ORIGINS=https://your-domain.com
 
 ### License
 
-Private project
+MIT License — See [LICENSE](LICENSE) for details
 
 ### Related Documents
 
@@ -1175,7 +1175,7 @@ CORS_ORIGINS=https://your-domain.com
 
 ### 许可证
 
-私有项目
+MIT 许可证 — 详情请参阅 [LICENSE](LICENSE)
 
 ### 相关文档
 

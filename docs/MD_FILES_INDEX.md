@@ -1,5 +1,7 @@
 # リポジトリ内 Markdown ファイル一覧
 
+> 日本語 | [English](en/MD_FILES_INDEX.md) | [中文](zh/MD_FILES_INDEX.md)
+
 > 最終更新: 2026-03-10 (v0.1)
 >
 > このドキュメントは、Zero-Employee Orchestrator リポジトリに含まれるすべての `.md` ファイルの概要・目的・対象読者を一覧化したインデックスです。

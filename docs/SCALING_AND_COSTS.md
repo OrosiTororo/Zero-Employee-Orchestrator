@@ -1,5 +1,7 @@
 # Zero-Employee Orchestrator — コスト・制約・大規模プロジェクト活用ガイド
 
+> 日本語 | [English](en/SCALING_AND_COSTS.md) | [中文](zh/SCALING_AND_COSTS.md)
+
 > v0.1 | 最終更新: 2026-03-10
 
 ---
