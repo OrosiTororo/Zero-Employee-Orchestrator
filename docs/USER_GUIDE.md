@@ -693,11 +693,10 @@ DEFAULT_EXECUTION_MODE=free
 | ファイル | 内容 |
 |---------|------|
 | `README.md` | クイックスタート・技術スタック |
-| `DESIGN.md` | 実装設計書（DB・API・状態遷移） |
-| `MASTER_GUIDE.md` | 実装運用ガイド |
-| `Zero-Employee Orchestrator.md` | 最上位基準文書（思想・要件） |
-| `SECURITY.md` | セキュリティ設定・本番環境デプロイ |
-| `docs/BUILD_GUIDE.md` | 開発者向けビルドガイド |
+| `docs/SECURITY.md` | セキュリティ設定・本番環境デプロイ |
+| `docs/dev/DESIGN.md` | 実装設計書（DB・API・状態遷移） |
+| `docs/dev/MASTER_GUIDE.md` | 実装運用ガイド |
+| `docs/dev/BUILD_GUIDE.md` | 開発者向けビルドガイド |
 
 ---
 ---
@@ -880,9 +879,9 @@ Users can share and publish plugins without requiring developer intervention.
 | File | Content |
 |------|---------|
 | `README.md` | Quick start & tech stack |
-| `DESIGN.md` | Implementation design (DB, API, state transitions) |
-| `SECURITY.md` | Security configuration & production deployment |
-| `docs/BUILD_GUIDE.md` | Developer build guide |
+| `docs/SECURITY.md` | Security configuration & production deployment |
+| `docs/dev/DESIGN.md` | Implementation design (DB, API, state transitions) |
+| `docs/dev/BUILD_GUIDE.md` | Developer build guide |
 
 ---
 ---
@@ -1065,6 +1064,6 @@ POST /api/v1/registry/plugins/import?source_uri=https://github.com/user/plugin-r
 | 文件 | 内容 |
 |------|------|
 | `README.md` | 快速入门和技术栈 |
-| `DESIGN.md` | 实现设计书（DB、API、状态转换） |
-| `SECURITY.md` | 安全配置和生产环境部署 |
-| `docs/BUILD_GUIDE.md` | 开发者构建指南 |
+| `docs/SECURITY.md` | 安全配置和生产环境部署 |
+| `docs/dev/DESIGN.md` | 实现设计书（DB、API、状态转换） |
+| `docs/dev/BUILD_GUIDE.md` | 开发者构建指南 |

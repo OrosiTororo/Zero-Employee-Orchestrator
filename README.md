@@ -302,7 +302,9 @@ Zero-Employee-Orchestrator/
 │   ├── notifications/          # 通知
 │   └── obsidian/               # Obsidian 連携
 ├── packages/                   # 共有 NPM パッケージ
-├── docs/                       # ドキュメント
+├── docs/                       # 利用者向けドキュメント
+│   └── dev/                    # 開発者向けドキュメント
+├── examples/                   # サンプル・例
 ├── assets/                     # ロゴ・画像
 ├── scripts/                    # 開発・運用スクリプト
 ├── Dockerfile                  # Rootless コンテナ
@@ -384,11 +386,17 @@ CORS_ORIGINS=https://your-domain.com
 
 ## 関連文書
 
-- `ABOUT.md` — このシステムのメリット・従来システムとの違い
-- `USER_GUIDE.md` — 初心者向けユーザーガイド
-- `Zero-Employee Orchestrator.md` — 最上位基準文書（思想・要件・改善方針）
-- `DESIGN.md` — 実装設計書（DB・API・画面・状態遷移）
-- `MASTER_GUIDE.md` — 実装運用ガイド（進め方と判断基準）
+**利用者向け（`docs/`）:**
+- [`docs/ABOUT.md`](docs/ABOUT.md) — このシステムのメリット・従来システムとの違い
+- [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) — 初心者向けユーザーガイド
+- [`docs/OVERVIEW.md`](docs/OVERVIEW.md) — 思想・機能・構造の総合ガイド
+- [`docs/FEATURES.md`](docs/FEATURES.md) — 実装済み機能一覧
+- [`docs/CHANGELOG.md`](docs/CHANGELOG.md) — 変更履歴
+
+**開発者向け（`docs/dev/`）:**
+- [`docs/dev/DESIGN.md`](docs/dev/DESIGN.md) — 実装設計書（DB・API・画面・状態遷移）
+- [`docs/dev/MASTER_GUIDE.md`](docs/dev/MASTER_GUIDE.md) — 実装運用ガイド（進め方と判断基準）
+- [`docs/dev/BUILD_GUIDE.md`](docs/dev/BUILD_GUIDE.md) — ゼロからの構築手順
 
 ### トラブルシューティング
 
@@ -780,11 +788,17 @@ Private project
 
 ### Related Documents
 
-- `ABOUT.md` — Benefits of this system and differences from conventional systems
-- `USER_GUIDE.md` — Beginner's user guide
-- `Zero-Employee Orchestrator.md` — Top-level specification document (philosophy, requirements, improvement policy)
-- `DESIGN.md` — Implementation design document (DB, API, screens, state transitions)
-- `MASTER_GUIDE.md` — Implementation & operations guide (process and decision criteria)
+**For Users (`docs/`):**
+- [`docs/ABOUT.md`](docs/ABOUT.md) — Benefits of this system and differences from conventional systems
+- [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) — Beginner's user guide
+- [`docs/OVERVIEW.md`](docs/OVERVIEW.md) — Comprehensive guide (philosophy, features, architecture)
+- [`docs/FEATURES.md`](docs/FEATURES.md) — Full feature list
+- [`docs/CHANGELOG.md`](docs/CHANGELOG.md) — Changelog
+
+**For Developers (`docs/dev/`):**
+- [`docs/dev/DESIGN.md`](docs/dev/DESIGN.md) — Implementation design document (DB, API, screens, state transitions)
+- [`docs/dev/MASTER_GUIDE.md`](docs/dev/MASTER_GUIDE.md) — Implementation & operations guide (process and decision criteria)
+- [`docs/dev/BUILD_GUIDE.md`](docs/dev/BUILD_GUIDE.md) — Step-by-step build guide
 
 ### Troubleshooting
 
@@ -1165,11 +1179,17 @@ CORS_ORIGINS=https://your-domain.com
 
 ### 相关文档
 
-- `ABOUT.md` — 本系统的优势及与传统系统的差异
-- `USER_GUIDE.md` — 面向初学者的用户指南
-- `Zero-Employee Orchestrator.md` — 最高级规范文档（理念、需求、改进方针）
-- `DESIGN.md` — 实现设计文档（数据库、API、界面、状态转换）
-- `MASTER_GUIDE.md` — 实现运营指南（推进方式和判断标准）
+**面向用户（`docs/`）：**
+- [`docs/ABOUT.md`](docs/ABOUT.md) — 本系统的优势及与传统系统的差异
+- [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) — 面向初学者的用户指南
+- [`docs/OVERVIEW.md`](docs/OVERVIEW.md) — 理念、功能、架构的综合指南
+- [`docs/FEATURES.md`](docs/FEATURES.md) — 完整功能列表
+- [`docs/CHANGELOG.md`](docs/CHANGELOG.md) — 变更日志
+
+**面向开发者（`docs/dev/`）：**
+- [`docs/dev/DESIGN.md`](docs/dev/DESIGN.md) — 实现设计文档（数据库、API、界面、状态转换）
+- [`docs/dev/MASTER_GUIDE.md`](docs/dev/MASTER_GUIDE.md) — 实现运营指南（推进方式和判断标准）
+- [`docs/dev/BUILD_GUIDE.md`](docs/dev/BUILD_GUIDE.md) — 从零开始的构建指南
 
 ### 故障排除
 

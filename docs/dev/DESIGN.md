@@ -651,8 +651,8 @@ Zero-Employee-Orchestrator/
 
 ## 14. 本書と基準文書の関係
 
-- `Zero-Employee Orchestrator.md`: 思想、要望、背景、改善案、全体構想の基準
-- `DESIGN.md`: 実装設計の基準
-- `MASTER_GUIDE.md`: AI エージェントへの実行順序・参照関係・分担の基準
+- `docs/Zero-Employee Orchestrator.md`: 思想、要望、背景、改善案、全体構想の基準
+- `docs/dev/DESIGN.md`: 実装設計の基準
+- `docs/dev/MASTER_GUIDE.md`: AI エージェントへの実行順序・参照関係・分担の基準
 
 本書は基準文書を要約するものではなく、実装に必要な構造を明文化した派生設計書である。
