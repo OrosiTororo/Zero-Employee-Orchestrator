@@ -68,27 +68,37 @@ jobs:
           tagName: ${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}
           releaseName: "Zero-Employee Orchestrator ${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}"
           releaseBody: |
-            ## Zero-Employee Orchestrator ${{ github.ref_name }}
+            ## Zero-Employee Orchestrator ${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}
 
-            AI業務オーケストレーション基盤
+            AI業務オーケストレーション基盤 / AI Business Orchestration Platform
 
-            ### ダウンロード
+            ---
 
-            お使いのOSに合ったファイルをクリックしてダウンロードしてください：
+            ### ダウンロード / Download / 下载
 
-            | OS | ファイル | 説明 |
+            下の **Assets** からお使いの OS に合ったファイルをクリックしてダウンロードしてください。
+            Click the file matching your OS from **Assets** below.
+
+            | OS | ファイル / File | 説明 / Description |
             |---|---|---|
-            | **Windows** | `.msi` | インストーラー（推奨） |
-            | **Windows** | `.exe` | NSIS インストーラー |
-            | **macOS** | `.dmg` | ディスクイメージ |
-            | **Linux** | `.AppImage` | ポータブル実行ファイル |
-            | **Linux** | `.deb` | Debian/Ubuntu パッケージ |
+            | **Windows** | `_x64_ja-JP.msi` | 日本語 Windows インストーラー |
+            | **Windows** | `_x64_en-US.msi` | English Windows installer |
+            | **Windows** | `_x64_zh-CN.msi` | 中文 Windows 安装程序 |
+            | **Windows** | `_x64-setup.exe` | NSIS installer (if .msi doesn't work) |
+            | **macOS** | `_universal.dmg` | macOS (Intel + Apple Silicon) |
+            | **macOS** | `_aarch64.dmg` | macOS Apple Silicon only |
+            | **Linux** | `_amd64.AppImage` | Portable (no install needed) |
+            | **Linux** | `_amd64.deb` | Debian / Ubuntu |
+            | **Linux** | `_x86_64.rpm` | Fedora / RHEL |
 
-            ### 初回セットアップ
-            1. 上の Assets からファイルをダウンロード
-            2. ダウンロードしたファイルを実行してインストール
-            3. アカウント登録（メールアドレスとパスワード）
-            4. セットアップウィザードに従って設定
-            5. ダッシュボードから自然言語で業務を依頼
+            ### 初回セットアップ / First Setup / 首次设置
+
+            1. Assets からファイルをダウンロード / Download from Assets
+            2. インストーラーを実行 / Run the installer
+            3. アカウント登録（またはログインせずに開始）/ Register (or start without login)
+            4. 設定画面で LLM API キーを入力 / Enter LLM API key in Settings
+            5. ダッシュボードから自然言語で業務を依頼 / Request tasks in natural language
+
+            > 📖 詳細: [README](https://github.com/TroroOrosi/Zero-Employee-Orchestrator#readme) | [User Guide](https://github.com/TroroOrosi/Zero-Employee-Orchestrator/blob/master/USER_GUIDE.md)
           releaseDraft: true
           prerelease: false
