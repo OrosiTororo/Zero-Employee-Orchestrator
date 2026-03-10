@@ -111,8 +111,8 @@ async def websocket_events(websocket: WebSocket):
                                 "agent_id": msg.get("agent_id"),
                                 "content": msg.get("content", ""),
                                 "status": "delivered",
-                            },
-                        ),
+                            }
+                        )
                     )
                     # Broadcast to other listeners so agent workers can pick it up
                     await manager.broadcast(
@@ -153,7 +153,9 @@ async def websocket_events(websocket: WebSocket):
                             "target_type": msg.get("target_type", "task"),
                             "target_id": msg.get("target_id"),
                             "data": {
-                                "action": msg.get("action"),  # pause, resume, cancel, redirect
+                                "action": msg.get(
+                                    "action"
+                                ),  # pause, resume, cancel, redirect
                                 "reason": msg.get("reason", ""),
                                 "new_instructions": msg.get("new_instructions"),
                             },
@@ -166,8 +168,8 @@ async def websocket_events(websocket: WebSocket):
                         {
                             "type": "error",
                             "message": "Invalid JSON",
-                        },
-                    ),
+                        }
+                    )
                 )
     except WebSocketDisconnect:
         manager.disconnect(websocket, company_id)
