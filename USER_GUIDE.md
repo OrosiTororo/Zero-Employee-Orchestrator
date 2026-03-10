@@ -1,6 +1,10 @@
-# Zero-Employee Orchestrator — ユーザーガイド
+# Zero-Employee Orchestrator — ユーザーガイド / User Guide / 用户指南
 
-> **初めての方へ**: このドキュメントはシステムの概要・セットアップ手順・操作方法を日本語で解説しています。
+> **v0.1** | 最終更新: 2026-03-10
+>
+> 日本語 | [English](#english-user-guide) | [中文](#中文用户指南)
+>
+> **初めての方へ**: このドキュメントはシステムの概要・セットアップ手順・操作方法を日本語・英語・中国語で解説しています。
 
 ---
 
@@ -620,3 +624,367 @@ DEFAULT_EXECUTION_MODE=free
 | `Zero-Employee Orchestrator.md` | 最上位基準文書（思想・要件） |
 | `SECURITY.md` | セキュリティ設定・本番環境デプロイ |
 | `docs/BUILD_GUIDE.md` | 開発者向けビルドガイド |
+
+---
+---
+
+# English User Guide
+
+> **v0.1** | Last updated: 2026-03-10
+>
+> [日本語](#zero-employee-orchestrator--ユーザーガイド--user-guide--用户指南) | English | [中文](#中文用户指南)
+
+## 1. What is this software?
+
+**Zero-Employee Orchestrator** is an **AI Business Orchestration Platform** where you simply instruct tasks in natural language, and multiple AI agents form teams to automatically plan, execute, verify, and report.
+
+### What it can do
+
+- Enter "Research competitors' pricing and create a report" — the AI team automatically takes action
+- **Dangerous operations** (posting, sending, billing) **always require human approval**
+- Complete **audit logs** of what was done, by which model, and when
+- Automatic re-planning and recovery (Self-Healing) on failure
+
+### Difference from traditional AI chat
+
+| | Traditional AI Chat | Zero-Employee Orchestrator |
+|---|---|---|
+| Task management | None (manual each time) | Automatic tracking with tickets & tasks |
+| Multiple AI collaboration | None | Role-based delegation & parallel execution |
+| Approval flow | None | Dangerous operations are always blocked |
+| Audit logs | None | All operations recorded |
+| Cost management | None | Real-time token consumption tracking |
+
+---
+
+## 2. Key Features
+
+### Design Interview
+After receiving a task request, the AI asks additional questions to clarify requirements.
+
+### Spec / Plan / Tasks
+Request content is structured as "Specification → Plan → Task breakdown" and saved. Modifications and rollbacks are possible at any stage.
+
+### Self-Healing DAG
+Task dependencies are managed as a directed acyclic graph (DAG). If some tasks fail, the system automatically re-plans to avoid blockers.
+
+### Judge Layer (Quality Verification)
+AI output is always verified in two stages:
+1. **Rule-based check**: Fast check for prohibited operations, credential leaks, etc.
+2. **Cross-Model Verification**: Compare outputs from multiple LLMs for reliability
+
+### Skill / Plugin / Extension
+- **Skill**: Single-purpose processing (e.g., web scraping, email sending)
+- **Plugin**: External service integration (e.g., Slack, Google Drive) — installable from GitHub repos
+- **Extension**: UI and behavior customization
+
+---
+
+## 3. System Requirements
+
+| Item | Requirement |
+|------|-------------|
+| OS | Windows 10+, macOS 12+, Ubuntu 22.04+ |
+| Python | 3.12 or higher |
+| Node.js | 18 or higher |
+| Memory | 4 GB+ (8 GB+ recommended for local LLM) |
+| Storage | 500 MB+ (model files require additional space) |
+
+---
+
+## 4. LLM (AI) Connection Methods
+
+| Method | Cost | API Key | Setup | Recommended For |
+|--------|------|---------|-------|-----------------|
+| **Google Gemini Free API** | **Free** (with limits) | Required (free) | Easy | Best starting point |
+| **Ollama (Local)** | **Completely Free** | Not required | Model DL needed | Offline / Privacy |
+| **Subscription Mode** | **Free** | **Not required** | **Almost zero** | Testing |
+| OpenRouter | Pay-per-use | Required | Normal | Multi-model management |
+| OpenAI / Anthropic / Google | Pay-per-use | Required | Normal | Production / High quality |
+
+---
+
+## 5. Installation
+
+### Desktop App (GUI — Easy)
+
+1. Download the latest version from the [Releases page](https://github.com/TroroOrosi/Zero-Employee-Orchestrator/releases)
+2. Run the installer
+3. Launch the app and follow the setup wizard
+
+### From Source (For Developers)
+
+```bash
+git clone https://github.com/TroroOrosi/Zero-Employee-Orchestrator.git
+cd Zero-Employee-Orchestrator
+chmod +x setup.sh start.sh
+./setup.sh
+cp apps/api/.env.example apps/api/.env
+# Edit .env to add LLM API keys
+./start.sh
+```
+
+Open **http://localhost:5173** in your browser.
+
+---
+
+## 6. Screens and Basic Operations
+
+### Dashboard
+- **Task request box**: Enter tasks in natural language
+- **Active tickets**: List of ongoing tasks
+- **Pending approvals**: Actions requiring your confirmation
+- **Agent status**: AI agent states
+- **Cost summary**: Today / this week / this month API costs
+
+### Approval Screen
+When the AI requests an operation requiring approval:
+- **Approve**: Allow execution
+- **Reject**: Cancel execution
+- **Request modification**: Send comments to the AI for reconsideration
+
+---
+
+## 7. Skills and Plugins
+
+### Adding Skills
+1. Open "Skills" → "Create Skill"
+2. Describe the skill in natural language
+3. AI automatically generates the skill code
+4. Review and save
+
+### Adding Plugins from GitHub
+Plugins can be installed from GitHub repositories:
+
+```
+POST /api/v1/registry/plugins/search-external?query=keyword
+POST /api/v1/registry/plugins/import?source_uri=https://github.com/user/plugin-repo
+```
+
+Users can share and publish plugins without requiring developer intervention.
+
+### Built-in Plugins
+
+| Plugin | Purpose |
+|--------|---------|
+| `ai-avatar` (Avatar AI) | Learns your judgment criteria and writing style for proxy reviews |
+| `ai-secretary` (Secretary AI) | Morning briefings, action proposals, bridges you and AI org |
+| `discord-bot` | Create tickets, check progress, approve from Discord |
+| `slack-bot` | Create tickets, check progress, approve from Slack |
+| `line-bot` | Create tickets, check progress, approve from LINE |
+
+---
+
+## 8. Frequently Asked Questions (FAQ)
+
+### Q: Can I use it for free?
+
+**A:** Yes. Three methods:
+1. **Google Gemini Free API (recommended)**: Get a free API key from Google AI Studio (no credit card required)
+2. **Ollama (Local LLM)**: Download models to your PC — completely free, offline, unlimited
+3. **Subscription Mode**: No API key required (but less stable)
+
+### Q: Where is data stored?
+
+**A:** By default, data is stored locally in `apps/api/zero_employee_orchestrator.db` (SQLite). Nothing is sent to the cloud.
+
+### Q: Can I create my own Avatar AI or Secretary AI?
+
+**A:** Yes. They can be added as Plugins. Avatar AI learns your judgment criteria and writing style. Secretary AI generates morning briefings and connects you with the AI organization.
+
+### Q: Can I operate from Discord / Slack?
+
+**A:** Yes. Install the Bot Plugin for Discord / Slack / LINE to create tickets, check progress, approve operations, and chat with AI directly from your messaging app.
+
+---
+
+## Related Documents
+
+| File | Content |
+|------|---------|
+| `README.md` | Quick start & tech stack |
+| `DESIGN.md` | Implementation design (DB, API, state transitions) |
+| `SECURITY.md` | Security configuration & production deployment |
+| `docs/BUILD_GUIDE.md` | Developer build guide |
+
+---
+---
+
+# 中文用户指南
+
+> **v0.1** | 最后更新: 2026-03-10
+>
+> [日本語](#zero-employee-orchestrator--ユーザーガイド--user-guide--用户指南) | [English](#english-user-guide) | 中文
+
+## 1. 这个软件是什么？
+
+**Zero-Employee Orchestrator** 是一个 **AI 业务编排平台**。您只需用自然语言描述任务，多个 AI 代理就会自动组建团队进行规划、执行、验证和报告。
+
+### 能做什么
+
+- 输入"调查竞争对手的价格并整理成报告" —— AI 团队自动行动
+- **危险操作**（发布、发送、计费）**始终需要人类审批**
+- 完整的**审计日志**记录谁用什么模型在何时做了什么
+- 失败时自动重新规划和恢复（Self-Healing）
+
+### 与传统 AI 聊天的区别
+
+| | 传统 AI 聊天 | Zero-Employee Orchestrator |
+|---|---|---|
+| 任务管理 | 无（每次手动） | 工单和任务自动追踪 |
+| 多 AI 协作 | 无 | 角色分工、并行执行 |
+| 审批流程 | 无 | 危险操作必须阻断 |
+| 审计日志 | 无 | 记录所有操作 |
+| 成本管理 | 无 | 实时追踪 Token 消耗 |
+
+---
+
+## 2. 主要功能
+
+### Design Interview（设计面谈）
+接收业务请求后，AI 会提出补充问题以明确需求。
+
+### Spec / Plan / Tasks（规格/计划/任务）
+请求内容以"规格书 → 计划 → 任务分解"的形式结构化保存。支持修改和回退。
+
+### Self-Healing DAG
+任务依赖关系以有向无环图（DAG）管理。部分任务失败时自动重新规划。
+
+### Judge Layer（质量验证）
+AI 输出始终经过两阶段验证：
+1. **基于规则的检查**：快速检查禁止操作、凭证泄露等
+2. **Cross-Model 验证**：比较多个 LLM 的输出以确认可靠性
+
+### Skill / Plugin / Extension（技能/插件/扩展）
+- **Skill**：单一目的处理（如：网页抓取、邮件发送）
+- **Plugin**：外部服务集成（如：Slack、Google Drive）—— 可从 GitHub 仓库安装
+- **Extension**：UI 和行为自定义
+
+---
+
+## 3. 系统需求
+
+| 项目 | 需求 |
+|------|------|
+| 操作系统 | Windows 10+、macOS 12+、Ubuntu 22.04+ |
+| Python | 3.12 以上 |
+| Node.js | 18 以上 |
+| 内存 | 4 GB 以上（使用本地 LLM 时推荐 8 GB 以上） |
+| 存储空间 | 500 MB 以上（模型文件另需空间） |
+
+---
+
+## 4. LLM（AI）连接方式
+
+| 方式 | 费用 | API 密钥 | 设置 | 推荐用途 |
+|------|------|----------|------|---------|
+| **Google Gemini 免费 API** | **免费**（有限额） | 需要（免费获取） | 简单 | 最佳起步方式 |
+| **Ollama（本地）** | **完全免费** | 不需要 | 需下载模型 | 离线/隐私优先 |
+| **订阅模式** | **免费** | **不需要** | **几乎为零** | 测试用 |
+| OpenRouter | 按量计费 | 需要 | 普通 | 多模型统一管理 |
+| OpenAI / Anthropic / Google | 按量计费 | 需要 | 普通 | 生产环境/高质量 |
+
+---
+
+## 5. 安装
+
+### 桌面应用（GUI 版 —— 简单）
+
+1. 从 [Releases 页面](https://github.com/TroroOrosi/Zero-Employee-Orchestrator/releases) 下载最新版本
+2. 运行安装程序
+3. 启动应用并按照设置向导操作
+
+### 从源代码启动（面向开发者）
+
+```bash
+git clone https://github.com/TroroOrosi/Zero-Employee-Orchestrator.git
+cd Zero-Employee-Orchestrator
+chmod +x setup.sh start.sh
+./setup.sh
+cp apps/api/.env.example apps/api/.env
+# 编辑 .env 添加 LLM API 密钥
+./start.sh
+```
+
+在浏览器中打开 **http://localhost:5173**。
+
+---
+
+## 6. 界面和基本操作
+
+### 仪表板
+- **任务请求框**：用自然语言输入任务
+- **活跃工单**：当前进行中的任务列表
+- **待审批**：需要您确认的操作数量
+- **代理状态**：AI 代理的运行状态
+- **成本摘要**：今日/本周/本月 API 成本
+
+### 审批界面
+当 AI 请求需要审批的操作时：
+- **批准**：允许执行
+- **拒绝**：取消执行
+- **要求修改**：附加评论请 AI 重新考虑
+
+---
+
+## 7. 技能和插件
+
+### 添加技能
+1. 打开"技能" → "创建技能"
+2. 用自然语言描述技能功能
+3. AI 自动生成技能代码
+4. 审查后保存
+
+### 从 GitHub 添加插件
+可以从 GitHub 仓库安装插件：
+
+```
+POST /api/v1/registry/plugins/search-external?query=关键词
+POST /api/v1/registry/plugins/import?source_uri=https://github.com/user/plugin-repo
+```
+
+用户可以共享和发布插件，无需开发者额外操作。
+
+### 内置插件
+
+| 插件 | 用途 |
+|------|------|
+| `ai-avatar`（分身AI） | 学习您的判断标准和文风，进行代理审查 |
+| `ai-secretary`（秘书AI） | 早间简报、行动建议、连接您和 AI 组织 |
+| `discord-bot` | 从 Discord 创建工单、查看进度、审批 |
+| `slack-bot` | 从 Slack 创建工单、查看进度、审批 |
+| `line-bot` | 从 LINE 创建工单、查看进度、审批 |
+
+---
+
+## 8. 常见问题（FAQ）
+
+### Q: 可以免费使用吗？
+
+**A:** 可以。有三种方式：
+1. **Google Gemini 免费 API（推荐）**：从 Google AI Studio 获取免费 API 密钥（无需信用卡）
+2. **Ollama（本地 LLM）**：将模型下载到电脑 —— 完全免费、离线、无限制
+3. **订阅模式**：无需 API 密钥即可使用（但稳定性较差）
+
+### Q: 数据存储在哪里？
+
+**A:** 默认情况下，数据本地存储在 `apps/api/zero_employee_orchestrator.db`（SQLite 文件）中。不会发送到云端。
+
+### Q: 可以创建自己的分身AI和秘书AI吗？
+
+**A:** 可以。它们可以作为插件添加。分身AI学习您的判断标准和文风。秘书AI生成早间简报，连接您和 AI 组织。
+
+### Q: 可以从 Discord / Slack 操作吗？
+
+**A:** 可以。安装 Discord / Slack / LINE 的 Bot 插件后，您可以直接从聊天应用创建工单、查看进度、审批操作和与 AI 对话。
+
+---
+
+## 相关文档
+
+| 文件 | 内容 |
+|------|------|
+| `README.md` | 快速入门和技术栈 |
+| `DESIGN.md` | 实现设计书（DB、API、状态转换） |
+| `SECURITY.md` | 安全配置和生产环境部署 |
+| `docs/BUILD_GUIDE.md` | 开发者构建指南 |

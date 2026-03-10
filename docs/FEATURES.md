@@ -1,7 +1,7 @@
 # Zero-Employee Orchestrator — 機能一覧
 
-> 最終更新: 2026-03-09  
-> 対象バージョン: 現在の `main` ブランチ
+> 最終更新: 2026-03-10
+> 対象バージョン: v0.1
 
 ---
 
@@ -925,3 +925,110 @@ uv pip install zero-employee-orchestrator
 | `/zeo ask <質問>` | AI 組織に質問 |
 
 承認が必要な操作はチャットツール上でも承認ダイアログが表示されます。秘書AI Plugin と連携して、定期ブリーフィングの配信先としても利用可能です。
+
+---
+
+## 28. 外部ツール連携 (v0.1)
+
+### CLI ツール接続
+
+`tools/connector.py` は以下の接続タイプをサポートします:
+
+| 接続タイプ | 説明 | 例 |
+|-----------|------|-----|
+| `rest_api` | REST API 呼び出し | SaaS API、社内 API |
+| `webhook` | Webhook 受信・送信 | Slack / Discord 通知 |
+| `mcp` | Model Context Protocol | Claude Desktop、VS Code 連携 |
+| `oauth` | OAuth 2.0 認証フロー | Google / GitHub 認証 |
+| `websocket` | WebSocket 双方向通信 | リアルタイムデータストリーム |
+| `file_system` | ファイルシステム接続 | ローカル/NFS/S3 |
+| `database` | データベース接続 | PostgreSQL、MySQL |
+| `cli_tool` | CLI ツール接続 | gws、gh、aws CLI 等 |
+| `grpc` | gRPC サービス接続 | マイクロサービス間通信 |
+| `graphql` | GraphQL API 接続 | GitHub GraphQL API 等 |
+
+### 対応可能な CLI ツール例
+
+| ツール | 説明 | リポジトリ |
+|--------|------|-----------|
+| **gws** | Google Workspace CLI（Google Workspace API 全操作をターミナルから統一操作） | `googleworkspace/cli` |
+| **gh** | GitHub CLI（リポジトリ・Issue・PR 操作） | `cli/cli` |
+| **aws** | AWS CLI（AWS サービス全般操作） | `aws/aws-cli` |
+| **gcloud** | Google Cloud CLI（GCP サービス操作） | Google Cloud SDK |
+| **az** | Azure CLI（Azure サービス操作） | `Azure/azure-cli` |
+
+これらの CLI ツールは `ToolConnector` に登録することで、Skill から呼び出し可能になります。Plugin として CLI ツール連携パッケージを提供することも可能です。
+
+---
+
+## 29. コミュニティプラグイン共有 (v0.1)
+
+### プラグインの共有・公開
+
+ユーザーは自作のプラグインを GitHub リポジトリとして公開し、他のユーザーが簡単にインストールできます。開発者による本体への追加作業は不要です。
+
+### プラグイン共有の仕組み
+
+```
+ユーザー A: プラグインを開発
+  → GitHub リポジトリに push（topic: zeo-plugin）
+  → plugin.json マニフェストを含める
+
+ユーザー B: プラグインを検索・インストール
+  → POST /api/v1/registry/plugins/search-external?query=キーワード
+  → POST /api/v1/registry/plugins/import?source_uri=https://github.com/user/plugin
+  → プラグインが自動的にインストールされ利用可能に
+```
+
+### プラグインマニフェスト形式 (`plugin.json`)
+
+```json
+{
+  "name": "my-awesome-plugin",
+  "slug": "my-awesome-plugin",
+  "description": "プラグインの説明",
+  "version": "0.1.0",
+  "author": "作成者名",
+  "license": "MIT",
+  "tags": ["productivity", "automation"],
+  "skills": ["skill-a", "skill-b"],
+  "config_schema": {}
+}
+```
+
+### コミュニティプラグイン API
+
+| エンドポイント | 説明 |
+|-------------|------|
+| `POST /api/v1/registry/plugins/search-external` | GitHub 等から外部プラグインを検索 |
+| `POST /api/v1/registry/plugins/import` | GitHub リポジトリからプラグインをインポート・インストール |
+| `POST /api/v1/registry/plugins` | ローカルでプラグインを作成 |
+| `POST /api/v1/registry/plugins/install` | プラグインをインストール |
+
+### 安全性チェック
+
+共有プラグインのインストール時には以下の安全性チェックが実行されます:
+
+- 危険なコードパターンの検出（16 種類）
+- 外部通信の検出と警告
+- 認証情報アクセスの検出
+- 破壊的操作の検出
+- リスクレベルの評価（low / medium / high）
+
+---
+
+## 30. メタスキル概念 (v0.1)
+
+AI エージェントに「学び方を学ぶ能力」を持たせる設計概念です。
+
+### メタスキルの5要素
+
+| 要素 | AI エージェントでの実装 |
+|------|----------------------|
+| **Feeling（感じ取る力）** | ユーザーの意図・感情の推察、コンテキスト理解 |
+| **Seeing（見通す力）** | システム思考、業務全体の依存関係把握 |
+| **Dreaming（夢見る力）** | 創造的な代替案の提案、Re-Propose Layer |
+| **Making（実現する力）** | 計画から実装までの一貫した実行、DAG 構築 |
+| **Learning（学ぶ力）** | Experience Memory、Failure Taxonomy による学習 |
+
+従来の AI エージェントはハードスキル（特定タスクの実行）とソフトスキル（コミュニケーション）を持ちますが、メタスキル（スキルの運用・学習を支える力）は不足しています。Zero-Employee Orchestrator は Experience Memory と Failure Taxonomy によりメタスキルの基盤を提供します。

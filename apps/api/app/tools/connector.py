@@ -25,6 +25,9 @@ class ConnectionType(str, Enum):
     WEBSOCKET = "websocket"
     FILE_SYSTEM = "file_system"
     DATABASE = "database"
+    CLI_TOOL = "cli_tool"
+    GRPC = "grpc"
+    GRAPHQL = "graphql"
 
 
 class ConnectionStatus(str, Enum):
@@ -40,6 +43,7 @@ class AuthType(str, Enum):
     BEARER_TOKEN = "bearer_token"
     OAUTH2 = "oauth2"
     BASIC = "basic"
+    SERVICE_ACCOUNT = "service_account"
 
 
 @dataclass
@@ -68,7 +72,15 @@ class ToolConnectionConfig:
 
 
 class ToolConnector:
-    """外部ツールへの接続を管理するコネクタ."""
+    """外部ツールへの接続を管理するコネクタ.
+
+    対応可能な CLI ツール例:
+    - gws (Google Workspace CLI) — Google Workspace API 全操作
+    - gh (GitHub CLI) — GitHub リポジトリ・Issue・PR 操作
+    - aws (AWS CLI) — AWS サービス操作
+    - gcloud (Google Cloud CLI) — GCP サービス操作
+    - az (Azure CLI) — Azure サービス操作
+    """
 
     def __init__(self) -> None:
         self._connections: dict[str, ToolConnectionConfig] = {}
