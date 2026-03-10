@@ -393,9 +393,9 @@ ZEO は**「最初から全部入りにしない」**設計を採用していま
 
 ### Plugin（業務機能パッケージ）
 
-YouTube 運用、リサーチ、バックオフィス、Discord Bot、Slack Bot 等
+分身AI、秘書AI、Discord Bot、Slack Bot、LINE Bot、YouTube 運用、リサーチ、バックオフィス 等
 
-→ `plugins/` にマニフェスト定義済み。業務特化ロジックは本体に入れない
+→ `plugins/` にマニフェスト定義済み（8 Plugin）。業務特化ロジックは本体に入れない
 
 ### Extension（システム基盤拡張）
 
@@ -418,25 +418,42 @@ OAuth 認証、MCP 接続、通知、Obsidian 連携 等
 
 | 連携先 | 種別 | 状態 | 説明 |
 |--------|------|------|------|
+| **分身AI** | Plugin | manifest あり | ユーザーの判断基準・文体を学習し代理行動 |
+| **秘書AI** | Plugin | manifest あり | ブリーフィング・優先度提案・AI組織との橋渡し |
+| **Discord** | Plugin | manifest あり (v0.2.0) | Bot 経由でチケット作成・承認・対話・ブリーフィング |
+| **Slack** | Plugin | manifest あり (v0.2.0) | Slash Command でチケット作成・承認・対話・ブリーフィング |
+| **LINE** | Plugin | manifest あり | LINE Bot でチケット作成・承認・通知 |
 | **Obsidian** | Extension | manifest あり | Vault を Knowledge Source として双方向連携 |
-| **Discord** | Plugin | manifest あり | Bot 経由でチケット作成・承認・通知 |
-| **Slack** | Plugin | manifest あり | Slash Command でチケット作成・承認・通知 |
 | **MCP** | Extension | manifest あり | Model Context Protocol 対応ツール接続 |
 | **Google OAuth** | Extension | manifest あり | Google アカウント認証 |
 | **通知全般** | Extension | manifest あり | Slack / Discord / LINE / メール通知 |
 
-### Discord / Slack からのマルチエージェント操作
+### 分身AI / 秘書AI
 
-Discord Bot Plugin / Slack Bot Plugin をインストールすると、チャットアプリから直接 ZEO のマルチエージェントに指示を送れます。
+**分身AI（AI Avatar Plugin）** はユーザーの判断基準・文体を学習し、ユーザーの「分身」として振る舞います。Judge Layer の判断基準にユーザーの価値観を反映させることも可能です。
+
+**秘書AI（AI Secretary Plugin）** はユーザーと AI 組織をつなぐ「ハブ」として機能し、朝のブリーフィング、次のアクション提案、進捗サマリーの生成を行います。チャットツール Plugin と連携して Discord / Slack / LINE 経由でブリーフィングを配信できます。
+
+### Discord / Slack / LINE からのマルチエージェント操作
+
+Discord / Slack / LINE Bot Plugin をインストールすると、チャットアプリから直接 ZEO のマルチエージェントに指示を送れます。
 
 ```
-Discord/Slack → Bot がメッセージを受信
+Discord/Slack/LINE → Bot がメッセージを受信
   → ZEO API にチケット作成リクエスト
     → Design Interview → Plan → Tasks 実行
-      → 結果を Discord/Slack チャンネルに返信
+      → 結果をチャットチャンネルに返信
 ```
 
-承認が必要な操作は、Discord/Slack 上でも承認ダイアログが表示されます。
+承認が必要な操作は、チャットツール上でも承認ダイアログが表示されます。
+
+**コマンド例:**
+```
+/zeo ticket 競合分析レポートを作成して
+/zeo status
+/zeo briefing
+/zeo ask この施策のリスクは？
+```
 
 ### Obsidian 連携
 
@@ -541,11 +558,14 @@ Zero-Employee-Orchestrator/
 │   ├── builtin/                # 組み込み Skill (6 個)
 │   └── templates/              # Skill テンプレート
 ├── plugins/                    # Plugin マニフェスト
+│   ├── ai-avatar/              # 分身AI
+│   ├── ai-secretary/           # 秘書AI
+│   ├── discord-bot/            # Discord Bot
+│   ├── slack-bot/              # Slack Bot
+│   ├── line-bot/               # LINE Bot
 │   ├── youtube/                # YouTube 運用
 │   ├── research/               # リサーチ
-│   ├── backoffice/             # バックオフィス
-│   ├── discord-bot/            # Discord Bot
-│   └── slack-bot/              # Slack Bot
+│   └── backoffice/             # バックオフィス
 ├── extensions/                 # Extension マニフェスト
 │   ├── oauth/                  # OAuth 認証
 │   ├── mcp/                    # MCP 接続
