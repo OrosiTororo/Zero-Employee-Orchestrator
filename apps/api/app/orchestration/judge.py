@@ -146,6 +146,7 @@ class PolicyPackJudge:
 # セマンティック比較のためのユーティリティ関数群
 # ---------------------------------------------------------------------------
 
+
 def _tokenize(text: str) -> set[str]:
     """Tokenize text into lowercase word tokens for Jaccard similarity.
 
@@ -239,14 +240,23 @@ _NEGATION_PAIRS: list[tuple[re.Pattern, re.Pattern]] = [
 # 基本的な事実検証用の既知パターン
 _FACTUAL_PATTERNS: list[dict] = [
     # Year range sanity checks
-    {"pattern": re.compile(r"\b(\d{4})\b"), "check": "year_range",
-     "desc": "Year should be between 1000-2100"},
+    {
+        "pattern": re.compile(r"\b(\d{4})\b"),
+        "check": "year_range",
+        "desc": "Year should be between 1000-2100",
+    },
     # Percentage bounds
-    {"pattern": re.compile(r"(\d+(?:\.\d+)?)\s*%"), "check": "percentage_bound",
-     "desc": "Percentage typically 0-100"},
+    {
+        "pattern": re.compile(r"(\d+(?:\.\d+)?)\s*%"),
+        "check": "percentage_bound",
+        "desc": "Percentage typically 0-100",
+    },
     # Temperature bounds (Celsius)
-    {"pattern": re.compile(r"(-?\d+(?:\.\d+)?)\s*°?[Cc]"), "check": "temp_celsius",
-     "desc": "Temperature in Celsius typically -90 to 60"},
+    {
+        "pattern": re.compile(r"(-?\d+(?:\.\d+)?)\s*°?[Cc]"),
+        "check": "temp_celsius",
+        "desc": "Temperature in Celsius typically -90 to 60",
+    },
 ]
 
 
@@ -307,9 +317,7 @@ class CrossModelJudge:
     # 矛盾検出
     # ------------------------------------------------------------------
 
-    def detect_contradictions(
-        self, outputs: list[dict]
-    ) -> list[dict]:
+    def detect_contradictions(self, outputs: list[dict]) -> list[dict]:
         """Detect contradictions between multiple model outputs.
 
         複数モデル出力間の矛盾を検出する。
@@ -357,7 +365,7 @@ class CrossModelJudge:
                 "type": "numeric_discrepancy",
                 "values": [val_a, val_b],
                 "description": f"Numeric values differ beyond {self.numeric_tolerance:.0%} "
-                               f"tolerance: '{val_a}' vs '{val_b}'",
+                f"tolerance: '{val_a}' vs '{val_b}'",
             }
 
         # 2. Negation pattern（否定パターン）
@@ -373,7 +381,7 @@ class CrossModelJudge:
                     "type": "negation_contradiction",
                     "values": [val_a, val_b],
                     "description": f"Opposing assertions detected for '{key}': "
-                                   f"'{val_a}' vs '{val_b}'",
+                    f"'{val_a}' vs '{val_b}'",
                 }
 
         # 3. Low semantic similarity with no numeric match means conflicting text
@@ -386,7 +394,7 @@ class CrossModelJudge:
                     "type": "semantic_divergence",
                     "values": [val_a, val_b],
                     "description": f"Very low semantic similarity ({sim:.2f}) for '{key}': "
-                                   f"'{val_a}' vs '{val_b}'",
+                    f"'{val_a}' vs '{val_b}'",
                 }
 
         return None
@@ -416,18 +424,22 @@ class CrossModelJudge:
                         flagged = False
                         if fp["check"] == "year_range" and not (1000 <= num <= 2100):
                             flagged = True
-                        elif fp["check"] == "percentage_bound" and not (0 <= num <= 100):
+                        elif fp["check"] == "percentage_bound" and not (
+                            0 <= num <= 100
+                        ):
                             flagged = True
                         elif fp["check"] == "temp_celsius" and not (-90 <= num <= 60):
                             flagged = True
 
                         if flagged:
-                            issues.append({
-                                "key": key,
-                                "type": "factual_anomaly",
-                                "values": [val_str],
-                                "description": f"{fp['desc']}, got {num} in key '{key}'",
-                            })
+                            issues.append(
+                                {
+                                    "key": key,
+                                    "type": "factual_anomaly",
+                                    "values": [val_str],
+                                    "description": f"{fp['desc']}, got {num} in key '{key}'",
+                                }
+                            )
         return issues
 
     # ------------------------------------------------------------------
@@ -531,7 +543,9 @@ class CrossModelJudge:
                     break
             if all_match:
                 matching_values += 1
-        semantic_value_score = matching_values / len(common_keys) if common_keys else 0.0
+        semantic_value_score = (
+            matching_values / len(common_keys) if common_keys else 0.0
+        )
 
         # ---- Majority-vote confidence score ----
         majority_score = self._majority_agreement_score(outputs)
@@ -546,9 +560,7 @@ class CrossModelJudge:
         # ---- Overall score computation ----
         # Weighted combination: structural 20%, semantic value 40%, majority 40%
         raw_score = (
-            0.2 * structural_score
-            + 0.4 * semantic_value_score
-            + 0.4 * majority_score
+            0.2 * structural_score + 0.4 * semantic_value_score + 0.4 * majority_score
         )
 
         # Penalize for contradictions
@@ -574,17 +586,13 @@ class CrossModelJudge:
             )
 
         if contradictions:
-            reasons.append(
-                f"矛盾が {len(contradictions)} 件検出されました"
-            )
+            reasons.append(f"矛盾が {len(contradictions)} 件検出されました")
             for c in contradictions[:5]:  # Show first 5
                 reasons.append(f"  - [{c['type']}] {c['description']}")
             suggestions.append("矛盾が検出されたキーを重点的にレビューしてください")
 
         if factual_issues:
-            reasons.append(
-                f"事実検証で {len(factual_issues)} 件の問題が検出されました"
-            )
+            reasons.append(f"事実検証で {len(factual_issues)} 件の問題が検出されました")
             for fi in factual_issues[:3]:
                 reasons.append(f"  - [{fi['type']}] {fi['description']}")
 

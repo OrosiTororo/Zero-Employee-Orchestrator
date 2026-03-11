@@ -115,6 +115,7 @@ def _are_types_compatible(source_type: str, target_type: str) -> bool:
 # DAG node protocol (duck typing)
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class _DagNode:
     """DAG ノードの最小プロトコル（テスト・型ヒント用）.
@@ -298,20 +299,24 @@ class ArtifactBridge:
             for dep_task_id in depends_on:
                 outputs = self.get_task_outputs(dep_task_id)
                 for artifact in outputs:
-                    source_type = artifact.artifact_type.value if isinstance(
-                        artifact.artifact_type, ArtifactType
-                    ) else str(artifact.artifact_type)
+                    source_type = (
+                        artifact.artifact_type.value
+                        if isinstance(artifact.artifact_type, ArtifactType)
+                        else str(artifact.artifact_type)
+                    )
 
                     for accepted in accepted_types:
                         if _are_types_compatible(source_type, accepted):
                             if self.link_input(task_id, artifact.artifact_id):
-                                links_created.append({
-                                    "from_task": dep_task_id,
-                                    "to_task": task_id,
-                                    "artifact_id": artifact.artifact_id,
-                                    "source_type": source_type,
-                                    "matched_as": accepted,
-                                })
+                                links_created.append(
+                                    {
+                                        "from_task": dep_task_id,
+                                        "to_task": task_id,
+                                        "artifact_id": artifact.artifact_id,
+                                        "source_type": source_type,
+                                        "matched_as": accepted,
+                                    }
+                                )
                             break  # one match per artifact is sufficient
 
         return links_created
@@ -463,18 +468,22 @@ class ArtifactBridge:
             for prev_type in previous_produces:
                 for acc_type in accepts:
                     if _are_types_compatible(prev_type, acc_type):
-                        auto_linked.append({
-                            "source_type": prev_type,
-                            "matched_as": acc_type,
-                        })
+                        auto_linked.append(
+                            {
+                                "source_type": prev_type,
+                                "matched_as": acc_type,
+                            }
+                        )
 
-            pipeline.append({
-                "step": step_idx,
-                "skill_id": skill_id,
-                "accepts": accepts,
-                "produces": produces,
-                "auto_linked_from_previous": auto_linked,
-            })
+            pipeline.append(
+                {
+                    "step": step_idx,
+                    "skill_id": skill_id,
+                    "accepts": accepts,
+                    "produces": produces,
+                    "auto_linked_from_previous": auto_linked,
+                }
+            )
 
             previous_produces = produces
 

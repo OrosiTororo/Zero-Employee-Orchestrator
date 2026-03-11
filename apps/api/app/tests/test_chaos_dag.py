@@ -25,9 +25,11 @@ from app.orchestration.dag import (
 # Test infrastructure
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class TimingResult:
     """Stores elapsed time for a timed operation."""
+
     elapsed_ms: float = 0.0
 
 
@@ -84,9 +86,15 @@ def create_diamond_dag() -> ExecutionDAG:
     """Create a diamond pattern: A -> {B, C} -> D."""
     dag = ExecutionDAG(plan_id="diamond-dag")
     dag.add_node(TaskNode(id="A", title="Root", estimated_minutes=5))
-    dag.add_node(TaskNode(id="B", title="Left branch", depends_on=["A"], estimated_minutes=10))
-    dag.add_node(TaskNode(id="C", title="Right branch", depends_on=["A"], estimated_minutes=8))
-    dag.add_node(TaskNode(id="D", title="Join", depends_on=["B", "C"], estimated_minutes=5))
+    dag.add_node(
+        TaskNode(id="B", title="Left branch", depends_on=["A"], estimated_minutes=10)
+    )
+    dag.add_node(
+        TaskNode(id="C", title="Right branch", depends_on=["A"], estimated_minutes=8)
+    )
+    dag.add_node(
+        TaskNode(id="D", title="Join", depends_on=["B", "C"], estimated_minutes=5)
+    )
     return dag
 
 
@@ -115,7 +123,9 @@ def create_complex_dag() -> ExecutionDAG:
         TaskNode(id="H", title="Merge-1-2", depends_on=["E", "F"], estimated_minutes=5),
         TaskNode(id="I", title="Branch-3c", depends_on=["G"], estimated_minutes=3),
         TaskNode(id="J", title="Branch-3d", depends_on=["G"], estimated_minutes=2),
-        TaskNode(id="K", title="Final-merge", depends_on=["H", "I"], estimated_minutes=4),
+        TaskNode(
+            id="K", title="Final-merge", depends_on=["H", "I"], estimated_minutes=4
+        ),
         TaskNode(id="L", title="Report", depends_on=["K"], estimated_minutes=2),
     ]
     for node in nodes:
@@ -170,6 +180,7 @@ def _get_all_node_statuses(dag: ExecutionDAG) -> dict[str, TaskNodeStatus]:
 @dataclass
 class ChaosResult:
     """Outcome of a single chaos trial."""
+
     strategy: str
     failure_mode: str
     recovered: bool
@@ -179,6 +190,7 @@ class ChaosResult:
 @dataclass
 class ChaosReport:
     """Aggregate report over many chaos trials."""
+
     total_tests: int = 0
     passed: int = 0
     failed: int = 0
@@ -243,6 +255,7 @@ def generate_chaos_report(results: list[ChaosResult]) -> dict:
 # ---------------------------------------------------------------------------
 # 2. Fault Injection Tests
 # ---------------------------------------------------------------------------
+
 
 class TestSingleNodeFailures:
     """Single-node failure scenarios."""
@@ -619,6 +632,7 @@ class TestEdgeCases:
 # 3. Benchmark Tests
 # ---------------------------------------------------------------------------
 
+
 class TestBenchmarks:
     """Statistical benchmarks over many randomised failure scenarios."""
 
@@ -671,7 +685,8 @@ class TestBenchmarks:
             # Replan blocks everything -- considered "recovered" if blocking
             # was applied correctly
             blocked = [
-                n for n in dag.nodes
+                n
+                for n in dag.nodes
                 if n.status == TaskNodeStatus.BLOCKED
                 or n.status == TaskNodeStatus.SUCCEEDED
                 or n.status == TaskNodeStatus.SKIPPED
@@ -699,7 +714,9 @@ class TestBenchmarks:
 
     def test_benchmark_recovery_time_distribution(self) -> None:
         """Measure recovery time statistics and assert p95 < 50ms."""
-        results = [self._run_random_trial(seed=i + 1000) for i in range(self.NUM_TRIALS)]
+        results = [
+            self._run_random_trial(seed=i + 1000) for i in range(self.NUM_TRIALS)
+        ]
         times = sorted(r.recovery_time_ms for r in results)
 
         avg_time = sum(times) / len(times)
@@ -715,7 +732,9 @@ class TestBenchmarks:
 
     def test_benchmark_strategy_effectiveness(self) -> None:
         """Compare recovery rates across strategies -- all should be >= 90%."""
-        results = [self._run_random_trial(seed=i + 2000) for i in range(self.NUM_TRIALS)]
+        results = [
+            self._run_random_trial(seed=i + 2000) for i in range(self.NUM_TRIALS)
+        ]
         report = generate_chaos_report(results)
 
         for strategy, stats in report["strategy_breakdown"].items():
@@ -730,6 +749,7 @@ class TestBenchmarks:
 # 4. Report Generation Tests
 # ---------------------------------------------------------------------------
 
+
 class TestReportGeneration:
     """Validate the chaos report generation utility."""
 
@@ -743,8 +763,18 @@ class TestReportGeneration:
     def test_generate_report_all_passed(self) -> None:
         """Report with all recovered results."""
         results = [
-            ChaosResult(strategy="retry", failure_mode="fail", recovered=True, recovery_time_ms=1.0),
-            ChaosResult(strategy="skip", failure_mode="timeout", recovered=True, recovery_time_ms=2.0),
+            ChaosResult(
+                strategy="retry",
+                failure_mode="fail",
+                recovered=True,
+                recovery_time_ms=1.0,
+            ),
+            ChaosResult(
+                strategy="skip",
+                failure_mode="timeout",
+                recovered=True,
+                recovery_time_ms=2.0,
+            ),
         ]
         report = generate_chaos_report(results)
         assert report["total_tests"] == 2
@@ -756,10 +786,30 @@ class TestReportGeneration:
     def test_generate_report_mixed(self) -> None:
         """Report with a mix of recovered and unrecovered results."""
         results = [
-            ChaosResult(strategy="retry", failure_mode="fail", recovered=True, recovery_time_ms=1.0),
-            ChaosResult(strategy="retry", failure_mode="crash", recovered=False, recovery_time_ms=5.0),
-            ChaosResult(strategy="skip", failure_mode="fail", recovered=True, recovery_time_ms=2.0),
-            ChaosResult(strategy="replan", failure_mode="timeout", recovered=True, recovery_time_ms=3.0),
+            ChaosResult(
+                strategy="retry",
+                failure_mode="fail",
+                recovered=True,
+                recovery_time_ms=1.0,
+            ),
+            ChaosResult(
+                strategy="retry",
+                failure_mode="crash",
+                recovered=False,
+                recovery_time_ms=5.0,
+            ),
+            ChaosResult(
+                strategy="skip",
+                failure_mode="fail",
+                recovered=True,
+                recovery_time_ms=2.0,
+            ),
+            ChaosResult(
+                strategy="replan",
+                failure_mode="timeout",
+                recovered=True,
+                recovery_time_ms=3.0,
+            ),
         ]
         report = generate_chaos_report(results)
         assert report["total_tests"] == 4
@@ -781,11 +831,21 @@ class TestReportGeneration:
     def test_report_structure(self) -> None:
         """Verify the report dict contains all required keys."""
         results = [
-            ChaosResult(strategy="retry", failure_mode="fail", recovered=True, recovery_time_ms=1.0),
+            ChaosResult(
+                strategy="retry",
+                failure_mode="fail",
+                recovered=True,
+                recovery_time_ms=1.0,
+            ),
         ]
         report = generate_chaos_report(results)
         required_keys = {
-            "total_tests", "passed", "failed", "recovery_success_rate",
-            "avg_recovery_time_ms", "strategy_breakdown", "failure_mode_breakdown",
+            "total_tests",
+            "passed",
+            "failed",
+            "recovery_success_rate",
+            "avg_recovery_time_ms",
+            "strategy_breakdown",
+            "failure_mode_breakdown",
         }
         assert required_keys.issubset(report.keys())
