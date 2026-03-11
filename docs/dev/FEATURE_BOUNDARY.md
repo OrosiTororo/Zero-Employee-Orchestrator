@@ -119,6 +119,24 @@
 |--------|------|------|
 | `line-bot` | LINE からのマルチエージェント操作 | **新規追加** |
 
+### AI Self-Improvement Plugin
+
+| Plugin | 用途 | 状態 |
+|--------|------|------|
+| `ai-self-improvement` | AI が AI を分析・改善・生成する自己改善プラグイン | **新規追加** |
+
+#### AI Self-Improvement (ai-self-improvement) の役割
+
+AI Self-Improvement の Phase 1（個人開発範囲）を実現するプラグイン:
+
+- **Skill Analyzer**: 既存 Skill のコード品質・パフォーマンス・エラーハンドリングを AI が評価し改善案を生成
+- **Experience-Driven Judge Tuning**: Experience Memory の承認/却下パターンから Judge Layer のカスタムルールを自動提案
+- **Failure-to-Skill**: Failure Taxonomy の蓄積データから失敗防止 Skill を自動生成
+- **Skill A/B Testing**: 同じタスクを複数の Skill で実行し品質・速度・コストを定量比較
+- **Auto Test Generator**: Skill のテストコードを自動生成・実行・レポート
+
+詳細は [docs/AI_SELF_IMPROVEMENT_ROADMAP.md](../AI_SELF_IMPROVEMENT_ROADMAP.md) を参照。
+
 ### 将来の Plugin 候補
 
 | Plugin | 用途 |
