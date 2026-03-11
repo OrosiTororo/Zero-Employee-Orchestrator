@@ -394,6 +394,13 @@ CORS_ORIGINS=https://your-domain.com
 
 MIT License — 詳細は [LICENSE](LICENSE) を参照
 
+## コントリビュート
+
+コントリビューションを歓迎します。詳細は [CONTRIBUTING.md](CONTRIBUTING.md) をご覧ください。
+
+- [行動規範 (Code of Conduct)](CODE_OF_CONDUCT.md)
+- [ロードマップ (Roadmap)](ROADMAP.md)
+
 ## 関連文書
 
 **利用者向け（`docs/`）:**
@@ -806,6 +813,13 @@ CORS_ORIGINS=https://your-domain.com
 
 MIT License — See [LICENSE](LICENSE) for details
 
+### Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Roadmap](ROADMAP.md)
+
 ### Related Documents
 
 **For Users (`docs/`):**
@@ -1206,6 +1220,13 @@ CORS_ORIGINS=https://your-domain.com
 ### 许可证
 
 MIT 许可证 — 详情请参阅 [LICENSE](LICENSE)
+
+### 贡献
+
+欢迎贡献。详情请参阅 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
+- [行为准则](CODE_OF_CONDUCT.md)
+- [路线图](ROADMAP.md)
 
 ### 相关文档
 

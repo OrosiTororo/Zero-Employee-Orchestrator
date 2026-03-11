@@ -205,7 +205,7 @@ const FEATURES = [
 ] as const
 
 const CURRENT_VERSION = "v0.1.0"
-const CURRENT_DATE = "2026-03-10"
+const CURRENT_DATE = "2026-03-11"
 
 interface BuiltinAsset {
   name: string
@@ -224,12 +224,16 @@ const EXPECTED_ASSETS: BuiltinAsset[] = [
 
 const RELEASE_HIGHLIGHTS = [
   "9層アーキテクチャの完全実装（User Layer〜Skill Registry）",
+  "ZEO-Bench — 200問テストセットによる Judge Layer 定量評価ベンチマーク",
+  "Cross-Model Verification 改善（セマンティック類似度・矛盾検出・信頼度加重）",
+  "汎用ドメイン Skill テンプレート（コンテンツ・競合分析・トレンド・KPI・戦略）",
+  "Artifact Bridge 強化 — 成果物の自動連携・型変換・パイプライン設計",
+  "Self-Healing DAG カオステスト（20+ フォルト注入・復旧率計測）",
   "ランタイム設定管理 — .env 不要で API キーを設定可能",
   "ナレッジストア — ユーザー設定・ファイル権限の永続記憶 + 変更検知",
-  "ログイン不要の匿名セッション（後からアカウント紐付け可能）",
-  "エージェント監視ダッシュボード（リアルタイム状態監視）",
   "自然言語スキル生成エンジン（16種の安全性チェック付き）",
   "Dynamic Model Registry（コード変更なしにモデル入替可能）",
+  "分身AI / 秘書AI / チャットツール連携 Plugin",
   "MCP サーバー（8ツール・4リソース・2プロンプト）",
   "Tauri v2 デスクトップアプリ（Windows / macOS / Linux）",
   "Cloudflare Workers デプロイ対応",
