@@ -7,7 +7,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [0.1.0] - 2026-03-10 — Platform v0.1 (Consolidated Release)
+## [0.1.0] - 2026-03-11 — Platform v0.1 (Consolidated Release)
+
+### Added (v0.1 Final — 2026-03-11)
+
+- **ZEO-Bench — Judge Layer 定量评估基准** (`tests/zeo_bench.py`)
+  - 200 道测试题集，定量评估 Cross-Model Verification 的精度
+  - 4 个类别：事实准确性 (50题)・矛盾检测 (70题)・假阳性 (40题)・修正质量 (40题)
+  - 与单模型自评估的检测率数值比较
+  - `BenchmarkReport` 提供各类别分析和摘要
+- **Cross-Model Verification 改进** (`orchestration/judge.py`)
+  - 语义相似度检验（token 级 Jaccard 相似度）
+  - 数值容差比较（5% 以内视为一致）
+  - 矛盾检测引擎：否定模式・数值不一致・结论矛盾・时序不一致
+  - 置信度加权评分（按同意模型数量加权）
+  - 详细矛盾报告（contradiction_details）
+- **通用领域 Skill 模板** (`skills/builtin/domain_skills.py`)
+  - ContentCreatorSkill — 任意平台的内容生成（博客・社交媒体・邮件・视频脚本・演示文稿）
+  - CompetitorAnalysisSkill — 任意领域的竞争分析（市场分析・SWOT・价格比较・功能比较）
+  - TrendAnalysisSkill — 任意领域的趋势分析（市场・技术・社交媒体・行业趋势）
+  - PerformanceAnalysisSkill — 任意业务的绩效分析（KPI・ROI・转化率・参与度）
+  - StrategyAdvisorSkill — 跨领域战略顾问（下一步行动・资源分配・风险评估）
+  - 所有 Skill 支持 i18n (ja/en/zh) 和 Artifact Bridge 兼容
+- **Artifact Bridge 强化** (`orchestration/artifact_bridge.py`)
+  - auto_link_outputs_to_inputs：DAG 内成果物自动连接
+  - 跨领域转换：如 trend_report → market_context 的自动类型转换
+  - 兼容性矩阵：成果物类型间的自动转换规则
+  - find_compatible_artifacts：搜索兼容的成果物
+  - build_artifact_pipeline：Skill 链的成果物流程设计
+- **Self-Healing DAG 混沌测试** (`tests/test_chaos_dag.py`)
+  - 20+ 个故障注入测试用例
+  - 单节点故障・级联故障・并行分支故障・全分支故障
+  - 恢复成功率和恢复时间基准测试
+  - 策略效果比较（retry / skip / replan）
+  - DAG 完整性验证（孤立节点・依赖关系解析・已完成节点保留）
 
 ### Fixed (post-release)
 

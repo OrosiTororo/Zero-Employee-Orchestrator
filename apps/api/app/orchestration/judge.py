@@ -3,7 +3,8 @@
 Provides quality assurance, policy compliance checking, and output verification.
 """
 
-from dataclasses import dataclass
+import re
+from dataclasses import dataclass, field
 from enum import Enum
 
 
@@ -22,6 +23,7 @@ class JudgeResult:
     suggestions: list[str]
     policy_violations: list[str]
     requires_human_review: bool = False
+    contradiction_details: list[dict] = field(default_factory=list)
 
 
 class RuleBasedJudge:
@@ -139,18 +141,362 @@ class PolicyPackJudge:
         )
 
 
+# ---------------------------------------------------------------------------
+# Utility functions for semantic comparison
+# セマンティック比較のためのユーティリティ関数群
+# ---------------------------------------------------------------------------
+
+
+def _tokenize(text: str) -> set[str]:
+    """Tokenize text into lowercase word tokens for Jaccard similarity.
+
+    テキストを小文字トークンに分割（Jaccard類似度計算用）。
+    """
+    return set(re.findall(r"[a-zA-Z0-9\u3040-\u9fff]+", text.lower()))
+
+
+def _jaccard_similarity(a: str, b: str) -> float:
+    """Compute token-level Jaccard similarity between two strings.
+
+    2つの文字列間のトークンレベルJaccard類似度を計算する。
+    """
+    tokens_a = _tokenize(a)
+    tokens_b = _tokenize(b)
+    if not tokens_a and not tokens_b:
+        return 1.0
+    if not tokens_a or not tokens_b:
+        return 0.0
+    intersection = tokens_a & tokens_b
+    union = tokens_a | tokens_b
+    return len(intersection) / len(union)
+
+
+def _normalize_value(value: str) -> str:
+    """Normalize a string value for comparison (strip, lowercase).
+
+    比較用に文字列を正規化（空白除去・小文字化）。
+    """
+    return value.strip().lower()
+
+
+def _try_parse_number(value: str) -> float | None:
+    """Try to parse a string as a number, return None on failure.
+
+    文字列を数値にパース。失敗時はNone。
+    """
+    cleaned = value.strip().replace(",", "").replace(" ", "")
+    # Handle percentages
+    if cleaned.endswith("%"):
+        try:
+            return float(cleaned[:-1]) / 100.0
+        except ValueError:
+            return None
+    try:
+        return float(cleaned)
+    except ValueError:
+        return None
+
+
+def _numeric_close(a_str: str, b_str: str, tolerance: float = 0.05) -> bool | None:
+    """Compare two values numerically within tolerance.
+
+    Returns True if close, False if not close, None if not both numeric.
+    2つの値を数値的に比較。近ければTrue、遠ければFalse、数値でなければNone。
+    """
+    a_num = _try_parse_number(a_str)
+    b_num = _try_parse_number(b_str)
+    if a_num is None or b_num is None:
+        return None
+    if a_num == b_num == 0.0:
+        return True
+    denominator = max(abs(a_num), abs(b_num))
+    if denominator == 0:
+        return True
+    return abs(a_num - b_num) / denominator <= tolerance
+
+
+# Negation patterns for contradiction detection
+# 矛盾検出用の否定パターン
+_NEGATION_PAIRS: list[tuple[re.Pattern, re.Pattern]] = [
+    (re.compile(r"\bis\b", re.I), re.compile(r"\bis\s+not\b", re.I)),
+    (re.compile(r"\btrue\b", re.I), re.compile(r"\bfalse\b", re.I)),
+    (re.compile(r"\byes\b", re.I), re.compile(r"\bno\b", re.I)),
+    (re.compile(r"\bcorrect\b", re.I), re.compile(r"\bincorrect\b", re.I)),
+    (re.compile(r"\bvalid\b", re.I), re.compile(r"\binvalid\b", re.I)),
+    (re.compile(r"\bpossible\b", re.I), re.compile(r"\bimpossible\b", re.I)),
+    (re.compile(r"\bcan\b", re.I), re.compile(r"\bcannot\b|\bcan't\b", re.I)),
+    (re.compile(r"\bwill\b", re.I), re.compile(r"\bwill\s+not\b|\bwon't\b", re.I)),
+    (re.compile(r"\bsuccess\b", re.I), re.compile(r"\bfailure\b|\bfail\b", re.I)),
+    (re.compile(r"\bincrease\b", re.I), re.compile(r"\bdecrease\b", re.I)),
+    (re.compile(r"\bhigher\b", re.I), re.compile(r"\blower\b", re.I)),
+    (re.compile(r"\bpositive\b", re.I), re.compile(r"\bnegative\b", re.I)),
+    (re.compile(r"\bbefore\b", re.I), re.compile(r"\bafter\b", re.I)),
+    (re.compile(r"\babove\b", re.I), re.compile(r"\bbelow\b", re.I)),
+    (re.compile(r"\bmore\b", re.I), re.compile(r"\bless\b|\bfewer\b", re.I)),
+    (re.compile(r"\balways\b", re.I), re.compile(r"\bnever\b", re.I)),
+]
+
+# Known factual patterns for basic verification
+# 基本的な事実検証用の既知パターン
+_FACTUAL_PATTERNS: list[dict] = [
+    # Year range sanity checks
+    {
+        "pattern": re.compile(r"\b(\d{4})\b"),
+        "check": "year_range",
+        "desc": "Year should be between 1000-2100",
+    },
+    # Percentage bounds
+    {
+        "pattern": re.compile(r"(\d+(?:\.\d+)?)\s*%"),
+        "check": "percentage_bound",
+        "desc": "Percentage typically 0-100",
+    },
+    # Temperature bounds (Celsius)
+    {
+        "pattern": re.compile(r"(-?\d+(?:\.\d+)?)\s*°?[Cc]"),
+        "check": "temp_celsius",
+        "desc": "Temperature in Celsius typically -90 to 60",
+    },
+]
+
+
 class CrossModelJudge:
     """Cross-Model Verification: 複数モデルの出力を比較して品質を検証.
 
     HIGH / CRITICAL 品質モードで使用し、異なる LLM の出力の
     一致度を評価して信頼性を担保する。
+
+    Enhanced with:
+    - Semantic similarity (token-level Jaccard)
+    - Numeric tolerance comparison (5% default)
+    - Negation / contradiction detection
+    - Confidence-weighted scoring (majority vote)
+    - Factual verification heuristics
     """
 
-    def __init__(self, agreement_threshold: float = 0.7) -> None:
+    def __init__(
+        self,
+        agreement_threshold: float = 0.7,
+        numeric_tolerance: float = 0.05,
+        semantic_threshold: float = 0.5,
+    ) -> None:
         self.agreement_threshold = agreement_threshold
+        self.numeric_tolerance = numeric_tolerance
+        self.semantic_threshold = semantic_threshold
+
+    # ------------------------------------------------------------------
+    # Semantic value comparison
+    # セマンティック値比較
+    # ------------------------------------------------------------------
+
+    def _values_match(self, a: str, b: str) -> bool:
+        """Check if two string values match semantically.
+
+        2つの文字列値がセマンティックに一致するかを判定する。
+        Checks in order: exact match -> normalized match -> numeric match -> Jaccard.
+        """
+        # Exact match
+        if a == b:
+            return True
+
+        # Normalized match（正規化一致）
+        na, nb = _normalize_value(a), _normalize_value(b)
+        if na == nb:
+            return True
+
+        # Numeric tolerance match（数値許容範囲一致）
+        num_result = _numeric_close(a, b, self.numeric_tolerance)
+        if num_result is not None:
+            return num_result
+
+        # Jaccard similarity（Jaccard類似度）
+        return _jaccard_similarity(a, b) >= self.semantic_threshold
+
+    # ------------------------------------------------------------------
+    # Contradiction detection
+    # 矛盾検出
+    # ------------------------------------------------------------------
+
+    def detect_contradictions(self, outputs: list[dict]) -> list[dict]:
+        """Detect contradictions between multiple model outputs.
+
+        複数モデル出力間の矛盾を検出する。
+
+        Returns a list of contradiction detail dicts with keys:
+            key, type, values, description
+        """
+        if len(outputs) < 2:
+            return []
+
+        contradictions: list[dict] = []
+
+        # Collect all keys across outputs
+        all_keys: set[str] = set()
+        for out in outputs:
+            all_keys.update(out.keys())
+
+        for key in sorted(all_keys):
+            values = [str(out[key]) for out in outputs if key in out]
+            if len(values) < 2:
+                continue
+
+            # Check every pair of values for this key
+            for i in range(len(values)):
+                for j in range(i + 1, len(values)):
+                    vi, vj = values[i], values[j]
+                    contradiction = self._check_pair_contradiction(key, vi, vj)
+                    if contradiction:
+                        contradictions.append(contradiction)
+
+        return contradictions
+
+    def _check_pair_contradiction(
+        self, key: str, val_a: str, val_b: str
+    ) -> dict | None:
+        """Check a single pair of values for contradiction.
+
+        値ペア間の矛盾をチェックする。
+        """
+        # 1. Numeric discrepancy（数値不一致）
+        num_result = _numeric_close(val_a, val_b, self.numeric_tolerance)
+        if num_result is False:
+            return {
+                "key": key,
+                "type": "numeric_discrepancy",
+                "values": [val_a, val_b],
+                "description": f"Numeric values differ beyond {self.numeric_tolerance:.0%} "
+                f"tolerance: '{val_a}' vs '{val_b}'",
+            }
+
+        # 2. Negation pattern（否定パターン）
+        for pos_pat, neg_pat in _NEGATION_PAIRS:
+            a_has_pos = bool(pos_pat.search(val_a)) and not bool(neg_pat.search(val_a))
+            a_has_neg = bool(neg_pat.search(val_a))
+            b_has_pos = bool(pos_pat.search(val_b)) and not bool(neg_pat.search(val_b))
+            b_has_neg = bool(neg_pat.search(val_b))
+
+            if (a_has_pos and b_has_neg) or (a_has_neg and b_has_pos):
+                return {
+                    "key": key,
+                    "type": "negation_contradiction",
+                    "values": [val_a, val_b],
+                    "description": f"Opposing assertions detected for '{key}': "
+                    f"'{val_a}' vs '{val_b}'",
+                }
+
+        # 3. Low semantic similarity with no numeric match means conflicting text
+        # 低セマンティック類似度（数値一致なし）= テキスト矛盾
+        if num_result is None:  # not numeric
+            sim = _jaccard_similarity(val_a, val_b)
+            if sim < 0.2 and len(val_a) > 3 and len(val_b) > 3:
+                return {
+                    "key": key,
+                    "type": "semantic_divergence",
+                    "values": [val_a, val_b],
+                    "description": f"Very low semantic similarity ({sim:.2f}) for '{key}': "
+                    f"'{val_a}' vs '{val_b}'",
+                }
+
+        return None
+
+    # ------------------------------------------------------------------
+    # Factual verification heuristics
+    # 事実検証ヒューリスティクス
+    # ------------------------------------------------------------------
+
+    def _check_factual_patterns(self, outputs: list[dict]) -> list[dict]:
+        """Run factual verification heuristics on output values.
+
+        出力値に対して事実検証ヒューリスティクスを実行する。
+        """
+        issues: list[dict] = []
+        for out in outputs:
+            for key, value in out.items():
+                val_str = str(value)
+                for fp in _FACTUAL_PATTERNS:
+                    matches = fp["pattern"].findall(val_str)
+                    for match_val in matches:
+                        try:
+                            num = float(match_val)
+                        except (ValueError, TypeError):
+                            continue
+
+                        flagged = False
+                        if fp["check"] == "year_range" and not (1000 <= num <= 2100):
+                            flagged = True
+                        elif fp["check"] == "percentage_bound" and not (
+                            0 <= num <= 100
+                        ):
+                            flagged = True
+                        elif fp["check"] == "temp_celsius" and not (-90 <= num <= 60):
+                            flagged = True
+
+                        if flagged:
+                            issues.append(
+                                {
+                                    "key": key,
+                                    "type": "factual_anomaly",
+                                    "values": [val_str],
+                                    "description": f"{fp['desc']}, got {num} in key '{key}'",
+                                }
+                            )
+        return issues
+
+    # ------------------------------------------------------------------
+    # Confidence-weighted majority scoring
+    # 信頼度重み付き多数決スコアリング
+    # ------------------------------------------------------------------
+
+    def _majority_agreement_score(self, outputs: list[dict]) -> float:
+        """Compute confidence-weighted agreement using majority vote.
+
+        多数決による信頼度重み付き一致度を計算する。
+        For each common key, find the largest group of matching values.
+        """
+        all_keys: set[str] = set()
+        for out in outputs:
+            all_keys.update(out.keys())
+
+        if not all_keys:
+            return 0.0
+
+        total_score = 0.0
+        key_count = 0
+
+        for key in all_keys:
+            values = [str(out[key]) for out in outputs if key in out]
+            if len(values) < 2:
+                continue
+            key_count += 1
+
+            # Group by semantic similarity
+            groups: list[list[str]] = []
+            for v in values:
+                placed = False
+                for group in groups:
+                    if self._values_match(v, group[0]):
+                        group.append(v)
+                        placed = True
+                        break
+                if not placed:
+                    groups.append([v])
+
+            # Largest group / total = agreement ratio
+            largest = max(len(g) for g in groups)
+            total_score += largest / len(values)
+
+        return total_score / key_count if key_count > 0 else 0.0
+
+    # ------------------------------------------------------------------
+    # Main evaluate method
+    # メイン評価メソッド
+    # ------------------------------------------------------------------
 
     def evaluate(self, outputs: list[dict], context: dict | None = None) -> JudgeResult:
         """複数モデル出力の一致度を評価する.
+
+        Enhanced evaluation with semantic comparison, contradiction detection,
+        and factual verification heuristics.
 
         Args:
             outputs: 各モデルの出力辞書リスト
@@ -166,7 +512,7 @@ class CrossModelJudge:
                 requires_human_review=False,
             )
 
-        # Compare key overlap across outputs
+        # ---- Structural agreement (unchanged for backward compat) ----
         all_keys: set[str] = set()
         for out in outputs:
             all_keys.update(out.keys())
@@ -180,50 +526,93 @@ class CrossModelJudge:
                 policy_violations=[],
             )
 
-        # Structural agreement: fraction of keys present in all outputs
         common_keys = all_keys.copy()
         for out in outputs:
             common_keys &= set(out.keys())
         structural_score = len(common_keys) / len(all_keys) if all_keys else 0.0
 
-        # Value agreement: fraction of common keys with matching values
+        # ---- Semantic value agreement (enhanced) ----
         matching_values = 0
         for key in common_keys:
             values = [str(out.get(key, "")) for out in outputs]
-            if len(set(values)) == 1:
+            # Check if all values match semantically
+            all_match = True
+            for idx in range(1, len(values)):
+                if not self._values_match(values[0], values[idx]):
+                    all_match = False
+                    break
+            if all_match:
                 matching_values += 1
-        value_score = matching_values / len(common_keys) if common_keys else 0.0
+        semantic_value_score = (
+            matching_values / len(common_keys) if common_keys else 0.0
+        )
 
-        overall_score = (structural_score + value_score) / 2
-        reasons = []
-        suggestions = []
+        # ---- Majority-vote confidence score ----
+        majority_score = self._majority_agreement_score(outputs)
+
+        # ---- Contradiction detection ----
+        contradictions = self.detect_contradictions(outputs)
+
+        # ---- Factual verification ----
+        factual_issues = self._check_factual_patterns(outputs)
+        all_issues = contradictions + factual_issues
+
+        # ---- Overall score computation ----
+        # Weighted combination: structural 20%, semantic value 40%, majority 40%
+        raw_score = (
+            0.2 * structural_score + 0.4 * semantic_value_score + 0.4 * majority_score
+        )
+
+        # Penalize for contradictions
+        contradiction_penalty = min(len(contradictions) * 0.1, 0.5)
+        factual_penalty = min(len(factual_issues) * 0.05, 0.2)
+        overall_score = max(0.0, raw_score - contradiction_penalty - factual_penalty)
+        overall_score = round(overall_score, 3)
+
+        # ---- Build reasons and suggestions ----
+        reasons: list[str] = []
+        suggestions: list[str] = []
 
         if structural_score < self.agreement_threshold:
             reasons.append(
                 f"構造一致度が低い: {structural_score:.0%} "
                 f"(閾値 {self.agreement_threshold:.0%})"
             )
-        if value_score < self.agreement_threshold:
+
+        if semantic_value_score < self.agreement_threshold:
             reasons.append(
-                f"値一致度が低い: {value_score:.0%} "
+                f"セマンティック値一致度が低い: {semantic_value_score:.0%} "
                 f"(閾値 {self.agreement_threshold:.0%})"
             )
 
-        if overall_score < self.agreement_threshold:
+        if contradictions:
+            reasons.append(f"矛盾が {len(contradictions)} 件検出されました")
+            for c in contradictions[:5]:  # Show first 5
+                reasons.append(f"  - [{c['type']}] {c['description']}")
+            suggestions.append("矛盾が検出されたキーを重点的にレビューしてください")
+
+        if factual_issues:
+            reasons.append(f"事実検証で {len(factual_issues)} 件の問題が検出されました")
+            for fi in factual_issues[:3]:
+                reasons.append(f"  - [{fi['type']}] {fi['description']}")
+
+        # ---- Determine verdict ----
+        if overall_score < self.agreement_threshold or len(contradictions) >= 3:
             verdict = JudgeVerdict.NEEDS_REVIEW
             suggestions.append("人間レビューによる最終判断を推奨します")
-        elif reasons:
+        elif contradictions or reasons:
             verdict = JudgeVerdict.WARN
         else:
             verdict = JudgeVerdict.PASS
 
         return JudgeResult(
             verdict=verdict,
-            score=round(overall_score, 3),
+            score=overall_score,
             reasons=reasons,
             suggestions=suggestions,
             policy_violations=[],
             requires_human_review=verdict == JudgeVerdict.NEEDS_REVIEW,
+            contradiction_details=all_issues,
         )
 
 

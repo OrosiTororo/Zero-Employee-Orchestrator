@@ -7,7 +7,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [0.1.0] - 2026-03-10 — Platform v0.1 (Consolidated Release)
+## [0.1.0] - 2026-03-11 — Platform v0.1 (Consolidated Release)
+
+### Added (v0.1 Final — 2026-03-11)
+
+- **ZEO-Bench — Judge Layer Quantitative Evaluation Benchmark** (`tests/zeo_bench.py`)
+  - 200-question test set for quantitative evaluation of Cross-Model Verification accuracy
+  - 4 categories: Factual Accuracy (50), Contradiction Detection (70), False Positive (40), Correction Quality (40)
+  - Numerical comparison of detection rate improvement vs single-model self-evaluation
+  - `BenchmarkReport` with per-category breakdowns and summary
+- **Cross-Model Verification Improvements** (`orchestration/judge.py`)
+  - Semantic similarity checking (token-level Jaccard similarity)
+  - Numeric tolerance comparison (within 5% considered matching)
+  - Contradiction detection engine: negation patterns, numeric discrepancies, conclusion conflicts, temporal inconsistencies
+  - Confidence-weighted scoring (weighted by number of agreeing models)
+  - Detailed contradiction reporting (contradiction_details)
+- **Generalized Domain Skill Templates** (`skills/builtin/domain_skills.py`)
+  - ContentCreatorSkill — Content generation for any platform (blog, social media, email, video scripts, presentations)
+  - CompetitorAnalysisSkill — Competitor analysis for any domain (market analysis, SWOT, pricing, feature comparison)
+  - TrendAnalysisSkill — Trend analysis for any domain (market, technology, social media, industry trends)
+  - PerformanceAnalysisSkill — Performance analysis for any business (KPI, ROI, conversion, engagement)
+  - StrategyAdvisorSkill — Cross-domain strategic advisor (next actions, resource allocation, risk assessment)
+  - All Skills support i18n (ja/en/zh) and Artifact Bridge compatibility
+- **Enhanced Artifact Bridge** (`orchestration/artifact_bridge.py`)
+  - auto_link_outputs_to_inputs: Automatic artifact linking within DAGs
+  - Cross-domain transformation: e.g., trend_report → market_context automatic type conversion
+  - Compatibility matrix: Auto-conversion rules between artifact types
+  - find_compatible_artifacts: Search for compatible artifacts
+  - build_artifact_pipeline: Design artifact flow through Skill chains
+- **Self-Healing DAG Chaos Tests** (`tests/test_chaos_dag.py`)
+  - 20+ fault injection test cases
+  - Single node failures, cascade failures, parallel branch failures, full branch failures
+  - Recovery success rate and recovery time benchmarks
+  - Strategy effectiveness comparison (retry / skip / replan)
+  - DAG integrity validation (orphan nodes, dependency resolution, completed node preservation)
 
 ### Fixed (post-release)
 
