@@ -1,4 +1,8 @@
-"""Approval management endpoints."""
+"""Approval management endpoints.
+
+承認エンドポイントは全て認証必須。
+承認・却下は人間ユーザーのみが実行可能（CLAUDE.md §12.3 準拠）。
+"""
 
 import uuid
 from datetime import datetime, timezone
@@ -9,8 +13,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
+from app.api.routes.auth import get_current_user
 from app.models.review import ApprovalRequest
 from app.models.audit import AuditLog
+from app.models.user import User
 from app.core.security import generate_uuid
 from app.policies.approval_gate import check_operations_batch, get_highest_risk
 
@@ -33,12 +39,23 @@ class BatchApprovalDecision(BaseModel):
     reason: str = ""
 
 
+def _validate_uuid(value: str, name: str = "ID") -> uuid.UUID:
+    """UUID 文字列を安全にパースする."""
+    try:
+        return uuid.UUID(value)
+    except (ValueError, AttributeError):
+        raise HTTPException(status_code=400, detail=f"Invalid {name}: {value}")
+
+
 @router.get("/companies/{company_id}/approvals")
 async def list_approvals(
-    company_id: str, status: str | None = None, db: AsyncSession = Depends(get_db)
+    company_id: str,
+    status: str | None = None,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """承認待ち一覧"""
-    cid = uuid.UUID(company_id)
+    cid = _validate_uuid(company_id, "company_id")
     query = select(ApprovalRequest).where(ApprovalRequest.company_id == cid)
     if status:
         query = query.where(ApprovalRequest.status == status)
@@ -61,13 +78,17 @@ async def list_approvals(
 
 @router.post("/companies/{company_id}/approvals/batch-check")
 async def batch_check_approvals(
-    company_id: str, req: BatchApprovalRequest, db: AsyncSession = Depends(get_db)
+    company_id: str,
+    req: BatchApprovalRequest,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """Plan approval: batch-check all operations at planning time.
 
     Returns which operations require approval and overall risk level,
     allowing users to approve all at once during the planning phase.
     """
+    _validate_uuid(company_id, "company_id")
     results = check_operations_batch(req.operations)
     needs_approval = [r for r in results if r.requires_approval]
     highest_risk = get_highest_risk(results)
@@ -92,12 +113,16 @@ async def batch_check_approvals(
 
 @router.post("/companies/{company_id}/approvals/batch-decide")
 async def batch_decide_approvals(
-    company_id: str, req: BatchApprovalDecision, db: AsyncSession = Depends(get_db)
+    company_id: str,
+    req: BatchApprovalDecision,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """Batch approve/reject multiple approval requests at once.
 
     Used during planning phase to handle all pending approvals together.
     """
+    _validate_uuid(company_id, "company_id")
     if req.decision not in ("approved", "rejected"):
         raise HTTPException(
             status_code=400, detail="Decision must be 'approved' or 'rejected'"
@@ -105,8 +130,9 @@ async def batch_decide_approvals(
 
     decided = []
     for aid in req.approval_ids:
+        aid_uuid = _validate_uuid(aid, "approval_id")
         result = await db.execute(
-            select(ApprovalRequest).where(ApprovalRequest.id == uuid.UUID(aid))
+            select(ApprovalRequest).where(ApprovalRequest.id == aid_uuid)
         )
         approval = result.scalar_one_or_none()
         if not approval or approval.status != "requested":
@@ -114,11 +140,13 @@ async def batch_decide_approvals(
 
         approval.status = req.decision
         approval.decided_at = datetime.now(timezone.utc)
+        approval.decided_by = str(user.id)
 
         audit = AuditLog(
             id=generate_uuid(),
             company_id=approval.company_id,
             actor_type="user",
+            actor_id=user.id,
             event_type=f"approval.{req.decision}",
             target_type=approval.target_type,
             target_id=approval.target_id,
@@ -126,6 +154,7 @@ async def batch_decide_approvals(
                 "decision": req.decision,
                 "reason": req.reason,
                 "batch": True,
+                "decided_by": str(user.id),
             },
         )
         db.add(audit)
@@ -136,10 +165,15 @@ async def batch_decide_approvals(
 
 
 @router.post("/approvals/{approval_id}/approve")
-async def approve(approval_id: str, db: AsyncSession = Depends(get_db)):
-    """承認"""
+async def approve(
+    approval_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """承認 — 認証済みユーザーのみ実行可能"""
+    aid = _validate_uuid(approval_id, "approval_id")
     result = await db.execute(
-        select(ApprovalRequest).where(ApprovalRequest.id == uuid.UUID(approval_id))
+        select(ApprovalRequest).where(ApprovalRequest.id == aid)
     )
     approval = result.scalar_one_or_none()
     if not approval:
@@ -151,17 +185,33 @@ async def approve(approval_id: str, db: AsyncSession = Depends(get_db)):
         )
     approval.status = "approved"
     approval.decided_at = datetime.now(timezone.utc)
+
+    audit = AuditLog(
+        id=generate_uuid(),
+        company_id=approval.company_id,
+        actor_type="user",
+        actor_id=user.id,
+        event_type="approval.approved",
+        target_type=approval.target_type,
+        target_id=approval.target_id,
+        details_json={"decided_by": str(user.id)},
+    )
+    db.add(audit)
     await db.commit()
     return {"status": "approved"}
 
 
 @router.post("/approvals/{approval_id}/reject")
 async def reject(
-    approval_id: str, reason: str = "", db: AsyncSession = Depends(get_db)
+    approval_id: str,
+    reason: str = "",
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
-    """却下"""
+    """却下 — 認証済みユーザーのみ実行可能"""
+    aid = _validate_uuid(approval_id, "approval_id")
     result = await db.execute(
-        select(ApprovalRequest).where(ApprovalRequest.id == uuid.UUID(approval_id))
+        select(ApprovalRequest).where(ApprovalRequest.id == aid)
     )
     approval = result.scalar_one_or_none()
     if not approval:
@@ -173,5 +223,17 @@ async def reject(
         )
     approval.status = "rejected"
     approval.decided_at = datetime.now(timezone.utc)
+
+    audit = AuditLog(
+        id=generate_uuid(),
+        company_id=approval.company_id,
+        actor_type="user",
+        actor_id=user.id,
+        event_type="approval.rejected",
+        target_type=approval.target_type,
+        target_id=approval.target_id,
+        details_json={"decided_by": str(user.id), "reason": reason},
+    )
+    db.add(audit)
     await db.commit()
     return {"status": "rejected", "reason": reason}

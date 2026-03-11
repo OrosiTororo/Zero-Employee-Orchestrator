@@ -9,6 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
+from app.api.deps.validators import parse_uuid
 from app.models.ticket import Ticket, TicketThread
 from app.models.audit import AuditLog
 from app.core.security import generate_uuid
@@ -58,7 +59,7 @@ async def list_tickets(
     db: AsyncSession = Depends(get_db),
 ):
     """チケット一覧"""
-    cid = uuid.UUID(company_id)
+    cid = parse_uuid(company_id, "company_id")
     query = select(Ticket).where(Ticket.company_id == cid)
     if status:
         query = query.where(Ticket.status == status)
@@ -91,7 +92,7 @@ async def create_ticket(
     company_id: str, req: TicketCreate, db: AsyncSession = Depends(get_db)
 ):
     """新規チケット作成 + Design Interview セッション初期化"""
-    cid = uuid.UUID(company_id)
+    cid = parse_uuid(company_id, "company_id")
     max_no = await db.execute(
         select(func.coalesce(func.max(Ticket.ticket_no), 0)).where(
             Ticket.company_id == cid
@@ -207,7 +208,7 @@ async def generate_spec_from_interview_endpoint(
 
     spec_data = generate_spec_from_interview(session)
 
-    tid = uuid.UUID(ticket_id)
+    tid = parse_uuid(ticket_id, "ticket_id")
     existing = await db.execute(select(Spec).where(Spec.ticket_id == tid))
     count = len(existing.scalars().all())
 
@@ -238,7 +239,7 @@ async def generate_spec_from_interview_endpoint(
 @router.get("/tickets/{ticket_id}")
 async def get_ticket(ticket_id: str, db: AsyncSession = Depends(get_db)):
     """チケット詳細"""
-    result = await db.execute(select(Ticket).where(Ticket.id == uuid.UUID(ticket_id)))
+    result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
@@ -262,7 +263,7 @@ async def update_ticket(
     db: AsyncSession = Depends(get_db),
 ):
     """チケット更新"""
-    result = await db.execute(select(Ticket).where(Ticket.id == uuid.UUID(ticket_id)))
+    result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
@@ -279,7 +280,7 @@ async def add_comment(
     ticket_id: str, req: CommentCreate, db: AsyncSession = Depends(get_db)
 ):
     """チケットにコメント追加"""
-    result = await db.execute(select(Ticket).where(Ticket.id == uuid.UUID(ticket_id)))
+    result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
@@ -299,7 +300,7 @@ async def add_comment(
 @router.get("/tickets/{ticket_id}/thread")
 async def get_thread(ticket_id: str, db: AsyncSession = Depends(get_db)):
     """チケットのスレッドを取得"""
-    tid = uuid.UUID(ticket_id)
+    tid = parse_uuid(ticket_id, "ticket_id")
     result = await db.execute(
         select(TicketThread)
         .where(TicketThread.ticket_id == tid)
@@ -321,7 +322,7 @@ async def get_thread(ticket_id: str, db: AsyncSession = Depends(get_db)):
 @router.post("/tickets/{ticket_id}/close")
 async def close_ticket(ticket_id: str, db: AsyncSession = Depends(get_db)):
     """チケットを閉じる"""
-    result = await db.execute(select(Ticket).where(Ticket.id == uuid.UUID(ticket_id)))
+    result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
@@ -334,7 +335,7 @@ async def close_ticket(ticket_id: str, db: AsyncSession = Depends(get_db)):
 @router.post("/tickets/{ticket_id}/reopen")
 async def reopen_ticket(ticket_id: str, db: AsyncSession = Depends(get_db)):
     """チケットを再開"""
-    result = await db.execute(select(Ticket).where(Ticket.id == uuid.UUID(ticket_id)))
+    result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
