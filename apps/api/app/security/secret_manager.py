@@ -92,8 +92,8 @@ def get_env_secret(key: str) -> str | None:
 class SecretStore:
     """ローカル暗号化ストアの抽象.
 
-    Fernet 対称暗号化（AES-128-CBC + HMAC-SHA256）でシークレットを保護する。
-    プロセスごとにランダムキーを生成するインメモリストアのため、
+    Fernet 対称暗号化（AES-128-CBC + HMAC-SHA256）でシークレッ��を保護する。
+    プロセスごとにランダムキーを生成するインメモリストアのため,
     アプリケーション再起動時に暗号化キーとシークレットはすべて失われる。
     再起動後はシークレットの再登録が必要。
     本番環境では AWS Secrets Manager / HashiCorp Vault 等の外部 Secret Manager
@@ -125,7 +125,10 @@ class SecretStore:
         try:
             return self._fernet.decrypt(encrypted).decode()
         except InvalidToken:
-            logger.error("Failed to decrypt secret '%s': token is invalid or tampered", name)
+            logger.error(
+                "Failed to decrypt secret '%s': token is invalid or tampered",
+                name,
+            )
             return None
 
     def delete(self, name: str) -> bool:
