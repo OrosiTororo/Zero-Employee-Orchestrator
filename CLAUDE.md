@@ -89,7 +89,7 @@ apps/
 skills/
 ├── builtin/                # 組み込み Skill（6 個・システム保護）
 └── templates/              # Skill テンプレート
-plugins/                    # Plugin マニフェスト（8 Plugin）
+plugins/                    # Plugin マニフェスト（9 Plugin）
 extensions/                 # Extension マニフェスト（4 Extension）
 packages/                   # 共有 NPM パッケージ
 docs/                       # 利用者向けドキュメント

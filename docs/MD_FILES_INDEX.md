@@ -136,6 +136,17 @@
 
 ---
 
+### `docs/AI_SELF_IMPROVEMENT_ROADMAP.md`
+
+| 項目 | 内容 |
+|------|------|
+| **場所** | `/docs/AI_SELF_IMPROVEMENT_ROADMAP.md` |
+| **目的** | AI Self-Improvement（AI が AI を改善・生成する能力）の実現に向けたロードマップ |
+| **対象読者** | 開発者・コントリビューター・研究者・ビジョンに共感する方 |
+| **主な内容** | AI Self-Improvement のビジョン、ZEO の現在地と目標への距離、個人開発の限界とコミュニティ・資金の必要性、4 フェーズのロードマップ、ai-self-improvement Plugin の設計、コミュニティ拡大戦略、実現する未来のシナリオ、安全性と倫理、費用見積り |
+
+---
+
 ### `docs/MD_FILES_INDEX.md`
 
 | 項目 | 内容 |
