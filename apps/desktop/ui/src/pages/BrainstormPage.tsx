@@ -8,10 +8,7 @@ import {
   GitCompare,
   Users,
   Settings,
-  Archive,
-  Search,
   Type,
-  Trash2,
 } from "lucide-react"
 import { api } from "@/shared/api/client"
 
@@ -238,11 +235,15 @@ export default function BrainstormPage() {
         role: "user",
         content: input,
       })
-      setMessages(prev => [
-        ...prev,
-        { role: "user", content: input, timestamp: Date.now() / 1000 },
-      ])
       setInput("")
+      // Reload full conversation to show AI response
+      await loadSessionMessages(currentSession.id)
+      // Update session stats from response
+      if (data.message_count !== undefined) {
+        setCurrentSession(prev =>
+          prev ? { ...prev, message_count: data.message_count, total_chars: data.total_chars } : null
+        )
+      }
 
       // Auto-analyze text
       analyzeText(input)
@@ -399,6 +400,26 @@ export default function BrainstormPage() {
                   />
                   マルチモデル壁打ち
                 </label>
+                {isMultiModel && (
+                  <div style={{ marginBottom: 8 }}>
+                    <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>使用モデルを選択:</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      {AVAILABLE_MODELS.map(m => (
+                        <label key={m} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, cursor: "pointer" }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedModels.includes(m)}
+                            onChange={e => {
+                              if (e.target.checked) setSelectedModels([...selectedModels, m])
+                              else setSelectedModels(selectedModels.filter(x => x !== m))
+                            }}
+                          />
+                          {m.split("/")[1]}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div style={{ display: "flex", gap: 8 }}>
                   <button
                     onClick={createSession}
