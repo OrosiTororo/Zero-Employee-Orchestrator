@@ -4,6 +4,7 @@ import { LoginPage } from '@/pages/LoginPage'
 import { SetupPage } from '@/pages/SetupPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { OrgChartPage } from '@/pages/OrgChartPage'
+import { SecretaryPage } from '@/pages/SecretaryPage'
 import { TicketListPage } from '@/pages/TicketListPage'
 import { TicketDetailPage } from '@/pages/TicketDetailPage'
 import { InterviewPage } from '@/pages/InterviewPage'
@@ -37,6 +38,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <DashboardPage /> },
       { path: 'org-chart', element: <OrgChartPage /> },
+      { path: 'secretary', element: <SecretaryPage /> },
       { path: 'tickets', element: <TicketListPage /> },
       { path: 'tickets/:id', element: <TicketDetailPage /> },
       { path: 'tickets/:id/interview', element: <InterviewPage /> },
