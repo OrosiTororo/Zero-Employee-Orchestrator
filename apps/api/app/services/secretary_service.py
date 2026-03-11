@@ -91,43 +91,102 @@ class DailySummaryRecord(Base):
 
 _CATEGORY_KEYWORDS: dict[str, list[str]] = {
     ThoughtCategory.IDEA: [
-        "アイデア", "思いつき", "ひらめき", "こうしたら", "〜したい",
-        "idea", "思いついた", "面白い", "新しく",
+        "アイデア",
+        "思いつき",
+        "ひらめき",
+        "こうしたら",
+        "〜したい",
+        "idea",
+        "思いついた",
+        "面白い",
+        "新しく",
     ],
     ThoughtCategory.TODO: [
-        "やる", "やること", "todo", "タスク", "やらないと",
-        "忘れずに", "明日", "今日中", "対応する", "確認する",
+        "やる",
+        "やること",
+        "todo",
+        "タスク",
+        "やらないと",
+        "忘れずに",
+        "明日",
+        "今日中",
+        "対応する",
+        "確認する",
     ],
     ThoughtCategory.DECISION: [
-        "決定", "決めた", "判断", "方針", "決断",
-        "〜にする", "これでいく", "採用", "却下",
+        "決定",
+        "決めた",
+        "判断",
+        "方針",
+        "決断",
+        "〜にする",
+        "これでいく",
+        "採用",
+        "却下",
     ],
     ThoughtCategory.PROBLEM: [
-        "課題", "問題", "困って", "困った", "うまくいかない",
-        "ボトルネック", "改善", "修正", "バグ",
+        "課題",
+        "問題",
+        "困って",
+        "困った",
+        "うまくいかない",
+        "ボトルネック",
+        "改善",
+        "修正",
+        "バグ",
     ],
     ThoughtCategory.STRATEGY: [
-        "戦略", "方針", "ロードマップ", "計画", "長期",
-        "ビジョン", "目標", "KPI", "OKR",
+        "戦略",
+        "方針",
+        "ロードマップ",
+        "計画",
+        "長期",
+        "ビジョン",
+        "目標",
+        "KPI",
+        "OKR",
     ],
     ThoughtCategory.OPPORTUNITY: [
-        "チャンス", "機会", "可能性", "パートナー", "提携",
-        "市場", "トレンド", "需要",
+        "チャンス",
+        "機会",
+        "可能性",
+        "パートナー",
+        "提携",
+        "市場",
+        "トレンド",
+        "需要",
     ],
     ThoughtCategory.REFLECTION: [
-        "振り返り", "反省", "学び", "気づき", "教訓",
-        "よかった", "改善点", "次回",
+        "振り返り",
+        "反省",
+        "学び",
+        "気づき",
+        "教訓",
+        "よかった",
+        "改善点",
+        "次回",
     ],
 }
 
 _PRIORITY_KEYWORDS: dict[str, list[str]] = {
     ThoughtPriority.HIGH: [
-        "緊急", "至急", "重要", "urgent", "ASAP", "今すぐ",
-        "最優先", "マスト", "must",
+        "緊急",
+        "至急",
+        "重要",
+        "urgent",
+        "ASAP",
+        "今すぐ",
+        "最優先",
+        "マスト",
+        "must",
     ],
     ThoughtPriority.LOW: [
-        "いつか", "余裕あれば", "低優先", "nice to have",
-        "そのうち", "暇なとき",
+        "いつか",
+        "余裕あれば",
+        "低優先",
+        "nice to have",
+        "そのうち",
+        "暇なとき",
     ],
 }
 
@@ -158,16 +217,25 @@ def extract_action_items(text: str) -> list[str]:
     action_items: list[str] = []
     lines = text.split("\n")
     action_markers = [
-        "- [ ]", "□", "TODO:", "やること:", "対応:", "確認:",
-        "タスク:", "アクション:",
+        "- [ ]",
+        "□",
+        "TODO:",
+        "やること:",
+        "対応:",
+        "確認:",
+        "タスク:",
+        "アクション:",
     ]
     for line in lines:
         stripped = line.strip()
-        if any(stripped.startswith(m) or stripped.startswith(m.lower()) for m in action_markers):
+        if any(
+            stripped.startswith(m) or stripped.startswith(m.lower())
+            for m in action_markers
+        ):
             # マーカーを除去してアクションアイテムとして追加
             for m in action_markers:
                 if stripped.startswith(m):
-                    stripped = stripped[len(m):].strip()
+                    stripped = stripped[len(m) :].strip()
                     break
             if stripped:
                 action_items.append(stripped)
@@ -179,7 +247,7 @@ def generate_title(text: str, max_len: int = 60) -> str:
     first_line = text.strip().split("\n")[0].strip()
     if len(first_line) <= max_len:
         return first_line
-    return first_line[:max_len - 3] + "..."
+    return first_line[: max_len - 3] + "..."
 
 
 # ---------------------------------------------------------------------------
@@ -255,7 +323,9 @@ class SecretaryService:
         if priority:
             stmt = stmt.where(BrainDumpRecord.priority == priority)
 
-        stmt = stmt.order_by(BrainDumpRecord.created_at.desc()).offset(offset).limit(limit)
+        stmt = (
+            stmt.order_by(BrainDumpRecord.created_at.desc()).offset(offset).limit(limit)
+        )
         result = await self._db.execute(stmt)
         return list(result.scalars().all())
 
@@ -345,13 +415,17 @@ class SecretaryService:
         for record in records:
             if record.action_items_json:
                 for item in record.action_items_json:
-                    items.append({
-                        "action": item,
-                        "source_dump_id": str(record.id),
-                        "priority": record.priority,
-                        "category": record.category,
-                        "created_at": record.created_at.isoformat() if record.created_at else None,
-                    })
+                    items.append(
+                        {
+                            "action": item,
+                            "source_dump_id": str(record.id),
+                            "priority": record.priority,
+                            "category": record.category,
+                            "created_at": record.created_at.isoformat()
+                            if record.created_at
+                            else None,
+                        }
+                    )
         return items
 
     async def get_daily_stats(

@@ -318,8 +318,13 @@ def generate_org_blueprint(answers: OrgInterviewAnswer) -> OrgBlueprint:
     # full モードなら全部署を追加
     if answers.team_size_preference == "full":
         for dept in [
-            PM_DEPT, RESEARCH_DEPT, MARKETING_DEPT, DEVELOPMENT_DEPT,
-            FINANCE_DEPT, SUPPORT_DEPT, CONTENT_DEPT,
+            PM_DEPT,
+            RESEARCH_DEPT,
+            MARKETING_DEPT,
+            DEVELOPMENT_DEPT,
+            FINANCE_DEPT,
+            SUPPORT_DEPT,
+            CONTENT_DEPT,
         ]:
             dept_set[dept.code] = dept
 

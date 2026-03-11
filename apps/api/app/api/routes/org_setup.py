@@ -88,7 +88,11 @@ async def get_interview_questions():
                 "type": "select",
                 "required": True,
                 "options": [
-                    {"value": c.value, "label_ja": _CATEGORY_LABELS_JA[c], "label_en": _CATEGORY_LABELS_EN[c]}
+                    {
+                        "value": c.value,
+                        "label_ja": _CATEGORY_LABELS_JA[c],
+                        "label_en": _CATEGORY_LABELS_EN[c],
+                    }
                     for c in BusinessCategory
                 ],
             },
@@ -99,12 +103,36 @@ async def get_interview_questions():
                 "type": "multi_select",
                 "required": False,
                 "options": [
-                    {"value": "revenue_growth", "label_ja": "売上拡大", "label_en": "Revenue growth"},
-                    {"value": "user_growth", "label_ja": "ユーザー獲得", "label_en": "User acquisition"},
-                    {"value": "brand_building", "label_ja": "ブランド構築", "label_en": "Brand building"},
-                    {"value": "cost_reduction", "label_ja": "コスト削減", "label_en": "Cost reduction"},
-                    {"value": "product_launch", "label_ja": "新商品リリース", "label_en": "Product launch"},
-                    {"value": "automation", "label_ja": "業務自動化", "label_en": "Automation"},
+                    {
+                        "value": "revenue_growth",
+                        "label_ja": "売上拡大",
+                        "label_en": "Revenue growth",
+                    },
+                    {
+                        "value": "user_growth",
+                        "label_ja": "ユーザー獲得",
+                        "label_en": "User acquisition",
+                    },
+                    {
+                        "value": "brand_building",
+                        "label_ja": "ブランド構築",
+                        "label_en": "Brand building",
+                    },
+                    {
+                        "value": "cost_reduction",
+                        "label_ja": "コスト削減",
+                        "label_en": "Cost reduction",
+                    },
+                    {
+                        "value": "product_launch",
+                        "label_ja": "新商品リリース",
+                        "label_en": "Product launch",
+                    },
+                    {
+                        "value": "automation",
+                        "label_ja": "業務自動化",
+                        "label_en": "Automation",
+                    },
                 ],
             },
             {
@@ -114,7 +142,11 @@ async def get_interview_questions():
                 "type": "multi_select",
                 "required": False,
                 "options": [
-                    {"value": p.value, "label_ja": _PAIN_LABELS_JA[p], "label_en": _PAIN_LABELS_EN[p]}
+                    {
+                        "value": p.value,
+                        "label_ja": _PAIN_LABELS_JA[p],
+                        "label_en": _PAIN_LABELS_EN[p],
+                    }
                     for p in PainPoint
                 ],
             },
@@ -125,9 +157,21 @@ async def get_interview_questions():
                 "type": "select",
                 "required": True,
                 "options": [
-                    {"value": "minimal", "label_ja": "ミニマル（秘書＋必要最小限）", "label_en": "Minimal (secretary + essentials)"},
-                    {"value": "standard", "label_ja": "スタンダード（推奨構成）", "label_en": "Standard (recommended)"},
-                    {"value": "full", "label_ja": "フル（全部署）", "label_en": "Full (all departments)"},
+                    {
+                        "value": "minimal",
+                        "label_ja": "ミニマル（秘書＋必要最小限）",
+                        "label_en": "Minimal (secretary + essentials)",
+                    },
+                    {
+                        "value": "standard",
+                        "label_ja": "スタンダード（推奨構成）",
+                        "label_en": "Standard (recommended)",
+                    },
+                    {
+                        "value": "full",
+                        "label_ja": "フル（全部署）",
+                        "label_en": "Full (all departments)",
+                    },
                 ],
             },
             {
@@ -164,18 +208,22 @@ async def preview_org_structure(req: OrgInterviewRequest):
                 {"name": a.name, "title": a.title, "description": a.description}
                 for a in team.agents
             ]
-            teams.append({
-                "name": team.name,
-                "purpose": team.purpose,
-                "agents": agents,
-            })
+            teams.append(
+                {
+                    "name": team.name,
+                    "purpose": team.purpose,
+                    "agents": agents,
+                }
+            )
             total_agents += len(team.agents)
-        departments.append({
-            "name": dept.name,
-            "code": dept.code,
-            "description": dept.description,
-            "teams": teams,
-        })
+        departments.append(
+            {
+                "name": dept.name,
+                "code": dept.code,
+                "description": dept.description,
+                "teams": teams,
+            }
+        )
         total_teams += len(dept.teams)
 
     secretary = None
