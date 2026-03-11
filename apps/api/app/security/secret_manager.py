@@ -92,7 +92,7 @@ def get_env_secret(key: str) -> str | None:
 class SecretStore:
     """ローカル暗号化ストアの抽象.
 
-    Fernet 対称暗号化（AES-128-CBC + HMAC-SHA256）でシークレッ��を保護する。
+    Fernet 対称暗号化（AES-128-CBC + HMAC-SHA256）でシークレットを保護する。
     プロセスごとにランダムキーを生成するインメモリストアのため,
     アプリケーション再起動時に暗号化キーとシークレットはすべて失われる。
     再起動後はシークレットの再登録が必要。
