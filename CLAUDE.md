@@ -136,7 +136,9 @@ tickets, ticket_threads, specs, plans, tasks, task_runs, artifacts, reviews,
 approval_requests, heartbeat_policies, heartbeat_runs, budget_policies,
 cost_ledgers, skills, plugins, extensions, tool_connections, tool_call_traces,
 policy_packs, secret_refs, audit_logs, knowledge_store, change_detections,
-agent_sessions, experience_memory, failure_taxonomy, iam_policies, ai_service_accounts
+agent_sessions, experience_memory, failure_taxonomy, iam_policies, ai_service_accounts,
+multi_model_comparisons, brainstorm_sessions, conversation_memories,
+agent_role_model_configs, feature_requests, custom_agent_roles, brain_dumps, daily_summaries
 
 全テーブルに `id`, `company_id`, `created_at`, `updated_at` を基本カラムとして持つ。
 
@@ -167,6 +169,15 @@ agent_sessions, experience_memory, failure_taxonomy, iam_policies, ai_service_ac
 - `/sentry` — Sentry連携（エラー統計・イベント）
 - `/iam` — IAM（AIサービスアカウント管理）
 - `/investigate` — AI調査（DB/ログ参照）
+- `/companies/{id}/multi-model/compare` — マルチモデル比較
+- `/companies/{id}/brainstorm` — 壁打ち（ブレインストーミング）セッション
+- `/companies/{id}/conversation-memory` — 会話記憶（永続保管・検索）
+- `/text/analyze` — テキスト分析（正確な文字数カウント）
+- `/companies/{id}/role-models` — 役割別モデル設定
+- `/companies/{id}/agents/by-role` — 役割指定エージェント追加
+- `/companies/{id}/custom-roles` — カスタム役割管理
+- `/companies/{id}/available-roles` — 利用可能な役割一覧
+- `/companies/{id}/feature-requests` — 自然言語機能リクエスト
 - `/hypotheses` — 仮説の並行検証
 - `/sessions` — エージェントセッション管理
 - `/config` — ランタイム設定管理（API キー・実行モード）

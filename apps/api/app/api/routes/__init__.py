@@ -14,6 +14,7 @@ from app.api.routes import (
     heartbeats,
     knowledge,
     models,
+    multi_model,
     observability,
     ollama,
     org_setup,
@@ -51,3 +52,6 @@ api_router.include_router(knowledge.router, tags=["knowledge"])
 api_router.include_router(platform.router, tags=["platform"])
 api_router.include_router(org_setup.router, prefix="/org-setup", tags=["org-setup"])
 api_router.include_router(secretary.router, tags=["secretary"])
+api_router.include_router(
+    multi_model.router, tags=["multi-model", "brainstorm", "conversation-memory"]
+)

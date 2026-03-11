@@ -11,6 +11,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added (v0.1 Final — 2026-03-11)
 
+- **壁打ち（ブレインストーミング）機能** (`services/multi_model_service.py`, `api/routes/multi_model.py`, `pages/BrainstormPage.tsx`)
+  - AI相談役との壁打ちセッション管理（作成・メッセージ追加・検索・アーカイブ）
+  - 複数モデル壁打ち対応（GPT / Gemini / Claude を同時に使用可能）
+  - セッションタイプ: brainstorm / debate / review / ideation / strategy
+  - 壁打ち / Brainstorm / 头脑风暴 — Brainstorm with AI advisors
+- **マルチモデル比較機能** (`services/multi_model_service.py`)
+  - 同一入力を複数モデルに送信し、回答を並べて比較
+  - モデルごとの文字数・トークン数・レイテンシ計測
+  - 比較結果の永続保存と一覧表示
+  - Multi-Model Compare — Send same input to GPT / Gemini / Claude and compare responses side-by-side
+- **会話記憶（Conversation Memory）** (`services/multi_model_service.py`)
+  - ユーザーとAI組織の全会話を永続保管
+  - 過去の会話をキーワード検索（ユーザーが過去の発言について聞いた場合に対応）
+  - 会話統計（総メッセージ数・総文字数・役割別・種類別）
+  - Conversation Memory — Permanently store all conversations, search past discussions
+- **正確な文字数カウント（TextAnalyzer）** (`services/multi_model_service.py`)
+  - Python の len() による Unicode 対応の正確な文字数カウント
+  - ひらがな・カタカナ・漢字・ASCII・数字の内訳
+  - 文字数バリデーション（最小・最大文字数チェック）
+  - ユーザーが文字数を指定した場合に正確に対応
+  - Text Analysis API: POST /text/analyze
+- **役割別モデル設定** (`services/multi_model_service.py`)
+  - エージェントの役割ごとに使用するAIモデルをユーザーが自由に設定
+  - エージェント個別設定と全体設定のフォールバック
+  - フォールバックモデル・max_tokens・temperature・システムプロンプトの設定
+  - Per-Role Model Settings — Users can assign AI models per agent role
+- **動的エージェント組織管理** (`services/agent_org_service.py`)
+  - プリセット役割（秘書・相談役・PM・リサーチャー・エンジニア等）でのエージェント追加
+  - カスタム役割の作成・一覧・削除
+  - エージェントの役割更新（名前・説明・モデル・自律度・システムプロンプト）
+  - エージェントの削除（廃止状態への遷移）
+  - Dynamic Agent Management — Add, remove, modify agents with preset or custom roles
+- **秘書・相談役の役割定義** (`services/agent_org_service.py`)
+  - 秘書: AI組織とユーザーの繋ぎ役、情報の保管庫、ナレッジ蓄積
+  - 相談役: ユーザーの壁打ち相手、多角的アドバイス、秘書とユーザーの橋渡し
+  - 各役割にシステムプロンプト定義済み
+  - Secretary & Advisor roles with predefined system prompts
+- **自然言語組織管理** (`services/agent_org_service.py`)
+  - 「相談役を追加して」等の自然言語でAI組織にリクエスト
+  - キーワードベースのアクション・役割自動推定
+  - 自動実行モード対応（信頼度が高い場合は自動実行）
+  - 機能リクエストの永続保存と一覧表示
+  - Natural Language Org Management — Manage AI org with natural language
+- **フロントエンド BrainstormPage** (`pages/BrainstormPage.tsx`)
+  - 壁打ちセッション管理UI（作成・メッセージ送受信・検索）
+  - マルチモデル比較UI（モデル選択・入力・結果比較表示）
+  - 役割別モデル設定UI（一覧表示・利用可能な役割表示）
+  - AI組織管理UI（自然言語リクエスト送信・役割一覧・エージェント追加）
+  - リアルタイム文字数カウント表示
 - **ZEO-Bench — Judge Layer 定量評価ベンチマーク** (`tests/zeo_bench.py`)
   - 200 問のテストセットで Cross-Model Verification の精度を定量評価
   - 4 カテゴリ: 事実正確性 (50問)・矛盾検出 (70問)・偽陽性 (40問)・修正品質 (40問)
