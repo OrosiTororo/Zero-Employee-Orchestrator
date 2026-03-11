@@ -91,12 +91,15 @@ app = FastAPI(
 )
 
 # CORS
+# 本番環境では settings.CORS_ORIGINS に具体的なオリジンを列挙し、
+# allow_credentials=True と組み合わせる場合は "*" を使用しないこと。
+# 詳細は apps/api/app/core/config.py の CORS セクションを参照。
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=settings.CORS_ALLOW_METHODS,
+    allow_headers=settings.CORS_ALLOW_HEADERS,
 )
 
 # API routes

@@ -33,8 +33,24 @@ class Settings(BaseSettings):
     # Security
     SECRET_KEY: str = "CHANGE-ME-in-production"
 
-    # CORS
+    # ---------------------------------------------------------------------------
+    # CORS — Cross-Origin Resource Sharing
+    #
+    # 本番環境では以下の変数を必ず設定すること:
+    #   CORS_ORIGINS        — 許可するオリジンの JSON 配列 (ワイルドカード "*" は使用しない)
+    #                         例: '["https://app.example.com"]'
+    #   CORS_ALLOW_METHODS  — 許可する HTTP メソッドの JSON 配列
+    #                         例: '["GET","POST","PUT","PATCH","DELETE"]'
+    #   CORS_ALLOW_HEADERS  — 許可するリクエストヘッダーの JSON 配列
+    #                         例: '["Authorization","Content-Type","X-Request-ID"]'
+    #
+    # デフォルト値はローカル開発専用。本番環境でのワイルドカード ("*") 使用は禁止。
+    # ---------------------------------------------------------------------------
     CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
+    # 本番推奨: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+    CORS_ALLOW_METHODS: list[str] = ["*"]
+    # 本番推奨: ["Authorization", "Content-Type", "X-Request-ID", "Accept"]
+    CORS_ALLOW_HEADERS: list[str] = ["*"]
 
     # Database
     DATABASE_URL: str = "sqlite+aiosqlite:///./zero_employee_orchestrator.db"

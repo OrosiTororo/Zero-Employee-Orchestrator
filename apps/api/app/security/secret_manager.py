@@ -9,6 +9,7 @@ Zero-Employee Orchestrator.md §13.3, §14 に基づき:
 
 from __future__ import annotations
 
+import base64
 import logging
 import os
 from dataclasses import dataclass
@@ -18,6 +19,13 @@ from enum import Enum
 from cryptography.fernet import Fernet, InvalidToken
 
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# 環境変数名: 永続化された Fernet キー (Base64 URL-safe, 32 bytes)
+# 本番環境では必ずこの変数を設定する。未設定の場合はプロセスごとの一時キーを生成する。
+# 生成コマンド: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+# ---------------------------------------------------------------------------
+_FERNET_KEY_ENV = "FERNET_SECRET_KEY"
 
 
 class SecretType(str, Enum):
@@ -89,29 +97,84 @@ def get_env_secret(key: str) -> str | None:
     return value
 
 
+def _load_or_generate_fernet_key() -> bytes:
+    """環境変数から Fernet キーを読み込む。未設定の場合は一時キーを生成する.
+
+    本番環境では ``FERNET_SECRET_KEY`` 環境変数に有効な Fernet キーを設定すること。
+    未設定時はプロセスごとに新しいキーが生成され、再起動でシークレットが失われる。
+    """
+    raw = os.environ.get(_FERNET_KEY_ENV, "")
+    if raw:
+        try:
+            # Fernet キーの形式検証: URL-safe Base64, 32 bytes に解码できること
+            decoded = base64.urlsafe_b64decode(raw + "==")
+            if len(decoded) != 32:
+                raise ValueError(f"Fernet key must be 32 bytes, got {len(decoded)}")
+            logger.info(
+                "Fernet key loaded from environment variable %s", _FERNET_KEY_ENV
+            )
+            return raw.encode()
+        except Exception as exc:
+            logger.error(
+                "Invalid %s value (%s); falling back to ephemeral key. "
+                "Secrets will be lost on restart.",
+                _FERNET_KEY_ENV,
+                exc,
+            )
+
+    key = Fernet.generate_key()
+    logger.warning(
+        "%s is not set. Using an ephemeral per-process Fernet key. "
+        "All stored secrets will be lost on application restart. "
+        "Set %s in your environment for persistence.",
+        _FERNET_KEY_ENV,
+        _FERNET_KEY_ENV,
+    )
+    return key
+
+
 class SecretStore:
     """ローカル暗号化ストアの抽象.
 
     Fernet 対称暗号化（AES-128-CBC + HMAC-SHA256）でシークレットを保護する。
-    プロセスごとにランダムキーを生成するインメモリストアのため、
-    アプリケーション再起動時に暗号化キーとシークレットはすべて失われる。
-    再起動後はシークレットの再登録が必要。
+
+    **キーの永続化**:
+    ``FERNET_SECRET_KEY`` 環境変数に Fernet キーを設定することで、
+    アプリケーション再起動後もシークレットを復元できる（DB 永続化と組み合わせる場合）。
+    未設定の場合はプロセスごとの一時キーを使用する。
+
+    **本番環境の推奨**:
     本番環境では AWS Secrets Manager / HashiCorp Vault 等の外部 Secret Manager
-    への差し替えを推奨。
+    への差し替えを推奨。このクラスはその抽象層として機能する。
+
+    **キー生成コマンド**::
+
+        python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
     """
 
     def __init__(self) -> None:
-        self._key = Fernet.generate_key()
+        self._key = _load_or_generate_fernet_key()
         self._fernet = Fernet(self._key)
         self._store: dict[str, bytes] = {}
 
-    def store(self, name: str, value: str) -> SecretMetadata:
-        """シークレットを Fernet 暗号化して保存する."""
+    def store(
+        self,
+        name: str,
+        value: str,
+        secret_type: SecretType = SecretType.API_KEY,
+    ) -> SecretMetadata:
+        """シークレットを Fernet 暗号化して保存する.
+
+        Args:
+            name: シークレットの識別名
+            value: 保存するシークレット値（平文）
+            secret_type: シークレットの種別（デフォルト: API_KEY）
+        """
         encrypted = self._fernet.encrypt(value.encode())
         self._store[name] = encrypted
         return SecretMetadata(
             name=name,
-            secret_type=SecretType.API_KEY,
+            secret_type=secret_type,
             provider="local",
             masked_value=mask_secret(value),
             created_at=datetime.now(timezone.utc),
@@ -140,6 +203,11 @@ class SecretStore:
     def list_secrets(self) -> list[str]:
         """保存済みシークレット名の一覧を返す."""
         return list(self._store.keys())
+
+    def clear(self) -> None:
+        """全シークレットを削除する（プロセス終了時やセッション破棄時に呼び出す）."""
+        self._store.clear()
+        logger.info("SecretStore cleared")
 
 
 # グローバルインスタンス
