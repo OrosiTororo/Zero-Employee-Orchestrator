@@ -7,7 +7,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [0.1.0] - 2026-03-10 — Platform v0.1 (Consolidated Release)
+## [0.1.0] - 2026-03-11 — Platform v0.1 (Consolidated Release)
+
+### Added (v0.1 Final — 2026-03-11)
+
+- **ZEO-Bench — Judge Layer 定量評価ベンチマーク** (`tests/zeo_bench.py`)
+  - 200 問のテストセットで Cross-Model Verification の精度を定量評価
+  - 4 カテゴリ: 事実正確性 (50問)・矛盾検出 (70問)・偽陽性 (40問)・修正品質 (40問)
+  - 単一モデル自己評価との検出率比較を数値で出力
+  - `BenchmarkReport` による per-category 分析とサマリー
+- **Cross-Model Verification の改善** (`orchestration/judge.py`)
+  - セマンティック類似度検証（トークンレベル Jaccard 類似度）
+  - 数値許容範囲比較（5% 以内は一致とみなす）
+  - 矛盾検出エンジン: 否定パターン・数値不整合・結論矛盾・時系列不整合を検出
+  - 信頼度加重スコアリング（合意モデル数による重み付け）
+  - 詳細な矛盾レポート（contradiction_details）の出力
+- **汎用ドメイン Skill テンプレート** (`skills/builtin/domain_skills.py`)
+  - ContentCreatorSkill — 任意プラットフォーム向けコンテンツ生成（ブログ・SNS・メール・動画台本・プレゼン）
+  - CompetitorAnalysisSkill — 任意ドメインの競合分析（市場分析・SWOT・価格比較・機能比較）
+  - TrendAnalysisSkill — 任意ドメインのトレンド分析（市場・技術・SNS・業界動向）
+  - PerformanceAnalysisSkill — 任意ビジネスのパフォーマンス分析（KPI・ROI・コンバージョン・エンゲージメント）
+  - StrategyAdvisorSkill — ドメイン横断の戦略アドバイザー（次アクション・リソース配分・リスク評価）
+  - 全 Skill が i18n 対応（ja/en/zh）・Artifact Bridge 互換
+- **Artifact Bridge 強化** (`orchestration/artifact_bridge.py`)
+  - auto_link_outputs_to_inputs: DAG 内の成果物を自動連携
+  - cross-domain 変換: trend_report → market_context 等の自動型変換
+  - 互換性マトリクス: 成果物タイプ間の自動変換ルール
+  - find_compatible_artifacts: 互換成果物の検索
+  - build_artifact_pipeline: Skill チェーンの成果物フロー設計
+- **Self-Healing DAG カオステスト** (`tests/test_chaos_dag.py`)
+  - 20+ のフォルト注入テストケース
+  - 単一ノード障害・カスケード障害・並列ブランチ障害・全ブランチ障害
+  - 復旧成功率・復旧時間の計測ベンチマーク
+  - 戦略別効果比較（retry / skip / replan）
+  - DAG 整合性検証（孤立ノード・依存関係解決・完了ノード保持）
 
 ### Fixed (post-release)
 
