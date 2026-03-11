@@ -15,7 +15,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import generate_uuid
 from app.models.agent import Agent
 from app.models.audit import AuditLog
-from app.models.company import Company
 from app.models.organization import Department, Team
 
 

@@ -3,7 +3,7 @@
 ヒアリングに基づいて部署・チーム・エージェントを自動生成する。
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
