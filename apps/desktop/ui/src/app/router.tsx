@@ -22,6 +22,7 @@ import { ReleasesPage } from '@/pages/ReleasesPage'
 import { DownloadPage } from '@/pages/DownloadPage'
 import { PermissionsPage } from '@/pages/PermissionsPage'
 import { AgentMonitorPage } from '@/pages/AgentMonitorPage'
+import BrainstormPage from '@/pages/BrainstormPage'
 
 export const router = createBrowserRouter([
   {
@@ -56,6 +57,7 @@ export const router = createBrowserRouter([
       { path: 'download', element: <DownloadPage /> },
       { path: 'permissions', element: <PermissionsPage /> },
       { path: 'monitor', element: <AgentMonitorPage /> },
+      { path: 'brainstorm', element: <BrainstormPage /> },
     ],
   },
 ])

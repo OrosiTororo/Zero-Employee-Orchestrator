@@ -11,6 +11,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added (v0.1 Final — 2026-03-11)
 
+- **Brainstorming (Sparring Partner) Feature** (`services/multi_model_service.py`, `api/routes/multi_model.py`, `pages/BrainstormPage.tsx`)
+  - Brainstorm session management with AI advisors (create, message, search, archive)
+  - Multi-model brainstorming support (use GPT / Gemini / Claude simultaneously)
+  - Session types: brainstorm / debate / review / ideation / strategy
+- **Multi-Model Comparison** (`services/multi_model_service.py`)
+  - Send same input to multiple models and compare responses side-by-side
+  - Per-model character count, token count, and latency measurement
+  - Persistent storage and listing of comparison results
+- **Conversation Memory** (`services/multi_model_service.py`)
+  - Permanently store all conversations between users and AI organization
+  - Keyword search across past conversations (supports user queries about past discussions)
+  - Conversation statistics (total messages, characters, by role, by type)
+- **Accurate Character Counting (TextAnalyzer)** (`services/multi_model_service.py`)
+  - Unicode-aware character counting using Python's len()
+  - Breakdown by hiragana, katakana, kanji, ASCII, digits
+  - Character count validation (min/max length checks)
+  - Text Analysis API: POST /text/analyze
+- **Per-Role Model Settings** (`services/multi_model_service.py`)
+  - Users can assign AI models to each agent role freely
+  - Agent-specific settings with global fallback
+  - Configurable fallback model, max_tokens, temperature, system prompt
+- **Dynamic Agent Organization Management** (`services/agent_org_service.py`)
+  - Add agents by preset roles (Secretary, Advisor, PM, Researcher, Engineer, etc.)
+  - Create, list, and delete custom roles
+  - Update agent roles (name, description, model, autonomy level, system prompt)
+  - Remove agents (transition to decommissioned status)
+- **Secretary & Advisor Role Definitions** (`services/agent_org_service.py`)
+  - Secretary: Bridge between AI organization and user, knowledge repository, information management
+  - Advisor: Sparring partner for brainstorming, multi-perspective advice, bridge between secretary and user
+  - Each role has predefined system prompts
+- **Natural Language Organization Management** (`services/agent_org_service.py`)
+  - Submit requests to AI organization in natural language (e.g., "Add an advisor agent")
+  - Keyword-based action and role auto-detection
+  - Auto-execute mode (executes automatically when confidence is high)
+  - Persistent storage and listing of feature requests
+- **Frontend BrainstormPage** (`pages/BrainstormPage.tsx`)
+  - Brainstorm session management UI (create, send/receive messages, search)
+  - Multi-model comparison UI (model selection, input, side-by-side result display)
+  - Per-role model settings UI (list configs, available roles)
+  - AI organization management UI (natural language requests, role list, agent addition)
+  - Real-time character count display
 - **ZEO-Bench — Judge Layer Quantitative Evaluation Benchmark** (`tests/zeo_bench.py`)
   - 200-question test set for quantitative evaluation of Cross-Model Verification accuracy
   - 4 categories: Factual Accuracy (50), Contradiction Detection (70), False Positive (40), Correction Quality (40)

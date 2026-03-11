@@ -11,6 +11,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added (v0.1 Final — 2026-03-11)
 
+- **头脑风暴（对话伙伴）功能** (`services/multi_model_service.py`, `api/routes/multi_model.py`, `pages/BrainstormPage.tsx`)
+  - AI顾问头脑风暴会话管理（创建、发送消息、搜索、归档）
+  - 多模型头脑风暴支持（同时使用 GPT / Gemini / Claude）
+  - 会话类型：brainstorm / debate / review / ideation / strategy
+- **多模型对比功能** (`services/multi_model_service.py`)
+  - 将相同输入发送到多个模型，并排比较回答
+  - 每个模型的字符数、token 数、延迟测量
+  - 比较结果的持久化存储和列表显示
+- **对话记忆** (`services/multi_model_service.py`)
+  - 永久保存用户与AI组织的所有对话
+  - 关键词搜索过去的对话（支持用户询问过去的讨论内容）
+  - 对话统计（总消息数、总字符数、按角色、按类型）
+- **精确字符计数（TextAnalyzer）** (`services/multi_model_service.py`)
+  - 使用 Python len() 的 Unicode 精确字符计数
+  - 按平假名、片假名、汉字、ASCII、数字分类
+  - 字符数验证（最小/最大字符数检查）
+  - 文本分析 API：POST /text/analyze
+- **按角色设置模型** (`services/multi_model_service.py`)
+  - 用户可自由为每个代理角色分配AI模型
+  - 代理个别设置与全局回退
+  - 可配置回退模型、max_tokens、temperature、系统提示
+- **动态代理组织管理** (`services/agent_org_service.py`)
+  - 按预设角色添加代理（秘书、顾问、PM、研究员、工程师等）
+  - 创建、列出和删除自定义角色
+  - 更新代理角色（名称、描述、模型、自主级别、系统提示）
+  - 删除代理（转为退役状态）
+- **秘书和顾问角色定义** (`services/agent_org_service.py`)
+  - 秘书：AI组织与用户的桥梁、知识库、信息管理
+  - 顾问：头脑风暴伙伴、多角度建议、秘书与用户的桥梁
+  - 每个角色都有预定义的系统提示
+- **自然语言组织管理** (`services/agent_org_service.py`)
+  - 用自然语言向AI组织提交请求（如"添加一个顾问代理"）
+  - 基于关键词的动作和角色自动检测
+  - 自动执行模式（置信度高时自动执行）
+  - 功能请求的持久化存储和列表显示
+- **前端 BrainstormPage** (`pages/BrainstormPage.tsx`)
+  - 头脑风暴会话管理UI（创建、收发消息、搜索）
+  - 多模型对比UI（模型选择、输入、并排结果显示）
+  - 按角色模型设置UI（配置列表、可用角色显示）
+  - AI组织管理UI（自然语言请求、角色列表、代理添加）
+  - 实时字符计数显示
 - **ZEO-Bench — Judge Layer 定量评估基准** (`tests/zeo_bench.py`)
   - 200 道测试题集，定量评估 Cross-Model Verification 的精度
   - 4 个类别：事实准确性 (50题)・矛盾检测 (70题)・假阳性 (40题)・修正质量 (40题)
