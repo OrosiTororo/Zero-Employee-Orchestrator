@@ -13,8 +13,6 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Generator
 
-import pytest
-
 from app.orchestration.dag import (
     ExecutionDAG,
     TaskNode,
