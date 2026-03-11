@@ -33,7 +33,8 @@ class Settings(BaseSettings):
     # Security
     SECRET_KEY: str = "CHANGE-ME-in-production"
 
-    # CORS
+    # CORS — 本番環境では許可するオリジンを実際のドメインに制限すること
+    # 例: ["https://your-app.example.com"]
     CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
 
     # Database

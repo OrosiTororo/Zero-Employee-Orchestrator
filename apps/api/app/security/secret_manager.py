@@ -9,12 +9,13 @@ Zero-Employee Orchestrator.md §13.3, §14 に基づき:
 
 from __future__ import annotations
 
-import base64
 import logging
 import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
+
+from cryptography.fernet import Fernet, InvalidToken
 
 logger = logging.getLogger(__name__)
 
@@ -91,22 +92,23 @@ def get_env_secret(key: str) -> str | None:
 class SecretStore:
     """ローカル暗号化ストアの抽象.
 
-    将来的に OS キーチェーン連携、Vault 連携、
-    Secret Manager 連携に差し替え可能。
+    Fernet 対称暗号化（AES-128-CBC + HMAC-SHA256）でシークレットを保護する。
+    プロセスごとにランダムキーを生成するインメモリストアのため、
+    アプリケーション再起動時に暗号化キーとシークレットはすべて失われる。
+    再起動後はシークレットの再登録が必要。
+    本番環境では AWS Secrets Manager / HashiCorp Vault 等の外部 Secret Manager
+    への差し替えを推奨。
     """
 
     def __init__(self) -> None:
-        self._store: dict[str, str] = {}
+        self._key = Fernet.generate_key()
+        self._fernet = Fernet(self._key)
+        self._store: dict[str, bytes] = {}
 
     def store(self, name: str, value: str) -> SecretMetadata:
-        """シークレットを保存する.
-
-        WARNING: 現在の実装は base64 エンコーディングのみで暗号化されていません。
-        本番環境では cryptography.Fernet 等による暗号化、または
-        AWS Secrets Manager / HashiCorp Vault 等の外部 Secret Manager を使用してください。
-        """
-        encoded = base64.b64encode(value.encode()).decode()
-        self._store[name] = encoded
+        """シークレットを Fernet 暗号化して保存する."""
+        encrypted = self._fernet.encrypt(value.encode())
+        self._store[name] = encrypted
         return SecretMetadata(
             name=name,
             secret_type=SecretType.API_KEY,
@@ -116,11 +118,15 @@ class SecretStore:
         )
 
     def retrieve(self, name: str) -> str | None:
-        """シークレットを取得する."""
-        encoded = self._store.get(name)
-        if encoded is None:
+        """シークレットを復号して取得する."""
+        encrypted = self._store.get(name)
+        if encrypted is None:
             return None
-        return base64.b64decode(encoded.encode()).decode()
+        try:
+            return self._fernet.decrypt(encrypted).decode()
+        except InvalidToken:
+            logger.error("Failed to decrypt secret '%s': token is invalid or tampered", name)
+            return None
 
     def delete(self, name: str) -> bool:
         """シークレットを削除する."""
