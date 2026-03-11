@@ -307,7 +307,7 @@ export function SecretaryPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <Icon size={14} style={{ color: CATEGORY_COLORS[dump.category] || "var(--text-muted)" }} />
+                            <span style={{ color: CATEGORY_COLORS[dump.category] || "var(--text-muted)" }}><Icon size={14} /></span>
                             <span className="text-[11px] font-medium" style={{ color: CATEGORY_COLORS[dump.category] }}>
                               {categoryLabels[dump.category] || dump.category}
                             </span>

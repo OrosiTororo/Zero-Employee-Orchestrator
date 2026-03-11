@@ -16,7 +16,7 @@ import {
   Loader2,
 } from "lucide-react"
 import { Logo } from "@/shared/ui/Logo"
-import { useT, useI18n, LOCALE_LABELS, locales, type Locale } from "@/shared/i18n"
+import { useT, useI18n, LOCALE_LABELS, type Locale } from "@/shared/i18n"
 import { api } from "@/shared/api/client"
 
 type Step =
