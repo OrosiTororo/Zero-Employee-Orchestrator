@@ -28,8 +28,17 @@ Thumbs.db
 # Environment
 .env
 .env.local
+.env.production
 client_secret.json
 *.enc
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Credentials
+~/.zero-employee/
+config.json
 
 # Pytest
 .pytest_cache/

@@ -162,10 +162,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - USER_GUIDE.md: 日本語・英語・中国語の3言語対応
   - README.md: Releases セクションを非エンジニア向けに3言語で解説
   - ダウンロードファイルの選び方ガイドを追加
-- **レガシーファイル移行**
+- **レガシーファイル移行 & ロードマップ策定**
   - `ZPCOS_FEATURES_AND_IMPROVEMENTS.md` の有用なアイデアを既存ドキュメントに統合
-  - メタスキル概念・セキュリティ自己テスト・iPaaS 連携等のアイデアを DESIGN.md / FEATURES.md に反映
+  - メタスキル概念・セキュリティ自己テスト・iPaaS 連携・AI 共創リパーパス等のアイデアを `ROADMAP.md` に反映
   - レガシーファイル削除
+- **コミュニティ文書の追加**
+  - `CONTRIBUTING.md` — 3 か国語（日本語・英語・中国語）のコントリビューションガイド
+  - `CODE_OF_CONDUCT.md` — 3 か国語の行動規範（Contributor Covenant 2.1 ベース）
+  - `ROADMAP.md` — v0.2〜v1.0 のロードマップ（ZPCOS の有用なアイデアを整理・統合）
 
 - 全ドキュメントのバージョン表記を v0.1 に統一
 - `CHANGELOG.md`: 全リリースを v0.1 として統合
