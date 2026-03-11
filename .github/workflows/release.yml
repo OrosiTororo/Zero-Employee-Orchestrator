@@ -30,21 +30,11 @@ jobs:
             target: macos
             rust_target: universal-apple-darwin
             wix_language: ''
-          # Windows — English MSI (default)
+          # Windows — all languages in one job (en-US, ja-JP, zh-CN MSI + single NSIS exe)
           - platform: windows-latest
             target: windows
             rust_target: ''
-            wix_language: en-US
-          # Windows — Japanese MSI
-          - platform: windows-latest
-            target: windows-ja
-            rust_target: ''
-            wix_language: ja-JP
-          # Windows — Chinese MSI
-          - platform: windows-latest
-            target: windows-zh
-            rust_target: ''
-            wix_language: zh-CN
+            wix_language: '["en-US", "ja-JP", "zh-CN"]'
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -84,7 +74,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Set WiX language for locale-specific MSI
-        if: matrix.wix_language != '' && matrix.wix_language != 'en-US'
+        if: matrix.wix_language != ''
         shell: pwsh
         run: |
           $conf = Get-Content apps/desktop/src-tauri/tauri.conf.json | ConvertFrom-Json
@@ -94,7 +84,8 @@ jobs:
           if (-not $conf.bundle.windows.wix) {
             $conf.bundle.windows | Add-Member -NotePropertyName wix -NotePropertyValue @{}
           }
-          $conf.bundle.windows.wix | Add-Member -NotePropertyName language -NotePropertyValue ${{ toJSON(matrix.wix_language) }} -Force
+          $lang = '${{ matrix.wix_language }}' | ConvertFrom-Json
+          $conf.bundle.windows.wix | Add-Member -NotePropertyName language -NotePropertyValue $lang -Force
           $conf | ConvertTo-Json -Depth 10 | Set-Content apps/desktop/src-tauri/tauri.conf.json
 
       - name: Build Tauri app
