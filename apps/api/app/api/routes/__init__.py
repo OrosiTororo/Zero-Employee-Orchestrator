@@ -16,9 +16,11 @@ from app.api.routes import (
     models,
     observability,
     ollama,
+    org_setup,
     platform,
     projects,
     registry,
+    secretary,
     settings,
     specs_plans,
     tasks,
@@ -47,3 +49,5 @@ api_router.include_router(observability.router, tags=["observability"])
 api_router.include_router(ollama.router, tags=["ollama"])
 api_router.include_router(knowledge.router, tags=["knowledge"])
 api_router.include_router(platform.router, tags=["platform"])
+api_router.include_router(org_setup.router, prefix="/org-setup", tags=["org-setup"])
+api_router.include_router(secretary.router, tags=["secretary"])

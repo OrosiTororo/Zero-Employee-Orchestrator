@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom"
 import {
   LayoutDashboard,
   Network,
+  BrainCircuit,
   Ticket,
   ShieldCheck,
   FileBox,
@@ -38,6 +39,7 @@ export function Layout({ children }: LayoutProps) {
   const navItems = [
     { icon: LayoutDashboard, path: "/", label: t.nav.dashboard },
     { icon: Network, path: "/org-chart", label: t.nav.orgChart },
+    { icon: BrainCircuit, path: "/secretary", label: t.nav.secretary },
     { icon: Ticket, path: "/tickets", label: t.nav.tickets },
     { icon: ShieldCheck, path: "/approvals", label: t.nav.approvals },
     { icon: FileBox, path: "/artifacts", label: t.nav.artifacts },
@@ -55,6 +57,7 @@ export function Layout({ children }: LayoutProps) {
   const pageTitles: Record<string, string> = {
     "/": t.nav.dashboard,
     "/org-chart": t.nav.orgChart,
+    "/secretary": t.nav.secretary,
     "/tickets": t.nav.tickets,
     "/approvals": t.nav.approvals,
     "/artifacts": t.nav.artifacts,
