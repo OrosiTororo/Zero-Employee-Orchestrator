@@ -270,7 +270,7 @@ ZEO 由 9 个层组成，每层拥有独立的职责。
 | `/settings` | 应用设置 |
 | WebSocket `/ws/events` | 实时事件推送 |
 
-### 前端（21 个页面）
+### 前端（23 个页面）
 
 | 页面 | 状态 | 备注 |
 |------|------|------|
@@ -596,7 +596,7 @@ Zero-Employee-Orchestrator/
 │   │   │   └── tests/          # 测试
 │   │   └── alembic/            # 数据库迁移
 │   ├── desktop/                # Tauri 桌面应用
-│   │   └── ui/src/             # React 前端（21 个页面）
+│   │   └── ui/src/             # React 前端（23 个页面）
 │   ├── edge/                   # Cloudflare Workers
 │   │   ├── proxy/              # 方式A：反向代理
 │   │   └── full/               # 方式B：Hono + D1 完全迁移

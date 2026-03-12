@@ -2,7 +2,7 @@
 
 # 仓库内 Markdown 文件索引
 
-> 最后更新: 2026-03-10 (v0.1)
+> 最后更新: 2026-03-12 (v0.1.1)
 >
 > 本文档是 Zero-Employee Orchestrator 仓库中所有 `.md` 文件的概要、用途和目标读者的索引列表。
 
@@ -40,6 +40,39 @@
 | **用途** | 面向 Claude Code（AI 编程代理）的开发指南。将整个项目概述浓缩到一个文件中 |
 | **目标读者** | Claude Code（AI 代理） |
 | **主要内容** | 9 层架构定义、技术栈、目录结构、编码规范、设计原则、DB Schema 概述、全部 API 端点、运行时配置管理、支持的 LLM 模型、Ollama 集成、Skill 管理 v0.1、禁止事项 |
+
+---
+
+### `CONTRIBUTING.md`
+
+| 项目 | 内容 |
+|------|------|
+| **位置** | `/CONTRIBUTING.md` |
+| **用途** | 项目贡献方法的指南 |
+| **目标读者** | 贡献者、开发者 |
+| **主要内容** | 支持三种语言（日语、英语、中文）。Issue 报告方法、Pull Request 创建流程、编码规范、开发环境设置 |
+
+---
+
+### `CODE_OF_CONDUCT.md`
+
+| 项目 | 内容 |
+|------|------|
+| **位置** | `/CODE_OF_CONDUCT.md` |
+| **用途** | 社区行为准则 |
+| **目标读者** | 所有贡献者和用户 |
+| **主要内容** | 支持三种语言（日语、英语、中文）。基于 Contributor Covenant 2.1 的行为准则 |
+
+---
+
+### `ROADMAP.md`
+
+| 项目 | 内容 |
+|------|------|
+| **位置** | `/ROADMAP.md` |
+| **用途** | v0.2 至 v1.0 的路线图 |
+| **目标读者** | 用户、开发者、贡献者 |
+| **主要内容** | 支持三种语言（日语、英语、中文）。各版本的计划功能列表（带优先级） |
 
 ---
 
@@ -87,7 +120,7 @@
 | **位置** | `/docs/FEATURES.md` |
 | **用途** | 全面覆盖所有已实现功能的功能列表 |
 | **目标读者** | 功能确认者、评估者、开发者 |
-| **主要内容** | 共 27 个章节。9 层架构功能详情、Design Interview、Spec/Plan/Tasks、基于 DAG 的 Task Orchestrator、状态机、Judge Layer、Self-Healing/Re-Propose、审批流程、审计日志、Skill/Plugin/Extension 三层扩展体系、LLM Gateway、前端 UI（21 个画面）、REST API、WebSocket |
+| **主要内容** | 共 27 个章节。9 层架构功能详情、Design Interview、Spec/Plan/Tasks、基于 DAG 的 Task Orchestrator、状态机、Judge Layer、Self-Healing/Re-Propose、审批流程、审计日志、Skill/Plugin/Extension 三层扩展体系、LLM Gateway、前端 UI（23 个画面）、REST API、WebSocket |
 
 ---
 
@@ -109,7 +142,7 @@
 | **位置** | `/docs/CHANGELOG.md` |
 | **用途** | 按版本记录的变更历史 |
 | **目标读者** | 所有用户和开发者 |
-| **主要内容** | [Keep a Changelog](https://keepachangelog.com/) 格式。v0.1.0（2026-03-10）所有新增功能的完整列表 |
+| **主要内容** | [Keep a Changelog](https://keepachangelog.com/) 格式。v0.1.0（2026-03-11）和 v0.1.1（2026-03-12）所有新增功能的完整列表 |
 
 ---
 
@@ -133,6 +166,17 @@
 | **用途** | 汇总成本、硬件约束和大规模项目应用案例的指南 |
 | **目标读者** | 引进评估者、运维人员、管理层 |
 | **主要内容** | LLM API 成本列表、免费使用范围、硬件要求、v0.1 未实现功能、5 个大规模项目应用案例、成本优化策略 |
+
+---
+
+### `docs/AI_SELF_IMPROVEMENT_ROADMAP.md`
+
+| 项目 | 内容 |
+|------|------|
+| **位置** | `/docs/AI_SELF_IMPROVEMENT_ROADMAP.md` |
+| **用途** | 面向 AI 自我改进（AI 改进和生成 AI 的能力）实现的路线图 |
+| **目标读者** | 开发者、贡献者、研究者、认同愿景的人 |
+| **主要内容** | AI 自我改进愿景、ZEO 的当前位置与目标距离、个人开发的局限与社区/资金的必要性、4 阶段路线图、ai-self-improvement Plugin 设计、社区扩大策略、未来场景、安全与伦理、费用估算 |
 
 ---
 
@@ -254,7 +298,23 @@
 
 ---
 
-## 6. 文档参考优先级
+## 6. docs/en/ 和 docs/zh/ — 多语言文档
+
+`docs/en/`（英语）和 `docs/zh/`（中文）包含以下日语文档的翻译版本：
+
+| 日语原文 | 英语版 | 中文版 |
+|---------|--------|--------|
+| `docs/ABOUT.md` | `docs/en/ABOUT.md` | `docs/zh/ABOUT.md` |
+| `docs/OVERVIEW.md` | `docs/en/OVERVIEW.md` | `docs/zh/OVERVIEW.md` |
+| `docs/FEATURES.md` | `docs/en/FEATURES.md` | `docs/zh/FEATURES.md` |
+| `docs/SECURITY.md` | `docs/en/SECURITY.md` | `docs/zh/SECURITY.md` |
+| `docs/SCALING_AND_COSTS.md` | `docs/en/SCALING_AND_COSTS.md` | `docs/zh/SCALING_AND_COSTS.md` |
+| `docs/CHANGELOG.md` | `docs/en/CHANGELOG.md` | `docs/zh/CHANGELOG.md` |
+| `docs/MD_FILES_INDEX.md` | `docs/en/MD_FILES_INDEX.md` | `docs/zh/MD_FILES_INDEX.md` |
+
+---
+
+## 7. 文档参考优先级
 
 ### 面向开发者和实现者
 

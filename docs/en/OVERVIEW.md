@@ -270,7 +270,7 @@ ZEO is composed of 9 layers. Each layer has independent responsibilities.
 | `/settings` | Application settings |
 | WebSocket `/ws/events` | Real-time event delivery |
 
-### Frontend (21 Screens)
+### Frontend (23 Screens)
 
 | Screen | Status | Notes |
 |--------|--------|-------|
@@ -596,7 +596,7 @@ Zero-Employee-Orchestrator/
 │   │   │   └── tests/          # Tests
 │   │   └── alembic/            # DB migration
 │   ├── desktop/                # Tauri desktop app
-│   │   └── ui/src/             # React frontend (21 screens)
+│   │   └── ui/src/             # React frontend (23 screens)
 │   ├── edge/                   # Cloudflare Workers
 │   │   ├── proxy/              # Method A: Reverse proxy
 │   │   └── full/               # Method B: Hono + D1 full migration

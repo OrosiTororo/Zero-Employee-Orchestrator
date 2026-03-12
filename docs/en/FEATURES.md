@@ -2,8 +2,8 @@
 
 # Zero-Employee Orchestrator — Feature List
 
-> Last updated: 2026-03-10
-> Target version: v0.1
+> Last updated: 2026-03-12
+> Target version: v0.1.1
 
 ---
 
@@ -1080,3 +1080,44 @@ A design concept that gives AI agents the ability to "learn how to learn."
 | **Learning** | Learning via Experience Memory and Failure Taxonomy |
 
 Traditional AI agents possess hard skills (execution of specific tasks) and soft skills (communication), but lack meta-skills (the ability to manage and learn skills). Zero-Employee Orchestrator provides the foundation for meta-skills through Experience Memory and Failure Taxonomy.
+
+---
+
+## 32. File Attachment-based Plan Creation (v0.1.1)
+
+Attach files to Design Interview and integrate them as context for Spec (specification) generation.
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /api/v1/tickets/{ticket_id}/interview/attach` | File upload |
+| `GET /api/v1/tickets/{ticket_id}/interview/attachments` | List attachments |
+
+### Supported File Formats
+
+| Category | Formats |
+|----------|---------|
+| Text | `.txt`, `.md`, `.csv`, `.json`, `.yaml` |
+| Code | `.py`, `.ts`, `.tsx`, `.jsx`, `.java`, `.go`, `.rs`, `.c`, `.cpp`, `.h`, `.html`, `.xml`, `.css`, `.sql`, `.sh` |
+| Images | `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.bmp`, `.svg` |
+| Documents | `.pdf` |
+
+- Automatic text extraction + multi-encoding support (UTF-8, Shift_JIS, EUC-JP, CP932)
+- Extracted text automatically integrated into the "Reference Materials" section of Specs
+- Images encoded as Base64 + PNG/JPEG size detection
+- SVG also parsed as text
+- 10 MB size limit
+
+---
+
+## 33. Security Hardening (v0.1.1)
+
+| Item | Description |
+|------|-------------|
+| **bcrypt required** | Enforces bcrypt for password hashing. Removed SHA-256 fallback |
+| **Rate limiting** | Rate limits on authentication endpoints via `slowapi` (registration: 5/min, login: 10/min) |
+| **RAG file permissions** | Restricted `index.json` / `idf.json` to `0o600` (owner only) |
+| **RAG input validation** | Content size limit (10 MB) and metadata key count restriction |
+| **CORS restriction hardening** | Changed wildcard to explicit method and header lists |
+| **UUID input validation** | Fixed to return 400 for invalid UUIDs |

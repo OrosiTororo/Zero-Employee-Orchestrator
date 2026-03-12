@@ -7,6 +7,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.1] - 2026-03-12 — 安全加固 & 文件附件支持
+
+### 安全
+
+- **bcrypt 升级为必需依赖** — 移除 SHA-256 回退，强制使用 bcrypt 进行密码哈希
+- **添加速率限制** (`slowapi`) — 在认证端点实现速率限制（注册: 5次/分钟, 登录: 10次/分钟）
+- **RAG 文件权限修复** — 将 `index.json` / `idf.json` 限制为 `0o600`（仅所有者可读写）
+- **RAG 输入验证** — 添加内容大小上限 (10 MB) 和元数据键数限制
+- **认证端点保护** (v0.1.0 修复) — 为审批/配置/注册表 API 添加认证
+- **CORS 限制加强** (v0.1.0 修复) — 将通配符改为明确的方法和头部列表
+- **UUID 输入验证** (v0.1.0 修复) — 修复对无效 UUID 返回 400 的问题
+
+### Added
+
+- **基于文件附件的计划创建** — 在 Design Interview 中附加文件，并集成到规格书生成的上下文中
+  - `POST /api/v1/tickets/{ticket_id}/interview/attach` — 文件上传
+  - `GET /api/v1/tickets/{ticket_id}/interview/attachments` — 附件列表
+  - 支持文本、代码、图片和 PDF（自动文本提取 + 多编码支持）
+  - 提取的文本自动集成到规格书的"参考资料"部分
+- **Local Context Skill 图片支持** — 图片文件读取（Base64 编码 + PNG/JPEG 尺寸检测）
+  - 支持 `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.bmp`, `.svg`
+  - SVG 也作为文本解析
+  - 10 MB 大小限制
+- **扩展文件类型支持** — 大幅扩充 Local Context Skill 的支持格式
+  - 代码: `.tsx`, `.jsx`, `.java`, `.go`, `.rs`, `.c`, `.cpp`, `.h`, `.html`, `.xml`, `.css`, `.sql`, `.sh`
+  - 多编码自动检测（UTF-8, Shift_JIS, EUC-JP, CP932）
+
+---
+
 ## [0.1.0] - 2026-03-11 — Platform v0.1 (Consolidated Release)
 
 ### Added (v0.1 Final — 2026-03-11)
@@ -419,6 +448,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - 前端类型定义 (`shared/types/index.ts`)
   - 对应后端 Schema §38 的所有实体的 TypeScript 类型
 
+[0.1.1]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.1.1
 [0.1.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.1.0
 [0.2.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.2.0
 [0.3.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.3.0

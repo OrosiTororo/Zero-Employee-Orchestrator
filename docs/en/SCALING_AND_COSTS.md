@@ -2,7 +2,7 @@
 
 # Zero-Employee Orchestrator — Cost, Constraints & Large-Scale Project Guide
 
-> v0.1 | Last updated: 2026-03-10
+> v0.1.1 | Last updated: 2026-03-12
 
 ---
 
@@ -88,7 +88,7 @@ Fully free operation is possible using the following methods.
 - Approval flow
 - Audit logs
 - Experience Memory
-- All 21 UI screens
+- All 23 UI screens
 - Skill / Plugin / Extension management
 - SQLite database (for development and personal use)
 

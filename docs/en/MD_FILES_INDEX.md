@@ -2,7 +2,7 @@
 
 # Markdown Files Index in the Repository
 
-> Last updated: 2026-03-10 (v0.1)
+> Last updated: 2026-03-12 (v0.1.1)
 >
 > This document is an index listing the purpose, overview, and intended audience of every `.md` file contained in the Zero-Employee Orchestrator repository.
 
@@ -40,6 +40,39 @@
 | **Purpose** | Development guide for Claude Code (AI coding agent). Condenses the entire project overview into a single file |
 | **Audience** | Claude Code (AI agent) |
 | **Key Contents** | 9-layer architecture definition, technology stack, directory structure, coding conventions, design principles, DB schema overview, all API endpoints, runtime configuration management, supported LLM models, Ollama integration, Skill management v0.1, prohibited actions |
+
+---
+
+### `CONTRIBUTING.md`
+
+| Item | Description |
+|------|-------------|
+| **Location** | `/CONTRIBUTING.md` |
+| **Purpose** | A guide on how to contribute to the project |
+| **Audience** | Contributors, developers |
+| **Key Contents** | Trilingual support (Japanese, English, Chinese). How to report issues, pull request creation process, coding conventions, development environment setup |
+
+---
+
+### `CODE_OF_CONDUCT.md`
+
+| Item | Description |
+|------|-------------|
+| **Location** | `/CODE_OF_CONDUCT.md` |
+| **Purpose** | Community code of conduct |
+| **Audience** | All contributors and users |
+| **Key Contents** | Trilingual support (Japanese, English, Chinese). Code of conduct based on Contributor Covenant 2.1 |
+
+---
+
+### `ROADMAP.md`
+
+| Item | Description |
+|------|-------------|
+| **Location** | `/ROADMAP.md` |
+| **Purpose** | Roadmap from v0.2 to v1.0 |
+| **Audience** | Users, developers, contributors |
+| **Key Contents** | Trilingual support (Japanese, English, Chinese). Planned features per version (with priorities) |
 
 ---
 
@@ -87,7 +120,7 @@ Documents intended for users (end users, evaluators, operators), or shared betwe
 | **Location** | `/docs/FEATURES.md` |
 | **Purpose** | A comprehensive feature list covering all implemented functionality |
 | **Audience** | Feature reviewers, evaluators, developers |
-| **Key Contents** | 27-section structure. 9-layer architecture feature details, Design Interview, Spec/Plan/Tasks, DAG-based Task Orchestrator, state machine, Judge Layer, Self-Healing/Re-Propose, approval workflow, audit logs, Skill/Plugin/Extension 3-tier extension system, LLM Gateway, frontend UI (21 screens), REST API, WebSocket |
+| **Key Contents** | 27-section structure. 9-layer architecture feature details, Design Interview, Spec/Plan/Tasks, DAG-based Task Orchestrator, state machine, Judge Layer, Self-Healing/Re-Propose, approval workflow, audit logs, Skill/Plugin/Extension 3-tier extension system, LLM Gateway, frontend UI (23 screens), REST API, WebSocket |
 
 ---
 
@@ -109,7 +142,7 @@ Documents intended for users (end users, evaluators, operators), or shared betwe
 | **Location** | `/docs/CHANGELOG.md` |
 | **Purpose** | Version-by-version change history |
 | **Audience** | All users and developers |
-| **Key Contents** | [Keep a Changelog](https://keepachangelog.com/) format. Complete list of all additions in v0.1.0 (2026-03-10) |
+| **Key Contents** | [Keep a Changelog](https://keepachangelog.com/) format. Complete list of all additions in v0.1.0 (2026-03-11) and v0.1.1 (2026-03-12) |
 
 ---
 
@@ -133,6 +166,17 @@ Documents intended for users (end users, evaluators, operators), or shared betwe
 | **Purpose** | A guide covering costs, hardware constraints, and large-scale project use cases |
 | **Audience** | Prospective adopters, operators, executives |
 | **Key Contents** | LLM API cost list, free-tier scope, hardware requirements, v0.1 unimplemented features, 5 large-scale project use cases, cost optimization strategies |
+
+---
+
+### `docs/AI_SELF_IMPROVEMENT_ROADMAP.md`
+
+| Item | Description |
+|------|-------------|
+| **Location** | `/docs/AI_SELF_IMPROVEMENT_ROADMAP.md` |
+| **Purpose** | A roadmap toward AI Self-Improvement (the ability for AI to improve and generate AI) |
+| **Audience** | Developers, contributors, researchers, those who share the vision |
+| **Key Contents** | AI Self-Improvement vision, ZEO's current position and distance to goal, limits of solo development and need for community/funding, 4-phase roadmap, ai-self-improvement Plugin design, community growth strategy, future scenarios, safety and ethics, cost estimates |
 
 ---
 
@@ -254,7 +298,23 @@ Implementation instruction files are specific directive documents used by AI cod
 
 ---
 
-## 6. Document Reference Priority
+## 6. docs/en/ and docs/zh/ — Multilingual Documents
+
+`docs/en/` (English) and `docs/zh/` (Chinese) contain translations of the following Japanese documents:
+
+| Japanese Original | English | Chinese |
+|-------------------|---------|---------|
+| `docs/ABOUT.md` | `docs/en/ABOUT.md` | `docs/zh/ABOUT.md` |
+| `docs/OVERVIEW.md` | `docs/en/OVERVIEW.md` | `docs/zh/OVERVIEW.md` |
+| `docs/FEATURES.md` | `docs/en/FEATURES.md` | `docs/zh/FEATURES.md` |
+| `docs/SECURITY.md` | `docs/en/SECURITY.md` | `docs/zh/SECURITY.md` |
+| `docs/SCALING_AND_COSTS.md` | `docs/en/SCALING_AND_COSTS.md` | `docs/zh/SCALING_AND_COSTS.md` |
+| `docs/CHANGELOG.md` | `docs/en/CHANGELOG.md` | `docs/zh/CHANGELOG.md` |
+| `docs/MD_FILES_INDEX.md` | `docs/en/MD_FILES_INDEX.md` | `docs/zh/MD_FILES_INDEX.md` |
+
+---
+
+## 7. Document Reference Priority
 
 ### For Developers and Implementers
 

@@ -7,6 +7,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.1] - 2026-03-12 — Security Hardening & File Attachment Support
+
+### Security
+
+- **bcrypt promoted to required dependency** — Removed SHA-256 fallback, enforcing bcrypt for password hashing
+- **Rate limiting added** (`slowapi`) — Implemented rate limits on authentication endpoints (registration: 5/min, login: 10/min)
+- **RAG file permissions fixed** — Restricted `index.json` / `idf.json` to `0o600` (owner only)
+- **RAG input validation** — Added content size limit (10 MB) and metadata key count restriction
+- **Authentication endpoint protection** (v0.1.0 Hotfix) — Added authentication to approval / config / registry APIs
+- **CORS restriction hardening** (v0.1.0 Hotfix) — Changed wildcard to explicit method and header lists
+- **UUID input validation** (v0.1.0 Hotfix) — Fixed to return 400 for invalid UUIDs
+
+### Added
+
+- **File Attachment-based Plan Creation** — Attach files to Design Interview and integrate into spec generation context
+  - `POST /api/v1/tickets/{ticket_id}/interview/attach` — File upload
+  - `GET /api/v1/tickets/{ticket_id}/interview/attachments` — List attachments
+  - Supports text, code, images, and PDF (auto text extraction + multi-encoding support)
+  - Extracted text automatically integrated into the "Reference Materials" section of Specs
+- **Local Context Skill Image Support** — Image file reading (Base64 encoding + PNG/JPEG size detection)
+  - Supports `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.bmp`, `.svg`
+  - SVG also parsed as text
+  - 10 MB size limit
+- **Extended File Type Support** — Significantly expanded supported formats for Local Context Skill
+  - Code: `.tsx`, `.jsx`, `.java`, `.go`, `.rs`, `.c`, `.cpp`, `.h`, `.html`, `.xml`, `.css`, `.sql`, `.sh`
+  - Multi-encoding auto-detection (UTF-8, Shift_JIS, EUC-JP, CP932)
+
+---
+
 ## [0.1.0] - 2026-03-11 — Platform v0.1 (Consolidated Release)
 
 ### Added (v0.1 Final — 2026-03-11)
@@ -419,6 +448,7 @@ The following features were reclassified from core features to extension feature
 - Frontend type definitions (`shared/types/index.ts`)
   - TypeScript types for all entities corresponding to backend schema section 38
 
+[0.1.1]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.1.1
 [0.1.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.1.0
 [0.2.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.2.0
 [0.3.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.3.0
