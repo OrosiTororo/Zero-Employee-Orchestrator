@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import type { Bindings, Variables } from "./lib/types";
-import { corsMiddleware } from "./middleware/cors";
+import { createCorsMiddleware } from "./middleware/cors";
 import { auditMiddleware } from "./middleware/audit";
 import auth from "./routes/auth";
 import companies from "./routes/companies";
@@ -28,16 +28,20 @@ const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 /* ------------------------------------------------------------------ */
 /*  Global middleware                                                   */
 /* ------------------------------------------------------------------ */
-app.use("*", corsMiddleware);
+app.use("*", async (c, next) => {
+  const middleware = createCorsMiddleware(c.env.CORS_ORIGINS);
+  return middleware(c, next);
+});
 
-/* Block API requests when JWT_SECRET is still the insecure default. */
+/* Block API requests when JWT_SECRET is missing or still the insecure default. */
 app.use("/api/*", async (c, next) => {
-  if (INSECURE_DEFAULTS.has(c.env.JWT_SECRET.toLowerCase())) {
+  const secret = c.env.JWT_SECRET;
+  if (!secret || INSECURE_DEFAULTS.has(secret.toLowerCase())) {
     return c.json(
       {
         error: "Insecure configuration",
         detail:
-          "JWT_SECRET is set to an insecure default value. " +
+          "JWT_SECRET is not set or is an insecure default value. " +
           "Run: wrangler secret put JWT_SECRET",
       },
       503,

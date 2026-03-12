@@ -4,6 +4,7 @@ import { cors } from "hono/cors";
 type Bindings = {
   BACKEND_ORIGIN: string;
   RATE_LIMIT: KVNamespace;
+  CORS_ORIGINS?: string;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
@@ -11,15 +12,18 @@ const app = new Hono<{ Bindings: Bindings }>();
 /* ------------------------------------------------------------------ */
 /*  CORS                                                               */
 /* ------------------------------------------------------------------ */
-app.use(
-  "*",
-  cors({
-    origin: "*",
+app.use("*", async (c, next) => {
+  const origins = c.env.CORS_ORIGINS
+    ? c.env.CORS_ORIGINS.split(",").map((o: string) => o.trim())
+    : ["http://localhost:5173", "http://localhost:1420"];
+  const middleware = cors({
+    origin: origins,
     allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
     maxAge: 86400,
-  }),
-);
+  });
+  return middleware(c, next);
+});
 
 /* ------------------------------------------------------------------ */
 /*  Rate Limiting (IP-based, KV-backed)                                */

@@ -6,6 +6,7 @@
 export type Bindings = {
   DB: D1Database;
   JWT_SECRET: string;
+  CORS_ORIGINS?: string;
 };
 
 /** Variables attached to the Hono context */

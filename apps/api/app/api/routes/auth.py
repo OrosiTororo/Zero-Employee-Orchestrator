@@ -3,6 +3,7 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Header, Request
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,7 +11,7 @@ from app.api.deps.database import get_db
 from app.core.rate_limit import limiter
 from app.models.user import CompanyMember, User
 from app.models.company import Company
-from app.core.security import generate_uuid, hash_sha256
+from app.core.security import generate_uuid, hash_password
 from app.schemas.auth import (
     LoginRequest,
     LoginResponse,
@@ -193,11 +194,15 @@ async def create_anonymous_session(
     }
 
 
+class LinkAccountRequest(BaseModel):
+    email: str
+    password: str
+    display_name: str
+
+
 @router.post("/link-account")
 async def link_anonymous_to_account(
-    email: str,
-    password: str,
-    display_name: str,
+    req: LinkAccountRequest,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -212,17 +217,17 @@ async def link_anonymous_to_account(
         )
 
     # メールの重複チェック
-    result = await db.execute(select(User).where(User.email == email))
+    result = await db.execute(select(User).where(User.email == req.email))
     if result.scalar_one_or_none():
         raise HTTPException(
             status_code=400, detail="このメールアドレスは既に登録されています"
         )
 
-    user.email = email
-    user.display_name = display_name
+    user.email = req.email
+    user.display_name = req.display_name
     user.role = "user"
     user.auth_provider = "local"
-    user.password_hash = hash_sha256(password)
+    user.password_hash = hash_password(req.password)
 
     await db.commit()
 
@@ -230,7 +235,7 @@ async def link_anonymous_to_account(
     return {
         "access_token": token,
         "user_id": str(user.id),
-        "display_name": display_name,
+        "display_name": req.display_name,
         "linked": True,
         "message": "アカウントが作成されました。複数デバイスでの共有が有効です",
     }

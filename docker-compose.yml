@@ -14,7 +14,7 @@ services:
     ports:
       - "18234:18234"
     environment:
-      - DEBUG=true
+      - DEBUG=${DEBUG:-false}
       - DATABASE_URL=sqlite+aiosqlite:///./data/zero_employee_orchestrator.db
       - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set. Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"}
       - SENTRY_DSN=${SENTRY_DSN:-}

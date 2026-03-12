@@ -27,18 +27,20 @@ Thumbs.db
 
 # Environment
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
 client_secret.json
 *.enc
 *.pem
 *.key
 *.p12
 *.pfx
+*.cert
+*.secret
 
 # Credentials
 ~/.zero-employee/
-config.json
+.zero-employee/
 
 # Pytest
 .pytest_cache/
@@ -48,8 +50,11 @@ test_zero_employee_orchestrator.db
 
 # Database
 *.db
+*.sqlite3
 zero_employee_orchestrator.db
 *.db-journal
+*.db-wal
+*.db-shm
 
 # Tauri
 **/src-tauri/target/
