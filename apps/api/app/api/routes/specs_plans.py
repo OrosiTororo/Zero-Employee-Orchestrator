@@ -202,7 +202,9 @@ async def reject_plan(
     plan_id: str, reason: str = "", db: AsyncSession = Depends(get_db)
 ):
     """planを却下"""
-    result = await db.execute(select(Plan).where(Plan.id == parse_uuid(plan_id, "plan_id")))
+    result = await db.execute(
+        select(Plan).where(Plan.id == parse_uuid(plan_id, "plan_id"))
+    )
     plan = result.scalar_one_or_none()
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")

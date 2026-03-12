@@ -27,11 +27,35 @@ router = APIRouter()
 _interview_sessions: dict[str, InterviewSession] = {}
 
 # 対応ファイルタイプ
-_TEXT_EXTENSIONS = {".txt", ".md", ".csv", ".json", ".yaml", ".yml", ".toml", ".xml", ".html"}
-_CODE_EXTENSIONS = {".py", ".ts", ".js", ".tsx", ".jsx", ".java", ".go", ".rs", ".c", ".cpp", ".h"}
+_TEXT_EXTENSIONS = {
+    ".txt",
+    ".md",
+    ".csv",
+    ".json",
+    ".yaml",
+    ".yml",
+    ".toml",
+    ".xml",
+    ".html",
+}
+_CODE_EXTENSIONS = {
+    ".py",
+    ".ts",
+    ".js",
+    ".tsx",
+    ".jsx",
+    ".java",
+    ".go",
+    ".rs",
+    ".c",
+    ".cpp",
+    ".h",
+}
 _IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".svg"}
 _DOCUMENT_EXTENSIONS = {".pdf"}
-_ALL_ALLOWED = _TEXT_EXTENSIONS | _CODE_EXTENSIONS | _IMAGE_EXTENSIONS | _DOCUMENT_EXTENSIONS
+_ALL_ALLOWED = (
+    _TEXT_EXTENSIONS | _CODE_EXTENSIONS | _IMAGE_EXTENSIONS | _DOCUMENT_EXTENSIONS
+)
 _MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 MB
 
 
@@ -277,12 +301,14 @@ async def attach_file_to_interview(
     if len(content) > _MAX_FILE_SIZE:
         raise HTTPException(
             status_code=400,
-            detail=f"ファイルサイズが上限 ({_MAX_FILE_SIZE // (1024*1024)} MB) を超えています",
+            detail=f"ファイルサイズが上限 ({_MAX_FILE_SIZE // (1024 * 1024)} MB) を超えています",
         )
 
     # テキスト抽出
     extracted = _extract_text_from_file(
-        content, file.filename or "unknown", file.content_type or "application/octet-stream"
+        content,
+        file.filename or "unknown",
+        file.content_type or "application/octet-stream",
     )
 
     attachment = FileAttachment(
@@ -317,7 +343,9 @@ async def list_interview_attachments(ticket_id: str):
                 "content_type": att.content_type,
                 "size_bytes": att.size_bytes,
                 "description": att.description,
-                "extracted_text_preview": att.extracted_text[:500] if att.extracted_text else "",
+                "extracted_text_preview": att.extracted_text[:500]
+                if att.extracted_text
+                else "",
             }
             for att in session.attachments
         ]
@@ -369,7 +397,9 @@ async def generate_spec_from_interview_endpoint(
 @router.get("/tickets/{ticket_id}")
 async def get_ticket(ticket_id: str, db: AsyncSession = Depends(get_db)):
     """チケット詳細"""
-    result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
+    result = await db.execute(
+        select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id"))
+    )
     ticket = result.scalar_one_or_none()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
@@ -393,7 +423,9 @@ async def update_ticket(
     db: AsyncSession = Depends(get_db),
 ):
     """チケット更新"""
-    result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
+    result = await db.execute(
+        select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id"))
+    )
     ticket = result.scalar_one_or_none()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
@@ -410,7 +442,9 @@ async def add_comment(
     ticket_id: str, req: CommentCreate, db: AsyncSession = Depends(get_db)
 ):
     """チケットにコメント追加"""
-    result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
+    result = await db.execute(
+        select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id"))
+    )
     ticket = result.scalar_one_or_none()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
@@ -452,7 +486,9 @@ async def get_thread(ticket_id: str, db: AsyncSession = Depends(get_db)):
 @router.post("/tickets/{ticket_id}/close")
 async def close_ticket(ticket_id: str, db: AsyncSession = Depends(get_db)):
     """チケットを閉じる"""
-    result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
+    result = await db.execute(
+        select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id"))
+    )
     ticket = result.scalar_one_or_none()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
@@ -465,7 +501,9 @@ async def close_ticket(ticket_id: str, db: AsyncSession = Depends(get_db)):
 @router.post("/tickets/{ticket_id}/reopen")
 async def reopen_ticket(ticket_id: str, db: AsyncSession = Depends(get_db)):
     """チケットを再開"""
-    result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
+    result = await db.execute(
+        select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id"))
+    )
     ticket = result.scalar_one_or_none()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")

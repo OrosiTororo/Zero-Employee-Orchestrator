@@ -172,9 +172,7 @@ async def approve(
 ):
     """承認 — 認証済みユーザーのみ実行可能"""
     aid = _validate_uuid(approval_id, "approval_id")
-    result = await db.execute(
-        select(ApprovalRequest).where(ApprovalRequest.id == aid)
-    )
+    result = await db.execute(select(ApprovalRequest).where(ApprovalRequest.id == aid))
     approval = result.scalar_one_or_none()
     if not approval:
         raise HTTPException(status_code=404, detail="Approval not found")
@@ -210,9 +208,7 @@ async def reject(
 ):
     """却下 — 認証済みユーザーのみ実行可能"""
     aid = _validate_uuid(approval_id, "approval_id")
-    result = await db.execute(
-        select(ApprovalRequest).where(ApprovalRequest.id == aid)
-    )
+    result = await db.execute(select(ApprovalRequest).where(ApprovalRequest.id == aid))
     approval = result.scalar_one_or_none()
     if not approval:
         raise HTTPException(status_code=404, detail="Approval not found")
