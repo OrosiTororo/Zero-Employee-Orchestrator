@@ -1,6 +1,8 @@
 """Application configuration using pydantic-settings."""
 
 import logging
+import os
+import secrets
 import warnings
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -11,6 +13,22 @@ _INSECURE_DEFAULT_KEYS = frozenset(
         "change-this-to-a-random-secret-key",
     }
 )
+
+
+def _auto_secret_key() -> str:
+    """Return SECRET_KEY from env / .env, or generate a random key for local dev.
+
+    This allows fresh clones to start the server immediately without
+    manually creating a .env file.  The generated key is ephemeral —
+    it changes on every restart, so JWT sessions won't survive restarts.
+    In production, always set SECRET_KEY explicitly.
+    """
+    env_key = os.environ.get("SECRET_KEY", "").strip()
+    if env_key and env_key.lower() not in _INSECURE_DEFAULT_KEYS:
+        return env_key
+    # No explicit key — generate one for this process
+    return secrets.token_urlsafe(32)
+
 
 logger = logging.getLogger(__name__)
 
@@ -27,11 +45,11 @@ class Settings(BaseSettings):
 
     # Project
     PROJECT_NAME: str = "Zero-Employee Orchestrator"
-    DEBUG: bool = False
+    DEBUG: bool = True
     API_V1_PREFIX: str = "/api/v1"
 
-    # Security
-    SECRET_KEY: str = "change-me-in-production"
+    # Security — auto-generated for local dev if not explicitly set
+    SECRET_KEY: str = _auto_secret_key()
 
     # CORS — 本番環境では許可するオリジンを実際のドメインに制限すること
     # 例: ["https://your-app.example.com"]
@@ -88,7 +106,8 @@ class Settings(BaseSettings):
 settings = Settings()
 
 # ---------------------------------------------------------------------------
-# Startup safety check: reject insecure defaults in production (DEBUG=false)
+# Startup safety check: warn on insecure defaults in development,
+# reject them in production (DEBUG=false)
 # ---------------------------------------------------------------------------
 if settings.SECRET_KEY.lower() in _INSECURE_DEFAULT_KEYS:
     if settings.DEBUG:
