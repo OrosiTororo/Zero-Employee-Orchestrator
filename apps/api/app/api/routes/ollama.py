@@ -22,6 +22,8 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
+from app.api.routes.auth import get_current_user
+from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -153,7 +155,7 @@ class KnowledgeStoreResponse(BaseModel):
 
 
 @router.get("/ollama/health", response_model=OllamaHealthResponse)
-async def ollama_health():
+async def ollama_health(user: User = Depends(get_current_user)):
     """Check Ollama availability and embedding support."""
     from app.providers.ollama_provider import ollama_provider
     from app.providers.local_rag import OllamaEmbeddingStore
@@ -176,7 +178,7 @@ async def ollama_health():
 
 
 @router.get("/ollama/models", response_model=OllamaModelsResponse)
-async def ollama_models():
+async def ollama_models(user: User = Depends(get_current_user)):
     """List available Ollama models."""
     from app.providers.ollama_provider import ollama_provider, RECOMMENDED_MODELS
 
@@ -205,6 +207,7 @@ async def ollama_models():
 @router.post("/ollama/pull", response_model=OllamaPullResponse)
 async def ollama_pull(
     req: OllamaPullRequest,
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Pull (download) an Ollama model with audit logging."""
@@ -248,6 +251,7 @@ async def ollama_pull(
 @router.post("/ollama/chat", response_model=OllamaChatResponse)
 async def ollama_chat(
     req: OllamaChatRequest,
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Send a chat completion to Ollama directly.
@@ -336,7 +340,9 @@ async def _ollama_chat_stream(req: OllamaChatRequest) -> StreamingResponse:
 
 
 @router.post("/ollama/chat/stream")
-async def ollama_chat_stream(req: OllamaChatRequest):
+async def ollama_chat_stream(
+    req: OllamaChatRequest, user: User = Depends(get_current_user)
+):
     """Dedicated SSE streaming endpoint for Ollama chat.
 
     Returns a Server-Sent Events stream with chunks:
@@ -351,6 +357,7 @@ async def ollama_chat_stream(req: OllamaChatRequest):
 @router.post("/ollama/rag/search", response_model=RAGSearchResponse)
 async def rag_search(
     req: RAGSearchRequest,
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Search the local RAG vector store (auto-selects best backend)."""
@@ -390,6 +397,7 @@ async def rag_search(
 @router.post("/ollama/rag/add", response_model=RAGAddResponse)
 async def rag_add(
     req: RAGAddRequest,
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Add a document to the local RAG vector store with artifact tracking."""
@@ -440,7 +448,7 @@ async def rag_add(
 
 
 @router.get("/ollama/heartbeat", response_model=HeartbeatCheckResponse)
-async def ollama_heartbeat():
+async def ollama_heartbeat(user: User = Depends(get_current_user)):
     """Run an Ollama heartbeat health check.
 
     Checks Ollama availability, model list, embedding support,
@@ -466,7 +474,9 @@ async def ollama_heartbeat():
 
 
 @router.post("/ollama/knowledge/search", response_model=KnowledgeSearchResponse)
-async def knowledge_search(req: KnowledgeSearchRequest):
+async def knowledge_search(
+    req: KnowledgeSearchRequest, user: User = Depends(get_current_user)
+):
     """Search the Knowledge Pipeline for Ollama task patterns.
 
     Returns experience memories and failure taxonomy entries
@@ -483,7 +493,9 @@ async def knowledge_search(req: KnowledgeSearchRequest):
 
 
 @router.post("/ollama/knowledge/store", response_model=KnowledgeStoreResponse)
-async def knowledge_store_endpoint(req: KnowledgeStoreRequest):
+async def knowledge_store_endpoint(
+    req: KnowledgeStoreRequest, user: User = Depends(get_current_user)
+):
     """Store an Ollama task execution result in the Knowledge Pipeline.
 
     Records successes as experience memory and failures as failure taxonomy.

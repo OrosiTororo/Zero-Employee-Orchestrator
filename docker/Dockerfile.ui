@@ -1,5 +1,9 @@
 FROM node:20-slim
 
+# Security: create non-root user
+RUN groupadd -r zeapp -g 1000 && \
+    useradd -r -u 1000 -g zeapp -m -d /home/zeapp -s /bin/bash zeapp
+
 WORKDIR /app
 
 # Install pnpm
@@ -16,6 +20,10 @@ COPY apps/desktop/ui/ .
 
 # Build for production
 RUN pnpm build
+
+RUN chown -R zeapp:zeapp /app
+
+USER zeapp
 
 # Serve with lightweight server
 RUN npm install -g serve
