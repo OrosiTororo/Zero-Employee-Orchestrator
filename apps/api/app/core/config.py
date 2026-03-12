@@ -35,7 +35,12 @@ class Settings(BaseSettings):
 
     # CORS — 本番環境では許可するオリジンを実際のドメインに制限すること
     # 例: ["https://your-app.example.com"]
-    CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
+    CORS_ORIGINS: list[str] = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "tauri://localhost",
+        "https://tauri.localhost",
+    ]
 
     # Database
     DATABASE_URL: str = "sqlite+aiosqlite:///./zero_employee_orchestrator.db"
