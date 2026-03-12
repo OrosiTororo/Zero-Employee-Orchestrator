@@ -163,7 +163,7 @@ DATABASE_URL=sqlite+aiosqlite:///./zero_employee_orchestrator.db
 SECRET_KEY=${SECRET}
 
 # CORS
-CORS_ORIGINS=http://localhost:5173,http://localhost:1420
+CORS_ORIGINS=["http://localhost:5173","http://localhost:3000","tauri://localhost","https://tauri.localhost"]
 
 # デバッグモード
 DEBUG=true

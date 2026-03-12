@@ -20,14 +20,66 @@ warn()  { echo -e "${YELLOW}[WARN]${NC}  $*"; }
 error() { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 
 # ---------------------------------------------------------------------------
-# セットアップ済みかチェック
+# セットアップ済みかチェック — 未完了なら自動セットアップ
 # ---------------------------------------------------------------------------
+NEED_SETUP=false
+
 if [ ! -d "$ROOT_DIR/apps/api/.venv" ]; then
-    error "セットアップが完了していません。先に ./setup.sh を実行してください。"
+    NEED_SETUP=true
 fi
 
 if [ ! -d "$ROOT_DIR/apps/desktop/ui/node_modules" ]; then
-    error "セットアップが完了していません。先に ./setup.sh を実行してください。"
+    NEED_SETUP=true
+fi
+
+if [ "$NEED_SETUP" = true ]; then
+    warn "セットアップが完了していません。自動セットアップを実行します..."
+    echo ""
+
+    # Python venv + 依存関係
+    if [ ! -d "$ROOT_DIR/apps/api/.venv" ]; then
+        info "Python 仮想環境を作成しています..."
+        cd "$ROOT_DIR/apps/api"
+        if command -v uv &> /dev/null; then
+            uv venv .venv && uv pip install -e "."
+        else
+            python3 -m venv .venv && .venv/bin/pip install -e "."
+        fi
+        ok "Python 依存関係をインストールしました"
+        cd "$ROOT_DIR"
+    fi
+
+    # .env ファイル自動生成
+    if [ ! -f "$ROOT_DIR/apps/api/.env" ]; then
+        info ".env ファイルを生成しています..."
+        SECRET=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))" 2>/dev/null || echo "auto-$(date +%s)")
+        cat > "$ROOT_DIR/apps/api/.env" <<ENVEOF
+DATABASE_URL=sqlite+aiosqlite:///./zero_employee_orchestrator.db
+SECRET_KEY=${SECRET}
+DEBUG=true
+CORS_ORIGINS=["http://localhost:5173","http://localhost:3000","tauri://localhost","https://tauri.localhost"]
+DEFAULT_EXECUTION_MODE=subscription
+USE_G4F=true
+ENVEOF
+        ok ".env ファイルを作成しました"
+    fi
+
+    # フロントエンド依存関係
+    if [ ! -d "$ROOT_DIR/apps/desktop/ui/node_modules" ]; then
+        info "フロントエンド依存関係をインストールしています..."
+        cd "$ROOT_DIR/apps/desktop/ui"
+        if command -v pnpm &> /dev/null; then
+            pnpm install
+        else
+            npm install
+        fi
+        ok "フロントエンド依存関係をインストールしました"
+        cd "$ROOT_DIR"
+    fi
+
+    echo ""
+    ok "自動セットアップが完了しました"
+    echo ""
 fi
 
 # ---------------------------------------------------------------------------
