@@ -285,21 +285,25 @@ async def analyze_skill(
     # -- 安全性チェック --
     safety = analyze_code_safety(code)
     if safety.has_dangerous_code:
-        findings.append(AnalysisFinding(
-            category=AnalysisCategory.SECURITY,
-            priority=ImprovementPriority.CRITICAL,
-            title="危険なコードパターンの検出",
-            description=safety.summary,
-            suggestion="eval/exec/subprocess などの危険なパターンを安全な代替手段に置き換えてください",
-        ))
+        findings.append(
+            AnalysisFinding(
+                category=AnalysisCategory.SECURITY,
+                priority=ImprovementPriority.CRITICAL,
+                title="危険なコードパターンの検出",
+                description=safety.summary,
+                suggestion="eval/exec/subprocess などの危険なパターンを安全な代替手段に置き換えてください",
+            )
+        )
     if safety.has_external_communication:
-        findings.append(AnalysisFinding(
-            category=AnalysisCategory.SECURITY,
-            priority=ImprovementPriority.HIGH,
-            title="外部通信の検出",
-            description="外部HTTP通信が含まれています",
-            suggestion="必要最小限の通信のみ行い、タイムアウトとエラーハンドリングを追加してください",
-        ))
+        findings.append(
+            AnalysisFinding(
+                category=AnalysisCategory.SECURITY,
+                priority=ImprovementPriority.HIGH,
+                title="外部通信の検出",
+                description="外部HTTP通信が含まれています",
+                suggestion="必要最小限の通信のみ行い、タイムアウトとエラーハンドリングを追加してください",
+            )
+        )
 
     # -- LLM 分析 --
     try:
@@ -316,7 +320,9 @@ async def analyze_skill(
     for f in findings:
         by_category.setdefault(f.category.value, []).append(f)
     for cat, items in by_category.items():
-        critical_count = sum(1 for i in items if i.priority == ImprovementPriority.CRITICAL)
+        critical_count = sum(
+            1 for i in items if i.priority == ImprovementPriority.CRITICAL
+        )
         high_count = sum(1 for i in items if i.priority == ImprovementPriority.HIGH)
         summary_parts.append(
             f"{cat}: {len(items)}件 (critical={critical_count}, high={high_count})"
@@ -341,49 +347,63 @@ def _static_analyze(code: str) -> list[AnalysisFinding]:
     findings: list[AnalysisFinding] = []
 
     if not code.strip():
-        findings.append(AnalysisFinding(
-            category=AnalysisCategory.CODE_QUALITY,
-            priority=ImprovementPriority.CRITICAL,
-            title="コードが空です",
-            description="スキルの実装コードが存在しません",
-            suggestion="execute(context) 関数を実装してください",
-        ))
+        findings.append(
+            AnalysisFinding(
+                category=AnalysisCategory.CODE_QUALITY,
+                priority=ImprovementPriority.CRITICAL,
+                title="コードが空です",
+                description="スキルの実装コードが存在しません",
+                suggestion="execute(context) 関数を実装してください",
+            )
+        )
         return findings
 
     lines = code.split("\n")
 
     # docstring チェック
     if '"""' not in code and "'''" not in code:
-        findings.append(AnalysisFinding(
-            category=AnalysisCategory.DOCUMENTATION,
-            priority=ImprovementPriority.MEDIUM,
-            title="docstring が未記述",
-            description="関数やモジュールに docstring が見つかりません",
-            suggestion="各関数に docstring を追加してください",
-        ))
+        findings.append(
+            AnalysisFinding(
+                category=AnalysisCategory.DOCUMENTATION,
+                priority=ImprovementPriority.MEDIUM,
+                title="docstring が未記述",
+                description="関数やモジュールに docstring が見つかりません",
+                suggestion="各関数に docstring を追加してください",
+            )
+        )
 
     # 型ヒントチェック
     func_defs = re.findall(r"(async\s+)?def\s+\w+\([^)]*\)", code)
     for func_def in func_defs:
-        if "->" not in func_def and "-> " not in code[code.index(func_def):code.index(func_def) + len(func_def) + 30]:
-            findings.append(AnalysisFinding(
-                category=AnalysisCategory.DOCUMENTATION,
-                priority=ImprovementPriority.LOW,
-                title="戻り値の型ヒントが未記述",
-                description=f"関数定義に戻り値の型ヒントがありません: {func_def[:60]}",
-                suggestion="-> ReturnType の形式で戻り値の型を明示してください",
-            ))
+        if (
+            "->" not in func_def
+            and "-> "
+            not in code[
+                code.index(func_def) : code.index(func_def) + len(func_def) + 30
+            ]
+        ):
+            findings.append(
+                AnalysisFinding(
+                    category=AnalysisCategory.DOCUMENTATION,
+                    priority=ImprovementPriority.LOW,
+                    title="戻り値の型ヒントが未記述",
+                    description=f"関数定義に戻り値の型ヒントがありません: {func_def[:60]}",
+                    suggestion="-> ReturnType の形式で戻り値の型を明示してください",
+                )
+            )
             break  # 1つ見つけたら十分
 
     # try/except チェック
     if "try:" not in code and "except" not in code:
-        findings.append(AnalysisFinding(
-            category=AnalysisCategory.ERROR_HANDLING,
-            priority=ImprovementPriority.HIGH,
-            title="エラーハンドリングが未実装",
-            description="try/except ブロックが見つかりません",
-            suggestion="外部APIコール・ファイル操作には try/except を追加してください",
-        ))
+        findings.append(
+            AnalysisFinding(
+                category=AnalysisCategory.ERROR_HANDLING,
+                priority=ImprovementPriority.HIGH,
+                title="エラーハンドリングが未実装",
+                description="try/except ブロックが見つかりません",
+                suggestion="外部APIコール・ファイル操作には try/except を追加してください",
+            )
+        )
 
     # ハードコードされた値
     hardcoded_patterns = [
@@ -392,13 +412,15 @@ def _static_analyze(code: str) -> list[AnalysisFinding]:
     ]
     for pattern, desc in hardcoded_patterns:
         if re.search(pattern, code):
-            findings.append(AnalysisFinding(
-                category=AnalysisCategory.CODE_QUALITY,
-                priority=ImprovementPriority.MEDIUM,
-                title=desc,
-                description=f"{desc}がコード内に検出されました",
-                suggestion="設定値やコンテキストから注入するようにしてください",
-            ))
+            findings.append(
+                AnalysisFinding(
+                    category=AnalysisCategory.CODE_QUALITY,
+                    priority=ImprovementPriority.MEDIUM,
+                    title=desc,
+                    description=f"{desc}がコード内に検出されました",
+                    suggestion="設定値やコンテキストから注入するようにしてください",
+                )
+            )
 
     # 長すぎる関数
     current_func_lines = 0
@@ -406,13 +428,15 @@ def _static_analyze(code: str) -> list[AnalysisFinding]:
     for line in lines:
         if re.match(r"(async\s+)?def\s+", line):
             if in_func and current_func_lines > 50:
-                findings.append(AnalysisFinding(
-                    category=AnalysisCategory.CODE_QUALITY,
-                    priority=ImprovementPriority.MEDIUM,
-                    title="長すぎる関数",
-                    description=f"50行を超える関数が存在します ({current_func_lines}行)",
-                    suggestion="関数を小さな単位に分割してください",
-                ))
+                findings.append(
+                    AnalysisFinding(
+                        category=AnalysisCategory.CODE_QUALITY,
+                        priority=ImprovementPriority.MEDIUM,
+                        title="長すぎる関数",
+                        description=f"50行を超える関数が存在します ({current_func_lines}行)",
+                        suggestion="関数を小さな単位に分割してください",
+                    )
+                )
             in_func = True
             current_func_lines = 0
         elif in_func:
@@ -429,7 +453,10 @@ async def _llm_analyze(code: str) -> list[AnalysisFinding]:
         CompletionRequest(
             messages=[
                 {"role": "system", "content": _ANALYSIS_SYSTEM_PROMPT},
-                {"role": "user", "content": f"以下のスキルコードを分析してください:\n\n```python\n{code}\n```"},
+                {
+                    "role": "user",
+                    "content": f"以下のスキルコードを分析してください:\n\n```python\n{code}\n```",
+                },
             ],
             temperature=0.2,
             max_tokens=4096,
@@ -444,13 +471,19 @@ async def _llm_analyze(code: str) -> list[AnalysisFinding]:
             data = json.loads(json_match.group(1))
             for item in data.get("findings", []):
                 try:
-                    findings.append(AnalysisFinding(
-                        category=AnalysisCategory(item.get("category", "code_quality")),
-                        priority=ImprovementPriority(item.get("priority", "medium")),
-                        title=item.get("title", ""),
-                        description=item.get("description", ""),
-                        suggestion=item.get("suggestion", ""),
-                    ))
+                    findings.append(
+                        AnalysisFinding(
+                            category=AnalysisCategory(
+                                item.get("category", "code_quality")
+                            ),
+                            priority=ImprovementPriority(
+                                item.get("priority", "medium")
+                            ),
+                            title=item.get("title", ""),
+                            description=item.get("description", ""),
+                            suggestion=item.get("suggestion", ""),
+                        )
+                    )
                 except (ValueError, KeyError):
                     continue
     except (json.JSONDecodeError, AttributeError):
@@ -572,7 +605,9 @@ async def improve_skill(
 
     except Exception as exc:
         logger.warning("LLM改善生成をスキップ、静的改善のみ適用: %s", exc)
-        improved_code, changes = _apply_static_improvements(original_code, analysis.findings)
+        improved_code, changes = _apply_static_improvements(
+            original_code, analysis.findings
+        )
         expected = ["静的分析に基づく基本的な改善"]
 
     # 安全性チェック
@@ -636,7 +671,12 @@ def _apply_static_improvements(
                     added_try = True
                     new_lines.append(line)
                     continue
-                if in_execute and added_try and line.strip() and not line.startswith("    "):
+                if (
+                    in_execute
+                    and added_try
+                    and line.strip()
+                    and not line.startswith("    ")
+                ):
                     in_execute = False
                 if in_execute and added_try and line.strip():
                     new_lines.append("    " + line)
@@ -663,11 +703,13 @@ async def apply_improvement(
     # バージョン履歴を manifest_json に保存
     manifest = skill.manifest_json or {}
     version_history = manifest.get("version_history", [])
-    version_history.append({
-        "version": skill.version,
-        "code_snapshot": skill.generated_code,
-        "replaced_at": datetime.now(timezone.utc).isoformat(),
-    })
+    version_history.append(
+        {
+            "version": skill.version,
+            "code_snapshot": skill.generated_code,
+            "replaced_at": datetime.now(timezone.utc).isoformat(),
+        }
+    )
     manifest["version_history"] = version_history
     skill.manifest_json = manifest
 
@@ -678,7 +720,9 @@ async def apply_improvement(
 
     logger.info(
         "Skill改善適用: %s v%s -> v%s",
-        skill.slug, proposal.original_version, proposal.proposed_version,
+        skill.slug,
+        proposal.original_version,
+        proposal.proposed_version,
     )
     return skill
 
@@ -696,17 +740,21 @@ async def tune_judge_from_experience(
 
     # 成功パターン取得
     success_records = await db.execute(
-        select(ExperienceMemoryRecord).where(
+        select(ExperienceMemoryRecord)
+        .where(
             ExperienceMemoryRecord.company_id == company_id,
-        ).limit(200)
+        )
+        .limit(200)
     )
     successes = list(success_records.scalars().all())
 
     # 失敗パターン取得
     failure_records = await db.execute(
-        select(FailureTaxonomyRecord).where(
+        select(FailureTaxonomyRecord)
+        .where(
             FailureTaxonomyRecord.company_id == company_id,
-        ).limit(200)
+        )
+        .limit(200)
     )
     failures = list(failure_records.scalars().all())
 
@@ -719,19 +767,23 @@ async def tune_judge_from_experience(
     # -- パターン1: 頻発する失敗カテゴリから自動ルール生成 --
     failure_categories: dict[str, int] = {}
     for f in failures:
-        failure_categories[f.category] = failure_categories.get(f.category, 0) + f.occurrence_count
+        failure_categories[f.category] = (
+            failure_categories.get(f.category, 0) + f.occurrence_count
+        )
 
     for category, count in failure_categories.items():
         if count >= 3:
-            proposed_rules.append(JudgeTuningRule(
-                rule_name=f"auto_check_{category}",
-                rule_type="category_filter",
-                condition={"failure_category": category, "min_occurrences": count},
-                action="warn",
-                confidence=min(0.9, 0.5 + count * 0.05),
-                source_patterns=count,
-                description=f"失敗カテゴリ '{category}' が{count}回発生。出力に該当パターンがないか追加チェックを推奨。",
-            ))
+            proposed_rules.append(
+                JudgeTuningRule(
+                    rule_name=f"auto_check_{category}",
+                    rule_type="category_filter",
+                    condition={"failure_category": category, "min_occurrences": count},
+                    action="warn",
+                    confidence=min(0.9, 0.5 + count * 0.05),
+                    source_patterns=count,
+                    description=f"失敗カテゴリ '{category}' が{count}回発生。出力に該当パターンがないか追加チェックを推奨。",
+                )
+            )
 
     # -- パターン2: 高い有効性スコアのパターンからルール生成 --
     high_effectiveness = [s for s in successes if s.effectiveness_score >= 0.8]
@@ -741,35 +793,41 @@ async def tune_judge_from_experience(
             categories[s.category] = categories.get(s.category, 0) + 1
         for cat, cnt in categories.items():
             if cnt >= 2:
-                proposed_rules.append(JudgeTuningRule(
-                    rule_name=f"prefer_{cat}_pattern",
-                    rule_type="pattern_match",
-                    condition={"success_category": cat, "min_effectiveness": 0.8},
-                    action="pass",
-                    confidence=min(0.85, 0.5 + cnt * 0.1),
-                    source_patterns=cnt,
-                    description=f"カテゴリ '{cat}' で有効性スコア0.8以上の成功パターンが{cnt}件。このカテゴリの出力は品質が高い傾向。",
-                ))
+                proposed_rules.append(
+                    JudgeTuningRule(
+                        rule_name=f"prefer_{cat}_pattern",
+                        rule_type="pattern_match",
+                        condition={"success_category": cat, "min_effectiveness": 0.8},
+                        action="pass",
+                        confidence=min(0.85, 0.5 + cnt * 0.1),
+                        source_patterns=cnt,
+                        description=f"カテゴリ '{cat}' で有効性スコア0.8以上の成功パターンが{cnt}件。このカテゴリの出力は品質が高い傾向。",
+                    )
+                )
 
     # -- パターン3: 回復成功率の低い障害から厳格チェック --
-    low_recovery = [f for f in failures if f.recovery_success_rate < 0.3 and f.occurrence_count >= 2]
+    low_recovery = [
+        f for f in failures if f.recovery_success_rate < 0.3 and f.occurrence_count >= 2
+    ]
     for f in low_recovery:
-        proposed_rules.append(JudgeTuningRule(
-            rule_name=f"strict_check_{f.category}_{f.subcategory}",
-            rule_type="threshold",
-            condition={
-                "failure_category": f.category,
-                "failure_subcategory": f.subcategory,
-                "recovery_rate": f.recovery_success_rate,
-            },
-            action="fail",
-            confidence=min(0.95, 0.6 + f.occurrence_count * 0.05),
-            source_patterns=f.occurrence_count,
-            description=(
-                f"'{f.category}/{f.subcategory}' は回復成功率が{f.recovery_success_rate:.0%}と低く、"
-                f"{f.occurrence_count}回発生。事前に厳格チェックで防止を推奨。"
-            ),
-        ))
+        proposed_rules.append(
+            JudgeTuningRule(
+                rule_name=f"strict_check_{f.category}_{f.subcategory}",
+                rule_type="threshold",
+                condition={
+                    "failure_category": f.category,
+                    "failure_subcategory": f.subcategory,
+                    "recovery_rate": f.recovery_success_rate,
+                },
+                action="fail",
+                confidence=min(0.95, 0.6 + f.occurrence_count * 0.05),
+                source_patterns=f.occurrence_count,
+                description=(
+                    f"'{f.category}/{f.subcategory}' は回復成功率が{f.recovery_success_rate:.0%}と低く、"
+                    f"{f.occurrence_count}回発生。事前に厳格チェックで防止を推奨。"
+                ),
+            )
+        )
 
     # -- LLM による追加ルール提案 --
     try:
@@ -847,15 +905,17 @@ JSON配列で出力:
         if json_match:
             items = json.loads(json_match.group(1))
             for item in items[:5]:  # 最大5ルール
-                rules.append(JudgeTuningRule(
-                    rule_name=item.get("rule_name", "llm_rule"),
-                    rule_type="pattern_match",
-                    condition={},
-                    action=item.get("action", "warn"),
-                    confidence=0.6,
-                    source_patterns=0,
-                    description=item.get("description", ""),
-                ))
+                rules.append(
+                    JudgeTuningRule(
+                        rule_name=item.get("rule_name", "llm_rule"),
+                        rule_type="pattern_match",
+                        condition={},
+                        action=item.get("action", "warn"),
+                        confidence=0.6,
+                        source_patterns=0,
+                        description=item.get("description", ""),
+                    )
+                )
     except (json.JSONDecodeError, AttributeError):
         pass
 
@@ -884,6 +944,7 @@ async def apply_judge_tuning(
                     content = json.dumps(output, ensure_ascii=False, default=str)
                     return cat.lower() not in content.lower()
                 return True
+
             return check_fn
 
         target_judge.add_rule(
@@ -938,17 +999,19 @@ async def generate_skills_from_failures(
 
         confidence = min(0.9, 0.4 + failure.occurrence_count * 0.1)
 
-        proposals.append(FailureToSkillProposal(
-            failure_category=failure.category,
-            failure_subcategory=failure.subcategory,
-            occurrence_count=failure.occurrence_count,
-            proposed_skill_slug=slug,
-            proposed_skill_name=name,
-            proposed_skill_description=description,
-            proposed_code=code,
-            prevention_strategy=failure.prevention_strategy,
-            confidence=confidence,
-        ))
+        proposals.append(
+            FailureToSkillProposal(
+                failure_category=failure.category,
+                failure_subcategory=failure.subcategory,
+                occurrence_count=failure.occurrence_count,
+                proposed_skill_slug=slug,
+                proposed_skill_name=name,
+                proposed_skill_description=description,
+                proposed_code=code,
+                prevention_strategy=failure.prevention_strategy,
+                confidence=confidence,
+            )
+        )
 
     return proposals
 
@@ -1087,19 +1150,21 @@ async def run_skill_ab_test(
         b_scores.append(b_score)
         b_times.append(b_time)
 
-        details.append({
-            "iteration": i + 1,
-            "skill_a": {
-                "score": a_score,
-                "time_ms": a_time,
-                "output_preview": str(a_result.get("output", ""))[:200],
-            },
-            "skill_b": {
-                "score": b_score,
-                "time_ms": b_time,
-                "output_preview": str(b_result.get("output", ""))[:200],
-            },
-        })
+        details.append(
+            {
+                "iteration": i + 1,
+                "skill_a": {
+                    "score": a_score,
+                    "time_ms": a_time,
+                    "output_preview": str(a_result.get("output", ""))[:200],
+                },
+                "skill_b": {
+                    "score": b_score,
+                    "time_ms": b_time,
+                    "output_preview": str(b_result.get("output", ""))[:200],
+                },
+            }
+        )
 
     avg_a_score = sum(a_scores) / len(a_scores) if a_scores else 0
     avg_b_score = sum(b_scores) / len(b_scores) if b_scores else 0
@@ -1166,13 +1231,17 @@ async def _execute_skill_for_test(
             return {"status": "error", "output": "execute関数が未定義"}, 0.0
 
         import asyncio
+
         if asyncio.iscoroutinefunction(execute_fn):
             result = await execute_fn(context)
         else:
             result = execute_fn(context)
 
         elapsed = (time.monotonic() - start) * 1000
-        return result if isinstance(result, dict) else {"status": "success", "output": str(result)}, elapsed
+        return result if isinstance(result, dict) else {
+            "status": "success",
+            "output": str(result),
+        }, elapsed
 
     except Exception as exc:
         elapsed = (time.monotonic() - start) * 1000
@@ -1284,12 +1353,13 @@ def _generate_static_tests(slug: str, code: str) -> list[GeneratedTestCase]:
     safe_slug = slug.replace("-", "_")
 
     # 正常系: 基本実行テスト
-    tests.append(GeneratedTestCase(
-        test_name=f"test_{safe_slug}_normal_execution",
-        test_type="normal",
-        input_data={"input": "テスト入力データ"},
-        expected_behavior="status が success または warning を返す",
-        test_code=f'''import pytest
+    tests.append(
+        GeneratedTestCase(
+            test_name=f"test_{safe_slug}_normal_execution",
+            test_type="normal",
+            input_data={"input": "テスト入力データ"},
+            expected_behavior="status が success または warning を返す",
+            test_code=f'''import pytest
 
 
 @pytest.mark.asyncio
@@ -1310,15 +1380,17 @@ async def test_{safe_slug}_normal_execution():
     assert "status" in result
     assert result["status"] in ("success", "warning")
 ''',
-    ))
+        )
+    )
 
     # エッジ: 空入力テスト
-    tests.append(GeneratedTestCase(
-        test_name=f"test_{safe_slug}_empty_input",
-        test_type="edge",
-        input_data={"input": ""},
-        expected_behavior="空入力でもエラーにならない",
-        test_code=f'''import pytest
+    tests.append(
+        GeneratedTestCase(
+            test_name=f"test_{safe_slug}_empty_input",
+            test_type="edge",
+            input_data={"input": ""},
+            expected_behavior="空入力でもエラーにならない",
+            test_code=f'''import pytest
 
 
 @pytest.mark.asyncio
@@ -1337,15 +1409,17 @@ async def test_{safe_slug}_empty_input():
     assert isinstance(result, dict)
     assert "status" in result
 ''',
-    ))
+        )
+    )
 
     # 異常系: context が不完全
-    tests.append(GeneratedTestCase(
-        test_name=f"test_{safe_slug}_minimal_context",
-        test_type="error",
-        input_data={},
-        expected_behavior="最小限の context でもエラーハンドリングされる",
-        test_code=f'''import pytest
+    tests.append(
+        GeneratedTestCase(
+            test_name=f"test_{safe_slug}_minimal_context",
+            test_type="error",
+            input_data={},
+            expected_behavior="最小限の context でもエラーハンドリングされる",
+            test_code=f'''import pytest
 
 
 @pytest.mark.asyncio
@@ -1361,7 +1435,8 @@ async def test_{safe_slug}_minimal_context():
     except (KeyError, TypeError):
         pass  # context 未チェックの場合は例外が発生しうる
 ''',
-    ))
+        )
+    )
 
     return tests
 
@@ -1374,7 +1449,10 @@ async def _llm_generate_tests(slug: str, code: str) -> list[GeneratedTestCase]:
         CompletionRequest(
             messages=[
                 {"role": "system", "content": _TEST_GEN_SYSTEM_PROMPT},
-                {"role": "user", "content": f"以下のスキルコードのテストを生成:\n\n```python\n{code}\n```"},
+                {
+                    "role": "user",
+                    "content": f"以下のスキルコードのテストを生成:\n\n```python\n{code}\n```",
+                },
             ],
             temperature=0.3,
             max_tokens=4096,
@@ -1388,13 +1466,15 @@ async def _llm_generate_tests(slug: str, code: str) -> list[GeneratedTestCase]:
         if json_match:
             data = json.loads(json_match.group(1))
             for item in data.get("test_cases", []):
-                tests.append(GeneratedTestCase(
-                    test_name=item.get("test_name", "test_unnamed"),
-                    test_type=item.get("test_type", "normal"),
-                    input_data=item.get("input_data", {}),
-                    expected_behavior=item.get("expected_behavior", ""),
-                    test_code=item.get("test_code", ""),
-                ))
+                tests.append(
+                    GeneratedTestCase(
+                        test_name=item.get("test_name", "test_unnamed"),
+                        test_type=item.get("test_type", "normal"),
+                        input_data=item.get("input_data", {}),
+                        expected_behavior=item.get("expected_behavior", ""),
+                        test_code=item.get("test_code", ""),
+                    )
+                )
     except (json.JSONDecodeError, AttributeError):
         pass
 
