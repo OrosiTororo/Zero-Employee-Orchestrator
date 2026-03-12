@@ -185,6 +185,27 @@ agent_role_model_configs, feature_requests, custom_agent_roles, brain_dumps, dai
 - `/hypotheses` — 仮説の並行検証
 - `/sessions` — エージェントセッション管理
 - `/config` — ランタイム設定管理（API キー・実行モード）
+- `/self-improvement` — AI Self-Improvement（Skill分析・改善・Judge調整・失敗学習・A/Bテスト・テスト自動生成）
+
+## AI Self-Improvement API (Level 2)
+
+`ai-self-improvement` Plugin の 6 Skill を実装済み。
+
+### Self-Improvement API エンドポイント
+- `POST /api/v1/self-improvement/analyze` — Skill コード品質分析（静的分析 + LLM 分析）
+- `POST /api/v1/self-improvement/improve` — Skill 改善版の自動生成（承認必須）
+- `POST /api/v1/self-improvement/improve/apply` — 改善適用（承認後）
+- `POST /api/v1/self-improvement/judge/tune` — Experience Memory から Judge ルール自動提案
+- `POST /api/v1/self-improvement/judge/tune/apply` — Judge ルール適用（承認後）
+- `POST /api/v1/self-improvement/failure-to-skill` — 失敗パターンから予防 Skill 自動生成
+- `POST /api/v1/self-improvement/failure-to-skill/register` — 予防 Skill 登録（承認後）
+- `POST /api/v1/self-improvement/ab-test` — 2つの Skill を A/B テスト比較
+- `POST /api/v1/self-improvement/generate-tests` — Skill テストコード自動生成
+- `GET /api/v1/self-improvement/status` — Self-Improvement ダッシュボード
+
+### サービス層
+- **services/self_improvement_service.py**: 6 Skill の実装（skill-analyzer, skill-improver, judge-tuner, failure-to-skill, skill-ab-test, auto-test-generator）
+- **schemas/self_improvement.py**: Self-Improvement API の DTO 定義
 
 ## ランタイム設定管理
 

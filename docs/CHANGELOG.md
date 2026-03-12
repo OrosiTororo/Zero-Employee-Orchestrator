@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [0.1.0] - 2026-03-12 — Platform v0.1 (Consolidated Release)
 
+### Added — AI Self-Improvement (Level 2: 自己改善の芽)
+
+- **AI Self-Improvement Plugin 実装** (`services/self_improvement_service.py`, `api/routes/self_improvement.py`)
+  - 6 Skill の完全実装: skill-analyzer, skill-improver, judge-tuner, failure-to-skill, skill-ab-test, auto-test-generator
+  - **Skill Analyzer** — 既存 Skill のコード品質を AI が分析（静的分析 16 パターン + LLM 深層分析）
+  - **Skill Improver** — 分析結果に基づく改善版 Skill の自動生成（安全性チェック付き・バージョン管理）
+  - **Judge Tuner** — Experience Memory の承認/却下パターンから Judge Layer ルールを自動提案
+  - **Failure-to-Skill** — Failure Taxonomy の頻発パターンから予防 Skill を自動生成
+  - **Skill A/B Test** — 2つの Skill を同じ入力で実行し品質・速度を定量比較
+  - **Auto Test Generator** — Skill コードから正常系・エッジケース・異常系テストを自動生成
+  - Self-Improvement API: 10 エンドポイント（`/api/v1/self-improvement/*`）
+  - ダッシュボード API: 分析数・改善提案数・適用数・テスト生成数の統計
+  - 全操作に承認フロー統合（改善適用・Judge 調整・Skill 登録は承認必須）
+  - Skill バージョン管理（manifest_json に version_history を保持・ロールバック可能）
+- **Self-Improvement スキーマ** (`schemas/self_improvement.py`)
+  - 14 の Pydantic DTO: 分析・改善・Judge調整・失敗学習・A/Bテスト・テスト生成の入出力
+- ルーター登録 (`api/routes/__init__.py`): self-improvement ルーター追加
+
 ### Security
 
 - **bcrypt を必須依存に昇格** — SHA-256 フォールバックを廃止し、パスワードハッシュに bcrypt を強制

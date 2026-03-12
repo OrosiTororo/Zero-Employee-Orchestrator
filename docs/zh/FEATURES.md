@@ -484,7 +484,7 @@ provisioning -> idle -> busy -> idle
 | `youtube` | YouTube 频道运营 | 已有 manifest |
 | `research` | 竞品分析、市场调研 | 已有 manifest |
 | `backoffice` | 财务、行政、文档管理 | 已有 manifest |
-| `ai-self-improvement` | AI 自我改进（Skill 分析、改进建议、A/B 测试） | 已有 manifest |
+| `ai-self-improvement` | AI 自我改进（Skill 分析、改进建议、A/B 测试） | **v0.1 已实现**（6 技能 + API） |
 
 ### Extension（环境扩展）
 
