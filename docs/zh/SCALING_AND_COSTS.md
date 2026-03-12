@@ -2,7 +2,7 @@
 
 # Zero-Employee Orchestrator — 成本、限制与大规模项目应用指南
 
-> v0.1 | 最后更新: 2026-03-10
+> v0.1 | 最后更新: 2026-03-12
 
 ---
 
@@ -88,7 +88,7 @@
 - 审批流程
 - 审计日志
 - Experience Memory
-- 全部 21 个 UI 界面
+- 全部 23 个 UI 界面
 - Skill / Plugin / Extension 管理
 - SQLite 数据库（开发和个人使用）
 

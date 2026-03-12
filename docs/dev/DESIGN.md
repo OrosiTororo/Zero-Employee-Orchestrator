@@ -517,7 +517,7 @@ Zero-Employee-Orchestrator/
 │  ├─ desktop/                # Tauri + React UI
 │  │  ├─ src-tauri/           # Rust (Tauri v2)
 │  │  └─ ui/src/
-│  │     ├─ pages/            # 21 画面コンポーネント
+│  │     ├─ pages/            # 23 画面コンポーネント
 │  │     ├─ features/         # 機能別モジュール
 │  │     ├─ shared/           # 共通 API・型・hooks・UI
 │  │     └─ app/              # ルーティング・エントリ

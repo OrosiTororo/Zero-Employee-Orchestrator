@@ -2,7 +2,7 @@
 
 # Zero-Employee Orchestrator — 功能一览
 
-> 最后更新：2026-03-10
+> 最后更新：2026-03-12
 > 目标版本：v0.1
 
 ---
@@ -1079,3 +1079,44 @@ uv pip install zero-employee-orchestrator
 | **Learning（学习力）** | 通过 Experience Memory 和 Failure Taxonomy 进行学习 |
 
 传统 AI 代理具备硬技能（特定任务的执行）和软技能（沟通），但缺乏元技能（支撑技能运用和学习的能力）。Zero-Employee Orchestrator 通过 Experience Memory 和 Failure Taxonomy 提供元技能的基础。
+
+---
+
+## 32. 基于文件附件的计划创建 (v0.1)
+
+在 Design Interview 中附加文件，作为规格书（Spec）生成的上下文进行整合。
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `POST /api/v1/tickets/{ticket_id}/interview/attach` | 文件上传 |
+| `GET /api/v1/tickets/{ticket_id}/interview/attachments` | 附件列表 |
+
+### 支持的文件格式
+
+| 类别 | 格式 |
+|------|------|
+| 文本 | `.txt`, `.md`, `.csv`, `.json`, `.yaml` |
+| 代码 | `.py`, `.ts`, `.tsx`, `.jsx`, `.java`, `.go`, `.rs`, `.c`, `.cpp`, `.h`, `.html`, `.xml`, `.css`, `.sql`, `.sh` |
+| 图片 | `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.bmp`, `.svg` |
+| 文档 | `.pdf` |
+
+- 自动文本提取 + 多编码支持（UTF-8, Shift_JIS, EUC-JP, CP932）
+- 提取的文本自动集成到 Spec 的"参考资料"部分
+- 图片使用 Base64 编码 + PNG/JPEG 尺寸检测
+- SVG 也作为文本解析
+- 10 MB 大小限制
+
+---
+
+## 33. 安全加固 (v0.1)
+
+| 项目 | 说明 |
+|------|------|
+| **bcrypt 强制化** | 强制使用 bcrypt 进行密码哈希。移除 SHA-256 回退 |
+| **速率限制** | 通过 `slowapi` 实现认证端点的速率限制（注册: 5次/分钟, 登录: 10次/分钟） |
+| **RAG 文件权限** | 将 `index.json` / `idf.json` 限制为 `0o600`（仅所有者可读写） |
+| **RAG 输入验证** | 内容大小上限 (10 MB) 和元数据键数限制 |
+| **CORS 限制加强** | 将通配符改为明确的方法和头部列表 |
+| **UUID 输入验证** | 修复对无效 UUID 返回 400 的问题 |

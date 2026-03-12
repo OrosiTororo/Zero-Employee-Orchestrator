@@ -2,7 +2,7 @@
 
 > 日本語 | [English](en/SCALING_AND_COSTS.md) | [中文](zh/SCALING_AND_COSTS.md)
 
-> v0.1 | 最終更新: 2026-03-10
+> v0.1 | 最終更新: 2026-03-12
 
 ---
 
@@ -88,7 +88,7 @@
 - 承認フロー
 - 監査ログ
 - Experience Memory
-- 全 21 画面の UI
+- 全 23 画面の UI
 - Skill / Plugin / Extension 管理
 - SQLite データベース（開発・個人利用）
 

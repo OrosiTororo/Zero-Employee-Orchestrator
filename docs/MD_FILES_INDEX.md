@@ -2,7 +2,7 @@
 
 > 日本語 | [English](en/MD_FILES_INDEX.md) | [中文](zh/MD_FILES_INDEX.md)
 
-> 最終更新: 2026-03-10 (v0.1)
+> 最終更新: 2026-03-12 (v0.1)
 >
 > このドキュメントは、Zero-Employee Orchestrator リポジトリに含まれるすべての `.md` ファイルの概要・目的・対象読者を一覧化したインデックスです。
 
@@ -40,6 +40,39 @@
 | **目的** | Claude Code（AI コーディングエージェント）向けの開発ガイド。プロジェクト全体の概要を1ファイルに凝縮 |
 | **対象読者** | Claude Code（AI エージェント） |
 | **主な内容** | 9層アーキテクチャ定義、技術スタック、ディレクトリ構成、コーディング規約、設計原則、DB スキーマ概要、全 API エンドポイント、ランタイム設定管理、対応 LLM モデル、Ollama 統合、Skill 管理 v0.1、禁止事項 |
+
+---
+
+### `CONTRIBUTING.md`
+
+| 項目 | 内容 |
+|------|------|
+| **場所** | `/CONTRIBUTING.md` |
+| **目的** | コントリビューション（貢献）の方法をまとめたガイド |
+| **対象読者** | コントリビューター・開発者 |
+| **主な内容** | 3 か国語（日本語・英語・中国語）対応。Issue の報告方法、プルリクエストの作成手順、コーディング規約、開発環境のセットアップ |
+
+---
+
+### `CODE_OF_CONDUCT.md`
+
+| 項目 | 内容 |
+|------|------|
+| **場所** | `/CODE_OF_CONDUCT.md` |
+| **目的** | コミュニティの行動規範 |
+| **対象読者** | すべてのコントリビューター・利用者 |
+| **主な内容** | 3 か国語（日本語・英語・中国語）対応。Contributor Covenant 2.1 ベースの行動規範 |
+
+---
+
+### `ROADMAP.md`
+
+| 項目 | 内容 |
+|------|------|
+| **場所** | `/ROADMAP.md` |
+| **目的** | v0.2 〜 v1.0 のロードマップ |
+| **対象読者** | 利用者・開発者・コントリビューター |
+| **主な内容** | 3 か国語（日本語・英語・中国語）対応。各バージョンの計画機能一覧（優先度付き） |
 
 ---
 
@@ -87,7 +120,7 @@
 | **場所** | `/docs/FEATURES.md` |
 | **目的** | 実装済み機能の全体像を網羅的にまとめた機能一覧 |
 | **対象読者** | 機能確認・評価者、開発者 |
-| **主な内容** | 全27セクション構成。9層アーキテクチャ機能詳細、Design Interview、Spec/Plan/Tasks、DAG ベース Task Orchestrator、状態機械、Judge Layer、Self-Healing/Re-Propose、承認フロー、監査ログ、Skill/Plugin/Extension 3層拡張、LLM Gateway、フロントエンド UI（21画面）、REST API、WebSocket |
+| **主な内容** | 全27セクション構成。9層アーキテクチャ機能詳細、Design Interview、Spec/Plan/Tasks、DAG ベース Task Orchestrator、状態機械、Judge Layer、Self-Healing/Re-Propose、承認フロー、監査ログ、Skill/Plugin/Extension 3層拡張、LLM Gateway、フロントエンド UI（23画面）、REST API、WebSocket |
 
 ---
 
@@ -109,7 +142,7 @@
 | **場所** | `/docs/CHANGELOG.md` |
 | **目的** | バージョン別の変更履歴 |
 | **対象読者** | すべての利用者・開発者 |
-| **主な内容** | [Keep a Changelog](https://keepachangelog.com/) 形式。v0.1.0（2026-03-10）の全追加機能一覧 |
+| **主な内容** | [Keep a Changelog](https://keepachangelog.com/) 形式。v0.1.0（2026-03-12）の全変更一覧 |
 
 ---
 
@@ -265,7 +298,23 @@
 
 ---
 
-## 6. ドキュメントの参照優先順位
+## 6. docs/en/ 及び docs/zh/ — 多言語ドキュメント
+
+`docs/en/`（英語）と `docs/zh/`（中国語）には、以下の日本語ドキュメントの翻訳版が含まれています:
+
+| 日本語原本 | 英語版 | 中国語版 |
+|-----------|--------|---------|
+| `docs/ABOUT.md` | `docs/en/ABOUT.md` | `docs/zh/ABOUT.md` |
+| `docs/OVERVIEW.md` | `docs/en/OVERVIEW.md` | `docs/zh/OVERVIEW.md` |
+| `docs/FEATURES.md` | `docs/en/FEATURES.md` | `docs/zh/FEATURES.md` |
+| `docs/SECURITY.md` | `docs/en/SECURITY.md` | `docs/zh/SECURITY.md` |
+| `docs/SCALING_AND_COSTS.md` | `docs/en/SCALING_AND_COSTS.md` | `docs/zh/SCALING_AND_COSTS.md` |
+| `docs/CHANGELOG.md` | `docs/en/CHANGELOG.md` | `docs/zh/CHANGELOG.md` |
+| `docs/MD_FILES_INDEX.md` | `docs/en/MD_FILES_INDEX.md` | `docs/zh/MD_FILES_INDEX.md` |
+
+---
+
+## 7. ドキュメントの参照優先順位
 
 ### 開発者・実装者向け
 
