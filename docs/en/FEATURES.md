@@ -3,7 +3,7 @@
 # Zero-Employee Orchestrator — Feature List
 
 > Last updated: 2026-03-12
-> Target version: v0.1.1
+> Target version: v0.1
 
 ---
 
@@ -1083,7 +1083,7 @@ Traditional AI agents possess hard skills (execution of specific tasks) and soft
 
 ---
 
-## 32. File Attachment-based Plan Creation (v0.1.1)
+## 32. File Attachment-based Plan Creation (v0.1)
 
 Attach files to Design Interview and integrate them as context for Spec (specification) generation.
 
@@ -1111,7 +1111,7 @@ Attach files to Design Interview and integrate them as context for Spec (specifi
 
 ---
 
-## 33. Security Hardening (v0.1.1)
+## 33. Security Hardening (v0.1)
 
 | Item | Description |
 |------|-------------|

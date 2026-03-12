@@ -3,7 +3,7 @@
 # Zero-Employee Orchestrator — 功能一览
 
 > 最后更新：2026-03-12
-> 目标版本：v0.1.1
+> 目标版本：v0.1
 
 ---
 
@@ -1082,7 +1082,7 @@ uv pip install zero-employee-orchestrator
 
 ---
 
-## 32. 基于文件附件的计划创建 (v0.1.1)
+## 32. 基于文件附件的计划创建 (v0.1)
 
 在 Design Interview 中附加文件，作为规格书（Spec）生成的上下文进行整合。
 
@@ -1110,7 +1110,7 @@ uv pip install zero-employee-orchestrator
 
 ---
 
-## 33. 安全加固 (v0.1.1)
+## 33. 安全加固 (v0.1)
 
 | 项目 | 说明 |
 |------|------|

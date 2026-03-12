@@ -2,7 +2,7 @@
 
 # Markdown Files Index in the Repository
 
-> Last updated: 2026-03-12 (v0.1.1)
+> Last updated: 2026-03-12 (v0.1)
 >
 > This document is an index listing the purpose, overview, and intended audience of every `.md` file contained in the Zero-Employee Orchestrator repository.
 
@@ -142,7 +142,7 @@ Documents intended for users (end users, evaluators, operators), or shared betwe
 | **Location** | `/docs/CHANGELOG.md` |
 | **Purpose** | Version-by-version change history |
 | **Audience** | All users and developers |
-| **Key Contents** | [Keep a Changelog](https://keepachangelog.com/) format. Complete list of all additions in v0.1.0 (2026-03-11) and v0.1.1 (2026-03-12) |
+| **Key Contents** | [Keep a Changelog](https://keepachangelog.com/) format. Complete list of all additions in v0.1.0 (2026-03-12) |
 
 ---
 

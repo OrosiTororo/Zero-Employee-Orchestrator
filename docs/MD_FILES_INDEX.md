@@ -2,7 +2,7 @@
 
 > 日本語 | [English](en/MD_FILES_INDEX.md) | [中文](zh/MD_FILES_INDEX.md)
 
-> 最終更新: 2026-03-12 (v0.1.1)
+> 最終更新: 2026-03-12 (v0.1)
 >
 > このドキュメントは、Zero-Employee Orchestrator リポジトリに含まれるすべての `.md` ファイルの概要・目的・対象読者を一覧化したインデックスです。
 
@@ -142,7 +142,7 @@
 | **場所** | `/docs/CHANGELOG.md` |
 | **目的** | バージョン別の変更履歴 |
 | **対象読者** | すべての利用者・開発者 |
-| **主な内容** | [Keep a Changelog](https://keepachangelog.com/) 形式。v0.1.0（2026-03-11）及び v0.1.1（2026-03-12）の全変更一覧 |
+| **主な内容** | [Keep a Changelog](https://keepachangelog.com/) 形式。v0.1.0（2026-03-12）の全変更一覧 |
 
 ---
 

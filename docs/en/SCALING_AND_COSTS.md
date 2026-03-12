@@ -2,7 +2,7 @@
 
 # Zero-Employee Orchestrator — Cost, Constraints & Large-Scale Project Guide
 
-> v0.1.1 | Last updated: 2026-03-12
+> v0.1 | Last updated: 2026-03-12
 
 ---
 

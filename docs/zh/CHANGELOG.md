@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [0.1.1] - 2026-03-12 — 安全加固 & 文件附件支持
+## [0.1.0] - 2026-03-12 — Platform v0.1 (Consolidated Release)
 
 ### 安全
 
@@ -15,9 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **添加速率限制** (`slowapi`) — 在认证端点实现速率限制（注册: 5次/分钟, 登录: 10次/分钟）
 - **RAG 文件权限修复** — 将 `index.json` / `idf.json` 限制为 `0o600`（仅所有者可读写）
 - **RAG 输入验证** — 添加内容大小上限 (10 MB) 和元数据键数限制
-- **认证端点保护** (v0.1.0 修复) — 为审批/配置/注册表 API 添加认证
-- **CORS 限制加强** (v0.1.0 修复) — 将通配符改为明确的方法和头部列表
-- **UUID 输入验证** (v0.1.0 修复) — 修复对无效 UUID 返回 400 的问题
+- **认证端点保护** — 为审批/配置/注册表 API 添加认证
+- **CORS 限制加强** — 将通配符改为明确的方法和头部列表
+- **UUID 输入验证** — 修复对无效 UUID 返回 400 的问题
 
 ### Added
 
@@ -32,13 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - 10 MB 大小限制
 - **扩展文件类型支持** — 大幅扩充 Local Context Skill 的支持格式
   - 代码: `.tsx`, `.jsx`, `.java`, `.go`, `.rs`, `.c`, `.cpp`, `.h`, `.html`, `.xml`, `.css`, `.sql`, `.sh`
-  - 多编码自动检测（UTF-8, Shift_JIS, EUC-JP, CP932）
-
----
-
-## [0.1.0] - 2026-03-11 — Platform v0.1 (Consolidated Release)
-
-### Added (v0.1 Final — 2026-03-11)
+  - 多编码自动检测（UTF-8, Shift_JIS, EUC-JP, CP932)
 
 - **头脑风暴（对话伙伴）功能** (`services/multi_model_service.py`, `api/routes/multi_model.py`, `pages/BrainstormPage.tsx`)
   - AI顾问头脑风暴会话管理（创建、发送消息、搜索、归档）
@@ -448,7 +442,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - 前端类型定义 (`shared/types/index.ts`)
   - 对应后端 Schema §38 的所有实体的 TypeScript 类型
 
-[0.1.1]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.1.1
 [0.1.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.1.0
 [0.2.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.2.0
 [0.3.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.3.0

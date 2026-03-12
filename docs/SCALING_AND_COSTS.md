@@ -2,7 +2,7 @@
 
 > 日本語 | [English](en/SCALING_AND_COSTS.md) | [中文](zh/SCALING_AND_COSTS.md)
 
-> v0.1.1 | 最終更新: 2026-03-12
+> v0.1 | 最終更新: 2026-03-12
 
 ---
 

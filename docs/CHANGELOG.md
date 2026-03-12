@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [0.1.1] - 2026-03-12 — Security Hardening & File Attachment Support
+## [0.1.0] - 2026-03-12 — Platform v0.1 (Consolidated Release)
 
 ### Security
 
@@ -15,9 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **レート制限追加** (`slowapi`) — 認証エンドポイントにレート制限を実装（登録: 5/min, ログイン: 10/min）
 - **RAG ファイル権限修正** — `index.json` / `idf.json` を `0o600`（所有者のみ）に制限
 - **RAG 入力バリデーション** — コンテンツサイズ上限 (10 MB) とメタデータキー数制限を追加
-- **認証エンドポイント保護** (v0.1.0 Hotfix) — 承認 / 設定 / レジストリ API に認証を追加
-- **CORS 制限強化** (v0.1.0 Hotfix) — ワイルドカードを明示的メソッド・ヘッダーリストに変更
-- **UUID 入力バリデーション** (v0.1.0 Hotfix) — 不正 UUID で 400 を返すように修正
+- **認証エンドポイント保護** — 承認 / 設定 / レジストリ API に認証を追加
+- **CORS 制限強化** — ワイルドカードを明示的メソッド・ヘッダーリストに変更
+- **UUID 入力バリデーション** — 不正 UUID で 400 を返すように修正
 
 ### Added
 
@@ -33,13 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **ファイルタイプ拡張** — Local Context Skill の対応形式を大幅拡充
   - コード: `.tsx`, `.jsx`, `.java`, `.go`, `.rs`, `.c`, `.cpp`, `.h`, `.html`, `.xml`, `.css`, `.sql`, `.sh`
   - 複数エンコーディング自動検出（UTF-8, Shift_JIS, EUC-JP, CP932）
-
----
-
-## [0.1.0] - 2026-03-11 — Platform v0.1 (Consolidated Release)
-
-### Added (v0.1 Final — 2026-03-11)
-
 - **壁打ち（ブレインストーミング）機能** (`services/multi_model_service.py`, `api/routes/multi_model.py`, `pages/BrainstormPage.tsx`)
   - AI相談役との壁打ちセッション管理（作成・メッセージ追加・検索・アーカイブ）
   - 複数モデル壁打ち対応（GPT / Gemini / Claude を同時に使用可能）
@@ -460,7 +453,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - フロントエンド型定義 (`shared/types/index.ts`)
   - バックエンドスキーマ §38 に対応する全エンティティの TypeScript 型
 
-[0.1.1]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.1.1
 [0.1.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.1.0
 [0.2.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.2.0
 [0.3.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.3.0
