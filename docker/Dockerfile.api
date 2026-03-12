@@ -1,5 +1,9 @@
 FROM python:3.12-slim
 
+# Security: create non-root user
+RUN groupadd -r zeapp -g 1000 && \
+    useradd -r -u 1000 -g zeapp -m -d /home/zeapp -s /bin/bash zeapp
+
 WORKDIR /app
 
 # Install system dependencies
@@ -13,6 +17,10 @@ RUN pip install --no-cache-dir -e apps/api/
 
 # Copy application code
 COPY apps/api/ apps/api/
+
+RUN chown -R zeapp:zeapp /app
+
+USER zeapp
 
 EXPOSE 18234
 

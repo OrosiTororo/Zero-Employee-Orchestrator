@@ -11,6 +11,8 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
+from app.api.routes.auth import get_current_user
+from app.models.user import User
 
 router = APIRouter()
 
@@ -26,7 +28,7 @@ class MCPToolCallRequest(BaseModel):
 
 
 @router.get("/mcp/capabilities")
-async def mcp_capabilities():
+async def mcp_capabilities(user: User = Depends(get_current_user)):
     """MCP サーバーのケイパビリティを取得."""
     from app.integrations.mcp_server import mcp_server
 
@@ -34,7 +36,7 @@ async def mcp_capabilities():
 
 
 @router.get("/mcp/tools")
-async def mcp_list_tools():
+async def mcp_list_tools(user: User = Depends(get_current_user)):
     """MCP ツール一覧."""
     from app.integrations.mcp_server import mcp_server
 
@@ -42,7 +44,7 @@ async def mcp_list_tools():
 
 
 @router.post("/mcp/tools/call")
-async def mcp_call_tool(req: MCPToolCallRequest):
+async def mcp_call_tool(req: MCPToolCallRequest, user: User = Depends(get_current_user)):
     """MCP ツール実行."""
     from app.integrations.mcp_server import mcp_server
 
@@ -50,7 +52,7 @@ async def mcp_call_tool(req: MCPToolCallRequest):
 
 
 @router.get("/mcp/resources")
-async def mcp_list_resources():
+async def mcp_list_resources(user: User = Depends(get_current_user)):
     """MCP リソース一覧."""
     from app.integrations.mcp_server import mcp_server
 
@@ -58,7 +60,7 @@ async def mcp_list_resources():
 
 
 @router.get("/mcp/prompts")
-async def mcp_list_prompts():
+async def mcp_list_prompts(user: User = Depends(get_current_user)):
     """MCP プロンプト一覧."""
     from app.integrations.mcp_server import mcp_server
 
@@ -84,7 +86,7 @@ class SkillImportRequest(BaseModel):
 
 
 @router.post("/skills/external/search")
-async def search_external_skills(req: SkillSearchRequest):
+async def search_external_skills(req: SkillSearchRequest, user: User = Depends(get_current_user)):
     """外部ソースからスキルを検索."""
     from app.integrations.external_skills import skill_importer, SkillSourceType
 
@@ -111,6 +113,7 @@ async def search_external_skills(req: SkillSearchRequest):
 @router.post("/skills/external/import")
 async def import_external_skill(
     req: SkillImportRequest,
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """外部ソースからスキルをインポートしてインストール."""
@@ -152,7 +155,7 @@ async def import_external_skill(
 
 
 @router.get("/sentry/stats")
-async def sentry_stats():
+async def sentry_stats(user: User = Depends(get_current_user)):
     """Sentryエラー統計."""
     from app.integrations.sentry_integration import sentry
 
@@ -164,6 +167,7 @@ async def sentry_events(
     level: str | None = None,
     event_type: str | None = None,
     limit: int = 50,
+    user: User = Depends(get_current_user),
 ):
     """Sentryイベント一覧."""
     from app.integrations.sentry_integration import sentry, SeverityLevel, EventType
@@ -182,6 +186,7 @@ async def sentry_capture_message(
     message: str = "",
     level: str = "info",
     tags: dict | None = None,
+    user: User = Depends(get_current_user),
 ):
     """カスタムイベントをキャプチャ."""
     from app.integrations.sentry_integration import sentry, SeverityLevel
@@ -205,6 +210,7 @@ class CreateAIAccountRequest(BaseModel):
 @router.post("/iam/ai-accounts")
 async def create_ai_account(
     req: CreateAIAccountRequest,
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """AIエージェント用サービスアカウントを作成."""
@@ -230,6 +236,7 @@ async def create_ai_account(
 @router.get("/iam/ai-accounts")
 async def list_ai_accounts(
     company_id: str | None = None,
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """AIサービスアカウント一覧."""
@@ -255,6 +262,7 @@ async def list_ai_accounts(
 @router.delete("/iam/ai-accounts/{account_id}")
 async def revoke_ai_account(
     account_id: str,
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """AIサービスアカウントを無効化."""
@@ -288,6 +296,7 @@ class AuditSearchRequest(BaseModel):
 @router.post("/investigate/query")
 async def investigate_query(
     req: DBQueryRequest,
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """AI調査: 安全なDB読み取りクエリ."""
@@ -300,6 +309,7 @@ async def investigate_query(
 @router.post("/investigate/audit")
 async def investigate_audit(
     req: AuditSearchRequest,
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """AI調査: 監査ログ検索."""
@@ -320,6 +330,7 @@ async def investigate_audit(
 async def investigate_errors(
     since_hours: int = 24,
     limit: int = 50,
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """AI調査: エラーパターン分析."""
@@ -331,6 +342,7 @@ async def investigate_errors(
 
 @router.get("/investigate/metrics")
 async def investigate_metrics(
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """AI調査: システムメトリクス."""
@@ -340,7 +352,7 @@ async def investigate_metrics(
 
 
 @router.get("/investigate/history")
-async def investigate_history(limit: int = 50):
+async def investigate_history(limit: int = 50, user: User = Depends(get_current_user)):
     """AI調査: 調査履歴."""
     from app.integrations.ai_investigator import ai_investigator
 
@@ -381,7 +393,7 @@ class ReviewRequest(BaseModel):
 
 
 @router.post("/hypotheses")
-async def propose_hypothesis(req: HypothesisRequest):
+async def propose_hypothesis(req: HypothesisRequest, user: User = Depends(get_current_user)):
     """仮説を提案."""
     from app.orchestration.hypothesis_engine import hypothesis_engine
 
@@ -400,6 +412,7 @@ async def propose_hypothesis(req: HypothesisRequest):
 async def list_hypotheses(
     company_id: str | None = None,
     task_id: str | None = None,
+    user: User = Depends(get_current_user),
 ):
     """仮説一覧."""
     from app.orchestration.hypothesis_engine import hypothesis_engine
@@ -412,7 +425,7 @@ async def list_hypotheses(
 
 
 @router.get("/hypotheses/{hypothesis_id}")
-async def get_hypothesis(hypothesis_id: str):
+async def get_hypothesis(hypothesis_id: str, user: User = Depends(get_current_user)):
     """仮説詳細."""
     from app.orchestration.hypothesis_engine import hypothesis_engine
 
@@ -423,7 +436,7 @@ async def get_hypothesis(hypothesis_id: str):
 
 
 @router.post("/hypotheses/evidence")
-async def add_evidence(req: EvidenceRequest):
+async def add_evidence(req: EvidenceRequest, user: User = Depends(get_current_user)):
     """エビデンスを追加."""
     from app.orchestration.hypothesis_engine import hypothesis_engine
 
@@ -442,7 +455,7 @@ async def add_evidence(req: EvidenceRequest):
 
 
 @router.post("/hypotheses/review")
-async def submit_review(req: ReviewRequest):
+async def submit_review(req: ReviewRequest, user: User = Depends(get_current_user)):
     """レビューを提出."""
     from app.orchestration.hypothesis_engine import hypothesis_engine, ReviewVerdict
 
@@ -460,7 +473,7 @@ async def submit_review(req: ReviewRequest):
 
 
 @router.post("/hypotheses/{hypothesis_id}/resolve")
-async def resolve_hypothesis(hypothesis_id: str, confirmed: bool = True):
+async def resolve_hypothesis(hypothesis_id: str, confirmed: bool = True, user: User = Depends(get_current_user)):
     """仮説を解決."""
     from app.orchestration.hypothesis_engine import hypothesis_engine
 
@@ -471,7 +484,7 @@ async def resolve_hypothesis(hypothesis_id: str, confirmed: bool = True):
 
 
 @router.get("/hypotheses/needing-review")
-async def hypotheses_needing_review(company_id: str | None = None):
+async def hypotheses_needing_review(company_id: str | None = None, user: User = Depends(get_current_user)):
     """レビューが必要な仮説一覧."""
     from app.orchestration.hypothesis_engine import hypothesis_engine
 
@@ -507,7 +520,7 @@ class WorkingMemoryRequest(BaseModel):
 
 
 @router.post("/sessions")
-async def create_session(req: CreateSessionRequest):
+async def create_session(req: CreateSessionRequest, user: User = Depends(get_current_user)):
     """エージェントセッションを作成."""
     from app.orchestration.agent_session import session_manager
 
@@ -527,6 +540,7 @@ async def list_sessions(
     company_id: str | None = None,
     status: str | None = None,
     agent_id: str | None = None,
+    user: User = Depends(get_current_user),
 ):
     """セッション一覧."""
     from app.orchestration.agent_session import session_manager, SessionStatus
@@ -537,7 +551,7 @@ async def list_sessions(
 
 
 @router.get("/sessions/{session_id}")
-async def get_session(session_id: str):
+async def get_session(session_id: str, user: User = Depends(get_current_user)):
     """セッション詳細."""
     from app.orchestration.agent_session import session_manager
 
@@ -548,7 +562,7 @@ async def get_session(session_id: str):
 
 
 @router.get("/sessions/agent/{agent_id}")
-async def get_agent_session(agent_id: str):
+async def get_agent_session(agent_id: str, user: User = Depends(get_current_user)):
     """エージェントのアクティブセッションを取得."""
     from app.orchestration.agent_session import session_manager
 
@@ -559,7 +573,7 @@ async def get_agent_session(agent_id: str):
 
 
 @router.post("/sessions/agent/{agent_id}/get-or-create")
-async def get_or_create_session(agent_id: str, req: CreateSessionRequest):
+async def get_or_create_session(agent_id: str, req: CreateSessionRequest, user: User = Depends(get_current_user)):
     """セッションを取得、なければ作成."""
     from app.orchestration.agent_session import session_manager
 
@@ -575,7 +589,7 @@ async def get_or_create_session(agent_id: str, req: CreateSessionRequest):
 
 
 @router.post("/sessions/message")
-async def add_session_message(req: SessionMessageRequest):
+async def add_session_message(req: SessionMessageRequest, user: User = Depends(get_current_user)):
     """セッションにメッセージを追加."""
     from app.orchestration.agent_session import session_manager
 
@@ -587,7 +601,7 @@ async def add_session_message(req: SessionMessageRequest):
 
 
 @router.post("/sessions/memory")
-async def add_working_memory(req: WorkingMemoryRequest):
+async def add_working_memory(req: WorkingMemoryRequest, user: User = Depends(get_current_user)):
     """ワーキングメモリに情報を追加."""
     from app.orchestration.agent_session import session_manager
 
@@ -599,7 +613,7 @@ async def add_working_memory(req: WorkingMemoryRequest):
 
 
 @router.post("/sessions/{session_id}/idle")
-async def set_session_idle(session_id: str):
+async def set_session_idle(session_id: str, user: User = Depends(get_current_user)):
     """セッションをアイドル状態に."""
     from app.orchestration.agent_session import session_manager
 
@@ -611,7 +625,7 @@ async def set_session_idle(session_id: str):
 
 
 @router.post("/sessions/{session_id}/resume")
-async def resume_session(session_id: str):
+async def resume_session(session_id: str, user: User = Depends(get_current_user)):
     """セッションを復帰."""
     from app.orchestration.agent_session import session_manager
 
@@ -623,7 +637,7 @@ async def resume_session(session_id: str):
 
 
 @router.delete("/sessions/{session_id}")
-async def terminate_session(session_id: str):
+async def terminate_session(session_id: str, user: User = Depends(get_current_user)):
     """セッションを終了."""
     from app.orchestration.agent_session import session_manager
 

@@ -10,8 +10,11 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+
+from app.api.routes.auth import get_current_user
+from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -130,6 +133,7 @@ async def list_traces(
     task_id: str | None = None,
     agent_id: str | None = None,
     limit: int = 50,
+    user: User = Depends(get_current_user),
 ):
     """推論トレース一覧を取得.
 
@@ -151,7 +155,7 @@ async def list_traces(
 
 
 @router.get("/traces/active", response_model=TraceListResponse)
-async def list_active_traces():
+async def list_active_traces(user: User = Depends(get_current_user)):
     """現在実行中の推論トレースを取得."""
     from app.orchestration.reasoning_trace import trace_store
 
@@ -163,7 +167,7 @@ async def list_active_traces():
 
 
 @router.get("/traces/{trace_id}", response_model=TraceResponse)
-async def get_trace(trace_id: str):
+async def get_trace(trace_id: str, user: User = Depends(get_current_user)):
     """特定の推論トレースの詳細を取得.
 
     各ステップの推論過程、意思決定理由、確信度を含む。
@@ -178,7 +182,7 @@ async def get_trace(trace_id: str):
 
 
 @router.get("/traces/{trace_id}/decisions")
-async def get_trace_decisions(trace_id: str):
+async def get_trace_decisions(trace_id: str, user: User = Depends(get_current_user)):
     """推論トレースの意思決定ステップのみ抽出.
 
     エージェントが何を選択し、なぜそう判断したかを簡潔に確認できる。
@@ -220,6 +224,7 @@ async def list_communications(
     task_id: str | None = None,
     msg_type: str | None = None,
     limit: int = 50,
+    user: User = Depends(get_current_user),
 ):
     """エージェント間通信ログの一覧.
 
@@ -243,7 +248,7 @@ async def list_communications(
 
 
 @router.get("/communications/escalations", response_model=EscalationResponse)
-async def list_escalations(company_id: str | None = None, limit: int = 20):
+async def list_escalations(company_id: str | None = None, limit: int = 20, user: User = Depends(get_current_user)):
     """エスカレーション一覧.
 
     エージェントが判断できず人間に委ねた事項を一覧表示。
@@ -258,7 +263,7 @@ async def list_escalations(company_id: str | None = None, limit: int = 20):
 
 
 @router.get("/communications/agent/{agent_id}/interactions")
-async def get_agent_interactions(agent_id: str):
+async def get_agent_interactions(agent_id: str, user: User = Depends(get_current_user)):
     """特定エージェントの通信相手別の集計.
 
     どのエージェントと最も多くやり取りしているかを把握できる。
@@ -275,7 +280,7 @@ async def get_agent_interactions(agent_id: str):
 
 
 @router.get("/communications/threads/{thread_id}", response_model=ThreadResponse)
-async def get_thread(thread_id: str):
+async def get_thread(thread_id: str, user: User = Depends(get_current_user)):
     """会話スレッドの詳細."""
     from app.orchestration.agent_communication import comm_log
 
@@ -301,7 +306,7 @@ async def get_thread(thread_id: str):
 
 
 @router.get("/monitor/dashboard", response_model=MonitorDashboardResponse)
-async def monitor_dashboard(company_id: str | None = None):
+async def monitor_dashboard(company_id: str | None = None, user: User = Depends(get_current_user)):
     """実行監視ダッシュボード.
 
     現在実行中のタスク、最近のイベント、システムサマリーを一括取得。
@@ -321,7 +326,7 @@ async def monitor_dashboard(company_id: str | None = None):
 
 
 @router.get("/monitor/active")
-async def list_active_executions(company_id: str | None = None):
+async def list_active_executions(company_id: str | None = None, user: User = Depends(get_current_user)):
     """現在実行中のタスク一覧."""
     from app.orchestration.execution_monitor import get_execution_monitor
 
@@ -331,7 +336,7 @@ async def list_active_executions(company_id: str | None = None):
 
 
 @router.get("/monitor/agent/{agent_id}")
-async def get_agent_activity(agent_id: str):
+async def get_agent_activity(agent_id: str, user: User = Depends(get_current_user)):
     """特定エージェントのアクティビティ."""
     from app.orchestration.execution_monitor import get_execution_monitor
 
@@ -344,6 +349,7 @@ async def list_monitor_events(
     company_id: str | None = None,
     event_type: str | None = None,
     limit: int = 50,
+    user: User = Depends(get_current_user),
 ):
     """監視イベント一覧."""
     from app.orchestration.execution_monitor import get_execution_monitor
