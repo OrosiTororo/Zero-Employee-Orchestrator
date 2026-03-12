@@ -485,7 +485,7 @@ A business function package that bundles multiple Skills and auxiliary features.
 | `youtube` | YouTube channel management | manifest available |
 | `research` | Competitive analysis, market research | manifest available |
 | `backoffice` | Accounting, office administration, document management | manifest available |
-| `ai-self-improvement` | AI Self-Improvement (Skill analysis, improvement proposals, A/B testing) | manifest available |
+| `ai-self-improvement` | AI Self-Improvement (Skill analysis, improvement proposals, A/B testing) | **v0.1 implemented** (6 Skills + API) |
 
 ### Extension (Environment Extension)
 

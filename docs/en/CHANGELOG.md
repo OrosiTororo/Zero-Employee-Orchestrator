@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [0.1.0] - 2026-03-12 — Platform v0.1 (Consolidated Release)
 
+### Added — AI Self-Improvement (Level 2: Seeds of Self-Improvement)
+
+- **AI Self-Improvement Plugin Implementation** (`services/self_improvement_service.py`, `api/routes/self_improvement.py`)
+  - Full implementation of 6 Skills: skill-analyzer, skill-improver, judge-tuner, failure-to-skill, skill-ab-test, auto-test-generator
+  - **Skill Analyzer** — AI-powered code quality analysis (16-pattern static analysis + LLM deep analysis)
+  - **Skill Improver** — Automatic improved version generation based on analysis (with safety checks & versioning)
+  - **Judge Tuner** — Auto-propose Judge Layer rules from Experience Memory approval/rejection patterns
+  - **Failure-to-Skill** — Auto-generate prevention Skills from frequent failure patterns in Failure Taxonomy
+  - **Skill A/B Test** — Run two Skills with same input, compare quality and speed quantitatively
+  - **Auto Test Generator** — Auto-generate normal/edge/error test cases from Skill code
+  - Self-Improvement API: 10 endpoints (`/api/v1/self-improvement/*`)
+  - All operations require user approval (improvement apply, Judge tuning, Skill registration)
+  - Skill version management (version_history in manifest_json, rollback supported)
+
 ### Security
 
 - **bcrypt promoted to required dependency** — Removed SHA-256 fallback, enforcing bcrypt for password hashing

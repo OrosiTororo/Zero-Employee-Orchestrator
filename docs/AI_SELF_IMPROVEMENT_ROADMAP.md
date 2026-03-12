@@ -91,15 +91,15 @@ ZEO はすでに以下を実装しています:
 | **Tool Connector** | 接続タイプ定義済み（10種） | REST API / MCP / CLI ツールの実行部分が stub |
 | **Design Interview → 成果物の E2E フロー** | 各コンポーネントは実装済み | 自然言語入力から成果物生成まで一気通貫の統合 |
 | **Plugin ローダー** | マニフェスト 9 個定義済み | マニフェストベースの動的ロード・実行機構 |
-| **ai-self-improvement Plugin** | マニフェスト + 6 Skill 定義 | 6 Skill の実装コード（skill-analyzer, skill-improver, judge-tuner, failure-to-skill, skill-ab-test, auto-test-generator） |
+| **ai-self-improvement Plugin** | **v0.1 実装済み** — マニフェスト + 6 Skill 実装 | 完了（skill-analyzer, skill-improver, judge-tuner, failure-to-skill, skill-ab-test, auto-test-generator） |
 
-### 個人で達成可能（Level 2: 自己改善の芽）
+### 個人で達成可能（Level 2: 自己改善の芽） — v0.1 実装済み
 
-- [ ] AI が既存 Skill を分析し、改善版を提案する（`ai-self-improvement` Plugin の実装）
-- [ ] AI が Judge Layer の判定基準を Experience Memory から自動調整する
-- [ ] AI が失敗パターンから新しい Skill を自動生成する
-- [ ] AI がテストを自動生成し、品質を自動検証する
-- [ ] Skill 間の性能比較と自動選択（A/B テスト機構）
+- [x] AI が既存 Skill を分析し、改善版を提案する（`ai-self-improvement` Plugin の実装）
+- [x] AI が Judge Layer の判定基準を Experience Memory から自動調整する
+- [x] AI が失敗パターンから新しい Skill を自動生成する
+- [x] AI がテストを自動生成し、品質を自動検証する
+- [x] Skill 間の性能比較と自動選択（A/B テスト機構）
 
 ### コミュニティが必要（Level 3: 加速する自己改善）
 
@@ -206,14 +206,14 @@ ZEO はすでに以下を実装しています:
 | タスク | 説明 | 状態 |
 |--------|------|------|
 | `ai-self-improvement` Plugin マニフェスト | 6 Skill の定義・安全性ポリシー・統合ポイントの設計 | v0.1 で完了 |
-| `ai-self-improvement` Plugin 実装 | Skill 分析・改善提案の実装コード | 未実装（マニフェストのみ） |
+| `ai-self-improvement` Plugin 実装 | Skill 分析・改善提案の実装コード | **v0.1 実装済み**（6 Skill 全実装） |
 | Tool Connector 本実装 | REST API / MCP / CLI ツールの stub → 本実装 | 未実装 |
 | フロントエンド データ接続完成 | 12画面のバックエンド接続 | 部分的 |
 | E2E フロー統合 | Design Interview → Spec → Plan → Task 実行の一気通貫 | 各コンポーネントあり、統合未完成 |
-| Skill ベンチマーク機構 | Skill の実行品質を定量評価する仕組み | 計画中 |
-| Experience Memory 活用強化 | 過去の経験から Judge 基準を自動調整 | 計画中 |
-| テスト自動生成 | AI が Skill のテストコードを自動生成 | 計画中 |
-| Skill バージョニング | 改善前後の Skill を比較・ロールバック | 計画中 |
+| Skill ベンチマーク機構 | Skill の実行品質を定量評価する仕組み | **v0.1 実装済み**（skill-ab-test） |
+| Experience Memory 活用強化 | 過去の経験から Judge 基準を自動調整 | **v0.1 実装済み**（judge-tuner） |
+| テスト自動生成 | AI が Skill のテストコードを自動生成 | **v0.1 実装済み**（auto-test-generator） |
+| Skill バージョニング | 改善前後の Skill を比較・ロールバック | **v0.1 実装済み**（version_history in manifest_json） |
 
 **目標**: AI が「この Skill はこう改善できる」と提案し、承認後に適用できる状態。
 

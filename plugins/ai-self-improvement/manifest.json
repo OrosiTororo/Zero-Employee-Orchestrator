@@ -3,7 +3,7 @@
   "name": "AI Self-Improvement Plugin",
   "description": "AI が AI を分析・改善・生成する自己改善プラグイン。既存 Skill の品質分析、改善版の自動生成、Experience Memory に基づく Judge 基準の自動調整、失敗パターンからの新 Skill 自動生成、Skill 間の A/B テスト比較を実現する。AI Self-Improvement の第一歩として、個人開発の範囲内で動作する。",
   "version": "0.1.0",
-  "status": "experimental",
+  "status": "implemented",
   "type": "plugin",
   "skills": [
     "skill-analyzer",
@@ -63,6 +63,11 @@
     "manual_approval": "すべての改善適用にはユーザーの手動承認が必要（完全自動化は Phase 3 以降）"
   },
   "roadmap_reference": "docs/AI_SELF_IMPROVEMENT_ROADMAP.md",
-  "note": "このプラグインは AI Self-Improvement の Phase 1（個人開発範囲）を実現するものです。コミュニティの拡大と共有データの増加により、Phase 2 以降でより高度な自己改善が可能になります。",
+  "implementation": {
+    "service": "app/services/self_improvement_service.py",
+    "routes": "app/api/routes/self_improvement.py",
+    "schemas": "app/schemas/self_improvement.py"
+  },
+  "note": "このプラグインは AI Self-Improvement の Phase 1（個人開発範囲）を実現するものです。6 Skill の実装コード・API エンドポイント・スキーマが完成しています。コミュニティの拡大と共有データの増加により、Phase 2 以降でより高度な自己改善が可能になります。",
   "author": "Zero-Employee Orchestrator Team"
 }

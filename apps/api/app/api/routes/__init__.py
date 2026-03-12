@@ -22,6 +22,7 @@ from app.api.routes import (
     projects,
     registry,
     secretary,
+    self_improvement,
     settings,
     specs_plans,
     tasks,
@@ -54,4 +55,7 @@ api_router.include_router(org_setup.router, prefix="/org-setup", tags=["org-setu
 api_router.include_router(secretary.router, tags=["secretary"])
 api_router.include_router(
     multi_model.router, tags=["multi-model", "brainstorm", "conversation-memory"]
+)
+api_router.include_router(
+    self_improvement.router, tags=["self-improvement"]
 )

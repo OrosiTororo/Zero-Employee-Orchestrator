@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [0.1.0] - 2026-03-12 — Platform v0.1 (Consolidated Release)
 
+### 新增 — AI 自我改进 (Level 2: 自我改善的萌芽)
+
+- **AI 自我改进插件实现** (`services/self_improvement_service.py`, `api/routes/self_improvement.py`)
+  - 6 个技能的完整实现: skill-analyzer, skill-improver, judge-tuner, failure-to-skill, skill-ab-test, auto-test-generator
+  - **Skill Analyzer** — AI 驱动的代码质量分析（16种静态分析模式 + LLM 深度分析）
+  - **Skill Improver** — 基于分析结果的改进版技能自动生成（含安全检查和版本管理）
+  - **Judge Tuner** — 从经验记忆的批准/拒绝模式自动提议 Judge Layer 规则
+  - **Failure-to-Skill** — 从故障分类中的频发模式自动生成预防技能
+  - **Skill A/B Test** — 用相同输入运行两个技能，定量比较质量和速度
+  - **Auto Test Generator** — 从技能代码自动生成正常/边界/异常测试用例
+  - 自我改进 API: 10 个端点 (`/api/v1/self-improvement/*`)
+  - 所有操作需要用户批准（改进应用、Judge 调优、技能注册）
+  - 技能版本管理（manifest_json 中的 version_history，支持回滚）
+
 ### 安全
 
 - **bcrypt 升级为必需依赖** — 移除 SHA-256 回退，强制使用 bcrypt 进行密码哈希
