@@ -405,7 +405,7 @@ File organization, translation, script generation, competitive analysis, etc.
 
 AI Avatar, AI Secretary, Discord Bot, Slack Bot, LINE Bot, YouTube operations, Research, Back Office, etc.
 
--> Manifests defined in `plugins/` (8 Plugins). Business-specific logic is not placed in the core
+-> Manifests defined in `plugins/` (9 Plugins). Business-specific logic is not placed in the core
 
 ### Extension (System Infrastructure Extension)
 

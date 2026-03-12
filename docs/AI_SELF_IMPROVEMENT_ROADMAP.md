@@ -1,6 +1,6 @@
 # AI Self-Improvement ロードマップ — ZEO が目指す究極の目標
 
-> v0.1 | 作成日: 2026-03-11
+> v0.1 | 作成日: 2026-03-11 | 最終更新: 2026-03-12
 >
 > **AI が AI を改善し、AI が AI を生み出す。** その循環を安全に、透明に、人間の意思決定を保ちながら実現する。
 
@@ -62,19 +62,40 @@ ZEO はすでに以下を実装しています:
 
 ## 2. ZEO の現在地と AI Self-Improvement への距離
 
-### 達成済み（Level 1: 基盤）
+### 達成済み（Level 1: 基盤） — v0.1 実装済み
 
 - [x] マルチエージェント協調（複数 AI の役割分担・通信）
 - [x] タスク分解と DAG ベース実行
-- [x] 品質検証（Judge Layer + Cross-Model Verification）
-- [x] 失敗からの自動復旧（Self-Healing DAG）
+- [x] 品質検証（Judge Layer + Cross-Model Verification + ZEO-Bench 200問ベンチマーク）
+- [x] 失敗からの自動復旧（Self-Healing DAG + カオステスト 20+ フォルト注入）
 - [x] 経験記憶（Experience Memory + Failure Taxonomy）
-- [x] 自然言語による Skill 生成
+- [x] 自然言語による Skill 生成（16種の安全性チェック付き）
 - [x] 承認フロー・監査ログ
+- [x] 動的モデルレジストリ（model_catalog.json によるモデル入替）
+- [x] 汎用ドメイン Skill テンプレート（5種: コンテンツ・競合分析・トレンド・KPI・戦略）
+- [x] Artifact Bridge（成果物の自動連携・ドメイン横断変換）
+- [x] `ai-self-improvement` Plugin のマニフェスト定義（6 Skill 定義済み）
+- [x] コミュニティプラグイン共有の仕組み（GitHub インポート + 安全性チェック）
+
+### v0.1 で未完成の機能（Level 1.5: 基盤の完成に必要）
+
+以下は v0.1 のコードベースに存在するが、完全な動作には追加実装が必要な機能です:
+
+| 機能 | 現状 | 残作業 |
+|------|------|--------|
+| **フロントエンド データ接続** | 23画面の UI あり、一部は API 接続済み | 12画面のバックエンド接続が部分的（TicketList, TicketDetail, SpecPlan, OrgChart, Approvals, Audit, Heartbeats, Costs, Artifacts, Skills, Plugins, PermissionsPage） |
+| **features/ モジュール** | 11 ディレクトリが `.gitkeep` のみ | ロジックは pages 内に直接記述されており、features/ への分離が必要 |
+| **packages/ 共有ライブラリ** | 5 パッケージが `.gitkeep` のみ（config, sdk, skill-manifest, types, ui） | 共有コードの抽出・パッケージ化 |
+| **Worker コアロジック** | ランナー・エグゼキューター構造あり | TaskRunner / HeartbeatRunner のコアロジック補強 |
+| **E2E テスト** | 未実装 | Playwright による E2E テスト構築 |
+| **Tool Connector** | 接続タイプ定義済み（10種） | REST API / MCP / CLI ツールの実行部分が stub |
+| **Design Interview → 成果物の E2E フロー** | 各コンポーネントは実装済み | 自然言語入力から成果物生成まで一気通貫の統合 |
+| **Plugin ローダー** | マニフェスト 9 個定義済み | マニフェストベースの動的ロード・実行機構 |
+| **ai-self-improvement Plugin** | マニフェスト + 6 Skill 定義 | 6 Skill の実装コード（skill-analyzer, skill-improver, judge-tuner, failure-to-skill, skill-ab-test, auto-test-generator） |
 
 ### 個人で達成可能（Level 2: 自己改善の芽）
 
-- [ ] AI が既存 Skill を分析し、改善版を提案する（`ai-self-improvement` Plugin）
+- [ ] AI が既存 Skill を分析し、改善版を提案する（`ai-self-improvement` Plugin の実装）
 - [ ] AI が Judge Layer の判定基準を Experience Memory から自動調整する
 - [ ] AI が失敗パターンから新しい Skill を自動生成する
 - [ ] AI がテストを自動生成し、品質を自動検証する
@@ -184,7 +205,11 @@ ZEO はすでに以下を実装しています:
 
 | タスク | 説明 | 状態 |
 |--------|------|------|
-| `ai-self-improvement` Plugin 作成 | Skill 分析・改善提案の基盤 | 🔧 本リリースで着手 |
+| `ai-self-improvement` Plugin マニフェスト | 6 Skill の定義・安全性ポリシー・統合ポイントの設計 | v0.1 で完了 |
+| `ai-self-improvement` Plugin 実装 | Skill 分析・改善提案の実装コード | 未実装（マニフェストのみ） |
+| Tool Connector 本実装 | REST API / MCP / CLI ツールの stub → 本実装 | 未実装 |
+| フロントエンド データ接続完成 | 12画面のバックエンド接続 | 部分的 |
+| E2E フロー統合 | Design Interview → Spec → Plan → Task 実行の一気通貫 | 各コンポーネントあり、統合未完成 |
 | Skill ベンチマーク機構 | Skill の実行品質を定量評価する仕組み | 計画中 |
 | Experience Memory 活用強化 | 過去の経験から Judge 基準を自動調整 | 計画中 |
 | テスト自動生成 | AI が Skill のテストコードを自動生成 | 計画中 |
