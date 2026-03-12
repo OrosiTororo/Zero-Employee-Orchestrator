@@ -120,7 +120,7 @@
 | **場所** | `/docs/FEATURES.md` |
 | **目的** | 実装済み機能の全体像を網羅的にまとめた機能一覧 |
 | **対象読者** | 機能確認・評価者、開発者 |
-| **主な内容** | 全27セクション構成。9層アーキテクチャ機能詳細、Design Interview、Spec/Plan/Tasks、DAG ベース Task Orchestrator、状態機械、Judge Layer、Self-Healing/Re-Propose、承認フロー、監査ログ、Skill/Plugin/Extension 3層拡張、LLM Gateway、フロントエンド UI（23画面）、REST API、WebSocket |
+| **主な内容** | 全34セクション構成。9層アーキテクチャ機能詳細、Design Interview、Spec/Plan/Tasks、DAG ベース Task Orchestrator、状態機械、Judge Layer、Self-Healing/Re-Propose、承認フロー、監査ログ、Skill/Plugin/Extension 3層拡張、LLM Gateway、フロントエンド UI（23画面）、REST API、WebSocket |
 
 ---
 
@@ -188,6 +188,17 @@
 | **目的** | プロジェクトの提案書。技術・課題・計画・予算・実績を網羅した提案文書 |
 | **対象読者** | 助成金審査員・スポンサー・パートナー候補 |
 | **主な内容** | 背景と目的、アーキテクチャ図、既存技術との比較、斬新さの主張、開発線表、予算内訳、提案者の実績、将来のITについての考察 |
+
+---
+
+### `docs/TITLE_PROPOSALS.md`
+
+| 項目 | 内容 |
+|------|------|
+| **場所** | `/docs/TITLE_PROPOSALS.md` |
+| **目的** | プロジェクトタイトル案（30字以内・10案）と申請プロジェクト概要（400〜800字） |
+| **対象読者** | 助成金審査員・スポンサー・プロジェクト関係者 |
+| **主な内容** | 未踏IT人材発掘・育成事業向けのタイトル候補10案（文字数・強調ポイント付き）、申請用プロジェクト概要文 |
 
 ---
 

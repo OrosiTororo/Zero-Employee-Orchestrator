@@ -296,9 +296,9 @@ ZEO 由 9 个层组成，每层拥有独立的职责。
 | PermissionsPage | 有 UI | 权限管理仪表盘 |
 | AgentMonitorPage | 有 UI | Agent 监控仪表盘 |
 
-### ORM 模型（21 张表）
+### ORM 模型（29 张表）
 
-Company, User, Department, Team, Agent, Project, Ticket, TicketThread, Spec, Plan, Task, TaskRun, Artifact, Review, ApprovalRequest, HeartbeatPolicy, HeartbeatRun, BudgetPolicy, CostLedger, Skill, Plugin, Extension, ToolConnection, ToolCallTrace, PolicyPack, SecretRef, AuditLog
+Company, CompanyMember, User, Department, Team, Agent, Project, Goal, Ticket, TicketThread, Spec, Plan, Task, TaskRun, Artifact, Review, ApprovalRequest, HeartbeatPolicy, HeartbeatRun, BudgetPolicy, CostLedger, Skill, Plugin, Extension, ToolConnection, ToolCallTrace, PolicyPack, SecretRef, AuditLog
 
 ### 测试
 
@@ -314,7 +314,9 @@ Company, User, Department, Team, Agent, Project, Ticket, TicketThread, Spec, Pla
 | `test_audit_logger.py` | 审计日志 |
 | `test_registry.py` | 注册表 |
 | `test_ollama_provider.py` | Ollama |
+| `test_chaos_dag.py` | 混沌测试（Self-Healing DAG） |
 | `test_ollama_integration.py` | Ollama 集成 |
+| `zeo_bench.py` | ZEO-Bench（Judge Layer 200 题基准测试） |
 
 ---
 
@@ -544,7 +546,7 @@ ZEO 的设计文档覆盖范围非常广泛，但实现中遵循以下原则：
 | `docs/ABOUT.md` | 为什么需要 ZEO、与传统工具的比较 | 非工程师、管理层 |
 | `docs/USER_GUIDE.md` | 从安装到操作方法 | 最终用户 |
 | **`docs/OVERVIEW.md`（本文档）** | **理念、功能、架构的综合解说** | **初次访问者** |
-| `docs/FEATURES.md` | 已实现功能的完整列表（27 个章节） | 功能确认、评估者 |
+| `docs/FEATURES.md` | 已实现功能的完整列表（34 个章节） | 功能确认、评估者 |
 | `docs/SECURITY.md` | 安全策略、部署前检查清单 | 运维人员 |
 | `docs/CHANGELOG.md` | 变更历史 | 所有人 |
 | `docs/Zero-Employee Orchestrator.md` | 最高层级基准文档（理念、需求） | 设计者 |
@@ -579,9 +581,9 @@ Zero-Employee-Orchestrator/
 │   ├── api/                    # FastAPI 后端
 │   │   ├── app/
 │   │   │   ├── core/           # 配置、数据库、安全、i18n
-│   │   │   ├── api/routes/     # REST API（20 个路由）
+│   │   │   ├── api/routes/     # REST API（24 个路由）
 │   │   │   ├── api/ws/         # WebSocket
-│   │   │   ├── models/         # ORM 模型（21 张表 / 18 个文件）
+│   │   │   ├── models/         # ORM 模型（29 张表 / 18 个文件）
 │   │   │   ├── schemas/        # Pydantic DTO
 │   │   │   ├── services/       # 业务逻辑
 │   │   │   ├── repositories/   # 数据库 I/O 抽象

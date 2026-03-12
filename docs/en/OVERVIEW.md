@@ -296,9 +296,9 @@ ZEO is composed of 9 layers. Each layer has independent responsibilities.
 | PermissionsPage | UI exists | Permissions management dashboard |
 | AgentMonitorPage | UI exists | Agent monitoring dashboard |
 
-### ORM Models (21 Tables)
+### ORM Models (29 Tables)
 
-Company, User, Department, Team, Agent, Project, Ticket, TicketThread, Spec, Plan, Task, TaskRun, Artifact, Review, ApprovalRequest, HeartbeatPolicy, HeartbeatRun, BudgetPolicy, CostLedger, Skill, Plugin, Extension, ToolConnection, ToolCallTrace, PolicyPack, SecretRef, AuditLog
+Company, CompanyMember, User, Department, Team, Agent, Project, Goal, Ticket, TicketThread, Spec, Plan, Task, TaskRun, Artifact, Review, ApprovalRequest, HeartbeatPolicy, HeartbeatRun, BudgetPolicy, CostLedger, Skill, Plugin, Extension, ToolConnection, ToolCallTrace, PolicyPack, SecretRef, AuditLog
 
 ### Tests
 
@@ -314,7 +314,9 @@ Company, User, Department, Team, Agent, Project, Ticket, TicketThread, Spec, Pla
 | `test_audit_logger.py` | Audit logs |
 | `test_registry.py` | Registry |
 | `test_ollama_provider.py` | Ollama |
+| `test_chaos_dag.py` | Chaos testing (Self-Healing DAG) |
 | `test_ollama_integration.py` | Ollama integration |
+| `zeo_bench.py` | ZEO-Bench (Judge Layer 200-question benchmark) |
 
 ---
 
@@ -544,7 +546,7 @@ For details, see [docs/dev/FEATURE_BOUNDARY.md](../dev/FEATURE_BOUNDARY.md).
 | `docs/ABOUT.md` | Why ZEO is needed, comparison with conventional tools | Non-engineers, executives |
 | `docs/USER_GUIDE.md` | From setup to operation guide | End users |
 | **`docs/OVERVIEW.md` (this document)** | **Comprehensive explanation of philosophy, features, and structure** | **First-time visitors** |
-| `docs/FEATURES.md` | Complete list of implemented features (27 sections) | Feature verification, evaluators |
+| `docs/FEATURES.md` | Complete list of implemented features (34 sections) | Feature verification, evaluators |
 | `docs/SECURITY.md` | Security policy, pre-deployment checklist | Operators |
 | `docs/CHANGELOG.md` | Change history | Everyone |
 | `docs/Zero-Employee Orchestrator.md` | Top-level reference document (philosophy, requirements) | Designers |
@@ -579,9 +581,9 @@ Zero-Employee-Orchestrator/
 │   ├── api/                    # FastAPI backend
 │   │   ├── app/
 │   │   │   ├── core/           # Configuration, DB, security, i18n
-│   │   │   ├── api/routes/     # REST API (20 routes)
+│   │   │   ├── api/routes/     # REST API (24 routes)
 │   │   │   ├── api/ws/         # WebSocket
-│   │   │   ├── models/         # ORM models (21 tables / 18 files)
+│   │   │   ├── models/         # ORM models (29 tables / 18 files)
 │   │   │   ├── schemas/        # Pydantic DTO
 │   │   │   ├── services/       # Business logic
 │   │   │   ├── repositories/   # DB I/O abstraction

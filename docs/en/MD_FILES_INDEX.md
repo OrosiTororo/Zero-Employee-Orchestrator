@@ -120,7 +120,7 @@ Documents intended for users (end users, evaluators, operators), or shared betwe
 | **Location** | `/docs/FEATURES.md` |
 | **Purpose** | A comprehensive feature list covering all implemented functionality |
 | **Audience** | Feature reviewers, evaluators, developers |
-| **Key Contents** | 27-section structure. 9-layer architecture feature details, Design Interview, Spec/Plan/Tasks, DAG-based Task Orchestrator, state machine, Judge Layer, Self-Healing/Re-Propose, approval workflow, audit logs, Skill/Plugin/Extension 3-tier extension system, LLM Gateway, frontend UI (23 screens), REST API, WebSocket |
+| **Key Contents** | 34-section structure. 9-layer architecture feature details, Design Interview, Spec/Plan/Tasks, DAG-based Task Orchestrator, state machine, Judge Layer, Self-Healing/Re-Propose, approval workflow, audit logs, Skill/Plugin/Extension 3-tier extension system, LLM Gateway, frontend UI (23 screens), REST API, WebSocket |
 
 ---
 

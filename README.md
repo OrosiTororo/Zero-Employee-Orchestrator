@@ -271,12 +271,12 @@ Zero-Employee-Orchestrator/
 │   │   ├── app/
 │   │   │   ├── core/           # 設定・DB・セキュリティ・i18n
 │   │   │   ├── api/
-│   │   │   │   ├── routes/     # REST API エンドポイント（22 ルート）
+│   │   │   │   ├── routes/     # REST API エンドポイント（24 ルート）
 │   │   │   │   ├── ws/         # WebSocket
 │   │   │   │   └── deps/       # 依存性注入
 │   │   │   ├── models/         # SQLAlchemy ORM モデル（18 ファイル）
 │   │   │   ├── schemas/        # Pydantic DTO（16 ファイル）
-│   │   │   ├── services/       # ビジネスロジック（11 サービス）
+│   │   │   ├── services/       # ビジネスロジック（13 サービス）
 │   │   │   ├── repositories/   # DB 入出力抽象化
 │   │   │   ├── orchestration/  # DAG・Judge・状態機械・Memory（18 モジュール）
 │   │   │   ├── heartbeat/      # 定期実行スケジューラ
