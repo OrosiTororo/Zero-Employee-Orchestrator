@@ -89,9 +89,9 @@ cd apps/api
 
 ```toml
 [project]
-name = "zero-employee-orchestrator-api"
+name = "zero-employee-orchestrator"
 version = "0.1.0"
-description = "Zero-Employee Orchestrator – API backend"
+description = "Zero-Employee Orchestrator – AI業務オーケストレーション基盤"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115",
