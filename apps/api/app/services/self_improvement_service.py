@@ -16,10 +16,10 @@ import logging
 import re
 import time
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Sequence
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,8 +31,6 @@ from app.orchestration.experience_memory import (
     PersistentExperienceMemory,
 )
 from app.orchestration.judge import (
-    JudgeResult,
-    JudgeVerdict,
     RuleBasedJudge,
     rule_judge,
 )
@@ -695,7 +693,6 @@ async def tune_judge_from_experience(
     company_id: uuid.UUID,
 ) -> JudgeTuningResult:
     """Experience Memory の承認/却下パターンから Judge ルールを提案する."""
-    memory = PersistentExperienceMemory(db, company_id)
 
     # 成功パターン取得
     success_records = await db.execute(

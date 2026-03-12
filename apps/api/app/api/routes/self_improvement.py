@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import logging
 import uuid
-from dataclasses import asdict
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -250,7 +249,6 @@ async def apply_judge_tuning_endpoint(
 ) -> JudgeTuningApplyResponse:
     """提案された Judge ルールを適用する（承認後）."""
     from app.services.self_improvement_service import (
-        JudgeTuningResult,
         apply_judge_tuning,
     )
 
