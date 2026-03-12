@@ -1,6 +1,7 @@
 """Skill / Plugin / Extension レジストリ API エンドポイント.
 
 全 CRUD 操作、自然言語スキル生成、システム保護を提供する。
+書き込み系操作（作成・更新・削除・インストール）は認証必須。
 """
 
 import uuid
@@ -9,6 +10,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
+from app.api.routes.auth import get_current_user
+from app.models.user import User
 from app.schemas.registry import (
     ExtensionCreate,
     ExtensionRead,
@@ -63,6 +66,7 @@ async def get_skill(
 async def create_skill(
     data: SkillCreate,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """新しい Skill を作成する."""
     existing = await skill_service.get_skill_by_slug(db, data.slug)
@@ -80,6 +84,7 @@ async def create_skill(
 async def install_skill(
     data: SkillCreate,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """Skill をインストールする (create のエイリアス)."""
     existing = await skill_service.get_skill_by_slug(db, data.slug)
@@ -98,6 +103,7 @@ async def update_skill(
     skill_id: uuid.UUID,
     data: SkillUpdate,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """Skill を更新する."""
     try:
@@ -114,6 +120,7 @@ async def update_skill(
 async def delete_skill(
     skill_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """Skill を削除する. システム保護スキルは削除不可."""
     deleted, message = await skill_service.delete_skill(db, skill_id)
@@ -129,6 +136,7 @@ async def delete_skill(
 async def generate_skill(
     request: SkillGenerateRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """自然言語の説明からスキルを自動生成する."""
     result = await skill_service.generate_skill_from_description(request, db)
@@ -171,6 +179,7 @@ async def get_plugin(
 async def create_plugin(
     data: PluginCreate,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """新しい Plugin を作成する."""
     existing = await registry_service.get_plugin_by_slug(db, data.slug)
@@ -188,6 +197,7 @@ async def create_plugin(
 async def install_plugin(
     data: PluginCreate,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """Plugin をインストールする."""
     existing = await registry_service.get_plugin_by_slug(db, data.slug)
@@ -206,6 +216,7 @@ async def update_plugin(
     plugin_id: uuid.UUID,
     data: PluginUpdate,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """Plugin を更新する."""
     try:
@@ -222,6 +233,7 @@ async def update_plugin(
 async def delete_plugin(
     plugin_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """Plugin を削除する. システム保護プラグインは削除不可."""
     deleted, message = await registry_service.delete_plugin(db, plugin_id)
@@ -259,6 +271,7 @@ async def search_external_plugins(
 async def import_plugin(
     source_uri: str,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """GitHub リポジトリからプラグインをインポート・インストールする."""
     from app.integrations.external_skills import plugin_importer
@@ -319,6 +332,7 @@ async def get_extension(
 async def create_extension(
     data: ExtensionCreate,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """新しい Extension を作成する."""
     existing = await registry_service.get_extension_by_slug(db, data.slug)
@@ -336,6 +350,7 @@ async def create_extension(
 async def install_extension(
     data: ExtensionCreate,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """Extension をインストールする."""
     existing = await registry_service.get_extension_by_slug(db, data.slug)
@@ -354,6 +369,7 @@ async def update_extension(
     ext_id: uuid.UUID,
     data: ExtensionUpdate,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """Extension を更新する."""
     try:
@@ -370,6 +386,7 @@ async def update_extension(
 async def delete_extension(
     ext_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """Extension を削除する. システム保護拡張は削除不可."""
     deleted, message = await registry_service.delete_extension(db, ext_id)

@@ -4,13 +4,7 @@ import hashlib
 import secrets
 import uuid
 
-# Use bcrypt for password hashing (fallback to hashlib if unavailable)
-try:
-    import bcrypt
-
-    _HAS_BCRYPT = True
-except ImportError:
-    _HAS_BCRYPT = False
+import bcrypt
 
 
 def generate_uuid() -> uuid.UUID:
@@ -19,18 +13,17 @@ def generate_uuid() -> uuid.UUID:
 
 
 def hash_password(password: str) -> str:
-    """Hash a password using bcrypt (preferred) or salted SHA-256 (fallback)."""
-    if _HAS_BCRYPT:
-        return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-    # Fallback: salted SHA-256 (install bcrypt for production use)
-    salt = secrets.token_hex(16)
-    hashed = hashlib.sha256((salt + password).encode()).hexdigest()
-    return f"sha256${salt}${hashed}"
+    """Hash a password using bcrypt."""
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    """Verify a password against its hash."""
-    if _HAS_BCRYPT and hashed.startswith("$2"):
+    """Verify a password against its hash.
+
+    Supports bcrypt (current) and legacy salted/plain SHA-256 for
+    backward compatibility with data created before bcrypt was required.
+    """
+    if hashed.startswith("$2"):
         return bcrypt.checkpw(plain.encode(), hashed.encode())
     if hashed.startswith("sha256$"):
         parts = hashed.split("$")

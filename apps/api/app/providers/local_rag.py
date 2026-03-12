@@ -438,18 +438,38 @@ class LocalVectorStore:
         self._loaded = True
 
     def save(self) -> None:
-        """Persist documents and IDF to disk."""
+        """Persist documents and IDF to disk with restricted permissions."""
+        import os
+        import stat
+
         self._store_dir.mkdir(parents=True, exist_ok=True)
+        # ディレクトリは所有者のみアクセス可能
+        try:
+            os.chmod(self._store_dir, stat.S_IRWXU)
+        except OSError:
+            pass
 
         index_data = {doc_id: doc.to_dict() for doc_id, doc in self._documents.items()}
-        self._index_path().write_text(
+
+        idx = self._index_path()
+        idx.write_text(
             json.dumps(index_data, ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
-        self._idf_path().write_text(
+        try:
+            os.chmod(idx, stat.S_IRUSR | stat.S_IWUSR)  # 0o600
+        except OSError:
+            pass
+
+        idf = self._idf_path()
+        idf.write_text(
             json.dumps(self._idf, ensure_ascii=False),
             encoding="utf-8",
         )
+        try:
+            os.chmod(idf, stat.S_IRUSR | stat.S_IWUSR)  # 0o600
+        except OSError:
+            pass
 
     # ------------------------------------------------------------------
     # IDF computation
@@ -500,6 +520,9 @@ class LocalVectorStore:
         h = hashlib.sha256(content.encode("utf-8")).hexdigest()[:16]
         return h
 
+    MAX_CONTENT_SIZE = 10 * 1024 * 1024  # 10 MB
+    MAX_METADATA_KEYS = 50
+
     def add(
         self,
         content: str,
@@ -511,8 +534,16 @@ class LocalVectorStore:
 
         Returns the list of document IDs added.
         """
+        if len(content) > self.MAX_CONTENT_SIZE:
+            raise ValueError(
+                f"Content exceeds maximum size ({self.MAX_CONTENT_SIZE} bytes)"
+            )
         self._ensure_loaded()
         metadata = metadata or {}
+        if len(metadata) > self.MAX_METADATA_KEYS:
+            raise ValueError(
+                f"Metadata has too many keys (max {self.MAX_METADATA_KEYS})"
+            )
         ids: list[str] = []
 
         if auto_chunk:

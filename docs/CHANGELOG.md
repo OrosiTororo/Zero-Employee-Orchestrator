@@ -7,6 +7,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.1] - 2026-03-12 — Security Hardening & File Attachment Support
+
+### Security
+
+- **bcrypt を必須依存に昇格** — SHA-256 フォールバックを廃止し、パスワードハッシュに bcrypt を強制
+- **レート制限追加** (`slowapi`) — 認証エンドポイントにレート制限を実装（登録: 5/min, ログイン: 10/min）
+- **RAG ファイル権限修正** — `index.json` / `idf.json` を `0o600`（所有者のみ）に制限
+- **RAG 入力バリデーション** — コンテンツサイズ上限 (10 MB) とメタデータキー数制限を追加
+- **認証エンドポイント保護** (v0.1.0 Hotfix) — 承認 / 設定 / レジストリ API に認証を追加
+- **CORS 制限強化** (v0.1.0 Hotfix) — ワイルドカードを明示的メソッド・ヘッダーリストに変更
+- **UUID 入力バリデーション** (v0.1.0 Hotfix) — 不正 UUID で 400 を返すように修正
+
+### Added
+
+- **ファイル添付による計画作成** — Design Interview にファイルを添付し、仕様書生成のコンテキストに統合
+  - `POST /api/v1/tickets/{ticket_id}/interview/attach` — ファイルアップロード
+  - `GET /api/v1/tickets/{ticket_id}/interview/attachments` — 添付ファイル一覧
+  - テキスト・コード・画像・PDF に対応（テキスト自動抽出 + 複数エンコーディング対応）
+  - 抽出テキストを Spec の「参照資料」セクションに自動統合
+- **Local Context Skill 画像対応** — 画像ファイル読み取り（Base64 エンコード + PNG/JPEG サイズ検出）
+  - `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.bmp`, `.svg` に対応
+  - SVG はテキストとしても解析
+  - 10 MB サイズ上限
+- **ファイルタイプ拡張** — Local Context Skill の対応形式を大幅拡充
+  - コード: `.tsx`, `.jsx`, `.java`, `.go`, `.rs`, `.c`, `.cpp`, `.h`, `.html`, `.xml`, `.css`, `.sql`, `.sh`
+  - 複数エンコーディング自動検出（UTF-8, Shift_JIS, EUC-JP, CP932）
+
+---
+
 ## [0.1.0] - 2026-03-11 — Platform v0.1 (Consolidated Release)
 
 ### Added (v0.1 Final — 2026-03-11)

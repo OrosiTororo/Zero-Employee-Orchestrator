@@ -25,7 +25,7 @@
 - サニタイザー（機密情報のマスキング）
 
 ### 9層アーキテクチャ基盤
-- **Design Interview** — 要件深掘りの質問生成・回答蓄積
+- **Design Interview** — 要件深掘りの質問生成・回答蓄積・ファイル添付によるコンテキスト統合
 - **Task Orchestrator** — DAG 生成・Skill 割当・コスト見積り・Self-Healing
 - **Skill 実行基盤** — Skill のロード・実行・結果取得のフレームワーク
 - **Judge Layer** — ルールベース一次判定 + Cross-Model Verification

@@ -41,11 +41,21 @@ def generate_plan_template(
     goal: str,
     scope: str,
     sections: list[dict[str, str]] | None = None,
+    file_context: str = "",
+    attachments: list[dict] | None = None,
 ) -> ExecutionPlan:
     """Spec 情報から実行計画テンプレートを生成する.
 
     実際の運用では LLM を使ってタスク分解するが、
     このスキルは基本的な計画構造を提供する。
+
+    Args:
+        spec_id: 仕様書 ID
+        goal: 目標
+        scope: スコープ
+        sections: 仕様書のセクションリスト
+        file_context: 添付ファイルから抽出されたテキストコンテキスト
+        attachments: 添付ファイルメタデータのリスト
     """
     tasks = [
         PlannedTask(

@@ -35,12 +35,49 @@ def generate_spec_template(
     title: str,
     description: str,
     interview_notes: list[str] | None = None,
+    file_context: str = "",
+    attachments: list[dict] | None = None,
 ) -> SpecDocument:
     """Ticket 情報から仕様書テンプレートを生成する.
 
     実際の運用では LLM を使って内容を充実させるが、
     このスキルはテンプレートの構造を提供する。
+
+    Args:
+        ticket_id: チケット ID
+        title: チケットタイトル
+        description: チケット説明
+        interview_notes: インタビューメモ
+        file_context: 添付ファイルから抽出されたテキストコンテキスト
+        attachments: 添付ファイルメタデータのリスト
     """
+    sections = [
+        SpecSection(title="概要", content=description or ""),
+        SpecSection(title="要件", content="", subsections=[
+            SpecSection(title="機能要件", content=""),
+            SpecSection(title="非機能要件", content=""),
+        ]),
+        SpecSection(title="設計方針", content=""),
+        SpecSection(title="テスト計画", content=""),
+    ]
+
+    # 添付ファイルの情報をセクションに追加
+    if file_context:
+        attachment_summary = ""
+        if attachments:
+            lines = [f"- {a['filename']} ({a.get('content_type', 'unknown')})" for a in attachments]
+            attachment_summary = "\n".join(lines)
+
+        sections.append(
+            SpecSection(
+                title="参照資料",
+                content=attachment_summary or "添付ファイルあり",
+                subsections=[
+                    SpecSection(title="ファイル内容", content=file_context[:10000]),
+                ],
+            )
+        )
+
     return SpecDocument(
         ticket_id=ticket_id,
         version=1,
@@ -48,15 +85,7 @@ def generate_spec_template(
         scope=description or "",
         constraints=[],
         success_criteria=[],
-        sections=[
-            SpecSection(title="概要", content=description or ""),
-            SpecSection(title="要件", content="", subsections=[
-                SpecSection(title="機能要件", content=""),
-                SpecSection(title="非機能要件", content=""),
-            ]),
-            SpecSection(title="設計方針", content=""),
-            SpecSection(title="テスト計画", content=""),
-        ],
+        sections=sections,
         non_goals=[],
     )
 

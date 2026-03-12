@@ -142,14 +142,33 @@ def set_config_value(key: str, value: str) -> None:
     if key not in CONFIGURABLE_KEYS:
         raise ValueError(f"Unknown config key: {key}")
 
+    # 値の基本バリデーション
+    if key == "DEFAULT_EXECUTION_MODE" and value not in (
+        "quality",
+        "speed",
+        "cost",
+        "free",
+        "subscription",
+    ):
+        raise ValueError(
+            f"Invalid execution mode: {value}. "
+            "Must be one of: quality, speed, cost, free, subscription"
+        )
+    if key == "LANGUAGE" and value not in ("ja", "en", "zh"):
+        raise ValueError(f"Invalid language: {value}. Must be one of: ja, en, zh")
+    if key == "USE_G4F" and value.lower() not in ("true", "false", "1", "0"):
+        raise ValueError(f"Invalid boolean value: {value}. Must be true or false")
+
     config = _load_config()
     config[key] = value
     _save_config(config)
 
-    # 実行中の settings オブジェクトにも反映（次回起動時は config.json から読む）
-    if hasattr(settings, key):
-        # Pydantic Settings は通常 frozen だが、object.__setattr__ で直接設定
-        object.__setattr__(settings, key, value)
+    # 実行中の settings オブジェクトにも反映（CONFIGURABLE_KEYS のみ許可）
+    if hasattr(settings, key) and key in CONFIGURABLE_KEYS:
+        try:
+            object.__setattr__(settings, key, value)
+        except (TypeError, AttributeError):
+            logger.debug("Could not update settings.%s at runtime", key)
 
     logger.info("Config updated: %s", key)
 
@@ -269,8 +288,11 @@ def apply_runtime_config() -> None:
     for key, value in config.items():
         if key in CONFIGURABLE_KEYS and not os.environ.get(key):
             if hasattr(settings, key):
-                object.__setattr__(settings, key, str(value))
-                applied += 1
+                try:
+                    object.__setattr__(settings, key, str(value))
+                    applied += 1
+                except (TypeError, AttributeError):
+                    logger.debug("Could not apply runtime config: %s", key)
 
     if applied:
         logger.info("Applied %d runtime config values from %s", applied, _CONFIG_FILE)

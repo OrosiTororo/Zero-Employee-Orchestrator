@@ -2,9 +2,22 @@
 
 Handles requirement elicitation through natural language conversation.
 Generates structured specs from user intent.
+Supports file attachments (text, images) as context for spec generation.
 """
 
 from dataclasses import dataclass, field
+
+
+@dataclass
+class FileAttachment:
+    """Interview に添付されたファイル."""
+
+    filename: str
+    content_type: str  # MIME type
+    extracted_text: str = ""  # テキスト抽出結果
+    file_path: str = ""  # サーバー上の保存パス
+    size_bytes: int = 0
+    description: str = ""  # ユーザーによるファイルの説明
 
 
 @dataclass
@@ -21,6 +34,7 @@ class InterviewSession:
     ticket_id: str
     questions: list[InterviewQuestion] = field(default_factory=list)
     answers: dict[str, str] = field(default_factory=dict)
+    attachments: list[FileAttachment] = field(default_factory=list)
     status: str = "in_progress"  # in_progress | completed | cancelled
 
     @property
@@ -32,6 +46,23 @@ class InterviewSession:
             self.questions[question_index].answered = True
             self.questions[question_index].answer = answer
             self.answers[self.questions[question_index].question] = answer
+
+    def add_attachment(self, attachment: FileAttachment) -> None:
+        """ファイルを添付する."""
+        self.attachments.append(attachment)
+
+    def get_attachments_context(self) -> str:
+        """添付ファイルのテキストをコンテキストとして結合する."""
+        if not self.attachments:
+            return ""
+        parts: list[str] = []
+        for att in self.attachments:
+            header = f"[添付ファイル: {att.filename}]"
+            if att.description:
+                header += f" ({att.description})"
+            text = att.extracted_text or "(テキスト抽出不可)"
+            parts.append(f"{header}\n{text}")
+        return "\n\n---\n\n".join(parts)
 
     def get_pending_questions(self) -> list[InterviewQuestion]:
         return [q for q in self.questions if not q.answered and q.required]
@@ -87,7 +118,10 @@ def create_interview_session(ticket_id: str) -> InterviewSession:
 
 
 def generate_spec_from_interview(session: InterviewSession) -> dict:
-    """Convert completed interview answers into a structured spec."""
+    """Convert completed interview answers into a structured spec.
+
+    添付ファイルがある場合、テキスト内容を仕様のコンテキストとして統合する。
+    """
     objective = ""
     constraints = []
     acceptance_criteria = []
@@ -104,9 +138,30 @@ def generate_spec_from_interview(session: InterviewSession) -> dict:
             elif q.category == "risk":
                 risks.append(q.answer)
 
-    return {
+    # 添付ファイルからのコンテキストを統合
+    file_context = session.get_attachments_context()
+    attachment_summaries = []
+    if session.attachments:
+        for att in session.attachments:
+            attachment_summaries.append(
+                {
+                    "filename": att.filename,
+                    "content_type": att.content_type,
+                    "size_bytes": att.size_bytes,
+                    "description": att.description,
+                    "has_text": bool(att.extracted_text),
+                }
+            )
+
+    result: dict = {
         "objective": objective,
         "constraints_json": {"items": constraints},
         "acceptance_criteria_json": {"items": acceptance_criteria},
         "risk_notes": "\n".join(risks) if risks else None,
     }
+
+    if file_context:
+        result["file_context"] = file_context
+        result["attachments"] = attachment_summaries
+
+    return result

@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
+from app.api.deps.validators import parse_uuid
 from app.models.task import Task, TaskRun
 from app.services.task_service import (
     start_task as svc_start_task,
@@ -35,7 +36,7 @@ async def create_task(
     """タスク作成"""
     task = Task(
         id=uuid.uuid4(),
-        plan_id=uuid.UUID(plan_id),
+        plan_id=parse_uuid(plan_id, "plan_id"),
         title=req.title,
         description=req.description,
         sequence_no=req.sequence_no,
@@ -51,7 +52,9 @@ async def create_task(
 @router.post("/tasks/{task_id}/start")
 async def start_task(task_id: str, db: AsyncSession = Depends(get_db)):
     """タスク実行開始 (state machine enforced)"""
-    result = await db.execute(select(Task).where(Task.id == uuid.UUID(task_id)))
+    result = await db.execute(
+        select(Task).where(Task.id == parse_uuid(task_id, "task_id"))
+    )
     task = result.scalar_one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -65,7 +68,9 @@ async def start_task(task_id: str, db: AsyncSession = Depends(get_db)):
 @router.post("/tasks/{task_id}/complete")
 async def complete_task(task_id: str, db: AsyncSession = Depends(get_db)):
     """タスク完了"""
-    result = await db.execute(select(Task).where(Task.id == uuid.UUID(task_id)))
+    result = await db.execute(
+        select(Task).where(Task.id == parse_uuid(task_id, "task_id"))
+    )
     task = result.scalar_one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -87,7 +92,9 @@ async def complete_task(task_id: str, db: AsyncSession = Depends(get_db)):
 @router.post("/tasks/{task_id}/retry")
 async def retry_task(task_id: str, db: AsyncSession = Depends(get_db)):
     """タスク再試行"""
-    result = await db.execute(select(Task).where(Task.id == uuid.UUID(task_id)))
+    result = await db.execute(
+        select(Task).where(Task.id == parse_uuid(task_id, "task_id"))
+    )
     task = result.scalar_one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -103,7 +110,9 @@ async def retry_task(task_id: str, db: AsyncSession = Depends(get_db)):
 @router.post("/tasks/{task_id}/request-approval")
 async def request_approval(task_id: str, db: AsyncSession = Depends(get_db)):
     """タスクの承認を要求"""
-    result = await db.execute(select(Task).where(Task.id == uuid.UUID(task_id)))
+    result = await db.execute(
+        select(Task).where(Task.id == parse_uuid(task_id, "task_id"))
+    )
     task = result.scalar_one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -117,7 +126,7 @@ async def request_approval(task_id: str, db: AsyncSession = Depends(get_db)):
 @router.post("/tasks/{task_id}/runs")
 async def create_task_run(task_id: str, db: AsyncSession = Depends(get_db)):
     """タスク実行記録を作成"""
-    tid = uuid.UUID(task_id)
+    tid = parse_uuid(task_id, "task_id")
     existing = await db.execute(select(TaskRun).where(TaskRun.task_id == tid))
     count = len(existing.scalars().all())
     run = TaskRun(
@@ -135,7 +144,7 @@ async def create_task_run(task_id: str, db: AsyncSession = Depends(get_db)):
 @router.get("/tasks/{task_id}/runs")
 async def list_task_runs(task_id: str, db: AsyncSession = Depends(get_db)):
     """タスク実行履歴"""
-    tid = uuid.UUID(task_id)
+    tid = parse_uuid(task_id, "task_id")
     result = await db.execute(
         select(TaskRun).where(TaskRun.task_id == tid).order_by(TaskRun.run_no.desc())
     )
