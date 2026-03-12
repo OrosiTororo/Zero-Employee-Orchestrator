@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { api } from '@/shared/api/client'
+import { api, waitForBackend } from '@/shared/api/client'
 
 interface AuthState {
   authenticated: boolean
@@ -109,6 +109,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ authenticated: false, loading: false })
       return
     }
+    // Wait for backend to be ready (sidecar may still be starting)
+    await waitForBackend(10, 1000)
     try {
       const res = await api.get<{ id: string; display_name: string; role: string }>("/auth/me")
       set({
