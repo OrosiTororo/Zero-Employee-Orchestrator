@@ -405,7 +405,7 @@ ZEO 采用了**"不从一开始就全部内置"**的设计理念。
 
 分身 AI、秘书 AI、Discord Bot、Slack Bot、LINE Bot、YouTube 运营、调研、后台管理等
 
--> `plugins/` 中已定义清单（8 个 Plugin）。业务特定逻辑不放入核心
+-> `plugins/` 中已定义清单（9 个 Plugin）。业务特定逻辑不放入核心
 
 ### Extension（系统基础设施扩展）
 

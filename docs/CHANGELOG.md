@@ -82,6 +82,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - 役割別モデル設定UI（一覧表示・利用可能な役割表示）
   - AI組織管理UI（自然言語リクエスト送信・役割一覧・エージェント追加）
   - リアルタイム文字数カウント表示
+- **秘書AI ダッシュボード** (`pages/SecretaryPage.tsx`)
+  - ブレインダンプ（思考を整理してカテゴリ分類・アクションアイテム抽出）
+  - 日次サマリー生成・閲覧
+  - 優先度提案・タスクの整理
+- **AI Self-Improvement Plugin** (`plugins/ai-self-improvement/`)
+  - 6 Skill のマニフェスト定義: skill-analyzer, skill-improver, judge-tuner, failure-to-skill, skill-ab-test, auto-test-generator
+  - Judge Layer / Experience Memory / Failure Taxonomy / Skill Registry / DAG との統合ポイント定義
+  - 安全性ポリシー（サンドボックス実行・承認必須・ロールバック・品質閾値・変更量制限・Kill Switch）
 - **ZEO-Bench — Judge Layer 定量評価ベンチマーク** (`tests/zeo_bench.py`)
   - 200 問のテストセットで Cross-Model Verification の精度を定量評価
   - 4 カテゴリ: 事実正確性 (50問)・矛盾検出 (70問)・偽陽性 (40問)・修正品質 (40問)

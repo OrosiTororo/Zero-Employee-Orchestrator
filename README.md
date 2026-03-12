@@ -307,7 +307,7 @@ Zero-Employee-Orchestrator/
 ├── skills/
 │   ├── builtin/                # 組み込み Skill（6 個・システム保護）
 │   └── templates/              # Skill テンプレート
-├── plugins/                    # Plugin マニフェスト（8 Plugin）
+├── plugins/                    # Plugin マニフェスト（9 Plugin）
 │   ├── ai-avatar/              # 分身AI
 │   ├── ai-secretary/           # 秘書AI
 │   ├── discord-bot/            # Discord Bot
@@ -315,7 +315,8 @@ Zero-Employee-Orchestrator/
 │   ├── line-bot/               # LINE Bot
 │   ├── youtube/                # YouTube 運用
 │   ├── research/               # リサーチ
-│   └── backoffice/             # バックオフィス
+│   ├── backoffice/             # バックオフィス
+│   └── ai-self-improvement/    # AI 自己改善
 ├── extensions/                 # Extension マニフェスト（4 Extension）
 │   ├── oauth/                  # OAuth 認証
 │   ├── mcp/                    # MCP 接続
@@ -740,7 +741,7 @@ Zero-Employee-Orchestrator/
 ├── skills/
 │   ├── builtin/                # Built-in Skills (6, system-protected)
 │   └── templates/              # Skill Templates
-├── plugins/                    # Plugin Manifests (8 Plugins)
+├── plugins/                    # Plugin Manifests (9 Plugins)
 │   ├── ai-avatar/              # Avatar AI
 │   ├── ai-secretary/           # Secretary AI
 │   ├── discord-bot/            # Discord Bot
@@ -748,7 +749,8 @@ Zero-Employee-Orchestrator/
 │   ├── line-bot/               # LINE Bot
 │   ├── youtube/                # YouTube Operations
 │   ├── research/               # Research
-│   └── backoffice/             # Back Office
+│   ├── backoffice/             # Back Office
+│   └── ai-self-improvement/    # AI Self-Improvement
 ├── extensions/                 # Extension Manifests (4 Extensions)
 │   ├── oauth/                  # OAuth Authentication
 │   ├── mcp/                    # MCP Connection
@@ -1158,7 +1160,7 @@ Zero-Employee-Orchestrator/
 ├── skills/
 │   ├── builtin/                # 内置技能（6 个，系统保护）
 │   └── templates/              # 技能模板
-├── plugins/                    # 插件清单（8 个插件）
+├── plugins/                    # 插件清单（9 个插件）
 │   ├── ai-avatar/              # 分身AI
 │   ├── ai-secretary/           # 秘书AI
 │   ├── discord-bot/            # Discord Bot
@@ -1166,7 +1168,8 @@ Zero-Employee-Orchestrator/
 │   ├── line-bot/               # LINE Bot
 │   ├── youtube/                # YouTube 运营
 │   ├── research/               # 调研
-│   └── backoffice/             # 后台办公
+│   ├── backoffice/             # 后台办公
+│   └── ai-self-improvement/    # AI 自我改进
 ├── extensions/                 # 扩展清单（4 个扩展）
 │   ├── oauth/                  # OAuth 认证
 │   ├── mcp/                    # MCP 连接
