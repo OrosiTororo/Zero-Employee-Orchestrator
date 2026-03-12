@@ -120,7 +120,7 @@
 | **位置** | `/docs/FEATURES.md` |
 | **用途** | 全面覆盖所有已实现功能的功能列表 |
 | **目标读者** | 功能确认者、评估者、开发者 |
-| **主要内容** | 共 27 个章节。9 层架构功能详情、Design Interview、Spec/Plan/Tasks、基于 DAG 的 Task Orchestrator、状态机、Judge Layer、Self-Healing/Re-Propose、审批流程、审计日志、Skill/Plugin/Extension 三层扩展体系、LLM Gateway、前端 UI（23 个画面）、REST API、WebSocket |
+| **主要内容** | 共 34 个章节。9 层架构功能详情、Design Interview、Spec/Plan/Tasks、基于 DAG 的 Task Orchestrator、状态机、Judge Layer、Self-Healing/Re-Propose、审批流程、审计日志、Skill/Plugin/Extension 三层扩展体系、LLM Gateway、前端 UI（23 个画面）、REST API、WebSocket |
 
 ---
 
