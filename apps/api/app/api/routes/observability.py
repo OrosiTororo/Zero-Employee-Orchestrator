@@ -248,7 +248,11 @@ async def list_communications(
 
 
 @router.get("/communications/escalations", response_model=EscalationResponse)
-async def list_escalations(company_id: str | None = None, limit: int = 20, user: User = Depends(get_current_user)):
+async def list_escalations(
+    company_id: str | None = None,
+    limit: int = 20,
+    user: User = Depends(get_current_user),
+):
     """エスカレーション一覧.
 
     エージェントが判断できず人間に委ねた事項を一覧表示。
@@ -306,7 +310,9 @@ async def get_thread(thread_id: str, user: User = Depends(get_current_user)):
 
 
 @router.get("/monitor/dashboard", response_model=MonitorDashboardResponse)
-async def monitor_dashboard(company_id: str | None = None, user: User = Depends(get_current_user)):
+async def monitor_dashboard(
+    company_id: str | None = None, user: User = Depends(get_current_user)
+):
     """実行監視ダッシュボード.
 
     現在実行中のタスク、最近のイベント、システムサマリーを一括取得。
@@ -326,7 +332,9 @@ async def monitor_dashboard(company_id: str | None = None, user: User = Depends(
 
 
 @router.get("/monitor/active")
-async def list_active_executions(company_id: str | None = None, user: User = Depends(get_current_user)):
+async def list_active_executions(
+    company_id: str | None = None, user: User = Depends(get_current_user)
+):
     """現在実行中のタスク一覧."""
     from app.orchestration.execution_monitor import get_execution_monitor
 

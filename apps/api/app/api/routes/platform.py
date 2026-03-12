@@ -44,7 +44,9 @@ async def mcp_list_tools(user: User = Depends(get_current_user)):
 
 
 @router.post("/mcp/tools/call")
-async def mcp_call_tool(req: MCPToolCallRequest, user: User = Depends(get_current_user)):
+async def mcp_call_tool(
+    req: MCPToolCallRequest, user: User = Depends(get_current_user)
+):
     """MCP ツール実行."""
     from app.integrations.mcp_server import mcp_server
 
@@ -86,7 +88,9 @@ class SkillImportRequest(BaseModel):
 
 
 @router.post("/skills/external/search")
-async def search_external_skills(req: SkillSearchRequest, user: User = Depends(get_current_user)):
+async def search_external_skills(
+    req: SkillSearchRequest, user: User = Depends(get_current_user)
+):
     """外部ソースからスキルを検索."""
     from app.integrations.external_skills import skill_importer, SkillSourceType
 
@@ -393,7 +397,9 @@ class ReviewRequest(BaseModel):
 
 
 @router.post("/hypotheses")
-async def propose_hypothesis(req: HypothesisRequest, user: User = Depends(get_current_user)):
+async def propose_hypothesis(
+    req: HypothesisRequest, user: User = Depends(get_current_user)
+):
     """仮説を提案."""
     from app.orchestration.hypothesis_engine import hypothesis_engine
 
@@ -473,7 +479,9 @@ async def submit_review(req: ReviewRequest, user: User = Depends(get_current_use
 
 
 @router.post("/hypotheses/{hypothesis_id}/resolve")
-async def resolve_hypothesis(hypothesis_id: str, confirmed: bool = True, user: User = Depends(get_current_user)):
+async def resolve_hypothesis(
+    hypothesis_id: str, confirmed: bool = True, user: User = Depends(get_current_user)
+):
     """仮説を解決."""
     from app.orchestration.hypothesis_engine import hypothesis_engine
 
@@ -484,7 +492,9 @@ async def resolve_hypothesis(hypothesis_id: str, confirmed: bool = True, user: U
 
 
 @router.get("/hypotheses/needing-review")
-async def hypotheses_needing_review(company_id: str | None = None, user: User = Depends(get_current_user)):
+async def hypotheses_needing_review(
+    company_id: str | None = None, user: User = Depends(get_current_user)
+):
     """レビューが必要な仮説一覧."""
     from app.orchestration.hypothesis_engine import hypothesis_engine
 
@@ -520,7 +530,9 @@ class WorkingMemoryRequest(BaseModel):
 
 
 @router.post("/sessions")
-async def create_session(req: CreateSessionRequest, user: User = Depends(get_current_user)):
+async def create_session(
+    req: CreateSessionRequest, user: User = Depends(get_current_user)
+):
     """エージェントセッションを作成."""
     from app.orchestration.agent_session import session_manager
 
@@ -573,7 +585,9 @@ async def get_agent_session(agent_id: str, user: User = Depends(get_current_user
 
 
 @router.post("/sessions/agent/{agent_id}/get-or-create")
-async def get_or_create_session(agent_id: str, req: CreateSessionRequest, user: User = Depends(get_current_user)):
+async def get_or_create_session(
+    agent_id: str, req: CreateSessionRequest, user: User = Depends(get_current_user)
+):
     """セッションを取得、なければ作成."""
     from app.orchestration.agent_session import session_manager
 
@@ -589,7 +603,9 @@ async def get_or_create_session(agent_id: str, req: CreateSessionRequest, user: 
 
 
 @router.post("/sessions/message")
-async def add_session_message(req: SessionMessageRequest, user: User = Depends(get_current_user)):
+async def add_session_message(
+    req: SessionMessageRequest, user: User = Depends(get_current_user)
+):
     """セッションにメッセージを追加."""
     from app.orchestration.agent_session import session_manager
 
@@ -601,7 +617,9 @@ async def add_session_message(req: SessionMessageRequest, user: User = Depends(g
 
 
 @router.post("/sessions/memory")
-async def add_working_memory(req: WorkingMemoryRequest, user: User = Depends(get_current_user)):
+async def add_working_memory(
+    req: WorkingMemoryRequest, user: User = Depends(get_current_user)
+):
     """ワーキングメモリに情報を追加."""
     from app.orchestration.agent_session import session_manager
 

@@ -340,7 +340,9 @@ async def _ollama_chat_stream(req: OllamaChatRequest) -> StreamingResponse:
 
 
 @router.post("/ollama/chat/stream")
-async def ollama_chat_stream(req: OllamaChatRequest, user: User = Depends(get_current_user)):
+async def ollama_chat_stream(
+    req: OllamaChatRequest, user: User = Depends(get_current_user)
+):
     """Dedicated SSE streaming endpoint for Ollama chat.
 
     Returns a Server-Sent Events stream with chunks:
@@ -472,7 +474,9 @@ async def ollama_heartbeat(user: User = Depends(get_current_user)):
 
 
 @router.post("/ollama/knowledge/search", response_model=KnowledgeSearchResponse)
-async def knowledge_search(req: KnowledgeSearchRequest, user: User = Depends(get_current_user)):
+async def knowledge_search(
+    req: KnowledgeSearchRequest, user: User = Depends(get_current_user)
+):
     """Search the Knowledge Pipeline for Ollama task patterns.
 
     Returns experience memories and failure taxonomy entries
@@ -489,7 +493,9 @@ async def knowledge_search(req: KnowledgeSearchRequest, user: User = Depends(get
 
 
 @router.post("/ollama/knowledge/store", response_model=KnowledgeStoreResponse)
-async def knowledge_store_endpoint(req: KnowledgeStoreRequest, user: User = Depends(get_current_user)):
+async def knowledge_store_endpoint(
+    req: KnowledgeStoreRequest, user: User = Depends(get_current_user)
+):
     """Store an Ollama task execution result in the Knowledge Pipeline.
 
     Records successes as experience memory and failures as failure taxonomy.
