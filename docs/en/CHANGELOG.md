@@ -122,6 +122,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed (post-release)
 
+- **Fixed "Failed to fetch" error on all GUI login buttons**
+  - Added Tauri desktop app origins (`tauri://localhost`, `https://tauri.localhost`) to CORS allowlist
+  - Added network error handling to API client (`NetworkError` / `ApiError` classes)
+  - Added API proxy configuration to Vite dev server to resolve CORS issues during development
+  - Auto-detect API base URL and WebSocket URL based on Tauri vs Vite dev environment
+  - Improved error handling for all LoginPage buttons (Google auth, email login, registration, anonymous session)
+  - Display user-friendly messages on connection errors (Japanese/English)
+  - Show appropriate "not ready" message for Google OAuth stub
+- **Fixed CLI/TUI pip install**
+  - Unified package name from `zero-employee-orchestrator-api` to `zero-employee-orchestrator`
+  - Added root-level `pyproject.toml` to enable `pip install .` from repository root
+  - Updated install instructions in README and BUILD_GUIDE to source-based installation
 - CI workflow `claude-code-review.yml`: Fixed review skip handling for bot PRs (Dependabot, etc.)
 - CI workflow `create-release.yml`: Fixed CHANGELOG path to `docs/CHANGELOG.md`
 - Release workflow `release.yml`: Updated Tauri v2 build action and asset table to latest

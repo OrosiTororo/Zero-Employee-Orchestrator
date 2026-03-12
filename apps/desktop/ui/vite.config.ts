@@ -12,5 +12,19 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:18234',
+        changeOrigin: true,
+      },
+      '/ws': {
+        target: 'ws://localhost:18234',
+        ws: true,
+      },
+      '/healthz': {
+        target: 'http://localhost:18234',
+        changeOrigin: true,
+      },
+    },
   },
 })

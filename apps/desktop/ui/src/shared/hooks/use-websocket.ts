@@ -1,7 +1,12 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { create } from 'zustand'
 
-const WS_BASE = "ws://localhost:18234"
+// In Tauri use absolute URL; in Vite dev server use relative (proxied via vite.config.ts)
+const isTauri =
+  typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
+const WS_BASE = isTauri
+  ? "ws://localhost:18234"
+  : `ws://${window.location.host}`
 
 interface WSEvent {
   event_type: string

@@ -141,6 +141,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed (post-release)
 
+- **GUI版ログイン全機能の "Failed to fetch" エラーを修正**
+  - Tauri デスクトップアプリのオリジン（`tauri://localhost`, `https://tauri.localhost`）を CORS 許可リストに追加
+  - API クライアントにネットワークエラーハンドリングを追加（`NetworkError` / `ApiError` クラス）
+  - Vite dev server に API プロキシ設定を追加し、開発時の CORS 問題を解消
+  - Tauri 環境と Vite 開発環境で API ベース URL と WebSocket URL を自動切り替え
+  - LoginPage の全ボタン（Google認証・メールログイン・アカウント登録・匿名セッション）のエラーハンドリングを改善
+  - 接続エラー時にユーザーフレンドリーなメッセージを表示（日本語/英語対応）
+  - Google OAuth スタブに対して「準備中」の適切なメッセージを表示
+- **CLI/TUI版 pip install の修正**
+  - パッケージ名を `zero-employee-orchestrator-api` → `zero-employee-orchestrator` に統一
+  - リポジトリルートに `pyproject.toml` を追加し、`pip install .` でインストール可能に
+  - README・BUILD_GUIDE のインストール手順をソースインストールに更新
 - CI ワークフロー `claude-code-review.yml`: bot PR（Dependabot等）のレビュースキップ処理を修正
 - CI ワークフロー `create-release.yml`: CHANGELOG パスを `docs/CHANGELOG.md` に修正
 - リリースワークフロー `release.yml`: Tauri v2 ビルドアクション・アセットテーブルを最新化

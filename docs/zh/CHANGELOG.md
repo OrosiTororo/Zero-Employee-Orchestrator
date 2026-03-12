@@ -122,6 +122,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed (post-release)
 
+- **修复 GUI 版所有登录按钮的 "Failed to fetch" 错误**
+  - 将 Tauri 桌面应用的 Origin（`tauri://localhost`、`https://tauri.localhost`）添加到 CORS 白名单
+  - 为 API 客户端添加网络错误处理（`NetworkError` / `ApiError` 类）
+  - 为 Vite 开发服务器添加 API 代理配置，解决开发时的 CORS 问题
+  - 根据 Tauri 环境和 Vite 开发环境自动切换 API 基础 URL 和 WebSocket URL
+  - 改善 LoginPage 所有按钮（Google 认证、邮箱登录、账户注册、匿名会话）的错误处理
+  - 连接错误时显示用户友好的消息（日语/英语）
+  - 为 Google OAuth 存根显示"准备中"的适当消息
+- **修复 CLI/TUI 版 pip install**
+  - 统一包名：`zero-employee-orchestrator-api` → `zero-employee-orchestrator`
+  - 在仓库根目录添加 `pyproject.toml`，支持通过 `pip install .` 安装
+  - 更新 README 和 BUILD_GUIDE 中的安装说明为源码安装方式
 - CI 工作流 `claude-code-review.yml`: 修复 bot PR（Dependabot 等）的审查跳过处理
 - CI 工作流 `create-release.yml`: 修正 CHANGELOG 路径为 `docs/CHANGELOG.md`
 - 发布工作流 `release.yml`: 将 Tauri v2 构建 Action 和资产表更新至最新版

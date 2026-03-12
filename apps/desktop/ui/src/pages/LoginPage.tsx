@@ -4,7 +4,7 @@ import { useAuthStore } from "@/shared/hooks/use-auth"
 import { LogIn, UserPlus, Mail, Lock, User, ArrowRight } from "lucide-react"
 import { Logo } from "@/shared/ui/Logo"
 import { useT } from "@/shared/i18n"
-import { api } from "@/shared/api/client"
+import { api, NetworkError } from "@/shared/api/client"
 
 function GoogleIcon({ size = 18 }: { size?: number }) {
   return (
@@ -47,8 +47,14 @@ export function LoginPage() {
       })
       setToken(res.access_token)
       navigate("/")
-    } catch (e: any) {
-      setError(e.message || t.auth.loginFailed)
+    } catch (e: unknown) {
+      if (e instanceof NetworkError) {
+        setError(t.auth.connectionFailed)
+      } else if (e instanceof Error) {
+        setError(e.message || t.auth.loginFailed)
+      } else {
+        setError(t.auth.loginFailed)
+      }
     } finally {
       setLoading(false)
     }
@@ -69,8 +75,14 @@ export function LoginPage() {
       })
       setToken(res.access_token)
       navigate("/setup")
-    } catch (e: any) {
-      setError(e.message || t.auth.registerFailed)
+    } catch (e: unknown) {
+      if (e instanceof NetworkError) {
+        setError(t.auth.connectionFailed)
+      } else if (e instanceof Error) {
+        setError(e.message || t.auth.registerFailed)
+      } else {
+        setError(t.auth.registerFailed)
+      }
     } finally {
       setLoading(false)
     }
@@ -82,9 +94,12 @@ export function LoginPage() {
     try {
       const res = await api.get<{ url: string }>("/auth/google/authorize")
       window.location.href = res.url
-    } catch (e) {
-      console.error("Google auth failed:", e)
-      setError(t.auth.loginFailed)
+    } catch (e: unknown) {
+      if (e instanceof NetworkError) {
+        setError(t.auth.connectionFailed)
+      } else {
+        setError(t.auth.googleOAuthNotReady)
+      }
       setLoading(false)
     }
   }
@@ -290,8 +305,14 @@ export function LoginPage() {
                   const { startAnonymous } = useAuthStore.getState()
                   await startAnonymous()
                   navigate("/")
-                } catch (e: any) {
-                  setError(e.message || "匿名セッションの開始に失敗しました")
+                } catch (e: unknown) {
+                  if (e instanceof NetworkError) {
+                    setError(t.auth.connectionFailed)
+                  } else if (e instanceof Error) {
+                    setError(e.message || t.auth.anonymousFailed)
+                  } else {
+                    setError(t.auth.anonymousFailed)
+                  }
                 } finally {
                   setLoading(false)
                 }
