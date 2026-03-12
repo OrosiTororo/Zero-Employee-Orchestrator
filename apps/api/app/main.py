@@ -10,11 +10,13 @@ import app.orchestration.knowledge_store  # noqa: F401
 import app.security.iam  # noqa: F401
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi.errors import RateLimitExceeded
 
 from app.api.routes import api_router
 from app.api.ws.events import router as ws_router
 from app.core.config import settings
 from app.core.database import Base, engine
+from app.core.rate_limit import limiter, rate_limit_exceeded_handler
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +91,10 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_PREFIX}/openapi.json",
     lifespan=lifespan,
 )
+
+# Rate limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)  # type: ignore[arg-type]
 
 # CORS — allow_methods / allow_headers を明示的に制限
 app.add_middleware(

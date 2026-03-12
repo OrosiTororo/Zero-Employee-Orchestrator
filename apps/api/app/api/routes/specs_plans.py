@@ -24,6 +24,8 @@ class SpecCreate(BaseModel):
     constraints_json: dict | None = None
     acceptance_criteria_json: dict | None = None
     risk_notes: str = ""
+    file_context: str = ""  # 添付ファイルから抽出されたテキスト
+    attachments: list[dict] | None = None  # 添付ファイルメタデータ
 
 
 class PlanCreate(BaseModel):
@@ -34,6 +36,7 @@ class PlanCreate(BaseModel):
     approval_required: bool = True
     risk_level: str = "low"
     plan_json: dict | None = None
+    file_context: str = ""  # 添付ファイルから抽出されたテキスト
 
 
 @router.get("/tickets/{ticket_id}/specs")

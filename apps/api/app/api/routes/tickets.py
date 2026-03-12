@@ -2,8 +2,9 @@
 
 import uuid
 from datetime import datetime, timezone
+from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,6 +15,7 @@ from app.models.ticket import Ticket, TicketThread
 from app.models.audit import AuditLog
 from app.core.security import generate_uuid
 from app.orchestration.interview import (
+    FileAttachment,
     InterviewSession,
     create_interview_session,
     generate_spec_from_interview,
@@ -23,6 +25,48 @@ router = APIRouter()
 
 # In-memory interview sessions (production: persist in DB)
 _interview_sessions: dict[str, InterviewSession] = {}
+
+# 対応ファイルタイプ
+_TEXT_EXTENSIONS = {".txt", ".md", ".csv", ".json", ".yaml", ".yml", ".toml", ".xml", ".html"}
+_CODE_EXTENSIONS = {".py", ".ts", ".js", ".tsx", ".jsx", ".java", ".go", ".rs", ".c", ".cpp", ".h"}
+_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".svg"}
+_DOCUMENT_EXTENSIONS = {".pdf"}
+_ALL_ALLOWED = _TEXT_EXTENSIONS | _CODE_EXTENSIONS | _IMAGE_EXTENSIONS | _DOCUMENT_EXTENSIONS
+_MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 MB
+
+
+def _extract_text_from_file(content: bytes, filename: str, content_type: str) -> str:
+    """ファイルからテキストを抽出する."""
+    ext = Path(filename).suffix.lower()
+
+    # テキスト系ファイル
+    if ext in _TEXT_EXTENSIONS | _CODE_EXTENSIONS:
+        for encoding in ("utf-8", "shift_jis", "euc-jp", "cp932", "latin-1"):
+            try:
+                return content.decode(encoding)
+            except (UnicodeDecodeError, LookupError):
+                continue
+        return content.decode("utf-8", errors="replace")
+
+    # 画像ファイル — OCR 不可の場合はメタ情報のみ
+    if ext in _IMAGE_EXTENSIONS:
+        import base64
+
+        size_kb = len(content) / 1024
+        b64 = base64.b64encode(content).decode("ascii")
+        return (
+            f"[画像ファイル: {filename}]\n"
+            f"形式: {content_type}\n"
+            f"サイズ: {size_kb:.1f} KB\n"
+            f"Base64 データ: data:{content_type};base64,{b64[:200]}...\n"
+            f"(画像全体は LLM に直接渡して解析可能)"
+        )
+
+    # PDF — テキスト抽出試行
+    if ext == ".pdf":
+        return f"[PDF ファイル: {filename}] サイズ: {len(content) / 1024:.1f} KB"
+
+    return f"[未対応ファイル: {filename}] サイズ: {len(content)} bytes"
 
 
 class TicketCreate(BaseModel):
@@ -163,6 +207,16 @@ async def get_interview(ticket_id: str):
             }
             for i, q in enumerate(session.questions)
         ],
+        "attachments": [
+            {
+                "filename": att.filename,
+                "content_type": att.content_type,
+                "size_bytes": att.size_bytes,
+                "description": att.description,
+                "has_text": bool(att.extracted_text),
+            }
+            for att in session.attachments
+        ],
         "pending_count": len(session.get_pending_questions()),
     }
 
@@ -194,12 +248,88 @@ async def answer_interview(
     }
 
 
+@router.post("/tickets/{ticket_id}/interview/attach")
+async def attach_file_to_interview(
+    ticket_id: str,
+    file: UploadFile = File(...),
+    description: str = Form(""),
+):
+    """Interview にファイルを添付する.
+
+    テキスト・コード・画像・PDF ファイルに対応。
+    ファイル内容を読み取り、テキストとして仕様書生成のコンテキストに統合する。
+    """
+    session = _interview_sessions.get(ticket_id)
+    if not session:
+        session = create_interview_session(ticket_id)
+        _interview_sessions[ticket_id] = session
+
+    # ファイル拡張子チェック
+    ext = Path(file.filename or "unknown").suffix.lower()
+    if ext not in _ALL_ALLOWED:
+        raise HTTPException(
+            status_code=400,
+            detail=f"ファイル形式 '{ext}' は非対応です。対応形式: {sorted(_ALL_ALLOWED)}",
+        )
+
+    # サイズチェック
+    content = await file.read()
+    if len(content) > _MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"ファイルサイズが上限 ({_MAX_FILE_SIZE // (1024*1024)} MB) を超えています",
+        )
+
+    # テキスト抽出
+    extracted = _extract_text_from_file(
+        content, file.filename or "unknown", file.content_type or "application/octet-stream"
+    )
+
+    attachment = FileAttachment(
+        filename=file.filename or "unknown",
+        content_type=file.content_type or "application/octet-stream",
+        extracted_text=extracted,
+        size_bytes=len(content),
+        description=description,
+    )
+    session.add_attachment(attachment)
+
+    return {
+        "status": "attached",
+        "filename": attachment.filename,
+        "size_bytes": attachment.size_bytes,
+        "extracted_text_length": len(extracted),
+        "total_attachments": len(session.attachments),
+    }
+
+
+@router.get("/tickets/{ticket_id}/interview/attachments")
+async def list_interview_attachments(ticket_id: str):
+    """Interview の添付ファイル一覧を取得."""
+    session = _interview_sessions.get(ticket_id)
+    if not session:
+        return {"attachments": []}
+
+    return {
+        "attachments": [
+            {
+                "filename": att.filename,
+                "content_type": att.content_type,
+                "size_bytes": att.size_bytes,
+                "description": att.description,
+                "extracted_text_preview": att.extracted_text[:500] if att.extracted_text else "",
+            }
+            for att in session.attachments
+        ]
+    }
+
+
 @router.post("/tickets/{ticket_id}/interview/generate-spec")
 async def generate_spec_from_interview_endpoint(
     ticket_id: str,
     db: AsyncSession = Depends(get_db),
 ):
-    """Interview 回答から Spec を自動生成"""
+    """Interview 回答と添付ファイルから Spec を自動生成"""
     from app.models.spec import Spec
 
     session = _interview_sessions.get(ticket_id)

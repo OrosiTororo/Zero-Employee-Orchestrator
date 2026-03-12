@@ -2,11 +2,12 @@
 
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
+from app.core.rate_limit import limiter
 from app.models.user import CompanyMember, User
 from app.models.company import Company
 from app.core.security import generate_uuid, hash_sha256
@@ -46,7 +47,8 @@ async def get_current_user(
 
 
 @router.post("/register", response_model=LoginResponse)
-async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def register(request: Request, req: RegisterRequest, db: AsyncSession = Depends(get_db)):
     """新規アカウント登録 - メールとパスワードで登録し、デフォルト組織を自動作成"""
     # Check if email already exists
     result = await db.execute(select(User).where(User.email == req.email))
@@ -66,7 +68,8 @@ async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/login", response_model=LoginResponse)
-async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
+@limiter.limit("10/minute")
+async def login(request: Request, req: LoginRequest, db: AsyncSession = Depends(get_db)):
     """メール/パスワードでログイン"""
     user = await authenticate_user(db, req.email, req.password)
     if not user:
@@ -132,7 +135,8 @@ async def refresh_token(user: User = Depends(get_current_user)):
 
 
 @router.post("/anonymous-session")
-async def create_anonymous_session(db: AsyncSession = Depends(get_db)):
+@limiter.limit("10/minute")
+async def create_anonymous_session(request: Request, db: AsyncSession = Depends(get_db)):
     """ログイン不要の匿名セッション.
 
     ログインしなくても基本機能が使える。
