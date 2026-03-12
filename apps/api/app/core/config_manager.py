@@ -144,7 +144,11 @@ def set_config_value(key: str, value: str) -> None:
 
     # 値の基本バリデーション
     if key == "DEFAULT_EXECUTION_MODE" and value not in (
-        "quality", "speed", "cost", "free", "subscription",
+        "quality",
+        "speed",
+        "cost",
+        "free",
+        "subscription",
     ):
         raise ValueError(
             f"Invalid execution mode: {value}. "

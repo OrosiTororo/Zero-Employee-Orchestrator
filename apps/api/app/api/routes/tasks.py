@@ -52,7 +52,9 @@ async def create_task(
 @router.post("/tasks/{task_id}/start")
 async def start_task(task_id: str, db: AsyncSession = Depends(get_db)):
     """タスク実行開始 (state machine enforced)"""
-    result = await db.execute(select(Task).where(Task.id == parse_uuid(task_id, "task_id")))
+    result = await db.execute(
+        select(Task).where(Task.id == parse_uuid(task_id, "task_id"))
+    )
     task = result.scalar_one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -66,7 +68,9 @@ async def start_task(task_id: str, db: AsyncSession = Depends(get_db)):
 @router.post("/tasks/{task_id}/complete")
 async def complete_task(task_id: str, db: AsyncSession = Depends(get_db)):
     """タスク完了"""
-    result = await db.execute(select(Task).where(Task.id == parse_uuid(task_id, "task_id")))
+    result = await db.execute(
+        select(Task).where(Task.id == parse_uuid(task_id, "task_id"))
+    )
     task = result.scalar_one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -88,7 +92,9 @@ async def complete_task(task_id: str, db: AsyncSession = Depends(get_db)):
 @router.post("/tasks/{task_id}/retry")
 async def retry_task(task_id: str, db: AsyncSession = Depends(get_db)):
     """タスク再試行"""
-    result = await db.execute(select(Task).where(Task.id == parse_uuid(task_id, "task_id")))
+    result = await db.execute(
+        select(Task).where(Task.id == parse_uuid(task_id, "task_id"))
+    )
     task = result.scalar_one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -104,7 +110,9 @@ async def retry_task(task_id: str, db: AsyncSession = Depends(get_db)):
 @router.post("/tasks/{task_id}/request-approval")
 async def request_approval(task_id: str, db: AsyncSession = Depends(get_db)):
     """タスクの承認を要求"""
-    result = await db.execute(select(Task).where(Task.id == parse_uuid(task_id, "task_id")))
+    result = await db.execute(
+        select(Task).where(Task.id == parse_uuid(task_id, "task_id"))
+    )
     task = result.scalar_one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")

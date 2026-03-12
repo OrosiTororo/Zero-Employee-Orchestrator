@@ -143,13 +143,15 @@ def generate_spec_from_interview(session: InterviewSession) -> dict:
     attachment_summaries = []
     if session.attachments:
         for att in session.attachments:
-            attachment_summaries.append({
-                "filename": att.filename,
-                "content_type": att.content_type,
-                "size_bytes": att.size_bytes,
-                "description": att.description,
-                "has_text": bool(att.extracted_text),
-            })
+            attachment_summaries.append(
+                {
+                    "filename": att.filename,
+                    "content_type": att.content_type,
+                    "size_bytes": att.size_bytes,
+                    "description": att.description,
+                    "has_text": bool(att.extracted_text),
+                }
+            )
 
     result: dict = {
         "objective": objective,
