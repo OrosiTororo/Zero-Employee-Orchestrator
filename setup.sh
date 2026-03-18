@@ -62,26 +62,59 @@ install_with_pkg_manager() {
 FAILED=()
 
 # --- Python 3.12+ ---
-if command -v python3 &> /dev/null; then
+# Python >= 3.12 のバイナリを探す (python3.13, python3.12, python3 の順)
+find_python312() {
+    for cmd in python3.13 python3.12 python3; do
+        if command -v "$cmd" &> /dev/null; then
+            local ver
+            ver=$("$cmd" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+            local minor
+            minor=$(echo "$ver" | cut -d. -f2)
+            if [ "$minor" -ge 12 ]; then
+                echo "$cmd"
+                return 0
+            fi
+        fi
+    done
+    return 1
+}
+
+PYTHON_CMD=$(find_python312 || true)
+
+if [ -n "$PYTHON_CMD" ]; then
+    PY_VER=$("$PYTHON_CMD" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+    ok "Python $PY_VER ($PYTHON_CMD)"
+elif command -v python3 &> /dev/null; then
     PY_VER=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
-    PY_MAJOR=$(echo "$PY_VER" | cut -d. -f1)
-    PY_MINOR=$(echo "$PY_VER" | cut -d. -f2)
-    if [ "$PY_MAJOR" -ge 3 ] && [ "$PY_MINOR" -ge 12 ]; then
-        ok "Python $PY_VER"
+    warn "Python $PY_VER が見つかりましたが 3.12 以上が必要です"
+    info "Python 3.12 のインストールを試みます..."
+    case "$PKG_MANAGER" in
+        brew)   install_with_pkg_manager "Python 3.12" python@3.12 ;;
+        apt)    install_with_pkg_manager "Python 3.12" python3.12 python3.12-venv ;;
+        dnf)    install_with_pkg_manager "Python 3.12" python3.12 ;;
+        pacman) install_with_pkg_manager "Python 3.12" python ;;
+        *)      ;;
+    esac
+    PYTHON_CMD=$(find_python312 || true)
+    if [ -n "$PYTHON_CMD" ]; then
+        ok "Python 3.12+ をインストールしました ($PYTHON_CMD)"
     else
-        warn "Python $PY_VER が見つかりましたが 3.12 以上が推奨です"
+        FAILED+=("python3.12+ (現在 $PY_VER — 3.12 以上が必要です)")
     fi
 else
     info "Python が見つかりません。インストールを試みます..."
     case "$PKG_MANAGER" in
-        brew)   install_with_pkg_manager "Python" python@3.12 && ok "Python をインストールしました" ;;
-        apt)    install_with_pkg_manager "Python" python3 python3-venv python3-pip && ok "Python をインストールしました" ;;
-        dnf)    install_with_pkg_manager "Python" python3 python3-pip && ok "Python をインストールしました" ;;
-        pacman) install_with_pkg_manager "Python" python python-pip && ok "Python をインストールしました" ;;
-        *)      FAILED+=("python3 (3.12+) -- パッケージマネージャーが見つかりません") ;;
+        brew)   install_with_pkg_manager "Python" python@3.12 ;;
+        apt)    install_with_pkg_manager "Python" python3.12 python3.12-venv ;;
+        dnf)    install_with_pkg_manager "Python" python3.12 ;;
+        pacman) install_with_pkg_manager "Python" python python-pip ;;
+        *)      ;;
     esac
-    if ! command -v python3 &> /dev/null; then
-        FAILED+=("python3 (3.12+)")
+    PYTHON_CMD=$(find_python312 || true)
+    if [ -n "$PYTHON_CMD" ]; then
+        ok "Python をインストールしました ($PYTHON_CMD)"
+    else
+        FAILED+=("python3 (3.12+) -- パッケージマネージャーが見つかりません")
     fi
 fi
 
@@ -190,12 +223,22 @@ info "Python バックエンドをセットアップしています..."
 
 cd "$ROOT_DIR/apps/api"
 
-# 仮想環境の作成
+# 仮想環境の作成 (Python 3.12+ を使用)
+PYTHON_CMD="${PYTHON_CMD:-python3}"
 if [ ! -d ".venv" ]; then
-    python3 -m venv .venv
-    ok "仮想環境を作成しました"
+    "$PYTHON_CMD" -m venv .venv
+    ok "仮想環境を作成しました ($PYTHON_CMD)"
 else
-    ok "仮想環境は既に存在します"
+    # 既存 venv の Python バージョンを確認
+    VENV_PY_VER=$(.venv/bin/python -c 'import sys; print(sys.version_info.minor)' 2>/dev/null || echo "0")
+    if [ "$VENV_PY_VER" -lt 12 ]; then
+        warn "既存の仮想環境が Python 3.$VENV_PY_VER です。3.12+ で再作成します..."
+        rm -rf .venv
+        "$PYTHON_CMD" -m venv .venv
+        ok "仮想環境を再作成しました ($PYTHON_CMD)"
+    else
+        ok "仮想環境は既に存在します (Python 3.$VENV_PY_VER)"
+    fi
 fi
 
 # 仮想環境を有効化して依存関係をインストール
