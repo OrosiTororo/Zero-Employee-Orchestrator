@@ -7,6 +7,7 @@ use std::path::PathBuf;
 use std::process::{Child, Command};
 use std::sync::Mutex;
 use std::time::Duration;
+use tauri::Manager;
 
 struct BackendProcess(Mutex<Option<Child>>);
 
