@@ -34,9 +34,10 @@ _HEALTH_CHECK_TTL = 300  # 5 minutes
 class ModelEntry:
     """個別モデルの定義."""
 
-    id: str  # e.g. "anthropic/claude-opus-4-6"
+    id: str  # e.g. "anthropic/claude-opus" (ファミリー名)
     provider: str  # e.g. "anthropic"
-    display_name: str  # e.g. "Claude Opus 4.6"
+    display_name: str  # e.g. "Claude Opus"
+    latest_model_id: str = ""  # 実際の API 呼び出しに使うモデル ID (e.g. "claude-opus-4-6")
     cost_per_1k_input: float = 0.0
     cost_per_1k_output: float = 0.0
     max_tokens: int = 4096
@@ -45,6 +46,14 @@ class ModelEntry:
     deprecated: bool = False  # サービス終了フラグ
     successor: str | None = None  # 後継モデル ID
     tags: list[str] = field(default_factory=list)  # e.g. ["quality", "speed"]
+
+    def resolve_api_model_id(self) -> str:
+        """API 呼び出しに使う実際のモデル ID を返す.
+
+        latest_model_id が設定されている場合はそれを使用し、
+        未設定の場合はファミリー ID をそのまま返す。
+        """
+        return self.latest_model_id or self.id
 
 
 @dataclass
@@ -122,6 +131,7 @@ class ModelRegistry:
                     id=m["id"],
                     provider=m.get("provider", m["id"].split("/")[0]),
                     display_name=m.get("display_name", m["id"]),
+                    latest_model_id=m.get("latest_model_id", ""),
                     cost_per_1k_input=m.get("cost_per_1k_input", 0.0),
                     cost_per_1k_output=m.get("cost_per_1k_output", 0.0),
                     max_tokens=m.get("max_tokens", 4096),
@@ -181,6 +191,7 @@ class ModelRegistry:
                     "id": m.id,
                     "provider": m.provider,
                     "display_name": m.display_name,
+                    "latest_model_id": m.latest_model_id,
                     "cost_per_1k_input": m.cost_per_1k_input,
                     "cost_per_1k_output": m.cost_per_1k_output,
                     "max_tokens": m.max_tokens,
@@ -248,6 +259,17 @@ class ModelRegistry:
             result.append(m)
         return result
 
+    def resolve_api_id(self, family_id: str) -> str:
+        """ファミリー ID を実際の API モデル ID に解決する.
+
+        例: "anthropic/claude-opus" → "claude-opus-4-6"
+        未知のモデルの場合はファミリー ID をそのまま返す。
+        """
+        entry = self._models.get(family_id)
+        if entry is None:
+            return family_id
+        return entry.resolve_api_model_id()
+
     def get_models_for_mode(self, mode: str) -> list[str]:
         """実行モードに対応するモデルIDリストを取得."""
         catalog_map = {
@@ -276,12 +298,24 @@ class ModelRegistry:
         }
 
     def estimate_cost(self, model_id: str, input_tokens: int, output_tokens: int) -> float:
-        """モデルのコストを見積もる."""
+        """モデルのコストを見積もる.
+
+        ファミリー ID または latest_model_id のどちらでもルックアップ可能。
+        """
         # g4f / ollama は常に無料
         if model_id.startswith(("g4f/", "ollama/")):
             return 0.0
 
+        # まずファミリー ID で検索
         entry = self._models.get(model_id)
+        if entry is None:
+            # latest_model_id で逆引き
+            for m in self._models.values():
+                if m.latest_model_id and (
+                    m.latest_model_id == model_id or f"{m.provider}/{m.latest_model_id}" == model_id
+                ):
+                    entry = m
+                    break
         if entry:
             return (input_tokens / 1000 * entry.cost_per_1k_input) + (
                 output_tokens / 1000 * entry.cost_per_1k_output
@@ -290,21 +324,28 @@ class ModelRegistry:
         return (input_tokens / 1000 * 0.001) + (output_tokens / 1000 * 0.002)
 
     def get_cost_table(self) -> dict[str, dict[str, float]]:
-        """CostGuard 互換のコストテーブルを生成."""
+        """CostGuard 互換のコストテーブルを生成.
+
+        ファミリー ID、latest_model_id、ショート名のすべてでルックアップ可能。
+        """
         table: dict[str, dict[str, float]] = {}
         for m in self._models.values():
             if m.deprecated:
                 continue
-            # プロバイダープレフィックスなしのキーも生成（CostGuard互換）
+            cost_entry = {
+                "input": m.cost_per_1k_input,
+                "output": m.cost_per_1k_output,
+            }
+            # ファミリー ID (e.g. "anthropic/claude-opus")
+            table[m.id] = cost_entry
+            # ファミリーのショート名 (e.g. "claude-opus")
             short_name = m.id.split("/", 1)[-1] if "/" in m.id else m.id
-            table[short_name] = {
-                "input": m.cost_per_1k_input,
-                "output": m.cost_per_1k_output,
-            }
-            table[m.id] = {
-                "input": m.cost_per_1k_input,
-                "output": m.cost_per_1k_output,
-            }
+            table[short_name] = cost_entry
+            # latest_model_id (e.g. "claude-opus-4-6")
+            if m.latest_model_id:
+                table[m.latest_model_id] = cost_entry
+                # プロバイダー付き latest (e.g. "anthropic/claude-opus-4-6")
+                table[f"{m.provider}/{m.latest_model_id}"] = cost_entry
         return table
 
     # ------------------------------------------------------------------

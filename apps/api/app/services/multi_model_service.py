@@ -182,7 +182,7 @@ class AgentRoleModelConfig(Base):
     role_name: Mapped[str] = mapped_column(String(120), index=True)
     # secretary | advisor | researcher | engineer | marketer | pm | custom
     model_id: Mapped[str] = mapped_column(String(255))
-    # e.g. "anthropic/claude-opus-4-6", "openai/gpt-5.4"
+    # e.g. "anthropic/claude-opus", "openai/gpt"
     fallback_model_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     max_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
     temperature: Mapped[float | None] = mapped_column(Float, nullable=True)

@@ -72,20 +72,20 @@ _SLA_STATIC = {
 # Inline fallback model lists (used only when model_catalog.json is missing)
 _FALLBACK_SLA_MODELS = {
     QualityMode.DRAFT: {
-        "preferred": ["gpt-5-mini", "claude-haiku-4-5-20251001"],
-        "fallback": ["gemini-2.5-flash-lite"],
+        "preferred": ["openai/gpt-mini", "anthropic/claude-haiku"],
+        "fallback": ["gemini/gemini-flash-lite"],
     },
     QualityMode.STANDARD: {
-        "preferred": ["gpt-5.4", "claude-sonnet-4-6"],
-        "fallback": ["gpt-5-mini", "claude-haiku-4-5-20251001"],
+        "preferred": ["openai/gpt", "anthropic/claude-sonnet"],
+        "fallback": ["openai/gpt-mini", "anthropic/claude-haiku"],
     },
     QualityMode.HIGH: {
-        "preferred": ["gpt-5.4", "claude-sonnet-4-6"],
-        "fallback": ["claude-opus-4-6", "gemini-2.5-pro"],
+        "preferred": ["openai/gpt", "anthropic/claude-sonnet"],
+        "fallback": ["anthropic/claude-opus", "gemini/gemini-pro"],
     },
     QualityMode.CRITICAL: {
-        "preferred": ["claude-opus-4-6", "gpt-5.4"],
-        "fallback": ["claude-sonnet-4-6", "gemini-2.5-pro"],
+        "preferred": ["anthropic/claude-opus", "openai/gpt"],
+        "fallback": ["anthropic/claude-sonnet", "gemini/gemini-pro"],
     },
 }
 
