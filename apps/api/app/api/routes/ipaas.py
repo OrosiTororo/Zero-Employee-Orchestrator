@@ -1,0 +1,171 @@
+"""iPaaS ワークフロー管理 API エンドポイント.
+
+n8n / Zapier / Make のワークフロー登録・トリガー・ステータス管理を行う API。
+"""
+
+from __future__ import annotations
+
+import logging
+from typing import Any
+
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field
+
+from app.integrations.ipaas import (
+    IPaaSProvider,
+    IPaaSWorkflow,
+    WebhookTrigger,
+    ipaas_service,
+)
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/ipaas", tags=["ipaas"])
+
+
+# ------------------------------------------------------------------ #
+#  リクエスト / レスポンス スキーマ
+# ------------------------------------------------------------------ #
+
+
+class WebhookTriggerSchema(BaseModel):
+    """Webhook トリガー設定."""
+
+    url: str
+    method: str = "POST"
+    headers: dict[str, str] = Field(default_factory=dict)
+    payload_template: dict[str, Any] = Field(default_factory=dict)
+
+
+class WorkflowCreateRequest(BaseModel):
+    """ワークフロー登録リクエスト."""
+
+    name: str
+    provider: str
+    triggers: list[WebhookTriggerSchema] = Field(default_factory=list)
+    description: str = ""
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class WorkflowTriggerRequest(BaseModel):
+    """ワークフロートリガーリクエスト."""
+
+    payload: dict[str, Any] = Field(default_factory=dict)
+
+
+# ------------------------------------------------------------------ #
+#  エンドポイント
+# ------------------------------------------------------------------ #
+
+
+@router.post("/workflows")
+async def register_workflow(req: WorkflowCreateRequest) -> dict:
+    """ワークフローを登録する."""
+    try:
+        provider = IPaaSProvider(req.provider)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail=(f"Invalid provider: {req.provider}. Valid: {[p.value for p in IPaaSProvider]}"),
+        )
+
+    triggers = [
+        WebhookTrigger(
+            url=t.url,
+            method=t.method,
+            headers=t.headers,
+            payload_template=t.payload_template,
+        )
+        for t in req.triggers
+    ]
+
+    workflow = IPaaSWorkflow(
+        id="",
+        name=req.name,
+        provider=provider,
+        triggers=triggers,
+        description=req.description,
+        metadata=req.metadata,
+    )
+
+    workflow_id = ipaas_service.register_workflow(workflow)
+    logger.info("Workflow registered via API: %s (%s)", req.name, req.provider)
+
+    return {
+        "workflow_id": workflow_id,
+        "name": req.name,
+        "provider": provider.value,
+        "status": "registered",
+    }
+
+
+@router.get("/workflows")
+async def list_workflows(provider: str | None = None) -> dict:
+    """登録済みワークフロー一覧を返す."""
+    filter_provider: IPaaSProvider | None = None
+    if provider:
+        try:
+            filter_provider = IPaaSProvider(provider)
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid provider: {provider}",
+            )
+
+    workflows = ipaas_service.list_workflows(provider=filter_provider)
+    return {
+        "workflows": [
+            {
+                "id": w.id,
+                "name": w.name,
+                "provider": w.provider.value,
+                "status": w.status.value,
+                "description": w.description,
+                "trigger_count": len(w.triggers),
+                "run_count": w.run_count,
+                "last_run_at": w.last_run_at,
+                "created_at": w.created_at,
+            }
+            for w in workflows
+        ],
+        "count": len(workflows),
+    }
+
+
+@router.post("/workflows/{workflow_id}/trigger")
+async def trigger_workflow(workflow_id: str, req: WorkflowTriggerRequest) -> dict:
+    """ワークフローをトリガーする."""
+    result = await ipaas_service.trigger_workflow(workflow_id, req.payload)
+
+    if not result.success and not result.run_id:
+        raise HTTPException(status_code=404, detail=result.error)
+
+    return {
+        "workflow_id": workflow_id,
+        "run_id": result.run_id,
+        "success": result.success,
+        "status_code": result.status_code,
+        "error": result.error,
+        "latency_ms": result.latency_ms,
+    }
+
+
+@router.get("/workflows/{workflow_id}/status")
+async def get_workflow_status(workflow_id: str) -> dict:
+    """ワークフローのステータスを取得する."""
+    status = await ipaas_service.sync_status(workflow_id)
+    if "error" in status:
+        raise HTTPException(status_code=404, detail=status["error"])
+    return status
+
+
+@router.delete("/workflows/{workflow_id}")
+async def remove_workflow(workflow_id: str) -> dict:
+    """ワークフローを削除する."""
+    removed = ipaas_service.remove_workflow(workflow_id)
+    if not removed:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Workflow not found: {workflow_id}",
+        )
+    return {"workflow_id": workflow_id, "status": "removed"}
