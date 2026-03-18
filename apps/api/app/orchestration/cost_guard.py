@@ -159,9 +159,7 @@ def pre_execution_check(
     stop_threshold_pct: float = 100.0,
 ) -> CostGuardResult:
     """タスク実行前の統合チェック: コスト見積もり + 予算チェック."""
-    estimate = estimate_cost(
-        model_name, estimated_input_tokens, estimated_output_tokens
-    )
+    estimate = estimate_cost(model_name, estimated_input_tokens, estimated_output_tokens)
     result = check_budget(
         estimated_cost_usd=estimate.estimated_cost_usd,
         budget_limit_usd=budget_limit_usd,

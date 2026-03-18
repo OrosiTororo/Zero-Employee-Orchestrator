@@ -16,10 +16,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
+from app.core.security import generate_uuid
 from app.models.agent import Agent
 from app.models.audit import AuditLog
-from app.core.security import generate_uuid
-
 
 # ---------------------------------------------------------------------------
 # プリセット役割定義
@@ -107,8 +106,7 @@ ROLE_DEFINITIONS: dict[str, dict[str, Any]] = {
         "autonomy_level": "supervised",
         "can_delegate": False,
         "system_prompt": (
-            "あなたはAI組織のエンジニアです。"
-            "技術的な課題解決とコード品質の維持に注力してください。"
+            "あなたはAI組織のエンジニアです。技術的な課題解決とコード品質の維持に注力してください。"
         ),
     },
     AgentRolePreset.MARKETER: {
@@ -118,8 +116,7 @@ ROLE_DEFINITIONS: dict[str, dict[str, Any]] = {
         "autonomy_level": "supervised",
         "can_delegate": False,
         "system_prompt": (
-            "あなたはAI組織のマーケターです。"
-            "集客と認知拡大のための施策を提案してください。"
+            "あなたはAI組織のマーケターです。集客と認知拡大のための施策を提案してください。"
         ),
     },
     AgentRolePreset.CONTENT: {
@@ -129,8 +126,7 @@ ROLE_DEFINITIONS: dict[str, dict[str, Any]] = {
         "autonomy_level": "supervised",
         "can_delegate": False,
         "system_prompt": (
-            "あなたはAI組織のコンテンツクリエイターです。"
-            "魅力的なコンテンツを制作してください。"
+            "あなたはAI組織のコンテンツクリエイターです。魅力的なコンテンツを制作してください。"
         ),
     },
 }
@@ -156,9 +152,7 @@ class FeatureRequestRecord(Base):
     status: Mapped[str] = mapped_column(String(30), default="pending")
     # pending | approved | executed | rejected | failed
     result_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        default=func.now(), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())
 
 
 class CustomAgentRole(Base):
@@ -177,9 +171,7 @@ class CustomAgentRole(Base):
     can_delegate: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     metadata_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        default=func.now(), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         default=func.now(), server_default=func.now(), onupdate=func.now()
     )
@@ -388,9 +380,7 @@ class AgentOrgService:
         reason: str = "",
     ) -> bool:
         """エージェントを組織から削除（廃止状態にする）."""
-        result = await self._db.execute(
-            select(Agent).where(Agent.id == uuid.UUID(agent_id))
-        )
+        result = await self._db.execute(select(Agent).where(Agent.id == uuid.UUID(agent_id)))
         agent = result.scalar_one_or_none()
         if not agent:
             return False
@@ -423,9 +413,7 @@ class AgentOrgService:
         system_prompt: str | None = None,
     ) -> Agent | None:
         """エージェントの役割設定を更新."""
-        result = await self._db.execute(
-            select(Agent).where(Agent.id == uuid.UUID(agent_id))
-        )
+        result = await self._db.execute(select(Agent).where(Agent.id == uuid.UUID(agent_id)))
         agent = result.scalar_one_or_none()
         if not agent:
             return None
@@ -579,9 +567,7 @@ class AgentOrgService:
         # 自動実行が有効で信頼度が高い場合
         if auto_execute and interpretation["confidence"] >= 0.5:
             try:
-                result = await self._execute_interpreted_action(
-                    company_id, interpretation
-                )
+                result = await self._execute_interpreted_action(company_id, interpretation)
                 record.status = "executed"
                 record.result_json = result
             except Exception as e:

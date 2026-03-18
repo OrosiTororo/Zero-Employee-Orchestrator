@@ -9,12 +9,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
 from app.api.deps.validators import parse_uuid
-from app.models.spec import Spec
+from app.core.security import generate_uuid
+from app.models.audit import AuditLog
 from app.models.plan import Plan
+from app.models.spec import Spec
 from app.models.task import Task
 from app.models.ticket import Ticket
-from app.models.audit import AuditLog
-from app.core.security import generate_uuid
 
 router = APIRouter()
 
@@ -60,9 +60,7 @@ async def list_specs(ticket_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/tickets/{ticket_id}/specs")
-async def create_spec(
-    ticket_id: str, req: SpecCreate, db: AsyncSession = Depends(get_db)
-):
+async def create_spec(ticket_id: str, req: SpecCreate, db: AsyncSession = Depends(get_db)):
     """spec作成"""
     tid = parse_uuid(ticket_id, "ticket_id")
     existing = await db.execute(select(Spec).where(Spec.ticket_id == tid))
@@ -106,9 +104,7 @@ async def list_plans(ticket_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/tickets/{ticket_id}/plans")
-async def create_plan(
-    ticket_id: str, req: PlanCreate, db: AsyncSession = Depends(get_db)
-):
+async def create_plan(ticket_id: str, req: PlanCreate, db: AsyncSession = Depends(get_db)):
     """plan作成"""
     tid = parse_uuid(ticket_id, "ticket_id")
     existing = await db.execute(select(Plan).where(Plan.ticket_id == tid))
@@ -198,13 +194,9 @@ async def approve_plan(plan_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/plans/{plan_id}/reject")
-async def reject_plan(
-    plan_id: str, reason: str = "", db: AsyncSession = Depends(get_db)
-):
+async def reject_plan(plan_id: str, reason: str = "", db: AsyncSession = Depends(get_db)):
     """planを却下"""
-    result = await db.execute(
-        select(Plan).where(Plan.id == parse_uuid(plan_id, "plan_id"))
-    )
+    result = await db.execute(select(Plan).where(Plan.id == parse_uuid(plan_id, "plan_id")))
     plan = result.scalar_one_or_none()
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
@@ -217,9 +209,7 @@ async def reject_plan(
 async def list_plan_tasks(plan_id: str, db: AsyncSession = Depends(get_db)):
     """planのtask一覧"""
     pid = parse_uuid(plan_id, "plan_id")
-    result = await db.execute(
-        select(Task).where(Task.plan_id == pid).order_by(Task.sequence_no)
-    )
+    result = await db.execute(select(Task).where(Task.plan_id == pid).order_by(Task.sequence_no))
     tasks = result.scalars().all()
     return [
         {

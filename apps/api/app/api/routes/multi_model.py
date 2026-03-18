@@ -284,9 +284,7 @@ async def list_comparisons(
     from app.services.multi_model_service import MultiModelService
 
     svc = MultiModelService(db)
-    records = await svc.list_comparisons(
-        company_id=company_id, offset=offset, limit=limit
-    )
+    records = await svc.list_comparisons(company_id=company_id, offset=offset, limit=limit)
     return [
         {
             "id": str(r.id),
@@ -690,9 +688,7 @@ async def get_role_model(
     from app.services.multi_model_service import AgentRoleModelService
 
     svc = AgentRoleModelService(db)
-    config = await svc.get_role_model(
-        company_id=company_id, role_name=role_name, agent_id=agent_id
-    )
+    config = await svc.get_role_model(company_id=company_id, role_name=role_name, agent_id=agent_id)
     if not config:
         raise HTTPException(status_code=404, detail="Role model config not found")
     return RoleModelConfigResponse(
@@ -939,9 +935,7 @@ async def list_feature_requests(
     from app.services.agent_org_service import AgentOrgService
 
     svc = AgentOrgService(db)
-    records = await svc.list_feature_requests(
-        company_id=company_id, status=status, limit=limit
-    )
+    records = await svc.list_feature_requests(company_id=company_id, status=status, limit=limit)
     return [
         {
             "id": str(r.id),

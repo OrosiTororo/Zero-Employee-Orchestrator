@@ -2,7 +2,6 @@
 
 from pydantic import BaseModel, Field
 
-
 # ---------------------------------------------------------------------------
 # Skill
 # ---------------------------------------------------------------------------
@@ -88,9 +87,7 @@ class PluginCreate(BaseModel):
 class PluginImportRequest(BaseModel):
     """GitHub リポジトリや外部ソースからプラグインをインポートするリクエスト."""
 
-    source_uri: str = Field(
-        ..., description="GitHub リポジトリ URL or plugin registry URI"
-    )
+    source_uri: str = Field(..., description="GitHub リポジトリ URL or plugin registry URI")
     auto_install: bool = False
 
 

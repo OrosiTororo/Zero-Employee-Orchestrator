@@ -85,9 +85,7 @@ def _load_model_catalog() -> dict[ExecutionMode, list[str]]:
                 ExecutionMode.SPEED: registry.get_models_for_mode("speed"),
                 ExecutionMode.COST: registry.get_models_for_mode("cost"),
                 ExecutionMode.FREE: registry.get_models_for_mode("free"),
-                ExecutionMode.SUBSCRIPTION: registry.get_models_for_mode(
-                    "subscription"
-                ),
+                ExecutionMode.SUBSCRIPTION: registry.get_models_for_mode("subscription"),
             }
     except Exception as exc:
         logger.warning("Failed to load model catalog from registry: %s", exc)
@@ -241,7 +239,7 @@ class LLMGateway:
         use_g4f = os.environ.get("USE_G4F", "true").lower() not in ("false", "0", "no")
         if use_g4f:
             try:
-                from app.providers.g4f_provider import g4f_provider, FREE_G4F_MODELS
+                from app.providers.g4f_provider import FREE_G4F_MODELS, g4f_provider
 
                 if g4f_provider.available:
                     self.configure_provider(
@@ -353,12 +351,10 @@ class LLMGateway:
                 finish_reason="error",
             )
 
-    async def _complete_via_g4f(
-        self, model: str, request: CompletionRequest
-    ) -> CompletionResponse:
+    async def _complete_via_g4f(self, model: str, request: CompletionRequest) -> CompletionResponse:
         """Route a completion request through the g4f subscription provider."""
         try:
-            from app.providers.g4f_provider import g4f_provider, complete_with_fallback
+            from app.providers.g4f_provider import complete_with_fallback, g4f_provider
 
             if not g4f_provider.available:
                 return CompletionResponse(
@@ -491,9 +487,7 @@ class LLMGateway:
         try:
             from app.providers.model_registry import get_model_registry
 
-            return get_model_registry().estimate_cost(
-                model, input_tokens, output_tokens
-            )
+            return get_model_registry().estimate_cost(model, input_tokens, output_tokens)
         except Exception:
             pass
 

@@ -16,7 +16,7 @@ Knowledge Pipeline の段階:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -58,8 +58,8 @@ class KnowledgeEntry:
     tags: list[str] = field(default_factory=list)
     approved_by: str | None = None
     effective_conditions: str | None = None
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -105,10 +105,7 @@ class KnowledgeStore:
                 continue
             if status and entry.status != status:
                 continue
-            if (
-                query_lower in entry.title.lower()
-                or query_lower in entry.content.lower()
-            ):
+            if query_lower in entry.title.lower() or query_lower in entry.content.lower():
                 results.append(entry)
             if len(results) >= limit:
                 break
@@ -120,7 +117,7 @@ class KnowledgeStore:
             if entry.id == entry_id:
                 entry.status = KnowledgeStatus.VERIFIED
                 entry.approved_by = approved_by
-                entry.updated_at = datetime.now(timezone.utc)
+                entry.updated_at = datetime.now(UTC)
                 return True
         return False
 
@@ -129,7 +126,7 @@ class KnowledgeStore:
         for entry in self._entries:
             if entry.id == entry_id:
                 entry.status = KnowledgeStatus.REJECTED
-                entry.updated_at = datetime.now(timezone.utc)
+                entry.updated_at = datetime.now(UTC)
                 return True
         return False
 

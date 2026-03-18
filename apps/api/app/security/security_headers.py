@@ -14,9 +14,7 @@ from starlette.responses import Response
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """セキュリティヘッダーを全レスポンスに付与するミドルウェア."""
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         response = await call_next(request)
 
         # XSS 防止
@@ -36,9 +34,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         )
 
         # HTTPS 強制（本番環境向け）
-        response.headers["Strict-Transport-Security"] = (
-            "max-age=31536000; includeSubDomains"
-        )
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
         # Referrer 制御
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
@@ -50,9 +46,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         # キャッシュ制御（認証済みレスポンスのキャッシュ防止）
         if request.headers.get("Authorization"):
-            response.headers["Cache-Control"] = (
-                "no-store, no-cache, must-revalidate, private"
-            )
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
             response.headers["Pragma"] = "no-cache"
 
         return response
@@ -64,9 +58,7 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
     # 許可する最大リクエストボディサイズ（10MB）
     MAX_BODY_SIZE: int = 10 * 1024 * 1024
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         # Content-Length チェック
         content_length = request.headers.get("content-length")
         if content_length and int(content_length) > self.MAX_BODY_SIZE:

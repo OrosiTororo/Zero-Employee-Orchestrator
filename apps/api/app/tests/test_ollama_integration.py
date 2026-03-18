@@ -25,8 +25,8 @@ class TestKnowledgePipelineIntegration:
     """Test Knowledge Pipeline ↔ Ollama integration."""
 
     def test_store_success_experience(self):
+        from app.orchestration.knowledge_refresh import KnowledgeType, knowledge_store
         from app.providers.ollama_integration import store_ollama_experience
-        from app.orchestration.knowledge_refresh import knowledge_store, KnowledgeType
 
         # Store a successful experience
         entry_id = store_ollama_experience(
@@ -50,8 +50,8 @@ class TestKnowledgePipelineIntegration:
         assert "python" in matching[0].tags
 
     def test_store_failure_taxonomy(self):
+        from app.orchestration.knowledge_refresh import KnowledgeType, knowledge_store
         from app.providers.ollama_integration import store_ollama_experience
-        from app.orchestration.knowledge_refresh import knowledge_store, KnowledgeType
 
         entry_id = store_ollama_experience(
             task_type="translation",
@@ -71,8 +71,8 @@ class TestKnowledgePipelineIntegration:
 
     def test_retrieve_knowledge(self):
         from app.providers.ollama_integration import (
-            store_ollama_experience,
             retrieve_ollama_knowledge,
+            store_ollama_experience,
         )
 
         # Store some experiences first
@@ -106,8 +106,8 @@ class TestArtifactBridgeIntegration:
     """Test Artifact Bridge ↔ Ollama integration."""
 
     def test_register_rag_artifact(self):
+        from app.orchestration.artifact_bridge import ArtifactType, artifact_bridge
         from app.providers.ollama_integration import register_rag_artifact
-        from app.orchestration.artifact_bridge import artifact_bridge, ArtifactType
 
         artifact_id = register_rag_artifact(
             task_id="task_123",
@@ -129,8 +129,8 @@ class TestArtifactBridgeIntegration:
         assert any(o.artifact_id == artifact_id for o in outputs)
 
     def test_register_ollama_output(self):
+        from app.orchestration.artifact_bridge import ArtifactType, artifact_bridge
         from app.providers.ollama_integration import register_ollama_output
-        from app.orchestration.artifact_bridge import artifact_bridge, ArtifactType
 
         artifact_id = register_ollama_output(
             task_id="task_456",
@@ -145,8 +145,8 @@ class TestArtifactBridgeIntegration:
         assert artifact.title == "Generated Report"
 
     def test_register_code_output(self):
+        from app.orchestration.artifact_bridge import ArtifactType, artifact_bridge
         from app.providers.ollama_integration import register_ollama_output
-        from app.orchestration.artifact_bridge import artifact_bridge, ArtifactType
 
         artifact_id = register_ollama_output(
             task_id="task_789",
@@ -173,11 +173,11 @@ class TestEmbeddingAutoSelection:
     @pytest.mark.asyncio
     async def test_fallback_to_tfidf(self):
         """When Ollama is not running, should fall back to TF-IDF store."""
+        from app.providers.local_rag import LocalVectorStore
         from app.providers.ollama_integration import (
             get_rag_store,
             reset_embedding_cache,
         )
-        from app.providers.local_rag import LocalVectorStore
 
         # Reset cache to force re-check
         reset_embedding_cache()

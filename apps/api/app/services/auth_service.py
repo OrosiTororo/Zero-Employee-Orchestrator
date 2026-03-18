@@ -1,7 +1,7 @@
 """Authentication and registration service."""
 
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from jose import jwt
 from sqlalchemy import select
@@ -9,15 +9,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.security import generate_uuid, hash_password, verify_password
-from app.models.user import CompanyMember, User
 from app.models.company import Company
+from app.models.user import CompanyMember, User
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24h
 
 
 def create_access_token(user_id: str) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     payload = {"sub": user_id, "exp": expire}
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
 
@@ -65,7 +65,7 @@ async def register_user(
         user_id=user.id,
         company_role="owner",
         status="active",
-        joined_at=datetime.now(timezone.utc),
+        joined_at=datetime.now(UTC),
     )
     db.add(member)
 
@@ -88,7 +88,7 @@ async def authenticate_user(
         return None
     if not verify_password(password, user.password_hash):
         return None
-    user.last_login_at = datetime.now(timezone.utc)
+    user.last_login_at = datetime.now(UTC)
     await db.commit()
     return user
 

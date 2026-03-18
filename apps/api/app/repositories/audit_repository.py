@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 import uuid
-from typing import Sequence
+from collections.abc import Sequence
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -52,9 +52,7 @@ class AuditLogRepository:
         result = await self.db.execute(stmt)
         return result.scalars().all()
 
-    async def get_by_ticket(
-        self, ticket_id: uuid.UUID, *, limit: int = 100
-    ) -> Sequence[AuditLog]:
+    async def get_by_ticket(self, ticket_id: uuid.UUID, *, limit: int = 100) -> Sequence[AuditLog]:
         stmt = (
             select(AuditLog)
             .where(AuditLog.ticket_id == ticket_id)

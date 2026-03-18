@@ -6,8 +6,8 @@
 
 from __future__ import annotations
 
-import uuid
 import time
+import uuid
 from datetime import datetime
 
 from sqlalchemy import JSON, Boolean, Float, Integer, String, Text, Uuid, func, select
@@ -15,7 +15,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
-
 
 # ---------------------------------------------------------------------------
 # テキストユーティリティ（正確な文字数カウント）
@@ -79,9 +78,7 @@ class TextAnalyzer:
         return text[:max_chars]
 
     @staticmethod
-    def validate_length(
-        text: str, min_chars: int = 0, max_chars: int | None = None
-    ) -> dict:
+    def validate_length(text: str, min_chars: int = 0, max_chars: int | None = None) -> dict:
         """文字数バリデーション."""
         length = len(text)
         valid = length >= min_chars
@@ -118,13 +115,9 @@ class MultiModelComparisonRecord(Base):
     comparison_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(30), default="pending")
     # pending | processing | completed | failed
-    session_id: Mapped[uuid.UUID | None] = mapped_column(
-        Uuid, nullable=True, index=True
-    )
+    session_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True, index=True)
     metadata_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        default=func.now(), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         default=func.now(), server_default=func.now(), onupdate=func.now()
     )
@@ -153,9 +146,7 @@ class BrainstormSessionRecord(Base):
     total_chars: Mapped[int] = mapped_column(Integer, default=0)
     is_multi_model: Mapped[bool] = mapped_column(Boolean, default=False)
     metadata_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        default=func.now(), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         default=func.now(), server_default=func.now(), onupdate=func.now()
     )
@@ -170,18 +161,14 @@ class ConversationMemoryRecord(Base):
     company_id: Mapped[uuid.UUID] = mapped_column(Uuid, index=True)
     user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True, index=True)
     agent_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True, index=True)
-    session_ref: Mapped[str | None] = mapped_column(
-        String(255), nullable=True, index=True
-    )
+    session_ref: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
     role: Mapped[str] = mapped_column(String(60))  # user | assistant | system
     content: Mapped[str] = mapped_column(Text)
     char_count: Mapped[int] = mapped_column(Integer, default=0)
     content_type: Mapped[str] = mapped_column(String(60), default="text")
     # text | brainstorm | comparison | task | secretary
     metadata_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        default=func.now(), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())
 
 
 class AgentRoleModelConfig(Base):
@@ -202,9 +189,7 @@ class AgentRoleModelConfig(Base):
     system_prompt: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     metadata_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        default=func.now(), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         default=func.now(), server_default=func.now(), onupdate=func.now()
     )
@@ -289,9 +274,7 @@ class MultiModelService:
         await self._db.flush()
         return record
 
-    async def get_comparison(
-        self, comparison_id: str
-    ) -> MultiModelComparisonRecord | None:
+    async def get_comparison(self, comparison_id: str) -> MultiModelComparisonRecord | None:
         """比較結果を取得."""
         result = await self._db.execute(
             select(MultiModelComparisonRecord).where(
@@ -346,8 +329,7 @@ class BrainstormService:
             id=uuid.uuid4(),
             company_id=uuid.UUID(company_id),
             user_id=uuid.UUID(user_id) if user_id else None,
-            title=title
-            or f"壁打ちセッション ({datetime.now().strftime('%Y-%m-%d %H:%M')})",
+            title=title or f"壁打ちセッション ({datetime.now().strftime('%Y-%m-%d %H:%M')})",
             topic=topic,
             session_type=session_type,
             model_ids=model_ids or [],
@@ -421,11 +403,7 @@ class BrainstormService:
         )
         if status:
             stmt = stmt.where(BrainstormSessionRecord.status == status)
-        stmt = (
-            stmt.order_by(BrainstormSessionRecord.created_at.desc())
-            .offset(offset)
-            .limit(limit)
-        )
+        stmt = stmt.order_by(BrainstormSessionRecord.created_at.desc()).offset(offset).limit(limit)
         result = await self._db.execute(stmt)
         return list(result.scalars().all())
 
@@ -531,11 +509,7 @@ class ConversationMemoryService:
             stmt = stmt.where(ConversationMemoryRecord.session_ref == session_ref)
         if content_type:
             stmt = stmt.where(ConversationMemoryRecord.content_type == content_type)
-        stmt = (
-            stmt.order_by(ConversationMemoryRecord.created_at.asc())
-            .offset(offset)
-            .limit(limit)
-        )
+        stmt = stmt.order_by(ConversationMemoryRecord.created_at.asc()).offset(offset).limit(limit)
         result = await self._db.execute(stmt)
         return list(result.scalars().all())
 
@@ -569,9 +543,7 @@ class ConversationMemoryService:
     ) -> dict:
         """会話記憶の統計を取得."""
         cid = uuid.UUID(company_id)
-        stmt = select(ConversationMemoryRecord).where(
-            ConversationMemoryRecord.company_id == cid
-        )
+        stmt = select(ConversationMemoryRecord).where(ConversationMemoryRecord.company_id == cid)
         if user_id:
             stmt = stmt.where(ConversationMemoryRecord.user_id == uuid.UUID(user_id))
         result = await self._db.execute(stmt)
@@ -710,9 +682,7 @@ class AgentRoleModelService:
     ) -> bool:
         """役割モデル設定を削除."""
         result = await self._db.execute(
-            select(AgentRoleModelConfig).where(
-                AgentRoleModelConfig.id == uuid.UUID(config_id)
-            )
+            select(AgentRoleModelConfig).where(AgentRoleModelConfig.id == uuid.UUID(config_id))
         )
         config = result.scalar_one_or_none()
         if config:

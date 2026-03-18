@@ -12,8 +12,8 @@ from app.services.org_generator_service import (
     BusinessCategory,
     OrgInterviewAnswer,
     PainPoint,
-    generate_org_blueprint,
     apply_org_blueprint,
+    generate_org_blueprint,
 )
 
 router = APIRouter()

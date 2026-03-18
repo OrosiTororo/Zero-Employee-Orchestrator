@@ -1,19 +1,19 @@
 """Ticket management endpoints."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
 from app.api.deps.validators import parse_uuid
-from app.models.ticket import Ticket, TicketThread
-from app.models.audit import AuditLog
 from app.core.security import generate_uuid
+from app.models.audit import AuditLog
+from app.models.ticket import Ticket, TicketThread
 from app.orchestration.interview import (
     FileAttachment,
     InterviewSession,
@@ -53,9 +53,7 @@ _CODE_EXTENSIONS = {
 }
 _IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".svg"}
 _DOCUMENT_EXTENSIONS = {".pdf"}
-_ALL_ALLOWED = (
-    _TEXT_EXTENSIONS | _CODE_EXTENSIONS | _IMAGE_EXTENSIONS | _DOCUMENT_EXTENSIONS
-)
+_ALL_ALLOWED = _TEXT_EXTENSIONS | _CODE_EXTENSIONS | _IMAGE_EXTENSIONS | _DOCUMENT_EXTENSIONS
 _MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 MB
 
 
@@ -133,11 +131,7 @@ async def list_tickets(
         query = query.where(Ticket.status == status)
     if priority:
         query = query.where(Ticket.priority == priority)
-    query = (
-        query.order_by(Ticket.updated_at.desc())
-        .offset((page - 1) * page_size)
-        .limit(page_size)
-    )
+    query = query.order_by(Ticket.updated_at.desc()).offset((page - 1) * page_size).limit(page_size)
     result = await db.execute(query)
     tickets = result.scalars().all()
     return [
@@ -156,15 +150,11 @@ async def list_tickets(
 
 
 @router.post("/companies/{company_id}/tickets", response_model=TicketResponse)
-async def create_ticket(
-    company_id: str, req: TicketCreate, db: AsyncSession = Depends(get_db)
-):
+async def create_ticket(company_id: str, req: TicketCreate, db: AsyncSession = Depends(get_db)):
     """新規チケット作成 + Design Interview セッション初期化"""
     cid = parse_uuid(company_id, "company_id")
     max_no = await db.execute(
-        select(func.coalesce(func.max(Ticket.ticket_no), 0)).where(
-            Ticket.company_id == cid
-        )
+        select(func.coalesce(func.max(Ticket.ticket_no), 0)).where(Ticket.company_id == cid)
     )
     next_no = max_no.scalar() + 1
     ticket = Ticket(
@@ -343,9 +333,7 @@ async def list_interview_attachments(ticket_id: str):
                 "content_type": att.content_type,
                 "size_bytes": att.size_bytes,
                 "description": att.description,
-                "extracted_text_preview": att.extracted_text[:500]
-                if att.extracted_text
-                else "",
+                "extracted_text_preview": att.extracted_text[:500] if att.extracted_text else "",
             }
             for att in session.attachments
         ]
@@ -397,9 +385,7 @@ async def generate_spec_from_interview_endpoint(
 @router.get("/tickets/{ticket_id}")
 async def get_ticket(ticket_id: str, db: AsyncSession = Depends(get_db)):
     """チケット詳細"""
-    result = await db.execute(
-        select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id"))
-    )
+    result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
@@ -423,9 +409,7 @@ async def update_ticket(
     db: AsyncSession = Depends(get_db),
 ):
     """チケット更新"""
-    result = await db.execute(
-        select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id"))
-    )
+    result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
@@ -438,13 +422,9 @@ async def update_ticket(
 
 
 @router.post("/tickets/{ticket_id}/comments")
-async def add_comment(
-    ticket_id: str, req: CommentCreate, db: AsyncSession = Depends(get_db)
-):
+async def add_comment(ticket_id: str, req: CommentCreate, db: AsyncSession = Depends(get_db)):
     """チケットにコメント追加"""
-    result = await db.execute(
-        select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id"))
-    )
+    result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
@@ -466,9 +446,7 @@ async def get_thread(ticket_id: str, db: AsyncSession = Depends(get_db)):
     """チケットのスレッドを取得"""
     tid = parse_uuid(ticket_id, "ticket_id")
     result = await db.execute(
-        select(TicketThread)
-        .where(TicketThread.ticket_id == tid)
-        .order_by(TicketThread.created_at)
+        select(TicketThread).where(TicketThread.ticket_id == tid).order_by(TicketThread.created_at)
     )
     threads = result.scalars().all()
     return [
@@ -486,14 +464,12 @@ async def get_thread(ticket_id: str, db: AsyncSession = Depends(get_db)):
 @router.post("/tickets/{ticket_id}/close")
 async def close_ticket(ticket_id: str, db: AsyncSession = Depends(get_db)):
     """チケットを閉じる"""
-    result = await db.execute(
-        select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id"))
-    )
+    result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
     ticket.status = "done"
-    ticket.closed_at = datetime.now(timezone.utc)
+    ticket.closed_at = datetime.now(UTC)
     await db.commit()
     return {"status": "closed"}
 
@@ -501,9 +477,7 @@ async def close_ticket(ticket_id: str, db: AsyncSession = Depends(get_db)):
 @router.post("/tickets/{ticket_id}/reopen")
 async def reopen_ticket(ticket_id: str, db: AsyncSession = Depends(get_db)):
     """チケットを再開"""
-    result = await db.execute(
-        select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id"))
-    )
+    result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")

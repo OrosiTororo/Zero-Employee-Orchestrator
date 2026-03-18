@@ -1,9 +1,8 @@
 """State & Memory Layer (Layer 7) - State machines, Experience Memory, Failure Taxonomy."""
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-
 
 # ---------------------------------------------------------------------------
 # State Machine base
@@ -49,7 +48,7 @@ class BaseStateMachine:
                 "from": old,
                 "to": target,
                 "reason": reason,
-                "at": datetime.now(timezone.utc).isoformat(),
+                "at": datetime.now(UTC).isoformat(),
             }
         )
         return self._state
@@ -154,7 +153,7 @@ class ExperienceMemoryEntry:
 
     def __post_init__(self) -> None:
         if not self.created_at:
-            self.created_at = datetime.now(timezone.utc).isoformat()
+            self.created_at = datetime.now(UTC).isoformat()
 
 
 @dataclass
@@ -214,7 +213,7 @@ class ExperienceMemory:
         for f in self.failures:
             if f.category == category and f.subcategory == subcategory:
                 f.occurrence_count += 1
-                f.last_occurred = datetime.now(timezone.utc).isoformat()
+                f.last_occurred = datetime.now(UTC).isoformat()
                 return f
 
         entry = FailureTaxonomyEntry(
@@ -222,23 +221,18 @@ class ExperienceMemory:
             subcategory=subcategory,
             description=description,
             prevention_strategy=prevention_strategy,
-            last_occurred=datetime.now(timezone.utc).isoformat(),
+            last_occurred=datetime.now(UTC).isoformat(),
         )
         self.failures.append(entry)
         return entry
 
-    def search(
-        self, query: str, category: str | None = None
-    ) -> list[ExperienceMemoryEntry]:
+    def search(self, query: str, category: str | None = None) -> list[ExperienceMemoryEntry]:
         results = []
         query_lower = query.lower()
         for entry in self.entries:
             if category and entry.category != category:
                 continue
-            if (
-                query_lower in entry.title.lower()
-                or query_lower in entry.content.lower()
-            ):
+            if query_lower in entry.title.lower() or query_lower in entry.content.lower():
                 results.append(entry)
         return results
 

@@ -120,7 +120,5 @@ class TestFailureTaxonomy:
 
     def test_task_id_tracking(self):
         ft = FailureTaxonomy()
-        record = ft.record_failure(
-            "llm_error", "timeout", "low", "desc", "prev", task_id="task-1"
-        )
+        record = ft.record_failure("llm_error", "timeout", "low", "desc", "prev", task_id="task-1")
         assert "task-1" in record.related_task_ids

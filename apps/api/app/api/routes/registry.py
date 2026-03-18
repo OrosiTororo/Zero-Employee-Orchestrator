@@ -26,7 +26,7 @@ from app.schemas.registry import (
     SkillRead,
     SkillUpdate,
 )
-from app.services import skill_service, registry_service
+from app.services import registry_service, skill_service
 
 router = APIRouter()
 

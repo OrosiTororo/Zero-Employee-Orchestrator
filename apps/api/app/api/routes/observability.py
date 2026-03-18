@@ -230,7 +230,7 @@ async def list_communications(
 
     マルチエージェント協調時の全メッセージを確認できる。
     """
-    from app.orchestration.agent_communication import comm_log, MessageType
+    from app.orchestration.agent_communication import MessageType, comm_log
 
     mt = MessageType(msg_type) if msg_type else None
     messages = comm_log.get_messages(
@@ -310,9 +310,7 @@ async def get_thread(thread_id: str, user: User = Depends(get_current_user)):
 
 
 @router.get("/monitor/dashboard", response_model=MonitorDashboardResponse)
-async def monitor_dashboard(
-    company_id: str | None = None, user: User = Depends(get_current_user)
-):
+async def monitor_dashboard(company_id: str | None = None, user: User = Depends(get_current_user)):
     """実行監視ダッシュボード.
 
     現在実行中のタスク、最近のイベント、システムサマリーを一括取得。

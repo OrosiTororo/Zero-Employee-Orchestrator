@@ -7,7 +7,8 @@ DESIGN.md §42.1 に基づき、routes → services → repositories → models 
 from __future__ import annotations
 
 import uuid
-from typing import Any, Generic, Sequence, TypeVar
+from collections.abc import Sequence
+from typing import Any, Generic, TypeVar
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -44,9 +45,7 @@ class BaseRepository(Generic[T]):
         result = await self.db.execute(stmt)
         return result.scalars().all()
 
-    async def count_by_company(
-        self, company_id: uuid.UUID, *, status: str | None = None
-    ) -> int:
+    async def count_by_company(self, company_id: uuid.UUID, *, status: str | None = None) -> int:
         stmt = (
             select(func.count())
             .select_from(self.model_class)

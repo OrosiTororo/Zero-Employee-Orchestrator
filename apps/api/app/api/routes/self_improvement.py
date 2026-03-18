@@ -23,8 +23,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
 from app.schemas.self_improvement import (
+    AnalysisFindingResponse,
     AutoTestRequest,
     AutoTestResponse,
+    FailureToSkillProposalResponse,
     FailureToSkillRegisterRequest,
     FailureToSkillRequest,
     FailureToSkillResponse,
@@ -39,11 +41,9 @@ from app.schemas.self_improvement import (
     SkillABTestResponse,
     SkillAnalysisRequest,
     SkillAnalysisResponse,
-    SkillImproveRequest,
     SkillImprovementApplyRequest,
     SkillImprovementResponse,
-    AnalysisFindingResponse,
-    FailureToSkillProposalResponse,
+    SkillImproveRequest,
 )
 
 logger = logging.getLogger(__name__)

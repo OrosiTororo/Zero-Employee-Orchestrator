@@ -26,9 +26,9 @@ import math
 import re
 import time
 from collections import Counter
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Sequence
 
 logger = logging.getLogger(__name__)
 
@@ -255,16 +255,10 @@ def tokenize(text: str) -> list[str]:
     semantically meaningful on their own (unlike single Latin letters).
     """
     tokens = _TOKEN_PATTERN.findall(text.lower())
-    return [
-        t
-        for t in tokens
-        if t not in STOPWORDS and (len(t) > 1 or _CJK_CHAR_RE.match(t))
-    ]
+    return [t for t in tokens if t not in STOPWORDS and (len(t) > 1 or _CJK_CHAR_RE.match(t))]
 
 
-def chunk_text(
-    text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP
-) -> list[str]:
+def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> list[str]:
     """Split text into overlapping chunks for indexing."""
     words = text.split()
     if len(words) <= chunk_size:
@@ -421,8 +415,7 @@ class LocalVectorStore:
             try:
                 data = json.loads(index_path.read_text(encoding="utf-8"))
                 self._documents = {
-                    doc_id: Document.from_dict(doc_data)
-                    for doc_id, doc_data in data.items()
+                    doc_id: Document.from_dict(doc_data) for doc_id, doc_data in data.items()
                 }
             except (json.JSONDecodeError, KeyError) as exc:
                 logger.warning("Failed to load RAG index: %s", exc)
@@ -489,9 +482,7 @@ class LocalVectorStore:
             doc_freq.update(tokens)
 
         # IDF = log(N / df) + 1  (smoothed)
-        self._idf = {
-            term: math.log(n_docs / freq) + 1.0 for term, freq in doc_freq.items()
-        }
+        self._idf = {term: math.log(n_docs / freq) + 1.0 for term, freq in doc_freq.items()}
 
     def _compute_tfidf(self, text: str) -> TFIDFVector:
         """Compute TF-IDF vector for a piece of text."""
@@ -535,15 +526,11 @@ class LocalVectorStore:
         Returns the list of document IDs added.
         """
         if len(content) > self.MAX_CONTENT_SIZE:
-            raise ValueError(
-                f"Content exceeds maximum size ({self.MAX_CONTENT_SIZE} bytes)"
-            )
+            raise ValueError(f"Content exceeds maximum size ({self.MAX_CONTENT_SIZE} bytes)")
         self._ensure_loaded()
         metadata = metadata or {}
         if len(metadata) > self.MAX_METADATA_KEYS:
-            raise ValueError(
-                f"Metadata has too many keys (max {self.MAX_METADATA_KEYS})"
-            )
+            raise ValueError(f"Metadata has too many keys (max {self.MAX_METADATA_KEYS})")
         ids: list[str] = []
 
         if auto_chunk:
@@ -663,9 +650,7 @@ class LocalVectorStore:
         for doc in self._documents.values():
             # Apply metadata filter
             if metadata_filter:
-                if not all(
-                    doc.metadata.get(k) == v for k, v in metadata_filter.items()
-                ):
+                if not all(doc.metadata.get(k) == v for k, v in metadata_filter.items()):
                     continue
 
             score = cosine_similarity(query_vector, doc.vector)
@@ -701,8 +686,7 @@ class LocalVectorStore:
         for i, r in enumerate(results, 1):
             source = r.document.metadata.get("source", "unknown")
             sections.append(
-                f"[Reference {i}] (score: {r.score:.3f}, source: {source})\n"
-                f"{r.chunk_text}"
+                f"[Reference {i}] (score: {r.score:.3f}, source: {source})\n{r.chunk_text}"
             )
 
         return "\n\n---\n\n".join(sections)

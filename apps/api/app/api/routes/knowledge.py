@@ -160,9 +160,7 @@ async def list_permissions(
     records = await store.get_all_permissions(company_id)
     await db.commit()
     return {
-        "permissions": [
-            {"id": str(r.id), "path": r.key, "permission": r.value} for r in records
-        ],
+        "permissions": [{"id": str(r.id), "path": r.key, "permission": r.value} for r in records],
     }
 
 

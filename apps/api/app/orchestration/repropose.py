@@ -115,8 +115,6 @@ def generate_reproposal(
         new_plan_summary=f"修正計画: {diff.reason}に対応",
         diff=diff,
         rework_reasons=rework_reasons,
-        requires_approval=any(
-            r.severity in ("high", "critical") for r in rework_reasons
-        ),
+        requires_approval=any(r.severity in ("high", "critical") for r in rework_reasons),
         confidence_score=0.7,
     )

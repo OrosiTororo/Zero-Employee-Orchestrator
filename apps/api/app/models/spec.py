@@ -2,7 +2,7 @@
 
 import uuid
 
-from sqlalchemy import ForeignKey, Integer, JSON, String, Text, Uuid
+from sqlalchemy import JSON, ForeignKey, Integer, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base, TimestampMixin
@@ -12,12 +12,8 @@ class Spec(Base, TimestampMixin):
     __tablename__ = "specs"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    company_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("companies.id"), index=True
-    )
-    ticket_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("tickets.id"), index=True
-    )
+    company_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("companies.id"), index=True)
+    ticket_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("tickets.id"), index=True)
     version_no: Mapped[int] = mapped_column(Integer)
     status: Mapped[str] = mapped_column(String(30))
     objective: Mapped[str | None] = mapped_column(Text, nullable=True)

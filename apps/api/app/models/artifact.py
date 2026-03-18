@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, Integer, JSON, String, Text, Uuid, func
+from sqlalchemy import JSON, ForeignKey, Integer, String, Text, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -13,15 +13,11 @@ class Artifact(Base):
     __tablename__ = "artifacts"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    company_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("companies.id"), index=True
-    )
+    company_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("companies.id"), index=True)
     ticket_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid, ForeignKey("tickets.id"), nullable=True
     )
-    task_id: Mapped[uuid.UUID | None] = mapped_column(
-        Uuid, ForeignKey("tasks.id"), nullable=True
-    )
+    task_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("tasks.id"), nullable=True)
     artifact_type: Mapped[str] = mapped_column(String(60))
     title: Mapped[str] = mapped_column(String(500))
     storage_type: Mapped[str] = mapped_column(String(30))
@@ -37,6 +33,4 @@ class Artifact(Base):
     created_by_agent_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid, ForeignKey("agents.id"), nullable=True
     )
-    created_at: Mapped[datetime] = mapped_column(
-        default=func.now(), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())

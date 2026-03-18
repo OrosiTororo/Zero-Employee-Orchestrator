@@ -10,9 +10,7 @@ from app.orchestration.cost_guard import (
 
 class TestEstimateCost:
     def test_known_model(self):
-        est = estimate_cost(
-            "gpt-5.4", estimated_input_tokens=1000, estimated_output_tokens=500
-        )
+        est = estimate_cost("gpt-5.4", estimated_input_tokens=1000, estimated_output_tokens=500)
         assert est.model_name == "gpt-5.4"
         assert est.estimated_input_tokens == 1000
         assert est.estimated_output_tokens == 500
@@ -25,9 +23,7 @@ class TestEstimateCost:
         assert est.estimated_cost_usd > 0
 
     def test_zero_tokens(self):
-        est = estimate_cost(
-            "gpt-5.4", estimated_input_tokens=0, estimated_output_tokens=0
-        )
+        est = estimate_cost("gpt-5.4", estimated_input_tokens=0, estimated_output_tokens=0)
         assert est.estimated_cost_usd == 0.0
 
     def test_gpt54_is_more_expensive_than_mini(self):

@@ -9,9 +9,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
+from app.models.agent import Agent
 from app.models.company import Company
 from app.models.organization import Department, Team
-from app.models.agent import Agent
 
 router = APIRouter()
 
@@ -88,9 +88,7 @@ async def create_company(req: CompanyCreate, db: AsyncSession = Depends(get_db))
 @router.get("/{company_id}", response_model=CompanyResponse)
 async def get_company(company_id: str, db: AsyncSession = Depends(get_db)):
     """会社詳細を取得"""
-    result = await db.execute(
-        select(Company).where(Company.id == uuid.UUID(company_id))
-    )
+    result = await db.execute(select(Company).where(Company.id == uuid.UUID(company_id)))
     company = result.scalar_one_or_none()
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
@@ -110,26 +108,15 @@ async def get_org_chart(company_id: str, db: AsyncSession = Depends(get_db)):
     """組織図を取得"""
     cid = uuid.UUID(company_id)
     depts = (
-        (await db.execute(select(Department).where(Department.company_id == cid)))
-        .scalars()
-        .all()
+        (await db.execute(select(Department).where(Department.company_id == cid))).scalars().all()
     )
-    teams = (
-        (await db.execute(select(Team).where(Team.company_id == cid))).scalars().all()
-    )
-    agents = (
-        (await db.execute(select(Agent).where(Agent.company_id == cid))).scalars().all()
-    )
+    teams = (await db.execute(select(Team).where(Team.company_id == cid))).scalars().all()
+    agents = (await db.execute(select(Agent).where(Agent.company_id == cid))).scalars().all()
     return {
-        "departments": [
-            {"id": str(d.id), "name": d.name, "code": d.code} for d in depts
-        ],
-        "teams": [
-            {"id": str(t.id), "name": t.name, "purpose": t.purpose} for t in teams
-        ],
+        "departments": [{"id": str(d.id), "name": d.name, "code": d.code} for d in depts],
+        "teams": [{"id": str(t.id), "name": t.name, "purpose": t.purpose} for t in teams],
         "agents": [
-            {"id": str(a.id), "name": a.name, "title": a.title, "status": a.status}
-            for a in agents
+            {"id": str(a.id), "name": a.name, "title": a.title, "status": a.status} for a in agents
         ],
     }
 
@@ -157,9 +144,7 @@ async def create_department(
     company_id: str, name: str = "", code: str = "", db: AsyncSession = Depends(get_db)
 ):
     """部署作成"""
-    dept = Department(
-        id=uuid.uuid4(), company_id=uuid.UUID(company_id), name=name, code=code
-    )
+    dept = Department(id=uuid.uuid4(), company_id=uuid.UUID(company_id), name=name, code=code)
     db.add(dept)
     await db.flush()
     return {"id": str(dept.id), "name": dept.name}
@@ -172,8 +157,7 @@ async def list_teams(company_id: str, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Team).where(Team.company_id == cid))
     teams = result.scalars().all()
     return [
-        {"id": str(t.id), "name": t.name, "purpose": t.purpose, "status": t.status}
-        for t in teams
+        {"id": str(t.id), "name": t.name, "purpose": t.purpose, "status": t.status} for t in teams
     ]
 
 

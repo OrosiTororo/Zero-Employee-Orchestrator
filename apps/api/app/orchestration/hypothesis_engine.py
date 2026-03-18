@@ -90,9 +90,7 @@ class Hypothesis:
         total_weight = sum(e.confidence for e in self.evidence)
         if total_weight == 0:
             return 0.0
-        weighted = sum(
-            e.confidence * (1.0 if e.supports else -1.0) for e in self.evidence
-        )
+        weighted = sum(e.confidence * (1.0 if e.supports else -1.0) for e in self.evidence)
         return weighted / total_weight
 
     @property
@@ -273,8 +271,7 @@ class HypothesisEngine:
         result = [
             h
             for h in self._hypotheses.values()
-            if h.status
-            in (HypothesisStatus.EVIDENCE_FOUND, HypothesisStatus.NEEDS_REVIEW)
+            if h.status in (HypothesisStatus.EVIDENCE_FOUND, HypothesisStatus.NEEDS_REVIEW)
         ]
         if company_id:
             result = [h for h in result if h.company_id == company_id]
