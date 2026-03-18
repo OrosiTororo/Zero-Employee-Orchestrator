@@ -5,7 +5,7 @@
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -14,10 +14,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
 from app.api.routes.auth import get_current_user
-from app.models.review import ApprovalRequest
-from app.models.audit import AuditLog
-from app.models.user import User
 from app.core.security import generate_uuid
+from app.models.audit import AuditLog
+from app.models.review import ApprovalRequest
+from app.models.user import User
 from app.policies.approval_gate import check_operations_batch, get_highest_risk
 
 router = APIRouter()
@@ -124,22 +124,18 @@ async def batch_decide_approvals(
     """
     _validate_uuid(company_id, "company_id")
     if req.decision not in ("approved", "rejected"):
-        raise HTTPException(
-            status_code=400, detail="Decision must be 'approved' or 'rejected'"
-        )
+        raise HTTPException(status_code=400, detail="Decision must be 'approved' or 'rejected'")
 
     decided = []
     for aid in req.approval_ids:
         aid_uuid = _validate_uuid(aid, "approval_id")
-        result = await db.execute(
-            select(ApprovalRequest).where(ApprovalRequest.id == aid_uuid)
-        )
+        result = await db.execute(select(ApprovalRequest).where(ApprovalRequest.id == aid_uuid))
         approval = result.scalar_one_or_none()
         if not approval or approval.status != "requested":
             continue
 
         approval.status = req.decision
-        approval.decided_at = datetime.now(timezone.utc)
+        approval.decided_at = datetime.now(UTC)
         approval.decided_by = str(user.id)
 
         audit = AuditLog(
@@ -182,7 +178,7 @@ async def approve(
             detail=f"Cannot approve: current status is {approval.status}",
         )
     approval.status = "approved"
-    approval.decided_at = datetime.now(timezone.utc)
+    approval.decided_at = datetime.now(UTC)
 
     audit = AuditLog(
         id=generate_uuid(),
@@ -218,7 +214,7 @@ async def reject(
             detail=f"Cannot reject: current status is {approval.status}",
         )
     approval.status = "rejected"
-    approval.decided_at = datetime.now(timezone.utc)
+    approval.decided_at = datetime.now(UTC)
 
     audit = AuditLog(
         id=generate_uuid(),

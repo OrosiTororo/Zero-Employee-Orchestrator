@@ -88,9 +88,7 @@ class ModelRegistry:
     """
 
     def __init__(self, catalog_path: str | Path | None = None) -> None:
-        self._catalog_path = (
-            Path(catalog_path) if catalog_path else _DEFAULT_CATALOG_PATH
-        )
+        self._catalog_path = Path(catalog_path) if catalog_path else _DEFAULT_CATALOG_PATH
         self._models: dict[str, ModelEntry] = {}
         self._mode_catalog = ModeCatalog()
         self._quality_sla = QualitySLAModels()
@@ -277,9 +275,7 @@ class ModelRegistry:
             "fallback": self._resolve_deprecated(sla.get("fallback", [])),
         }
 
-    def estimate_cost(
-        self, model_id: str, input_tokens: int, output_tokens: int
-    ) -> float:
+    def estimate_cost(self, model_id: str, input_tokens: int, output_tokens: int) -> float:
         """モデルのコストを見積もる."""
         # g4f / ollama は常に無料
         if model_id.startswith(("g4f/", "ollama/")):
@@ -339,9 +335,7 @@ class ModelRegistry:
             return False
         entry.deprecated = True
         entry.successor = successor
-        logger.info(
-            "Marked model %s as deprecated (successor: %s)", model_id, successor
-        )
+        logger.info("Marked model %s as deprecated (successor: %s)", model_id, successor)
         return True
 
     def get_deprecated_models(self) -> list[ModelEntry]:
@@ -424,9 +418,7 @@ class ModelRegistry:
         has_key = bool(os.environ.get(env_key, ""))
 
         available_models = [
-            m.id
-            for m in self._models.values()
-            if m.provider == provider and not m.deprecated
+            m.id for m in self._models.values() if m.provider == provider and not m.deprecated
         ]
 
         return ProviderHealthStatus(
@@ -443,9 +435,7 @@ class ModelRegistry:
             import g4f  # noqa: F401
 
             available_models = [
-                m.id
-                for m in self._models.values()
-                if m.provider == "g4f" and not m.deprecated
+                m.id for m in self._models.values() if m.provider == "g4f" and not m.deprecated
             ]
             return ProviderHealthStatus(
                 provider="g4f",

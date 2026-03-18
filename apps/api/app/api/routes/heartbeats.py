@@ -26,9 +26,7 @@ class HeartbeatPolicyCreate(BaseModel):
 async def list_policies(company_id: str, db: AsyncSession = Depends(get_db)):
     """Heartbeatポリシー一覧"""
     cid = uuid.UUID(company_id)
-    result = await db.execute(
-        select(HeartbeatPolicy).where(HeartbeatPolicy.company_id == cid)
-    )
+    result = await db.execute(select(HeartbeatPolicy).where(HeartbeatPolicy.company_id == cid))
     policies = result.scalars().all()
     return [
         {

@@ -5,7 +5,6 @@ v0.1 で追加されたプラットフォーム横断的な機能のAPIエンド
 
 from __future__ import annotations
 
-
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -44,9 +43,7 @@ async def mcp_list_tools(user: User = Depends(get_current_user)):
 
 
 @router.post("/mcp/tools/call")
-async def mcp_call_tool(
-    req: MCPToolCallRequest, user: User = Depends(get_current_user)
-):
+async def mcp_call_tool(req: MCPToolCallRequest, user: User = Depends(get_current_user)):
     """MCP ツール実行."""
     from app.integrations.mcp_server import mcp_server
 
@@ -81,18 +78,14 @@ class SkillSearchRequest(BaseModel):
 
 
 class SkillImportRequest(BaseModel):
-    source_type: (
-        str  # github_agent_skills, skills_sh, openclaw, claude_code, git_repo, url
-    )
+    source_type: str  # github_agent_skills, skills_sh, openclaw, claude_code, git_repo, url
     source_uri: str
 
 
 @router.post("/skills/external/search")
-async def search_external_skills(
-    req: SkillSearchRequest, user: User = Depends(get_current_user)
-):
+async def search_external_skills(req: SkillSearchRequest, user: User = Depends(get_current_user)):
     """外部ソースからスキルを検索."""
-    from app.integrations.external_skills import skill_importer, SkillSourceType
+    from app.integrations.external_skills import SkillSourceType, skill_importer
 
     source = SkillSourceType(req.source_type) if req.source_type else None
     results = await skill_importer.search_skills(req.query, source, req.limit)
@@ -121,25 +114,21 @@ async def import_external_skill(
     db: AsyncSession = Depends(get_db),
 ):
     """外部ソースからスキルをインポートしてインストール."""
-    from app.integrations.external_skills import skill_importer, SkillSourceType
-    from app.services import skill_service
+    from app.integrations.external_skills import SkillSourceType, skill_importer
     from app.schemas.registry import SkillCreate
+    from app.services import skill_service
 
     source_type = SkillSourceType(req.source_type)
     manifest = await skill_importer.fetch_skill_manifest(source_type, req.source_uri)
     if not manifest:
-        raise HTTPException(
-            status_code=404, detail="スキルマニフェストが取得できません"
-        )
+        raise HTTPException(status_code=404, detail="スキルマニフェストが取得できません")
 
     data = skill_importer.to_skill_create_data(manifest)
 
     # 既存チェック
     existing = await skill_service.get_skill_by_slug(db, data["slug"])
     if existing:
-        raise HTTPException(
-            status_code=409, detail=f"スキル '{data['slug']}' は既に存在します"
-        )
+        raise HTTPException(status_code=409, detail=f"スキル '{data['slug']}' は既に存在します")
 
     skill = await skill_service.create_skill(db, SkillCreate(**data))
     await db.commit()
@@ -174,7 +163,7 @@ async def sentry_events(
     user: User = Depends(get_current_user),
 ):
     """Sentryイベント一覧."""
-    from app.integrations.sentry_integration import sentry, SeverityLevel, EventType
+    from app.integrations.sentry_integration import EventType, SeverityLevel, sentry
 
     lvl = SeverityLevel(level) if level else None
     et = EventType(event_type) if event_type else None
@@ -193,7 +182,7 @@ async def sentry_capture_message(
     user: User = Depends(get_current_user),
 ):
     """カスタムイベントをキャプチャ."""
-    from app.integrations.sentry_integration import sentry, SeverityLevel
+    from app.integrations.sentry_integration import SeverityLevel, sentry
 
     event_id = sentry.capture_message(message, SeverityLevel(level), tags=tags)
     return {"event_id": event_id, "captured": True}
@@ -397,9 +386,7 @@ class ReviewRequest(BaseModel):
 
 
 @router.post("/hypotheses")
-async def propose_hypothesis(
-    req: HypothesisRequest, user: User = Depends(get_current_user)
-):
+async def propose_hypothesis(req: HypothesisRequest, user: User = Depends(get_current_user)):
     """仮説を提案."""
     from app.orchestration.hypothesis_engine import hypothesis_engine
 
@@ -463,7 +450,7 @@ async def add_evidence(req: EvidenceRequest, user: User = Depends(get_current_us
 @router.post("/hypotheses/review")
 async def submit_review(req: ReviewRequest, user: User = Depends(get_current_user)):
     """レビューを提出."""
-    from app.orchestration.hypothesis_engine import hypothesis_engine, ReviewVerdict
+    from app.orchestration.hypothesis_engine import ReviewVerdict, hypothesis_engine
 
     review = hypothesis_engine.submit_review(
         req.hypothesis_id,
@@ -530,9 +517,7 @@ class WorkingMemoryRequest(BaseModel):
 
 
 @router.post("/sessions")
-async def create_session(
-    req: CreateSessionRequest, user: User = Depends(get_current_user)
-):
+async def create_session(req: CreateSessionRequest, user: User = Depends(get_current_user)):
     """エージェントセッションを作成."""
     from app.orchestration.agent_session import session_manager
 
@@ -555,7 +540,7 @@ async def list_sessions(
     user: User = Depends(get_current_user),
 ):
     """セッション一覧."""
-    from app.orchestration.agent_session import session_manager, SessionStatus
+    from app.orchestration.agent_session import SessionStatus, session_manager
 
     st = SessionStatus(status) if status else None
     sessions = session_manager.list_sessions(company_id, st, agent_id)
@@ -603,9 +588,7 @@ async def get_or_create_session(
 
 
 @router.post("/sessions/message")
-async def add_session_message(
-    req: SessionMessageRequest, user: User = Depends(get_current_user)
-):
+async def add_session_message(req: SessionMessageRequest, user: User = Depends(get_current_user)):
     """セッションにメッセージを追加."""
     from app.orchestration.agent_session import session_manager
 
@@ -617,9 +600,7 @@ async def add_session_message(
 
 
 @router.post("/sessions/memory")
-async def add_working_memory(
-    req: WorkingMemoryRequest, user: User = Depends(get_current_user)
-):
+async def add_working_memory(req: WorkingMemoryRequest, user: User = Depends(get_current_user)):
     """ワーキングメモリに情報を追加."""
     from app.orchestration.agent_session import session_manager
 

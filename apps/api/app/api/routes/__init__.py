@@ -8,6 +8,7 @@ from app.api.routes import (
     artifacts,
     audit,
     auth,
+    browser_assist,
     budgets,
     companies,
     config,
@@ -57,3 +58,4 @@ api_router.include_router(
     multi_model.router, tags=["multi-model", "brainstorm", "conversation-memory"]
 )
 api_router.include_router(self_improvement.router, tags=["self-improvement"])
+api_router.include_router(browser_assist.router, tags=["browser-assist"])

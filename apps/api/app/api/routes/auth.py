@@ -1,17 +1,17 @@
 """Authentication endpoints - registration, login, session management."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Header, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
 from app.core.rate_limit import limiter
-from app.models.user import CompanyMember, User
-from app.models.company import Company
 from app.core.security import generate_uuid, hash_password
+from app.models.company import Company
+from app.models.user import CompanyMember, User
 from app.schemas.auth import (
     LoginRequest,
     LoginResponse,
@@ -49,16 +49,12 @@ async def get_current_user(
 
 @router.post("/register", response_model=LoginResponse)
 @limiter.limit("5/minute")
-async def register(
-    request: Request, req: RegisterRequest, db: AsyncSession = Depends(get_db)
-):
+async def register(request: Request, req: RegisterRequest, db: AsyncSession = Depends(get_db)):
     """新規アカウント登録 - メールとパスワードで登録し、デフォルト組織を自動作成"""
     # Check if email already exists
     result = await db.execute(select(User).where(User.email == req.email))
     if result.scalar_one_or_none():
-        raise HTTPException(
-            status_code=400, detail="このメールアドレスは既に登録されています"
-        )
+        raise HTTPException(status_code=400, detail="このメールアドレスは既に登録されています")
 
     user = await register_user(db, req.email, req.password, req.display_name)
     token = create_access_token(str(user.id))
@@ -72,9 +68,7 @@ async def register(
 
 @router.post("/login", response_model=LoginResponse)
 @limiter.limit("10/minute")
-async def login(
-    request: Request, req: LoginRequest, db: AsyncSession = Depends(get_db)
-):
+async def login(request: Request, req: LoginRequest, db: AsyncSession = Depends(get_db)):
     """メール/パスワードでログイン"""
     user = await authenticate_user(db, req.email, req.password)
     if not user:
@@ -141,9 +135,7 @@ async def refresh_token(user: User = Depends(get_current_user)):
 
 @router.post("/anonymous-session")
 @limiter.limit("10/minute")
-async def create_anonymous_session(
-    request: Request, db: AsyncSession = Depends(get_db)
-):
+async def create_anonymous_session(request: Request, db: AsyncSession = Depends(get_db)):
     """ログイン不要の匿名セッション.
 
     ログインしなくても基本機能が使える。
@@ -177,7 +169,7 @@ async def create_anonymous_session(
         user_id=user.id,
         company_role="owner",
         status="active",
-        joined_at=datetime.now(timezone.utc),
+        joined_at=datetime.now(UTC),
     )
     db.add(member)
 
@@ -212,16 +204,12 @@ async def link_anonymous_to_account(
     既存のデータを引き継ぐ。
     """
     if user.role != "anonymous":
-        raise HTTPException(
-            status_code=400, detail="既にアカウントに紐付けられています"
-        )
+        raise HTTPException(status_code=400, detail="既にアカウントに紐付けられています")
 
     # メールの重複チェック
     result = await db.execute(select(User).where(User.email == req.email))
     if result.scalar_one_or_none():
-        raise HTTPException(
-            status_code=400, detail="このメールアドレスは既に登録されています"
-        )
+        raise HTTPException(status_code=400, detail="このメールアドレスは既に登録されています")
 
     user.email = req.email
     user.display_name = req.display_name

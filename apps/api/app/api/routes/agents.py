@@ -57,9 +57,7 @@ async def list_agents(company_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/companies/{company_id}/agents", response_model=AgentResponse)
-async def create_agent(
-    company_id: str, req: AgentCreate, db: AsyncSession = Depends(get_db)
-):
+async def create_agent(company_id: str, req: AgentCreate, db: AsyncSession = Depends(get_db)):
     """エージェント作成"""
     agent = Agent(
         id=uuid.uuid4(),

@@ -110,9 +110,7 @@ async def create_brain_dump(
     return _to_response(record)
 
 
-@router.get(
-    "/companies/{company_id}/brain-dumps", response_model=list[BrainDumpResponse]
-)
+@router.get("/companies/{company_id}/brain-dumps", response_model=list[BrainDumpResponse])
 async def list_brain_dumps(
     company_id: str,
     category: str | None = None,
@@ -171,9 +169,7 @@ async def update_brain_dump(
     return _to_response(record)
 
 
-@router.get(
-    "/companies/{company_id}/brain-dumps/search", response_model=list[BrainDumpResponse]
-)
+@router.get("/companies/{company_id}/brain-dumps/search", response_model=list[BrainDumpResponse])
 async def search_brain_dumps(
     company_id: str,
     q: str = "",
@@ -203,9 +199,7 @@ async def get_action_items(
     return {"action_items": items, "total": len(items)}
 
 
-@router.get(
-    "/companies/{company_id}/brain-dumps/daily-stats", response_model=DailyStatsResponse
-)
+@router.get("/companies/{company_id}/brain-dumps/daily-stats", response_model=DailyStatsResponse)
 async def get_daily_stats(
     company_id: str,
     target_date: str | None = None,

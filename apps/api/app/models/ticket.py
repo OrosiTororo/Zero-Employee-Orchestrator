@@ -4,10 +4,10 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
+    JSON,
     BigInteger,
     DateTime,
     ForeignKey,
-    JSON,
     String,
     Text,
     UniqueConstraint,
@@ -21,20 +21,14 @@ from app.core.database import Base, TimestampMixin
 
 class Ticket(Base, TimestampMixin):
     __tablename__ = "tickets"
-    __table_args__ = (
-        UniqueConstraint("company_id", "ticket_no", name="uq_ticket_company_no"),
-    )
+    __table_args__ = (UniqueConstraint("company_id", "ticket_no", name="uq_ticket_company_no"),)
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    company_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("companies.id"), index=True
-    )
+    company_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("companies.id"), index=True)
     project_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid, ForeignKey("projects.id"), nullable=True
     )
-    goal_id: Mapped[uuid.UUID | None] = mapped_column(
-        Uuid, ForeignKey("goals.id"), nullable=True
-    )
+    goal_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("goals.id"), nullable=True)
     ticket_no: Mapped[int] = mapped_column(BigInteger)
     title: Mapped[str] = mapped_column(String(500))
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -67,12 +61,8 @@ class TicketThread(Base):
     __tablename__ = "ticket_threads"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    company_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("companies.id"), index=True
-    )
-    ticket_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("tickets.id"), index=True
-    )
+    company_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("companies.id"), index=True)
+    ticket_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("tickets.id"), index=True)
     author_type: Mapped[str] = mapped_column(String(30))
     author_user_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid, ForeignKey("users.id"), nullable=True
@@ -83,6 +73,4 @@ class TicketThread(Base):
     message_type: Mapped[str] = mapped_column(String(30))
     body_markdown: Mapped[str | None] = mapped_column(Text, nullable=True)
     meta_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        default=func.now(), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())

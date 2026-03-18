@@ -103,9 +103,7 @@ class RAGSearchResponse(BaseModel):
 class RAGAddRequest(BaseModel):
     content: str = Field(..., description="Document content")
     metadata: dict = Field(default_factory=dict)
-    task_id: str | None = Field(
-        None, description="Associated task ID for artifact tracking"
-    )
+    task_id: str | None = Field(None, description="Associated task ID for artifact tracking")
 
 
 class RAGAddResponse(BaseModel):
@@ -124,9 +122,7 @@ class HeartbeatCheckResponse(BaseModel):
 
 
 class KnowledgeSearchRequest(BaseModel):
-    task_context: str = Field(
-        ..., description="Task description for knowledge retrieval"
-    )
+    task_context: str = Field(..., description="Task description for knowledge retrieval")
     max_tokens: int = 4000
 
 
@@ -157,8 +153,8 @@ class KnowledgeStoreResponse(BaseModel):
 @router.get("/ollama/health", response_model=OllamaHealthResponse)
 async def ollama_health(user: User = Depends(get_current_user)):
     """Check Ollama availability and embedding support."""
-    from app.providers.ollama_provider import ollama_provider
     from app.providers.local_rag import OllamaEmbeddingStore
+    from app.providers.ollama_provider import ollama_provider
 
     is_up = await ollama_provider.health_check()
     models = await ollama_provider.list_models() if is_up else []
@@ -180,16 +176,14 @@ async def ollama_health(user: User = Depends(get_current_user)):
 @router.get("/ollama/models", response_model=OllamaModelsResponse)
 async def ollama_models(user: User = Depends(get_current_user)):
     """List available Ollama models."""
-    from app.providers.ollama_provider import ollama_provider, RECOMMENDED_MODELS
+    from app.providers.ollama_provider import RECOMMENDED_MODELS, ollama_provider
 
     models = await ollama_provider.list_models(force_refresh=True)
 
     result = []
     for m in models:
         size_gb = m.size / (1024**3) if m.size else 0
-        size_str = (
-            f"{size_gb:.1f}GB" if size_gb >= 1.0 else f"{m.size / (1024**2):.0f}MB"
-        )
+        size_str = f"{size_gb:.1f}GB" if size_gb >= 1.0 else f"{m.size / (1024**2):.0f}MB"
         rec = RECOMMENDED_MODELS.get(m.name, {})
         result.append(
             OllamaModelResponse(
@@ -211,11 +205,11 @@ async def ollama_pull(
     db: AsyncSession = Depends(get_db),
 ):
     """Pull (download) an Ollama model with audit logging."""
-    from app.providers.ollama_provider import ollama_provider
     from app.providers.ollama_integration import (
         audit_ollama_model_pull,
         reset_embedding_cache,
     )
+    from app.providers.ollama_provider import ollama_provider
 
     is_up = await ollama_provider.health_check()
     if not is_up:
@@ -261,8 +255,8 @@ async def ollama_chat(
     if req.stream:
         return await _ollama_chat_stream(req)
 
-    from app.providers.ollama_provider import ollama_provider
     from app.providers.ollama_integration import audit_ollama_chat, record_ollama_cost
+    from app.providers.ollama_provider import ollama_provider
 
     start = time.monotonic()
     resp = await ollama_provider.complete(
@@ -340,9 +334,7 @@ async def _ollama_chat_stream(req: OllamaChatRequest) -> StreamingResponse:
 
 
 @router.post("/ollama/chat/stream")
-async def ollama_chat_stream(
-    req: OllamaChatRequest, user: User = Depends(get_current_user)
-):
+async def ollama_chat_stream(req: OllamaChatRequest, user: User = Depends(get_current_user)):
     """Dedicated SSE streaming endpoint for Ollama chat.
 
     Returns a Server-Sent Events stream with chunks:
@@ -361,7 +353,7 @@ async def rag_search(
     db: AsyncSession = Depends(get_db),
 ):
     """Search the local RAG vector store (auto-selects best backend)."""
-    from app.providers.ollama_integration import get_rag_store, audit_rag_search
+    from app.providers.ollama_integration import audit_rag_search, get_rag_store
 
     store = await get_rag_store()
     results = store.search(
@@ -474,9 +466,7 @@ async def ollama_heartbeat(user: User = Depends(get_current_user)):
 
 
 @router.post("/ollama/knowledge/search", response_model=KnowledgeSearchResponse)
-async def knowledge_search(
-    req: KnowledgeSearchRequest, user: User = Depends(get_current_user)
-):
+async def knowledge_search(req: KnowledgeSearchRequest, user: User = Depends(get_current_user)):
     """Search the Knowledge Pipeline for Ollama task patterns.
 
     Returns experience memories and failure taxonomy entries

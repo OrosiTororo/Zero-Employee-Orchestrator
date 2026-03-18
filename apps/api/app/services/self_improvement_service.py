@@ -17,7 +17,7 @@ import re
 import time
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -89,7 +89,7 @@ class SkillAnalysisResult:
 
     def __post_init__(self) -> None:
         if not self.analyzed_at:
-            self.analyzed_at = datetime.now(timezone.utc).isoformat()
+            self.analyzed_at = datetime.now(UTC).isoformat()
 
 
 @dataclass
@@ -109,7 +109,7 @@ class SkillImprovementProposal:
 
     def __post_init__(self) -> None:
         if not self.created_at:
-            self.created_at = datetime.now(timezone.utc).isoformat()
+            self.created_at = datetime.now(UTC).isoformat()
 
 
 @dataclass
@@ -139,7 +139,7 @@ class JudgeTuningResult:
 
     def __post_init__(self) -> None:
         if not self.tuned_at:
-            self.tuned_at = datetime.now(timezone.utc).isoformat()
+            self.tuned_at = datetime.now(UTC).isoformat()
 
 
 @dataclass
@@ -172,7 +172,7 @@ class ABTestConfig:
         if not self.test_id:
             self.test_id = uuid.uuid4().hex[:12]
         if not self.created_at:
-            self.created_at = datetime.now(timezone.utc).isoformat()
+            self.created_at = datetime.now(UTC).isoformat()
 
 
 @dataclass
@@ -193,7 +193,7 @@ class ABTestResult:
 
     def __post_init__(self) -> None:
         if not self.completed_at:
-            self.completed_at = datetime.now(timezone.utc).isoformat()
+            self.completed_at = datetime.now(UTC).isoformat()
 
 
 @dataclass
@@ -222,7 +222,7 @@ class AutoTestResult:
 
     def __post_init__(self) -> None:
         if not self.generated_at:
-            self.generated_at = datetime.now(timezone.utc).isoformat()
+            self.generated_at = datetime.now(UTC).isoformat()
 
 
 # ---------------------------------------------------------------------------
@@ -320,9 +320,7 @@ async def analyze_skill(
     for f in findings:
         by_category.setdefault(f.category.value, []).append(f)
     for cat, items in by_category.items():
-        critical_count = sum(
-            1 for i in items if i.priority == ImprovementPriority.CRITICAL
-        )
+        critical_count = sum(1 for i in items if i.priority == ImprovementPriority.CRITICAL)
         high_count = sum(1 for i in items if i.priority == ImprovementPriority.HIGH)
         summary_parts.append(
             f"{cat}: {len(items)}件 (critical={critical_count}, high={high_count})"
@@ -377,10 +375,7 @@ def _static_analyze(code: str) -> list[AnalysisFinding]:
     for func_def in func_defs:
         if (
             "->" not in func_def
-            and "-> "
-            not in code[
-                code.index(func_def) : code.index(func_def) + len(func_def) + 30
-            ]
+            and "-> " not in code[code.index(func_def) : code.index(func_def) + len(func_def) + 30]
         ):
             findings.append(
                 AnalysisFinding(
@@ -473,12 +468,8 @@ async def _llm_analyze(code: str) -> list[AnalysisFinding]:
                 try:
                     findings.append(
                         AnalysisFinding(
-                            category=AnalysisCategory(
-                                item.get("category", "code_quality")
-                            ),
-                            priority=ImprovementPriority(
-                                item.get("priority", "medium")
-                            ),
+                            category=AnalysisCategory(item.get("category", "code_quality")),
+                            priority=ImprovementPriority(item.get("priority", "medium")),
                             title=item.get("title", ""),
                             description=item.get("description", ""),
                             suggestion=item.get("suggestion", ""),
@@ -605,9 +596,7 @@ async def improve_skill(
 
     except Exception as exc:
         logger.warning("LLM改善生成をスキップ、静的改善のみ適用: %s", exc)
-        improved_code, changes = _apply_static_improvements(
-            original_code, analysis.findings
-        )
+        improved_code, changes = _apply_static_improvements(original_code, analysis.findings)
         expected = ["静的分析に基づく基本的な改善"]
 
     # 安全性チェック
@@ -639,17 +628,13 @@ async def improve_skill(
     )
 
 
-def _apply_static_improvements(
-    code: str, findings: list[AnalysisFinding]
-) -> tuple[str, list[str]]:
+def _apply_static_improvements(code: str, findings: list[AnalysisFinding]) -> tuple[str, list[str]]:
     """LLM なしで適用可能な静的改善."""
     improved = code
     changes: list[str] = []
 
     # エラーハンドリング追加
-    has_error_handling = any(
-        f.category == AnalysisCategory.ERROR_HANDLING for f in findings
-    )
+    has_error_handling = any(f.category == AnalysisCategory.ERROR_HANDLING for f in findings)
     if has_error_handling and "try:" not in improved:
         # execute 関数の本体を try/except で囲む
         if "async def execute(" in improved:
@@ -671,12 +656,7 @@ def _apply_static_improvements(
                     added_try = True
                     new_lines.append(line)
                     continue
-                if (
-                    in_execute
-                    and added_try
-                    and line.strip()
-                    and not line.startswith("    ")
-                ):
+                if in_execute and added_try and line.strip() and not line.startswith("    "):
                     in_execute = False
                 if in_execute and added_try and line.strip():
                     new_lines.append("    " + line)
@@ -707,7 +687,7 @@ async def apply_improvement(
         {
             "version": skill.version,
             "code_snapshot": skill.generated_code,
-            "replaced_at": datetime.now(timezone.utc).isoformat(),
+            "replaced_at": datetime.now(UTC).isoformat(),
         }
     )
     manifest["version_history"] = version_history
@@ -767,9 +747,7 @@ async def tune_judge_from_experience(
     # -- パターン1: 頻発する失敗カテゴリから自動ルール生成 --
     failure_categories: dict[str, int] = {}
     for f in failures:
-        failure_categories[f.category] = (
-            failure_categories.get(f.category, 0) + f.occurrence_count
-        )
+        failure_categories[f.category] = failure_categories.get(f.category, 0) + f.occurrence_count
 
     for category, count in failure_categories.items():
         if count >= 3:
@@ -860,8 +838,7 @@ async def _llm_propose_judge_rules(
 
     # データを要約
     success_summary = "\n".join(
-        f"- [{s.category}] {s.title} (有効性: {s.effectiveness_score})"
-        for s in successes[:20]
+        f"- [{s.category}] {s.title} (有効性: {s.effectiveness_score})" for s in successes[:20]
     )
     failure_summary = "\n".join(
         f"- [{f.category}/{f.subcategory}] {f.description} (発生: {f.occurrence_count}回, 回復率: {f.recovery_success_rate:.0%})"
@@ -1176,8 +1153,7 @@ async def run_skill_ab_test(
     if abs(score_diff) > 0.05:
         winner = str(skill_a_id) if score_diff > 0 else str(skill_b_id)
         winner_reason = (
-            f"品質スコア差: {abs(score_diff):.2f} "
-            f"(A: {avg_a_score:.2f}, B: {avg_b_score:.2f})"
+            f"品質スコア差: {abs(score_diff):.2f} (A: {avg_a_score:.2f}, B: {avg_b_score:.2f})"
         )
     elif abs(avg_a_time - avg_b_time) > 100:  # 100ms以上の差
         winner = str(skill_a_id) if avg_a_time < avg_b_time else str(skill_b_id)

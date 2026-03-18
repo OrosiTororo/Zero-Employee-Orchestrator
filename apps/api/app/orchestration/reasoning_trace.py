@@ -35,9 +35,7 @@ class ReasoningStepType(str, Enum):
 
     # 情報収集フェーズ
     CONTEXT_GATHERING = "context_gathering"  # 情報源からのコンテキスト収集
-    KNOWLEDGE_RETRIEVAL = (
-        "knowledge_retrieval"  # Experience Memory / RAG からの知識検索
-    )
+    KNOWLEDGE_RETRIEVAL = "knowledge_retrieval"  # Experience Memory / RAG からの知識検索
     CONSTRAINT_CHECK = "constraint_check"  # 制約条件・ポリシーの確認
 
     # 分析フェーズ
@@ -219,9 +217,7 @@ class ReasoningTrace:
             },
         )
 
-    def add_error(
-        self, error: str, analysis: str, recovery_plan: str = ""
-    ) -> ReasoningStep:
+    def add_error(self, error: str, analysis: str, recovery_plan: str = "") -> ReasoningStep:
         """エラー分析ステップを追加（ショートカット）."""
         return self.add_step(
             ReasoningStepType.ERROR_ANALYSIS,
@@ -314,9 +310,7 @@ class TraceStore:
         traces.sort(key=lambda t: t.started_at, reverse=True)
         return traces[:limit]
 
-    def get_recent(
-        self, company_id: str | None = None, limit: int = 50
-    ) -> list[ReasoningTrace]:
+    def get_recent(self, company_id: str | None = None, limit: int = 50) -> list[ReasoningTrace]:
         traces = list(self._traces.values())
         if company_id:
             traces = [t for t in traces if t.company_id == company_id]

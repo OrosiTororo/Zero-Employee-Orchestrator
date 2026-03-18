@@ -269,11 +269,7 @@ class ExecutionMonitor:
     ) -> None:
         """タスク失敗."""
         execution = self._active.get(task_id)
-        event_type = (
-            MonitorEventType.TASK_RETRYING
-            if will_retry
-            else MonitorEventType.TASK_FAILED
-        )
+        event_type = MonitorEventType.TASK_RETRYING if will_retry else MonitorEventType.TASK_FAILED
 
         if not will_retry:
             self._active.pop(task_id, None)
@@ -489,18 +485,14 @@ class ExecutionMonitor:
             events = [e for e in events if e.company_id == company_id]
 
         errors = [e for e in events if e.event_type == MonitorEventType.ERROR]
-        escalations = [
-            e for e in events if e.event_type == MonitorEventType.AGENT_ESCALATION
-        ]
+        escalations = [e for e in events if e.event_type == MonitorEventType.AGENT_ESCALATION]
 
         return {
             "active_executions": len(active),
             "total_events": len(events),
             "recent_errors": len(errors[-10:]),
             "recent_escalations": len(escalations[-10:]),
-            "active_agents": list(
-                set(e["agent_id"] for e in active if e.get("agent_id"))
-            ),
+            "active_agents": list(set(e["agent_id"] for e in active if e.get("agent_id"))),
         }
 
     @property

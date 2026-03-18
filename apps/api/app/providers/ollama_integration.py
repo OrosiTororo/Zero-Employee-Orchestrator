@@ -182,8 +182,8 @@ async def run_ollama_heartbeat(
         HeartbeatTrigger,
         execute_heartbeat,
     )
-    from app.providers.ollama_provider import ollama_provider
     from app.providers.local_rag import local_rag
+    from app.providers.ollama_provider import ollama_provider
 
     # Run base heartbeat
     execution = await execute_heartbeat(
@@ -285,8 +285,7 @@ def store_ollama_experience(
             id=entry_id,
             title=f"{model} で {task_type} を実行成功",
             content=(
-                f"モデル {model} が {task_type} タスクを "
-                f"{duration_seconds:.1f}秒で完了。{details}"
+                f"モデル {model} が {task_type} タスクを {duration_seconds:.1f}秒で完了。{details}"
             ),
             knowledge_type=KnowledgeType.EXPERIENCE_MEMORY,
             status=KnowledgeStatus.INDEXED,

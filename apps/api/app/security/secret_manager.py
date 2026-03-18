@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 import os
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 from cryptography.fernet import Fernet, InvalidToken
@@ -68,7 +68,7 @@ def check_expiration(
     if expires_at is None:
         return SecretStatus.ACTIVE
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if now >= expires_at:
         return SecretStatus.EXPIRED
 
@@ -114,7 +114,7 @@ class SecretStore:
             secret_type=SecretType.API_KEY,
             provider="local",
             masked_value=mask_secret(value),
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
 
     def retrieve(self, name: str) -> str | None:

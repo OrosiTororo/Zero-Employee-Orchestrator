@@ -1,12 +1,39 @@
-# Root-level convenience wrapper.
-# The actual package lives in apps/api/.
-# Install directly:  pip install apps/api/
-# Or from repo root: pip install .
 [project]
 name = "zero-employee-orchestrator"
 version = "0.1.0"
-description = "Zero-Employee Orchestrator – AI業務オーケストレーション基盤"
+description = "Zero-Employee Orchestrator – AI Orchestration Platform for multi-agent business automation with human approval and full auditability"
 requires-python = ">=3.12"
+license = "MIT"
+readme = "README.md"
+keywords = [
+    "ai",
+    "orchestrator",
+    "multi-agent",
+    "automation",
+    "llm",
+    "fastapi",
+    "ollama",
+    "business-automation",
+]
+authors = [
+    { name = "OrosiTororo" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Office/Business",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Typing :: Typed",
+]
 dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.34",
@@ -27,6 +54,20 @@ dependencies = [
     "python-multipart>=0.0.9",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.8",
+    "mypy>=1.13",
+]
+
+[project.urls]
+Homepage = "https://github.com/OrosiTororo/Zero-Employee-Orchestrator"
+Repository = "https://github.com/OrosiTororo/Zero-Employee-Orchestrator"
+Issues = "https://github.com/OrosiTororo/Zero-Employee-Orchestrator/issues"
+Documentation = "https://github.com/OrosiTororo/Zero-Employee-Orchestrator/tree/master/docs"
+
 [project.scripts]
 zero-employee = "app.cli:main"
 
@@ -36,3 +77,25 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["apps/api/app"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "apps/api/app/",
+    "skills/",
+    "plugins/",
+    "extensions/",
+    "README.md",
+    "LICENSE",
+    "pyproject.toml",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true

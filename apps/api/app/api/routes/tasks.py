@@ -1,7 +1,7 @@
 """Task execution endpoints with state machine enforcement."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -12,9 +12,15 @@ from app.api.deps.database import get_db
 from app.api.deps.validators import parse_uuid
 from app.models.task import Task, TaskRun
 from app.services.task_service import (
-    start_task as svc_start_task,
     complete_task as svc_complete_task,
+)
+from app.services.task_service import (
     request_task_approval as svc_request_approval,
+)
+from app.services.task_service import (
+    start_task as svc_start_task,
+)
+from app.services.task_service import (
     validate_task_transition,
 )
 
@@ -30,9 +36,7 @@ class TaskCreate(BaseModel):
 
 
 @router.post("/plans/{plan_id}/tasks")
-async def create_task(
-    plan_id: str, req: TaskCreate, db: AsyncSession = Depends(get_db)
-):
+async def create_task(plan_id: str, req: TaskCreate, db: AsyncSession = Depends(get_db)):
     """タスク作成"""
     task = Task(
         id=uuid.uuid4(),
@@ -52,9 +56,7 @@ async def create_task(
 @router.post("/tasks/{task_id}/start")
 async def start_task(task_id: str, db: AsyncSession = Depends(get_db)):
     """タスク実行開始 (state machine enforced)"""
-    result = await db.execute(
-        select(Task).where(Task.id == parse_uuid(task_id, "task_id"))
-    )
+    result = await db.execute(select(Task).where(Task.id == parse_uuid(task_id, "task_id")))
     task = result.scalar_one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -68,9 +70,7 @@ async def start_task(task_id: str, db: AsyncSession = Depends(get_db)):
 @router.post("/tasks/{task_id}/complete")
 async def complete_task(task_id: str, db: AsyncSession = Depends(get_db)):
     """タスク完了"""
-    result = await db.execute(
-        select(Task).where(Task.id == parse_uuid(task_id, "task_id"))
-    )
+    result = await db.execute(select(Task).where(Task.id == parse_uuid(task_id, "task_id")))
     task = result.scalar_one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -92,16 +92,12 @@ async def complete_task(task_id: str, db: AsyncSession = Depends(get_db)):
 @router.post("/tasks/{task_id}/retry")
 async def retry_task(task_id: str, db: AsyncSession = Depends(get_db)):
     """タスク再試行"""
-    result = await db.execute(
-        select(Task).where(Task.id == parse_uuid(task_id, "task_id"))
-    )
+    result = await db.execute(select(Task).where(Task.id == parse_uuid(task_id, "task_id")))
     task = result.scalar_one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     if not validate_task_transition(task.status, "retrying"):
-        raise HTTPException(
-            status_code=400, detail=f"Cannot retry from status: {task.status}"
-        )
+        raise HTTPException(status_code=400, detail=f"Cannot retry from status: {task.status}")
     task.status = "retrying"
     await db.commit()
     return {"status": "retrying"}
@@ -110,9 +106,7 @@ async def retry_task(task_id: str, db: AsyncSession = Depends(get_db)):
 @router.post("/tasks/{task_id}/request-approval")
 async def request_approval(task_id: str, db: AsyncSession = Depends(get_db)):
     """タスクの承認を要求"""
-    result = await db.execute(
-        select(Task).where(Task.id == parse_uuid(task_id, "task_id"))
-    )
+    result = await db.execute(select(Task).where(Task.id == parse_uuid(task_id, "task_id")))
     task = result.scalar_one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -134,7 +128,7 @@ async def create_task_run(task_id: str, db: AsyncSession = Depends(get_db)):
         task_id=tid,
         run_no=count + 1,
         status="running",
-        started_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
     )
     db.add(run)
     await db.flush()

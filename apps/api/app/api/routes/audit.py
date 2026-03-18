@@ -26,9 +26,7 @@ async def list_audit_logs(
     if event_type:
         query = query.where(AuditLog.event_type == event_type)
     query = (
-        query.order_by(AuditLog.created_at.desc())
-        .offset((page - 1) * page_size)
-        .limit(page_size)
+        query.order_by(AuditLog.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
     )
     result = await db.execute(query)
     logs = result.scalars().all()

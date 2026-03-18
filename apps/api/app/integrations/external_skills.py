@@ -132,9 +132,7 @@ class ExternalSkillImporter:
             logger.warning("GitHub search failed: %s", exc)
             return []
 
-    async def _search_skills_sh(
-        self, query: str, limit: int
-    ) -> list[SkillSearchResult]:
+    async def _search_skills_sh(self, query: str, limit: int) -> list[SkillSearchResult]:
         """skills.sh プラットフォームを検索."""
         try:
             import aiohttp
@@ -218,9 +216,7 @@ class ExternalSkillImporter:
     async def _fetch_from_github(self, repo_url: str) -> ExternalSkillManifest | None:
         return await self._fetch_from_git(repo_url)
 
-    async def _fetch_claude_code_skill(
-        self, source_uri: str
-    ) -> ExternalSkillManifest | None:
+    async def _fetch_claude_code_skill(self, source_uri: str) -> ExternalSkillManifest | None:
         """Claude Code形式のスキルを変換して取得."""
         try:
             import aiohttp
@@ -239,9 +235,7 @@ class ExternalSkillImporter:
                     return ExternalSkillManifest(
                         name=data.get("name", "claude-code-skill"),
                         slug=_slugify(data.get("name", "claude-code-skill")),
-                        description=data.get(
-                            "description", "Claude Code imported skill"
-                        ),
+                        description=data.get("description", "Claude Code imported skill"),
                         source_type=SkillSourceType.CLAUDE_CODE,
                         source_uri=source_uri,
                         skill_type="prompt",
@@ -252,9 +246,7 @@ class ExternalSkillImporter:
             logger.debug("Claude Code skill fetch failed: %s", exc)
         return None
 
-    async def _fetch_openclaw_skill(
-        self, source_uri: str
-    ) -> ExternalSkillManifest | None:
+    async def _fetch_openclaw_skill(self, source_uri: str) -> ExternalSkillManifest | None:
         """OpenClaw形式のスキルを変換して取得."""
         try:
             import aiohttp

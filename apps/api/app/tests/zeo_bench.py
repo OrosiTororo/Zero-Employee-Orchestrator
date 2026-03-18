@@ -18,7 +18,6 @@ from app.orchestration.judge import (
     JudgeVerdict,
 )
 
-
 # ---------------------------------------------------------------------------
 # Data types
 # ---------------------------------------------------------------------------
@@ -1399,9 +1398,7 @@ def _correction_quality_cases() -> list[BenchmarkCase]:
             "cq-031",
             "Detailed vs vague",
             [
-                {
-                    "explanation": "Use async/await for non-blocking I/O operations in Python 3.12+"
-                },
+                {"explanation": "Use async/await for non-blocking I/O operations in Python 3.12+"},
                 {"explanation": "Use async"},
             ],
         ),
@@ -1425,9 +1422,7 @@ def _correction_quality_cases() -> list[BenchmarkCase]:
             "cq-034",
             "Complete vs incomplete",
             [
-                {
-                    "solution": "Install Python 3.12, create venv, install deps, run tests"
-                },
+                {"solution": "Install Python 3.12, create venv, install deps, run tests"},
                 {"solution": "Install Python"},
             ],
         ),
@@ -1599,14 +1594,8 @@ class ZEOBenchRunner:
                 BenchCategory.FACTUAL_ACCURACY,
                 BenchCategory.CONTRADICTION_DETECTION,
             ):
-                tp = sum(
-                    1
-                    for r in cat_results
-                    if r.correct and r.expected != JudgeVerdict.PASS
-                )
-                total_positive = sum(
-                    1 for r in cat_results if r.expected != JudgeVerdict.PASS
-                )
+                tp = sum(1 for r in cat_results if r.correct and r.expected != JudgeVerdict.PASS)
+                total_positive = sum(1 for r in cat_results if r.expected != JudgeVerdict.PASS)
                 detection_rate = tp / total_positive if total_positive > 0 else 0.0
             else:
                 detection_rate = correct / total if total > 0 else 0.0
@@ -1627,9 +1616,7 @@ class ZEOBenchRunner:
 
         total = len(results)
         correct = sum(1 for r in results if r.correct)
-        single_rate = (
-            single_model_correct / single_model_total if single_model_total > 0 else 0.0
-        )
+        single_rate = single_model_correct / single_model_total if single_model_total > 0 else 0.0
         cross_rate = correct / total if total > 0 else 0.0
 
         return BenchmarkReport(

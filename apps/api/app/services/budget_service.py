@@ -5,14 +5,14 @@ Implements warn/stop thresholds per BudgetPolicy.
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import generate_uuid
-from app.models.budget import BudgetPolicy, CostLedger
 from app.models.audit import AuditLog
+from app.models.budget import BudgetPolicy, CostLedger
 
 
 class BudgetCheckResult:
@@ -122,7 +122,7 @@ async def record_cost(
         cost_usd=cost_usd,
         tokens_input=tokens_input,
         tokens_output=tokens_output,
-        occurred_at=datetime.now(timezone.utc),
+        occurred_at=datetime.now(UTC),
         run_type=run_type,
         run_id=uuid.UUID(run_id) if run_id else None,
     )

@@ -115,9 +115,7 @@ def print_local_banner(
     print(_separator())
 
     # Status lines (vibe-local style)
-    status_icon = (
-        f"{_GREEN}{_ICON_STATUS}{_RESET}" if ollama_available else f"{_YELLOW}✗{_RESET}"
-    )
+    status_icon = f"{_GREEN}{_ICON_STATUS}{_RESET}" if ollama_available else f"{_YELLOW}✗{_RESET}"
     model_display = model or "(auto-detect)"
     mode_display = t(f"mode_{mode}") if f"mode_{mode}" in _mode_keys() else mode
 
@@ -143,9 +141,7 @@ def print_local_banner(
     print(
         f"  {_BLUE_LIGHT}{_ICON_LANG}{_RESET} {_BOLD}{t('label_language')}{_RESET}  {lang_display}"
     )
-    print(
-        f"  {_GRAY}{_ICON_CWD}{_RESET} {_BOLD}{t('label_cwd')}{_RESET}  {_DIM}{cwd}{_RESET}"
-    )
+    print(f"  {_GRAY}{_ICON_CWD}{_RESET} {_BOLD}{t('label_cwd')}{_RESET}  {_DIM}{cwd}{_RESET}")
     print(f"  {_GRAY}   {t('label_status')}{_RESET}  {status_icon} Ollama")
 
     print(_separator())

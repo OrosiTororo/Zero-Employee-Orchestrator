@@ -8,7 +8,6 @@ import json
 import os
 import tempfile
 
-
 os.environ.setdefault("DEBUG", "true")
 
 
@@ -247,10 +246,7 @@ class TestLocalVectorStore:
             results = store.search("programming language")
             assert len(results) > 0
             # The Python document should rank highest for "programming language"
-            assert (
-                "Python" in results[0].chunk_text
-                or "programming" in results[0].chunk_text
-            )
+            assert "Python" in results[0].chunk_text or "programming" in results[0].chunk_text
 
     def test_persistence(self):
         from app.providers.local_rag import LocalVectorStore
@@ -282,9 +278,7 @@ class TestLocalVectorStore:
                 "tutorial",
                 metadata_filter={"category": "programming"},
             )
-            assert all(
-                r.document.metadata.get("category") == "programming" for r in results
-            )
+            assert all(r.document.metadata.get("category") == "programming" for r in results)
 
     def test_search_with_context(self):
         from app.providers.local_rag import LocalVectorStore
@@ -349,28 +343,28 @@ class TestI18n:
     """Test internationalization."""
 
     def test_japanese(self):
-        from app.core.i18n import t, set_language
+        from app.core.i18n import set_language, t
 
         set_language("ja")
         result = t("chat_welcome")
         assert "自然言語" in result
 
     def test_english(self):
-        from app.core.i18n import t, set_language
+        from app.core.i18n import set_language, t
 
         set_language("en")
         result = t("chat_welcome")
         assert "natural language" in result.lower()
 
     def test_chinese(self):
-        from app.core.i18n import t, set_language
+        from app.core.i18n import set_language, t
 
         set_language("zh")
         result = t("chat_welcome")
         assert "自然语言" in result
 
     def test_format_params(self):
-        from app.core.i18n import t, set_language
+        from app.core.i18n import set_language, t
 
         set_language("en")
         result = t("orch_task_created", title="My Task")
@@ -383,7 +377,7 @@ class TestI18n:
         assert result == "nonexistent_key_xyz"
 
     def test_fallback_language(self):
-        from app.core.i18n import set_language, get_language
+        from app.core.i18n import get_language, set_language
 
         set_language("xx")  # unsupported
         assert get_language() == "en"  # falls back to English

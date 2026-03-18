@@ -2,7 +2,7 @@
 
 import uuid
 
-from sqlalchemy import Boolean, ForeignKey, JSON, String, Text, Uuid
+from sqlalchemy import JSON, Boolean, ForeignKey, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base, TimestampMixin
@@ -12,12 +12,8 @@ class Agent(Base, TimestampMixin):
     __tablename__ = "agents"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    company_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("companies.id"), index=True
-    )
-    team_id: Mapped[uuid.UUID | None] = mapped_column(
-        Uuid, ForeignKey("teams.id"), nullable=True
-    )
+    company_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("companies.id"), index=True)
+    team_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("teams.id"), nullable=True)
     manager_agent_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid, ForeignKey("agents.id"), nullable=True
     )

@@ -10,7 +10,7 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import JSON, String, Text, Uuid, func, select, Boolean, Integer
+from sqlalchemy import JSON, Boolean, Integer, String, Text, Uuid, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -58,9 +58,7 @@ class BrainDumpRecord(Base):
     is_archived: Mapped[bool] = mapped_column(Boolean, default=False)
     linked_ticket_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True)
     metadata_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        default=func.now(), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         default=func.now(), server_default=func.now(), onupdate=func.now()
     )
@@ -80,9 +78,7 @@ class DailySummaryRecord(Base):
     key_decisions: Mapped[list | None] = mapped_column(JSON, nullable=True)
     action_items: Mapped[list | None] = mapped_column(JSON, nullable=True)
     insights: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        default=func.now(), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())
 
 
 # ---------------------------------------------------------------------------
@@ -228,10 +224,7 @@ def extract_action_items(text: str) -> list[str]:
     ]
     for line in lines:
         stripped = line.strip()
-        if any(
-            stripped.startswith(m) or stripped.startswith(m.lower())
-            for m in action_markers
-        ):
+        if any(stripped.startswith(m) or stripped.startswith(m.lower()) for m in action_markers):
             # マーカーを除去してアクションアイテムとして追加
             for m in action_markers:
                 if stripped.startswith(m):
@@ -323,9 +316,7 @@ class SecretaryService:
         if priority:
             stmt = stmt.where(BrainDumpRecord.priority == priority)
 
-        stmt = (
-            stmt.order_by(BrainDumpRecord.created_at.desc()).offset(offset).limit(limit)
-        )
+        stmt = stmt.order_by(BrainDumpRecord.created_at.desc()).offset(offset).limit(limit)
         result = await self._db.execute(stmt)
         return list(result.scalars().all())
 
@@ -380,10 +371,7 @@ class SecretaryService:
             .where(
                 BrainDumpRecord.company_id == cid,
                 BrainDumpRecord.is_archived.is_(False),
-                (
-                    BrainDumpRecord.raw_text.ilike(pattern)
-                    | BrainDumpRecord.title.ilike(pattern)
-                ),
+                (BrainDumpRecord.raw_text.ilike(pattern) | BrainDumpRecord.title.ilike(pattern)),
             )
             .order_by(BrainDumpRecord.created_at.desc())
             .limit(limit)

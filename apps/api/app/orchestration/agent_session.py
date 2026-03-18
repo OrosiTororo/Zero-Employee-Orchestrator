@@ -40,9 +40,7 @@ class AgentSessionRecord(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     agent_id: Mapped[str] = mapped_column(String(255), index=True)
-    company_id: Mapped[uuid.UUID | None] = mapped_column(
-        Uuid, nullable=True, index=True
-    )
+    company_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True, index=True)
     task_id: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
     status: Mapped[str] = mapped_column(String(30), default="active")
     role: Mapped[str] = mapped_column(String(60), default="general")
@@ -96,9 +94,7 @@ class InMemorySession:
     def is_expired(self) -> bool:
         return time.time() > self.started_at + self.ttl
 
-    def add_message(
-        self, role: str, content: str, metadata: dict | None = None
-    ) -> None:
+    def add_message(self, role: str, content: str, metadata: dict | None = None) -> None:
         """会話履歴にメッセージを追加."""
         self.conversation_history.append(
             {
@@ -228,11 +224,7 @@ class AgentSessionManager:
         session_ids = self._agent_sessions.get(agent_id, [])
         for sid in reversed(session_ids):
             s = self._sessions.get(sid)
-            if (
-                s
-                and not s.is_expired()
-                and s.status in (SessionStatus.ACTIVE, SessionStatus.IDLE)
-            ):
+            if s and not s.is_expired() and s.status in (SessionStatus.ACTIVE, SessionStatus.IDLE):
                 return s
         return None
 
@@ -299,9 +291,7 @@ class AgentSessionManager:
         if existing:
             existing.status = session.status.value
             existing.context_json = session.context
-            existing.conversation_history = {
-                "messages": session.conversation_history[-100:]
-            }
+            existing.conversation_history = {"messages": session.conversation_history[-100:]}
             existing.working_memory = session.working_memory
             existing.message_count = session.message_count
             existing.round_count = session.round_count
@@ -312,9 +302,7 @@ class AgentSessionManager:
             record = AgentSessionRecord(
                 id=uuid.uuid4(),
                 agent_id=session.agent_id,
-                company_id=uuid.UUID(session.company_id)
-                if session.company_id
-                else None,
+                company_id=uuid.UUID(session.company_id) if session.company_id else None,
                 task_id=session.task_id,
                 status=session.status.value,
                 role=session.role,
@@ -331,9 +319,7 @@ class AgentSessionManager:
             db.add(record)
         await db.flush()
 
-    async def restore_session(
-        self, agent_id: str, db: AsyncSession
-    ) -> InMemorySession | None:
+    async def restore_session(self, agent_id: str, db: AsyncSession) -> InMemorySession | None:
         """DBからセッションを復元."""
         result = await db.execute(
             select(AgentSessionRecord)
@@ -356,9 +342,7 @@ class AgentSessionManager:
             role=record.role,
             status=SessionStatus(record.status),
             context=record.context_json or {},
-            conversation_history=(record.conversation_history or {}).get(
-                "messages", []
-            ),
+            conversation_history=(record.conversation_history or {}).get("messages", []),
             working_memory=record.working_memory or {},
             message_count=record.message_count,
             round_count=record.round_count,

@@ -1,13 +1,13 @@
 """Approval request management with forced approval for dangerous operations."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import generate_uuid
-from app.models.review import ApprovalRequest
 from app.models.audit import AuditLog
+from app.models.review import ApprovalRequest
 
 # Operations that ALWAYS require human approval (Section 12.3, 25.1)
 FORCED_APPROVAL_OPERATIONS = {
@@ -58,17 +58,13 @@ async def create_approval_request(
         target_type=target_type,
         target_id=uuid.UUID(target_id),
         requested_by_type=requested_by_type,
-        requested_by_agent_id=uuid.UUID(requested_by_agent_id)
-        if requested_by_agent_id
-        else None,
-        requested_by_user_id=uuid.UUID(requested_by_user_id)
-        if requested_by_user_id
-        else None,
+        requested_by_agent_id=uuid.UUID(requested_by_agent_id) if requested_by_agent_id else None,
+        requested_by_user_id=uuid.UUID(requested_by_user_id) if requested_by_user_id else None,
         status="requested",
         reason=reason,
         risk_level=risk_level,
         payload_json=payload_json or {},
-        requested_at=datetime.now(timezone.utc),
+        requested_at=datetime.now(UTC),
     )
     db.add(req)
 
@@ -76,9 +72,7 @@ async def create_approval_request(
         id=generate_uuid(),
         company_id=uuid.UUID(company_id),
         actor_type=requested_by_type,
-        actor_agent_id=uuid.UUID(requested_by_agent_id)
-        if requested_by_agent_id
-        else None,
+        actor_agent_id=uuid.UUID(requested_by_agent_id) if requested_by_agent_id else None,
         actor_user_id=uuid.UUID(requested_by_user_id) if requested_by_user_id else None,
         event_type="approval.requested",
         target_type=target_type,
@@ -104,7 +98,7 @@ async def decide_approval(
 
     approval.status = decision  # "approved" or "rejected"
     approval.approver_user_id = uuid.UUID(approver_user_id)
-    approval.decided_at = datetime.now(timezone.utc)
+    approval.decided_at = datetime.now(UTC)
 
     audit = AuditLog(
         id=generate_uuid(),

@@ -108,9 +108,7 @@ class PolicyPackJudge:
         ]
         return any(p in content for p in suspicious_patterns)
 
-    def evaluate(
-        self, output: dict, operations: list[str] | None = None
-    ) -> JudgeResult:
+    def evaluate(self, output: dict, operations: list[str] | None = None) -> JudgeResult:
         violations = []
         suggestions = []
 
@@ -118,9 +116,7 @@ class PolicyPackJudge:
         if operations:
             dangerous = self.check_dangerous_operations(operations)
             if dangerous:
-                violations.extend(
-                    [f"承認必須操作が含まれています: {op}" for op in dangerous]
-                )
+                violations.extend([f"承認必須操作が含まれています: {op}" for op in dangerous])
 
         # Check credential exposure
         content = str(output)
@@ -350,9 +346,7 @@ class CrossModelJudge:
 
         return contradictions
 
-    def _check_pair_contradiction(
-        self, key: str, val_a: str, val_b: str
-    ) -> dict | None:
+    def _check_pair_contradiction(self, key: str, val_a: str, val_b: str) -> dict | None:
         """Check a single pair of values for contradiction.
 
         値ペア間の矛盾をチェックする。
@@ -422,13 +416,11 @@ class CrossModelJudge:
                             continue
 
                         flagged = False
-                        if fp["check"] == "year_range" and not (1000 <= num <= 2100):
-                            flagged = True
-                        elif fp["check"] == "percentage_bound" and not (
-                            0 <= num <= 100
+                        if (
+                            (fp["check"] == "year_range" and not (1000 <= num <= 2100))
+                            or (fp["check"] == "percentage_bound" and not (0 <= num <= 100))
+                            or (fp["check"] == "temp_celsius" and not (-90 <= num <= 60))
                         ):
-                            flagged = True
-                        elif fp["check"] == "temp_celsius" and not (-90 <= num <= 60):
                             flagged = True
 
                         if flagged:
@@ -543,9 +535,7 @@ class CrossModelJudge:
                     break
             if all_match:
                 matching_values += 1
-        semantic_value_score = (
-            matching_values / len(common_keys) if common_keys else 0.0
-        )
+        semantic_value_score = matching_values / len(common_keys) if common_keys else 0.0
 
         # ---- Majority-vote confidence score ----
         majority_score = self._majority_agreement_score(outputs)
@@ -559,9 +549,7 @@ class CrossModelJudge:
 
         # ---- Overall score computation ----
         # Weighted combination: structural 20%, semantic value 40%, majority 40%
-        raw_score = (
-            0.2 * structural_score + 0.4 * semantic_value_score + 0.4 * majority_score
-        )
+        raw_score = 0.2 * structural_score + 0.4 * semantic_value_score + 0.4 * majority_score
 
         # Penalize for contradictions
         contradiction_penalty = min(len(contradictions) * 0.1, 0.5)
@@ -575,8 +563,7 @@ class CrossModelJudge:
 
         if structural_score < self.agreement_threshold:
             reasons.append(
-                f"構造一致度が低い: {structural_score:.0%} "
-                f"(閾値 {self.agreement_threshold:.0%})"
+                f"構造一致度が低い: {structural_score:.0%} (閾値 {self.agreement_threshold:.0%})"
             )
 
         if semantic_value_score < self.agreement_threshold:
@@ -648,8 +635,7 @@ def judge_output(
         score=combined_score,
         reasons=combined_reasons,
         suggestions=combined_suggestions,
-        policy_violations=rule_result.policy_violations
-        + policy_result.policy_violations,
+        policy_violations=rule_result.policy_violations + policy_result.policy_violations,
         requires_human_review=rule_result.requires_human_review
         or policy_result.requires_human_review,
     )

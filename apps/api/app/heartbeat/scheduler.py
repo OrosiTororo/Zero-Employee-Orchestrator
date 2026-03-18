@@ -21,7 +21,7 @@ from __future__ import annotations
 import logging
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 logger = logging.getLogger(__name__)
@@ -77,7 +77,7 @@ class HeartbeatExecution:
 
     def start(self) -> None:
         self.status = HeartbeatRunStatus.RUNNING
-        self.started_at = datetime.now(timezone.utc)
+        self.started_at = datetime.now(UTC)
         self.actions = []
 
     def add_action(self, action: HeartbeatAction) -> None:
@@ -86,10 +86,8 @@ class HeartbeatExecution:
         self.actions.append(action)
 
     def finish(self, success: bool = True, summary: str = "") -> None:
-        self.finished_at = datetime.now(timezone.utc)
-        self.status = (
-            HeartbeatRunStatus.SUCCEEDED if success else HeartbeatRunStatus.FAILED
-        )
+        self.finished_at = datetime.now(UTC)
+        self.status = HeartbeatRunStatus.SUCCEEDED if success else HeartbeatRunStatus.FAILED
         self.summary = summary
 
 
