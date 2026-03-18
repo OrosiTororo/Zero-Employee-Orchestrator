@@ -43,30 +43,26 @@ jobs:
         id: changelog
         run: |
           VERSION="${{ env.VERSION }}"
-          # Try matching [VERSION], [vVERSION], and [v+short] (e.g., [v0.1] for 0.1.0)
-          # Build major.minor from VERSION for short match
           SHORT_VER=$(echo "$VERSION" | sed 's/\.[0-9]*$//')
 
-          NOTES=$(awk -v ver="$VERSION" -v short="$SHORT_VER" '
+          awk -v ver="$VERSION" -v short="$SHORT_VER" '
             BEGIN {
-              # Escape regex special characters in version strings (e.g., dots)
               gsub(/\./, "\\.", ver)
               gsub(/\./, "\\.", short)
-              pat1 = "## \\[" ver "\\]"
-              pat2 = "## \\[v" ver "\\]"
-              pat3 = "## \\[v" short "\\]"
+              pat1 = "## \[" ver "\]"
+              pat2 = "## \[v" ver "\]"
+              pat3 = "## \[v" short "\]"
             }
             $0 ~ pat1 || $0 ~ pat2 || $0 ~ pat3 { found=1; next }
             found && /^## \[/ { exit }
+            found && /^## Development History/ { exit }
             found { print }
-          ' docs/CHANGELOG.md)
+          ' docs/CHANGELOG.md > /tmp/release-notes.md
 
-          if [ -z "$NOTES" ]; then
-            NOTES="Release v${VERSION}"
+          if [ ! -s /tmp/release-notes.md ]; then
+            echo "Release v${VERSION}" > /tmp/release-notes.md
           fi
 
-          # Write to file for the release body
-          echo "$NOTES" > /tmp/release-notes.md
           echo "notes_file=/tmp/release-notes.md" >> "$GITHUB_OUTPUT"
 
       - name: Create tag
