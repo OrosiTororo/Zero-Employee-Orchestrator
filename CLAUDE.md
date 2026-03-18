@@ -18,7 +18,8 @@ ls apps/api/app/tests/
 - `docs/Zero-Employee Orchestrator.md` — 最上位基準文書
 - `docs/dev/DESIGN.md` — 実装設計書
 - `docs/dev/MASTER_GUIDE.md` — 実装運用ガイド
-- `ROADMAP.md` — ロードマップ (v0.2〜v1.0)
+- `ROADMAP.md` — ロードマップ（v0.2 以降の残課題）
+- `docs/MANUAL_SETUP.md` — 開発者手動セットアップガイド
 
 **IMPORTANT: このファイルの情報が古い場合は、実際のコードと README.md を読んで更新すること。**
 
@@ -41,20 +42,20 @@ apps/
 ├── api/              # FastAPI バックエンド (Python 3.12+)
 │   ├── app/
 │   │   ├── core/           # 設定・DB・レート制限・i18n
-│   │   ├── api/routes/     # REST API エンドポイント (29 ルートモジュール)
+│   │   ├── api/routes/     # REST API エンドポイント (37 ルートモジュール)
 │   │   ├── api/ws/         # WebSocket (events, browser_assist_ws)
 │   │   ├── api/deps/       # 依存性注入
 │   │   ├── models/         # SQLAlchemy ORM
 │   │   ├── schemas/        # Pydantic DTO
-│   │   ├── services/       # ビジネスロジック (14 サービス)
+│   │   ├── services/       # ビジネスロジック (19 サービス)
 │   │   ├── repositories/   # DB 入出力抽象化
-│   │   ├── orchestration/  # DAG・Judge・状態機械・Knowledge・Memory (18 モジュール)
+│   │   ├── orchestration/  # DAG・Judge・状態機械・Knowledge・Memory・MetaSkill・A2A (22 モジュール)
 │   │   ├── heartbeat/      # Heartbeat スケジューラ
 │   │   ├── providers/      # LLM ゲートウェイ・Ollama・g4f・RAG・ModelRegistry
-│   │   ├── tools/          # 外部ツール接続 (MCP/Webhook/API/CLI)
+│   │   ├── tools/          # 外部ツール接続 (MCP/Webhook/API/CLI/GraphQL/ブラウザ自動操作/LSP)
 │   │   ├── policies/       # 承認ゲート・自律実行境界
-│   │   ├── security/       # IAM・シークレット・サニタイズ・プロンプト防御・PII・サンドボックス・データ保護
-│   │   ├── integrations/   # Sentry・MCP・外部スキル・ブラウザアシスト・AI調査・メディア生成・AIツール
+│   │   ├── security/       # IAM・シークレット・サニタイズ・プロンプト防御・PII・サンドボックス・データ保護・レッドチーム
+│   │   ├── integrations/   # Sentry・MCP・外部スキル・ブラウザアシスト・AI調査・メディア生成・AIツール・iPaaS・エクスポート・リパーパス・RSS/ToS・Obsidian・クラウド・スマートデバイス
 │   │   ├── audit/          # 監査ログ
 │   │   └── tests/          # テスト
 │   ├── alembic/            # DB マイグレーション
@@ -109,7 +110,7 @@ latest_model_id:  "claude-opus-4-6"  ← 実際の API 呼び出しに使用
 - モデル更新時は `latest_model_id` のみを変更する（コード修正不要）
 - `ModelRegistry.resolve_api_id()` がファミリー → 最新バージョンを自動解決
 - 実行モード: quality / speed / cost / free / subscription
-- v0.3 で RSS/ToS 自動更新パイプラインを導入予定 (ROADMAP.md 参照)
+- RSS/ToS 自動更新パイプライン実装済み (`integrations/rss_tos_monitor.py`)
 
 ## セキュリティ (最重要)
 
@@ -165,7 +166,8 @@ WebSocket エンドポイント: `ws://localhost:18234/ws/browser-assist`
 budgets, audit, registry, models, observability (traces/communications/monitor),
 ollama, knowledge, config, self-improvement, browser-assist, secretary,
 brainstorm, conversation-memory, hypotheses, sessions, org-setup, platform,
-**security, media, ai-tools**
+security, media, ai-tools, **files, user-input, resources, ipaas, export,
+marketplace, teams, governance**
 
 ## Skill / Plugin / Extension
 
@@ -198,9 +200,10 @@ brainstorm, conversation-memory, hypotheses, sessions, org-setup, platform,
 
 ## ロードマップ
 
-- **v0.2**: Tool Connector 実装完成、iPaaS 連携、ユーザーリソースインポート
-- **v0.3**: Meta-Skills、RSS/ToS 自動更新パイプライン（モデルカタログ自動更新）、AI 共創リパーパスエンジン
-- **v0.4**: Skill マーケットプレイス、マルチユーザー / チーム対応
-- **v1.0**: ガバナンスとコンプライアンス、24/365 ロングラン実行
+v0.1 で旧 v0.2〜v1.0 の全機能を実装済み。残る課題:
+
+- **v0.2**: フロントエンド データ接続完成、features/ 分離、Plugin ローダー本実装
+- **v0.3**: コミュニティ Skill エコシステム、匿名フィードバック集約
+- **v1.0**: Self-Improvement Loop 自動化、Cross-Orchestrator Learning
 
 詳細は `ROADMAP.md` を参照。

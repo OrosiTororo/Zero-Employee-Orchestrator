@@ -13,8 +13,13 @@ from app.api.routes import (
     budgets,
     companies,
     config,
+    export,
+    file_upload,
+    governance,
     heartbeats,
+    ipaas,
     knowledge,
+    marketplace,
     media_generation,
     models,
     multi_model,
@@ -24,13 +29,16 @@ from app.api.routes import (
     platform,
     projects,
     registry,
+    resource_import,
     secretary,
     security_settings,
     self_improvement,
     settings,
     specs_plans,
     tasks,
+    team,
     tickets,
+    user_input,
 )
 
 api_router = APIRouter()
@@ -65,3 +73,11 @@ api_router.include_router(browser_assist.router, tags=["browser-assist"])
 api_router.include_router(security_settings.router, tags=["security"])
 api_router.include_router(media_generation.router, tags=["media-generation"])
 api_router.include_router(ai_tools.router, tags=["ai-tools"])
+api_router.include_router(file_upload.router, tags=["files"])
+api_router.include_router(user_input.router, tags=["user-input"])
+api_router.include_router(resource_import.router, tags=["resources"])
+api_router.include_router(ipaas.router, tags=["ipaas"])
+api_router.include_router(export.router, tags=["export"])
+api_router.include_router(marketplace.router, tags=["marketplace"])
+api_router.include_router(team.router, tags=["teams"])
+api_router.include_router(governance.router, tags=["governance"])
