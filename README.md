@@ -582,7 +582,7 @@ apps/
 ├── api/              # FastAPI バックエンド
 │   └── app/
 │       ├── core/           # 設定・DB・セキュリティ・i18n
-│       ├── api/routes/     # 26 REST API エンドポイント
+│       ├── api/routes/     # 29 REST API ルートモジュール
 │       ├── api/ws/         # WebSocket
 │       ├── models/         # SQLAlchemy ORM
 │       ├── schemas/        # Pydantic DTO
@@ -598,7 +598,7 @@ apps/
 ├── edge/             # Cloudflare Workers
 └── worker/           # バックグラウンドワーカー
 skills/               # ビルトインスキル（7 個）
-plugins/              # Plugin マニフェスト（11 Plugin）
+plugins/              # Plugin マニフェスト（9 Plugin）
 extensions/           # Extension マニフェスト（5 Extension）
 packages/             # 共有 NPM パッケージ
 ```
