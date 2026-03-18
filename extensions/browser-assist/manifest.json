@@ -1,0 +1,38 @@
+{
+  "name": "browser-assist",
+  "version": "0.1.0",
+  "display_name": "Browser Assist",
+  "display_name_ja": "ブラウザアシスト",
+  "description": "Assist users by viewing their screen, analyzing browser content, and providing step-by-step guidance for web operations and application usage.",
+  "description_ja": "ユーザーの画面を見ながら、ウェブ操作やアプリケーション利用をアシスト。ステップバイステップで操作方法を案内。",
+  "type": "extension",
+  "category": "user-assist",
+  "author": "Zero-Employee Orchestrator",
+  "license": "MIT",
+  "skills": [
+    "screen-capture-assist",
+    "browser-navigation-guide",
+    "form-fill-assist",
+    "error-diagnosis"
+  ],
+  "requires": {
+    "capabilities": ["screenshot_capture", "screen_analysis"],
+    "permissions": ["read_screen", "capture_screenshot"]
+  },
+  "settings": {
+    "capture_interval_ms": 2000,
+    "max_screenshot_size_mb": 5,
+    "supported_browsers": ["chrome", "firefox", "edge", "safari"],
+    "privacy": {
+      "blur_sensitive_fields": true,
+      "exclude_password_fields": true,
+      "user_consent_required": true
+    }
+  },
+  "safety": {
+    "requires_user_consent": true,
+    "auto_stop_on_idle_minutes": 5,
+    "no_autonomous_clicks": true,
+    "audit_all_captures": true
+  }
+}

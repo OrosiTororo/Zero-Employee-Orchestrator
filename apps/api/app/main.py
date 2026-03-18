@@ -17,6 +17,10 @@ from app.api.ws.events import router as ws_router
 from app.core.config import settings
 from app.core.database import Base, engine
 from app.core.rate_limit import limiter, rate_limit_exceeded_handler
+from app.security.security_headers import (
+    RequestValidationMiddleware,
+    SecurityHeadersMiddleware,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +99,12 @@ app = FastAPI(
 # Rate limiting
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)  # type: ignore[arg-type]
+
+# Security headers — OWASP 推奨ヘッダーを全レスポンスに付与
+app.add_middleware(SecurityHeadersMiddleware)
+
+# Request validation — 不正リクエストの早期拒否
+app.add_middleware(RequestValidationMiddleware)
 
 # CORS — allow_methods / allow_headers を明示的に制限
 app.add_middleware(

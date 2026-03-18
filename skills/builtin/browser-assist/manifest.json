@@ -1,0 +1,63 @@
+{
+  "name": "browser-assist",
+  "version": "0.1.0",
+  "display_name": "Browser Assist Skill",
+  "display_name_ja": "ブラウザアシストスキル",
+  "description": "Analyze screenshots and screen captures to guide users through web operations, troubleshoot errors, and provide step-by-step instructions.",
+  "description_ja": "スクリーンショットや画面キャプチャを分析し、ウェブ操作の案内、エラー解決、ステップバイステップ指示を提供。",
+  "type": "skill",
+  "category": "user-assist",
+  "is_system_protected": false,
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string",
+        "enum": ["analyze_screen", "guide_navigation", "diagnose_error", "fill_form_guide", "explain_ui"],
+        "description": "The assist action to perform"
+      },
+      "screenshot_base64": {
+        "type": "string",
+        "description": "Base64 encoded screenshot image"
+      },
+      "user_question": {
+        "type": "string",
+        "description": "User's question about what they see on screen"
+      },
+      "target_url": {
+        "type": "string",
+        "description": "The URL the user is currently viewing"
+      },
+      "browser": {
+        "type": "string",
+        "enum": ["chrome", "firefox", "edge", "safari", "other"],
+        "default": "chrome"
+      },
+      "language": {
+        "type": "string",
+        "enum": ["ja", "en", "zh"],
+        "default": "ja"
+      }
+    },
+    "required": ["action", "user_question"]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "steps": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "step_number": {"type": "integer"},
+            "instruction": {"type": "string"},
+            "ui_element": {"type": "string"},
+            "screenshot_annotation": {"type": "string"}
+          }
+        }
+      },
+      "explanation": {"type": "string"},
+      "warnings": {"type": "array", "items": {"type": "string"}}
+    }
+  }
+}
