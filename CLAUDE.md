@@ -19,7 +19,8 @@ ls apps/api/app/tests/
 - `docs/dev/DESIGN.md` — 実装設計書
 - `docs/dev/MASTER_GUIDE.md` — 実装運用ガイド
 - `ROADMAP.md` — ロードマップ（v0.2 以降の残課題）
-- `docs/MANUAL_SETUP.md` — 開発者手動セットアップガイド
+- `docs/DEVELOPER_SETUP.md` — 開発者・管理者セットアップガイド
+- `docs/USER_SETUP.md` — 利用ユーザーセットアップガイド
 
 **IMPORTANT: このファイルの情報が古い場合は、実際のコードと README.md を読んで更新すること。必ず、リポジトリ構造と全mdファイルを確認すること。リポジトリの確認をするときは、全ファイルを確認すること。**
 
@@ -127,7 +128,11 @@ latest_model_id:  "claude-opus-4-6"  ← 実際の API 呼び出しに使用
 9. **許可していないフォルダ・ファイルを AI が確認することは厳禁**
 10. **パスワード類のアップロードは常にブロック**
 
+11. **ワークスペース隔離**: `workspace_isolation.py` で隔離環境チェック。AI は内部ストレージのみアクセス可能（初期設定）
+12. **業務単位の環境オーバーライド**: チャット指示がシステム設定と異なる場合、`should_request_approval()` でユーザーに許可を求める
+
 防御レイヤー:
+- ワークスペース隔離 (`security/workspace_isolation.py`) — 初期状態でローカル・クラウド接続なし
 - プロンプトインジェクション防御 (`security/prompt_guard.py`) — 5 カテゴリ・40+ パターン
 - 承認ゲート (`policies/approval_gate.py`) — 12 カテゴリの危険操作
 - 自律実行境界 (`policies/autonomy_boundary.py`)

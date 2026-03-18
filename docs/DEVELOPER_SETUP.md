@@ -1,6 +1,6 @@
-# 手動セットアップガイド
+# 開発者セットアップガイド
 
-> 開発者が手動で設定・構成する必要がある項目の一覧
+> 開発者・管理者が手動で設定・構成する必要がある項目の一覧
 >
 > 最終更新: 2026-03-18
 
@@ -8,7 +8,7 @@
 
 ## 1. 外部 API キーの設定
 
-以下の外部サービスを利用する場合、開発者が手動で API キーを設定する必要があります。
+以下の外部サービスを利用する場合、管理者が API キーを設定する必要があります。
 
 ### LLM プロバイダー
 
@@ -160,28 +160,6 @@ zero-employee config set CORS_ORIGINS '["https://your-domain.com"]'
 zero-employee config set CORS_ORIGINS '["http://localhost:5173","http://localhost:18234"]'
 ```
 
-### ファイルサンドボックス
-
-```bash
-# 許可フォルダの追加
-zero-employee config set SANDBOX_ALLOWED_PATHS "/home/user/projects,/tmp/work"
-
-# レベル変更（推奨: strict のまま）
-zero-employee config set SANDBOX_LEVEL strict
-```
-
-### データ保護ポリシー
-
-```bash
-# デフォルト: lockdown（全転送禁止）
-# 必要に応じて変更
-zero-employee config set SECURITY_TRANSFER_POLICY restricted
-
-# アップロード・ダウンロード許可先の設定
-zero-employee config set SECURITY_ALLOWED_UPLOAD_DESTINATIONS '["internal_storage"]'
-zero-employee config set SECURITY_ALLOWED_DOWNLOAD_SOURCES '["internal_storage"]'
-```
-
 ---
 
 ## 5. データベース設定
@@ -202,54 +180,7 @@ zero-employee db upgrade
 
 ---
 
-## 6. Ollama ローカル LLM セットアップ
-
-API キー不要で完全ローカル動作させる場合:
-
-```bash
-# 1. Ollama をインストール
-curl -fsSL https://ollama.com/install.sh | sh
-
-# 2. 推奨モデルをダウンロード
-zero-employee pull qwen3:8b        # 軽量 (推奨)
-zero-employee pull qwen3:32b       # 高品質
-zero-employee pull deepseek-coder-v2  # コーディング特化
-
-# 3. 実行モードを free に設定
-zero-employee config set DEFAULT_EXECUTION_MODE free
-```
-
----
-
-## 7. Chrome 拡張機能のインストール
-
-```
-1. Chrome で chrome://extensions を開く
-2. 右上の「デベロッパーモード」を ON
-3. 「パッケージ化されていない拡張機能を読み込む」をクリック
-4. extensions/browser-assist/chrome-extension/ フォルダを選択
-5. ZEO サーバーが起動していることを確認（http://localhost:18234）
-```
-
----
-
-## 8. Obsidian 連携
-
-```bash
-# Vault パスの登録（API 経由）
-POST /api/v1/knowledge/remember
-{
-  "category": "obsidian",
-  "key": "vault_path",
-  "value": "/path/to/your/obsidian/vault"
-}
-```
-
-Obsidian プラグイン「Local REST API」のインストールも推奨します。
-
----
-
-## 9. クラウドプロバイダー設定
+## 6. クラウドプロバイダー設定
 
 利用するクラウドサービスに応じて CLI をインストール:
 
@@ -269,7 +200,7 @@ az login
 
 ---
 
-## 10. Docker / 自律運用設定
+## 7. Docker / 自律運用設定
 
 ### Docker Compose（推奨）
 
@@ -295,7 +226,7 @@ npm run deploy
 
 ---
 
-## 11. Heartbeat スケジューラ設定
+## 8. Heartbeat スケジューラ設定
 
 定期実行タスクを設定する場合:
 
@@ -312,7 +243,7 @@ POST /api/v1/heartbeats
 
 ---
 
-## 12. レッドチーム セキュリティテスト
+## 9. レッドチーム セキュリティテスト
 
 定期的にセキュリティテストを実行することを推奨します:
 
@@ -343,31 +274,4 @@ zero-employee security status
 
 ---
 
-## 設定不要で動作する機能
-
-以下の機能は追加設定なしで利用可能です:
-
-- Design Interview（壁打ち・要件深掘り）
-- Task Orchestrator（DAG 分解・進行管理）
-- Judge Layer（品質検証）
-- Self-Healing DAG（自動再計画）
-- Experience Memory（経験記憶）
-- Skill Registry（スキル管理）
-- 承認フロー・監査ログ
-- PII 自動検出・マスキング
-- プロンプトインジェクション防御
-- ファイルサンドボックス
-- メタスキル（AI の学習能力）
-- A2A 双方向通信
-- マーケットプレイス基盤
-- チーム管理基盤
-- ガバナンス・コンプライアンス基盤
-- リパーパスエンジン
-- ユーザー入力要求
-- 成果物エクスポート（ローカル）
-- E2E テストフレームワーク
-- LLM レスポンスモック（テスト用）
-
----
-
-*Zero-Employee Orchestrator — 手動設定ガイド*
+*Zero-Employee Orchestrator — 開発者セットアップガイド*
