@@ -312,8 +312,7 @@ class ModelRegistry:
             # latest_model_id で逆引き
             for m in self._models.values():
                 if m.latest_model_id and (
-                    m.latest_model_id == model_id
-                    or f"{m.provider}/{m.latest_model_id}" == model_id
+                    m.latest_model_id == model_id or f"{m.provider}/{m.latest_model_id}" == model_id
                 ):
                     entry = m
                     break
