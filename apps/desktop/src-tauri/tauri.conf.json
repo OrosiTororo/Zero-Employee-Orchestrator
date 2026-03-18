@@ -38,7 +38,7 @@
     ],
     "shortDescription": "AI業務オーケストレーション基盤",
     "longDescription": "自然言語で業務を設計し、複数AIを組織的に協働させる、人間の承認と監査可能性を備えた業務実行基盤",
-    "createUpdaterArtifacts": true,
+    "createUpdaterArtifacts": false,
     "macOS": {
       "minimumSystemVersion": "10.13"
     },
