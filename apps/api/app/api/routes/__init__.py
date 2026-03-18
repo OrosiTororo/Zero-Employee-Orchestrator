@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from app.api.routes import (
     agents,
+    ai_tools,
     approvals,
     artifacts,
     audit,
@@ -14,6 +15,7 @@ from app.api.routes import (
     config,
     heartbeats,
     knowledge,
+    media_generation,
     models,
     multi_model,
     observability,
@@ -23,6 +25,7 @@ from app.api.routes import (
     projects,
     registry,
     secretary,
+    security_settings,
     self_improvement,
     settings,
     specs_plans,
@@ -59,3 +62,6 @@ api_router.include_router(
 )
 api_router.include_router(self_improvement.router, tags=["self-improvement"])
 api_router.include_router(browser_assist.router, tags=["browser-assist"])
+api_router.include_router(security_settings.router, tags=["security"])
+api_router.include_router(media_generation.router, tags=["media-generation"])
+api_router.include_router(ai_tools.router, tags=["ai-tools"])

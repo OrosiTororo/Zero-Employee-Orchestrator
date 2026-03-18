@@ -13,6 +13,7 @@ import app.orchestration.experience_memory  # noqa: F401
 import app.orchestration.knowledge_store  # noqa: F401
 import app.security.iam  # noqa: F401
 from app.api.routes import api_router
+from app.api.ws.browser_assist_ws import router as browser_assist_ws_router
 from app.api.ws.events import router as ws_router
 from app.core.config import settings
 from app.core.database import Base, engine
@@ -120,6 +121,7 @@ app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
 # WebSocket routes
 app.include_router(ws_router)
+app.include_router(browser_assist_ws_router)
 
 
 @app.get("/healthz", tags=["health"])
