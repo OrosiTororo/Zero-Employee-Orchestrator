@@ -25,6 +25,7 @@ class ModelEntryResponse(BaseModel):
     id: str
     provider: str
     display_name: str
+    latest_model_id: str = ""
     cost_per_1k_input: float
     cost_per_1k_output: float
     max_tokens: int
@@ -109,6 +110,7 @@ async def list_models(
                 id=m.id,
                 provider=m.provider,
                 display_name=m.display_name,
+                latest_model_id=m.latest_model_id,
                 cost_per_1k_input=m.cost_per_1k_input,
                 cost_per_1k_output=m.cost_per_1k_output,
                 max_tokens=m.max_tokens,
@@ -192,6 +194,7 @@ async def list_deprecated_models():
                 id=m.id,
                 provider=m.provider,
                 display_name=m.display_name,
+                latest_model_id=m.latest_model_id,
                 cost_per_1k_input=m.cost_per_1k_input,
                 cost_per_1k_output=m.cost_per_1k_output,
                 max_tokens=m.max_tokens,

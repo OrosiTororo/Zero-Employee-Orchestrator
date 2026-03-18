@@ -94,30 +94,30 @@ def _load_model_catalog() -> dict[ExecutionMode, list[str]]:
     logger.info("Using hardcoded fallback model catalog")
     return {
         ExecutionMode.QUALITY: [
-            "anthropic/claude-opus-4-6",
-            "openai/gpt-5.4",
-            "gemini/gemini-2.5-pro",
-            "google/gemini-2.5-pro",
+            "anthropic/claude-opus",
+            "openai/gpt",
+            "gemini/gemini-pro",
+            "google/gemini-pro",
         ],
         ExecutionMode.SPEED: [
-            "anthropic/claude-haiku-4-5-20251001",
-            "openai/gpt-5-mini",
-            "gemini/gemini-2.5-flash",
-            "google/gemini-2.5-flash",
+            "anthropic/claude-haiku",
+            "openai/gpt-mini",
+            "gemini/gemini-flash",
+            "google/gemini-flash",
         ],
         ExecutionMode.COST: [
-            "anthropic/claude-haiku-4-5-20251001",
-            "openai/gpt-5-mini",
-            "gemini/gemini-2.5-flash-lite",
+            "anthropic/claude-haiku",
+            "openai/gpt-mini",
+            "gemini/gemini-flash-lite",
             "deepseek/deepseek-chat",
         ],
         ExecutionMode.FREE: [
-            "gemini/gemini-2.5-flash",
+            "gemini/gemini-flash",
             "g4f/GeminiPro",
             "g4f/Copilot",
-            "ollama/llama3.2",
+            "ollama/llama",
             "ollama/mistral",
-            "ollama/phi3",
+            "ollama/phi",
         ],
         ExecutionMode.SUBSCRIPTION: [
             "g4f/GeminiPro",
@@ -171,13 +171,13 @@ class LLMGateway:
                 api_key=openrouter_key,
                 base_url="https://openrouter.ai/api/v1",
                 models=[
-                    "openai/gpt-5.4",
-                    "openai/gpt-5-mini",
-                    "anthropic/claude-opus-4-6",
-                    "anthropic/claude-sonnet-4-6",
-                    "anthropic/claude-haiku-4-5-20251001",
-                    "google/gemini-2.5-pro",
-                    "google/gemini-2.5-flash",
+                    "openai/gpt",
+                    "openai/gpt-mini",
+                    "anthropic/claude-opus",
+                    "anthropic/claude-sonnet",
+                    "anthropic/claude-haiku",
+                    "google/gemini-pro",
+                    "google/gemini-flash",
                     "deepseek/deepseek-chat",
                 ],
             )
@@ -189,7 +189,7 @@ class LLMGateway:
             self.configure_provider(
                 "openai",
                 api_key=openai_key,
-                models=["openai/gpt-5.4", "openai/gpt-5-mini"],
+                models=["openai/gpt", "openai/gpt-mini"],
             )
             logger.info("Configured provider: openai")
 
@@ -200,9 +200,9 @@ class LLMGateway:
                 "anthropic",
                 api_key=anthropic_key,
                 models=[
-                    "anthropic/claude-opus-4-6",
-                    "anthropic/claude-sonnet-4-6",
-                    "anthropic/claude-haiku-4-5-20251001",
+                    "anthropic/claude-opus",
+                    "anthropic/claude-sonnet",
+                    "anthropic/claude-haiku",
                 ],
             )
             logger.info("Configured provider: anthropic")
@@ -214,9 +214,9 @@ class LLMGateway:
                 "gemini",
                 api_key=gemini_key,
                 models=[
-                    "gemini/gemini-2.5-pro",
-                    "gemini/gemini-2.5-flash",
-                    "gemini/gemini-2.5-flash-lite",
+                    "gemini/gemini-pro",
+                    "gemini/gemini-flash",
+                    "gemini/gemini-flash-lite",
                 ],
             )
             logger.info("Configured provider: gemini")
@@ -229,7 +229,7 @@ class LLMGateway:
             "ollama",
             api_key=None,
             base_url=ollama_url,
-            models=["ollama/llama3.2", "ollama/mistral", "ollama/phi3"],
+            models=["ollama/llama", "ollama/mistral", "ollama/phi"],
         )
         # Ollama is always registered; actual availability depends on runtime
         # Dynamic model discovery happens asynchronously via discover_ollama_models()
@@ -267,12 +267,26 @@ class LLMGateway:
     # Model selection
     # ------------------------------------------------------------------
 
+    def _resolve_to_api_model(self, family_id: str) -> str:
+        """Resolve a family-level model ID to the actual API model ID.
+
+        Uses the ModelRegistry to look up latest_model_id.
+        Falls back to the family ID itself if registry is unavailable.
+        """
+        try:
+            from app.providers.model_registry import get_model_registry
+
+            return get_model_registry().resolve_api_id(family_id)
+        except Exception:
+            return family_id
+
     def select_model(self, mode: ExecutionMode) -> str:
         """Select best model for the given execution mode.
 
         Prefers models that belong to a configured provider so the caller
         is less likely to encounter authentication errors.
         For SUBSCRIPTION mode g4f models are always considered available.
+        Returns the resolved API model ID (not family ID).
         """
         candidates = MODEL_CATALOG.get(mode, MODEL_CATALOG[ExecutionMode.QUALITY])
         available = set(self._configured_models())
@@ -281,10 +295,11 @@ class LLMGateway:
             for candidate in candidates:
                 # g4f models are always "available" if g4f is installed
                 if candidate.startswith("g4f/") or candidate in available:
-                    return candidate
+                    return self._resolve_to_api_model(candidate)
 
         # Fall back to first candidate regardless of configuration
-        return candidates[0] if candidates else "openai/gpt-5-mini"
+        selected = candidates[0] if candidates else "openai/gpt-mini"
+        return self._resolve_to_api_model(selected)
 
     async def complete(self, request: CompletionRequest) -> CompletionResponse:
         """Send completion request, routing to appropriate provider."""

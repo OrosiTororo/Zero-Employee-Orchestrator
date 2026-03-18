@@ -1,12 +1,17 @@
 {
-  "version": "1.0.0",
-  "updated_at": "2026-03-09T00:00:00Z",
-  "description": "Zero-Employee Orchestrator モデルカタログ. モデルの追加・削除・コスト更新はこのファイルを編集してください。アプリ再起動またはAPI経由のリロードで反映されます。",
+  "version": "2.0.0",
+  "updated_at": "2026-03-18T00:00:00Z",
+  "description": "Zero-Employee Orchestrator モデルカタログ. モデルファミリー単位で管理し、バージョンは自動解決されます。モデルの追加・削除・コスト更新はこのファイルを編集してください。アプリ再起動またはAPI経由のリロードで反映されます。",
+  "version_policy": {
+    "strategy": "latest",
+    "description": "モデルIDはファミリー名で管理し、実際のAPI呼び出し時にlatest_model_idへ自動解決されます。プロバイダーがモデルを更新した場合、latest_model_idのみを変更すればコード修正不要です。"
+  },
   "models": [
     {
-      "id": "anthropic/claude-opus-4-6",
+      "id": "anthropic/claude-opus",
       "provider": "anthropic",
-      "display_name": "Claude Opus 4.6",
+      "display_name": "Claude Opus",
+      "latest_model_id": "claude-opus-4-6",
       "cost_per_1k_input": 0.015,
       "cost_per_1k_output": 0.075,
       "max_tokens": 32000,
@@ -17,9 +22,10 @@
       "tags": ["quality", "critical"]
     },
     {
-      "id": "anthropic/claude-sonnet-4-6",
+      "id": "anthropic/claude-sonnet",
       "provider": "anthropic",
-      "display_name": "Claude Sonnet 4.6",
+      "display_name": "Claude Sonnet",
+      "latest_model_id": "claude-sonnet-4-6",
       "cost_per_1k_input": 0.003,
       "cost_per_1k_output": 0.015,
       "max_tokens": 16000,
@@ -30,9 +36,10 @@
       "tags": ["quality", "standard"]
     },
     {
-      "id": "anthropic/claude-haiku-4-5-20251001",
+      "id": "anthropic/claude-haiku",
       "provider": "anthropic",
-      "display_name": "Claude Haiku 4.5",
+      "display_name": "Claude Haiku",
+      "latest_model_id": "claude-haiku-4-5-20251001",
       "cost_per_1k_input": 0.001,
       "cost_per_1k_output": 0.005,
       "max_tokens": 8000,
@@ -43,9 +50,10 @@
       "tags": ["speed", "cost", "draft"]
     },
     {
-      "id": "openai/gpt-5.4",
+      "id": "openai/gpt",
       "provider": "openai",
-      "display_name": "GPT-5.4",
+      "display_name": "GPT",
+      "latest_model_id": "gpt-4.1",
       "cost_per_1k_input": 0.005,
       "cost_per_1k_output": 0.015,
       "max_tokens": 16000,
@@ -56,9 +64,10 @@
       "tags": ["quality", "critical"]
     },
     {
-      "id": "openai/gpt-5-mini",
+      "id": "openai/gpt-mini",
       "provider": "openai",
-      "display_name": "GPT-5 Mini",
+      "display_name": "GPT Mini",
+      "latest_model_id": "gpt-4.1-mini",
       "cost_per_1k_input": 0.00015,
       "cost_per_1k_output": 0.0006,
       "max_tokens": 8000,
@@ -69,9 +78,10 @@
       "tags": ["speed", "cost", "draft"]
     },
     {
-      "id": "gemini/gemini-2.5-pro",
+      "id": "gemini/gemini-pro",
       "provider": "gemini",
-      "display_name": "Gemini 2.5 Pro",
+      "display_name": "Gemini Pro",
+      "latest_model_id": "gemini-2.5-pro",
       "cost_per_1k_input": 0.00125,
       "cost_per_1k_output": 0.005,
       "max_tokens": 32000,
@@ -82,9 +92,10 @@
       "tags": ["quality"]
     },
     {
-      "id": "google/gemini-2.5-pro",
+      "id": "google/gemini-pro",
       "provider": "openrouter",
-      "display_name": "Gemini 2.5 Pro (via OpenRouter)",
+      "display_name": "Gemini Pro (via OpenRouter)",
+      "latest_model_id": "google/gemini-2.5-pro",
       "cost_per_1k_input": 0.00125,
       "cost_per_1k_output": 0.005,
       "max_tokens": 32000,
@@ -95,9 +106,10 @@
       "tags": ["quality"]
     },
     {
-      "id": "gemini/gemini-2.5-flash",
+      "id": "gemini/gemini-flash",
       "provider": "gemini",
-      "display_name": "Gemini 2.5 Flash",
+      "display_name": "Gemini Flash",
+      "latest_model_id": "gemini-2.5-flash",
       "cost_per_1k_input": 0.0001,
       "cost_per_1k_output": 0.0004,
       "max_tokens": 16000,
@@ -108,9 +120,10 @@
       "tags": ["speed", "free"]
     },
     {
-      "id": "google/gemini-2.5-flash",
+      "id": "google/gemini-flash",
       "provider": "openrouter",
-      "display_name": "Gemini 2.5 Flash (via OpenRouter)",
+      "display_name": "Gemini Flash (via OpenRouter)",
+      "latest_model_id": "google/gemini-2.5-flash",
       "cost_per_1k_input": 0.0001,
       "cost_per_1k_output": 0.0004,
       "max_tokens": 16000,
@@ -121,9 +134,10 @@
       "tags": ["speed"]
     },
     {
-      "id": "gemini/gemini-2.5-flash-lite",
+      "id": "gemini/gemini-flash-lite",
       "provider": "gemini",
-      "display_name": "Gemini 2.5 Flash Lite",
+      "display_name": "Gemini Flash Lite",
+      "latest_model_id": "gemini-2.5-flash-lite",
       "cost_per_1k_input": 0.00005,
       "cost_per_1k_output": 0.0002,
       "max_tokens": 8000,
@@ -137,6 +151,7 @@
       "id": "deepseek/deepseek-chat",
       "provider": "deepseek",
       "display_name": "DeepSeek Chat",
+      "latest_model_id": "deepseek-chat",
       "cost_per_1k_input": 0.00014,
       "cost_per_1k_output": 0.00028,
       "max_tokens": 8000,
@@ -147,9 +162,10 @@
       "tags": ["cost"]
     },
     {
-      "id": "ollama/llama3.2",
+      "id": "ollama/llama",
       "provider": "ollama",
-      "display_name": "Llama 3.2 (Local)",
+      "display_name": "Llama (Local)",
+      "latest_model_id": "llama3.2",
       "cost_per_1k_input": 0.0,
       "cost_per_1k_output": 0.0,
       "max_tokens": 4096,
@@ -163,6 +179,7 @@
       "id": "ollama/mistral",
       "provider": "ollama",
       "display_name": "Mistral (Local)",
+      "latest_model_id": "mistral",
       "cost_per_1k_input": 0.0,
       "cost_per_1k_output": 0.0,
       "max_tokens": 4096,
@@ -173,9 +190,10 @@
       "tags": ["free", "local"]
     },
     {
-      "id": "ollama/phi3",
+      "id": "ollama/phi",
       "provider": "ollama",
-      "display_name": "Phi-3 (Local)",
+      "display_name": "Phi (Local)",
+      "latest_model_id": "phi3",
       "cost_per_1k_input": 0.0,
       "cost_per_1k_output": 0.0,
       "max_tokens": 4096,
@@ -188,7 +206,8 @@
     {
       "id": "g4f/GeminiPro",
       "provider": "g4f",
-      "display_name": "Gemini 2.5 Flash (g4f Free)",
+      "display_name": "Gemini (g4f Free)",
+      "latest_model_id": "GeminiPro",
       "cost_per_1k_input": 0.0,
       "cost_per_1k_output": 0.0,
       "max_tokens": 4096,
@@ -202,6 +221,7 @@
       "id": "g4f/Copilot",
       "provider": "g4f",
       "display_name": "Microsoft Copilot (g4f Free)",
+      "latest_model_id": "Copilot",
       "cost_per_1k_input": 0.0,
       "cost_per_1k_output": 0.0,
       "max_tokens": 4096,
@@ -215,6 +235,7 @@
       "id": "g4f/OpenaiChat",
       "provider": "g4f",
       "display_name": "ChatGPT Web (g4f Free)",
+      "latest_model_id": "OpenaiChat",
       "cost_per_1k_input": 0.0,
       "cost_per_1k_output": 0.0,
       "max_tokens": 4096,
@@ -227,7 +248,8 @@
     {
       "id": "g4f/Claude",
       "provider": "g4f",
-      "display_name": "Claude Haiku (g4f Free)",
+      "display_name": "Claude (g4f Free)",
+      "latest_model_id": "Claude",
       "cost_per_1k_input": 0.0,
       "cost_per_1k_output": 0.0,
       "max_tokens": 4096,
@@ -241,6 +263,7 @@
       "id": "g4f/Gemini",
       "provider": "g4f",
       "display_name": "Google Gemini (g4f Subscription)",
+      "latest_model_id": "Gemini",
       "cost_per_1k_input": 0.0,
       "cost_per_1k_output": 0.0,
       "max_tokens": 4096,
@@ -253,7 +276,8 @@
     {
       "id": "g4f/DeepInfra",
       "provider": "g4f",
-      "display_name": "Llama 3.1 70B (g4f Free)",
+      "display_name": "Llama (g4f Free)",
+      "latest_model_id": "DeepInfra",
       "cost_per_1k_input": 0.0,
       "cost_per_1k_output": 0.0,
       "max_tokens": 4096,
@@ -266,30 +290,30 @@
   ],
   "mode_catalog": {
     "quality": [
-      "anthropic/claude-opus-4-6",
-      "openai/gpt-5.4",
-      "gemini/gemini-2.5-pro",
-      "google/gemini-2.5-pro"
+      "anthropic/claude-opus",
+      "openai/gpt",
+      "gemini/gemini-pro",
+      "google/gemini-pro"
     ],
     "speed": [
-      "anthropic/claude-haiku-4-5-20251001",
-      "openai/gpt-5-mini",
-      "gemini/gemini-2.5-flash",
-      "google/gemini-2.5-flash"
+      "anthropic/claude-haiku",
+      "openai/gpt-mini",
+      "gemini/gemini-flash",
+      "google/gemini-flash"
     ],
     "cost": [
-      "anthropic/claude-haiku-4-5-20251001",
-      "openai/gpt-5-mini",
-      "gemini/gemini-2.5-flash-lite",
+      "anthropic/claude-haiku",
+      "openai/gpt-mini",
+      "gemini/gemini-flash-lite",
       "deepseek/deepseek-chat"
     ],
     "free": [
-      "gemini/gemini-2.5-flash",
+      "gemini/gemini-flash",
       "g4f/GeminiPro",
       "g4f/Copilot",
-      "ollama/llama3.2",
+      "ollama/llama",
       "ollama/mistral",
-      "ollama/phi3"
+      "ollama/phi"
     ],
     "subscription": [
       "g4f/GeminiPro",
@@ -302,20 +326,51 @@
   },
   "quality_sla": {
     "draft": {
-      "preferred": ["gpt-5-mini", "claude-haiku-4-5-20251001"],
-      "fallback": ["gemini-2.5-flash-lite"]
+      "preferred": ["openai/gpt-mini", "anthropic/claude-haiku"],
+      "fallback": ["gemini/gemini-flash-lite"]
     },
     "standard": {
-      "preferred": ["gpt-5.4", "claude-sonnet-4-6"],
-      "fallback": ["gpt-5-mini", "claude-haiku-4-5-20251001"]
+      "preferred": ["openai/gpt", "anthropic/claude-sonnet"],
+      "fallback": ["openai/gpt-mini", "anthropic/claude-haiku"]
     },
     "high": {
-      "preferred": ["gpt-5.4", "claude-sonnet-4-6"],
-      "fallback": ["claude-opus-4-6", "gemini-2.5-pro"]
+      "preferred": ["openai/gpt", "anthropic/claude-sonnet"],
+      "fallback": ["anthropic/claude-opus", "gemini/gemini-pro"]
     },
     "critical": {
-      "preferred": ["claude-opus-4-6", "gpt-5.4"],
-      "fallback": ["claude-sonnet-4-6", "gemini-2.5-pro"]
+      "preferred": ["anthropic/claude-opus", "openai/gpt"],
+      "fallback": ["anthropic/claude-sonnet", "gemini/gemini-pro"]
+    }
+  },
+  "roadmap": {
+    "v0.2": {
+      "description": "接続性と実用性の強化",
+      "planned_models": [
+        "Tool Connector 実装完成 (REST API / MCP / GraphQL / CLI)",
+        "iPaaS 連携 (n8n / Zapier / Make)"
+      ]
+    },
+    "v0.3": {
+      "description": "AI 組織の高度化",
+      "planned_features": [
+        "Meta-Skills (Feeling / Seeing / Dreaming / Making / Learning)",
+        "RSS / ToS 自動更新パイプライン — モデル更新・料金変更を公式 RSS から自動検知し model_catalog.json を自動更新",
+        "AI 共創リパーパスエンジン"
+      ]
+    },
+    "v0.4": {
+      "description": "エコシステムとスケーラビリティ",
+      "planned_features": [
+        "Skill マーケットプレイス",
+        "マルチユーザー / チーム対応"
+      ]
+    },
+    "v1.0": {
+      "description": "プロダクション品質",
+      "planned_features": [
+        "24/365 ロングラン実行",
+        "ガバナンスとコンプライアンス"
+      ]
     }
   }
 }

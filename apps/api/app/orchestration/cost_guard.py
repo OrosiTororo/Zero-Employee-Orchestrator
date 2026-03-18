@@ -19,14 +19,14 @@ class CostDecision(str, Enum):
 # Loaded dynamically from model_catalog.json via ModelRegistry when available.
 # This inline fallback is used only when the registry is unavailable.
 _FALLBACK_COST_TABLE: dict[str, dict[str, float]] = {
-    "gpt-5.4": {"input": 0.005, "output": 0.015},
-    "gpt-5-mini": {"input": 0.00015, "output": 0.0006},
-    "claude-opus-4-6": {"input": 0.015, "output": 0.075},
-    "claude-sonnet-4-6": {"input": 0.003, "output": 0.015},
-    "claude-haiku-4-5-20251001": {"input": 0.001, "output": 0.005},
-    "gemini-2.5-pro": {"input": 0.00125, "output": 0.005},
-    "gemini-2.5-flash": {"input": 0.0001, "output": 0.0004},
-    "gemini-2.5-flash-lite": {"input": 0.00005, "output": 0.0002},
+    "claude-opus": {"input": 0.015, "output": 0.075},
+    "claude-sonnet": {"input": 0.003, "output": 0.015},
+    "claude-haiku": {"input": 0.001, "output": 0.005},
+    "gpt": {"input": 0.005, "output": 0.015},
+    "gpt-mini": {"input": 0.00015, "output": 0.0006},
+    "gemini-pro": {"input": 0.00125, "output": 0.005},
+    "gemini-flash": {"input": 0.0001, "output": 0.0004},
+    "gemini-flash-lite": {"input": 0.00005, "output": 0.0002},
 }
 
 
