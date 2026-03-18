@@ -3,15 +3,15 @@
 import logging
 from contextlib import asynccontextmanager
 
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from slowapi.errors import RateLimitExceeded
+
 import app.models  # noqa: F401
 import app.orchestration.agent_session  # noqa: F401
 import app.orchestration.experience_memory  # noqa: F401
 import app.orchestration.knowledge_store  # noqa: F401
 import app.security.iam  # noqa: F401
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from slowapi.errors import RateLimitExceeded
-
 from app.api.routes import api_router
 from app.api.ws.events import router as ws_router
 from app.core.config import settings

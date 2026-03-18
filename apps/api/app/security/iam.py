@@ -17,10 +17,10 @@ import logging
 import os
 import stat
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
-from sqlalchemy import Boolean, JSON, String, Text, Uuid, func, select
+from sqlalchemy import JSON, Boolean, String, Text, Uuid, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -89,9 +89,7 @@ class IAMPolicy(Base):
     __tablename__ = "iam_policies"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    company_id: Mapped[uuid.UUID | None] = mapped_column(
-        Uuid, nullable=True, index=True
-    )
+    company_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True, index=True)
     name: Mapped[str] = mapped_column(String(255))
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     account_type: Mapped[str] = mapped_column(String(30))
@@ -99,9 +97,7 @@ class IAMPolicy(Base):
     denied_permissions: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     conditions: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(
-        default=func.now(), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())
 
 
 class AIServiceAccount(Base):
@@ -110,9 +106,7 @@ class AIServiceAccount(Base):
     __tablename__ = "ai_service_accounts"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    company_id: Mapped[uuid.UUID | None] = mapped_column(
-        Uuid, nullable=True, index=True
-    )
+    company_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True, index=True)
     agent_id: Mapped[str] = mapped_column(String(255), index=True)
     account_name: Mapped[str] = mapped_column(String(255))
     account_type: Mapped[str] = mapped_column(String(30), default="ai_agent")
@@ -121,18 +115,14 @@ class AIServiceAccount(Base):
     denied_resources: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     last_used_at: Mapped[datetime | None] = mapped_column(nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        default=func.now(), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())
 
 
 class IAMManager:
     """IAMアクセス制御マネージャー."""
 
     def __init__(self) -> None:
-        self._credential_dir = os.environ.get(
-            "CREDENTIAL_DIR", "/etc/zero-employee/credentials"
-        )
+        self._credential_dir = os.environ.get("CREDENTIAL_DIR", "/etc/zero-employee/credentials")
 
     async def create_ai_account(
         self,
@@ -154,9 +144,7 @@ class IAMManager:
 
         permissions = custom_permissions or [p.value for p in DEFAULT_AI_PERMISSIONS]
         # AIに禁止された権限を除外
-        permissions = [
-            p for p in permissions if p not in {d.value for d in AI_DENIED_PERMISSIONS}
-        ]
+        permissions = [p for p in permissions if p not in {d.value for d in AI_DENIED_PERMISSIONS}]
 
         account = AIServiceAccount(
             id=uuid.uuid4(),
@@ -171,14 +159,10 @@ class IAMManager:
         db.add(account)
         await db.flush()
 
-        logger.info(
-            "AI service account created: %s for agent %s", account_name, agent_id
-        )
+        logger.info("AI service account created: %s for agent %s", account_name, agent_id)
         return account, token
 
-    async def verify_ai_token(
-        self, db: AsyncSession, token: str
-    ) -> AIServiceAccount | None:
+    async def verify_ai_token(self, db: AsyncSession, token: str) -> AIServiceAccount | None:
         """AIトークンを検証."""
         from app.core.security import hash_sha256
 
@@ -191,7 +175,7 @@ class IAMManager:
         )
         account = result.scalar_one_or_none()
         if account:
-            account.last_used_at = datetime.now(timezone.utc)
+            account.last_used_at = datetime.now(UTC)
             await db.flush()
         return account
 
@@ -216,9 +200,7 @@ class IAMManager:
         allowed = (account.permissions or {}).get("allowed", [])
         return perm in allowed
 
-    def check_resource_access(
-        self, account: AIServiceAccount, resource_path: str
-    ) -> bool:
+    def check_resource_access(self, account: AIServiceAccount, resource_path: str) -> bool:
         """リソースへのアクセスをチェック."""
         denied_paths = (account.denied_resources or {}).get("paths", [])
         for denied_path in denied_paths:
@@ -271,26 +253,16 @@ class IAMManager:
         stmt = select(AIServiceAccount).where(AIServiceAccount.is_active.is_(True))
         if company_id:
             cid = (
-                uuid.UUID(str(company_id))
-                if not isinstance(company_id, uuid.UUID)
-                else company_id
+                uuid.UUID(str(company_id)) if not isinstance(company_id, uuid.UUID) else company_id
             )
             stmt = stmt.where(AIServiceAccount.company_id == cid)
         result = await db.execute(stmt)
         return list(result.scalars().all())
 
-    async def revoke_ai_account(
-        self, db: AsyncSession, account_id: str | uuid.UUID
-    ) -> bool:
+    async def revoke_ai_account(self, db: AsyncSession, account_id: str | uuid.UUID) -> bool:
         """AIサービスアカウントを無効化."""
-        aid = (
-            uuid.UUID(str(account_id))
-            if not isinstance(account_id, uuid.UUID)
-            else account_id
-        )
-        result = await db.execute(
-            select(AIServiceAccount).where(AIServiceAccount.id == aid)
-        )
+        aid = uuid.UUID(str(account_id)) if not isinstance(account_id, uuid.UUID) else account_id
+        result = await db.execute(select(AIServiceAccount).where(AIServiceAccount.id == aid))
         account = result.scalar_one_or_none()
         if account:
             account.is_active = False

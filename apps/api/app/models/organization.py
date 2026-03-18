@@ -12,9 +12,7 @@ class Department(Base, TimestampMixin):
     __tablename__ = "departments"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    company_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("companies.id"), index=True
-    )
+    company_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("companies.id"), index=True)
     parent_department_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid, ForeignKey("departments.id"), nullable=True
     )
@@ -27,9 +25,7 @@ class Team(Base, TimestampMixin):
     __tablename__ = "teams"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    company_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("companies.id"), index=True
-    )
+    company_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("companies.id"), index=True)
     department_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid, ForeignKey("departments.id"), nullable=True
     )

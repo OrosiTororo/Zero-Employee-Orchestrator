@@ -100,14 +100,10 @@ _G4F_MODEL_MAP: dict[str, dict] = {
 }
 
 # Free models (no authentication required)
-FREE_G4F_MODELS: list[str] = [
-    k for k, v in _G4F_MODEL_MAP.items() if not v["needs_auth"]
-]
+FREE_G4F_MODELS: list[str] = [k for k, v in _G4F_MODEL_MAP.items() if not v["needs_auth"]]
 
 # Subscription models (authentication required)
-SUBSCRIPTION_G4F_MODELS: list[str] = [
-    k for k, v in _G4F_MODEL_MAP.items() if v["needs_auth"]
-]
+SUBSCRIPTION_G4F_MODELS: list[str] = [k for k, v in _G4F_MODEL_MAP.items() if v["needs_auth"]]
 
 
 # ---------------------------------------------------------------------------
@@ -149,9 +145,7 @@ class G4FProvider:
 
             self._g4f = g4f
             self._available = True
-            logger.info(
-                "g4f provider available (subscription / no-API-key mode enabled)"
-            )
+            logger.info("g4f provider available (subscription / no-API-key mode enabled)")
         except ImportError:
             logger.warning(
                 "g4f not installed — subscription/no-API-key mode unavailable. "
@@ -221,8 +215,8 @@ class G4FProvider:
         g4f_model = model_info["model"]
 
         try:
-            from g4f.client import AsyncClient
             import g4f.Provider as Providers
+            from g4f.client import AsyncClient
 
             provider_cls = getattr(Providers, provider_name, None)
             if provider_cls is None:
@@ -263,7 +257,7 @@ class G4FProvider:
                 finish_reason="stop",
             )
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning("g4f request timed out for provider %s", provider_name)
             return G4FResponse(
                 content="[g4f request timed out]",

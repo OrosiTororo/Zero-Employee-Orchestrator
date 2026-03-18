@@ -1,14 +1,14 @@
 """Ticket lifecycle service with state machine enforcement."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import generate_uuid
-from app.models.ticket import Ticket, TicketThread
 from app.models.audit import AuditLog
+from app.models.ticket import Ticket, TicketThread
 
 # Valid state transitions for tickets
 TICKET_TRANSITIONS: dict[str, list[str]] = {
@@ -103,7 +103,7 @@ async def transition_ticket(
     ticket.status = new_status
 
     if new_status == "done":
-        ticket.closed_at = datetime.now(timezone.utc)
+        ticket.closed_at = datetime.now(UTC)
 
     audit = AuditLog(
         id=generate_uuid(),

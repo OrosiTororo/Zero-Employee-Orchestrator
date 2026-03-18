@@ -24,7 +24,7 @@ import base64
 import hashlib
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 logger = logging.getLogger(__name__)
@@ -123,9 +123,9 @@ class BrowserAssistService:
         image_bytes = base64.b64decode(screenshot_base64) if screenshot_base64 else b""
         metadata = ScreenCaptureMetadata(
             capture_id=hashlib.sha256(
-                f"{user_id}:{datetime.now(timezone.utc).isoformat()}".encode()
+                f"{user_id}:{datetime.now(UTC).isoformat()}".encode()
             ).hexdigest()[:16],
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             source_url=target_url,
             browser=browser,
             image_hash=hashlib.sha256(image_bytes).hexdigest() if image_bytes else "",

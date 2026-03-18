@@ -5,7 +5,7 @@ SQLAlchemy async セッションを通じた永続化インターフェースを
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import JSON, String, Text, Uuid, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,7 +16,6 @@ from app.core.security import generate_uuid
 from app.orchestration.state_machine import (
     MemoryType,
 )
-
 
 # ---------------------------------------------------------------------------
 # DB Models for Experience Memory persistence
@@ -39,9 +38,7 @@ class ExperienceMemoryRecord(Base):
     approved_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
     conditions_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     effectiveness_score: Mapped[float] = mapped_column(default=0.0)
-    created_at: Mapped[datetime] = mapped_column(
-        default=func.now(), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())
 
 
 class FailureTaxonomyRecord(Base):
@@ -56,13 +53,9 @@ class FailureTaxonomyRecord(Base):
     description: Mapped[str] = mapped_column(Text)
     prevention_strategy: Mapped[str] = mapped_column(Text)
     occurrence_count: Mapped[int] = mapped_column(default=1)
-    last_occurred: Mapped[datetime] = mapped_column(
-        default=func.now(), server_default=func.now()
-    )
+    last_occurred: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())
     recovery_success_rate: Mapped[float] = mapped_column(default=0.0)
-    created_at: Mapped[datetime] = mapped_column(
-        default=func.now(), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())
 
 
 # ---------------------------------------------------------------------------
@@ -80,9 +73,7 @@ class PersistentExperienceMemory:
     def __init__(self, db: AsyncSession, company_id: str | uuid.UUID) -> None:
         self._db = db
         self._company_id = (
-            uuid.UUID(str(company_id))
-            if not isinstance(company_id, uuid.UUID)
-            else company_id
+            uuid.UUID(str(company_id)) if not isinstance(company_id, uuid.UUID) else company_id
         )
 
     async def add_success_pattern(
@@ -128,7 +119,7 @@ class PersistentExperienceMemory:
 
         if existing:
             existing.occurrence_count += 1
-            existing.last_occurred = datetime.now(timezone.utc)
+            existing.last_occurred = datetime.now(UTC)
             await self._db.commit()
             await self._db.refresh(existing)
             return existing
@@ -140,7 +131,7 @@ class PersistentExperienceMemory:
             subcategory=subcategory,
             description=description,
             prevention_strategy=prevention_strategy,
-            last_occurred=datetime.now(timezone.utc),
+            last_occurred=datetime.now(UTC),
         )
         self._db.add(record)
         await self._db.commit()

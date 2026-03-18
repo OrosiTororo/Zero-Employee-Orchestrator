@@ -29,9 +29,9 @@ import logging
 import re
 import socket
 import time
+from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from ipaddress import ip_address
-from typing import AsyncIterator
 
 import httpx
 
@@ -353,8 +353,7 @@ class OllamaProvider:
         names = await self.get_available_model_names()
         # Ollama model names can include tags (e.g. "llama3.2:latest")
         return any(
-            name == model_name or name.split(":")[0] == model_name.split(":")[0]
-            for name in names
+            name == model_name or name.split(":")[0] == model_name.split(":")[0] for name in names
         )
 
     async def pull_model(self, model_name: str) -> bool:
@@ -652,8 +651,7 @@ async def complete_with_ollama_fallback(
     for model in models_to_try:
         # Skip models not actually installed
         if not any(
-            model in name or name.split(":")[0] == model.split(":")[0]
-            for name in available
+            model in name or name.split(":")[0] == model.split(":")[0] for name in available
         ):
             continue
 

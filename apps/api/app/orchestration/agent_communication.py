@@ -307,13 +307,9 @@ class AgentCommunicationLog:
         interactions: dict[str, int] = {}
         for msg in self._messages:
             if msg.sender_agent_id == agent_id and msg.receiver_agent_id:
-                interactions[msg.receiver_agent_id] = (
-                    interactions.get(msg.receiver_agent_id, 0) + 1
-                )
+                interactions[msg.receiver_agent_id] = interactions.get(msg.receiver_agent_id, 0) + 1
             elif msg.receiver_agent_id == agent_id and msg.sender_agent_id:
-                interactions[msg.sender_agent_id] = (
-                    interactions.get(msg.sender_agent_id, 0) + 1
-                )
+                interactions[msg.sender_agent_id] = interactions.get(msg.sender_agent_id, 0) + 1
         return interactions
 
     def get_unacknowledged(self, receiver_agent_id: str) -> list[AgentMessage]:
@@ -324,18 +320,14 @@ class AgentCommunicationLog:
             if m.receiver_agent_id == receiver_agent_id and not m.acknowledged
         ]
 
-    def get_escalations(
-        self, company_id: str | None = None, limit: int = 20
-    ) -> list[AgentMessage]:
+    def get_escalations(self, company_id: str | None = None, limit: int = 20) -> list[AgentMessage]:
         """エスカレーション一覧を取得."""
         result = [m for m in self._messages if m.msg_type == MessageType.ESCALATION]
         if company_id:
             result = [m for m in result if m.company_id == company_id]
         return result[-limit:]
 
-    def get_recent(
-        self, company_id: str | None = None, limit: int = 100
-    ) -> list[AgentMessage]:
+    def get_recent(self, company_id: str | None = None, limit: int = 100) -> list[AgentMessage]:
         """最近のメッセージを取得."""
         result = self._messages
         if company_id:

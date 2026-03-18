@@ -21,7 +21,7 @@ from app.integrations.browser_assist import (
     AssistAction,
     browser_assist_service,
 )
-from app.security.prompt_guard import scan_prompt_injection, ThreatLevel
+from app.security.prompt_guard import ThreatLevel, scan_prompt_injection
 
 logger = logging.getLogger(__name__)
 

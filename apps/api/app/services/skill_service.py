@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 import re
 import uuid
-from typing import Sequence
+from collections.abc import Sequence
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -110,9 +110,7 @@ def analyze_code_safety(code: str) -> RegistrySafetyReport:
         report.risk_level = "low"
 
     report.summary = (
-        f"検出された問題: {len(issues)} 件"
-        if issues
-        else "安全性の問題は検出されませんでした"
+        f"検出された問題: {len(issues)} 件" if issues else "安全性の問題は検出されませんでした"
     )
 
     return report
@@ -172,7 +170,7 @@ async def generate_skill_from_description(
     code: str = ""
 
     try:
-        from app.providers.gateway import llm_gateway, CompletionRequest, ExecutionMode
+        from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
 
         llm_response = await llm_gateway.complete(
             CompletionRequest(

@@ -45,9 +45,7 @@ async def list_projects(company_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/companies/{company_id}/projects")
-async def create_project(
-    company_id: str, req: ProjectCreate, db: AsyncSession = Depends(get_db)
-):
+async def create_project(company_id: str, req: ProjectCreate, db: AsyncSession = Depends(get_db)):
     """プロジェクト作成"""
     project = Project(
         id=uuid.uuid4(),
@@ -81,9 +79,7 @@ async def list_goals(project_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/projects/{project_id}/goals")
-async def create_goal(
-    project_id: str, req: GoalCreate, db: AsyncSession = Depends(get_db)
-):
+async def create_goal(project_id: str, req: GoalCreate, db: AsyncSession = Depends(get_db)):
     """目標作成"""
     goal = Goal(
         id=uuid.uuid4(),

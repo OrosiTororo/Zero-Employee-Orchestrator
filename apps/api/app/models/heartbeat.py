@@ -13,9 +13,7 @@ class HeartbeatPolicy(Base, TimestampMixin):
     __tablename__ = "heartbeat_policies"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    company_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("companies.id"), index=True
-    )
+    company_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("companies.id"), index=True)
     name: Mapped[str] = mapped_column(String(255))
     cron_expr: Mapped[str] = mapped_column(String(120))
     timezone: Mapped[str] = mapped_column(String(60), default="UTC")
@@ -28,22 +26,14 @@ class HeartbeatRun(Base):
     __tablename__ = "heartbeat_runs"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    company_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("companies.id"), index=True
-    )
+    company_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("companies.id"), index=True)
     policy_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("heartbeat_policies.id"), index=True
     )
-    agent_id: Mapped[uuid.UUID | None] = mapped_column(
-        Uuid, ForeignKey("agents.id"), nullable=True
-    )
-    team_id: Mapped[uuid.UUID | None] = mapped_column(
-        Uuid, ForeignKey("teams.id"), nullable=True
-    )
+    agent_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("agents.id"), nullable=True)
+    team_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("teams.id"), nullable=True)
     status: Mapped[str] = mapped_column(String(30))
     started_at: Mapped[datetime] = mapped_column(DateTime)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        default=func.now(), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())

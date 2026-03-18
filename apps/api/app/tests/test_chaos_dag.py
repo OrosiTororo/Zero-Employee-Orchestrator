@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import random
 import time
+from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Generator
 
 from app.orchestration.dag import (
     ExecutionDAG,
@@ -19,7 +19,6 @@ from app.orchestration.dag import (
     TaskNodeStatus,
     rebuild_dag_after_failure,
 )
-
 
 # ---------------------------------------------------------------------------
 # Test infrastructure
@@ -86,15 +85,9 @@ def create_diamond_dag() -> ExecutionDAG:
     """Create a diamond pattern: A -> {B, C} -> D."""
     dag = ExecutionDAG(plan_id="diamond-dag")
     dag.add_node(TaskNode(id="A", title="Root", estimated_minutes=5))
-    dag.add_node(
-        TaskNode(id="B", title="Left branch", depends_on=["A"], estimated_minutes=10)
-    )
-    dag.add_node(
-        TaskNode(id="C", title="Right branch", depends_on=["A"], estimated_minutes=8)
-    )
-    dag.add_node(
-        TaskNode(id="D", title="Join", depends_on=["B", "C"], estimated_minutes=5)
-    )
+    dag.add_node(TaskNode(id="B", title="Left branch", depends_on=["A"], estimated_minutes=10))
+    dag.add_node(TaskNode(id="C", title="Right branch", depends_on=["A"], estimated_minutes=8))
+    dag.add_node(TaskNode(id="D", title="Join", depends_on=["B", "C"], estimated_minutes=5))
     return dag
 
 
@@ -123,9 +116,7 @@ def create_complex_dag() -> ExecutionDAG:
         TaskNode(id="H", title="Merge-1-2", depends_on=["E", "F"], estimated_minutes=5),
         TaskNode(id="I", title="Branch-3c", depends_on=["G"], estimated_minutes=3),
         TaskNode(id="J", title="Branch-3d", depends_on=["G"], estimated_minutes=2),
-        TaskNode(
-            id="K", title="Final-merge", depends_on=["H", "I"], estimated_minutes=4
-        ),
+        TaskNode(id="K", title="Final-merge", depends_on=["H", "I"], estimated_minutes=4),
         TaskNode(id="L", title="Report", depends_on=["K"], estimated_minutes=2),
     ]
     for node in nodes:
@@ -463,7 +454,7 @@ class TestTimingAndRecovery:
         _complete_node(dag, "node-0")
 
         max_retries = 3
-        for attempt in range(max_retries):
+        for _attempt in range(max_retries):
             inject_failure(dag, "node-1")
             rebuild_dag_after_failure(dag, "node-1", strategy="retry")
             assert dag._node_map["node-1"].status == TaskNodeStatus.PENDING
@@ -649,7 +640,7 @@ class TestBenchmarks:
 
         # Complete some prefix of nodes
         completed = 0
-        for node in list(dag.nodes):
+        for _node in list(dag.nodes):
             if rng.random() < 0.5 and dag.get_ready_nodes():
                 ready = dag.get_ready_nodes()
                 if ready:
@@ -714,9 +705,7 @@ class TestBenchmarks:
 
     def test_benchmark_recovery_time_distribution(self) -> None:
         """Measure recovery time statistics and assert p95 < 50ms."""
-        results = [
-            self._run_random_trial(seed=i + 1000) for i in range(self.NUM_TRIALS)
-        ]
+        results = [self._run_random_trial(seed=i + 1000) for i in range(self.NUM_TRIALS)]
         times = sorted(r.recovery_time_ms for r in results)
 
         avg_time = sum(times) / len(times)
@@ -732,9 +721,7 @@ class TestBenchmarks:
 
     def test_benchmark_strategy_effectiveness(self) -> None:
         """Compare recovery rates across strategies -- all should be >= 90%."""
-        results = [
-            self._run_random_trial(seed=i + 2000) for i in range(self.NUM_TRIALS)
-        ]
+        results = [self._run_random_trial(seed=i + 2000) for i in range(self.NUM_TRIALS)]
         report = generate_chaos_report(results)
 
         for strategy, stats in report["strategy_breakdown"].items():

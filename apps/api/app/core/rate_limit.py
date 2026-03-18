@@ -12,9 +12,7 @@ from starlette.responses import JSONResponse
 limiter = Limiter(key_func=get_remote_address)
 
 
-async def rate_limit_exceeded_handler(
-    request: Request, exc: RateLimitExceeded
-) -> JSONResponse:
+async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
     """レート制限超過時のレスポンス."""
     return JSONResponse(
         status_code=429,

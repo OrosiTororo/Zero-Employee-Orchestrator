@@ -64,7 +64,7 @@ def cmd_models(args: argparse.Namespace) -> None:
     from app.core.i18n import t
 
     async def _list() -> None:
-        from app.providers.ollama_provider import ollama_provider, RECOMMENDED_MODELS
+        from app.providers.ollama_provider import RECOMMENDED_MODELS, ollama_provider
 
         print()
         is_up = await ollama_provider.health_check()
@@ -86,9 +86,7 @@ def cmd_models(args: argparse.Namespace) -> None:
         print()
         for m in models:
             size_gb = m.size / (1024**3) if m.size else 0
-            size_str = (
-                f"{size_gb:.1f}GB" if size_gb >= 1.0 else f"{m.size / (1024**2):.0f}MB"
-            )
+            size_str = f"{size_gb:.1f}GB" if size_gb >= 1.0 else f"{m.size / (1024**2):.0f}MB"
             rec = RECOMMENDED_MODELS.get(m.name, {})
             desc = rec.get("description", "")
             print(f"    \033[38;5;78m{m.name:30s}\033[0m {size_str:>8s}  {desc}")
@@ -119,10 +117,10 @@ def cmd_config(args: argparse.Namespace) -> None:
     """設定値の表示・変更を行う."""
     from app.core.config_manager import (
         CONFIGURABLE_KEYS,
+        delete_config_value,
         get_all_config,
         get_config_value,
         set_config_value,
-        delete_config_value,
     )
 
     action = args.config_action
@@ -138,11 +136,7 @@ def cmd_config(args: argparse.Namespace) -> None:
             if cat != current_category:
                 current_category = cat
                 print(f"  \033[38;5;75m[{cat}]\033[0m")
-            status = (
-                "\033[38;5;78mSET\033[0m"
-                if info["is_set"]
-                else "\033[38;5;245m---\033[0m"
-            )
+            status = "\033[38;5;78mSET\033[0m" if info["is_set"] else "\033[38;5;245m---\033[0m"
             source = f"\033[38;5;245m({info['source']})\033[0m"
             value_display = info["value"] if info["is_set"] else ""
             print(f"    {status} {key:30s} {value_display:20s} {source}")
@@ -211,9 +205,9 @@ def cmd_local(args: argparse.Namespace) -> None:
     """ローカルチャットモード — Ollama で完全オフラインの対話型業務エージェント."""
 
     async def _chat() -> None:
-        from app.core.i18n import set_language, get_language, t
-        from app.providers.ollama_provider import ollama_provider
         from app.banner import print_local_banner
+        from app.core.i18n import get_language, set_language, t
+        from app.providers.ollama_provider import ollama_provider
 
         # Language setup
         if args.lang:
@@ -449,11 +443,7 @@ def _compress_context(conversation: list[dict]) -> list[dict]:
         "[Earlier conversation was compressed to save context. "
         "Key points from the discussion are preserved in the most recent messages.]"
     )
-    compressed = (
-        conversation[:2]
-        + [{"role": "assistant", "content": summary}]
-        + conversation[-4:]
-    )
+    compressed = conversation[:2] + [{"role": "assistant", "content": summary}] + conversation[-4:]
     return compressed
 
 
@@ -467,15 +457,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     # serve
     serve_parser = subparsers.add_parser("serve", help="API サーバーを起動")
-    serve_parser.add_argument(
-        "--host", default="0.0.0.0", help="ホスト (default: 0.0.0.0)"
-    )
-    serve_parser.add_argument(
-        "--port", type=int, default=18234, help="ポート (default: 18234)"
-    )
-    serve_parser.add_argument(
-        "--reload", action="store_true", help="ホットリロードを有効化"
-    )
+    serve_parser.add_argument("--host", default="0.0.0.0", help="ホスト (default: 0.0.0.0)")
+    serve_parser.add_argument("--port", type=int, default=18234, help="ポート (default: 18234)")
+    serve_parser.add_argument("--reload", action="store_true", help="ホットリロードを有効化")
     serve_parser.set_defaults(func=cmd_serve)
 
     # db
@@ -503,9 +487,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Action: list | get | set | delete | keys",
     )
     config_parser.add_argument("key", nargs="?", default="", help="Config key name")
-    config_parser.add_argument(
-        "value", nargs="?", default="", help="Config value (for set)"
-    )
+    config_parser.add_argument("value", nargs="?", default="", help="Config value (for set)")
     config_parser.set_defaults(func=cmd_config)
 
     # local — ローカルチャットモード

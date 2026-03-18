@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 logger = logging.getLogger(__name__)
@@ -89,9 +89,7 @@ class ToolConnector:
         """ツール接続を登録する."""
         conn_id = str(uuid.uuid4())
         self._connections[conn_id] = config
-        logger.info(
-            "Tool connection registered: %s (%s)", config.name, config.connection_type
-        )
+        logger.info("Tool connection registered: %s (%s)", config.name, config.connection_type)
         return conn_id
 
     def get_connection(self, conn_id: str) -> ToolConnectionConfig | None:
@@ -117,7 +115,7 @@ class ToolConnector:
                 trace_id=trace_id,
             )
 
-        started_at = datetime.now(timezone.utc)
+        started_at = datetime.now(UTC)
         try:
             # 具体的な実行はサブクラスまたは Provider 別の実装で行う
             result = ToolCallResult(
@@ -126,7 +124,7 @@ class ToolConnector:
                 response={"method": method, "status": "executed"},
                 trace_id=trace_id or str(uuid.uuid4()),
                 started_at=started_at,
-                finished_at=datetime.now(timezone.utc),
+                finished_at=datetime.now(UTC),
             )
             latency = (result.finished_at - started_at).total_seconds() * 1000
             result.latency_ms = int(latency)
@@ -140,7 +138,7 @@ class ToolConnector:
                 error=str(exc),
                 trace_id=trace_id,
                 started_at=started_at,
-                finished_at=datetime.now(timezone.utc),
+                finished_at=datetime.now(UTC),
             )
 
 

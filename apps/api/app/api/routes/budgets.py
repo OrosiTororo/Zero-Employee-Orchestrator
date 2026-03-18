@@ -26,9 +26,7 @@ class BudgetPolicyCreate(BaseModel):
 async def list_budgets(company_id: str, db: AsyncSession = Depends(get_db)):
     """予算ポリシー一覧"""
     cid = uuid.UUID(company_id)
-    result = await db.execute(
-        select(BudgetPolicy).where(BudgetPolicy.company_id == cid)
-    )
+    result = await db.execute(select(BudgetPolicy).where(BudgetPolicy.company_id == cid))
     budgets = result.scalars().all()
     return [
         {
@@ -69,8 +67,6 @@ async def get_cost_summary(company_id: str, db: AsyncSession = Depends(get_db)):
     """コスト概要"""
     cid = uuid.UUID(company_id)
     total = await db.execute(
-        select(func.coalesce(func.sum(CostLedger.cost_usd), 0)).where(
-            CostLedger.company_id == cid
-        )
+        select(func.coalesce(func.sum(CostLedger.cost_usd), 0)).where(CostLedger.company_id == cid)
     )
     return {"total_cost_usd": float(total.scalar()), "currency": "USD"}

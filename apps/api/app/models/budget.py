@@ -13,9 +13,7 @@ class BudgetPolicy(Base, TimestampMixin):
     __tablename__ = "budget_policies"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    company_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("companies.id"), index=True
-    )
+    company_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("companies.id"), index=True)
     name: Mapped[str] = mapped_column(String(255))
     scope_type: Mapped[str] = mapped_column(String(30))
     scope_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True)
@@ -29,9 +27,7 @@ class CostLedger(Base):
     __tablename__ = "cost_ledger"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    company_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("companies.id"), index=True
-    )
+    company_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("companies.id"), index=True)
     scope_type: Mapped[str] = mapped_column(String(30))
     scope_id: Mapped[uuid.UUID] = mapped_column(Uuid)
     provider_name: Mapped[str] = mapped_column(String(60))
@@ -42,6 +38,4 @@ class CostLedger(Base):
     occurred_at: Mapped[datetime] = mapped_column(DateTime)
     run_type: Mapped[str] = mapped_column(String(30))
     run_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        default=func.now(), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())

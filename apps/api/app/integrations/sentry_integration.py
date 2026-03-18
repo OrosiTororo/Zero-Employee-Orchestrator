@@ -83,9 +83,7 @@ class SentryIntegration:
     なければ内蔵のイベントストアに記録する。
     """
 
-    def __init__(
-        self, dsn: str | None = None, environment: str = "development"
-    ) -> None:
+    def __init__(self, dsn: str | None = None, environment: str = "development") -> None:
         self._dsn = dsn
         self._environment = environment
         self._sdk_available = False
@@ -253,11 +251,7 @@ class SentryIntegration:
         hour_ago = now - 3600
         day_ago = now - 86400
 
-        errors = [
-            e
-            for e in self._events
-            if e.level in (SeverityLevel.ERROR, SeverityLevel.FATAL)
-        ]
+        errors = [e for e in self._events if e.level in (SeverityLevel.ERROR, SeverityLevel.FATAL)]
         errors_1h = [e for e in errors if e.timestamp > hour_ago]
         errors_24h = [e for e in errors if e.timestamp > day_ago]
 
@@ -313,9 +307,7 @@ class TransactionContext:
             try:
                 import sentry_sdk  # type: ignore[import-untyped]
 
-                self._sdk_transaction = sentry_sdk.start_transaction(
-                    name=self._name, op=self._op
-                )
+                self._sdk_transaction = sentry_sdk.start_transaction(name=self._name, op=self._op)
                 self._sdk_transaction.__enter__()
             except Exception:
                 pass

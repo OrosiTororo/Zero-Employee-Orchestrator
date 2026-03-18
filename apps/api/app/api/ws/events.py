@@ -153,9 +153,7 @@ async def websocket_events(websocket: WebSocket):
                             "target_type": msg.get("target_type", "task"),
                             "target_id": msg.get("target_id"),
                             "data": {
-                                "action": msg.get(
-                                    "action"
-                                ),  # pause, resume, cancel, redirect
+                                "action": msg.get("action"),  # pause, resume, cancel, redirect
                                 "reason": msg.get("reason", ""),
                                 "new_instructions": msg.get("new_instructions"),
                             },

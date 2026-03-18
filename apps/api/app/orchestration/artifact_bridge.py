@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -66,7 +66,7 @@ class ArtifactRef:
     mime_type: str = "application/octet-stream"
     summary: str = ""
     domain: str = ""
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -243,13 +243,9 @@ class ArtifactBridge:
     def get_artifact(self, artifact_id: str) -> ArtifactRef | None:
         return self._artifacts.get(artifact_id)
 
-    def list_artifacts(
-        self, artifact_type: ArtifactType | None = None
-    ) -> list[ArtifactRef]:
+    def list_artifacts(self, artifact_type: ArtifactType | None = None) -> list[ArtifactRef]:
         if artifact_type:
-            return [
-                a for a in self._artifacts.values() if a.artifact_type == artifact_type
-            ]
+            return [a for a in self._artifacts.values() if a.artifact_type == artifact_type]
         return list(self._artifacts.values())
 
     # ------------------------------------------------------------------

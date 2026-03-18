@@ -1,14 +1,14 @@
 """Task lifecycle service with state machine enforcement."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import generate_uuid
-from app.models.task import Task, TaskRun
 from app.models.audit import AuditLog
+from app.models.task import Task, TaskRun
 
 # Valid state transitions for tasks
 TASK_TRANSITIONS: dict[str, list[str]] = {
@@ -40,7 +40,7 @@ async def start_task(
         raise ValueError(f"Cannot start task in status: {task.status}")
 
     task.status = "running"
-    task.started_at = datetime.now(timezone.utc)
+    task.started_at = datetime.now(UTC)
 
     # Count existing runs
     result = await db.execute(select(TaskRun).where(TaskRun.task_id == task.id))
@@ -53,7 +53,7 @@ async def start_task(
         run_no=existing_runs + 1,
         executor_agent_id=uuid.UUID(executor_agent_id) if executor_agent_id else None,
         status="running",
-        started_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
     )
     db.add(run)
 
@@ -90,10 +90,10 @@ async def complete_task(
 
     task.status = new_status
     if success:
-        task.completed_at = datetime.now(timezone.utc)
+        task.completed_at = datetime.now(UTC)
 
     task_run.status = "succeeded" if success else "failed"
-    task_run.finished_at = datetime.now(timezone.utc)
+    task_run.finished_at = datetime.now(UTC)
     task_run.error_code = error_code
     task_run.error_message = error_message
     task_run.output_snapshot_json = output_snapshot_json or {}

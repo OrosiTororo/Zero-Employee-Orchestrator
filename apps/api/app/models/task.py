@@ -4,11 +4,11 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
+    JSON,
     Boolean,
     DateTime,
     ForeignKey,
     Integer,
-    JSON,
     String,
     Text,
     Uuid,
@@ -23,12 +23,8 @@ class Task(Base, TimestampMixin):
     __tablename__ = "tasks"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    company_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("companies.id"), index=True
-    )
-    ticket_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("tickets.id"), index=True
-    )
+    company_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("companies.id"), index=True)
+    ticket_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("tickets.id"), index=True)
     plan_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("plans.id"), index=True)
     parent_task_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid, ForeignKey("tasks.id"), nullable=True
@@ -52,9 +48,7 @@ class TaskRun(Base):
     __tablename__ = "task_runs"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    company_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("companies.id"), index=True
-    )
+    company_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("companies.id"), index=True)
     task_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("tasks.id"), index=True)
     run_no: Mapped[int] = mapped_column(Integer)
     executor_agent_id: Mapped[uuid.UUID | None] = mapped_column(
@@ -67,6 +61,4 @@ class TaskRun(Base):
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     input_snapshot_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     output_snapshot_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        default=func.now(), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())

@@ -36,9 +36,7 @@ async def update_settings(company_id: str, settings: dict | None = None):
 async def list_connections(company_id: str, db: AsyncSession = Depends(get_db)):
     """接続先一覧"""
     cid = uuid.UUID(company_id)
-    result = await db.execute(
-        select(ToolConnection).where(ToolConnection.company_id == cid)
-    )
+    result = await db.execute(select(ToolConnection).where(ToolConnection.company_id == cid))
     connections = result.scalars().all()
     return [
         {

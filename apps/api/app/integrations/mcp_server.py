@@ -300,9 +300,7 @@ class MCPServer:
     async def handle_list_tools(self) -> dict[str, Any]:
         return {"tools": [t.to_dict() for t in self._tools.values()]}
 
-    async def handle_call_tool(
-        self, name: str, arguments: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def handle_call_tool(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         tool = self._tools.get(name)
         if not tool:
             return {"error": f"Tool not found: {name}"}
@@ -312,11 +310,7 @@ class MCPServer:
                 return {"content": [{"type": "text", "text": str(result)}]}
             except Exception as exc:
                 return {"error": str(exc), "isError": True}
-        return {
-            "content": [
-                {"type": "text", "text": f"Tool '{name}' called with: {arguments}"}
-            ]
-        }
+        return {"content": [{"type": "text", "text": f"Tool '{name}' called with: {arguments}"}]}
 
     async def handle_list_resources(self) -> dict[str, Any]:
         return {"resources": [r.to_dict() for r in self._resources.values()]}
