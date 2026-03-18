@@ -120,3 +120,10 @@ textarea {
   background: rgba(0, 120, 212, 0.35);
   color: #ffffff;
 }
+
+/* ── Loading Animation ────────────────────────────────── */
+@keyframes loading {
+  0% { width: 0; margin-left: 0; }
+  50% { width: 60%; margin-left: 20%; }
+  100% { width: 0; margin-left: 100%; }
+}

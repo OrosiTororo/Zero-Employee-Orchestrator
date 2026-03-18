@@ -36,16 +36,30 @@ if [ "$NEED_SETUP" = true ]; then
     warn "セットアップが完了していません。自動セットアップを実行します..."
     echo ""
 
-    # Python venv + 依存関係
+    # Python venv + 依存関係 (Python 3.12+ が必要)
     if [ ! -d "$ROOT_DIR/apps/api/.venv" ]; then
         info "Python 仮想環境を作成しています..."
+        # Python 3.12+ を探す
+        PYTHON_CMD=""
+        for cmd in python3.13 python3.12 python3; do
+            if command -v "$cmd" &> /dev/null; then
+                ver=$("$cmd" -c 'import sys; print(sys.version_info.minor)' 2>/dev/null || echo "0")
+                if [ "$ver" -ge 12 ]; then
+                    PYTHON_CMD="$cmd"
+                    break
+                fi
+            fi
+        done
+        if [ -z "$PYTHON_CMD" ]; then
+            error "Python 3.12 以上が必要です。python3.12 をインストールしてください。"
+        fi
         cd "$ROOT_DIR/apps/api"
         if command -v uv &> /dev/null; then
-            uv venv .venv && uv pip install -e "."
+            uv venv --python "$PYTHON_CMD" .venv && uv pip install -e "."
         else
-            python3 -m venv .venv && .venv/bin/pip install -e "."
+            "$PYTHON_CMD" -m venv .venv && .venv/bin/pip install -e "."
         fi
-        ok "Python 依存関係をインストールしました"
+        ok "Python 依存関係をインストールしました ($PYTHON_CMD)"
         cd "$ROOT_DIR"
     fi
 
