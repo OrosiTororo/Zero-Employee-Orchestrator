@@ -52,6 +52,14 @@ v0.1 では、9層アーキテクチャの完全実装に加え、当初 v0.2〜
 - **クラウドサービスネイティブ連携** — AWS / GCP / Azure / Cloudflare 抽象化層
 - **スマートデバイス / VR / AR 統合** — デバイスハブ・プロトコル抽象化
 
+#### ワークスペース隔離とプライバシー保護
+- **隔離ワークスペース** — 初期状態でローカル・クラウドに接続しない独立環境
+- **内部ストレージ** — AI エージェントがアクセスできるのはユーザーがアップロードしたファイルのみ
+- **段階的アクセス許可** — ユーザーが設定でローカルフォルダ・クラウドストレージへのアクセスを許可可能
+- **業務単位の環境カスタマイズ** — チケット・タスクごとに異なる環境・権限・ナレッジ範囲を指定可能
+- **チャット指示と設定の整合性チェック** — チャットでの指示がシステム設定と異なる場合、AI が計画段階でユーザーに許可を求める
+- **保存先の柔軟な選択** — 成果物の保存先を内部ストレージ・ローカル・クラウドから選択可能
+
 ---
 
 ## 今後のロードマップ
@@ -115,6 +123,9 @@ v0.1 includes all features originally planned for v0.2 through v1.0, implemented
 **Production Quality (formerly v1.0):**
 - Governance & Compliance (GDPR/HIPAA/SOC2/ISO27001/CCPA/APPI), 24/365 Scheduler, Cloud Native Integration (AWS/GCP/Azure), Smart Device & VR/AR Hub
 
+**Workspace Isolation & Privacy:**
+- Isolated workspace (no local/cloud access by default), internal storage (AI only accesses user-uploaded files), gradual access permission (users can allow local folders/cloud storage via settings), per-task environment customization, chat instruction vs. settings consistency check (AI asks for approval when chat instructions differ from settings), flexible storage location selection
+
 ### Future Roadmap
 
 #### v0.2 — Frontend Completion & Community
@@ -162,6 +173,8 @@ v0.1 包含了原计划在 v0.2 到 v1.0 中实现的所有主要功能。
 **生态系统（原 v0.4）：** Skill 市场、多用户/团队、浏览器自动化、Obsidian 集成、LSP 集成
 
 **生产质量（原 v1.0）：** 治理与合规（GDPR/HIPAA/SOC2 等）、24/365 调度器、云服务集成、智能设备/VR/AR
+
+**工作空间隔离与隐私保护：** 隔离工作空间（默认不连接本地/云端）、内部存储（AI 仅访问用户上传的文件）、分级访问许可、按任务自定义环境、聊天指令与设置一致性检查（指令与设置不同时 AI 会请求用户许可）、灵活的存储位置选择
 
 ### 未来路线图
 
