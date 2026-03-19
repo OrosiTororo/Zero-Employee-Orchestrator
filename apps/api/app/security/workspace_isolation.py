@@ -29,9 +29,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 # 内部ストレージのデフォルトパス
-_DEFAULT_INTERNAL_STORAGE = os.path.join(
-    os.path.expanduser("~"), ".zero_employee", "workspace"
-)
+_DEFAULT_INTERNAL_STORAGE = os.path.join(os.path.expanduser("~"), ".zero_employee", "workspace")
 
 
 class StorageLocation(str, Enum):
@@ -277,8 +275,7 @@ class WorkspaceIsolation:
             return WorkspaceAccessResult(
                 allowed=False,
                 path=f"{provider}://{cloud_path}",
-                reason="Cloud storage access is disabled. "
-                "Enable cloud access via settings.",
+                reason="Cloud storage access is disabled. Enable cloud access via settings.",
                 requires_user_approval=True,
                 suggested_message=(
                     "クラウドストレージへのアクセスは現在無効です。\n"
@@ -308,9 +305,7 @@ class WorkspaceIsolation:
             reason=f"Cloud provider '{provider}' is configured and allowed",
         )
 
-    def get_effective_storage_location(
-        self, task_id: str | None = None
-    ) -> StorageLocation:
+    def get_effective_storage_location(self, task_id: str | None = None) -> StorageLocation:
         """有効な保存先を取得する（タスクオーバーライドを考慮）."""
         if task_id and task_id in self._task_overrides:
             override = self._task_overrides[task_id]
@@ -322,8 +317,7 @@ class WorkspaceIsolation:
         """タスク単位のワークスペースオーバーライドを設定する."""
         self._task_overrides[override.task_id] = override
         logger.info(
-            "Task workspace override set: task=%s, approved=%s, "
-            "local_paths=%d, cloud_sources=%d",
+            "Task workspace override set: task=%s, approved=%s, local_paths=%d, cloud_sources=%d",
             override.task_id,
             override.approved_by_user,
             len(override.additional_local_paths),
@@ -365,9 +359,7 @@ class WorkspaceIsolation:
 
     def remove_cloud_provider(self, provider: str) -> None:
         """クラウドプロバイダーを削除する."""
-        self._config.cloud_providers = [
-            p for p in self._config.cloud_providers if p != provider
-        ]
+        self._config.cloud_providers = [p for p in self._config.cloud_providers if p != provider]
         logger.info("Workspace: cloud provider removed: %s", provider)
 
     def get_access_scope(self) -> AccessScope:
@@ -415,7 +407,9 @@ class WorkspaceIsolation:
         if requested_storage and requested_storage != self._config.storage_location:
             if requested_storage == StorageLocation.LOCAL and not self._config.local_access_enabled:
                 issues.append(f"保存先: {requested_storage.value}（ローカルアクセス未許可）")
-            elif requested_storage == StorageLocation.CLOUD and not self._config.cloud_access_enabled:
+            elif (
+                requested_storage == StorageLocation.CLOUD and not self._config.cloud_access_enabled
+            ):
                 issues.append(f"保存先: {requested_storage.value}（クラウドアクセス未許可）")
 
         if not issues:
