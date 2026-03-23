@@ -14,13 +14,15 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app.api.routes.auth import get_current_user
 from app.integrations.browser_assist import (
     AssistAction,
     browser_assist_service,
 )
+from app.models.user import User
 from app.security.prompt_guard import ThreatLevel, scan_prompt_injection
 
 logger = logging.getLogger(__name__)
@@ -66,7 +68,7 @@ class AssistResponse(BaseModel):
 
 
 @router.post("/consent")
-async def update_consent(req: ConsentRequest) -> dict:
+async def update_consent(req: ConsentRequest, user: User = Depends(get_current_user)) -> dict:
     """画面共有の同意を設定する.
 
     ユーザーがブラウザアシスト機能を利用する前に、
@@ -81,7 +83,7 @@ async def update_consent(req: ConsentRequest) -> dict:
 
 
 @router.post("/analyze", response_model=AssistResponse)
-async def analyze_screen(req: AssistRequest) -> AssistResponse:
+async def analyze_screen(req: AssistRequest, user: User = Depends(get_current_user)) -> AssistResponse:
     """スクリーンショットを分析し、操作案内やエラー診断を提供する.
 
     ユーザーの画面を AI が分析し、操作方法・手順・エラー解決策を回答する。
@@ -146,7 +148,7 @@ async def analyze_screen(req: AssistRequest) -> AssistResponse:
 
 
 @router.get("/status")
-async def assist_status() -> dict:
+async def assist_status(user: User = Depends(get_current_user)) -> dict:
     """ブラウザアシスト機能のステータスを返す."""
     return {
         "available": True,

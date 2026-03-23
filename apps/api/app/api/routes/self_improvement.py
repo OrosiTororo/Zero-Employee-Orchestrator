@@ -22,6 +22,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
+from app.api.routes.auth import get_current_user
+from app.models.user import User
 from app.schemas.self_improvement import (
     AnalysisFindingResponse,
     AutoTestRequest,
@@ -79,6 +81,7 @@ _latest_improvement: dict = {}
 async def analyze_skill_endpoint(
     request: SkillAnalysisRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ) -> SkillAnalysisResponse:
     """既存 Skill を AI が分析し、改善提案を生成する."""
     from app.services.self_improvement_service import analyze_skill
@@ -123,6 +126,7 @@ async def analyze_skill_endpoint(
 async def improve_skill_endpoint(
     request: SkillImproveRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ) -> SkillImprovementResponse:
     """Skill を分析し、改善版を生成する（適用には承認が必要）."""
     from app.services.self_improvement_service import improve_skill
@@ -159,6 +163,7 @@ async def improve_skill_endpoint(
 async def apply_improvement_endpoint(
     request: SkillImprovementApplyRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ) -> dict:
     """改善提案を適用する（承認後に呼び出し）."""
     from app.services.self_improvement_service import (
@@ -206,6 +211,7 @@ async def apply_improvement_endpoint(
 async def tune_judge_endpoint(
     request: JudgeTuneRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ) -> JudgeTuningResponse:
     """Experience Memory から Judge 判定基準の調整を提案する."""
     from app.services.self_improvement_service import tune_judge_from_experience
@@ -246,6 +252,7 @@ async def tune_judge_endpoint(
 @router.post("/judge/tune/apply", response_model=JudgeTuningApplyResponse)
 async def apply_judge_tuning_endpoint(
     request: JudgeTuningApplyRequest,
+    user: User = Depends(get_current_user),
 ) -> JudgeTuningApplyResponse:
     """提案された Judge ルールを適用する（承認後）."""
     from app.services.self_improvement_service import (
@@ -283,6 +290,7 @@ async def apply_judge_tuning_endpoint(
 async def failure_to_skill_endpoint(
     request: FailureToSkillRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ) -> FailureToSkillResponse:
     """失敗パターンから予防 Skill を自動生成する."""
     from app.services.self_improvement_service import generate_skills_from_failures
@@ -320,6 +328,7 @@ async def failure_to_skill_endpoint(
 async def register_failure_skill_endpoint(
     request: FailureToSkillRegisterRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ) -> dict:
     """失敗防止 Skill を登録する（承認後）."""
     from app.services.skill_service import (
@@ -367,6 +376,7 @@ async def register_failure_skill_endpoint(
 async def skill_ab_test_endpoint(
     request: SkillABTestRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ) -> SkillABTestResponse:
     """2つの Skill を A/B テストで比較する."""
     from app.services.self_improvement_service import run_skill_ab_test
@@ -410,6 +420,7 @@ async def skill_ab_test_endpoint(
 async def generate_tests_endpoint(
     request: AutoTestRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ) -> AutoTestResponse:
     """Skill のテストコードを自動生成する."""
     from app.services.self_improvement_service import generate_tests_for_skill
@@ -453,7 +464,7 @@ async def generate_tests_endpoint(
 
 
 @router.get("/status", response_model=SelfImprovementStatusResponse)
-async def self_improvement_status() -> SelfImprovementStatusResponse:
+async def self_improvement_status(user: User = Depends(get_current_user)) -> SelfImprovementStatusResponse:
     """AI Self-Improvement の全体ステータスを返す."""
     return SelfImprovementStatusResponse(
         plugin_version="0.1.0",

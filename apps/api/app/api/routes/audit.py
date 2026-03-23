@@ -7,7 +7,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
+from app.api.routes.auth import get_current_user
 from app.models.audit import AuditLog
+from app.models.user import User
 
 router = APIRouter()
 
@@ -19,6 +21,7 @@ async def list_audit_logs(
     page: int = 1,
     page_size: int = 50,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """監査ログ一覧"""
     cid = uuid.UUID(company_id)

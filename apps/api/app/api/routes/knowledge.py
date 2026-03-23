@@ -10,6 +10,8 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
+from app.api.routes.auth import get_current_user
+from app.models.user import User
 from app.orchestration.knowledge_store import KnowledgeStore
 
 router = APIRouter()
@@ -60,6 +62,7 @@ class FolderLocationRequest(BaseModel):
 async def remember_knowledge(
     req: KnowledgeRememberRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """ナレッジを記憶する."""
     store = KnowledgeStore(db)
@@ -85,6 +88,7 @@ async def remember_knowledge(
 async def recall_knowledge(
     req: KnowledgeRecallRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """ナレッジを検索する."""
     store = KnowledgeStore(db)
@@ -115,6 +119,7 @@ async def recall_knowledge(
 async def remember_file_permission(
     req: FilePermissionRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """ファイル/フォルダの操作権限を記憶."""
     store = KnowledgeStore(db)
@@ -137,6 +142,7 @@ async def remember_file_permission(
 async def remember_folder_location(
     req: FolderLocationRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """業務資料フォルダの場所を記憶."""
     store = KnowledgeStore(db)
@@ -154,6 +160,7 @@ async def remember_folder_location(
 async def list_permissions(
     company_id: str | None = None,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """全ファイル権限を取得."""
     store = KnowledgeStore(db)
@@ -168,6 +175,7 @@ async def list_permissions(
 async def list_folder_locations(
     company_id: str | None = None,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """全フォルダ位置を取得."""
     store = KnowledgeStore(db)
@@ -184,6 +192,7 @@ async def list_changes(
     unacknowledged_only: bool = True,
     limit: int = 50,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """変更検知の一覧."""
     store = KnowledgeStore(db)
@@ -209,6 +218,7 @@ async def list_changes(
 async def acknowledge_change(
     change_id: str,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """変更を確認済みにする."""
     store = KnowledgeStore(db)
@@ -223,6 +233,7 @@ async def acknowledge_change(
 async def forget_knowledge(
     record_id: str,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """ナレッジを無効化."""
     store = KnowledgeStore(db)

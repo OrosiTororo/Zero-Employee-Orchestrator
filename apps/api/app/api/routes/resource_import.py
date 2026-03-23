@@ -8,9 +8,11 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from app.api.routes.auth import get_current_user
+from app.models.user import User
 from app.services.resource_import_service import (
     ImportedResource,
     ImportStatus,
@@ -106,7 +108,7 @@ def _to_response(r: ImportedResource) -> ResourceResponse:
 # エンドポイント
 # ---------------------------------------------------------------------------
 @router.post("/import/file", response_model=ResourceResponse)
-async def import_file(body: ImportFileBody) -> ResourceResponse:
+async def import_file(body: ImportFileBody, user: User = Depends(get_current_user)) -> ResourceResponse:
     """単一ファイルをインポートする."""
     try:
         resource = await resource_import_service.import_file(
@@ -122,7 +124,7 @@ async def import_file(body: ImportFileBody) -> ResourceResponse:
 
 
 @router.post("/import/folder", response_model=ImportFolderResponse)
-async def import_folder(body: ImportFolderBody) -> ImportFolderResponse:
+async def import_folder(body: ImportFolderBody, user: User = Depends(get_current_user)) -> ImportFolderResponse:
     """フォルダからリソースを一括インポートする."""
     file_types = set(body.file_types) if body.file_types else None
     try:
@@ -144,7 +146,7 @@ async def import_folder(body: ImportFolderBody) -> ImportFolderResponse:
 
 
 @router.post("/import/url", response_model=ResourceResponse)
-async def import_url(body: ImportUrlBody) -> ResourceResponse:
+async def import_url(body: ImportUrlBody, user: User = Depends(get_current_user)) -> ResourceResponse:
     """URLからリソースをインポートする."""
     try:
         resource = await resource_import_service.import_url(
@@ -162,6 +164,7 @@ async def list_resources(
     resource_type: ResourceType | None = Query(default=None, description="リソース種別フィルタ"),
     limit: int = Query(default=100, ge=1, le=1000, description="取得件数上限"),
     offset: int = Query(default=0, ge=0, description="スキップ件数"),
+    user: User = Depends(get_current_user),
 ) -> ResourceListResponse:
     """リソース一覧を取得する."""
     resources = await resource_import_service.list_resources(
@@ -182,6 +185,7 @@ async def search_resources(
     q: str = Query(..., min_length=1, description="検索クエリ"),
     resource_type: ResourceType | None = Query(default=None, description="リソース種別フィルタ"),
     tags: list[str] | None = Query(default=None, description="タグフィルタ"),
+    user: User = Depends(get_current_user),
 ) -> ResourceListResponse:
     """リソースを検索する."""
     results = await resource_import_service.search_resources(
@@ -196,7 +200,7 @@ async def search_resources(
 
 
 @router.get("/{resource_id}", response_model=ResourceResponse)
-async def get_resource(resource_id: str) -> ResourceResponse:
+async def get_resource(resource_id: str, user: User = Depends(get_current_user)) -> ResourceResponse:
     """リソース詳細を取得する."""
     resource = resource_import_service.get_resource(resource_id)
     if resource is None:
@@ -205,7 +209,7 @@ async def get_resource(resource_id: str) -> ResourceResponse:
 
 
 @router.delete("/{resource_id}")
-async def delete_resource(resource_id: str) -> dict[str, str]:
+async def delete_resource(resource_id: str, user: User = Depends(get_current_user)) -> dict[str, str]:
     """リソースを削除する."""
     deleted = await resource_import_service.delete_resource(resource_id)
     if not deleted:

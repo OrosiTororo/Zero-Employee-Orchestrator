@@ -132,12 +132,32 @@ ROUTE_DIR="$REPO_ROOT/apps/api/app/api/routes"
 AUTH_ROUTES=0
 UNPROTECTED_ROUTES=0
 UNPROTECTED_LIST=""
+
+# ホワイトリスト: 認証不要のファイル（理由付き）
+# __init__.py     — ルーター登録のみ（エンドポイントなし）
+# auth.py         — 認証エンドポイント自体（login/register/anonymous-session）
+# models.py       — モデルカタログ（公開情報・読み取り専用）
+# health.py       — ヘルスチェック（インフラ監視用）
+#
+# MIXED ファイル（一部公開・一部認証済み — ファイル内に get_current_user あり）:
+# ai_tools.py       — GET: 公開ツール一覧 / POST: 認証必須
+# marketplace.py    — GET: 公開閲覧 / POST: 認証必須
+# media_generation.py — GET: 公開プロバイダー一覧 / POST: 認証必須
+# org_setup.py      — GET /interview/questions: 公開 / POST: 認証必須
+AUTH_WHITELIST="__init__.py auth.py models.py health.py"
+
 for route_file in "$ROUTE_DIR"/*.py; do
   basename=$(basename "$route_file")
-  # 認証不要のファイルはスキップ
-  case "$basename" in
-    __init__.py|auth.py|models.py|health.py) continue ;;
-  esac
+  # ホワイトリストのファイルはスキップ
+  skip=false
+  for wl in $AUTH_WHITELIST; do
+    if [ "$basename" = "$wl" ]; then
+      skip=true
+      break
+    fi
+  done
+  if $skip; then continue; fi
+
   # ルート定義があるか確認
   if grep -q '@router\.' "$route_file" 2>/dev/null; then
     if grep -q 'get_current_user\|get_optional_user' "$route_file" 2>/dev/null; then
@@ -152,8 +172,7 @@ done
 if [ "$UNPROTECTED_ROUTES" -eq 0 ] && [ "$AUTH_ROUTES" -gt 0 ]; then
   pass "全ルートファイル ($AUTH_ROUTES 個) で認証が有効です"
 elif [ "$UNPROTECTED_ROUTES" -gt 0 ]; then
-  warn "認証なしのルートファイルがあります ($UNPROTECTED_ROUTES 個):$UNPROTECTED_LIST"
-  warn "本番環境では get_current_user による認証を有効にしてください"
+  fail "認証なしのルートファイルがあります ($UNPROTECTED_ROUTES 個):$UNPROTECTED_LIST"
 else
   warn "ルートファイルが見つかりません（認証チェックをスキップします）"
 fi

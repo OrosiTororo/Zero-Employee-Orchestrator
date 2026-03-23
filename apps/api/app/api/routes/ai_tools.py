@@ -7,13 +7,15 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from app.api.routes.auth import get_current_user
 from app.integrations.ai_tools import (
     ToolCategory,
     ai_tool_registry,
 )
+from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +29,7 @@ class ToolToggleRequest(BaseModel):
     enabled: bool
 
 
+# 認証不要: ツール一覧は公開情報
 @router.get("")
 async def list_all_tools() -> dict:
     """全 AI ツール一覧を返す."""
@@ -51,6 +54,7 @@ async def list_all_tools() -> dict:
     }
 
 
+# 認証不要: ツール一覧は公開情報
 @router.get("/available")
 async def list_available_tools() -> dict:
     """利用可能な（設定済み）ツール一覧を返す."""
@@ -70,6 +74,7 @@ async def list_available_tools() -> dict:
     }
 
 
+# 認証不要: ツール一覧は公開情報
 @router.get("/category/{category}")
 async def list_tools_by_category(category: str) -> dict:
     """カテゴリ別のツール一覧を返す."""
@@ -97,7 +102,9 @@ async def list_tools_by_category(category: str) -> dict:
 
 
 @router.post("/toggle")
-async def toggle_tool(req: ToolToggleRequest) -> dict:
+async def toggle_tool(
+    req: ToolToggleRequest, user: User = Depends(get_current_user)
+) -> dict:
     """ツールの有効化/無効化を切り替える."""
     if req.enabled:
         success = ai_tool_registry.enable_tool(req.tool_id)
@@ -114,6 +121,7 @@ async def toggle_tool(req: ToolToggleRequest) -> dict:
     }
 
 
+# 認証不要: ツール一覧は公開情報
 @router.get("/summary")
 async def get_tools_summary() -> dict:
     """ツール概要を返す."""

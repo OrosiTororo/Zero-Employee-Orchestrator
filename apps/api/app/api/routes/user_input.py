@@ -8,9 +8,11 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app.api.routes.auth import get_current_user
+from app.models.user import User
 from app.services.user_input_service import (
     InputRequest,
     InputRequestStatus,
@@ -89,7 +91,7 @@ def _to_response(req: InputRequest) -> InputRequestResponse:
 # エンドポイント
 # ---------------------------------------------------------------------------
 @router.post("/request", response_model=InputRequestResponse)
-async def create_input_request(body: CreateInputRequestBody) -> InputRequestResponse:
+async def create_input_request(body: CreateInputRequestBody, user: User = Depends(get_current_user)) -> InputRequestResponse:
     """入力リクエストを作成する.
 
     AIタスクがユーザーに追加情報を要求する際に使用する。
@@ -112,7 +114,7 @@ async def create_input_request(body: CreateInputRequestBody) -> InputRequestResp
 
 
 @router.get("/pending", response_model=PendingRequestsResponse)
-async def list_all_pending_requests() -> PendingRequestsResponse:
+async def list_all_pending_requests(user: User = Depends(get_current_user)) -> PendingRequestsResponse:
     """全タスクの未回答リクエスト一覧を取得する."""
     # 期限切れチェックを先に実行
     await user_input_service.expire_stale_requests()
@@ -127,7 +129,7 @@ async def list_all_pending_requests() -> PendingRequestsResponse:
 
 
 @router.get("/pending/{task_id}", response_model=PendingRequestsResponse)
-async def list_pending_for_task(task_id: str) -> PendingRequestsResponse:
+async def list_pending_for_task(task_id: str, user: User = Depends(get_current_user)) -> PendingRequestsResponse:
     """指定タスクの未回答リクエスト一覧を取得する."""
     await user_input_service.expire_stale_requests()
     pending = await user_input_service.get_pending_requests(task_id)
@@ -141,6 +143,7 @@ async def list_pending_for_task(task_id: str) -> PendingRequestsResponse:
 async def answer_request(
     request_id: str,
     body: AnswerInputBody,
+    user: User = Depends(get_current_user),
 ) -> InputRequestResponse:
     """入力リクエストに回答する."""
     try:
@@ -153,7 +156,7 @@ async def answer_request(
 
 
 @router.delete("/{request_id}", response_model=InputRequestResponse)
-async def cancel_request(request_id: str) -> InputRequestResponse:
+async def cancel_request(request_id: str, user: User = Depends(get_current_user)) -> InputRequestResponse:
     """入力リクエストをキャンセルする."""
     try:
         req = await user_input_service.cancel_request(request_id)

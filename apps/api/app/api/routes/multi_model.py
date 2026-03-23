@@ -11,6 +11,8 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
+from app.api.routes.auth import get_current_user
+from app.models.user import User
 
 router = APIRouter()
 
@@ -196,6 +198,7 @@ async def create_multi_model_comparison(
     company_id: str,
     req: MultiModelCompareRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """複数モデルに同一入力を送り、回答を比較するリクエストを作成."""
     from app.services.multi_model_service import MultiModelService
@@ -226,6 +229,7 @@ async def record_model_response(
     comparison_id: str,
     req: ModelResponseRecord,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """個別モデルの回答を記録."""
     from app.services.multi_model_service import MultiModelService
@@ -254,6 +258,7 @@ async def record_model_response(
 async def get_comparison(
     comparison_id: str,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """比較結果を取得."""
     from app.services.multi_model_service import MultiModelService
@@ -279,6 +284,7 @@ async def list_comparisons(
     offset: int = 0,
     limit: int = 50,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """比較一覧を取得."""
     from app.services.multi_model_service import MultiModelService
@@ -311,6 +317,7 @@ async def create_brainstorm_session(
     company_id: str,
     req: BrainstormCreateRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """壁打ちセッションを作成."""
     from app.services.multi_model_service import BrainstormService
@@ -345,6 +352,7 @@ async def add_brainstorm_message(
     session_id: str,
     req: BrainstormMessageRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """壁打ちセッションにメッセージを追加."""
     from app.services.multi_model_service import BrainstormService
@@ -373,6 +381,7 @@ async def add_brainstorm_message(
 async def get_brainstorm_session(
     session_id: str,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """壁打ちセッションを取得."""
     from app.services.multi_model_service import BrainstormService
@@ -404,6 +413,7 @@ async def list_brainstorm_sessions(
     offset: int = 0,
     limit: int = 50,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """壁打ちセッション一覧を取得."""
     from app.services.multi_model_service import BrainstormService
@@ -434,6 +444,7 @@ async def update_brainstorm_status(
     session_id: str,
     status: str,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """壁打ちセッションのステータスを更新."""
     from app.services.multi_model_service import BrainstormService
@@ -452,6 +463,7 @@ async def search_brainstorm_sessions(
     q: str = "",
     limit: int = 20,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """壁打ちセッションを検索."""
     if not q:
@@ -482,6 +494,7 @@ async def store_conversation_message(
     company_id: str,
     req: ConversationStoreRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """会話メッセージを保存."""
     from app.services.multi_model_service import ConversationMemoryService
@@ -520,6 +533,7 @@ async def get_conversation_history(
     offset: int = 0,
     limit: int = 100,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """会話履歴を取得."""
     from app.services.multi_model_service import ConversationMemoryService
@@ -555,6 +569,7 @@ async def search_conversation_memory(
     q: str = "",
     limit: int = 50,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """会話記憶を検索."""
     if not q:
@@ -581,6 +596,7 @@ async def get_conversation_stats(
     company_id: str,
     user_id: str | None = None,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """会話記憶の統計を取得."""
     from app.services.multi_model_service import ConversationMemoryService
@@ -595,7 +611,7 @@ async def get_conversation_stats(
 
 
 @router.post("/text/analyze")
-async def analyze_text(req: TextAnalysisRequest):
+async def analyze_text(req: TextAnalysisRequest, user: User = Depends(get_current_user)):
     """テキストを分析（正確な文字数カウント）."""
     from app.services.multi_model_service import TextAnalyzer
 
@@ -623,6 +639,7 @@ async def set_role_model(
     company_id: str,
     req: RoleModelConfigRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """役割に対するモデル設定を追加または更新."""
     from app.services.multi_model_service import AgentRoleModelService
@@ -656,6 +673,7 @@ async def set_role_model(
 async def list_role_models(
     company_id: str,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """全役割モデル設定を取得."""
     from app.services.multi_model_service import AgentRoleModelService
@@ -683,6 +701,7 @@ async def get_role_model(
     role_name: str,
     agent_id: str | None = None,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """特定役割のモデル設定を取得."""
     from app.services.multi_model_service import AgentRoleModelService
@@ -707,6 +726,7 @@ async def get_role_model(
 async def delete_role_model(
     config_id: str,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """役割モデル設定を削除."""
     from app.services.multi_model_service import AgentRoleModelService
@@ -729,6 +749,7 @@ async def add_agent_by_role(
     company_id: str,
     req: AgentAddByRoleRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """役割を指定してエージェントを追加."""
     from app.services.agent_org_service import AgentOrgService
@@ -760,6 +781,7 @@ async def remove_agent(
     agent_id: str,
     req: AgentRemoveRequest | None = None,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """エージェントを組織から削除."""
     from app.services.agent_org_service import AgentOrgService
@@ -777,6 +799,7 @@ async def update_agent_role(
     agent_id: str,
     req: AgentUpdateRoleRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """エージェントの役割設定を更新."""
     from app.services.agent_org_service import AgentOrgService
@@ -814,6 +837,7 @@ async def create_custom_role(
     company_id: str,
     req: CustomRoleCreateRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """カスタムエージェント役割を作成."""
     from app.services.agent_org_service import AgentOrgService
@@ -844,6 +868,7 @@ async def create_custom_role(
 async def list_custom_roles(
     company_id: str,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """カスタム役割一覧を取得."""
     from app.services.agent_org_service import AgentOrgService
@@ -868,6 +893,7 @@ async def list_custom_roles(
 async def delete_custom_role(
     role_id: str,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """カスタム役割を削除."""
     from app.services.agent_org_service import AgentOrgService
@@ -884,6 +910,7 @@ async def delete_custom_role(
 async def get_available_roles(
     company_id: str,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """利用可能な全役割を取得（プリセット + カスタム）."""
     from app.services.agent_org_service import AgentOrgService
@@ -902,6 +929,7 @@ async def submit_natural_language_request(
     company_id: str,
     req: NaturalLanguageRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """自然言語で AI 組織への要望を送信."""
     from app.services.agent_org_service import AgentOrgService
@@ -930,6 +958,7 @@ async def list_feature_requests(
     status: str | None = None,
     limit: int = 50,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """機能リクエスト一覧を取得."""
     from app.services.agent_org_service import AgentOrgService

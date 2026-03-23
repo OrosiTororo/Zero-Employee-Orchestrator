@@ -8,15 +8,17 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app.api.routes.auth import get_current_user
 from app.integrations.media_generation import (
     GenerationProvider,
     GenerationRequest,
     MediaType,
     media_generation_service,
 )
+from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -47,12 +49,14 @@ class GenerateResponse(BaseModel):
     cost_usd: float = 0.0
 
 
+# 認証不要: プロバイダー一覧は公開情報
 @router.get("/providers")
 async def list_providers() -> list[dict]:
     """利用可能なメディア生成プロバイダー一覧."""
     return media_generation_service.get_available_providers()
 
 
+# 認証不要: プロバイダー一覧は公開情報
 @router.get("/providers/{media_type}")
 async def list_providers_by_type(media_type: str) -> list[dict]:
     """メディアタイプ別のプロバイダー一覧."""
@@ -67,7 +71,9 @@ async def list_providers_by_type(media_type: str) -> list[dict]:
 
 
 @router.post("/generate", response_model=GenerateResponse)
-async def generate_media(req: GenerateRequest) -> GenerateResponse:
+async def generate_media(
+    req: GenerateRequest, user: User = Depends(get_current_user)
+) -> GenerateResponse:
     """メディアを生成する."""
     try:
         mt = MediaType(req.media_type)
@@ -109,6 +115,7 @@ async def generate_media(req: GenerateRequest) -> GenerateResponse:
     )
 
 
+# 認証不要: プロバイダー一覧は公開情報
 @router.get("/status/{request_id}")
 async def get_generation_status(request_id: str) -> dict:
     """生成リクエストのステータスを取得する."""
