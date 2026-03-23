@@ -8,6 +8,8 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
+from app.api.routes.auth import get_current_user
+from app.models.user import User
 from app.services.org_generator_service import (
     BusinessCategory,
     OrgInterviewAnswer,
@@ -69,6 +71,7 @@ class OrgGenerateResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+# 認証不要: オンボーディング質問は公開
 @router.get("/interview/questions")
 async def get_interview_questions():
     """組織構築ヒアリングの質問一覧を取得."""
@@ -186,7 +189,7 @@ async def get_interview_questions():
 
 
 @router.post("/preview", response_model=OrgPreviewResponse)
-async def preview_org_structure(req: OrgInterviewRequest):
+async def preview_org_structure(req: OrgInterviewRequest, user: User = Depends(get_current_user)):
     """ヒアリング回答から組織構成をプレビューする（DB保存なし）."""
     answers = OrgInterviewAnswer(
         business_description=req.business_description,
@@ -246,6 +249,7 @@ async def preview_org_structure(req: OrgInterviewRequest):
 @router.post("/generate", response_model=OrgGenerateResponse)
 async def generate_org_structure(
     req: OrgGenerateRequest,
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """ヒアリング回答から組織構造を自動生成して DB に保存する."""

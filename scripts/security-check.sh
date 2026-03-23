@@ -113,7 +113,82 @@ else
 fi
 
 # ──────────────────────────────────────────────
-# 7. git log でシークレットっぽい文字列の簡易チェック
+# 7. 認証ミドルウェアが有効であること
+# ──────────────────────────────────────────────
+# get_current_user 認証依存関数がルートで使用されているか確認
+AUTH_DEP_FILE="$REPO_ROOT/apps/api/app/api/routes/auth.py"
+if [ -f "$AUTH_DEP_FILE" ]; then
+  if grep -q "async def get_current_user" "$AUTH_DEP_FILE"; then
+    pass "認証依存関数 get_current_user が定義されています"
+  else
+    fail "認証依存関数 get_current_user が auth.py に定義されていません"
+  fi
+else
+  fail "apps/api/app/api/routes/auth.py が見つかりません"
+fi
+
+# 保護すべきルートファイルで get_current_user が使われているか確認
+ROUTE_DIR="$REPO_ROOT/apps/api/app/api/routes"
+AUTH_ROUTES=0
+UNPROTECTED_ROUTES=0
+UNPROTECTED_LIST=""
+
+# ホワイトリスト: 認証不要のファイル（理由付き）
+# __init__.py     — ルーター登録のみ（エンドポイントなし）
+# auth.py         — 認証エンドポイント自体（login/register/anonymous-session）
+# models.py       — モデルカタログ（公開情報・読み取り専用）
+# health.py       — ヘルスチェック（インフラ監視用）
+#
+# MIXED ファイル（一部公開・一部認証済み — ファイル内に get_current_user あり）:
+# ai_tools.py       — GET: 公開ツール一覧 / POST: 認証必須
+# marketplace.py    — GET: 公開閲覧 / POST: 認証必須
+# media_generation.py — GET: 公開プロバイダー一覧 / POST: 認証必須
+# org_setup.py      — GET /interview/questions: 公開 / POST: 認証必須
+AUTH_WHITELIST="__init__.py auth.py models.py health.py"
+
+for route_file in "$ROUTE_DIR"/*.py; do
+  basename=$(basename "$route_file")
+  # ホワイトリストのファイルはスキップ
+  skip=false
+  for wl in $AUTH_WHITELIST; do
+    if [ "$basename" = "$wl" ]; then
+      skip=true
+      break
+    fi
+  done
+  if $skip; then continue; fi
+
+  # ルート定義があるか確認
+  if grep -q '@router\.' "$route_file" 2>/dev/null; then
+    if grep -q 'get_current_user\|get_optional_user' "$route_file" 2>/dev/null; then
+      AUTH_ROUTES=$((AUTH_ROUTES + 1))
+    else
+      UNPROTECTED_ROUTES=$((UNPROTECTED_ROUTES + 1))
+      UNPROTECTED_LIST="$UNPROTECTED_LIST $basename"
+    fi
+  fi
+done
+
+if [ "$UNPROTECTED_ROUTES" -eq 0 ] && [ "$AUTH_ROUTES" -gt 0 ]; then
+  pass "全ルートファイル ($AUTH_ROUTES 個) で認証が有効です"
+elif [ "$UNPROTECTED_ROUTES" -gt 0 ]; then
+  fail "認証なしのルートファイルがあります ($UNPROTECTED_ROUTES 個):$UNPROTECTED_LIST"
+else
+  warn "ルートファイルが見つかりません（認証チェックをスキップします）"
+fi
+
+# SecurityHeadersMiddleware が main.py で登録されているか確認
+MAIN_PY="$REPO_ROOT/apps/api/app/main.py"
+if [ -f "$MAIN_PY" ]; then
+  if grep -q 'SecurityHeadersMiddleware' "$MAIN_PY"; then
+    pass "SecurityHeadersMiddleware が main.py に登録されています"
+  else
+    fail "SecurityHeadersMiddleware が main.py に登録されていません（セキュリティヘッダーが無効です）"
+  fi
+fi
+
+# ──────────────────────────────────────────────
+# 8. git log でシークレットっぽい文字列の簡易チェック
 # ──────────────────────────────────────────────
 # パターン説明:
 #   sk-...       : OpenAI API キー

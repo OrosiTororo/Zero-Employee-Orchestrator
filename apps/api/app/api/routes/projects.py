@@ -8,7 +8,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
+from app.api.routes.auth import get_current_user
 from app.models.project import Goal, Project
+from app.models.user import User
 
 router = APIRouter()
 
@@ -27,7 +29,9 @@ class GoalCreate(BaseModel):
 
 
 @router.get("/companies/{company_id}/projects")
-async def list_projects(company_id: str, db: AsyncSession = Depends(get_db)):
+async def list_projects(
+    company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """プロジェクト一覧"""
     cid = uuid.UUID(company_id)
     result = await db.execute(select(Project).where(Project.company_id == cid))
@@ -45,7 +49,12 @@ async def list_projects(company_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/companies/{company_id}/projects")
-async def create_project(company_id: str, req: ProjectCreate, db: AsyncSession = Depends(get_db)):
+async def create_project(
+    company_id: str,
+    req: ProjectCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
     """プロジェクト作成"""
     project = Project(
         id=uuid.uuid4(),
@@ -62,7 +71,9 @@ async def create_project(company_id: str, req: ProjectCreate, db: AsyncSession =
 
 
 @router.get("/projects/{project_id}/goals")
-async def list_goals(project_id: str, db: AsyncSession = Depends(get_db)):
+async def list_goals(
+    project_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """プロジェクトの目標一覧"""
     pid = uuid.UUID(project_id)
     result = await db.execute(select(Goal).where(Goal.project_id == pid))
@@ -79,7 +90,12 @@ async def list_goals(project_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/projects/{project_id}/goals")
-async def create_goal(project_id: str, req: GoalCreate, db: AsyncSession = Depends(get_db)):
+async def create_goal(
+    project_id: str,
+    req: GoalCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
     """目標作成"""
     goal = Goal(
         id=uuid.uuid4(),

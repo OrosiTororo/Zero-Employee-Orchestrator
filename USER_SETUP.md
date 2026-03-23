@@ -180,6 +180,27 @@ zero-employee config set CORS_ORIGINS '["https://your-domain.com"]'
 zero-employee config set CORS_ORIGINS '["http://localhost:5173","http://localhost:18234"]'
 ```
 
+### 認証ミドルウェア（重要）
+
+ZEO は JWT ベースの認証を実装しており、保護エンドポイントには `get_current_user` 依存関数による認証が必要です。
+
+**本番環境では以下を必ず確認してください:**
+
+1. **SECRET_KEY が本番用に設定されていること** — デフォルトのエフェメラルキーではサーバー再起動時にすべてのトークンが無効化されます
+2. **すべての業務 API ルートで認証が有効であること** — `scripts/security-check.sh` を実行して認証なしのルートがないか確認してください
+3. **SecurityHeadersMiddleware が有効であること** — CSP、HSTS、X-Frame-Options 等のセキュリティヘッダーが付与されます
+
+```bash
+# デプロイ前のセキュリティチェック
+./scripts/security-check.sh
+
+# レッドチームテストで認証バイパスが検出されないことを確認
+curl -X POST http://localhost:18234/api/v1/security/redteam/run \
+  -H 'Content-Type: application/json' -d '{}'
+```
+
+> **警告**: 認証なしで公開されたエンドポイントは、不正なデータ操作やデータ漏洩のリスクがあります。新しいルートを追加する際は、必ず `Depends(get_current_user)` を含めてください。
+
 ---
 
 ## 5. データベース設定

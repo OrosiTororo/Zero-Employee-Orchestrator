@@ -8,15 +8,17 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app.api.routes.auth import get_current_user
 from app.integrations.ipaas import (
     IPaaSProvider,
     IPaaSWorkflow,
     WebhookTrigger,
     ipaas_service,
 )
+from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +61,9 @@ class WorkflowTriggerRequest(BaseModel):
 
 
 @router.post("/workflows")
-async def register_workflow(req: WorkflowCreateRequest) -> dict:
+async def register_workflow(
+    req: WorkflowCreateRequest, user: User = Depends(get_current_user)
+) -> dict:
     """ワークフローを登録する."""
     try:
         provider = IPaaSProvider(req.provider)
@@ -100,7 +104,9 @@ async def register_workflow(req: WorkflowCreateRequest) -> dict:
 
 
 @router.get("/workflows")
-async def list_workflows(provider: str | None = None) -> dict:
+async def list_workflows(
+    provider: str | None = None, user: User = Depends(get_current_user)
+) -> dict:
     """登録済みワークフロー一覧を返す."""
     filter_provider: IPaaSProvider | None = None
     if provider:
@@ -133,7 +139,9 @@ async def list_workflows(provider: str | None = None) -> dict:
 
 
 @router.post("/workflows/{workflow_id}/trigger")
-async def trigger_workflow(workflow_id: str, req: WorkflowTriggerRequest) -> dict:
+async def trigger_workflow(
+    workflow_id: str, req: WorkflowTriggerRequest, user: User = Depends(get_current_user)
+) -> dict:
     """ワークフローをトリガーする."""
     result = await ipaas_service.trigger_workflow(workflow_id, req.payload)
 
@@ -151,7 +159,7 @@ async def trigger_workflow(workflow_id: str, req: WorkflowTriggerRequest) -> dic
 
 
 @router.get("/workflows/{workflow_id}/status")
-async def get_workflow_status(workflow_id: str) -> dict:
+async def get_workflow_status(workflow_id: str, user: User = Depends(get_current_user)) -> dict:
     """ワークフローのステータスを取得する."""
     status = await ipaas_service.sync_status(workflow_id)
     if "error" in status:
@@ -160,7 +168,7 @@ async def get_workflow_status(workflow_id: str) -> dict:
 
 
 @router.delete("/workflows/{workflow_id}")
-async def remove_workflow(workflow_id: str) -> dict:
+async def remove_workflow(workflow_id: str, user: User = Depends(get_current_user)) -> dict:
     """ワークフローを削除する."""
     removed = ipaas_service.remove_workflow(workflow_id)
     if not removed:

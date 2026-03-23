@@ -9,12 +9,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
 from app.api.deps.validators import parse_uuid
+from app.api.routes.auth import get_current_user
 from app.core.security import generate_uuid
 from app.models.audit import AuditLog
 from app.models.plan import Plan
 from app.models.spec import Spec
 from app.models.task import Task
 from app.models.ticket import Ticket
+from app.models.user import User
 
 router = APIRouter()
 
@@ -40,7 +42,9 @@ class PlanCreate(BaseModel):
 
 
 @router.get("/tickets/{ticket_id}/specs")
-async def list_specs(ticket_id: str, db: AsyncSession = Depends(get_db)):
+async def list_specs(
+    ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """チケットのspec一覧"""
     tid = parse_uuid(ticket_id, "ticket_id")
     result = await db.execute(
@@ -60,7 +64,12 @@ async def list_specs(ticket_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/tickets/{ticket_id}/specs")
-async def create_spec(ticket_id: str, req: SpecCreate, db: AsyncSession = Depends(get_db)):
+async def create_spec(
+    ticket_id: str,
+    req: SpecCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
     """spec作成"""
     tid = parse_uuid(ticket_id, "ticket_id")
     existing = await db.execute(select(Spec).where(Spec.ticket_id == tid))
@@ -82,7 +91,9 @@ async def create_spec(ticket_id: str, req: SpecCreate, db: AsyncSession = Depend
 
 
 @router.get("/tickets/{ticket_id}/plans")
-async def list_plans(ticket_id: str, db: AsyncSession = Depends(get_db)):
+async def list_plans(
+    ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """チケットのplan一覧"""
     tid = parse_uuid(ticket_id, "ticket_id")
     result = await db.execute(
@@ -104,7 +115,12 @@ async def list_plans(ticket_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/tickets/{ticket_id}/plans")
-async def create_plan(ticket_id: str, req: PlanCreate, db: AsyncSession = Depends(get_db)):
+async def create_plan(
+    ticket_id: str,
+    req: PlanCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
     """plan作成"""
     tid = parse_uuid(ticket_id, "ticket_id")
     existing = await db.execute(select(Plan).where(Plan.ticket_id == tid))
@@ -128,7 +144,9 @@ async def create_plan(ticket_id: str, req: PlanCreate, db: AsyncSession = Depend
 
 
 @router.post("/plans/{plan_id}/approve")
-async def approve_plan(plan_id: str, db: AsyncSession = Depends(get_db)):
+async def approve_plan(
+    plan_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """planを承認 + DAG構築 + タスク生成"""
     pid = parse_uuid(plan_id, "plan_id")
     result = await db.execute(select(Plan).where(Plan.id == pid))
@@ -194,7 +212,12 @@ async def approve_plan(plan_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/plans/{plan_id}/reject")
-async def reject_plan(plan_id: str, reason: str = "", db: AsyncSession = Depends(get_db)):
+async def reject_plan(
+    plan_id: str,
+    reason: str = "",
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
     """planを却下"""
     result = await db.execute(select(Plan).where(Plan.id == parse_uuid(plan_id, "plan_id")))
     plan = result.scalar_one_or_none()
@@ -206,7 +229,9 @@ async def reject_plan(plan_id: str, reason: str = "", db: AsyncSession = Depends
 
 
 @router.get("/plans/{plan_id}/tasks")
-async def list_plan_tasks(plan_id: str, db: AsyncSession = Depends(get_db)):
+async def list_plan_tasks(
+    plan_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """planのtask一覧"""
     pid = parse_uuid(plan_id, "plan_id")
     result = await db.execute(select(Task).where(Task.plan_id == pid).order_by(Task.sequence_no))

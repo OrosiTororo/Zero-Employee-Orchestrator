@@ -9,15 +9,17 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app.api.routes.auth import get_current_user
 from app.integrations.artifact_export import (
     ExportFormat,
     ExportRequest,
     ExportTarget,
     artifact_exporter,
 )
+from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +47,9 @@ class ArtifactExportRequest(BaseModel):
 
 
 @router.post("/artifact")
-async def export_artifact(req: ArtifactExportRequest) -> dict:
+async def export_artifact(
+    req: ArtifactExportRequest, user: User = Depends(get_current_user)
+) -> dict:
     """アーティファクトをエクスポートする."""
     try:
         export_format = ExportFormat(req.format)
@@ -87,12 +91,12 @@ async def export_artifact(req: ArtifactExportRequest) -> dict:
 
 
 @router.get("/formats")
-async def list_formats() -> dict:
+async def list_formats(user: User = Depends(get_current_user)) -> dict:
     """サポートするエクスポートフォーマット一覧を返す."""
     return {"formats": artifact_exporter.get_supported_formats()}
 
 
 @router.get("/targets")
-async def list_targets() -> dict:
+async def list_targets(user: User = Depends(get_current_user)) -> dict:
     """サポートするエクスポート先一覧を返す."""
     return {"targets": artifact_exporter.get_supported_targets()}

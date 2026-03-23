@@ -8,9 +8,11 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from app.api.routes.auth import get_current_user
+from app.models.user import User
 from app.services.marketplace_service import (
     ListingStatus,
     MarketplaceCategory,
@@ -56,6 +58,7 @@ class InstallRequest(BaseModel):
 # ---------- Endpoints ----------
 
 
+# 認証不要: マーケットプレイス閲覧は公開
 @router.get("/search")
 async def search_listings(
     query: str = "",
@@ -82,6 +85,7 @@ async def search_listings(
     return [_listing_to_dict(r) for r in results]
 
 
+# 認証不要: マーケットプレイス閲覧は公開
 @router.get("/trending")
 async def get_trending(
     limit: int = Query(default=10, ge=1, le=50),
@@ -91,6 +95,7 @@ async def get_trending(
     return [_listing_to_dict(r) for r in results]
 
 
+# 認証不要: マーケットプレイス閲覧は公開
 @router.get("/{listing_id}")
 async def get_listing(listing_id: str) -> dict:
     """Listing を ID で取得する."""
@@ -101,7 +106,7 @@ async def get_listing(listing_id: str) -> dict:
 
 
 @router.post("/publish", status_code=201)
-async def publish_listing(req: PublishRequest) -> dict:
+async def publish_listing(req: PublishRequest, user: User = Depends(get_current_user)) -> dict:
     """Listing をレビュー待ちとして公開する."""
     try:
         cat = MarketplaceCategory(req.category)
@@ -128,7 +133,9 @@ async def publish_listing(req: PublishRequest) -> dict:
 
 
 @router.post("/{listing_id}/install")
-async def install_listing(listing_id: str, req: InstallRequest) -> dict:
+async def install_listing(
+    listing_id: str, req: InstallRequest, user: User = Depends(get_current_user)
+) -> dict:
     """Listing を企業にインストールする."""
     try:
         listing = await marketplace_service.install(listing_id, req.company_id)
@@ -142,7 +149,9 @@ async def install_listing(listing_id: str, req: InstallRequest) -> dict:
 
 
 @router.post("/{listing_id}/review", status_code=201)
-async def add_review(listing_id: str, req: ReviewRequest) -> dict:
+async def add_review(
+    listing_id: str, req: ReviewRequest, user: User = Depends(get_current_user)
+) -> dict:
     """Listing にレビューを追加する."""
     try:
         review = await marketplace_service.add_review(

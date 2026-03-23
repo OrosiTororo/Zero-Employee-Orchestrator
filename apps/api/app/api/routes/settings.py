@@ -8,7 +8,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
+from app.api.routes.auth import get_current_user
 from app.models.connection import ToolConnection
+from app.models.user import User
 
 router = APIRouter()
 
@@ -21,19 +23,23 @@ class ConnectionCreate(BaseModel):
 
 
 @router.get("/companies/{company_id}/settings")
-async def get_settings(company_id: str):
+async def get_settings(company_id: str, user: User = Depends(get_current_user)):
     """会社設定を取得"""
     return {"company_id": company_id, "settings": {}}
 
 
 @router.patch("/companies/{company_id}/settings")
-async def update_settings(company_id: str, settings: dict | None = None):
+async def update_settings(
+    company_id: str, settings: dict | None = None, user: User = Depends(get_current_user)
+):
     """会社設定を更新"""
     return {"company_id": company_id, "status": "updated"}
 
 
 @router.get("/companies/{company_id}/tool-connections")
-async def list_connections(company_id: str, db: AsyncSession = Depends(get_db)):
+async def list_connections(
+    company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """接続先一覧"""
     cid = uuid.UUID(company_id)
     result = await db.execute(select(ToolConnection).where(ToolConnection.company_id == cid))
@@ -52,7 +58,10 @@ async def list_connections(company_id: str, db: AsyncSession = Depends(get_db)):
 
 @router.post("/companies/{company_id}/tool-connections")
 async def create_connection(
-    company_id: str, req: ConnectionCreate, db: AsyncSession = Depends(get_db)
+    company_id: str,
+    req: ConnectionCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """接続先を追加"""
     conn = ToolConnection(

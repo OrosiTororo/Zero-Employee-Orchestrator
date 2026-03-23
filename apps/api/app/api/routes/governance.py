@@ -7,9 +7,11 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from app.api.routes.auth import get_current_user
+from app.models.user import User
 from app.services.governance_service import (
     ComplianceFramework,
     PolicyRule,
@@ -43,7 +45,7 @@ class AddPolicyRequest(BaseModel):
 
 
 @router.post("/policies", status_code=201)
-async def add_policy(req: AddPolicyRequest) -> dict:
+async def add_policy(req: AddPolicyRequest, user: User = Depends(get_current_user)) -> dict:
     """ポリシールールを追加する."""
     try:
         policy_type = PolicyType(req.policy_type)
@@ -91,6 +93,7 @@ async def list_policies(
     framework: str | None = None,
     policy_type: str | None = None,
     active_only: bool = True,
+    user: User = Depends(get_current_user),
 ) -> list[dict]:
     """ポリシールール一覧を取得する."""
     fw = None
@@ -123,6 +126,7 @@ async def list_policies(
 async def run_compliance_check(
     framework: str,
     resource_id: str = Query(default="", description="チェック対象リソース ID"),
+    user: User = Depends(get_current_user),
 ) -> dict:
     """指定フレームワークのコンプライアンスチェックを実行する."""
     try:
@@ -158,7 +162,7 @@ async def run_compliance_check(
 
 
 @router.get("/report/{framework}")
-async def get_compliance_report(framework: str) -> dict:
+async def get_compliance_report(framework: str, user: User = Depends(get_current_user)) -> dict:
     """コンプライアンスレポートを取得する."""
     try:
         fw = ComplianceFramework(framework)
@@ -175,6 +179,7 @@ async def get_compliance_report(framework: str) -> dict:
 async def get_violations(
     severity: str | None = None,
     limit: int = Query(default=50, ge=1, le=200),
+    user: User = Depends(get_current_user),
 ) -> list[dict]:
     """最近のポリシー違反を取得する."""
     sev = None

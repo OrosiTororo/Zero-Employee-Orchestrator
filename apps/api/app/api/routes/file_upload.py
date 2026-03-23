@@ -14,9 +14,12 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+
+from app.api.routes.auth import get_current_user
+from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -207,7 +210,7 @@ async def _save_upload(upload: UploadFile) -> StoredFile:
 # エンドポイント
 # ---------------------------------------------------------------------------
 @router.post("/upload", response_model=UploadResponse)
-async def upload_file(file: UploadFile) -> UploadResponse:
+async def upload_file(file: UploadFile, user: User = Depends(get_current_user)) -> UploadResponse:
     """単一ファイルをアップロードする.
 
     最大50MBまで。許可された拡張子のみ受け付ける。
@@ -224,6 +227,7 @@ async def upload_file(file: UploadFile) -> UploadResponse:
 @router.post("/upload-multiple", response_model=MultiUploadResponse)
 async def upload_multiple_files(
     files: list[UploadFile],
+    user: User = Depends(get_current_user),
 ) -> MultiUploadResponse:
     """複数ファイルを一括アップロードする.
 
@@ -256,7 +260,7 @@ async def upload_multiple_files(
 
 
 @router.get("/{file_id}", response_model=FileInfoResponse)
-async def get_file_info(file_id: str) -> FileInfoResponse:
+async def get_file_info(file_id: str, user: User = Depends(get_current_user)) -> FileInfoResponse:
     """ファイル情報を取得する."""
     stored = _file_store.get(file_id)
     if stored is None:
@@ -265,7 +269,7 @@ async def get_file_info(file_id: str) -> FileInfoResponse:
 
 
 @router.get("/{file_id}/download")
-async def download_file(file_id: str) -> FileResponse:
+async def download_file(file_id: str, user: User = Depends(get_current_user)) -> FileResponse:
     """ファイルをダウンロードする."""
     stored = _file_store.get(file_id)
     if stored is None:
@@ -283,7 +287,7 @@ async def download_file(file_id: str) -> FileResponse:
 
 
 @router.delete("/{file_id}")
-async def delete_file(file_id: str) -> dict[str, str]:
+async def delete_file(file_id: str, user: User = Depends(get_current_user)) -> dict[str, str]:
     """ファイルを削除する."""
     stored = _file_store.get(file_id)
     if stored is None:
@@ -302,6 +306,7 @@ async def delete_file(file_id: str) -> dict[str, str]:
 async def list_files(
     limit: int = 100,
     offset: int = 0,
+    user: User = Depends(get_current_user),
 ) -> FileListResponse:
     """アップロード済みファイル一覧を取得する."""
     all_files = sorted(

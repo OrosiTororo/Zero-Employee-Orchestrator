@@ -13,9 +13,11 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app.api.routes.auth import get_current_user
+from app.models.user import User
 from app.security.data_protection import (
     DataProtectionConfig,
     TransferPolicy,
@@ -107,7 +109,7 @@ class SecurityOverviewResponse(BaseModel):
 
 
 @router.get("/overview")
-async def get_security_overview() -> SecurityOverviewResponse:
+async def get_security_overview(user: User = Depends(get_current_user)) -> SecurityOverviewResponse:
     """セキュリティ設定の概要を返す."""
     sandbox_config = filesystem_sandbox.config
     dp_config = data_protection_guard.config
@@ -144,7 +146,7 @@ async def get_security_overview() -> SecurityOverviewResponse:
 
 
 @router.get("/sandbox")
-async def get_sandbox_config() -> dict:
+async def get_sandbox_config(user: User = Depends(get_current_user)) -> dict:
     """サンドボックス設定を取得する."""
     config = filesystem_sandbox.config
     return {
@@ -157,7 +159,9 @@ async def get_sandbox_config() -> dict:
 
 
 @router.put("/sandbox")
-async def update_sandbox_config(req: SandboxConfigRequest) -> dict:
+async def update_sandbox_config(
+    req: SandboxConfigRequest, user: User = Depends(get_current_user)
+) -> dict:
     """サンドボックス設定を更新する."""
     try:
         level = SandboxLevel(req.level)
@@ -180,7 +184,7 @@ async def update_sandbox_config(req: SandboxConfigRequest) -> dict:
 
 
 @router.post("/sandbox/allowed-paths")
-async def add_allowed_path(req: AllowedPathRequest) -> dict:
+async def add_allowed_path(req: AllowedPathRequest, user: User = Depends(get_current_user)) -> dict:
     """許可パスを追加する."""
     filesystem_sandbox.add_allowed_path(req.path)
     return {
@@ -191,14 +195,16 @@ async def add_allowed_path(req: AllowedPathRequest) -> dict:
 
 
 @router.delete("/sandbox/allowed-paths")
-async def remove_allowed_path(req: AllowedPathRequest) -> dict:
+async def remove_allowed_path(
+    req: AllowedPathRequest, user: User = Depends(get_current_user)
+) -> dict:
     """許可パスを削除する."""
     filesystem_sandbox.remove_allowed_path(req.path)
     return {"status": "removed", "path": req.path}
 
 
 @router.post("/sandbox/check-access")
-async def check_access(req: AccessCheckRequest) -> dict:
+async def check_access(req: AccessCheckRequest, user: User = Depends(get_current_user)) -> dict:
     """パスへのアクセス可否をチェックする."""
     try:
         access_type = AccessType(req.access_type)
@@ -222,7 +228,7 @@ async def check_access(req: AccessCheckRequest) -> dict:
 
 
 @router.get("/data-protection")
-async def get_data_protection_config() -> dict:
+async def get_data_protection_config(user: User = Depends(get_current_user)) -> dict:
     """データ保護設定を取得する."""
     config = data_protection_guard.config
     return {
@@ -245,7 +251,9 @@ async def get_data_protection_config() -> dict:
 
 
 @router.put("/data-protection")
-async def update_data_protection_config(req: DataProtectionConfigRequest) -> dict:
+async def update_data_protection_config(
+    req: DataProtectionConfigRequest, user: User = Depends(get_current_user)
+) -> dict:
     """データ保護設定を更新する."""
     try:
         policy = TransferPolicy(req.transfer_policy)
@@ -281,13 +289,13 @@ async def update_data_protection_config(req: DataProtectionConfigRequest) -> dic
 
 
 @router.get("/pii/categories")
-async def get_pii_categories_list() -> list[dict]:
+async def get_pii_categories_list(user: User = Depends(get_current_user)) -> list[dict]:
     """PII カテゴリ一覧を返す."""
     return get_pii_categories()
 
 
 @router.post("/pii/check")
-async def check_pii(req: PIICheckRequest) -> dict:
+async def check_pii(req: PIICheckRequest, user: User = Depends(get_current_user)) -> dict:
     """テキストの PII をチェックする."""
     result = detect_and_mask_pii(req.text)
     return {
@@ -321,7 +329,7 @@ class TaskWorkspaceOverrideRequest(BaseModel):
 
 
 @router.get("/workspace")
-async def get_workspace_config() -> dict:
+async def get_workspace_config(user: User = Depends(get_current_user)) -> dict:
     """ワークスペース設定を取得する."""
     config = workspace_isolation.config
     return {
@@ -336,7 +344,9 @@ async def get_workspace_config() -> dict:
 
 
 @router.put("/workspace")
-async def update_workspace_config(req: WorkspaceConfigRequest) -> dict:
+async def update_workspace_config(
+    req: WorkspaceConfigRequest, user: User = Depends(get_current_user)
+) -> dict:
     """ワークスペース設定を更新する."""
     try:
         storage = StorageLocation(req.storage_location)
@@ -363,7 +373,9 @@ async def update_workspace_config(req: WorkspaceConfigRequest) -> dict:
 
 
 @router.post("/workspace/tasks/{task_id}/override")
-async def set_task_workspace_override(task_id: str, req: TaskWorkspaceOverrideRequest) -> dict:
+async def set_task_workspace_override(
+    task_id: str, req: TaskWorkspaceOverrideRequest, user: User = Depends(get_current_user)
+) -> dict:
     """タスク単位のワークスペースオーバーライドを設定する."""
     storage = None
     if req.storage_location:
@@ -393,7 +405,9 @@ async def set_task_workspace_override(task_id: str, req: TaskWorkspaceOverrideRe
 
 
 @router.post("/workspace/tasks/{task_id}/approve")
-async def approve_task_workspace_override(task_id: str) -> dict:
+async def approve_task_workspace_override(
+    task_id: str, user: User = Depends(get_current_user)
+) -> dict:
     """タスク単位のワークスペースオーバーライドを承認する."""
     approved = workspace_isolation.approve_task_override(task_id)
     if not approved:
@@ -420,7 +434,9 @@ class RedTeamRunRequest(BaseModel):
 
 
 @router.post("/redteam/run")
-async def run_redteam_tests(req: RedTeamRunRequest | None = None) -> dict:
+async def run_redteam_tests(
+    req: RedTeamRunRequest | None = None, user: User = Depends(get_current_user)
+) -> dict:
     """レッドチームセキュリティテストを実行する."""
     from app.security.redteam import VulnerabilityType
 

@@ -10,7 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
 from app.api.deps.validators import parse_uuid
+from app.api.routes.auth import get_current_user
 from app.models.task import Task, TaskRun
+from app.models.user import User
 from app.services.task_service import (
     complete_task as svc_complete_task,
 )
@@ -36,7 +38,12 @@ class TaskCreate(BaseModel):
 
 
 @router.post("/plans/{plan_id}/tasks")
-async def create_task(plan_id: str, req: TaskCreate, db: AsyncSession = Depends(get_db)):
+async def create_task(
+    plan_id: str,
+    req: TaskCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
     """タスク作成"""
     task = Task(
         id=uuid.uuid4(),
@@ -54,7 +61,9 @@ async def create_task(plan_id: str, req: TaskCreate, db: AsyncSession = Depends(
 
 
 @router.post("/tasks/{task_id}/start")
-async def start_task(task_id: str, db: AsyncSession = Depends(get_db)):
+async def start_task(
+    task_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """タスク実行開始 (state machine enforced)"""
     result = await db.execute(select(Task).where(Task.id == parse_uuid(task_id, "task_id")))
     task = result.scalar_one_or_none()
@@ -68,7 +77,9 @@ async def start_task(task_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/tasks/{task_id}/complete")
-async def complete_task(task_id: str, db: AsyncSession = Depends(get_db)):
+async def complete_task(
+    task_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """タスク完了"""
     result = await db.execute(select(Task).where(Task.id == parse_uuid(task_id, "task_id")))
     task = result.scalar_one_or_none()
@@ -90,7 +101,9 @@ async def complete_task(task_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/tasks/{task_id}/retry")
-async def retry_task(task_id: str, db: AsyncSession = Depends(get_db)):
+async def retry_task(
+    task_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """タスク再試行"""
     result = await db.execute(select(Task).where(Task.id == parse_uuid(task_id, "task_id")))
     task = result.scalar_one_or_none()
@@ -104,7 +117,9 @@ async def retry_task(task_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/tasks/{task_id}/request-approval")
-async def request_approval(task_id: str, db: AsyncSession = Depends(get_db)):
+async def request_approval(
+    task_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """タスクの承認を要求"""
     result = await db.execute(select(Task).where(Task.id == parse_uuid(task_id, "task_id")))
     task = result.scalar_one_or_none()
@@ -118,7 +133,9 @@ async def request_approval(task_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/tasks/{task_id}/runs")
-async def create_task_run(task_id: str, db: AsyncSession = Depends(get_db)):
+async def create_task_run(
+    task_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """タスク実行記録を作成"""
     tid = parse_uuid(task_id, "task_id")
     existing = await db.execute(select(TaskRun).where(TaskRun.task_id == tid))
@@ -136,7 +153,9 @@ async def create_task_run(task_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/tasks/{task_id}/runs")
-async def list_task_runs(task_id: str, db: AsyncSession = Depends(get_db)):
+async def list_task_runs(
+    task_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """タスク実行履歴"""
     tid = parse_uuid(task_id, "task_id")
     result = await db.execute(

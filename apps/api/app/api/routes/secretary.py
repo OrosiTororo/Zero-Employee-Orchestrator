@@ -10,6 +10,8 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
+from app.api.routes.auth import get_current_user
+from app.models.user import User
 from app.services.secretary_service import SecretaryService
 
 router = APIRouter()
@@ -95,6 +97,7 @@ async def create_brain_dump(
     company_id: str,
     req: BrainDumpRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """思考・アイデア・ToDo を投げ込む."""
     svc = SecretaryService(db)
@@ -119,6 +122,7 @@ async def list_brain_dumps(
     offset: int = 0,
     limit: int = 50,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """ブレインダンプ一覧を取得."""
     svc = SecretaryService(db)
@@ -137,6 +141,7 @@ async def list_brain_dumps(
 async def get_brain_dump(
     dump_id: str,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """単一のブレインダンプを取得."""
     svc = SecretaryService(db)
@@ -151,6 +156,7 @@ async def update_brain_dump(
     dump_id: str,
     req: BrainDumpUpdateRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """ブレインダンプを更新."""
     svc = SecretaryService(db)
@@ -175,6 +181,7 @@ async def search_brain_dumps(
     q: str = "",
     limit: int = 20,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """ブレインダンプをキーワード検索."""
     if not q:
@@ -189,6 +196,7 @@ async def get_action_items(
     company_id: str,
     unprocessed_only: bool = True,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """全ブレインダンプからアクションアイテムを集約."""
     svc = SecretaryService(db)
@@ -204,6 +212,7 @@ async def get_daily_stats(
     company_id: str,
     target_date: str | None = None,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """指定日のブレインダンプ統計を取得."""
     date_str = target_date or date.today().isoformat()
