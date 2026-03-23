@@ -108,7 +108,9 @@ def _to_response(r: ImportedResource) -> ResourceResponse:
 # エンドポイント
 # ---------------------------------------------------------------------------
 @router.post("/import/file", response_model=ResourceResponse)
-async def import_file(body: ImportFileBody, user: User = Depends(get_current_user)) -> ResourceResponse:
+async def import_file(
+    body: ImportFileBody, user: User = Depends(get_current_user)
+) -> ResourceResponse:
     """単一ファイルをインポートする."""
     try:
         resource = await resource_import_service.import_file(
@@ -124,7 +126,9 @@ async def import_file(body: ImportFileBody, user: User = Depends(get_current_use
 
 
 @router.post("/import/folder", response_model=ImportFolderResponse)
-async def import_folder(body: ImportFolderBody, user: User = Depends(get_current_user)) -> ImportFolderResponse:
+async def import_folder(
+    body: ImportFolderBody, user: User = Depends(get_current_user)
+) -> ImportFolderResponse:
     """フォルダからリソースを一括インポートする."""
     file_types = set(body.file_types) if body.file_types else None
     try:
@@ -146,7 +150,9 @@ async def import_folder(body: ImportFolderBody, user: User = Depends(get_current
 
 
 @router.post("/import/url", response_model=ResourceResponse)
-async def import_url(body: ImportUrlBody, user: User = Depends(get_current_user)) -> ResourceResponse:
+async def import_url(
+    body: ImportUrlBody, user: User = Depends(get_current_user)
+) -> ResourceResponse:
     """URLからリソースをインポートする."""
     try:
         resource = await resource_import_service.import_url(
@@ -200,7 +206,9 @@ async def search_resources(
 
 
 @router.get("/{resource_id}", response_model=ResourceResponse)
-async def get_resource(resource_id: str, user: User = Depends(get_current_user)) -> ResourceResponse:
+async def get_resource(
+    resource_id: str, user: User = Depends(get_current_user)
+) -> ResourceResponse:
     """リソース詳細を取得する."""
     resource = resource_import_service.get_resource(resource_id)
     if resource is None:
@@ -209,7 +217,9 @@ async def get_resource(resource_id: str, user: User = Depends(get_current_user))
 
 
 @router.delete("/{resource_id}")
-async def delete_resource(resource_id: str, user: User = Depends(get_current_user)) -> dict[str, str]:
+async def delete_resource(
+    resource_id: str, user: User = Depends(get_current_user)
+) -> dict[str, str]:
     """リソースを削除する."""
     deleted = await resource_import_service.delete_resource(resource_id)
     if not deleted:

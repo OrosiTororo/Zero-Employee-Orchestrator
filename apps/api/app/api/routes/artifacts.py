@@ -25,7 +25,9 @@ class ArtifactCreate(BaseModel):
 
 
 @router.get("/tickets/{ticket_id}/artifacts")
-async def list_artifacts(ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def list_artifacts(
+    ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """チケットの成果物一覧"""
     tid = uuid.UUID(ticket_id)
     result = await db.execute(
@@ -45,7 +47,12 @@ async def list_artifacts(ticket_id: str, db: AsyncSession = Depends(get_db), use
 
 
 @router.post("/tickets/{ticket_id}/artifacts")
-async def create_artifact(ticket_id: str, req: ArtifactCreate, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def create_artifact(
+    ticket_id: str,
+    req: ArtifactCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
     """成果物を追加"""
     artifact = Artifact(
         id=uuid.uuid4(),

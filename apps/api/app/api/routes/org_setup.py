@@ -189,9 +189,7 @@ async def get_interview_questions():
 
 
 @router.post("/preview", response_model=OrgPreviewResponse)
-async def preview_org_structure(
-    req: OrgInterviewRequest, user: User = Depends(get_current_user)
-):
+async def preview_org_structure(req: OrgInterviewRequest, user: User = Depends(get_current_user)):
     """ヒアリング回答から組織構成をプレビューする（DB保存なし）."""
     answers = OrgInterviewAnswer(
         business_description=req.business_description,

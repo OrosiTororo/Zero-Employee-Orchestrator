@@ -106,9 +106,7 @@ async def get_listing(listing_id: str) -> dict:
 
 
 @router.post("/publish", status_code=201)
-async def publish_listing(
-    req: PublishRequest, user: User = Depends(get_current_user)
-) -> dict:
+async def publish_listing(req: PublishRequest, user: User = Depends(get_current_user)) -> dict:
     """Listing をレビュー待ちとして公開する."""
     try:
         cat = MarketplaceCategory(req.category)

@@ -153,7 +153,12 @@ async def list_tickets(
 
 
 @router.post("/companies/{company_id}/tickets", response_model=TicketResponse)
-async def create_ticket(company_id: str, req: TicketCreate, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def create_ticket(
+    company_id: str,
+    req: TicketCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
     """新規チケット作成 + Design Interview セッション初期化"""
     cid = parse_uuid(company_id, "company_id")
     max_no = await db.execute(
@@ -245,7 +250,10 @@ class InterviewAnswer(BaseModel):
 
 @router.post("/tickets/{ticket_id}/interview/answer")
 async def answer_interview(
-    ticket_id: str, req: InterviewAnswer, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user),
+    ticket_id: str,
+    req: InterviewAnswer,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """Design Interview の質問に回答"""
     session = _interview_sessions.get(ticket_id)
@@ -388,7 +396,9 @@ async def generate_spec_from_interview_endpoint(
 
 
 @router.get("/tickets/{ticket_id}")
-async def get_ticket(ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def get_ticket(
+    ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """チケット詳細"""
     result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()
@@ -428,7 +438,12 @@ async def update_ticket(
 
 
 @router.post("/tickets/{ticket_id}/comments")
-async def add_comment(ticket_id: str, req: CommentCreate, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def add_comment(
+    ticket_id: str,
+    req: CommentCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
     """チケットにコメント追加"""
     result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()
@@ -448,7 +463,9 @@ async def add_comment(ticket_id: str, req: CommentCreate, db: AsyncSession = Dep
 
 
 @router.get("/tickets/{ticket_id}/thread")
-async def get_thread(ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def get_thread(
+    ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """チケットのスレッドを取得"""
     tid = parse_uuid(ticket_id, "ticket_id")
     result = await db.execute(
@@ -468,7 +485,9 @@ async def get_thread(ticket_id: str, db: AsyncSession = Depends(get_db), user: U
 
 
 @router.post("/tickets/{ticket_id}/close")
-async def close_ticket(ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def close_ticket(
+    ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """チケットを閉じる"""
     result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()
@@ -481,7 +500,9 @@ async def close_ticket(ticket_id: str, db: AsyncSession = Depends(get_db), user:
 
 
 @router.post("/tickets/{ticket_id}/reopen")
-async def reopen_ticket(ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def reopen_ticket(
+    ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """チケットを再開"""
     result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()

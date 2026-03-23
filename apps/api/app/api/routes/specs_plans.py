@@ -42,7 +42,9 @@ class PlanCreate(BaseModel):
 
 
 @router.get("/tickets/{ticket_id}/specs")
-async def list_specs(ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def list_specs(
+    ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """チケットのspec一覧"""
     tid = parse_uuid(ticket_id, "ticket_id")
     result = await db.execute(
@@ -62,7 +64,12 @@ async def list_specs(ticket_id: str, db: AsyncSession = Depends(get_db), user: U
 
 
 @router.post("/tickets/{ticket_id}/specs")
-async def create_spec(ticket_id: str, req: SpecCreate, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def create_spec(
+    ticket_id: str,
+    req: SpecCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
     """spec作成"""
     tid = parse_uuid(ticket_id, "ticket_id")
     existing = await db.execute(select(Spec).where(Spec.ticket_id == tid))
@@ -84,7 +91,9 @@ async def create_spec(ticket_id: str, req: SpecCreate, db: AsyncSession = Depend
 
 
 @router.get("/tickets/{ticket_id}/plans")
-async def list_plans(ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def list_plans(
+    ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """チケットのplan一覧"""
     tid = parse_uuid(ticket_id, "ticket_id")
     result = await db.execute(
@@ -106,7 +115,12 @@ async def list_plans(ticket_id: str, db: AsyncSession = Depends(get_db), user: U
 
 
 @router.post("/tickets/{ticket_id}/plans")
-async def create_plan(ticket_id: str, req: PlanCreate, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def create_plan(
+    ticket_id: str,
+    req: PlanCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
     """plan作成"""
     tid = parse_uuid(ticket_id, "ticket_id")
     existing = await db.execute(select(Plan).where(Plan.ticket_id == tid))
@@ -130,7 +144,9 @@ async def create_plan(ticket_id: str, req: PlanCreate, db: AsyncSession = Depend
 
 
 @router.post("/plans/{plan_id}/approve")
-async def approve_plan(plan_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def approve_plan(
+    plan_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """planを承認 + DAG構築 + タスク生成"""
     pid = parse_uuid(plan_id, "plan_id")
     result = await db.execute(select(Plan).where(Plan.id == pid))
@@ -196,7 +212,12 @@ async def approve_plan(plan_id: str, db: AsyncSession = Depends(get_db), user: U
 
 
 @router.post("/plans/{plan_id}/reject")
-async def reject_plan(plan_id: str, reason: str = "", db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def reject_plan(
+    plan_id: str,
+    reason: str = "",
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
     """planを却下"""
     result = await db.execute(select(Plan).where(Plan.id == parse_uuid(plan_id, "plan_id")))
     plan = result.scalar_one_or_none()
@@ -208,7 +229,9 @@ async def reject_plan(plan_id: str, reason: str = "", db: AsyncSession = Depends
 
 
 @router.get("/plans/{plan_id}/tasks")
-async def list_plan_tasks(plan_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def list_plan_tasks(
+    plan_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """planのtask一覧"""
     pid = parse_uuid(plan_id, "plan_id")
     result = await db.execute(select(Task).where(Task.plan_id == pid).order_by(Task.sequence_no))

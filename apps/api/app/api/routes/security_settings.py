@@ -159,7 +159,9 @@ async def get_sandbox_config(user: User = Depends(get_current_user)) -> dict:
 
 
 @router.put("/sandbox")
-async def update_sandbox_config(req: SandboxConfigRequest, user: User = Depends(get_current_user)) -> dict:
+async def update_sandbox_config(
+    req: SandboxConfigRequest, user: User = Depends(get_current_user)
+) -> dict:
     """サンドボックス設定を更新する."""
     try:
         level = SandboxLevel(req.level)
@@ -193,7 +195,9 @@ async def add_allowed_path(req: AllowedPathRequest, user: User = Depends(get_cur
 
 
 @router.delete("/sandbox/allowed-paths")
-async def remove_allowed_path(req: AllowedPathRequest, user: User = Depends(get_current_user)) -> dict:
+async def remove_allowed_path(
+    req: AllowedPathRequest, user: User = Depends(get_current_user)
+) -> dict:
     """許可パスを削除する."""
     filesystem_sandbox.remove_allowed_path(req.path)
     return {"status": "removed", "path": req.path}
@@ -247,7 +251,9 @@ async def get_data_protection_config(user: User = Depends(get_current_user)) -> 
 
 
 @router.put("/data-protection")
-async def update_data_protection_config(req: DataProtectionConfigRequest, user: User = Depends(get_current_user)) -> dict:
+async def update_data_protection_config(
+    req: DataProtectionConfigRequest, user: User = Depends(get_current_user)
+) -> dict:
     """データ保護設定を更新する."""
     try:
         policy = TransferPolicy(req.transfer_policy)
@@ -338,7 +344,9 @@ async def get_workspace_config(user: User = Depends(get_current_user)) -> dict:
 
 
 @router.put("/workspace")
-async def update_workspace_config(req: WorkspaceConfigRequest, user: User = Depends(get_current_user)) -> dict:
+async def update_workspace_config(
+    req: WorkspaceConfigRequest, user: User = Depends(get_current_user)
+) -> dict:
     """ワークスペース設定を更新する."""
     try:
         storage = StorageLocation(req.storage_location)
@@ -365,7 +373,9 @@ async def update_workspace_config(req: WorkspaceConfigRequest, user: User = Depe
 
 
 @router.post("/workspace/tasks/{task_id}/override")
-async def set_task_workspace_override(task_id: str, req: TaskWorkspaceOverrideRequest, user: User = Depends(get_current_user)) -> dict:
+async def set_task_workspace_override(
+    task_id: str, req: TaskWorkspaceOverrideRequest, user: User = Depends(get_current_user)
+) -> dict:
     """タスク単位のワークスペースオーバーライドを設定する."""
     storage = None
     if req.storage_location:
@@ -395,7 +405,9 @@ async def set_task_workspace_override(task_id: str, req: TaskWorkspaceOverrideRe
 
 
 @router.post("/workspace/tasks/{task_id}/approve")
-async def approve_task_workspace_override(task_id: str, user: User = Depends(get_current_user)) -> dict:
+async def approve_task_workspace_override(
+    task_id: str, user: User = Depends(get_current_user)
+) -> dict:
     """タスク単位のワークスペースオーバーライドを承認する."""
     approved = workspace_isolation.approve_task_override(task_id)
     if not approved:
@@ -422,7 +434,9 @@ class RedTeamRunRequest(BaseModel):
 
 
 @router.post("/redteam/run")
-async def run_redteam_tests(req: RedTeamRunRequest | None = None, user: User = Depends(get_current_user)) -> dict:
+async def run_redteam_tests(
+    req: RedTeamRunRequest | None = None, user: User = Depends(get_current_user)
+) -> dict:
     """レッドチームセキュリティテストを実行する."""
     from app.security.redteam import VulnerabilityType
 

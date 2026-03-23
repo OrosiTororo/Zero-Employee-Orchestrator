@@ -102,9 +102,7 @@ async def list_tools_by_category(category: str) -> dict:
 
 
 @router.post("/toggle")
-async def toggle_tool(
-    req: ToolToggleRequest, user: User = Depends(get_current_user)
-) -> dict:
+async def toggle_tool(req: ToolToggleRequest, user: User = Depends(get_current_user)) -> dict:
     """ツールの有効化/無効化を切り替える."""
     if req.enabled:
         success = ai_tool_registry.enable_tool(req.tool_id)

@@ -25,7 +25,9 @@ class HeartbeatPolicyCreate(BaseModel):
 
 
 @router.get("/companies/{company_id}/heartbeat-policies")
-async def list_policies(company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def list_policies(
+    company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """Heartbeatポリシー一覧"""
     cid = uuid.UUID(company_id)
     result = await db.execute(select(HeartbeatPolicy).where(HeartbeatPolicy.company_id == cid))
@@ -44,7 +46,10 @@ async def list_policies(company_id: str, db: AsyncSession = Depends(get_db), use
 
 @router.post("/companies/{company_id}/heartbeat-policies")
 async def create_policy(
-    company_id: str, req: HeartbeatPolicyCreate, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+    company_id: str,
+    req: HeartbeatPolicyCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """Heartbeatポリシー作成"""
     policy = HeartbeatPolicy(
@@ -63,7 +68,9 @@ async def create_policy(
 
 
 @router.get("/companies/{company_id}/heartbeat-runs")
-async def list_runs(company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def list_runs(
+    company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """Heartbeat実行履歴"""
     cid = uuid.UUID(company_id)
     result = await db.execute(
