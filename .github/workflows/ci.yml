@@ -40,6 +40,8 @@ jobs:
         run: ruff format --check app/
 
       - name: Run tests
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: pytest app/tests/ -v
 
   frontend-check:
