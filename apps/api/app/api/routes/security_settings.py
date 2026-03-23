@@ -22,11 +22,18 @@ from app.security.data_protection import (
     data_protection_guard,
 )
 from app.security.pii_guard import detect_and_mask_pii, get_pii_categories
+from app.security.redteam import RedTeamService
 from app.security.sandbox import (
     AccessType,
     SandboxConfig,
     SandboxLevel,
     filesystem_sandbox,
+)
+from app.security.workspace_isolation import (
+    StorageLocation,
+    TaskWorkspaceOverride,
+    WorkspaceConfig,
+    workspace_isolation,
 )
 
 logger = logging.getLogger(__name__)
@@ -289,3 +296,177 @@ async def check_pii(req: PIICheckRequest) -> dict:
         "detected_types": result.detected_types,
         "masked_text": result.masked_text,
     }
+
+
+# --- Workspace ---
+
+
+class WorkspaceConfigRequest(BaseModel):
+    """ワークスペース設定リクエスト."""
+
+    local_access_enabled: bool = False
+    cloud_access_enabled: bool = False
+    allowed_local_paths: list[str] = Field(default_factory=list)
+    cloud_providers: list[str] = Field(default_factory=list)
+    storage_location: str = Field(default="internal", description="internal | local | cloud")
+
+
+class TaskWorkspaceOverrideRequest(BaseModel):
+    """タスク単位のワークスペースオーバーライドリクエスト."""
+
+    additional_local_paths: list[str] = Field(default_factory=list)
+    additional_cloud_sources: list[str] = Field(default_factory=list)
+    storage_location: str | None = None
+    output_path: str | None = None
+
+
+@router.get("/workspace")
+async def get_workspace_config() -> dict:
+    """ワークスペース設定を取得する."""
+    config = workspace_isolation.config
+    return {
+        "local_access_enabled": config.local_access_enabled,
+        "cloud_access_enabled": config.cloud_access_enabled,
+        "allowed_local_paths": config.allowed_local_paths,
+        "cloud_providers": config.cloud_providers,
+        "storage_location": config.storage_location.value,
+        "internal_storage_path": config.internal_storage_path,
+        "access_scope": workspace_isolation.get_access_scope().value,
+    }
+
+
+@router.put("/workspace")
+async def update_workspace_config(req: WorkspaceConfigRequest) -> dict:
+    """ワークスペース設定を更新する."""
+    try:
+        storage = StorageLocation(req.storage_location)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid storage_location: {req.storage_location}. "
+            "Valid: internal, local, cloud",
+        )
+
+    config = WorkspaceConfig(
+        local_access_enabled=req.local_access_enabled,
+        allowed_local_paths=req.allowed_local_paths,
+        cloud_access_enabled=req.cloud_access_enabled,
+        cloud_providers=req.cloud_providers,
+        storage_location=storage,
+    )
+    workspace_isolation.update_config(config)
+
+    return {
+        "status": "updated",
+        "access_scope": workspace_isolation.get_access_scope().value,
+    }
+
+
+@router.post("/workspace/tasks/{task_id}/override")
+async def set_task_workspace_override(task_id: str, req: TaskWorkspaceOverrideRequest) -> dict:
+    """タスク単位のワークスペースオーバーライドを設定する."""
+    storage = None
+    if req.storage_location:
+        try:
+            storage = StorageLocation(req.storage_location)
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid storage_location: {req.storage_location}",
+            )
+
+    override = TaskWorkspaceOverride(
+        task_id=task_id,
+        additional_local_paths=req.additional_local_paths,
+        additional_cloud_sources=req.additional_cloud_sources,
+        storage_location=storage,
+        output_path=req.output_path,
+        approved_by_user=False,
+    )
+    workspace_isolation.set_task_override(override)
+
+    return {
+        "status": "override_set",
+        "task_id": task_id,
+        "requires_approval": True,
+    }
+
+
+@router.post("/workspace/tasks/{task_id}/approve")
+async def approve_task_workspace_override(task_id: str) -> dict:
+    """タスク単位のワークスペースオーバーライドを承認する."""
+    approved = workspace_isolation.approve_task_override(task_id)
+    if not approved:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No pending override found for task {task_id}",
+        )
+    return {"status": "approved", "task_id": task_id}
+
+
+# --- Red-team ---
+
+
+class RedTeamRunRequest(BaseModel):
+    """レッドチームテスト実行リクエスト."""
+
+    category: str | None = Field(
+        default=None,
+        description="Test category (null = run all). "
+        "Options: prompt_injection, data_leakage, privilege_escalation, "
+        "pii_exposure, unauthorized_access, sandbox_escape, "
+        "rate_limit_bypass, auth_bypass",
+    )
+
+
+@router.post("/redteam/run")
+async def run_redteam_tests(req: RedTeamRunRequest | None = None) -> dict:
+    """レッドチームセキュリティテストを実行する."""
+    from app.security.redteam import VulnerabilityType
+
+    service = RedTeamService()
+    if req and req.category:
+        try:
+            vtype = VulnerabilityType(req.category)
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid category: {req.category}. "
+                f"Valid: {', '.join(v.value for v in VulnerabilityType)}",
+            )
+        results = await service.run_category(vtype)
+        passed = sum(1 for r in results if r.passed)
+        failed = len(results) - passed
+        return {
+            "total": len(results),
+            "passed": passed,
+            "failed": failed,
+            "results": [
+                {
+                    "test_id": r.test_id,
+                    "passed": r.passed,
+                    "vulnerability_found": r.vulnerability_found,
+                    "details": r.details,
+                }
+                for r in results
+            ],
+        }
+    else:
+        report = await service.run_all_tests()
+        return {
+            "total": report.total_tests,
+            "passed": report.passed,
+            "failed": report.failed,
+            "critical_findings": report.critical_findings,
+            "high_findings": report.high_findings,
+            "summary": report.summary,
+            "results": [
+                {
+                    "test_id": r.test_id,
+                    "passed": r.passed,
+                    "vulnerability_found": r.vulnerability_found,
+                    "details": r.details,
+                }
+                for r in report.results
+            ],
+        }

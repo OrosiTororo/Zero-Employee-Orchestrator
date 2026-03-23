@@ -19,8 +19,8 @@ ls apps/api/app/tests/
 - `docs/dev/DESIGN.md` — 実装設計書
 - `docs/dev/MASTER_GUIDE.md` — 実装運用ガイド
 - `ROADMAP.md` — ロードマップ（v0.2 以降の残課題）
-- `docs/DEVELOPER_SETUP.md` — 開発者・管理者セットアップガイド
-- `docs/USER_SETUP.md` — 利用ユーザーセットアップガイド
+- `DEVELOPER_SETUP.md` — 開発者セットアップガイド（Sentry・レッドチームテスト等）
+- `USER_SETUP.md` — 利用ユーザーセットアップガイド（API キー・セキュリティ・DB・デプロイ等）
 
 **IMPORTANT: このファイルの情報が古い場合は、実際のコードと README.md を読んで更新すること。必ず、リポジトリ構造と全mdファイルを確認すること。リポジトリの確認をするときは、全ファイルを確認すること。更新内容をmdファイルに記載すること。**
 
@@ -43,14 +43,14 @@ apps/
 ├── api/              # FastAPI バックエンド (Python 3.12+)
 │   ├── app/
 │   │   ├── core/           # 設定・DB・レート制限・i18n
-│   │   ├── api/routes/     # REST API エンドポイント (37 ルートモジュール)
+│   │   ├── api/routes/     # REST API エンドポイント (36 ルートモジュール)
 │   │   ├── api/ws/         # WebSocket (events, browser_assist_ws)
 │   │   ├── api/deps/       # 依存性注入
 │   │   ├── models/         # SQLAlchemy ORM
 │   │   ├── schemas/        # Pydantic DTO
-│   │   ├── services/       # ビジネスロジック (19 サービス)
+│   │   ├── services/       # ビジネスロジック (18 サービス)
 │   │   ├── repositories/   # DB 入出力抽象化
-│   │   ├── orchestration/  # DAG・Judge・状態機械・Knowledge・Memory・MetaSkill・A2A (22 モジュール)
+│   │   ├── orchestration/  # DAG・Judge・状態機械・Knowledge・Memory・MetaSkill・A2A (21 モジュール)
 │   │   ├── heartbeat/      # Heartbeat スケジューラ
 │   │   ├── providers/      # LLM ゲートウェイ・Ollama・g4f・RAG・ModelRegistry
 │   │   ├── tools/          # 外部ツール接続 (MCP/Webhook/API/CLI/GraphQL/ブラウザ自動操作/LSP)
@@ -98,6 +98,24 @@ zero-employee config list
 - **TypeScript**: strict モード、関数コンポーネントのみ、Tailwind CSS
 - テストは pytest + pytest-asyncio
 - コードスタイルの詳細は ruff に委譲。リンターエラーが出たら修正すること
+
+## 設計方針
+
+### Skill / Plugin / Extension の有効状態
+
+- **ビルトインのシステム保護スキル** → 常時有効、削除・無効化不可
+- **ユーザーが追加した Skill / Plugin / Extension / Heartbeat** → デフォルト有効（ユーザーが手動で無効化可能）
+- 「ミニマルな初期状態」とは「余計なものが入っていない」状態であり、ユーザーがわざわざ追加した機能はデフォルト有効が正しい
+
+### LLM 利用の設計方針
+
+- API キー入力は必須ではない。キー不要の選択肢を複数用意する:
+  - g4f（サブスクリプションモード）: キー不要で利用可能
+  - Ollama: ローカルモデルで完全オフライン利用
+  - マルチ LLM プラットフォーム連携（OpenRouter 等）: 1 つのアカウントで複数 LLM を利用可能
+- ZEO 自体は利用料金を徴収しない。LLM の API 費用はユーザーが各プロバイダーに直接支払う
+- 特定のプロバイダーを「推奨」として優遇しない。ドキュメント・UI では選択肢を並列に提示する
+- 新しいマルチ LLM プラットフォームやキー不要サービスが出た場合にも対応できる拡張性を維持する
 
 ## モデルカタログ (`apps/api/model_catalog.json`)
 

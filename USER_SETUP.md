@@ -9,13 +9,35 @@
 
 ---
 
-## 1. 外部 API キーの設定
+## 1. LLM プロバイダーの接続
 
-使用したい外部サービスの API キーを設定してください。すべて任意です。
-
-### LLM プロバイダー
+ZEO は API キー不要で利用を開始できます。以下の 3 通りの方法があります:
 
 ```bash
+# 方法 1: サブスクリプションモード（キー不要）
+zero-employee config set DEFAULT_EXECUTION_MODE subscription
+
+# 方法 2: Ollama ローカル LLM（完全オフライン・キー不要）
+zero-employee config set DEFAULT_EXECUTION_MODE free
+zero-employee pull qwen3:8b
+
+# 方法 3: マルチ LLM プラットフォーム（1 つのキーで複数モデル利用可能）
+zero-employee config set OPENROUTER_API_KEY <your-key>
+```
+
+> **ZEO 自体は利用料金を徴収しません。** LLM の API 費用はユーザーが各プロバイダーに直接支払います。
+> 特定のプロバイダーへの依存はありません。新しいプラットフォームやサービスが登場した場合も、設定の追加だけで対応可能です。
+
+### 外部 API キーの設定（任意）
+
+より高品質なモデルや特定のプロバイダーを使用したい場合、API キーを設定してください。すべて任意です。
+
+#### LLM プロバイダー
+
+```bash
+# OpenRouter（マルチ LLM プラットフォーム — 1 つのキーで複数モデル利用可能）
+zero-employee config set OPENROUTER_API_KEY <your-key>
+
 # OpenAI (GPT 系)
 zero-employee config set OPENAI_API_KEY <your-key>
 
@@ -344,7 +366,7 @@ AI: 「この業務では /home/user/project-x へのアクセスが必要です
 ### API 経由でタスク単位の権限を設定
 
 ```bash
-POST /api/v1/tasks/{task_id}/workspace-override
+POST /api/v1/security/workspace/tasks/{task_id}/override
 {
   "additional_local_paths": ["/home/user/project-x"],
   "additional_cloud_sources": ["google_drive://shared/project-x"],
@@ -449,13 +471,19 @@ Obsidian プラグイン「Local REST API」のインストールも推奨しま
 
 ```bash
 # API 経由でスケジュール登録
-POST /api/v1/heartbeats
+POST /api/v1/companies/{company_id}/heartbeat-policies
 {
   "name": "daily-report",
-  "trigger": "schedule",
-  "cron": "0 9 * * *",
-  "task_template": { "type": "generate_report" }
+  "cron_expr": "0 9 * * *",
+  "timezone": "Asia/Tokyo",
+  "enabled": true
 }
+
+# ポリシー一覧
+GET /api/v1/companies/{company_id}/heartbeat-policies
+
+# 実行履歴
+GET /api/v1/companies/{company_id}/heartbeat-runs
 ```
 
 ---

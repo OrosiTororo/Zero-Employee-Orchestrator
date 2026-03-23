@@ -166,7 +166,7 @@ The following features have been designed but are not implemented or only partia
 **Required environment**:
 - Cloud server (2 vCPU / 4 GB RAM)
 - PostgreSQL database
-- LLM API key (OpenRouter recommended)
+- LLM API key (OpenRouter / OpenAI / Anthropic, etc. — any provider)
 
 ---
 

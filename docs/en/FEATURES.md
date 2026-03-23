@@ -515,7 +515,7 @@ A unified LLM gateway based on LiteLLM supports multiple providers.
 
 | Provider | Example Models |
 |----------|---------------|
-| **OpenRouter** | Access multiple models with a single API key (recommended) |
+| **OpenRouter** | Access multiple models with a single API key |
 | **OpenAI** | GPT-5.4, GPT-5 Mini |
 | **Anthropic** | Claude Opus 4.6, Sonnet 4.6, Haiku 4.5 |
 | **Google** | Gemini 2.5 Pro, Flash, Flash Lite |

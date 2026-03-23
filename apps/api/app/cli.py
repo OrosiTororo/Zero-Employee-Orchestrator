@@ -113,6 +113,50 @@ def cmd_pull(args: argparse.Namespace) -> None:
     asyncio.run(_pull())
 
 
+def cmd_security_status(args: argparse.Namespace) -> None:
+    """セキュリティ設定の概要を表示する."""
+    from app.security.data_protection import data_protection_guard
+    from app.security.sandbox import filesystem_sandbox
+    from app.security.workspace_isolation import workspace_isolation
+
+    print()
+    print("  \033[1mZero-Employee Orchestrator — Security Status\033[0m")
+    print()
+
+    # Workspace
+    ws = workspace_isolation.config
+    scope = workspace_isolation.get_access_scope().value
+    print("  \033[38;5;75m[workspace]\033[0m")
+    print(f"    Access scope:        {scope}")
+    print(f"    Local access:        {'enabled' if ws.local_access_enabled else 'disabled'}")
+    print(f"    Cloud access:        {'enabled' if ws.cloud_access_enabled else 'disabled'}")
+    print(f"    Storage location:    {ws.storage_location.value}")
+    if ws.allowed_local_paths:
+        print(f"    Allowed paths:       {', '.join(ws.allowed_local_paths)}")
+    if ws.cloud_providers:
+        print(f"    Cloud providers:     {', '.join(ws.cloud_providers)}")
+    print()
+
+    # Sandbox
+    sb = filesystem_sandbox.config
+    print("  \033[38;5;75m[sandbox]\033[0m")
+    print(f"    Level:               {sb.level.value}")
+    print(f"    Allowed paths:       {len(sb.allowed_paths)}")
+    print(f"    Max file size:       {sb.max_file_size_mb} MB")
+    print()
+
+    # Data protection
+    dp = data_protection_guard.config
+    print("  \033[38;5;75m[data-protection]\033[0m")
+    print(f"    Transfer policy:     {dp.transfer_policy.value}")
+    print(f"    Upload:              {'enabled' if dp.upload_enabled else 'disabled'}")
+    print(f"    Download:            {'enabled' if dp.download_enabled else 'disabled'}")
+    print(f"    External API:        {'enabled' if dp.external_api_enabled else 'disabled'}")
+    print(f"    PII auto-detect:     {'enabled' if dp.pii_auto_detect else 'disabled'}")
+    print(f"    Password block:      {'enabled' if dp.password_upload_blocked else 'disabled'}")
+    print()
+
+
 def cmd_config(args: argparse.Namespace) -> None:
     """設定値の表示・変更を行う."""
     from app.core.config_manager import (
@@ -528,6 +572,12 @@ def build_parser() -> argparse.ArgumentParser:
     pull_parser = subparsers.add_parser("pull", help="Ollama モデルをダウンロード")
     pull_parser.add_argument("model_name", help="Model name (e.g. qwen3:8b)")
     pull_parser.set_defaults(func=cmd_pull)
+
+    # security — セキュリティ管理
+    security_parser = subparsers.add_parser("security", help="セキュリティ設定管理")
+    security_sub = security_parser.add_subparsers(dest="security_command")
+    sec_status_parser = security_sub.add_parser("status", help="セキュリティ設定の概要を表示")
+    sec_status_parser.set_defaults(func=cmd_security_status)
 
     return parser
 

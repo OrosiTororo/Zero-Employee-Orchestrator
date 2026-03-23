@@ -24,7 +24,7 @@ const PROVIDER_KEYS = [
   {
     key: "OPENROUTER_API_KEY",
     name: "OpenRouter",
-    description: "複数LLMを一括利用（推奨）",
+    description: "複数LLMを一括利用",
     placeholder: "sk-or-v1-xxxxxxxxxxxx",
   },
   {

@@ -123,7 +123,7 @@
       "title": "AI Provider Setup",
       "description": "Choose how to connect to AI models. You can change or add more providers later in Settings.\nYou can skip this step and try the UI without an API key.",
       "openrouter": "OpenRouter",
-      "openrouterDesc": "Access many AI models with one key (recommended)",
+      "openrouterDesc": "Access many AI models with one key",
       "openai": "OpenAI",
       "openaiDesc": "Use GPT-4o and others directly",
       "anthropic": "Anthropic",

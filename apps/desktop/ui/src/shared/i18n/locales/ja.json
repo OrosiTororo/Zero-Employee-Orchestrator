@@ -123,7 +123,7 @@
       "title": "AI接続の設定",
       "description": "AIモデルへの接続方法を選択します。後で設定画面から変更・追加できます。\nAPIキーがなくても、まずはスキップして体験できます。",
       "openrouter": "OpenRouter",
-      "openrouterDesc": "多数のAIモデルを一括利用（推奨）",
+      "openrouterDesc": "多数のAIモデルを一括利用",
       "openai": "OpenAI",
       "openaiDesc": "GPT-4o等を直接利用",
       "anthropic": "Anthropic",

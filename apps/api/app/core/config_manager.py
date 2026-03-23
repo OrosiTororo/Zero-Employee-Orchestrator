@@ -88,6 +88,205 @@ CONFIGURABLE_KEYS: dict[str, dict[str, str]] = {
         "category": "monitoring",
         "sensitive": "true",
     },
+    # --- Security ---
+    "SANDBOX_LEVEL": {
+        "description": "File sandbox level: strict | moderate | permissive",
+        "description_ja": "ファイルサンドボックスレベル: strict | moderate | permissive",
+        "category": "security",
+        "sensitive": "false",
+    },
+    "SANDBOX_ALLOWED_PATHS": {
+        "description": "Comma-separated list of allowed folder paths",
+        "description_ja": "許可フォルダパス（カンマ区切り）",
+        "category": "security",
+        "sensitive": "false",
+    },
+    "SECURITY_TRANSFER_POLICY": {
+        "description": "Data transfer policy: lockdown | restricted | permissive",
+        "description_ja": "データ転送ポリシー: lockdown | restricted | permissive",
+        "category": "security",
+        "sensitive": "false",
+    },
+    "SECURITY_UPLOAD_ENABLED": {
+        "description": "Enable AI upload: true | false",
+        "description_ja": "AI アップロードを有効化: true | false",
+        "category": "security",
+        "sensitive": "false",
+    },
+    "SECURITY_UPLOAD_REQUIRE_APPROVAL": {
+        "description": "Require approval for uploads: true | false",
+        "description_ja": "アップロード時に承認を要求: true | false",
+        "category": "security",
+        "sensitive": "false",
+    },
+    "PII_AUTO_DETECT": {
+        "description": "Enable automatic PII detection: true | false",
+        "description_ja": "PII 自動検出を有効化: true | false",
+        "category": "security",
+        "sensitive": "false",
+    },
+    # --- Workspace ---
+    "WORKSPACE_LOCAL_ACCESS_ENABLED": {
+        "description": "Enable local folder access: true | false",
+        "description_ja": "ローカルフォルダアクセスを有効化: true | false",
+        "category": "workspace",
+        "sensitive": "false",
+    },
+    "WORKSPACE_CLOUD_ACCESS_ENABLED": {
+        "description": "Enable cloud storage access: true | false",
+        "description_ja": "クラウドストレージアクセスを有効化: true | false",
+        "category": "workspace",
+        "sensitive": "false",
+    },
+    "WORKSPACE_CLOUD_PROVIDERS": {
+        "description": "Cloud storage providers JSON array (e.g. '[\"google_drive\"]')",
+        "description_ja": "クラウドストレージプロバイダー JSON 配列",
+        "category": "workspace",
+        "sensitive": "false",
+    },
+    "WORKSPACE_STORAGE_LOCATION": {
+        "description": "Artifact storage location: internal | local | cloud",
+        "description_ja": "成果物の保存先: internal | local | cloud",
+        "category": "workspace",
+        "sensitive": "false",
+    },
+    # --- Additional provider keys ---
+    "MISTRAL_API_KEY": {
+        "description": "Mistral API key",
+        "description_ja": "Mistral API キー",
+        "category": "provider",
+        "sensitive": "true",
+    },
+    "COHERE_API_KEY": {
+        "description": "Cohere API key",
+        "description_ja": "Cohere API キー",
+        "category": "provider",
+        "sensitive": "true",
+    },
+    "DEEPSEEK_API_KEY": {
+        "description": "DeepSeek API key",
+        "description_ja": "DeepSeek API キー",
+        "category": "provider",
+        "sensitive": "true",
+    },
+    # --- External tool integrations ---
+    "GITHUB_TOKEN": {
+        "description": "GitHub personal access token",
+        "description_ja": "GitHub パーソナルアクセストークン",
+        "category": "integration",
+        "sensitive": "true",
+    },
+    "SLACK_BOT_TOKEN": {
+        "description": "Slack Bot OAuth token",
+        "description_ja": "Slack Bot OAuth トークン",
+        "category": "integration",
+        "sensitive": "true",
+    },
+    "SLACK_SIGNING_SECRET": {
+        "description": "Slack signing secret",
+        "description_ja": "Slack 署名シークレット",
+        "category": "integration",
+        "sensitive": "true",
+    },
+    "DISCORD_BOT_TOKEN": {
+        "description": "Discord bot token",
+        "description_ja": "Discord Bot トークン",
+        "category": "integration",
+        "sensitive": "true",
+    },
+    "NOTION_API_KEY": {
+        "description": "Notion API key",
+        "description_ja": "Notion API キー",
+        "category": "integration",
+        "sensitive": "true",
+    },
+    "JIRA_URL": {
+        "description": "Jira instance URL",
+        "description_ja": "Jira URL",
+        "category": "integration",
+        "sensitive": "false",
+    },
+    "JIRA_API_TOKEN": {
+        "description": "Jira API token",
+        "description_ja": "Jira API トークン",
+        "category": "integration",
+        "sensitive": "true",
+    },
+    "FIGMA_ACCESS_TOKEN": {
+        "description": "Figma access token (MCP)",
+        "description_ja": "Figma アクセストークン（MCP 経由）",
+        "category": "integration",
+        "sensitive": "true",
+    },
+    "LINE_CHANNEL_SECRET": {
+        "description": "LINE channel secret",
+        "description_ja": "LINE チャネルシークレット",
+        "category": "integration",
+        "sensitive": "true",
+    },
+    "LINE_CHANNEL_ACCESS_TOKEN": {
+        "description": "LINE channel access token",
+        "description_ja": "LINE チャネルアクセストークン",
+        "category": "integration",
+        "sensitive": "true",
+    },
+    # --- Media generation ---
+    "STABILITY_API_KEY": {
+        "description": "Stability AI API key (Stable Diffusion)",
+        "description_ja": "Stability AI API キー（Stable Diffusion）",
+        "category": "media",
+        "sensitive": "true",
+    },
+    "REPLICATE_API_TOKEN": {
+        "description": "Replicate API token (Flux, SVD, etc.)",
+        "description_ja": "Replicate API トークン（Flux, SVD等）",
+        "category": "media",
+        "sensitive": "true",
+    },
+    "ELEVENLABS_API_KEY": {
+        "description": "ElevenLabs API key (voice generation)",
+        "description_ja": "ElevenLabs API キー（音声生成）",
+        "category": "media",
+        "sensitive": "true",
+    },
+    "SUNO_API_KEY": {
+        "description": "Suno API key (music generation)",
+        "description_ja": "Suno API キー（音楽生成）",
+        "category": "media",
+        "sensitive": "true",
+    },
+    "RUNWAY_API_KEY": {
+        "description": "Runway ML API key (video generation)",
+        "description_ja": "Runway ML API キー（動画生成）",
+        "category": "media",
+        "sensitive": "true",
+    },
+    # --- OAuth ---
+    "GOOGLE_CLIENT_ID": {
+        "description": "Google OAuth2 client ID",
+        "description_ja": "Google OAuth2 クライアント ID",
+        "category": "integration",
+        "sensitive": "false",
+    },
+    "GOOGLE_CLIENT_SECRET": {
+        "description": "Google OAuth2 client secret",
+        "description_ja": "Google OAuth2 クライアントシークレット",
+        "category": "integration",
+        "sensitive": "true",
+    },
+    # --- Production ---
+    "SECRET_KEY": {
+        "description": "Secret key for JWT / encryption (required for production)",
+        "description_ja": "JWT / 暗号化用シークレットキー（本番環境必須）",
+        "category": "security",
+        "sensitive": "true",
+    },
+    "CORS_ORIGINS": {
+        "description": "Allowed CORS origins JSON array",
+        "description_ja": "許可 CORS オリジン JSON 配列",
+        "category": "security",
+        "sensitive": "false",
+    },
 }
 
 
@@ -156,7 +355,31 @@ def set_config_value(key: str, value: str) -> None:
         )
     if key == "LANGUAGE" and value not in ("ja", "en", "zh"):
         raise ValueError(f"Invalid language: {value}. Must be one of: ja, en, zh")
-    if key == "USE_G4F" and value.lower() not in ("true", "false", "1", "0"):
+    if key == "SANDBOX_LEVEL" and value not in ("strict", "moderate", "permissive"):
+        raise ValueError(
+            f"Invalid sandbox level: {value}. Must be one of: strict, moderate, permissive"
+        )
+    if key == "SECURITY_TRANSFER_POLICY" and value not in (
+        "lockdown",
+        "restricted",
+        "permissive",
+    ):
+        raise ValueError(
+            f"Invalid transfer policy: {value}. Must be one of: lockdown, restricted, permissive"
+        )
+    if key == "WORKSPACE_STORAGE_LOCATION" and value not in ("internal", "local", "cloud"):
+        raise ValueError(
+            f"Invalid storage location: {value}. Must be one of: internal, local, cloud"
+        )
+    _boolean_keys = {
+        "USE_G4F",
+        "SECURITY_UPLOAD_ENABLED",
+        "SECURITY_UPLOAD_REQUIRE_APPROVAL",
+        "PII_AUTO_DETECT",
+        "WORKSPACE_LOCAL_ACCESS_ENABLED",
+        "WORKSPACE_CLOUD_ACCESS_ENABLED",
+    }
+    if key in _boolean_keys and value.lower() not in ("true", "false", "1", "0"):
         raise ValueError(f"Invalid boolean value: {value}. Must be true or false")
 
     config = _load_config()
