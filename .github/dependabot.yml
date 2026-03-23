@@ -11,8 +11,9 @@ updates:
       - "dependencies"
 
   # Node.js dependencies (desktop UI)
+  # directory must be "/" so Dependabot finds the root pnpm-lock.yaml for the workspace
   - package-ecosystem: "npm"
-    directory: "/apps/desktop/ui"
+    directory: "/"
     schedule:
       interval: "weekly"
     commit-message:
