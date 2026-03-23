@@ -41,6 +41,7 @@ const STEP_IDS: Step[] = [
 const LOCALE_FLAGS: Record<Locale, string> = {
   ja: "\u{1F1EF}\u{1F1F5}",
   en: "\u{1F1EC}\u{1F1E7}",
+  zh: "\u{1F1E8}\u{1F1F3}",
 }
 
 interface OrgPreview {
