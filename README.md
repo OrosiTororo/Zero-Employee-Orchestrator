@@ -666,16 +666,105 @@ zero-employee config set OPENROUTER_API_KEY <your-key>
 
 > **ZEO itself is free.** LLM API costs are paid directly by users to each provider. See [USER_SETUP.md](USER_SETUP.md) for details.
 
+### 9-Layer Architecture
+
+```
+┌─────────────────────────────────────────┐
+│  1. User Layer     — Convey goals in NL │
+│  2. Design Interview — Brainstorm/refine│
+│  3. Task Orchestrator — DAG planning    │
+│  4. Skill Layer    — Skill + Context    │
+│  5. Judge Layer    — Two-stage + Cross  │
+│  6. Re-Propose     — Self-healing DAG   │
+│  7. State & Memory — Experience Memory  │
+│  8. Provider       — LLM GW (LiteLLM)  │
+│  9. Skill Registry — Publish/Import     │
+└─────────────────────────────────────────┘
+```
+
 ### Security
 
-- Prompt injection defense (5 categories, 40+ patterns)
-- Approval gates for 12 categories of dangerous operations
-- IAM with human/AI account separation
-- Secret management with Fernet encryption
-- Security headers (CSP, HSTS, X-Frame-Options)
-- Audit logging from design stage
+Zero-Employee Orchestrator is designed with a **security-first** approach.
 
-See [SECURITY.md](SECURITY.md) for vulnerability reporting.
+#### Multi-Layer Defense
+
+| Layer | Description |
+|-------|-------------|
+| **Prompt Injection Defense** | Detect/block injected instructions from external input (5 categories, 40+ patterns) |
+| **Approval Gate** | 12 categories of dangerous operations (send, delete, billing, permission changes) require human approval |
+| **Autonomy Boundary** | Explicitly restrict which operations AI can perform autonomously |
+| **IAM** | Human/AI account separation; secrets and admin rights denied to AI |
+| **Secret Management** | Fernet encryption, auto-masking, rotation support |
+| **Sanitization** | Auto-removal of API keys, tokens, and PII |
+| **Security Headers** | CSP, HSTS, X-Frame-Options on all responses |
+| **Request Validation** | Body size limits, host header verification |
+| **Rate Limiting** | slowapi-based API rate limiting |
+| **Audit Logging** | All critical operations logged (built-in from design stage) |
+
+For pre-deployment security checklist, see [USER_SETUP.md](USER_SETUP.md). For vulnerability reporting, see [SECURITY.md](SECURITY.md).
+
+### Browser Assist (Extension + Chrome Extension)
+
+Displays an **overlay chat on web pages** while users browse, with AI providing real-time guidance, error diagnosis, and form assistance. AI can directly see what the user sees — no manual screenshots needed.
+
+- **Overlay Chat**: Chat UI displayed directly on websites (Chrome extension)
+- **Real-time Screen Sharing**: AI sees your screen without screenshots
+- **Screen Analysis**: Identify UI elements from screenshots
+- **Step-by-step Guidance**: Provides operation instructions
+- **Error Diagnosis**: Reads error messages and suggests solutions
+- **File Attachment**: Supports image, PDF, and text file attachments
+
+Privacy: Screenshots processed temporarily only (not persisted), PII auto-masking, password fields auto-blurred, explicit user consent required.
+
+### Media Generation
+
+| Category | Providers | Description |
+|----------|-----------|-------------|
+| Image | OpenAI DALL-E, Stability AI, Replicate (Flux) | Text-to-image |
+| Video | Runway ML, Replicate (SVD), Pika | Text/image-to-video |
+| Audio | OpenAI TTS, ElevenLabs | Text-to-speech |
+| Music | Suno, Udio | Text-to-music |
+
+### AI Tool Integration
+
+25+ external tools managed by AI:
+
+| Category | Tools |
+|----------|-------|
+| Code | GitHub, GitLab |
+| Documents | Google Docs, Notion, Obsidian |
+| Communication | Slack, Discord, LINE, Email |
+| Project Management | Jira, Linear |
+| Design | Figma (via MCP) |
+| Data | Google Sheets |
+| Cloud | AWS CLI, Google Cloud CLI |
+| Search | Web Search, Local RAG |
+| Media | Image, video, audio, music generation |
+| Browser | Browser Assist, Playwright |
+
+### CLI Commands
+
+```bash
+zero-employee serve              # Start API server
+zero-employee serve --reload     # Hot-reload mode
+zero-employee local              # Local chat mode (Ollama)
+zero-employee models             # List installed models
+zero-employee pull qwen3:8b      # Download model
+zero-employee config list        # Show all settings
+zero-employee config set <KEY>   # Set a value
+zero-employee db upgrade         # DB migration
+zero-employee health             # Health check
+zero-employee security status    # Security status
+zero-employee update             # Update to latest version
+zero-employee update --check     # Check for updates only
+```
+
+### Tech Stack
+
+- **Backend**: Python 3.12+ / FastAPI / uvicorn / SQLAlchemy 2.x (async) / LiteLLM
+- **Frontend**: React 19 + TypeScript + Vite / shadcn/ui + Tailwind CSS
+- **Desktop**: Tauri v2 (Rust) + Python sidecar
+- **Deploy**: Docker + docker-compose / Cloudflare Workers
 
 ---
 
@@ -686,6 +775,12 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 
 Zero-Employee Orchestrator 是一个将 **AI 作为组织来运营**的平台——不只是单一聊天机器人，而是一个具有角色分工、人类审批和完整审计能力的 AI 代理团队。
 
+- **将 AI 作为组织运营** — 不是单一代理，而是具有规划・执行・验证・改进角色分工的团队结构
+- **人类最终审批** — 发布・发送・计费・删除・权限变更必须可审批
+- **减少黑箱** — 可视化谁在何时用什么模型执行了什么以及为什么
+- **通过扩展保持最新** — 核心注重稳定性，业务差异通过 Skill / Plugin / Extension 吸收
+- **通用业务平台** — 作为整个公司业务的执行基础设施而设计
+
 ### 设计理念
 
 - **最小初始状态** — 零配置即可启动，用户按需启用和连接功能
@@ -694,22 +789,130 @@ Zero-Employee Orchestrator 是一个将 **AI 作为组织来运营**的平台—
 - **自托管设计** — 安全、数据库、部署决策由用户在各自环境中做出
 - **核心团队仅管理质量** — 通过 Sentry 错误监控和红队测试保障平台可靠性
 
-### 主要功能
-
-- **多代理编排**: 基于 DAG 的任务规划与专业代理
-- **人机协作**: 12 类危险操作需要人类审批
-- **技能/插件/扩展**: 三层可扩展体系，支持自然语言生成技能
-- **提示注入防御**: 5 个威胁类别，40+ 检测模式
-- **浏览器辅助**: AI 分析你的屏幕，指导网页操作
-- **自我改进**: AI 分析和改进自身技能（需审批）
-- **自主运行**: 通过 Docker/Cloudflare Workers 即使 PC 关机也能运行
-
 ### 安装
 
 ```bash
+# 从 PyPI 安装
 pip install zero-employee-orchestrator
-zero-employee serve
+
+# 从源码安装
+git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
+cd Zero-Employee-Orchestrator && pip install .
+
+# Docker
+docker compose up -d
 ```
+
+### 快速开始
+
+```bash
+# 方法 1: 订阅模式（无需密钥）
+zero-employee config set DEFAULT_EXECUTION_MODE subscription
+
+# 方法 2: Ollama 本地 LLM（完全离线・无需密钥）
+zero-employee config set DEFAULT_EXECUTION_MODE free
+zero-employee pull qwen3:8b
+zero-employee local --model qwen3:8b --lang zh
+
+# 方法 3: 多 LLM 平台（一个密钥即可使用多个模型）
+zero-employee config set OPENROUTER_API_KEY <your-key>
+
+# 启动服务器
+zero-employee serve
+# → http://localhost:18234
+```
+
+> **ZEO 本身不收取任何使用费。** LLM 的 API 费用由用户直接向各提供商支付。详细设置方法请参阅 [USER_SETUP.md](USER_SETUP.md)。
+
+### 主要功能
+
+| 功能 | 说明 |
+|------|------|
+| **Design Interview** | 用自然语言接收业务需求，深入挖掘要求 |
+| **Task Orchestrator** | 基于 DAG 的计划生成、成本估算、质量模式切换 |
+| **Judge Layer** | 规则一次判定 + Cross-Model 高精度判定 |
+| **Skill / Plugin / Extension** | 三层可扩展体系，完全 CRUD 管理 |
+| **自然语言技能生成** | 用自然语言描述技能，AI 自动生成（含安全检查） |
+| **分身 AI / 秘书 AI** | 学习用户判断标准的分身 AI，AI 组织的桥梁秘书 AI |
+| **浏览器辅助** | Chrome 扩展程序覆盖聊天，AI 实时查看用户屏幕并指导操作 |
+| **媒体生成** | 图像（DALL-E, SD）、视频（Runway ML）、语音（TTS）、音乐（Suno） |
+| **AI 工具集成** | 25+ 外部工具（GitHub, Slack, Jira, Figma 等）可由 AI 操作 |
+| **文件沙箱** | AI 只能访问用户许可的文件夹（默认: STRICT） |
+| **数据保护** | 上传/下载策略控制（默认: LOCKDOWN） |
+| **PII 保护** | 自动检测和脱敏个人信息（13 个类别） |
+| **提示注入防御** | 检测和拦截来自外部的非法指令（5 类・40+ 模式） |
+| **Self-Improvement** | AI 分析和改进自身技能（需审批） |
+| **元技能** | 赋予 AI「学习如何学习」的能力 |
+| **A2A 通信** | 代理间点对点通信・频道・协商 |
+| **技能市场** | 社区技能发布・搜索・评审・安装 |
+| **多用户 / 团队** | 角色・邀请・权限管理 |
+| **iPaaS 集成** | n8n / Zapier / Make Webhook 集成 |
+| **成果物导出** | PDF / Markdown / HTML / JSON / CSV 导出 |
+| **内容再利用** | 将 1 个内容自动转换为 10 种媒体格式 |
+| **RSS / ToS 监控** | 自动检测 AI 服务模型更新和价格变更 |
+| **红队安全** | 8 类・20+ 测试自我漏洞评估 |
+| **治理与合规** | GDPR / HIPAA / SOC2 / ISO27001 / CCPA / APPI |
+| **浏览器自动化** | 基于 Playwright 的 Web 自动化（含审批流程） |
+| **自主运行** | 通过 Docker/Cloudflare Workers 即使 PC 关机也能运行 |
+| **自动更新** | PyPI 版本检查・CLI update 命令・Tauri 桌面自动更新 |
+
+### 9 层架构
+
+```
+┌─────────────────────────────────────────┐
+│  1. User Layer     — 用自然语言传达目标    │
+│  2. Design Interview — 头脑风暴・需求深挖  │
+│  3. Task Orchestrator — DAG 分解・进度管理 │
+│  4. Skill Layer    — 专业 Skill + Context │
+│  5. Judge Layer    — Two-stage + Cross    │
+│  6. Re-Propose     — 自愈 DAG 重建        │
+│  7. State & Memory — 经验记忆             │
+│  8. Provider       — LLM 网关 (LiteLLM)   │
+│  9. Skill Registry — 发布・搜索・导入      │
+└─────────────────────────────────────────┘
+```
+
+### 安全
+
+Zero-Employee Orchestrator 以**安全优先**理念设计。
+
+#### 多层防御
+
+| 层级 | 功能 |
+|------|------|
+| **提示注入防御** | 检测和拦截来自外部输入的指令注入（5 类・40+ 模式） |
+| **审批门控** | 12 类危险操作（发送・删除・计费・权限变更等）需人类审批 |
+| **自主执行边界** | 明确限制 AI 可自主执行的操作 |
+| **IAM** | 人类/AI 账户分离，拒绝 AI 访问密钥和管理权限 |
+| **密钥管理** | Fernet 加密・自动脱敏・轮换支持 |
+| **安全头** | CSP・HSTS・X-Frame-Options 等添加到所有响应 |
+| **审计日志** | 所有关键操作均有记录（从设计阶段即内置） |
+
+部署前安全检查清单请参阅 [USER_SETUP.md](USER_SETUP.md)。漏洞报告请参阅 [SECURITY.md](SECURITY.md)。
+
+### CLI 命令
+
+```bash
+zero-employee serve              # 启动 API 服务器
+zero-employee serve --reload     # 热重载模式
+zero-employee local              # 本地聊天模式 (Ollama)
+zero-employee models             # 已安装模型列表
+zero-employee pull qwen3:8b      # 下载模型
+zero-employee config list        # 显示所有配置
+zero-employee config set <KEY>   # 设置配置值
+zero-employee db upgrade         # 数据库迁移
+zero-employee health             # 健康检查
+zero-employee security status    # 安全状态
+zero-employee update             # 更新到最新版本
+zero-employee update --check     # 仅检查更新
+```
+
+### 技术栈
+
+- **后端**: Python 3.12+ / FastAPI / uvicorn / SQLAlchemy 2.x (async) / LiteLLM
+- **前端**: React 19 + TypeScript + Vite / shadcn/ui + Tailwind CSS
+- **桌面端**: Tauri v2 (Rust) + Python sidecar
+- **部署**: Docker + docker-compose / Cloudflare Workers
 
 ---
 
