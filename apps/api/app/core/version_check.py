@@ -84,13 +84,19 @@ def print_update_notice(current: str, latest: str) -> None:
     """ターミナルにアップデート通知を表示する."""
     print()
     print(f"  {_YELLOW}╔══════════════════════════════════════════════╗{_RESET}")
-    print(f"  {_YELLOW}║{_RESET}  {_BOLD}Update available!{_RESET}  "
-          f"{_DIM}{current}{_RESET} → {_GREEN}{latest}{_RESET}            {_YELLOW}║{_RESET}")
+    print(
+        f"  {_YELLOW}║{_RESET}  {_BOLD}Update available!{_RESET}  "
+        f"{_DIM}{current}{_RESET} → {_GREEN}{latest}{_RESET}            {_YELLOW}║{_RESET}"
+    )
     print(f"  {_YELLOW}║{_RESET}                                              {_YELLOW}║{_RESET}")
-    print(f"  {_YELLOW}║{_RESET}  Run: {_CYAN}zero-employee update{_RESET}"
-          f"                   {_YELLOW}║{_RESET}")
-    print(f"  {_YELLOW}║{_RESET}   or: {_CYAN}pip install -U {PACKAGE_NAME}{_RESET}"
-          f"  {_YELLOW}║{_RESET}")
+    print(
+        f"  {_YELLOW}║{_RESET}  Run: {_CYAN}zero-employee update{_RESET}"
+        f"                   {_YELLOW}║{_RESET}"
+    )
+    print(
+        f"  {_YELLOW}║{_RESET}   or: {_CYAN}pip install -U {PACKAGE_NAME}{_RESET}"
+        f"  {_YELLOW}║{_RESET}"
+    )
     print(f"  {_YELLOW}╚══════════════════════════════════════════════╝{_RESET}")
     print()
 
