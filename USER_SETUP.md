@@ -366,7 +366,7 @@ AI: 「この業務では /home/user/project-x へのアクセスが必要です
 ### API 経由でタスク単位の権限を設定
 
 ```bash
-POST /api/v1/tasks/{task_id}/workspace-override
+POST /api/v1/security/workspace/tasks/{task_id}/override
 {
   "additional_local_paths": ["/home/user/project-x"],
   "additional_cloud_sources": ["google_drive://shared/project-x"],
@@ -471,13 +471,19 @@ Obsidian プラグイン「Local REST API」のインストールも推奨しま
 
 ```bash
 # API 経由でスケジュール登録
-POST /api/v1/heartbeats
+POST /api/v1/companies/{company_id}/heartbeat-policies
 {
   "name": "daily-report",
-  "trigger": "schedule",
-  "cron": "0 9 * * *",
-  "task_template": { "type": "generate_report" }
+  "cron_expr": "0 9 * * *",
+  "timezone": "Asia/Tokyo",
+  "enabled": true
 }
+
+# ポリシー一覧
+GET /api/v1/companies/{company_id}/heartbeat-policies
+
+# 実行履歴
+GET /api/v1/companies/{company_id}/heartbeat-runs
 ```
 
 ---

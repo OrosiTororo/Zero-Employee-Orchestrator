@@ -43,14 +43,14 @@ apps/
 ├── api/              # FastAPI バックエンド (Python 3.12+)
 │   ├── app/
 │   │   ├── core/           # 設定・DB・レート制限・i18n
-│   │   ├── api/routes/     # REST API エンドポイント (37 ルートモジュール)
+│   │   ├── api/routes/     # REST API エンドポイント (36 ルートモジュール)
 │   │   ├── api/ws/         # WebSocket (events, browser_assist_ws)
 │   │   ├── api/deps/       # 依存性注入
 │   │   ├── models/         # SQLAlchemy ORM
 │   │   ├── schemas/        # Pydantic DTO
-│   │   ├── services/       # ビジネスロジック (19 サービス)
+│   │   ├── services/       # ビジネスロジック (18 サービス)
 │   │   ├── repositories/   # DB 入出力抽象化
-│   │   ├── orchestration/  # DAG・Judge・状態機械・Knowledge・Memory・MetaSkill・A2A (22 モジュール)
+│   │   ├── orchestration/  # DAG・Judge・状態機械・Knowledge・Memory・MetaSkill・A2A (21 モジュール)
 │   │   ├── heartbeat/      # Heartbeat スケジューラ
 │   │   ├── providers/      # LLM ゲートウェイ・Ollama・g4f・RAG・ModelRegistry
 │   │   ├── tools/          # 外部ツール接続 (MCP/Webhook/API/CLI/GraphQL/ブラウザ自動操作/LSP)
