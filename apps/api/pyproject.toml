@@ -66,6 +66,7 @@ dev = [
 Homepage = "https://github.com/OrosiTororo/Zero-Employee-Orchestrator"
 Repository = "https://github.com/OrosiTororo/Zero-Employee-Orchestrator"
 Issues = "https://github.com/OrosiTororo/Zero-Employee-Orchestrator/issues"
+Documentation = "https://github.com/OrosiTororo/Zero-Employee-Orchestrator/tree/master/docs"
 
 [project.scripts]
 zero-employee = "app.cli:main"
