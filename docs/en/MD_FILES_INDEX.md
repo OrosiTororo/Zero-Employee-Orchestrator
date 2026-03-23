@@ -2,7 +2,7 @@
 
 # Markdown Files Index in the Repository
 
-> Last updated: 2026-03-12 (v0.1)
+> Last updated: 2026-03-23 (v0.1)
 >
 > This document is an index listing the purpose, overview, and intended audience of every `.md` file contained in the Zero-Employee Orchestrator repository.
 
@@ -15,286 +15,91 @@
 3. [docs/dev/ — Developer Documents](#3-docsdev--developer-documents)
 4. [apps/edge/ Documents](#4-appsedge-documents)
 5. [.github/ Documents](#5-github-documents)
-6. [Document Reference Priority](#6-document-reference-priority)
+6. [Multilingual Documents](#6-docsen-and-docszh--multilingual-documents)
+7. [Document Reference Priority](#7-document-reference-priority)
 
 ---
 
 ## 1. Root-Level Documents
 
-### `README.md`
+### User-Facing
 
-| Item | Description |
-|------|-------------|
-| **Location** | `/README.md` |
-| **Purpose** | The first-impression document for the project. Summarizes the overview, key features, installation steps, and technology stack |
-| **Audience** | All users and developers |
-| **Key Contents** | Trilingual support (Japanese, English, Chinese). Installation instructions for both the GUI version (desktop installer) and CLI version, technology stack table, quick-start commands |
+| File | Purpose | Audience | Multilingual |
+|------|---------|----------|-------------|
+| `README.md` | First-impression document. Overview, features, installation, tech stack | All users and developers | ja/en/zh (inline) |
+| `USER_SETUP.md` | Setup guide for using, operating, and extending ZEO | All users | ja / [en](USER_SETUP.md) / [zh](../zh/USER_SETUP.md) |
+| `ROADMAP.md` | Roadmap from v0.2 to v1.0 | Users, developers, contributors | ja/en/zh (inline) |
+| `CODE_OF_CONDUCT.md` | Community code of conduct (Contributor Covenant 2.1) | All contributors and users | ja/en/zh (inline) |
+| `CONTRIBUTING.md` | How to contribute to the project | Contributors, developers | ja/en/zh (inline) |
+| `SECURITY.md` | Vulnerability reporting procedures | Security reporters | en |
 
----
+### Developer-Facing (Root)
 
-### `CLAUDE.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/CLAUDE.md` |
-| **Purpose** | Development guide for Claude Code (AI coding agent). Condenses the entire project overview into a single file |
-| **Audience** | Claude Code (AI agent) |
-| **Key Contents** | 9-layer architecture definition, technology stack, directory structure, coding conventions, design principles, DB schema overview, all API endpoints, runtime configuration management, supported LLM models, Ollama integration, Skill management v0.1, prohibited actions |
-
----
-
-### `CONTRIBUTING.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/CONTRIBUTING.md` |
-| **Purpose** | A guide on how to contribute to the project |
-| **Audience** | Contributors, developers |
-| **Key Contents** | Trilingual support (Japanese, English, Chinese). How to report issues, pull request creation process, coding conventions, development environment setup |
-
----
-
-### `CODE_OF_CONDUCT.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/CODE_OF_CONDUCT.md` |
-| **Purpose** | Community code of conduct |
-| **Audience** | All contributors and users |
-| **Key Contents** | Trilingual support (Japanese, English, Chinese). Code of conduct based on Contributor Covenant 2.1 |
-
----
-
-### `ROADMAP.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/ROADMAP.md` |
-| **Purpose** | Roadmap from v0.2 to v1.0 |
-| **Audience** | Users, developers, contributors |
-| **Key Contents** | Trilingual support (Japanese, English, Chinese). Planned features per version (with priorities) |
+| File | Purpose | Audience |
+|------|---------|----------|
+| `CLAUDE.md` | Development guide for Claude Code (AI agent) | Claude Code |
 
 ---
 
 ## 2. docs/ — User-Facing Documents
 
-Documents intended for users (end users, evaluators, operators), or shared between users and developers.
-
-### `docs/ABOUT.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/docs/ABOUT.md` |
-| **Purpose** | A marketing and explanatory document articulating "Why Zero-Employee Orchestrator is needed" |
-| **Audience** | Non-engineers, executives, product evaluators |
-| **Key Contents** | Comparison tables with other AI agents, RPA, and n8n/Make; 9 competitive advantages; enterprise readiness |
-
----
-
-### `docs/USER_GUIDE.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/docs/USER_GUIDE.md` |
-| **Purpose** | End-user manual covering setup through daily operations |
-| **Audience** | End users (both engineers and non-engineers) |
-| **Key Contents** | Trilingual support (Japanese, English, Chinese). System requirements, LLM connection methods, installation steps, descriptions and usage of all screens, how to use tickets, approval workflow, Skill/Plugin extension methods, cost management, troubleshooting, FAQ |
-
----
-
-### `docs/OVERVIEW.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/docs/OVERVIEW.md` |
-| **Purpose** | A comprehensive guide explaining the philosophy, features, and structure for those encountering the project for the first time |
-| **Audience** | First-time visitors (both engineers and non-engineers) |
-| **Key Contents** | What is ZEO (comparison table with other tools), why it's needed, basic usage, 9-layer architecture details, technology stack list, implementation status, offline operation, boundary between core and extension features, external tool integration, design considerations, document list, directory structure |
-
----
-
-### `docs/FEATURES.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/docs/FEATURES.md` |
-| **Purpose** | A comprehensive feature list covering all implemented functionality |
-| **Audience** | Feature reviewers, evaluators, developers |
-| **Key Contents** | 34-section structure. 9-layer architecture feature details, Design Interview, Spec/Plan/Tasks, DAG-based Task Orchestrator, state machine, Judge Layer, Self-Healing/Re-Propose, approval workflow, audit logs, Skill/Plugin/Extension 3-tier extension system, LLM Gateway, frontend UI (23 screens), REST API, WebSocket |
-
----
-
-### `docs/SECURITY.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/docs/SECURITY.md` |
-| **Purpose** | Security policy and pre-deployment checklist |
-| **Audience** | Operators, deployment engineers |
-| **Key Contents** | Supported versions table, vulnerability reporting procedure, deployment security checklist (SECRET_KEY / JWT_SECRET generation methods, Cloudflare credentials, CORS configuration, production DB settings, recommended security settings) |
-
----
-
-### `docs/CHANGELOG.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/docs/CHANGELOG.md` |
-| **Purpose** | Version-by-version change history |
-| **Audience** | All users and developers |
-| **Key Contents** | [Keep a Changelog](https://keepachangelog.com/) format. Complete list of all additions in v0.1.0 (2026-03-12) |
-
----
-
-### `docs/Zero-Employee Orchestrator.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/docs/Zero-Employee Orchestrator.md` |
-| **Purpose** | The project's **top-level reference document**. The definitive source integrating philosophy, requirements, MVP definition, operational policies, and implementation decision criteria |
-| **Audience** | Designers, product owners, AI agents |
-| **Key Contents** | Definitions and distinctions of Skill / Plugin / Extension, problems the system solves, design philosophy, MVP required features vs. deferred features, state transition design, approval workflow requirements, audit log requirements, extension architecture, Self-Healing DAG requirements |
-| **Note** | Filename contains spaces |
-
----
-
-### `docs/SCALING_AND_COSTS.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/docs/SCALING_AND_COSTS.md` |
-| **Purpose** | A guide covering costs, hardware constraints, and large-scale project use cases |
-| **Audience** | Prospective adopters, operators, executives |
-| **Key Contents** | LLM API cost list, free-tier scope, hardware requirements, v0.1 unimplemented features, 5 large-scale project use cases, cost optimization strategies |
-
----
-
-### `docs/AI_SELF_IMPROVEMENT_ROADMAP.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/docs/AI_SELF_IMPROVEMENT_ROADMAP.md` |
-| **Purpose** | A roadmap toward AI Self-Improvement (the ability for AI to improve and generate AI) |
-| **Audience** | Developers, contributors, researchers, those who share the vision |
-| **Key Contents** | AI Self-Improvement vision, ZEO's current position and distance to goal, limits of solo development and need for community/funding, 4-phase roadmap, ai-self-improvement Plugin design, community growth strategy, future scenarios, safety and ethics, cost estimates |
-
----
-
-### `docs/MD_FILES_INDEX.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/docs/MD_FILES_INDEX.md` |
-| **Purpose** | **This document**. An index listing all `.md` files in the repository |
-| **Audience** | All users and developers |
+| File | Purpose | Audience | Multilingual |
+|------|---------|----------|-------------|
+| `docs/ABOUT.md` | "Why ZEO is needed" explanatory document | Non-engineers, executives, evaluators | [en](ABOUT.md) / [zh](../zh/ABOUT.md) |
+| `docs/USER_GUIDE.md` | End-user operations manual | End users | ja/en/zh (inline) + [en](USER_GUIDE.md) / [zh](../zh/USER_GUIDE.md) |
+| `docs/OVERVIEW.md` | Comprehensive guide for first-time visitors | Everyone | [en](OVERVIEW.md) / [zh](../zh/OVERVIEW.md) |
+| `docs/FEATURES.md` | Complete implemented feature list (34 sections) | Feature reviewers, evaluators, developers | [en](FEATURES.md) / [zh](../zh/FEATURES.md) |
+| `docs/SECURITY.md` | Security policy and pre-deployment checklist | Operators, deployment engineers | [en](SECURITY.md) / [zh](../zh/SECURITY.md) |
+| `docs/CHANGELOG.md` | Version-by-version change history | All users and developers | [en](CHANGELOG.md) / [zh](../zh/CHANGELOG.md) |
+| `docs/SCALING_AND_COSTS.md` | Costs, hardware constraints, use cases | Prospective adopters, operators, executives | [en](SCALING_AND_COSTS.md) / [zh](../zh/SCALING_AND_COSTS.md) |
+| `docs/Zero-Employee Orchestrator.md` | **Top-level reference document**. Philosophy, requirements, MVP | Designers, PO, AI agents | ja |
+| `docs/MD_FILES_INDEX.md` | **This document**. Index of all `.md` files | All users and developers | [en](MD_FILES_INDEX.md) / [zh](../zh/MD_FILES_INDEX.md) |
 
 ---
 
 ## 3. docs/dev/ — Developer Documents
 
-Documents intended for developers, implementers, and AI coding agents.
-
-### `docs/dev/DESIGN.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/docs/dev/DESIGN.md` |
-| **Purpose** | Implementation design document. The core design specification organized at a granularity suitable for AI coding agents to begin implementation |
-| **Audience** | Implementers, AI agents |
-| **Key Contents** | System definition, design principles, DB table design (all column definitions), API endpoint list, state transitions (State Machine), UI screen design, implementation phases (Phase 0-9), MVP boundary |
-
----
-
-### `docs/dev/MASTER_GUIDE.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/docs/dev/MASTER_GUIDE.md` |
-| **Purpose** | An operational guide summarizing the approach to implementation by AI coding agents, reference order, and decision criteria |
-| **Audience** | AI agents, implementation leads |
-| **Key Contents** | 6 most important rules, correspondence table of each file's role and usage, how to proceed through implementation phases, prohibited actions, decision flow when uncertain |
-
----
-
-### `docs/dev/BUILD_GUIDE.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/docs/dev/BUILD_GUIDE.md` |
-| **Purpose** | A build guide explaining how to construct Zero-Employee Orchestrator from scratch, with code examples for each phase |
-| **Audience** | Developers building from source |
-| **Key Contents** | Prerequisites, quick-setup commands, step-by-step implementation instructions for Phase 0-9, deployment procedures |
-
----
-
-### `docs/dev/FEATURE_BOUNDARY.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/docs/dev/FEATURE_BOUNDARY.md` |
-| **Purpose** | A boundary definition document explicitly delineating core features vs. Skill / Plugin / Extension |
-| **Audience** | Developers, designers |
-| **Key Contents** | Boundary judgment criteria, detailed list of core features, list of features to be extracted as Skill/Plugin/Extension |
-
----
+| File | Purpose | Audience |
+|------|---------|----------|
+| `docs/dev/DESIGN.md` | Implementation design (DB, API, state transitions, phases) | Implementers, AI agents |
+| `docs/dev/MASTER_GUIDE.md` | AI implementation approach, reference order, decision criteria | AI agents, implementation leads |
+| `docs/dev/BUILD_GUIDE.md` | Build from scratch guide (phase-by-phase) | Developers building from source |
+| `docs/dev/FEATURE_BOUNDARY.md` | Core features vs Skill/Plugin/Extension boundary definition | Developers, designers |
+| `docs/dev/DEVELOPER_SETUP.md` | Developer setup (Sentry, red-team testing, etc.) | ZEO developers |
+| `docs/dev/SKILL.md` | SKILL.md file creation guide | Skill developers |
+| `docs/dev/Progressive.md` | CLAUDE.md authoring methodology | Developers |
+| `docs/dev/PROPOSAL.md` | Project proposal document | Grant reviewers, sponsors |
+| `docs/dev/TITLE_PROPOSALS.md` | Project title proposals | Project stakeholders |
+| `docs/dev/AI_SELF_IMPROVEMENT_ROADMAP.md` | AI self-improvement roadmap | Developers, researchers |
 
 ### Implementation Instruction Files (`instructions_section*`)
 
-Implementation instruction files are specific directive documents used by AI coding agents when implementing each phase.
-
-| File | Location | Contents |
-|------|----------|----------|
-| **instructions_section2_init.md** | `/docs/dev/` | Repository initialization (directory structure, monorepo configuration, environment setup) |
-| **instructions_section3_backend.md** | `/docs/dev/` | FastAPI backend construction (MVP priority implementation items, SQLAlchemy models, state machine) |
-| **instructions_section4_frontend.md** | `/docs/dev/` | React frontend construction (screen list, component design guidelines, API connectivity) |
-| **instructions_section5_skills.md** | `/docs/dev/` | Skills / Plugins / Extensions implementation (terminology definitions, built-in Skills, Registry API) |
-| **instructions_section6_tauri.md** | `/docs/dev/` | Tauri integration and desktop application packaging (sidecar startup, auto-update) |
-| **instructions_section7_test.md** | `/docs/dev/` | Testing and verification (state transition tests, approval bypass prevention tests, security tests) |
+| File | Contents |
+|------|----------|
+| `docs/dev/instructions_section2_init.md` | Repository initialization (directory structure, monorepo, environment) |
+| `docs/dev/instructions_section3_backend.md` | FastAPI backend construction |
+| `docs/dev/instructions_section4_frontend.md` | React frontend construction |
+| `docs/dev/instructions_section5_skills.md` | Skills / Plugins / Extensions implementation |
+| `docs/dev/instructions_section6_tauri.md` | Tauri integration and desktop app packaging |
+| `docs/dev/instructions_section7_test.md` | Testing and verification |
 
 ---
 
 ## 4. apps/edge/ Documents
 
-### `apps/edge/README.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/apps/edge/README.md` |
-| **Purpose** | Comparison and selection guide for two Cloudflare Workers deployment approaches (Proxy / Full Workers) |
-| **Audience** | Deployment engineers, infrastructure engineers |
-
----
-
-### `apps/edge/full/README.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/apps/edge/full/README.md` |
-| **Purpose** | Setup and deployment procedure for Approach B (Full Workers) |
-| **Audience** | Developers running full-stack on Cloudflare Workers |
-
----
-
-### `apps/edge/proxy/README.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/apps/edge/proxy/README.md` |
-| **Purpose** | Setup and deployment procedure for Approach A (Proxy) |
-| **Audience** | Developers placing Workers in front of an existing FastAPI backend |
+| File | Purpose | Audience |
+|------|---------|----------|
+| `apps/edge/README.md` | Cloudflare Workers deployment comparison (Proxy / Full) | Deployment engineers |
+| `apps/edge/full/README.md` | Full Workers setup and deployment | CF Workers developers |
+| `apps/edge/proxy/README.md` | Proxy approach setup and deployment | CF Workers developers |
 
 ---
 
 ## 5. .github/ Documents
 
-### `.github/SECURITY_SETUP_CHECKLIST.md`
-
-| Item | Description |
-|------|-------------|
-| **Location** | `/.github/SECURITY_SETUP_CHECKLIST.md` |
-| **Purpose** | Security setup checklist for GitHub Actions |
-| **Audience** | DevOps, security engineers |
-| **Key Contents** | Required Secrets and configuration items, security recommendations |
+| File | Purpose | Audience |
+|------|---------|----------|
+| `.github/SECURITY_SETUP_CHECKLIST.md` | GitHub Actions security setup checklist | DevOps, security engineers |
 
 ---
 
@@ -311,6 +116,8 @@ Implementation instruction files are specific directive documents used by AI cod
 | `docs/SCALING_AND_COSTS.md` | `docs/en/SCALING_AND_COSTS.md` | `docs/zh/SCALING_AND_COSTS.md` |
 | `docs/CHANGELOG.md` | `docs/en/CHANGELOG.md` | `docs/zh/CHANGELOG.md` |
 | `docs/MD_FILES_INDEX.md` | `docs/en/MD_FILES_INDEX.md` | `docs/zh/MD_FILES_INDEX.md` |
+| `docs/USER_GUIDE.md` | `docs/en/USER_GUIDE.md` | `docs/zh/USER_GUIDE.md` |
+| `USER_SETUP.md` | `docs/en/USER_SETUP.md` | `docs/zh/USER_SETUP.md` |
 
 ---
 
@@ -319,11 +126,11 @@ Implementation instruction files are specific directive documents used by AI cod
 ### For Developers and Implementers
 
 ```
-1. docs/Zero-Employee Orchestrator.md  <- Top-level reference (philosophy, requirements, MVP definition)
-2. docs/dev/DESIGN.md                  <- Implementation design (DB, API, state transitions, implementation order)
-3. docs/dev/MASTER_GUIDE.md            <- Operational guide (approach, decision criteria, prohibited actions)
+1. docs/Zero-Employee Orchestrator.md  <- Top-level reference (philosophy, requirements, MVP)
+2. docs/dev/DESIGN.md                  <- Implementation design (DB, API, state transitions)
+3. docs/dev/MASTER_GUIDE.md            <- Operational guide (approach, criteria, prohibitions)
 4. CLAUDE.md                           <- AI agent development guide
-5. docs/dev/instructions_section2-7    <- Specific implementation instructions for each domain
+5. docs/dev/instructions_section2-7    <- Specific implementation instructions
 ```
 
 ### For Users
@@ -331,7 +138,7 @@ Implementation instruction files are specific directive documents used by AI cod
 ```
 First-time visitors  -> docs/OVERVIEW.md
 Why it's needed      -> docs/ABOUT.md
-Setup                -> docs/USER_GUIDE.md or docs/dev/BUILD_GUIDE.md
+Setup                -> USER_SETUP.md or docs/USER_GUIDE.md
 Feature review       -> docs/FEATURES.md
 Costs & constraints  -> docs/SCALING_AND_COSTS.md
 Deployment           -> apps/edge/README.md + docs/SECURITY.md

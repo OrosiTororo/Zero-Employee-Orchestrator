@@ -24,6 +24,7 @@ import {
 } from "lucide-react"
 import { useAuthStore } from "@/shared/hooks/use-auth"
 import { LogoMark } from "@/shared/ui/Logo"
+import { UpdateBanner } from "@/shared/ui/UpdateBanner"
 import { useT } from "@/shared/i18n"
 
 interface LayoutProps {
@@ -240,6 +241,9 @@ export function Layout({ children }: LayoutProps) {
           <span>{t.common.typescriptReact}</span>
         </div>
       </div>
+
+      {/* Auto-update notification */}
+      <UpdateBanner />
     </div>
   )
 }

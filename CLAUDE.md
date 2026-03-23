@@ -19,7 +19,7 @@ ls apps/api/app/tests/
 - `docs/dev/DESIGN.md` — 実装設計書
 - `docs/dev/MASTER_GUIDE.md` — 実装運用ガイド
 - `ROADMAP.md` — ロードマップ（v0.2 以降の残課題）
-- `DEVELOPER_SETUP.md` — 開発者セットアップガイド（Sentry・レッドチームテスト等）
+- `docs/dev/DEVELOPER_SETUP.md` — 開発者セットアップガイド（Sentry・レッドチームテスト等）
 - `USER_SETUP.md` — 利用ユーザーセットアップガイド（API キー・セキュリティ・DB・デプロイ等）
 
 **IMPORTANT: このファイルの情報が古い場合は、実際のコードと README.md を読んで更新すること。必ず、リポジトリ構造と全mdファイルを確認すること。リポジトリの確認をするときは、全ファイルを確認すること。更新内容をmdファイルに記載すること。**
@@ -85,6 +85,10 @@ ruff format apps/api/app/
 
 # DB マイグレーション
 zero-employee db upgrade
+
+# アップデート
+zero-employee update                # 最新版にアップデート
+zero-employee update --check        # アップデート確認のみ
 
 # その他
 zero-employee health

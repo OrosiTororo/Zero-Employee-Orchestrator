@@ -11,6 +11,8 @@
     zero-employee local --model qwen3:8b
     zero-employee models         # 利用可能モデル一覧
     zero-employee pull <model>   # モデルダウンロード
+    zero-employee update         # 最新版にアップデート
+    zero-employee update --check # アップデート確認のみ
 """
 
 import argparse
@@ -21,6 +23,12 @@ import sys
 def cmd_serve(args: argparse.Namespace) -> None:
     """API サーバーを起動する."""
     import uvicorn
+
+    # 起動時にバージョンチェック（バックグラウンド・ノンブロッキング）
+    if not args.skip_update_check:
+        from app.core.version_check import check_and_notify
+
+        check_and_notify(quiet=True)
 
     uvicorn.run(
         "app.main:app",
@@ -491,6 +499,52 @@ def _compress_context(conversation: list[dict]) -> list[dict]:
     return compressed
 
 
+def cmd_update(args: argparse.Namespace) -> None:
+    """最新バージョンへのアップデートを実行する."""
+    import subprocess
+
+    from app.core.version_check import (
+        PACKAGE_NAME,
+        check_latest_version_sync,
+        get_current_version,
+        is_newer_version,
+    )
+
+    current = get_current_version()
+    print(f"  Current version: {current}")
+    print("  Checking for updates...")
+
+    latest = check_latest_version_sync(timeout=10.0)
+    if latest is None:
+        print("  \033[38;5;220mCould not reach PyPI. Check your internet connection.\033[0m")
+        sys.exit(1)
+
+    if not is_newer_version(current, latest):
+        print(f"  \033[38;5;78m✔ Already up to date ({current})\033[0m")
+        return
+
+    print(f"  New version available: {current} → \033[38;5;78m{latest}\033[0m")
+
+    if args.check_only:
+        print("\n  Run \033[38;5;51mzero-employee update\033[0m to install.")
+        return
+
+    # pip install -U で更新
+    print(f"\n  Updating {PACKAGE_NAME}...")
+    result = subprocess.run(
+        [sys.executable, "-m", "pip", "install", "-U", PACKAGE_NAME],
+        capture_output=not args.verbose,
+    )
+    if result.returncode == 0:
+        print(f"\n  \033[38;5;78m✔ Updated to {latest}\033[0m")
+        print("  Restart zero-employee to use the new version.")
+    else:
+        print(f"\n  \033[38;5;220mUpdate failed (exit code {result.returncode})\033[0m")
+        if not args.verbose:
+            print("  Re-run with --verbose for details.")
+        sys.exit(1)
+
+
 def build_parser() -> argparse.ArgumentParser:
     """CLI パーサーを構築する."""
     parser = argparse.ArgumentParser(
@@ -504,6 +558,11 @@ def build_parser() -> argparse.ArgumentParser:
     serve_parser.add_argument("--host", default="0.0.0.0", help="ホスト (default: 0.0.0.0)")
     serve_parser.add_argument("--port", type=int, default=18234, help="ポート (default: 18234)")
     serve_parser.add_argument("--reload", action="store_true", help="ホットリロードを有効化")
+    serve_parser.add_argument(
+        "--skip-update-check",
+        action="store_true",
+        help="起動時のバージョンチェックをスキップ",
+    )
     serve_parser.set_defaults(func=cmd_serve)
 
     # db
@@ -572,6 +631,24 @@ def build_parser() -> argparse.ArgumentParser:
     pull_parser = subparsers.add_parser("pull", help="Ollama モデルをダウンロード")
     pull_parser.add_argument("model_name", help="Model name (e.g. qwen3:8b)")
     pull_parser.set_defaults(func=cmd_pull)
+
+    # update — アップデート管理
+    update_parser = subparsers.add_parser(
+        "update",
+        help="最新バージョンにアップデート",
+    )
+    update_parser.add_argument(
+        "--check",
+        dest="check_only",
+        action="store_true",
+        help="アップデート確認のみ（インストールしない）",
+    )
+    update_parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="pip の出力を表示",
+    )
+    update_parser.set_defaults(func=cmd_update)
 
     # security — セキュリティ管理
     security_parser = subparsers.add_parser("security", help="セキュリティ設定管理")
