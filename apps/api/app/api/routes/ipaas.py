@@ -61,7 +61,9 @@ class WorkflowTriggerRequest(BaseModel):
 
 
 @router.post("/workflows")
-async def register_workflow(req: WorkflowCreateRequest, user: User = Depends(get_current_user)) -> dict:
+async def register_workflow(
+    req: WorkflowCreateRequest, user: User = Depends(get_current_user)
+) -> dict:
     """ワークフローを登録する."""
     try:
         provider = IPaaSProvider(req.provider)
@@ -102,7 +104,9 @@ async def register_workflow(req: WorkflowCreateRequest, user: User = Depends(get
 
 
 @router.get("/workflows")
-async def list_workflows(provider: str | None = None, user: User = Depends(get_current_user)) -> dict:
+async def list_workflows(
+    provider: str | None = None, user: User = Depends(get_current_user)
+) -> dict:
     """登録済みワークフロー一覧を返す."""
     filter_provider: IPaaSProvider | None = None
     if provider:
@@ -135,7 +139,9 @@ async def list_workflows(provider: str | None = None, user: User = Depends(get_c
 
 
 @router.post("/workflows/{workflow_id}/trigger")
-async def trigger_workflow(workflow_id: str, req: WorkflowTriggerRequest, user: User = Depends(get_current_user)) -> dict:
+async def trigger_workflow(
+    workflow_id: str, req: WorkflowTriggerRequest, user: User = Depends(get_current_user)
+) -> dict:
     """ワークフローをトリガーする."""
     result = await ipaas_service.trigger_workflow(workflow_id, req.payload)
 

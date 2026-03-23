@@ -430,9 +430,7 @@ class RedTeamService:
             result = scan_prompt_injection(test.test_payload)
             passed = not result.is_safe or len(result.detections) > 0
             actual = (
-                f"インジェクション検出 (detections={result.detections})"
-                if passed
-                else "検出されず"
+                f"インジェクション検出 (detections={result.detections})" if passed else "検出されず"
             )
         except ImportError:
             passed = False

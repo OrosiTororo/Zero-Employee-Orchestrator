@@ -38,7 +38,9 @@ class AgentResponse(BaseModel):
 
 
 @router.get("/companies/{company_id}/agents", response_model=list[AgentResponse])
-async def list_agents(company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def list_agents(
+    company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """エージェント一覧"""
     cid = uuid.UUID(company_id)
     result = await db.execute(select(Agent).where(Agent.company_id == cid))
@@ -59,7 +61,12 @@ async def list_agents(company_id: str, db: AsyncSession = Depends(get_db), user:
 
 
 @router.post("/companies/{company_id}/agents", response_model=AgentResponse)
-async def create_agent(company_id: str, req: AgentCreate, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def create_agent(
+    company_id: str,
+    req: AgentCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
     """エージェント作成"""
     agent = Agent(
         id=uuid.uuid4(),
@@ -92,7 +99,9 @@ async def create_agent(company_id: str, req: AgentCreate, db: AsyncSession = Dep
 
 
 @router.get("/agents/{agent_id}", response_model=AgentResponse)
-async def get_agent(agent_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def get_agent(
+    agent_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """エージェント詳細"""
     result = await db.execute(select(Agent).where(Agent.id == uuid.UUID(agent_id)))
     agent = result.scalar_one_or_none()
@@ -111,7 +120,9 @@ async def get_agent(agent_id: str, db: AsyncSession = Depends(get_db), user: Use
 
 
 @router.post("/agents/{agent_id}/pause")
-async def pause_agent(agent_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def pause_agent(
+    agent_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """エージェントを一時停止"""
     result = await db.execute(select(Agent).where(Agent.id == uuid.UUID(agent_id)))
     agent = result.scalar_one_or_none()
@@ -122,7 +133,9 @@ async def pause_agent(agent_id: str, db: AsyncSession = Depends(get_db), user: U
 
 
 @router.post("/agents/{agent_id}/resume")
-async def resume_agent(agent_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def resume_agent(
+    agent_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """エージェントを再開"""
     result = await db.execute(select(Agent).where(Agent.id == uuid.UUID(agent_id)))
     agent = result.scalar_one_or_none()

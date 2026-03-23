@@ -91,7 +91,9 @@ def _to_response(req: InputRequest) -> InputRequestResponse:
 # エンドポイント
 # ---------------------------------------------------------------------------
 @router.post("/request", response_model=InputRequestResponse)
-async def create_input_request(body: CreateInputRequestBody, user: User = Depends(get_current_user)) -> InputRequestResponse:
+async def create_input_request(
+    body: CreateInputRequestBody, user: User = Depends(get_current_user)
+) -> InputRequestResponse:
     """入力リクエストを作成する.
 
     AIタスクがユーザーに追加情報を要求する際に使用する。
@@ -114,7 +116,9 @@ async def create_input_request(body: CreateInputRequestBody, user: User = Depend
 
 
 @router.get("/pending", response_model=PendingRequestsResponse)
-async def list_all_pending_requests(user: User = Depends(get_current_user)) -> PendingRequestsResponse:
+async def list_all_pending_requests(
+    user: User = Depends(get_current_user),
+) -> PendingRequestsResponse:
     """全タスクの未回答リクエスト一覧を取得する."""
     # 期限切れチェックを先に実行
     await user_input_service.expire_stale_requests()
@@ -129,7 +133,9 @@ async def list_all_pending_requests(user: User = Depends(get_current_user)) -> P
 
 
 @router.get("/pending/{task_id}", response_model=PendingRequestsResponse)
-async def list_pending_for_task(task_id: str, user: User = Depends(get_current_user)) -> PendingRequestsResponse:
+async def list_pending_for_task(
+    task_id: str, user: User = Depends(get_current_user)
+) -> PendingRequestsResponse:
     """指定タスクの未回答リクエスト一覧を取得する."""
     await user_input_service.expire_stale_requests()
     pending = await user_input_service.get_pending_requests(task_id)
@@ -156,7 +162,9 @@ async def answer_request(
 
 
 @router.delete("/{request_id}", response_model=InputRequestResponse)
-async def cancel_request(request_id: str, user: User = Depends(get_current_user)) -> InputRequestResponse:
+async def cancel_request(
+    request_id: str, user: User = Depends(get_current_user)
+) -> InputRequestResponse:
     """入力リクエストをキャンセルする."""
     try:
         req = await user_input_service.cancel_request(request_id)

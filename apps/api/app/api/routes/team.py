@@ -84,7 +84,9 @@ async def get_team(team_id: str, user: User = Depends(get_current_user)) -> dict
 
 
 @router.post("/{team_id}/invite", status_code=201)
-async def invite_member(team_id: str, req: InviteMemberRequest, user: User = Depends(get_current_user)) -> dict:
+async def invite_member(
+    team_id: str, req: InviteMemberRequest, user: User = Depends(get_current_user)
+) -> dict:
     """メンバーをチームに招待する."""
     try:
         role = TeamRole(req.role)
@@ -118,7 +120,9 @@ async def invite_member(team_id: str, req: InviteMemberRequest, user: User = Dep
 
 
 @router.post("/invitations/{invitation_id}/accept")
-async def accept_invitation(invitation_id: str, req: AcceptInvitationRequest, user: User = Depends(get_current_user)) -> dict:
+async def accept_invitation(
+    invitation_id: str, req: AcceptInvitationRequest, user: User = Depends(get_current_user)
+) -> dict:
     """招待を受諾してチームに参加する."""
     try:
         member = await team_service.accept_invitation(
@@ -138,7 +142,9 @@ async def accept_invitation(invitation_id: str, req: AcceptInvitationRequest, us
 
 
 @router.delete("/{team_id}/members/{user_id}")
-async def remove_member(team_id: str, user_id: str, req: RemoveMemberRequest, user: User = Depends(get_current_user)) -> dict:
+async def remove_member(
+    team_id: str, user_id: str, req: RemoveMemberRequest, user: User = Depends(get_current_user)
+) -> dict:
     """メンバーをチームから除外する."""
     try:
         await team_service.remove_member(

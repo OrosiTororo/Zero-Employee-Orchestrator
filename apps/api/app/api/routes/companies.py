@@ -45,7 +45,9 @@ class DashboardSummary(BaseModel):
 
 
 @router.get("", response_model=list[CompanyResponse])
-async def list_companies(db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def list_companies(
+    db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """会社一覧を取得"""
     result = await db.execute(select(Company).order_by(Company.created_at.desc()))
     companies = result.scalars().all()
@@ -64,7 +66,9 @@ async def list_companies(db: AsyncSession = Depends(get_db), user: User = Depend
 
 
 @router.post("", response_model=CompanyResponse)
-async def create_company(req: CompanyCreate, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def create_company(
+    req: CompanyCreate, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """新規会社を作成"""
     company = Company(
         id=uuid.uuid4(),
@@ -88,7 +92,9 @@ async def create_company(req: CompanyCreate, db: AsyncSession = Depends(get_db),
 
 
 @router.get("/{company_id}", response_model=CompanyResponse)
-async def get_company(company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def get_company(
+    company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """会社詳細を取得"""
     result = await db.execute(select(Company).where(Company.id == uuid.UUID(company_id)))
     company = result.scalar_one_or_none()
@@ -106,7 +112,9 @@ async def get_company(company_id: str, db: AsyncSession = Depends(get_db), user:
 
 
 @router.get("/{company_id}/org-chart")
-async def get_org_chart(company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def get_org_chart(
+    company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """組織図を取得"""
     cid = uuid.UUID(company_id)
     depts = (
@@ -124,13 +132,17 @@ async def get_org_chart(company_id: str, db: AsyncSession = Depends(get_db), use
 
 
 @router.get("/{company_id}/dashboard-summary", response_model=DashboardSummary)
-async def get_dashboard_summary(company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def get_dashboard_summary(
+    company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """ダッシュボード要約を取得"""
     return DashboardSummary()
 
 
 @router.get("/{company_id}/departments")
-async def list_departments(company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def list_departments(
+    company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """部署一覧"""
     cid = uuid.UUID(company_id)
     result = await db.execute(select(Department).where(Department.company_id == cid))
@@ -143,7 +155,11 @@ async def list_departments(company_id: str, db: AsyncSession = Depends(get_db), 
 
 @router.post("/{company_id}/departments")
 async def create_department(
-    company_id: str, name: str = "", code: str = "", db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+    company_id: str,
+    name: str = "",
+    code: str = "",
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """部署作成"""
     dept = Department(id=uuid.uuid4(), company_id=uuid.UUID(company_id), name=name, code=code)
@@ -153,7 +169,9 @@ async def create_department(
 
 
 @router.get("/{company_id}/teams")
-async def list_teams(company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def list_teams(
+    company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """チーム一覧"""
     cid = uuid.UUID(company_id)
     result = await db.execute(select(Team).where(Team.company_id == cid))

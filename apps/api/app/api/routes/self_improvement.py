@@ -464,7 +464,9 @@ async def generate_tests_endpoint(
 
 
 @router.get("/status", response_model=SelfImprovementStatusResponse)
-async def self_improvement_status(user: User = Depends(get_current_user)) -> SelfImprovementStatusResponse:
+async def self_improvement_status(
+    user: User = Depends(get_current_user),
+) -> SelfImprovementStatusResponse:
     """AI Self-Improvement の全体ステータスを返す."""
     return SelfImprovementStatusResponse(
         plugin_version="0.1.0",

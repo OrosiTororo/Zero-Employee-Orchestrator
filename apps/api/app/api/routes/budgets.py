@@ -25,7 +25,9 @@ class BudgetPolicyCreate(BaseModel):
 
 
 @router.get("/companies/{company_id}/budgets")
-async def list_budgets(company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def list_budgets(
+    company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """予算ポリシー一覧"""
     cid = uuid.UUID(company_id)
     result = await db.execute(select(BudgetPolicy).where(BudgetPolicy.company_id == cid))
@@ -46,7 +48,10 @@ async def list_budgets(company_id: str, db: AsyncSession = Depends(get_db), user
 
 @router.post("/companies/{company_id}/budgets")
 async def create_budget(
-    company_id: str, req: BudgetPolicyCreate, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+    company_id: str,
+    req: BudgetPolicyCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """予算ポリシー作成"""
     policy = BudgetPolicy(
@@ -65,7 +70,9 @@ async def create_budget(
 
 
 @router.get("/companies/{company_id}/costs/summary")
-async def get_cost_summary(company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def get_cost_summary(
+    company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
     """コスト概要"""
     cid = uuid.UUID(company_id)
     total = await db.execute(

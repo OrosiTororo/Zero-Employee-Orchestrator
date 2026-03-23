@@ -47,7 +47,9 @@ class ArtifactExportRequest(BaseModel):
 
 
 @router.post("/artifact")
-async def export_artifact(req: ArtifactExportRequest, user: User = Depends(get_current_user)) -> dict:
+async def export_artifact(
+    req: ArtifactExportRequest, user: User = Depends(get_current_user)
+) -> dict:
     """アーティファクトをエクスポートする."""
     try:
         export_format = ExportFormat(req.format)

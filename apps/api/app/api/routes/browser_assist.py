@@ -83,7 +83,9 @@ async def update_consent(req: ConsentRequest, user: User = Depends(get_current_u
 
 
 @router.post("/analyze", response_model=AssistResponse)
-async def analyze_screen(req: AssistRequest, user: User = Depends(get_current_user)) -> AssistResponse:
+async def analyze_screen(
+    req: AssistRequest, user: User = Depends(get_current_user)
+) -> AssistResponse:
     """スクリーンショットを分析し、操作案内やエラー診断を提供する.
 
     ユーザーの画面を AI が分析し、操作方法・手順・エラー解決策を回答する。

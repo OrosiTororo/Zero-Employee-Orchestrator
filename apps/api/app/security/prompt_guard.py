@@ -79,15 +79,21 @@ _SYSTEM_OVERRIDE_PATTERNS: list[tuple[re.Pattern, str]] = [
     ),
     # 日本語パターン
     (
-        re.compile(r"(?:以前|前|過去|上記).{0,10}(?:指示|命令|プロンプト|ルール).{0,10}(?:無視|忘れ|削除|破棄)"),
+        re.compile(
+            r"(?:以前|前|過去|上記).{0,10}(?:指示|命令|プロンプト|ルール).{0,10}(?:無視|忘れ|削除|破棄)"
+        ),
         "system_override: japanese ignore instructions",
     ),
     (
-        re.compile(r"(?:指示|命令|プロンプト|ルール).{0,10}(?:すべて|全て|全部).{0,10}(?:無視|忘れ|削除|破棄)"),
+        re.compile(
+            r"(?:指示|命令|プロンプト|ルール).{0,10}(?:すべて|全て|全部).{0,10}(?:無視|忘れ|削除|破棄)"
+        ),
         "system_override: japanese disregard all instructions",
     ),
     (
-        re.compile(r"(?:システムプロンプト|システム設定|内部設定).{0,10}(?:表示|出力|教えて|見せて|公開)"),
+        re.compile(
+            r"(?:システムプロンプト|システム設定|内部設定).{0,10}(?:表示|出力|教えて|見せて|公開)"
+        ),
         "system_override: japanese system prompt exposure",
     ),
 ]
