@@ -166,7 +166,7 @@
 **必要環境**:
 - クラウドサーバー（2 vCPU / 4 GB RAM）
 - PostgreSQL データベース
-- LLM API キー（OpenRouter 推奨）
+- LLM API キー（OpenRouter / OpenAI / Anthropic 等、任意のプロバイダー）
 
 ---
 

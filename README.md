@@ -78,19 +78,25 @@ zero-employee --help
 
 ## クイックスタート
 
-### 1. API キー不要で始める（3 通り）
+### 1. API キー不要で始める
 
 ```bash
-# 方法 1: サブスクリプションモード（設定不要）
+# 方法 1: サブスクリプションモード（キー不要）
 zero-employee config set DEFAULT_EXECUTION_MODE subscription
 
-# 方法 2: Google Gemini 無料 API キー
-zero-employee config set GEMINI_API_KEY
-
-# 方法 3: Ollama ローカル LLM（完全オフライン）
+# 方法 2: Ollama ローカル LLM（完全オフライン・キー不要）
 zero-employee config set DEFAULT_EXECUTION_MODE free
 zero-employee pull qwen3:8b
+
+# 方法 3: マルチ LLM プラットフォーム（1 つのキーで複数モデル利用可能）
+zero-employee config set OPENROUTER_API_KEY <your-key>
+
+# 方法 4: 各プロバイダーの API キーを個別設定
+zero-employee config set GEMINI_API_KEY <your-key>    # Google Gemini（無料枠あり）
 ```
+
+> **ZEO 自体は利用料金を徴収しません。** LLM の API 費用はユーザーが各プロバイダーに直接支払います。
+> 詳しい設定方法は [USER_SETUP.md](USER_SETUP.md) を参照してください。
 
 ### 2. サーバー起動
 
@@ -640,15 +646,19 @@ docker compose up -d
 ### Quick Start
 
 ```bash
-# Configure (optional - works without API keys in subscription mode)
-zero-employee config set GEMINI_API_KEY
-
-# Start server
+# No API key needed — works out of the box in subscription mode
 zero-employee serve
 
-# Or use local chat mode with Ollama
+# Or use Ollama for fully offline, local AI
+zero-employee config set DEFAULT_EXECUTION_MODE free
+zero-employee pull qwen3:8b
 zero-employee local --model qwen3:8b --lang en
+
+# Or use a multi-LLM platform for access to many models with one key
+zero-employee config set OPENROUTER_API_KEY <your-key>
 ```
+
+> **ZEO itself is free.** LLM API costs are paid directly by users to each provider. See [USER_SETUP.md](USER_SETUP.md) for details.
 
 ### Security
 

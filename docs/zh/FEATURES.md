@@ -514,7 +514,7 @@ provisioning -> idle -> busy -> idle
 
 | 供应商 | 支持模型示例 |
 |--------|------------|
-| **OpenRouter** | 通过单一 API 密钥使用多个模型（推荐） |
+| **OpenRouter** | 通过单一 API 密钥使用多个模型 |
 | **OpenAI** | GPT-5.4、GPT-5 Mini |
 | **Anthropic** | Claude Opus 4.6、Sonnet 4.6、Haiku 4.5 |
 | **Google** | Gemini 2.5 Pro、Flash、Flash Lite |

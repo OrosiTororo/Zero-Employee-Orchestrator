@@ -166,7 +166,7 @@
 **所需环境**：
 - 云服务器（2 vCPU / 4 GB RAM）
 - PostgreSQL 数据库
-- LLM API 密钥（推荐 OpenRouter）
+- LLM API 密钥（OpenRouter / OpenAI / Anthropic 等，任意供应商）
 
 ---
 
