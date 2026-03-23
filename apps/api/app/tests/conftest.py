@@ -2,6 +2,7 @@
 
 import asyncio
 import os
+import uuid
 from collections.abc import AsyncGenerator
 
 # Allow tests to run with the default SECRET_KEY by enabling DEBUG mode.
@@ -15,8 +16,10 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.api.deps.database import get_db
+from app.api.routes.auth import get_current_user
 from app.core.database import Base
 from app.main import app
+from app.models.user import User
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_zero_employee_orchestrator.db"
 
@@ -52,6 +55,23 @@ async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 app.dependency_overrides[get_db] = override_get_db
+
+
+# Stub user returned by get_current_user in tests — bypasses JWT validation.
+_TEST_USER = User(
+    id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
+    email="test@example.com",
+    display_name="Test User",
+    role="admin",
+    status="active",
+)
+
+
+async def override_get_current_user() -> User:
+    return _TEST_USER
+
+
+app.dependency_overrides[get_current_user] = override_get_current_user
 
 
 @pytest_asyncio.fixture
