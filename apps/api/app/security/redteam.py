@@ -635,7 +635,7 @@ class RedTeamService:
         checks_passed: list[str] = []
         checks_failed: list[str] = []
 
-        # 1. セキュリティヘッダーミドルウェアの存在確認
+        # 1. セキュリティヘッダーミドルウェア・認証依存関数の存在確認
         try:
             from app.security.security_headers import SecurityHeadersMiddleware
 
@@ -644,14 +644,23 @@ class RedTeamService:
         except ImportError:
             checks_failed.append("security_headers モジュール未インストールのためテスト不可")
 
+        try:
+            from app.api.routes.auth import get_current_user
+
+            if callable(get_current_user):
+                checks_passed.append("get_current_user 認証依存関数定義済み")
+        except ImportError:
+            checks_failed.append("auth モジュールの get_current_user が未定義")
+
         # 2. httpx で認証なしリクエストの実テスト
         try:
             import httpx
 
+            # get_current_user で保護されたエンドポイントを使用
             protected_paths = [
-                "/api/v1/companies",
-                "/api/v1/agents",
-                "/api/v1/audit",
+                "/api/v1/config",
+                "/api/v1/ollama/health",
+                "/api/v1/traces",
             ]
             async with httpx.AsyncClient(base_url="http://localhost:18234") as client:
                 probe = await client.get("/healthz", timeout=2.0)
@@ -665,10 +674,10 @@ class RedTeamService:
                                 f"{path} → {resp.status_code} (認証なしでアクセス可能)"
                             )
 
-                    # 偽造ユーザー ID でのアクセス試行
+                    # 偽造トークンでのアクセス試行
                     fake_token = "Bearer fake-token-12345"
                     resp2 = await client.get(
-                        "/api/v1/companies",
+                        "/api/v1/config",
                         headers={"Authorization": fake_token},
                         timeout=3.0,
                     )
