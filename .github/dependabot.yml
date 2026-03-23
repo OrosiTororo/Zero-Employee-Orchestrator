@@ -20,16 +20,6 @@ updates:
     labels:
       - "dependencies"
 
-  # Node.js dependencies (desktop UI)
-  - package-ecosystem: "npm"
-    directory: "/apps/desktop/ui"
-    schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: "deps"
-    labels:
-      - "dependencies"
-
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
