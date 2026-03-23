@@ -365,8 +365,7 @@ def set_config_value(key: str, value: str) -> None:
         "permissive",
     ):
         raise ValueError(
-            f"Invalid transfer policy: {value}. "
-            "Must be one of: lockdown, restricted, permissive"
+            f"Invalid transfer policy: {value}. Must be one of: lockdown, restricted, permissive"
         )
     if key == "WORKSPACE_STORAGE_LOCATION" and value not in ("internal", "local", "cloud"):
         raise ValueError(
