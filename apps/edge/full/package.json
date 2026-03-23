@@ -9,12 +9,12 @@
     "db:init": "wrangler d1 execute zeo-orchestrator --file=src/db/schema.sql"
   },
   "dependencies": {
-    "hono": "^4.12.7",
-    "jose": "^6.0.0"
+    "hono": "^4.12.8",
+    "jose": "^6.2.2"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241205.0",
     "typescript": "^5.7.0",
-    "wrangler": "^4.75.0"
+    "wrangler": "^4.76.0"
   }
 }
