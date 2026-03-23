@@ -9,6 +9,11 @@ from __future__ import annotations
 import importlib.metadata
 import logging
 
+try:
+    import httpx
+except ImportError:  # pragma: no cover
+    httpx = None  # type: ignore[assignment]
+
 logger = logging.getLogger(__name__)
 
 PACKAGE_NAME = "zero-employee-orchestrator"
@@ -52,9 +57,9 @@ def check_latest_version_sync(timeout: float = 3.0) -> str | None:
 
     タイムアウトやエラー時は None を返す。
     """
+    if httpx is None:
+        return None
     try:
-        import httpx
-
         resp = httpx.get(
             f"https://pypi.org/pypi/{PACKAGE_NAME}/json",
             timeout=timeout,
