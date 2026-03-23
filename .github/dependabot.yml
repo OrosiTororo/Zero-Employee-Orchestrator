@@ -9,12 +9,7 @@ updates:
       prefix: "deps"
     labels:
       - "dependencies"
-    groups:
-      python-deps:
-        patterns:
-          - "*"
-
-  # Node.js dependencies (pnpm workspace – desktop shell + desktop UI)
+  # Node.js dependencies (pnpm workspace root)
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -23,53 +18,15 @@ updates:
       prefix: "deps"
     labels:
       - "dependencies"
-    groups:
-      pnpm-workspace:
-        patterns:
-          - "*"
-
-  # Node.js dependencies (edge full – Cloudflare Workers)
+  # Node.js dependencies (desktop UI)
   - package-ecosystem: "npm"
-    directory: "/apps/edge/full"
+    directory: "/apps/desktop/ui"
     schedule:
       interval: "weekly"
     commit-message:
       prefix: "deps"
     labels:
       - "dependencies"
-    groups:
-      edge-full:
-        patterns:
-          - "*"
-
-  # Node.js dependencies (edge proxy – Cloudflare Workers)
-  - package-ecosystem: "npm"
-    directory: "/apps/edge/proxy"
-    schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: "deps"
-    labels:
-      - "dependencies"
-    groups:
-      edge-proxy:
-        patterns:
-          - "*"
-
-  # Rust dependencies (Tauri backend)
-  - package-ecosystem: "cargo"
-    directory: "/apps/desktop/src-tauri"
-    schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: "deps"
-    labels:
-      - "dependencies"
-    groups:
-      rust-deps:
-        patterns:
-          - "*"
-
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -79,7 +36,3 @@ updates:
       prefix: "deps"
     labels:
       - "dependencies"
-    groups:
-      actions:
-        patterns:
-          - "*"
