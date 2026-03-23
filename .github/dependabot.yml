@@ -9,9 +9,12 @@ updates:
       prefix: "deps"
     labels:
       - "dependencies"
+    groups:
+      python-deps:
+        patterns:
+          - "*"
 
-  # Node.js dependencies (desktop UI)
-  # directory must be "/" so Dependabot finds the root pnpm-lock.yaml for the workspace
+  # Node.js dependencies (pnpm workspace – desktop shell + desktop UI)
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -20,6 +23,52 @@ updates:
       prefix: "deps"
     labels:
       - "dependencies"
+    groups:
+      pnpm-workspace:
+        patterns:
+          - "*"
+
+  # Node.js dependencies (edge full – Cloudflare Workers)
+  - package-ecosystem: "npm"
+    directory: "/apps/edge/full"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "deps"
+    labels:
+      - "dependencies"
+    groups:
+      edge-full:
+        patterns:
+          - "*"
+
+  # Node.js dependencies (edge proxy – Cloudflare Workers)
+  - package-ecosystem: "npm"
+    directory: "/apps/edge/proxy"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "deps"
+    labels:
+      - "dependencies"
+    groups:
+      edge-proxy:
+        patterns:
+          - "*"
+
+  # Rust dependencies (Tauri backend)
+  - package-ecosystem: "cargo"
+    directory: "/apps/desktop/src-tauri"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "deps"
+    labels:
+      - "dependencies"
+    groups:
+      rust-deps:
+        patterns:
+          - "*"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
@@ -30,3 +79,7 @@ updates:
       prefix: "deps"
     labels:
       - "dependencies"
+    groups:
+      actions:
+        patterns:
+          - "*"
