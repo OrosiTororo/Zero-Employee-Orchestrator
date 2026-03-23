@@ -14,6 +14,70 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check-metadata-sync:
+    name: Check pyproject.toml Sync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify pyproject.toml metadata sync
+        run: |
+          set -euo pipefail
+
+          ROOT="pyproject.toml"
+          API="apps/api/pyproject.toml"
+
+          extract() {
+            grep -m1 "^$2 = " "$1" | sed "s/$2 = //" | tr -d '"'
+          }
+
+          FAIL=0
+
+          # Fields that must be identical between both files
+          for field in version name description requires-python license; do
+            root_val=$(extract "$ROOT" "$field")
+            api_val=$(extract "$API" "$field")
+            if [ "$root_val" != "$api_val" ]; then
+              echo "::error::$field mismatch — root: '$root_val' vs apps/api: '$api_val'"
+              FAIL=1
+            else
+              echo "✅ $field: $root_val"
+            fi
+          done
+
+          # Check that dependencies lists match (compare sorted)
+          root_deps=$(sed -n '/^dependencies = \[/,/^\]/p' "$ROOT" | grep '"' | sort)
+          api_deps=$(sed -n '/^dependencies = \[/,/^\]/p' "$API" | grep '"' | sort)
+          if [ "$root_deps" != "$api_deps" ]; then
+            echo "::error::dependencies mismatch between root and apps/api pyproject.toml"
+            diff <(echo "$root_deps") <(echo "$api_deps") || true
+            FAIL=1
+          else
+            echo "✅ dependencies: match"
+          fi
+
+          # Check that dev dependencies match
+          root_dev=$(sed -n '/^dev = \[/,/^\]/p' "$ROOT" | grep '"' | sort)
+          api_dev=$(sed -n '/^dev = \[/,/^\]/p' "$API" | grep '"' | sort)
+          if [ "$root_dev" != "$api_dev" ]; then
+            echo "::error::dev dependencies mismatch between root and apps/api pyproject.toml"
+            diff <(echo "$root_dev") <(echo "$api_dev") || true
+            FAIL=1
+          else
+            echo "✅ dev dependencies: match"
+          fi
+
+          if [ "$FAIL" -ne 0 ]; then
+            echo ""
+            echo "❌ pyproject.toml の同期が崩れています。"
+            echo "   ./scripts/bump-version.sh でバージョンを更新してください。"
+            echo "   その他のメタデータは手動で両方のファイルを更新してください。"
+            exit 1
+          fi
+
+          echo ""
+          echo "✅ すべてのメタデータが一致しています。"
+
   lint-and-test:
     name: Lint & Test (Python)
     runs-on: ubuntu-latest
@@ -40,6 +104,8 @@ jobs:
         run: ruff format --check app/
 
       - name: Run tests
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: pytest app/tests/ -v
 
   frontend-check:

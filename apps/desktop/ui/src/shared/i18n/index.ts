@@ -1,12 +1,14 @@
 import { create } from "zustand"
 import jaLocale from "./locales/ja.json"
 import enLocale from "./locales/en.json"
+import zhLocale from "./locales/zh.json"
 
-export type Locale = "ja" | "en"
+export type Locale = "ja" | "en" | "zh"
 
 export const LOCALE_LABELS: Record<Locale, string> = {
   ja: "日本語",
   en: "English",
+  zh: "中文",
 }
 
 type Messages = typeof jaLocale
@@ -14,6 +16,7 @@ type Messages = typeof jaLocale
 export const locales: Record<Locale, Messages> = {
   ja: jaLocale,
   en: enLocale as unknown as Messages,
+  zh: zhLocale as unknown as Messages,
 }
 
 interface I18nState {
@@ -25,12 +28,13 @@ interface I18nState {
 function getInitialLocale(): Locale {
   try {
     const stored = localStorage.getItem("locale")
-    if (stored === "ja" || stored === "en") return stored
+    if (stored === "ja" || stored === "en" || stored === "zh") return stored
   } catch {
     // localStorage unavailable (SSR or restricted context)
   }
   const browserLang = navigator.language.toLowerCase()
   if (browserLang.startsWith("ja")) return "ja"
+  if (browserLang.startsWith("zh")) return "zh"
   return "en"
 }
 

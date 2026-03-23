@@ -92,6 +92,20 @@ zero-employee models
 zero-employee config list
 ```
 
+## pyproject.toml の管理 (重要)
+
+**IMPORTANT: `pyproject.toml` が 2 つ存在する。バージョン更新時は必ず `bump-version` スクリプトを使うこと。**
+
+| ファイル | 用途 | パッケージパス |
+|---------|------|--------------|
+| `pyproject.toml` (root) | PyPI 公開・ビルド用 | `packages = ["apps/api/app"]` |
+| `apps/api/pyproject.toml` | 開発用 (`working-directory: apps/api`) | `packages = ["app"]` |
+
+- バージョン更新: `./scripts/bump-version.sh 0.2.0`
+- `name`, `version`, `description`, `requires-python`, `license`, `dependencies`, `dev dependencies` は両ファイルで一致させること
+- CI (`check-metadata-sync` ジョブ) が不一致を検出した場合はビルドが失敗する
+- メタデータを変更する場合は両方のファイルを同時に更新すること
+
 ## コーディング規約
 
 - **Python**: ruff (line-length=100)、型ヒント必須、FastAPI エンドポイントは全て `async def`

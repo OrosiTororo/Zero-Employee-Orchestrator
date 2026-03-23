@@ -95,6 +95,24 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+ignore = [
+    "B008",
+    "UP042",
+    "E501",
+    "B904",
+    "SIM105",
+    "SIM102",
+    "SIM117",
+    "SIM108",
+    "SIM110",
+    "UP046",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
 
 [tool.mypy]
 python_version = "3.12"

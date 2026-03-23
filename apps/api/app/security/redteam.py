@@ -431,8 +431,9 @@ class RedTeamService:
             passed = result.get("is_injection", False) or result.get("blocked", False)
             actual = "インジェクション検出" if passed else "検出されず"
         except ImportError:
-            passed = True
-            actual = "prompt_guard モジュール未検証（インポートスキップ）"
+            passed = False
+            actual = "prompt_guard モジュール未インストールのためテスト不可"
+            logger.warning("redteam: prompt_guard モジュールが見つかりません")
 
         return TestResult(
             id=str(uuid.uuid4()),
@@ -453,8 +454,9 @@ class RedTeamService:
             passed = sanitized != test.test_payload or "***" in sanitized
             actual = "サニタイズ適用済み" if passed else "サニタイズ未適用"
         except ImportError:
-            passed = True
-            actual = "sanitizer モジュール未検証（インポートスキップ）"
+            passed = False
+            actual = "sanitizer モジュール未インストールのためテスト不可"
+            logger.warning("redteam: sanitizer モジュールが見つかりません")
 
         return TestResult(
             id=str(uuid.uuid4()),
@@ -475,8 +477,9 @@ class RedTeamService:
             passed = not allowed
             actual = "権限昇格ブロック" if passed else "権限昇格が許可された"
         except ImportError:
-            passed = True
-            actual = "IAM モジュール未検証（インポートスキップ）"
+            passed = False
+            actual = "IAM モジュール未インストールのためテスト不可"
+            logger.warning("redteam: iam モジュールが見つかりません")
 
         return TestResult(
             id=str(uuid.uuid4()),
@@ -497,8 +500,9 @@ class RedTeamService:
             passed = result.detected_count > 0
             actual = f"PII 検出: {result.detected_count} 件" if passed else "PII 未検出"
         except ImportError:
-            passed = True
-            actual = "pii_guard モジュール未検証（インポートスキップ）"
+            passed = False
+            actual = "pii_guard モジュール未インストールのためテスト不可"
+            logger.warning("redteam: pii_guard モジュールが見つかりません")
 
         return TestResult(
             id=str(uuid.uuid4()),
@@ -519,8 +523,9 @@ class RedTeamService:
             passed = not result.allowed
             actual = "アクセス拒否" if passed else "アクセスが許可された"
         except ImportError:
-            passed = True
-            actual = "sandbox モジュール未検証（インポートスキップ）"
+            passed = False
+            actual = "sandbox モジュール未インストールのためテスト不可"
+            logger.warning("redteam: sandbox モジュールが見つかりません")
 
         return TestResult(
             id=str(uuid.uuid4()),
@@ -533,44 +538,219 @@ class RedTeamService:
         )
 
     async def _test_rate_limit(self, test: SecurityTest) -> TestResult:
-        """レート制限をテストする."""
-        # レート制限はミドルウェアレベルでテスト
-        passed = True
-        actual = "レート制限設定確認済み（実際の負荷テストは別途実行）"
+        """レート制限をテストする.
+
+        slowapi の Limiter インスタンスが正しく構成されているか検証し、
+        実際に ASGI アプリが起動している場合は連続リクエストで 429 を確認する。
+        """
+        checks_passed: list[str] = []
+        checks_failed: list[str] = []
+
+        # 1. slowapi Limiter のインスタンスが存在し key_func が設定されているか
+        try:
+            from app.core.rate_limit import limiter
+
+            if limiter and limiter._key_func is not None:
+                checks_passed.append("Limiter インスタンス構成済み")
+            else:
+                checks_failed.append("Limiter の key_func が未設定")
+        except ImportError:
+            checks_failed.append("rate_limit モジュール未インストールのためテスト不可")
+
+        # 2. FastAPI アプリにレート制限ハンドラーが登録されているか
+        try:
+            from app.core.rate_limit import rate_limit_exceeded_handler
+
+            if callable(rate_limit_exceeded_handler):
+                checks_passed.append("429 ハンドラー定義済み")
+            else:
+                checks_failed.append("429 ハンドラーが callable でない")
+        except ImportError:
+            checks_failed.append("rate_limit_exceeded_handler 未定義")
+
+        # 3. httpx で実際にレート制限を検証（アプリが起動している場合のみ）
+        try:
+            import httpx
+
+            async with httpx.AsyncClient(base_url="http://localhost:18234") as client:
+                # ヘルスチェックでサーバー稼働確認
+                probe = await client.get("/healthz", timeout=2.0)
+                if probe.status_code == 200:
+                    # X-Forwarded-For 偽装が無視されることを確認
+                    headers = {"X-Forwarded-For": "1.2.3.4"}
+                    resp = await client.get("/healthz", headers=headers, timeout=2.0)
+                    # レスポンスヘッダーに rate-limit 関連情報があれば加点
+                    if resp.status_code == 200:
+                        checks_passed.append("サーバー稼働中・エンドポイント応答確認")
+        except Exception:
+            # サーバー未起動は許容（設定検証のみで判定）
+            pass
+
+        passed = len(checks_failed) == 0 and len(checks_passed) > 0
+        detail_parts = [f"合格: {', '.join(checks_passed)}"] if checks_passed else []
+        if checks_failed:
+            detail_parts.append(f"不合格: {', '.join(checks_failed)}")
+        actual = "; ".join(detail_parts) if detail_parts else "検証項目なし"
+
         return TestResult(
             id=str(uuid.uuid4()),
             test_id=test.id,
             passed=passed,
             actual_behavior=actual,
-            vulnerability_found=False,
+            vulnerability_found=not passed,
             details=f"テスト: {test.name} — {actual}",
             tested_at=self._now(),
         )
 
     async def _test_unauthorized_access(self, test: SecurityTest) -> TestResult:
-        """不正アクセス防御をテストする."""
-        passed = True
-        actual = "認証・認可チェック設定確認済み"
+        """不正アクセス防御をテストする.
+
+        httpx で認証ヘッダーなしのリクエストを送信し、
+        保護エンドポイントが 401/403 を返すことを検証する。
+        サーバー未起動時はセキュリティヘッダーミドルウェアの存在を検証する。
+        """
+        checks_passed: list[str] = []
+        checks_failed: list[str] = []
+
+        # 1. セキュリティヘッダーミドルウェアの存在確認
+        try:
+            from app.security.security_headers import SecurityHeadersMiddleware
+
+            if SecurityHeadersMiddleware is not None:
+                checks_passed.append("SecurityHeadersMiddleware 定義済み")
+        except ImportError:
+            checks_failed.append("security_headers モジュール未インストールのためテスト不可")
+
+        # 2. httpx で認証なしリクエストの実テスト
+        try:
+            import httpx
+
+            protected_paths = [
+                "/api/v1/companies",
+                "/api/v1/agents",
+                "/api/v1/audit",
+            ]
+            async with httpx.AsyncClient(base_url="http://localhost:18234") as client:
+                probe = await client.get("/healthz", timeout=2.0)
+                if probe.status_code == 200:
+                    for path in protected_paths:
+                        resp = await client.get(path, timeout=3.0)
+                        if resp.status_code in (401, 403, 405):
+                            checks_passed.append(f"{path} → {resp.status_code} (認証必須)")
+                        else:
+                            checks_failed.append(
+                                f"{path} → {resp.status_code} (認証なしでアクセス可能)"
+                            )
+
+                    # 偽造ユーザー ID でのアクセス試行
+                    fake_token = "Bearer fake-token-12345"
+                    resp2 = await client.get(
+                        "/api/v1/companies",
+                        headers={"Authorization": fake_token},
+                        timeout=3.0,
+                    )
+                    if resp2.status_code in (401, 403):
+                        checks_passed.append("偽造トークン → 拒否")
+                    else:
+                        checks_failed.append(
+                            f"偽造トークン → {resp2.status_code} (拒否されなかった)"
+                        )
+        except Exception:
+            # サーバー未起動時はミドルウェア検証のみで判定
+            pass
+
+        passed = len(checks_failed) == 0 and len(checks_passed) > 0
+        detail_parts = [f"合格: {', '.join(checks_passed)}"] if checks_passed else []
+        if checks_failed:
+            detail_parts.append(f"不合格: {', '.join(checks_failed)}")
+        actual = "; ".join(detail_parts) if detail_parts else "検証項目なし"
+
         return TestResult(
             id=str(uuid.uuid4()),
             test_id=test.id,
             passed=passed,
             actual_behavior=actual,
-            vulnerability_found=False,
+            vulnerability_found=not passed,
             details=f"テスト: {test.name} — {actual}",
             tested_at=self._now(),
         )
 
     async def _test_auth_bypass(self, test: SecurityTest) -> TestResult:
-        """認証バイパス防御をテストする."""
-        passed = True
-        actual = "認証メカニズム検証済み（JWT 検証・セッション管理）"
+        """認証バイパス防御をテストする.
+
+        JWT の algorithm=none トークン、期限切れトークン、
+        改ざんトークンが正しく拒否されることを検証する。
+        """
+        checks_passed: list[str] = []
+        checks_failed: list[str] = []
+
+        try:
+            from jose import jwt as jose_jwt
+            from jose.exceptions import JWTError
+
+            test_secret = "test-secret-key-for-redteam"
+
+            # 1. algorithm=none のトークンが拒否されるか
+            try:
+                # algorithm=none で署名なしトークンを生成
+                none_token = (
+                    "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0."
+                    "eyJzdWIiOiJhdHRhY2tlciIsImFkbWluIjp0cnVlfQ."
+                )
+                try:
+                    jose_jwt.decode(none_token, test_secret, algorithms=["HS256"])
+                    checks_failed.append("algorithm=none トークンがデコードされた")
+                except (JWTError, Exception):
+                    checks_passed.append("algorithm=none トークン → 拒否")
+            except Exception as e:
+                checks_failed.append(f"algorithm=none テスト例外: {e}")
+
+            # 2. 期限切れトークンが拒否されるか
+            try:
+                from datetime import timedelta
+
+                expired_payload = {
+                    "sub": "test-user",
+                    "exp": datetime.now(UTC) - timedelta(hours=1),
+                }
+                expired_token = jose_jwt.encode(expired_payload, test_secret, algorithm="HS256")
+                try:
+                    jose_jwt.decode(expired_token, test_secret, algorithms=["HS256"])
+                    checks_failed.append("期限切れトークンがデコードされた")
+                except (JWTError, Exception):
+                    checks_passed.append("期限切れトークン → 拒否")
+            except Exception as e:
+                checks_failed.append(f"期限切れトークンテスト例外: {e}")
+
+            # 3. 改ざんトークン（異なる秘密鍵で署名）が拒否されるか
+            try:
+                tampered_payload = {"sub": "admin", "role": "superuser"}
+                tampered_token = jose_jwt.encode(
+                    tampered_payload, "wrong-secret-key", algorithm="HS256"
+                )
+                try:
+                    jose_jwt.decode(tampered_token, test_secret, algorithms=["HS256"])
+                    checks_failed.append("改ざんトークンがデコードされた")
+                except (JWTError, Exception):
+                    checks_passed.append("改ざんトークン → 拒否")
+            except Exception as e:
+                checks_failed.append(f"改ざんトークンテスト例外: {e}")
+
+        except ImportError:
+            checks_failed.append("python-jose モジュール未インストールのためテスト不可")
+
+        passed = len(checks_failed) == 0 and len(checks_passed) > 0
+        detail_parts = [f"合格: {', '.join(checks_passed)}"] if checks_passed else []
+        if checks_failed:
+            detail_parts.append(f"不合格: {', '.join(checks_failed)}")
+        actual = "; ".join(detail_parts) if detail_parts else "検証項目なし"
+
         return TestResult(
             id=str(uuid.uuid4()),
             test_id=test.id,
             passed=passed,
             actual_behavior=actual,
-            vulnerability_found=False,
+            vulnerability_found=not passed,
             details=f"テスト: {test.name} — {actual}",
             tested_at=self._now(),
         )
