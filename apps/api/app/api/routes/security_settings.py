@@ -363,9 +363,7 @@ async def update_workspace_config(req: WorkspaceConfigRequest) -> dict:
 
 
 @router.post("/workspace/tasks/{task_id}/override")
-async def set_task_workspace_override(
-    task_id: str, req: TaskWorkspaceOverrideRequest
-) -> dict:
+async def set_task_workspace_override(task_id: str, req: TaskWorkspaceOverrideRequest) -> dict:
     """タスク単位のワークスペースオーバーライドを設定する."""
     storage = None
     if req.storage_location:
