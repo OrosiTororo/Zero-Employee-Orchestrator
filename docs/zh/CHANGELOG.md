@@ -314,7 +314,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## Development History (Pre-release milestones, consolidated into v0.1.0)
 
-## [0.5.0] - 2026-03-10 — Skills Management
+## Skills Management
 
 ### Added
 
@@ -376,8 +376,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **应用启动** (`main.py`)
   - 在启动时添加系统必需技能的自动注册处理
 
-## [0.4.0] - 2026-03-09
-
 ### Added
 
 - **AI Avatar Plugin（分身 AI）** (`plugins/ai-avatar/`)
@@ -414,8 +412,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - `docs/FEATURE_BOUNDARY.md`: 添加 AI 代理扩展 Plugin、聊天工具集成 Plugin 部分
   - `DESIGN.md`: 在 Plugin 示例中添加分身 AI、秘书 AI、聊天 Bot
 
-## [0.3.0] - 2026-03-09
-
 ### Added
 
 - **Dynamic Model Registry** (`providers/model_registry.py`)
@@ -442,8 +438,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `quality_sla.py`: 将质量模式别模型列表改为从 ModelRegistry 动态加载
 - `docs/FEATURES.md`: 修正旧模型名称，添加动态管理说明，添加 Observability 部分
 - `CLAUDE.md`: 硬编码模型列表改为动态管理，在设计原则中添加代理透明性
-
-## [0.2.0] - 2026-03-09
 
 ### Changed
 
@@ -477,7 +471,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - 对应后端 Schema §38 的所有实体的 TypeScript 类型
 
 [0.1.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.1.0
-[0.2.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.2.0
-[0.3.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.3.0
-[0.4.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.4.0
-[0.5.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.5.0
