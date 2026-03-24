@@ -80,6 +80,7 @@ jobs:
 
   lint-and-test:
     name: Lint & Test (Python)
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     defaults:
       run:
