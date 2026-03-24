@@ -28,9 +28,9 @@
 |------|------|---------|--------|
 | `README.md` | 项目第一印象。概述、功能、安装、技术栈 | 所有用户和开发者 | ja/en/zh (内联) |
 | `USER_SETUP.md` | ZEO 使用、运维、功能扩展设置指南 | 所有用户 | ja / [en](../en/USER_SETUP.md) / [zh](USER_SETUP.md) |
-| `ROADMAP.md` | v0.2 至 v1.0 路线图 | 用户、开发者、贡献者 | ja/en/zh (内联) |
-| `CODE_OF_CONDUCT.md` | 社区行为准则 (Contributor Covenant 2.1) | 所有贡献者和用户 | ja/en/zh (内联) |
-| `CONTRIBUTING.md` | 如何为项目做贡献 | 贡献者、开发者 | ja/en/zh (内联) |
+| `ROADMAP.md` | v0.2 至 v1.0 路线图 | 用户、开发者、贡献者 | ja / [en](../en/ROADMAP.md) / [zh](ROADMAP.md) |
+| `CODE_OF_CONDUCT.md` | 社区行为准则 (Contributor Covenant 2.1) | 所有贡献者和用户 | ja / [en](../en/CODE_OF_CONDUCT.md) / [zh](CODE_OF_CONDUCT.md) |
+| `CONTRIBUTING.md` | 如何为项目做贡献 | 贡献者、开发者 | ja / [en](../en/CONTRIBUTING.md) / [zh](CONTRIBUTING.md) |
 | `SECURITY.md` | 漏洞报告流程 | 安全报告者 | en |
 
 ### 面向开发者（根目录）
@@ -46,7 +46,7 @@
 | 文件 | 用途 | 目标读者 | 多语言 |
 |------|------|---------|--------|
 | `docs/ABOUT.md` | "为什么需要 ZEO" 说明文档 | 非工程师、管理层、评估者 | [en](../en/ABOUT.md) / [zh](ABOUT.md) |
-| `docs/USER_GUIDE.md` | 终端用户操作手册 | 终端用户 | ja/en/zh (内联) + [en](../en/USER_GUIDE.md) / [zh](USER_GUIDE.md) |
+| `docs/USER_GUIDE.md` | 终端用户操作手册 | 终端用户 | ja / [en](../en/USER_GUIDE.md) / [zh](USER_GUIDE.md) |
 | `docs/OVERVIEW.md` | 面向初次访问者的综合指南 | 所有人 | [en](../en/OVERVIEW.md) / [zh](OVERVIEW.md) |
 | `docs/FEATURES.md` | 已实现功能完整列表（34 个章节） | 功能评审者、评估者、开发者 | [en](../en/FEATURES.md) / [zh](FEATURES.md) |
 | `docs/SECURITY.md` | 安全策略和部署前检查清单 | 运维人员、部署工程师 | [en](../en/SECURITY.md) / [zh](SECURITY.md) |
@@ -118,6 +118,9 @@
 | `docs/MD_FILES_INDEX.md` | `docs/en/MD_FILES_INDEX.md` | `docs/zh/MD_FILES_INDEX.md` |
 | `docs/USER_GUIDE.md` | `docs/en/USER_GUIDE.md` | `docs/zh/USER_GUIDE.md` |
 | `USER_SETUP.md` | `docs/en/USER_SETUP.md` | `docs/zh/USER_SETUP.md` |
+| `ROADMAP.md` | `docs/en/ROADMAP.md` | `docs/zh/ROADMAP.md` |
+| `CODE_OF_CONDUCT.md` | `docs/en/CODE_OF_CONDUCT.md` | `docs/zh/CODE_OF_CONDUCT.md` |
+| `CONTRIBUTING.md` | `docs/en/CONTRIBUTING.md` | `docs/zh/CONTRIBUTING.md` |
 
 ---
 
