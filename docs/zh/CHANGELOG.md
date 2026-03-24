@@ -89,6 +89,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - 按角色模型设置UI（配置列表、可用角色显示）
   - AI组织管理UI（自然语言请求、角色列表、代理添加）
   - 实时字符计数显示
+- **秘书AI 仪表盘** (`pages/SecretaryPage.tsx`)
+  - 脑暴整理（将思绪整理为类别并提取行动项）
+  - 每日摘要生成与查看
+  - 优先级建议与任务整理
+- **AI 自我改进插件** (`plugins/ai-self-improvement/`)
+  - 6 个 Skill 的清单定义: skill-analyzer, skill-improver, judge-tuner, failure-to-skill, skill-ab-test, auto-test-generator
+  - 与 Judge Layer / Experience Memory / Failure Taxonomy / Skill Registry / DAG 的集成点定义
+  - 安全性策略（沙箱执行、需要审批、回滚、质量阈值、变更量限制、Kill Switch）
 - **ZEO-Bench — Judge Layer 定量评估基准** (`tests/zeo_bench.py`)
   - 200 道测试题集，定量评估 Cross-Model Verification 的精度
   - 4 个类别：事实准确性 (50题)・矛盾检测 (70题)・假阳性 (40题)・修正质量 (40题)

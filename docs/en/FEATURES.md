@@ -93,6 +93,27 @@ Requirements are explored structurally using 7 standard question templates.
 
 Once answers are completed, a Spec (specification document) can be automatically generated from the Interview responses.
 
+### File Attachment for Context Input
+
+Files can be attached to Design Interviews and integrated as context for specification generation.
+
+| File Type | Supported Formats | Processing Method |
+|-----------|------------------|-------------------|
+| **Text** | `.txt`, `.md`, `.csv`, `.json`, `.yaml`, `.xml`, `.html` | Text extraction (automatic multi-encoding detection) |
+| **Code** | `.py`, `.ts`, `.js`, `.java`, `.go`, `.rs`, `.c`, `.cpp`, etc. | Parsed as source code |
+| **Image** | `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.bmp`, `.svg` | Base64 encoding + metadata extraction |
+| **Document** | `.pdf` | Metadata extraction |
+
+```
+POST /api/v1/tickets/{ticket_id}/interview/attach
+Content-Type: multipart/form-data
+
+file: (attached file)
+description: "Source data for competitive analysis report"
+```
+
+Text extracted from attached files is automatically integrated as a "Reference Materials" section in the Spec.
+
 ---
 
 ## 3. Spec / Plan / Tasks — Structured Intermediate Artifacts
@@ -314,6 +335,19 @@ On failure or rejection, the cause is classified and alternative proposals are g
 ### Plan Diff
 
 During re-proposals, a structured diff from the original plan (added, removed, and modified tasks, cost changes, and time changes) is presented.
+
+### Chaos Testing (v0.1)
+
+A chaos test suite is implemented to verify the reliability of Self-Healing DAG.
+
+| Test Category | Test Count | Verification Content |
+|--------------|-----------|---------------------|
+| Single node failure | 6 | Verify retry / skip / replan strategy behavior |
+| Multiple node failure | 4 | Verify cascade failures and parallel branch failures |
+| Recovery time | 3 | Measure recovery success rate and recovery time |
+| DAG integrity | 4 | Verify DAG structure consistency after recovery |
+| Edge cases | 4 | Empty DAG, single-node DAG, circular dependencies, etc. |
+| Benchmarks | 3 | Recovery statistics from 100 random fault injections |
 
 ---
 
@@ -1048,7 +1082,49 @@ The following safety checks are performed when installing shared plugins:
 
 ---
 
-## 30. v0.1 Feature Bloat Review — Boundary Between Core and Extensions
+## 30. AI Self-Improvement — Level 2: Seeds of Self-Improvement (v0.1)
+
+A suite of self-improvement features where AI analyzes, improves, and verifies AI. Implemented as the `ai-self-improvement` Plugin.
+
+### 6 Self-Improvement Skills
+
+| Skill | Function | API Endpoint |
+|-------|----------|-------------|
+| **skill-analyzer** | Code quality analysis of existing Skills (static analysis + LLM deep analysis) | `POST /self-improvement/analyze` |
+| **skill-improver** | Auto-generate improved Skill versions based on analysis results | `POST /self-improvement/improve` |
+| **judge-tuner** | Auto-adjust Judge evaluation criteria from Experience Memory | `POST /self-improvement/judge/tune` |
+| **failure-to-skill** | Auto-generate preventive Skills from failure patterns | `POST /self-improvement/failure-to-skill` |
+| **skill-ab-test** | A/B test comparison of two Skills (quality and speed) | `POST /self-improvement/ab-test` |
+| **auto-test-generator** | Auto-generate Skill test code (normal, edge, and error cases) | `POST /self-improvement/generate-tests` |
+
+### Analysis Categories
+
+| Category | Evaluation Content |
+|----------|-------------------|
+| `code_quality` | Code structure, readability, naming conventions, DRY principle |
+| `performance` | Unnecessary processing, memory usage, N+1 queries |
+| `error_handling` | Exception handling, fallbacks, input validation |
+| `security` | Injection, credential exposure, dangerous operations |
+| `test_coverage` | Testability, edge case consideration |
+| `documentation` | Docstrings, type hints, comments |
+
+### Safety Mechanisms
+
+- **User approval is required** for all improvement applications
+- Pre-improvement code is retained as **version_history** (rollback possible)
+- **Safety check** on improved code (16-pattern dangerous code detection)
+- Judge rules are applied only for rules with **confidence 0.5 or higher**
+
+### Dashboard API
+
+`GET /api/v1/self-improvement/status` returns the following statistics:
+- Skill analysis count, improvement proposal count, improvement application count
+- Judge rule proposal count, application count
+- Failure prevention skill proposal count, A/B test completion count, test generation count
+
+---
+
+## 31. v0.1 Feature Bloat Review — Boundary Between Core and Extensions
 
 In v0.1, the following features are bundled in the codebase, but based on **core feature criteria** ("Would approval, auditing, and execution control fail without it?"), they are classified as **extension features**. They are planned to be separated as independent packages in future versions.
 
@@ -1066,7 +1142,7 @@ In v0.1, the following features are bundled in the codebase, but based on **core
 
 ---
 
-## 31. Meta-Skill Concept (v0.1)
+## 32. Meta-Skill Concept (v0.1)
 
 A design concept that gives AI agents the ability to "learn how to learn."
 
@@ -1084,7 +1160,7 @@ Traditional AI agents possess hard skills (execution of specific tasks) and soft
 
 ---
 
-## 32. File Attachment-based Plan Creation (v0.1)
+## 33. File Attachment-based Plan Creation (v0.1)
 
 Attach files to Design Interview and integrate them as context for Spec (specification) generation.
 
@@ -1112,7 +1188,7 @@ Attach files to Design Interview and integrate them as context for Spec (specifi
 
 ---
 
-## 33. Security Hardening (v0.1)
+## 34. Security Hardening (v0.1)
 
 | Item | Description |
 |------|-------------|

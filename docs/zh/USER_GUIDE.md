@@ -146,9 +146,179 @@ POST /api/v1/registry/plugins/import?source_uri=https://github.com/user/plugin-r
 | `slack-bot` | 从 Slack 创建工单、查看进度、审批 |
 | `line-bot` | 从 LINE 创建工单、查看进度、审批 |
 
+### 分身AI 和秘书AI
+
+**分身AI（AI Avatar）** 学习您的判断模式和文风，作为您的"分身"行动：
+- 在 Judge Layer 的质量判定中反映您的价值观
+- 在您不在时审查任务和判断优先级（最终审批权限始终保留在您手中）
+- 以您的文风和语气起草内容
+
+**秘书AI（AI Secretary）** 作为连接您和 AI 组织的"中枢"运作：
+- 早间简报（待审批、进行中任务、今日日程）
+- 带优先级的下一步行动建议
+- 通过 Discord / Slack / LINE 发送简报
+
+### 从聊天工具操作
+
+安装 Discord / Slack / LINE 的 Bot 插件后，可以从日常使用的聊天工具向 AI 组织发送指令。
+
+```
+/zeo ticket 创建竞争分析报告    → 创建工单
+/zeo status                    → 查看进行中的任务
+/zeo approve 12345             → 审批操作
+/zeo briefing                  → 今日简报
+/zeo ask 这个方案有什么风险？    → 向 AI 提问
+```
+
+需要授权的危险操作也会在聊天工具中显示审批对话框。
+
 ---
 
-## 8. 常见问题（FAQ）
+## 8. 工单（业务请求）的使用方法
+
+### 创建工单
+
+1. 在仪表板的输入框中用自然语言输入业务内容
+2. 点击「提交」按钮
+3. AI 开始需求确认（Design Interview），对不明确的地方提出问题
+4. 回答问题后，系统自动创建计划并开始执行
+
+### 中途回退/修改
+
+在工单详情页面：
+- **回退**: 返回上一步并请求修改
+- **添加评论**: 输入追加的指示或信息
+- **取消**: 中断工单
+
+### 查看成果物
+
+工单完成后，成果物保存在「成果物（Artifacts）」标签页中。
+- 支持多种格式：文本、JSON、代码等
+- 有版本控制，可以回退到之前的版本
+
+---
+
+## 9. 审批流程
+
+Zero-Employee Orchestrator 基于「**危险操作必须由人类审批**」的设计原则。
+
+### 需要审批的操作
+
+- 向外部服务发布/发送（SNS、邮件、Slack 等）
+- 文件的删除或覆盖
+- 涉及计费/支付的操作
+- 权限或访问设置的变更
+- 向生产环境部署/发布
+
+### 审批步骤
+
+1. 仪表板的「待审批」计数增加并发出通知
+2. 打开「审批」界面，确认内容
+3. **批准**: 允许执行
+4. **拒绝**: 取消执行
+5. **要求修改**: 附加评论，请 AI 重新考虑
+
+> 所有已审批的操作记录都保存在审计日志中。
+
+---
+
+## 10. 成本管理
+
+### 执行模式设置
+
+通过在 `apps/api/.env` 中设置 `DEFAULT_EXECUTION_MODE` 来控制成本：
+
+| 模式 | 说明 | 推荐用途 |
+|------|------|---------|
+| `quality` | 最高质量模型（Claude Opus 4.6, GPT-5.4, Gemini 2.5 Pro） | 重要成果物 |
+| `speed` | 高速模型（Claude Haiku 4.5, GPT-5 Mini, Gemini 2.5 Flash） | 简单任务 |
+| `cost` | 低成本模型（Haiku, Mini, Flash Lite, DeepSeek） | 批量处理 |
+| `free` | 免费模型（Gemini 免费额度 / Ollama 本地） | 测试/开发 |
+| `subscription` | 免费（通过 g4f，无需 API 密钥） | 试用 |
+
+### 预算设置
+
+在设置画面的「成本管理」中设置月度预算上限。接近上限时会发出告警通知。
+
+---
+
+## 11. 故障排除
+
+### `./setup.sh` 无法执行
+
+```bash
+chmod +x setup.sh start.sh
+./setup.sh
+```
+
+### 端口被占用
+
+```bash
+# 检查占用的端口
+lsof -i :18234   # 后端
+lsof -i :5173    # 前端
+
+# 停止进程后重启
+kill <PID>
+./start.sh
+```
+
+### AI 无响应/出错
+
+1. 确认 `.env` 文件中的 API 密钥是否正确设置
+2. 如果使用 Ollama：确认 `ollama serve` 是否在运行
+3. **订阅模式时**: 外部服务可能暂时不可用（建议切换到 Gemini 免费 API 或 Ollama）
+4. 查看后端日志：
+   ```bash
+   cd apps/api
+   source .venv/bin/activate
+   uvicorn app.main:app --reload
+   ```
+
+### 订阅模式出现「g4f error」
+
+订阅模式依赖外部 Web 服务，可能暂时不可用。
+
+- 等待片刻后重试
+- 切换到其他模型（例如：`g4f/Copilot` → `g4f/GeminiPro`）
+- 切换到更稳定的 Gemini 免费 API 密钥
+
+### Gemini API 错误
+
+- `RESOURCE_EXHAUSTED`: 已达到免费额度上限 → 等待 1 分钟或升级到付费计划
+- `API_KEY_INVALID`: 密钥错误 → 在 Google AI Studio 中重新确认
+
+### Ollama 无法连接
+
+```bash
+# 确认 Ollama 是否在运行
+curl http://localhost:11434/api/tags
+
+# 如果未运行
+ollama serve
+```
+
+### 重置数据库
+
+```bash
+# 删除 SQLite 文件并重启（表会自动创建）
+rm apps/api/zero_employee_orchestrator.db
+./start.sh
+```
+
+### Python 虚拟环境错误
+
+```bash
+cd apps/api
+rm -rf .venv
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e "."
+```
+
+---
+
+## 12. 常见问题（FAQ）
 
 ### Q: 可以免费使用吗？
 
@@ -167,7 +337,42 @@ POST /api/v1/registry/plugins/import?source_uri=https://github.com/user/plugin-r
 
 ### Q: 可以从 Discord / Slack 操作吗？
 
-**A:** 可以。安装 Discord / Slack / LINE 的 Bot 插件后，您可以直接从聊天应用创建工单、查看进度、审批操作和与 AI 对话。
+**A:** 可以。安装 Discord / Slack / LINE 的 Bot 插件后，您可以直接从聊天应用创建工单、查看进度、审批操作和与 AI 对话。示例命令：`/zeo ticket 创建竞争分析报告`
+
+---
+
+### Q: AI 会不会做出错误操作？
+
+**A:** 以下机制确保安全性：
+- **Judge Layer**: AI 的输出经过两阶段验证
+- **审批流程**: 危险操作始终被拦截，需要人类确认
+- **审计日志**: 所有操作均有记录，可追溯
+
+---
+
+### Q: 可以多人使用吗？
+
+**A:** 可以。按组织（Company）单位管理用户，通过基于角色的访问控制（RBAC）设置权限。
+
+| 角色 | 权限 |
+|------|------|
+| Owner | 全部权限 |
+| Admin | 组织设置、审批、审计日志 |
+| User | 业务请求、查看 |
+| Auditor | 仅查看 |
+| Developer | Skill/Plugin 开发 |
+
+---
+
+### Q: 可以离线使用吗？
+
+**A:** 可以。使用 Ollama 的本地 LLM 即可在无网络连接的情况下运行（仅首次下载模型时需要网络连接）。
+
+---
+
+### Q: 可以从手机操作吗？
+
+**A:** 由于支持 Web 浏览器，可以从智能手机的浏览器访问（响应式设计）。此外，通过 Discord / Slack / LINE 的 Bot 插件，也可以从手机聊天应用进行操作。
 
 ---
 

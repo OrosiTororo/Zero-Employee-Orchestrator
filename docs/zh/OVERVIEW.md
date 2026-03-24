@@ -250,24 +250,33 @@ ZEO 由 9 个层组成，每层拥有独立的职责。
 | Approval Gate | `policies/approval_gate.py` | 109 | 已实现 |
 | Sanitizer | `security/sanitizer.py` | 83 | 已实现 |
 
-### API 端点（已实现）
+### API 端点（已实现 — 24 个路由模块）
 
 | 端点组 | 主要功能 |
 |--------|---------|
-| `/auth` | 登录、注册、会话管理 |
+| `/auth` | 登录、注册、匿名会话、OAuth |
 | `/companies` | 公司 CRUD、仪表盘 |
-| `/tickets` | 工单创建、列表、详情、状态转换 |
+| `/tickets` | 工单创建、列表、详情、状态转换、文件附件 |
 | `/specs_plans` | Spec / Plan 创建与审批 |
 | `/tasks` | 任务创建、执行、完成 |
-| `/agents` | Agent 管理、暂停、恢复 |
+| `/agents` | Agent 管理、按角色添加、暂停、恢复 |
 | `/approvals` | 审批列表、批准、驳回 |
 | `/artifacts` | 成果物管理 |
 | `/audit` | 审计日志列表与过滤 |
 | `/budgets` | 预算策略与成本管理 |
 | `/heartbeats` | 定期执行策略与运行历史 |
-| `/registry` | Skill / Plugin / Extension 搜索 |
-| `/ollama` | 本地 LLM 直接操作 |
-| `/settings` | 应用设置 |
+| `/registry` | Skill / Plugin / Extension 搜索、CRUD、自然语言生成 |
+| `/ollama` | 本地 LLM 直接操作、RAG |
+| `/settings` | 应用设置、工具连接 |
+| `/config` | 运行时配置管理 |
+| `/models` | 模型目录、健康检查、废弃管理 |
+| `/observability` | 推理追踪、通信日志、执行监控 |
+| `/self-improvement` | AI 自我改进（Skill 分析、改进、Judge 调整、A/B 测试） |
+| `/multi-model` | 多模型比较、头脑风暴、对话记忆、按角色设置 |
+| `/secretary` | 秘书AI（脑暴整理、每日摘要） |
+| `/knowledge` | 知识库、变更检测 |
+| `/platform` | MCP、Sentry、IAM、假设验证、会话、调查 |
+| `/projects` | 项目与目标管理 |
 | WebSocket `/ws/events` | 实时事件推送 |
 
 ### 前端（23 个页面）
@@ -295,6 +304,8 @@ ZEO 由 9 个层组成，每层拥有独立的职责。
 | PluginsPage | 有 UI | 浏览器与安装器 |
 | PermissionsPage | 有 UI | 权限管理仪表盘 |
 | AgentMonitorPage | 有 UI | Agent 监控仪表盘 |
+| SecretaryPage | 已实现 | 脑暴整理、每日摘要、优先级建议 |
+| BrainstormPage | 已实现 | 头脑风暴、多模型比较、按角色设置、AI 组织管理 |
 
 ### ORM 模型（29 张表）
 
