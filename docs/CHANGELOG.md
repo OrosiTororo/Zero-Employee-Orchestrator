@@ -329,7 +329,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## Development History (Pre-release milestones, consolidated into v0.1.0)
 
-## [0.5.0] - 2026-03-10 — Skills Management
+## [0.1.0] - 2026-03-10 — Skills Management
 
 ### Added
 
@@ -391,7 +391,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **アプリケーション起動** (`main.py`)
   - 起動時にシステム必須スキルの自動登録処理を追加
 
-## [0.4.0] - 2026-03-09
+## [0.1.0] - 2026-03-09
 
 ### Added
 
@@ -429,7 +429,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - `docs/FEATURE_BOUNDARY.md`: AI エージェント拡張 Plugin・チャットツール連携 Plugin セクション追加
   - `DESIGN.md`: Plugin 例に分身AI・秘書AI・チャット Bot を追加
 
-## [0.3.0] - 2026-03-09
+## [0.1.0] - 2026-03-09
 
 ### Added
 
@@ -458,7 +458,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `docs/FEATURES.md`: 旧モデル名修正、動的管理の説明追加、Observabilityセクション追加
 - `CLAUDE.md`: ハードコードモデルリスト → 動的管理、設計原則にエージェント透明性を追加
 
-## [0.2.0] - 2026-03-09
+## [0.1.0] - 2026-03-09
 
 ### Changed
 
