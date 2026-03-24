@@ -42,7 +42,7 @@ dependencies = [
     "alembic>=1.14",
     "pydantic>=2.10",
     "pydantic-settings>=2.7",
-    "litellm==1.82.6",
+    "litellm>=1.60,!=1.82.7,!=1.82.8",
     "python-jose[cryptography]>=3.3",
     "cryptography>=44",
     "bcrypt>=4.0",
@@ -85,22 +85,15 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 ignore = [
-    # FastAPI uses Depends() / Query() / Body() as default arguments — intentional
     "B008",
-    # StrEnum was introduced in Python 3.11; UP042 suggests it but we target 3.12+
-    # keeping str+Enum pattern for broader compatibility in the interim
     "UP042",
-    # Line-length violations in generated/test files are acceptable
     "E501",
-    # raise-without-from-inside-except: broad suppression while codebase matures
     "B904",
-    # Simplification suggestions — style preferences, not correctness issues
     "SIM105",
     "SIM102",
     "SIM117",
     "SIM108",
     "SIM110",
-    # non-pep695-generic-class: PEP 695 syntax not yet used project-wide
     "UP046",
 ]
 
