@@ -28,9 +28,9 @@
 |------|---------|----------|-------------|
 | `README.md` | First-impression document. Overview, features, installation, tech stack | All users and developers | ja/en/zh (inline) |
 | `USER_SETUP.md` | Setup guide for using, operating, and extending ZEO | All users | ja / [en](USER_SETUP.md) / [zh](../zh/USER_SETUP.md) |
-| `ROADMAP.md` | Roadmap from v0.2 to v1.0 | Users, developers, contributors | ja/en/zh (inline) |
-| `CODE_OF_CONDUCT.md` | Community code of conduct (Contributor Covenant 2.1) | All contributors and users | ja/en/zh (inline) |
-| `CONTRIBUTING.md` | How to contribute to the project | Contributors, developers | ja/en/zh (inline) |
+| `ROADMAP.md` | Roadmap from v0.2 to v1.0 | Users, developers, contributors | ja / [en](ROADMAP.md) / [zh](../zh/ROADMAP.md) |
+| `CODE_OF_CONDUCT.md` | Community code of conduct (Contributor Covenant 2.1) | All contributors and users | ja / [en](CODE_OF_CONDUCT.md) / [zh](../zh/CODE_OF_CONDUCT.md) |
+| `CONTRIBUTING.md` | How to contribute to the project | Contributors, developers | ja / [en](CONTRIBUTING.md) / [zh](../zh/CONTRIBUTING.md) |
 | `SECURITY.md` | Vulnerability reporting procedures | Security reporters | en |
 
 ### Developer-Facing (Root)
@@ -46,7 +46,7 @@
 | File | Purpose | Audience | Multilingual |
 |------|---------|----------|-------------|
 | `docs/ABOUT.md` | "Why ZEO is needed" explanatory document | Non-engineers, executives, evaluators | [en](ABOUT.md) / [zh](../zh/ABOUT.md) |
-| `docs/USER_GUIDE.md` | End-user operations manual | End users | ja/en/zh (inline) + [en](USER_GUIDE.md) / [zh](../zh/USER_GUIDE.md) |
+| `docs/USER_GUIDE.md` | End-user operations manual | End users | ja / [en](USER_GUIDE.md) / [zh](../zh/USER_GUIDE.md) |
 | `docs/OVERVIEW.md` | Comprehensive guide for first-time visitors | Everyone | [en](OVERVIEW.md) / [zh](../zh/OVERVIEW.md) |
 | `docs/FEATURES.md` | Complete implemented feature list (34 sections) | Feature reviewers, evaluators, developers | [en](FEATURES.md) / [zh](../zh/FEATURES.md) |
 | `docs/SECURITY.md` | Security policy and pre-deployment checklist | Operators, deployment engineers | [en](SECURITY.md) / [zh](../zh/SECURITY.md) |
@@ -118,6 +118,9 @@
 | `docs/MD_FILES_INDEX.md` | `docs/en/MD_FILES_INDEX.md` | `docs/zh/MD_FILES_INDEX.md` |
 | `docs/USER_GUIDE.md` | `docs/en/USER_GUIDE.md` | `docs/zh/USER_GUIDE.md` |
 | `USER_SETUP.md` | `docs/en/USER_SETUP.md` | `docs/zh/USER_SETUP.md` |
+| `ROADMAP.md` | `docs/en/ROADMAP.md` | `docs/zh/ROADMAP.md` |
+| `CODE_OF_CONDUCT.md` | `docs/en/CODE_OF_CONDUCT.md` | `docs/zh/CODE_OF_CONDUCT.md` |
+| `CONTRIBUTING.md` | `docs/en/CONTRIBUTING.md` | `docs/zh/CONTRIBUTING.md` |
 
 ---
 
