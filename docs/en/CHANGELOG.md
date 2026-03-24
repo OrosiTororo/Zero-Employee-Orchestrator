@@ -314,7 +314,7 @@ The following features were reclassified from core features to extension feature
 
 ## Development History (Pre-release milestones, consolidated into v0.1.0)
 
-## [0.5.0] - 2026-03-10 — Skills Management
+## Skills Management
 
 ### Added
 
@@ -376,8 +376,6 @@ The following features were reclassified from core features to extension feature
 - **Application Startup** (`main.py`)
   - Added automatic registration of system-required skills at startup
 
-## [0.4.0] - 2026-03-09
-
 ### Added
 
 - **AI Avatar Plugin (Digital Twin AI)** (`plugins/ai-avatar/`)
@@ -414,8 +412,6 @@ The following features were reclassified from core features to extension feature
   - `docs/FEATURE_BOUNDARY.md`: Added AI agent extension Plugin and chat tool integration Plugin sections
   - `DESIGN.md`: Added AI Avatar, AI Secretary, and chat Bots to Plugin examples
 
-## [0.3.0] - 2026-03-09
-
 ### Added
 
 - **Dynamic Model Registry** (`providers/model_registry.py`)
@@ -442,8 +438,6 @@ The following features were reclassified from core features to extension feature
 - `quality_sla.py`: Changed quality mode model lists to dynamic loading from ModelRegistry
 - `docs/FEATURES.md`: Corrected old model names, added dynamic management description, added Observability section
 - `CLAUDE.md`: Hard-coded model list -> dynamic management, added agent transparency to design principles
-
-## [0.2.0] - 2026-03-09
 
 ### Changed
 
@@ -477,7 +471,3 @@ The following features were reclassified from core features to extension feature
   - TypeScript types for all entities corresponding to backend schema section 38
 
 [0.1.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.1.0
-[0.2.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.2.0
-[0.3.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.3.0
-[0.4.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.4.0
-[0.5.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.5.0
