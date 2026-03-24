@@ -329,7 +329,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## Development History (Pre-release milestones, consolidated into v0.1.0)
 
-## [0.1.0] - 2026-03-10 — Skills Management
+## Skills Management
 
 ### Added
 
@@ -391,8 +391,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **アプリケーション起動** (`main.py`)
   - 起動時にシステム必須スキルの自動登録処理を追加
 
-## [0.1.0] - 2026-03-09
-
 ### Added
 
 - **AI Avatar Plugin（分身AI）** (`plugins/ai-avatar/`)
@@ -429,8 +427,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - `docs/FEATURE_BOUNDARY.md`: AI エージェント拡張 Plugin・チャットツール連携 Plugin セクション追加
   - `DESIGN.md`: Plugin 例に分身AI・秘書AI・チャット Bot を追加
 
-## [0.1.0] - 2026-03-09
-
 ### Added
 
 - **Dynamic Model Registry** (`providers/model_registry.py`)
@@ -457,8 +453,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `quality_sla.py`: 品質モード別モデルリストを ModelRegistry から動的読み込みに変更
 - `docs/FEATURES.md`: 旧モデル名修正、動的管理の説明追加、Observabilityセクション追加
 - `CLAUDE.md`: ハードコードモデルリスト → 動的管理、設計原則にエージェント透明性を追加
-
-## [0.1.0] - 2026-03-09
 
 ### Changed
 
@@ -492,7 +486,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - バックエンドスキーマ §38 に対応する全エンティティの TypeScript 型
 
 [0.1.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.1.0
-[0.2.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.2.0
-[0.3.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.3.0
-[0.4.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.4.0
-[0.5.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.5.0
