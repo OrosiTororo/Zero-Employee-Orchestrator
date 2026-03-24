@@ -700,16 +700,73 @@ Zero-Employee Orchestrator 是一个将 **AI 作为组织来运营**的平台—
 - **人机协作**: 12 类危险操作需要人类审批
 - **技能/插件/扩展**: 三层可扩展体系，支持自然语言生成技能
 - **提示注入防御**: 5 个威胁类别，40+ 检测模式
-- **浏览器辅助**: AI 分析你的屏幕，指导网页操作
+- **浏览器辅助**: Chrome 扩展程序叠加聊天 — AI 实时查看您的屏幕并指导操作
+- **媒体生成**: 图像（DALL-E, SD）、视频（Runway ML）、音频（TTS）、音乐（Suno）生成
+- **AI 工具集成**: 25+ 外部工具（GitHub、Slack、Jira、Figma 等）可由 AI 操作
+- **文件沙箱**: AI 仅可访问用户许可的文件夹（默认: STRICT 白名单）
+- **数据保护**: 上传/下载策略控制（默认: LOCKDOWN — 阻止所有传输）
+- **PII 保护**: 自动检测和脱敏个人信息（13 个类别）
 - **自我改进**: AI 分析和改进自身技能（需审批）
+- **元技能**: AI 学习如何学习（Feeling/Seeing/Dreaming/Making/Learning）
+- **A2A 通信**: 代理间点对点消息、频道和协商
+- **分身AI 共进化**: 从用户对话中学习判断标准，共同成长
+- **Skill 市场**: 社区技能的发布、搜索、评审和安装
+- **多用户/团队**: 基于角色的团队管理，支持邀请和权限控制
+- **iPaaS 集成**: n8n / Zapier / Make Webhook 集成
+- **成果物导出**: PDF / Markdown / HTML / JSON / CSV 导出
+- **AI 再利用引擎**: 自动将内容转换为 10 种媒体格式
+- **RSS/ToS 监控**: 自动检测 AI 服务模型更新和价格变更
+- **红队安全**: 8 个类别、20+ 测试的自我漏洞评估
+- **治理与合规**: GDPR / HIPAA / SOC2 / ISO27001 / CCPA / APPI
+- **浏览器自动化**: 基于 Playwright 的 Web 自动操作（带审批流程）
+- **Obsidian 集成**: Markdown 知识管理同步
+- **云原生**: AWS / GCP / Azure / Cloudflare 抽象层
+- **24/365 调度器**: 作业调度，实现持续 AI 运行
+- **智能设备 / VR/AR**: IoT、智能眼镜、VR 头显设备中心
 - **自主运行**: 通过 Docker/Cloudflare Workers 即使 PC 关机也能运行
+- **多模型支持**: 动态模型目录，已弃用模型自动回退
+- **自动更新**: 启动时 PyPI 版本检查、`zero-employee update` CLI 命令、Tauri 桌面自动更新
 
 ### 安装
 
 ```bash
 pip install zero-employee-orchestrator
-zero-employee serve
+
+# 或从源码安装
+git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
+cd Zero-Employee-Orchestrator && pip install .
+
+# 或使用 Docker
+docker compose up -d
 ```
+
+### 快速开始
+
+```bash
+# 无需 API 密钥 — 订阅模式开箱即用
+zero-employee serve
+
+# 或使用 Ollama 实现完全离线的本地 AI
+zero-employee config set DEFAULT_EXECUTION_MODE free
+zero-employee pull qwen3:8b
+zero-employee local --model qwen3:8b --lang zh
+
+# 或使用多 LLM 平台，一个密钥访问多个模型
+zero-employee config set OPENROUTER_API_KEY <your-key>
+```
+
+> **ZEO 本身是免费的。** LLM API 费用由用户直接向各提供商支付。详见 [USER_SETUP.md](USER_SETUP.md)。
+
+### 安全
+
+- 提示注入防御（5 个类别，40+ 检测模式）
+- 12 类危险操作的审批门控
+- 人类/AI 账户分离的 IAM
+- Fernet 加密的密钥管理
+- 安全头（CSP、HSTS、X-Frame-Options）
+- 从设计阶段就内置的审计日志
+
+漏洞报告请参阅 [SECURITY.md](SECURITY.md)。
 
 ---
 

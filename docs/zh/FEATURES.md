@@ -93,6 +93,27 @@ Zero-Employee Orchestrator 采用以下 9 层结构进行设计和实现。
 
 回答完成后，可以从 Interview 的回答中自动生成 Spec（规格文档）。
 
+### 通过文件附件输入上下文
+
+可以在 Design Interview 中附加文件，作为规格文档生成的上下文进行整合。
+
+| 文件类型 | 支持格式 | 处理方法 |
+|---------|---------|---------|
+| **文本** | `.txt`, `.md`, `.csv`, `.json`, `.yaml`, `.xml`, `.html` | 文本提取（自动检测多种编码） |
+| **代码** | `.py`, `.ts`, `.js`, `.java`, `.go`, `.rs`, `.c`, `.cpp` 等 | 作为源代码解析 |
+| **图片** | `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.bmp`, `.svg` | Base64 编码 + 元数据提取 |
+| **文档** | `.pdf` | 元信息提取 |
+
+```
+POST /api/v1/tickets/{ticket_id}/interview/attach
+Content-Type: multipart/form-data
+
+file: (附件)
+description: "竞争分析报告的源数据"
+```
+
+从附件中提取的文本将自动整合为 Spec 的「参考资料」部分。
+
 ---
 
 ## 3. Spec / Plan / Tasks — 结构化中间产物
@@ -313,6 +334,19 @@ provisioning -> idle -> busy -> idle
 ### Plan Diff
 
 重新提案时，将以结构化方式展示与原始计划的差异（添加、删除、修改的任务，成本变动，时间变动）。
+
+### 混沌测试（v0.1）
+
+实现了混沌测试套件，用于验证 Self-Healing DAG 的可靠性。
+
+| 测试类别 | 测试数 | 验证内容 |
+|---------|-------|---------|
+| 单节点故障 | 6 | 验证 retry / skip / replan 各策略的行为 |
+| 多节点故障 | 4 | 验证级联故障和并行分支故障 |
+| 恢复时间 | 3 | 测量恢复成功率和恢复时间 |
+| DAG 完整性 | 4 | 验证恢复后 DAG 结构的一致性 |
+| 边界情况 | 4 | 空 DAG、单节点 DAG、循环依赖等 |
+| 基准测试 | 3 | 100 次随机故障的恢复统计 |
 
 ---
 
@@ -1047,7 +1081,49 @@ uv pip install zero-employee-orchestrator
 
 ---
 
-## 30. v0.1 功能膨胀审查 — 核心与扩展的边界
+## 30. AI Self-Improvement — Level 2: 自我改进的萌芽 (v0.1)
+
+AI 分析、改进和验证 AI 的自我改进功能集。作为 `ai-self-improvement` 插件实现。
+
+### 6 个自我改进 Skill
+
+| Skill | 功能 | API 端点 |
+|-------|------|---------|
+| **skill-analyzer** | 现有 Skill 的代码质量分析（静态分析 + LLM 深度分析） | `POST /self-improvement/analyze` |
+| **skill-improver** | 基于分析结果自动生成改进版 Skill | `POST /self-improvement/improve` |
+| **judge-tuner** | 从 Experience Memory 自动调整 Judge 判定标准 | `POST /self-improvement/judge/tune` |
+| **failure-to-skill** | 从失败模式自动生成预防 Skill | `POST /self-improvement/failure-to-skill` |
+| **skill-ab-test** | 两个 Skill 的 A/B 测试比较（质量和速度） | `POST /self-improvement/ab-test` |
+| **auto-test-generator** | 自动生成 Skill 测试代码（正常、边界、异常情况） | `POST /self-improvement/generate-tests` |
+
+### 分析类别
+
+| 类别 | 评估内容 |
+|------|---------|
+| `code_quality` | 代码结构、可读性、命名规范、DRY 原则 |
+| `performance` | 不必要的处理、内存使用、N+1 查询 |
+| `error_handling` | 异常处理、回退机制、输入验证 |
+| `security` | 注入、凭证暴露、危险操作 |
+| `test_coverage` | 可测试性、边界情况考虑 |
+| `documentation` | 文档字符串、类型提示、注释 |
+
+### 安全机制
+
+- 所有改进应用**必须用户审批**
+- 改进前代码作为 **version_history** 保留（可回滚）
+- 改进代码的**安全性检查**（16 种危险代码模式检测）
+- Judge 规则仅应用**置信度 0.5 以上**的规则
+
+### 仪表板 API
+
+`GET /api/v1/self-improvement/status` 返回以下统计：
+- Skill 分析数、改进提案数、改进应用数
+- Judge 规则提案数、应用数
+- 故障预防 Skill 提案数、A/B 测试完成数、测试生成数
+
+---
+
+## 31. v0.1 功能膨胀审查 — 核心与扩展的边界
 
 在 v0.1 中，以下功能包含在代码库中，但根据**核心功能判断标准**（"没有它，审批、审计和执行控制是否无法成立？"），被归类为**扩展功能**。计划在未来版本中作为独立包分离。
 
@@ -1065,7 +1141,7 @@ uv pip install zero-employee-orchestrator
 
 ---
 
-## 31. 元技能概念 (v0.1)
+## 32. 元技能概念 (v0.1)
 
 赋予 AI 代理"学习如何学习"能力的设计概念。
 
@@ -1083,7 +1159,7 @@ uv pip install zero-employee-orchestrator
 
 ---
 
-## 32. 基于文件附件的计划创建 (v0.1)
+## 33. 基于文件附件的计划创建 (v0.1)
 
 在 Design Interview 中附加文件，作为规格书（Spec）生成的上下文进行整合。
 
@@ -1111,7 +1187,7 @@ uv pip install zero-employee-orchestrator
 
 ---
 
-## 33. 安全加固 (v0.1)
+## 34. 安全加固 (v0.1)
 
 | 项目 | 说明 |
 |------|------|

@@ -250,24 +250,33 @@ ZEO is composed of 9 layers. Each layer has independent responsibilities.
 | Approval Gate | `policies/approval_gate.py` | 109 | Implemented |
 | Sanitizer | `security/sanitizer.py` | 83 | Implemented |
 
-### API Endpoints (Implemented)
+### API Endpoints (Implemented — 24 Route Modules)
 
 | Endpoint Group | Key Features |
 |---------------|-------------|
-| `/auth` | Login, registration, session management |
+| `/auth` | Login, registration, anonymous session, OAuth |
 | `/companies` | Company CRUD, dashboard |
-| `/tickets` | Ticket creation, listing, details, state transitions |
+| `/tickets` | Ticket creation, listing, details, state transitions, file attachment |
 | `/specs_plans` | Spec / Plan creation and approval |
 | `/tasks` | Task creation, execution, completion |
-| `/agents` | Agent management, pause, resume |
+| `/agents` | Agent management, role-based addition, pause, resume |
 | `/approvals` | Approval listing, approve, reject |
 | `/artifacts` | Artifact management |
 | `/audit` | Audit log listing and filtering |
 | `/budgets` | Budget policy and cost management |
 | `/heartbeats` | Periodic execution policies and run history |
-| `/registry` | Skill / Plugin / Extension search |
-| `/ollama` | Local LLM direct operations |
-| `/settings` | Application settings |
+| `/registry` | Skill / Plugin / Extension search, CRUD, natural language generation |
+| `/ollama` | Local LLM direct operations, RAG |
+| `/settings` | Application settings, tool connections |
+| `/config` | Runtime configuration management |
+| `/models` | Model catalog, health check, deprecation management |
+| `/observability` | Inference traces, communication logs, execution monitoring |
+| `/self-improvement` | AI self-improvement (Skill analysis, improvement, Judge tuning, A/B testing) |
+| `/multi-model` | Multi-model comparison, brainstorming, conversation memory, per-role settings |
+| `/secretary` | Secretary AI (brain dump, daily summary) |
+| `/knowledge` | Knowledge store, change detection |
+| `/platform` | MCP, Sentry, IAM, hypothesis verification, sessions, investigation |
+| `/projects` | Project and goal management |
 | WebSocket `/ws/events` | Real-time event delivery |
 
 ### Frontend (23 Screens)
@@ -295,6 +304,8 @@ ZEO is composed of 9 layers. Each layer has independent responsibilities.
 | PluginsPage | UI exists | Browser and installer |
 | PermissionsPage | UI exists | Permissions management dashboard |
 | AgentMonitorPage | UI exists | Agent monitoring dashboard |
+| SecretaryPage | Implemented | Brain dump, daily summary, priority suggestions |
+| BrainstormPage | Implemented | Brainstorming, multi-model comparison, per-role settings, AI org management |
 
 ### ORM Models (29 Tables)
 

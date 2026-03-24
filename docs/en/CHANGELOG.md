@@ -89,6 +89,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - Per-role model settings UI (list configs, available roles)
   - AI organization management UI (natural language requests, role list, agent addition)
   - Real-time character count display
+- **Secretary AI Dashboard** (`pages/SecretaryPage.tsx`)
+  - Brain dump (organize thoughts into categories and extract action items)
+  - Daily summary generation and viewing
+  - Priority suggestions and task organization
+- **AI Self-Improvement Plugin** (`plugins/ai-self-improvement/`)
+  - Manifest definition for 6 Skills: skill-analyzer, skill-improver, judge-tuner, failure-to-skill, skill-ab-test, auto-test-generator
+  - Integration points with Judge Layer / Experience Memory / Failure Taxonomy / Skill Registry / DAG
+  - Safety policies (sandbox execution, approval required, rollback, quality thresholds, change limits, Kill Switch)
 - **ZEO-Bench — Judge Layer Quantitative Evaluation Benchmark** (`tests/zeo_bench.py`)
   - 200-question test set for quantitative evaluation of Cross-Model Verification accuracy
   - 4 categories: Factual Accuracy (50), Contradiction Detection (70), False Positive (40), Correction Quality (40)

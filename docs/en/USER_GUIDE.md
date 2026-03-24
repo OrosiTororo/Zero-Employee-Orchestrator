@@ -146,9 +146,179 @@ Users can share and publish plugins without requiring developer intervention.
 | `slack-bot` | Create tickets, check progress, approve from Slack |
 | `line-bot` | Create tickets, check progress, approve from LINE |
 
+### Avatar AI and Secretary AI
+
+**Avatar AI** learns your judgment patterns and writing style, and acts as your "alter ego":
+- Reflects your values in Judge Layer quality assessments
+- Reviews tasks and judges priorities in your absence (final approval authority always remains with you)
+- Drafts content in your writing style and tone
+
+**Secretary AI** functions as a "hub" connecting you and the AI organization:
+- Morning briefings (pending approvals, in-progress tasks, today's schedule)
+- Prioritized suggestions for next actions
+- Briefing delivery via Discord / Slack / LINE
+
+### Operating from Chat Tools
+
+After installing the Discord / Slack / LINE Bot Plugin, you can send instructions to the AI organization from your everyday messaging apps.
+
+```
+/zeo ticket Create a competitive analysis report    → Create ticket
+/zeo status                                         → Check in-progress tasks
+/zeo approve 12345                                  → Approve operation
+/zeo briefing                                       → Today's briefing
+/zeo ask What are the risks of this initiative?     → Ask the AI
+```
+
+Approval dialogs are also displayed within chat tools when dangerous operations require authorization.
+
 ---
 
-## 8. Frequently Asked Questions (FAQ)
+## 8. Tickets (Task Requests)
+
+### Creating a Ticket
+
+1. Enter the task description in natural language in the dashboard input box
+2. Click the "Submit" button
+3. AI starts requirements clarification (Design Interview), asking questions about unclear points
+4. After answering the questions, a plan is automatically created and execution begins
+
+### Rollback / Modify Midway
+
+From the ticket detail screen:
+- **Rollback**: Return to a previous step and request modifications
+- **Add comment**: Input additional instructions or information
+- **Cancel**: Abort the ticket
+
+### Reviewing Artifacts
+
+When a ticket is completed, artifacts are saved in the "Artifacts" tab.
+- Supports various formats: text, JSON, code, etc.
+- Version controlled — you can revert to previous versions
+
+---
+
+## 9. Approval Flow
+
+Zero-Employee Orchestrator is built on the design principle that **dangerous operations always require human approval**.
+
+### Operations Requiring Approval
+
+- Publishing/sending to external services (SNS, email, Slack, etc.)
+- File deletion or overwriting
+- Operations involving billing/payment
+- Permission or access setting changes
+- Deployment/release to production environments
+
+### Approval Process
+
+1. Dashboard "Pending Approvals" count increases with a notification
+2. Open the "Approvals" screen and review the content
+3. **Approve**: Allow the execution to proceed
+4. **Reject**: Cancel the execution
+5. **Request modification**: Add a comment and ask the AI to reconsider
+
+> All approved operations are recorded in the audit log.
+
+---
+
+## 10. Cost Management
+
+### Execution Mode Settings
+
+You can control costs by setting `DEFAULT_EXECUTION_MODE` in `apps/api/.env`:
+
+| Mode | Description | Recommended For |
+|------|-------------|-----------------|
+| `quality` | Highest quality models (Claude Opus 4.6, GPT-5.4, Gemini 2.5 Pro) | Important deliverables |
+| `speed` | Fast models (Claude Haiku 4.5, GPT-5 Mini, Gemini 2.5 Flash) | Simple tasks |
+| `cost` | Low-cost models (Haiku, Mini, Flash Lite, DeepSeek) | Bulk processing |
+| `free` | Free models (Gemini free tier / Ollama local) | Testing / Development |
+| `subscription` | Free (via g4f, no API key required) | Trial use |
+
+### Budget Settings
+
+Set monthly budget limits from the "Cost Management" section in Settings. Alerts are sent when spending approaches the limit.
+
+---
+
+## 11. Troubleshooting
+
+### `./setup.sh` won't execute
+
+```bash
+chmod +x setup.sh start.sh
+./setup.sh
+```
+
+### Port already in use
+
+```bash
+# Check which ports are in use
+lsof -i :18234   # Backend
+lsof -i :5173    # Frontend
+
+# Stop the process and restart
+kill <PID>
+./start.sh
+```
+
+### AI doesn't respond / errors occur
+
+1. Check that API keys are correctly set in the `.env` file
+2. If using Ollama: verify `ollama serve` is running
+3. **In subscription mode**: The external service may be temporarily unavailable (switching to Gemini free API or Ollama is recommended)
+4. Check backend logs:
+   ```bash
+   cd apps/api
+   source .venv/bin/activate
+   uvicorn app.main:app --reload
+   ```
+
+### "g4f error" in subscription mode
+
+Subscription mode depends on external web services and may be temporarily unavailable.
+
+- Wait a moment and retry
+- Switch to a different model (e.g., `g4f/Copilot` → `g4f/GeminiPro`)
+- Switch to the more stable Gemini free API key
+
+### Gemini API errors
+
+- `RESOURCE_EXHAUSTED`: Free tier limit reached → wait 1 minute or upgrade to a paid plan
+- `API_KEY_INVALID`: Key is incorrect → verify in Google AI Studio
+
+### Ollama won't connect
+
+```bash
+# Check if Ollama is running
+curl http://localhost:11434/api/tags
+
+# If not running
+ollama serve
+```
+
+### Reset the database
+
+```bash
+# Delete the SQLite file and restart (tables are auto-created)
+rm apps/api/zero_employee_orchestrator.db
+./start.sh
+```
+
+### Python virtual environment errors
+
+```bash
+cd apps/api
+rm -rf .venv
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e "."
+```
+
+---
+
+## 12. Frequently Asked Questions (FAQ)
 
 ### Q: Can I use it for free?
 
@@ -167,7 +337,42 @@ Users can share and publish plugins without requiring developer intervention.
 
 ### Q: Can I operate from Discord / Slack?
 
-**A:** Yes. Install the Bot Plugin for Discord / Slack / LINE to create tickets, check progress, approve operations, and chat with AI directly from your messaging app.
+**A:** Yes. Install the Bot Plugin for Discord / Slack / LINE to create tickets, check progress, approve operations, and chat with AI directly from your messaging app. Example command: `/zeo ticket Create a competitive analysis report`
+
+---
+
+### Q: Is AI safe from making mistakes?
+
+**A:** The following mechanisms ensure safety:
+- **Judge Layer**: AI output is verified in two stages
+- **Approval flow**: Dangerous operations are always blocked and require human confirmation
+- **Audit logs**: All operations are recorded and traceable
+
+---
+
+### Q: Can multiple people use it?
+
+**A:** Yes. Users are managed per organization (Company) with role-based access control (RBAC).
+
+| Role | Permissions |
+|------|-------------|
+| Owner | Full access |
+| Admin | Organization settings, approvals, audit logs |
+| User | Task requests, viewing |
+| Auditor | Read-only |
+| Developer | Skill/Plugin development |
+
+---
+
+### Q: Can I use it offline?
+
+**A:** Yes. If you use Ollama for local LLM, it works without an internet connection (internet is only needed for the initial model download).
+
+---
+
+### Q: Can I access it from mobile?
+
+**A:** Since it's web browser compatible, you can access it from a smartphone browser (responsive design). You can also operate via the Discord / Slack / LINE Bot Plugin from mobile chat apps.
 
 ---
 
