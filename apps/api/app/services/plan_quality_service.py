@@ -15,14 +15,42 @@ Plan の品質を評価する。
 from __future__ import annotations
 
 import logging
+import re
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
 
-from app.orchestration.judge import _jaccard_similarity
-
 logger = logging.getLogger(__name__)
+
+
+def _tokenize_multilang(text: str) -> set[str]:
+    """Tokenize text for plan quality comparison.
+
+    ASCII/numbers are split into word tokens; CJK/Japanese characters are split
+    into individual characters so that Japanese text (which has no spaces
+    between words) can still produce meaningful similarity scores.
+    """
+    tokens: set[str] = set()
+    for token in re.findall(r"[a-zA-Z0-9]+", text.lower()):
+        tokens.add(token)
+    for char in text:
+        if ("\u3040" <= char <= "\u30ff") or ("\u4e00" <= char <= "\u9fff"):
+            tokens.add(char)
+    return tokens
+
+
+def _plan_similarity(a: str, b: str) -> float:
+    """Jaccard similarity with character-level CJK support."""
+    tokens_a = _tokenize_multilang(a)
+    tokens_b = _tokenize_multilang(b)
+    if not tokens_a and not tokens_b:
+        return 1.0
+    if not tokens_a or not tokens_b:
+        return 0.0
+    intersection = tokens_a & tokens_b
+    union = tokens_a | tokens_b
+    return len(intersection) / len(union)
 
 
 # ---------------------------------------------------------------------------
@@ -258,11 +286,11 @@ class PlanQualityVerifier:
         # 6. スコープクリープ検出（Spec に関連しないタスク）
         for task in plan.tasks:
             task_text = f"{task.title} {task.description}"
-            sim = _jaccard_similarity(spec.objective, task_text)
+            sim = _plan_similarity(spec.objective, task_text)
             # 全制約・基準との類似度も確認
             max_sim = sim
             for c in spec.constraints + spec.acceptance_criteria:
-                max_sim = max(max_sim, _jaccard_similarity(c, task_text))
+                max_sim = max(max_sim, _plan_similarity(c, task_text))
             if max_sim < 0.1 and spec.objective:
                 issues.append(
                     QualityIssue(
@@ -316,12 +344,12 @@ class PlanQualityVerifier:
                 similarity_score=1.0,
             )
 
-        sim = _jaccard_similarity(objective, combined_tasks)
+        sim = _plan_similarity(objective, combined_tasks)
         matched = []
         matched_titles = []
         for task in tasks:
             task_text = f"{task.title} {task.description}"
-            task_sim = _jaccard_similarity(objective, task_text)
+            task_sim = _plan_similarity(objective, task_text)
             if task_sim > self.coverage_threshold:
                 matched.append(task.task_id)
                 matched_titles.append(task.title)
@@ -354,7 +382,7 @@ class PlanQualityVerifier:
         max_sim = 0.0
         for task in tasks:
             task_text = f"{task.title} {task.description}"
-            sim = _jaccard_similarity(text, task_text)
+            sim = _plan_similarity(text, task_text)
             max_sim = max(max_sim, sim)
             if sim > self.coverage_threshold:
                 matched.append(task.task_id)
@@ -385,7 +413,7 @@ class PlanQualityVerifier:
             for j in range(i + 1, len(tasks)):
                 text_i = f"{tasks[i].title} {tasks[i].description}"
                 text_j = f"{tasks[j].title} {tasks[j].description}"
-                sim = _jaccard_similarity(text_i, text_j)
+                sim = _plan_similarity(text_i, text_j)
                 if sim > self.duplicate_threshold:
                     duplicates.append(
                         DuplicatePair(

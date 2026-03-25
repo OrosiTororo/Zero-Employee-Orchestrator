@@ -8,24 +8,6 @@
 5. Plan 品質検証 (Plan Quality)
 """
 
-import pytest
-
-from app.services.prerequisite_monitor_service import (
-    ChangeImpact,
-    MonitorStatus,
-    PrerequisiteCategory,
-    PrerequisiteMonitorService,
-)
-from app.services.spec_contradiction_service import (
-    ContradictionSeverity,
-    ContradictionType,
-    SpecContradictionDetector,
-    SpecSummary,
-)
-from app.services.task_replay_service import (
-    ReplayStatus,
-    TaskReplayService,
-)
 from app.services.judgment_review_service import (
     JudgmentAction,
     JudgmentCategory,
@@ -38,7 +20,21 @@ from app.services.plan_quality_service import (
     QualityLevel,
     SpecInput,
 )
-
+from app.services.prerequisite_monitor_service import (
+    ChangeImpact,
+    MonitorStatus,
+    PrerequisiteCategory,
+    PrerequisiteMonitorService,
+)
+from app.services.spec_contradiction_service import (
+    ContradictionType,
+    SpecContradictionDetector,
+    SpecSummary,
+)
+from app.services.task_replay_service import (
+    ReplayStatus,
+    TaskReplayService,
+)
 
 # ===========================================================================
 # 1. Prerequisite Monitor
