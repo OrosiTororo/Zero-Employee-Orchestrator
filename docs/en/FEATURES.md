@@ -771,7 +771,7 @@ Over 20 screens built with React 19 + TypeScript + Tailwind CSS are provided.
 
 ## 22. REST API
 
-Over 40 endpoints are provided under the `/api/v1` prefix.
+38 route modules with over 327 endpoints are provided under the `/api/v1` prefix.
 
 ### Endpoint Groups
 

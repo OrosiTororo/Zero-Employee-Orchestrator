@@ -268,7 +268,22 @@ class PrerequisiteMonitorService:
 
         fetched_content は外部から Web fetch した結果を渡す。
         HTTP 取得は呼び出し側で行い、このメソッドは変更検出のみを担当。
+        外部データは wrap_external_data() で境界マーカーを付与してから LLM に渡す。
         """
+        # 外部データにプロンプトインジェクション検査を適用
+        try:
+            from app.security.prompt_guard import scan_prompt_injection
+
+            guard = scan_prompt_injection(fetched_content[:3000])
+            if not guard.is_safe:
+                logger.warning(
+                    "Prompt injection in prerequisite source %s: %s",
+                    source_id,
+                    guard.detections,
+                )
+        except ImportError:
+            pass
+
         source = self._sources.get(source_id)
         if not source:
             raise ValueError(f"Source not found: {source_id}")

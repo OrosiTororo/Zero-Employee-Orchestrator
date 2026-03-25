@@ -96,8 +96,34 @@ class KnowledgeStore:
         metadata: dict[str, Any] | None = None,
         source: str = "user_input",
     ) -> KnowledgeRecord:
-        """ナレッジを記憶する（既存キーは更新）."""
+        """ナレッジを記憶する（既存キーは更新）.
+
+        ファイルパス・フォルダ関連のナレッジは workspace_isolation でチェックする。
+        """
         cat = category.value if isinstance(category, KnowledgeCategory) else category
+
+        # ワークスペース隔離チェック: ファイル/フォルダパスの記憶時
+        if cat in (
+            KnowledgeCategory.FILE_PERMISSION.value if isinstance(category, str) else "",
+            KnowledgeCategory.FILE_PERMISSION.value,
+            KnowledgeCategory.FOLDER_LOCATION.value,
+        ):
+            try:
+                from app.security.workspace_isolation import workspace_isolation
+
+                ws_check = workspace_isolation.check_access(value)
+                if not ws_check.allowed:
+                    logger.warning(
+                        "Workspace isolation blocked knowledge store: path=%s reason=%s",
+                        value,
+                        ws_check.reason,
+                    )
+                    raise PermissionError(
+                        f"ワークスペース隔離: パス '{value}' へのアクセスが許可されていません — "
+                        f"{ws_check.reason}"
+                    )
+            except (ImportError, AttributeError):
+                pass  # workspace_isolation が利用不可の場合はスキップ
         cid = uuid.UUID(str(company_id)) if company_id else None
         uid = uuid.UUID(str(user_id)) if user_id else None
 

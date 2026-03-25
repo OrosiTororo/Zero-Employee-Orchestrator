@@ -7,6 +7,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.1] - 2026-03-25
+
+### Added
+
+- **Design Interview past-failure pattern feedback** — Automatically searches similar failure patterns from Experience Memory and Failure Taxonomy, dynamically injects warnings and additional questions during Interview. Integrated as risk notes during Spec generation.
+- **Added 21 undocumented features to FEATURES.md** — RSS/ToS auto-update, Knowledge Refresh, A2A bidirectional communication, Avatar AI co-evolution, Longrun Scheduler, Agent Session, Artifact Bridge, Media generation, AI Tools registry, iPaaS integration, Artifact export, Repurpose engine, Obsidian integration, Cloud-native integration, Smart device integration, Governance & compliance, Marketplace, Team management, Red-team testing, Workspace isolation
+
+### Security
+
+- **Sandbox symlink attack hardening** — Detects and blocks when resolved path points to a different directory than original
+- **Data Protection password pattern matching fix** — Fixed to use case-insensitive pattern matching
+- **CI: Run tests on Dependabot PRs** — Fixed lint-and-test job that was previously skipped for Dependabot PRs
+
+### Changed
+
+- **Dependabot configuration overhaul** — Ignore major version updates, grouping, full ecosystem coverage (pip/npm/cargo/github-actions), Cloudflare Workers separate management
+- **Dependabot auto-merge workflow added** — Auto-approve and squash-merge patch/minor updates after CI passes
+
 ## [0.1.0] - 2026-03-12 — Platform v0.1 (Consolidated Release)
 
 ### Added — AI Self-Improvement (Level 2: Seeds of Self-Improvement)

@@ -148,9 +148,27 @@ def _to_info_response(f: StoredFile) -> FileInfoResponse:
 
 
 async def _save_upload(upload: UploadFile) -> StoredFile:
-    """UploadFile をディスクに保存し、StoredFile を返す."""
+    """UploadFile をディスクに保存し、StoredFile を返す.
+
+    データ保護ポリシーのチェックとパスワードパターン検出を適用する。
+    """
     filename = upload.filename or "unnamed"
     _validate_extension(filename)
+
+    # データ保護ポリシーチェック
+    try:
+        from app.security.data_protection import data_protection_guard
+
+        upload_check = data_protection_guard.check_upload(filename, "user")
+        if not upload_check.allowed:
+            raise HTTPException(
+                status_code=403,
+                detail=f"データ保護ポリシーによりアップロードが拒否されました: {upload_check.reason}",
+            )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.debug("Data protection check skipped: %s", exc)
 
     # ファイルサイズチェック（チャンク読み込み）
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -278,6 +296,26 @@ async def download_file(file_id: str, user: User = Depends(get_current_user)) ->
     path = Path(stored.stored_path)
     if not path.exists():
         raise HTTPException(status_code=404, detail="ファイルがストレージ上に見つかりません")
+
+    # サンドボックスチェック — ファイルパスが許可範囲内か
+    try:
+        from app.security.sandbox import AccessType, filesystem_sandbox
+
+        access = filesystem_sandbox.check_access(str(path), AccessType.READ)
+        if not access.allowed:
+            logger.warning(
+                "Sandbox blocked file download: path=%s reason=%s",
+                path,
+                access.reason,
+            )
+            raise HTTPException(
+                status_code=403,
+                detail=f"サンドボックスポリシーによりアクセスが拒否されました: {access.reason}",
+            )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.debug("Sandbox check skipped: %s", exc)
 
     return FileResponse(
         path=str(path),

@@ -267,3 +267,58 @@ async def reload_catalog():
         catalog_version=registry.catalog_version,
         message="Model catalog reloaded successfully",
     )
+
+
+@router.post("/models/auto-update")
+async def auto_update_models():
+    """RSS/ToS パイプラインからモデル更新を検出し、カタログを自動更新する.
+
+    ユーザーがファイルを一切触ることなく AI モデル更新を自動で行う。
+    プロバイダーの RSS フィードをチェックし、新モデル・廃止・価格変更を検出。
+    Ollama のローカルモデルも自動検出してカタログに追加する。
+    """
+    from app.integrations.rss_tos_monitor import rss_tos_monitor
+    from app.providers.model_registry import get_model_registry
+
+    registry = get_model_registry()
+
+    # 1. プロバイダー API からモデル可用性を自動チェック・更新
+    refreshed = await registry.refresh_catalog()
+
+    # 2. RSS/ToS パイプラインで外部変更を検出・自動適用
+    pipeline_result = await rss_tos_monitor.check_and_auto_update()
+
+    return {
+        "success": True,
+        "model_count": registry.model_count,
+        "catalog_version": registry.catalog_version,
+        "auto_discovered_models": refreshed,
+        "rss_pipeline": pipeline_result,
+        "message": "Model catalog auto-updated successfully",
+    }
+
+
+@router.post("/models/update-version")
+async def update_model_version(
+    family_id: str,
+    new_model_id: str,
+):
+    """特定モデルの latest_model_id を更新する（API 経由でファイル編集不要）.
+
+    例: anthropic/claude-opus の latest_model_id を claude-opus-4-7 に更新
+    """
+    from app.providers.model_registry import get_model_registry
+
+    registry = get_model_registry()
+    ok = registry.update_latest_model_id(family_id, new_model_id)
+    if not ok:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Model family not found: {family_id}",
+        )
+
+    return {
+        "family_id": family_id,
+        "new_model_id": new_model_id,
+        "message": f"Model {family_id} updated to {new_model_id}",
+    }

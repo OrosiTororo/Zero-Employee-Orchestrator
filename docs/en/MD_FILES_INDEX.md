@@ -48,7 +48,7 @@
 | `docs/ABOUT.md` | "Why ZEO is needed" explanatory document | Non-engineers, executives, evaluators | [en](ABOUT.md) / [zh](../zh/ABOUT.md) |
 | `docs/USER_GUIDE.md` | End-user operations manual | End users | ja / [en](USER_GUIDE.md) / [zh](../zh/USER_GUIDE.md) |
 | `docs/OVERVIEW.md` | Comprehensive guide for first-time visitors | Everyone | [en](OVERVIEW.md) / [zh](../zh/OVERVIEW.md) |
-| `docs/FEATURES.md` | Complete implemented feature list (34 sections) | Feature reviewers, evaluators, developers | [en](FEATURES.md) / [zh](../zh/FEATURES.md) |
+| `docs/FEATURES.md` | Complete implemented feature list (80 sections) | Feature reviewers, evaluators, developers | [en](FEATURES.md) / [zh](../zh/FEATURES.md) |
 | `docs/SECURITY.md` | Security policy and pre-deployment checklist | Operators, deployment engineers | [en](SECURITY.md) / [zh](../zh/SECURITY.md) |
 | `docs/CHANGELOG.md` | Version-by-version change history | All users and developers | [en](CHANGELOG.md) / [zh](../zh/CHANGELOG.md) |
 | `docs/SCALING_AND_COSTS.md` | Costs, hardware constraints, use cases | Prospective adopters, operators, executives | [en](SCALING_AND_COSTS.md) / [zh](../zh/SCALING_AND_COSTS.md) |

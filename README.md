@@ -389,6 +389,10 @@ zero-employee serve              # API サーバーを起動
 zero-employee serve --port 8000  # ポート指定
 zero-employee serve --reload     # ホットリロード
 
+zero-employee chat               # チャットモード (全プロバイダー対応・自然言語で全操作可能)
+zero-employee chat --mode free   # Ollama / g4f で無料利用
+zero-employee chat --lang en     # 英語モード
+
 zero-employee local              # ローカルチャットモード (Ollama)
 zero-employee local --model qwen3:8b --lang ja
 

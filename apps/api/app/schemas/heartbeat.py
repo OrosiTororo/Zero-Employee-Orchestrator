@@ -36,7 +36,7 @@ class HeartbeatRunRead(BaseModel):
     status: str
     started_at: str
     finished_at: str | None = None
-    summary: str | None = None
+    summary: dict | None = None
     created_at: str
 
     model_config = {"from_attributes": True}

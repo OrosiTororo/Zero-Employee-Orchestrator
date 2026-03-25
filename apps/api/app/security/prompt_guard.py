@@ -52,7 +52,7 @@ _SYSTEM_OVERRIDE_PATTERNS: list[tuple[re.Pattern, str]] = [
     ),
     (
         re.compile(
-            r"(?i)forget\s+(all\s+)?(previous|above|prior|your)\s+(instructions?|prompts?|rules?|context)"
+            r"(?i)forget\s+(?:(?:all|your)\s+)*(?:previous|above|prior|your)\s+(?:instructions?|prompts?|rules?|context)"
         ),
         "system_override: forget instructions",
     ),

@@ -48,7 +48,7 @@
 | `docs/ABOUT.md` | "为什么需要 ZEO" 说明文档 | 非工程师、管理层、评估者 | [en](../en/ABOUT.md) / [zh](ABOUT.md) |
 | `docs/USER_GUIDE.md` | 终端用户操作手册 | 终端用户 | ja / [en](../en/USER_GUIDE.md) / [zh](USER_GUIDE.md) |
 | `docs/OVERVIEW.md` | 面向初次访问者的综合指南 | 所有人 | [en](../en/OVERVIEW.md) / [zh](OVERVIEW.md) |
-| `docs/FEATURES.md` | 已实现功能完整列表（34 个章节） | 功能评审者、评估者、开发者 | [en](../en/FEATURES.md) / [zh](FEATURES.md) |
+| `docs/FEATURES.md` | 已实现功能完整列表（80 个章节） | 功能评审者、评估者、开发者 | [en](../en/FEATURES.md) / [zh](FEATURES.md) |
 | `docs/SECURITY.md` | 安全策略和部署前检查清单 | 运维人员、部署工程师 | [en](../en/SECURITY.md) / [zh](SECURITY.md) |
 | `docs/CHANGELOG.md` | 版本变更历史 | 所有用户和开发者 | [en](../en/CHANGELOG.md) / [zh](CHANGELOG.md) |
 | `docs/SCALING_AND_COSTS.md` | 成本、硬件约束、使用案例 | 潜在用户、运维人员、管理层 | [en](../en/SCALING_AND_COSTS.md) / [zh](SCALING_AND_COSTS.md) |

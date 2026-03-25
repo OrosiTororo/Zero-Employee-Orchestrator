@@ -89,6 +89,17 @@ async def lifespan(application: FastAPI):
     except Exception as exc:
         logger.debug("MCP init failed (non-fatal): %s", exc)
 
+    # Auto-refresh model catalog on startup (non-blocking)
+    try:
+        from app.providers.model_registry import get_model_registry
+
+        registry = get_model_registry()
+        updated = await registry.refresh_catalog()
+        if updated:
+            logger.info("Model catalog auto-updated: %d models refreshed", len(updated))
+    except Exception as exc:
+        logger.debug("Model catalog auto-refresh failed (non-fatal): %s", exc)
+
     yield
 
 

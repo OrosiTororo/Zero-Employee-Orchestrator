@@ -55,6 +55,11 @@ class PIIDetectionResult:
     detected_types: list[str] = field(default_factory=list)
     detections: list[dict] = field(default_factory=list)
 
+    @property
+    def has_pii(self) -> bool:
+        """PII が検出されたかどうか."""
+        return self.detected_count > 0
+
 
 # PII パターン定義
 _PII_PATTERNS: list[tuple[PIICategory, re.Pattern, str]] = [
@@ -63,6 +68,12 @@ _PII_PATTERNS: list[tuple[PIICategory, re.Pattern, str]] = [
         PIICategory.EMAIL,
         re.compile(r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"),
         "[EMAIL]",
+    ),
+    # クレジットカード番号（4桁×4グループ）— 電話番号より先に評価する
+    (
+        PIICategory.CREDIT_CARD,
+        re.compile(r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b"),
+        "[CREDIT_CARD]",
     ),
     # 電話番号（日本）
     (
@@ -75,12 +86,6 @@ _PII_PATTERNS: list[tuple[PIICategory, re.Pattern, str]] = [
         PIICategory.PHONE,
         re.compile(r"(?:\+\d{1,3}[-\s]?)?\(?\d{2,4}\)?[-\s]?\d{3,4}[-\s]?\d{3,4}"),
         "[PHONE]",
-    ),
-    # クレジットカード番号（4桁×4グループ）
-    (
-        PIICategory.CREDIT_CARD,
-        re.compile(r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b"),
-        "[CREDIT_CARD]",
     ),
     # マイナンバー（12桁）
     (

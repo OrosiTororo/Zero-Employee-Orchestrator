@@ -35,9 +35,37 @@ async def start_task(
     db: AsyncSession,
     task: Task,
     executor_agent_id: str | None = None,
+    operation_type: str | None = None,
 ) -> TaskRun:
     if not validate_task_transition(task.status, "running"):
         raise ValueError(f"Cannot start task in status: {task.status}")
+
+    # 承認ゲートチェック: 危険操作は承認が必要
+    if operation_type:
+        from app.policies.approval_gate import check_approval_required
+
+        gate_result = check_approval_required(operation_type)
+        if gate_result.requires_approval and task.status != "awaiting_approval":
+            task.status = "awaiting_approval"
+            audit = AuditLog(
+                id=generate_uuid(),
+                company_id=task.company_id,
+                actor_type="system",
+                event_type="task.approval_required",
+                target_type="task",
+                target_id=task.id,
+                task_id=task.id,
+                details_json={
+                    "operation": operation_type,
+                    "category": gate_result.category.value if gate_result.category else None,
+                    "risk_level": gate_result.risk_level.value,
+                    "reason": gate_result.reason,
+                },
+            )
+            db.add(audit)
+            await db.commit()
+            await db.refresh(task)
+            raise PermissionError(f"操作 '{operation_type}' は承認が必要です: {gate_result.reason}")
 
     task.status = "running"
     task.started_at = datetime.now(UTC)
