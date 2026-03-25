@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { MessageSquare, Send, Check, ArrowRight } from "lucide-react"
+import { MessageSquare, Send, Check, ArrowRight, Loader2 } from "lucide-react"
+import { api } from "../shared/api/client"
 
 interface Question {
   question: string
@@ -95,8 +96,36 @@ export function InterviewPage() {
     }
   }
 
-  const handleComplete = () => {
-    // TODO: Submit interview answers to API, generate spec
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleComplete = async () => {
+    setSubmitting(true)
+    try {
+      const companyId = localStorage.getItem("company_id") || ""
+      // インタビュー回答をバックエンドに保存
+      const answers = questions.reduce(
+        (acc, q) => {
+          if (q.answered) {
+            acc[q.category] = q.answer
+          }
+          return acc
+        },
+        {} as Record<string, string>
+      )
+      await api.post(`/companies/${companyId}/tickets/${ticketId}/interview/complete`, {
+        answers,
+      })
+      // 仕様生成をトリガー
+      try {
+        await api.post(`/companies/${companyId}/tickets/${ticketId}/generate-spec`, {})
+      } catch {
+        // spec 生成失敗は非致命的
+      }
+    } catch (e) {
+      console.error("Interview save failed:", e)
+    } finally {
+      setSubmitting(false)
+    }
     navigate(`/tickets/${ticketId}/spec-plan`)
   }
 
@@ -198,10 +227,11 @@ export function InterviewPage() {
       {requiredRemaining === 0 && (
         <button
           onClick={handleComplete}
-          className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded text-[14px] font-medium bg-[#16825d] text-white"
+          disabled={submitting}
+          className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded text-[14px] font-medium bg-[#16825d] text-white disabled:opacity-50"
         >
-          <ArrowRight size={18} />
-          Spec / Plan の生成に進む
+          {submitting ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={18} />}
+          {submitting ? "保存中..." : "Spec / Plan の生成に進む"}
         </button>
       )}
     </div>

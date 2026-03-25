@@ -44,10 +44,32 @@ export function DashboardPage() {
 
   useEffect(() => { fetchStats() }, [fetchStats])
 
+  const [nlResponse, setNlResponse] = useState("")
+
   const handleSubmit = async () => {
     if (!input.trim() || loading) return
     setLoading(true)
+    setNlResponse("")
     try {
+      // まず NL コマンドプロセッサで意図を判定
+      const nlResult = await api.post<{
+        success: boolean
+        message: string
+        category: string
+        confidence: number
+        delegate_to_llm: boolean
+        suggestions: string[]
+      }>("/command", { text: input.trim() })
+
+      // コマンドとして認識された場合はその場で結果を表示
+      if (nlResult.confidence >= 0.3 && !nlResult.delegate_to_llm && nlResult.message) {
+        setNlResponse(nlResult.message)
+        setInput("")
+        fetchStats() // 統計を再取得
+        return
+      }
+
+      // 通常のチケット作成フロー
       if (companyId) {
         const ticket = await api.post<{ id: string }>(`/companies/${companyId}/tickets`, {
           title: input.trim(),
@@ -112,6 +134,11 @@ export function DashboardPage() {
               </button>
             </div>
           </div>
+          {nlResponse && (
+            <div className="mt-3 rounded-md px-4 py-3 border border-[#4ec9b0]/30 bg-[#4ec9b0]/5 text-[12px] text-[var(--text-primary)] whitespace-pre-wrap">
+              {nlResponse}
+            </div>
+          )}
         </div>
 
         {/* Company Mission */}
