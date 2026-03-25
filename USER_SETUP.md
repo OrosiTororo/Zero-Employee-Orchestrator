@@ -79,6 +79,31 @@ zero-employee config set SUNO_API_KEY <your-key>
 zero-employee config set RUNWAY_API_KEY <your-key>
 ```
 
+### カスタムメディアプロバイダーの登録
+
+ビルトインプロバイダー以外の 3D ツールや新しい生成サービスを API から動的に追加できます。
+
+```bash
+# 例: 3D モデル生成ツール (Meshy) を登録
+curl -X POST http://localhost:18234/api/v1/media/providers \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "meshy_3d",
+    "media_type": "3d",
+    "api_base": "https://api.meshy.ai/v1/generate",
+    "env_key": "MESHY_API_KEY",
+    "models": ["meshy-v2"],
+    "default_model": "meshy-v2",
+    "cost_per_generation": 0.30
+  }'
+
+# 登録済みプロバイダーの確認
+curl http://localhost:18234/api/v1/media/providers
+
+# ユーザー登録プロバイダーの削除
+curl -X DELETE http://localhost:18234/api/v1/media/providers/meshy_3d
+```
+
 ### 外部ツール統合
 
 ```bash

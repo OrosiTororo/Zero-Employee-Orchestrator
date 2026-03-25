@@ -20,10 +20,11 @@ from app.services.task_service import (
     request_task_approval as svc_request_approval,
 )
 from app.services.task_service import (
-    start_task as svc_start_task,
+    resolve_task_provider,
+    validate_task_transition,
 )
 from app.services.task_service import (
-    validate_task_transition,
+    start_task as svc_start_task,
 )
 
 router = APIRouter()
@@ -117,9 +118,31 @@ async def start_task(
         raise HTTPException(status_code=404, detail="Task not found")
     try:
         run = await svc_start_task(db, task)
-        return {"status": "running", "run_id": str(run.id), "run_no": run.run_no}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+    # プロバイダー解決 & 実行モニター通知
+    resolved = resolve_task_provider(task)
+    try:
+        from app.orchestration.execution_monitor import get_execution_monitor
+
+        monitor = get_execution_monitor()
+        await monitor.on_task_started(
+            task_id=str(task.id),
+            agent_id=str(task.assignee_agent_id) if task.assignee_agent_id else "system",
+            company_id=str(task.company_id),
+            model=resolved.get("model"),
+            provider_override=task.provider_override_json,
+        )
+    except Exception:
+        pass  # モニターが利用不可でもタスク実行は継続
+
+    return {
+        "status": "running",
+        "run_id": str(run.id),
+        "run_no": run.run_no,
+        "resolved_provider": resolved,
+    }
 
 
 @router.post("/tasks/{task_id}/complete")

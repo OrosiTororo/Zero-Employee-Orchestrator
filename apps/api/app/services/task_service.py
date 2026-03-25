@@ -66,7 +66,10 @@ async def start_task(
         target_type="task",
         target_id=task.id,
         task_id=task.id,
-        details_json={"run_no": run.run_no},
+        details_json={
+            "run_no": run.run_no,
+            "provider_override": task.provider_override_json,
+        },
     )
     db.add(audit)
 
