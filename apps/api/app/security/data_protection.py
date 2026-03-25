@@ -176,7 +176,7 @@ class DataProtectionGuard:
         if self._config.password_upload_blocked and content_preview:
             lower = content_preview.lower()
             for pattern in self._config.upload_blocked_patterns:
-                if pattern in lower:
+                if pattern.lower() in lower:
                     return TransferCheckResult(
                         allowed=False,
                         direction=TransferDirection.UPLOAD,

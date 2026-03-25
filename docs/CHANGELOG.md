@@ -7,6 +7,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.1] - 2026-03-25
+
+### Added
+
+- **Design Interview 過去失敗パターンフィードバック** — Experience Memory と Failure Taxonomy から類似失敗パターンを自動検索し、Interview 中に警告・追加質問を動的注入。Spec 生成時にリスクノートとして統合。
+- **FEATURES.md に 21 件の未記載機能を追加** — RSS/ToS 自動更新、Knowledge Refresh、A2A 双方向通信、Avatar AI 共進化、Longrun Scheduler、Agent Session、Artifact Bridge、メディア生成、AI ツールレジストリ、iPaaS 統合、アーティファクトエクスポート、リパーパスエンジン、Obsidian 統合、クラウドネイティブ統合、スマートデバイス統合、ガバナンス・コンプライアンス、マーケットプレイス、チーム管理、Red-team テスト、ワークスペース隔離
+
+### Security
+
+- **Sandbox シンボリックリンク攻撃対策強化** — resolve() 後のパスが元パスと異なるディレクトリを指す場合を検出・ブロック
+- **Data Protection パスワードパターンマッチング修正** — 大文字小文字を区別しないパターンマッチングに修正
+- **CI: Dependabot PR でもテスト実行** — 従来スキップされていた lint-and-test ジョブを Dependabot PR でも実行するよう修正
+
+### Changed
+
+- **Dependabot 設定の大幅強化** — メジャーバージョン更新の無視、グループ化、全エコシステム網羅（pip/npm/cargo/github-actions）、Cloudflare Workers 個別管理
+- **Dependabot 自動マージワークフロー追加** — patch/minor 更新を CI 通過後に自動承認・squash マージ
+
 ## [0.1.0] - 2026-03-12 — Platform v0.1 (Consolidated Release)
 
 ### Added — AI Self-Improvement (Level 2: 自己改善の芽)

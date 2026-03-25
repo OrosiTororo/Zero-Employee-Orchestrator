@@ -5,27 +5,193 @@ updates:
     directory: "/apps/api"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
     commit-message:
-      prefix: "deps"
+      prefix: "deps(pip)"
+      include: "scope"
     labels:
       - "dependencies"
+      - "python"
+    # セキュリティアップデートはパッチバージョンのみ自動、メジャー/マイナーは手動レビュー
+    versioning-strategy: "increase-if-necessary"
+    # 同時に開くPRの上限（多すぎるとレビュー負荷が増大）
+    open-pull-requests-limit: 10
+    groups:
+      # セキュリティ関連は個別PR（破壊的変更を早期検出）
+      # テスト・リント系はまとめてOK
+      dev-dependencies:
+        patterns:
+          - "ruff"
+          - "pytest*"
+          - "httpx"
+        update-types:
+          - "minor"
+          - "patch"
+      # ランタイム依存は慎重にグループ化
+      fastapi-ecosystem:
+        patterns:
+          - "fastapi"
+          - "uvicorn"
+          - "starlette"
+          - "pydantic*"
+        update-types:
+          - "patch"
+      sqlalchemy-ecosystem:
+        patterns:
+          - "sqlalchemy*"
+          - "alembic"
+          - "aiosqlite"
+          - "asyncpg"
+        update-types:
+          - "patch"
+    # 破壊的変更を防ぐ: メジャーバージョンアップは無視
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # Python dependencies (root pyproject.toml — PyPI公開用)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    commit-message:
+      prefix: "deps(pip-root)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "python"
+    versioning-strategy: "increase-if-necessary"
+    open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   # Node.js dependencies (pnpm workspace root)
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
     commit-message:
-      prefix: "deps"
+      prefix: "deps(npm)"
+      include: "scope"
     labels:
       - "dependencies"
+      - "javascript"
+    open-pull-requests-limit: 10
+    groups:
+      react-ecosystem:
+        patterns:
+          - "react*"
+          - "@types/react*"
+        update-types:
+          - "patch"
+      build-tools:
+        patterns:
+          - "vite*"
+          - "typescript"
+          - "eslint*"
+          - "@vitejs/*"
+        update-types:
+          - "minor"
+          - "patch"
+      ui-libraries:
+        patterns:
+          - "tailwindcss*"
+          - "@tailwindcss/*"
+          - "lucide-react"
+          - "recharts"
+        update-types:
+          - "patch"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
-  # GitHub Actions
+  # Cloudflare Workers (Edge proxy)
+  - package-ecosystem: "npm"
+    directory: "/apps/edge/proxy"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    commit-message:
+      prefix: "deps(edge-proxy)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "edge"
+    open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # Cloudflare Workers (Edge full)
+  - package-ecosystem: "npm"
+    directory: "/apps/edge/full"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    commit-message:
+      prefix: "deps(edge-full)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "edge"
+    open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions — セキュリティ上特に重要
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
     commit-message:
-      prefix: "deps"
+      prefix: "deps(actions)"
+      include: "scope"
     labels:
       - "dependencies"
+      - "github-actions"
+    open-pull-requests-limit: 10
+    groups:
+      github-official:
+        patterns:
+          - "actions/*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Rust/Cargo (Tauri desktop)
+  - package-ecosystem: "cargo"
+    directory: "/apps/desktop/src-tauri"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    commit-message:
+      prefix: "deps(cargo)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "rust"
+    open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
