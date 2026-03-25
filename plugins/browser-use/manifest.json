@@ -1,0 +1,61 @@
+{
+  "name": "browser-use",
+  "slug": "browser-use",
+  "version": "0.1.0",
+  "display_name": "Browser Use - LLM Autonomous Browser Control",
+  "display_name_ja": "Browser Use - LLM自律ブラウザ操作",
+  "description": "Integrates the browser-use library for LLM-driven autonomous web browsing. The AI agent sees screenshots and DOM structure, then decides and executes clicks, typing, scrolling — just like a human. Includes loop detection and automatic replanning.",
+  "description_ja": "browser-use ライブラリを統合し、LLM 駆動の自律的ウェブブラウジングを実現。AI エージェントがスクリーンショットと DOM 構造を「見て」判断し、クリック・入力・スクロールを実行。ループ検出・自動リプランニング機能付き。",
+  "type": "plugin",
+  "category": "browser-automation",
+  "status": "experimental",
+  "author": "Community",
+  "license": "MIT",
+  "skills": [
+    "autonomous-browse",
+    "web-data-extraction",
+    "form-automation",
+    "web-research"
+  ],
+  "adapter": {
+    "type": "browser-use",
+    "class": "BrowserUseAdapter",
+    "module": "app.tools.browser_adapter"
+  },
+  "requires": {
+    "python_packages": ["browser-use", "langchain-openai"],
+    "capabilities": ["browser_automation", "llm_access"],
+    "permissions": ["internet_access", "browser_control"]
+  },
+  "required_permissions": ["internet_access", "browser_control"],
+  "dangerous_operations": true,
+  "approval_required_operations": [
+    "autonomous_browse",
+    "form_submit",
+    "file_download",
+    "login_action"
+  ],
+  "safety": {
+    "requires_user_consent": true,
+    "approval_required": true,
+    "sandbox_execution": true,
+    "audit_all_actions": true,
+    "max_steps_per_task": 50,
+    "url_allowlist_enforced": true,
+    "credential_input_blocked": true
+  },
+  "settings": {
+    "default_max_steps": 30,
+    "default_timeout_seconds": 300,
+    "headless": true,
+    "llm_provider": "auto",
+    "screenshot_interval_ms": 1000
+  },
+  "use_cases": [
+    "自然言語でのウェブ操作自動化",
+    "ウェブリサーチの自動化",
+    "フォーム入力・申請の自動化",
+    "データ収集・スクレイピング",
+    "ウェブアプリのテスト自動化"
+  ]
+}
