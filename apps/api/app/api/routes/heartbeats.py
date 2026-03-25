@@ -84,7 +84,7 @@ async def list_runs(
         {
             "id": str(r.id),
             "status": r.status,
-            "summary": r.summary,
+            "summary": r.summary_json,
             "started_at": r.started_at.isoformat() if r.started_at else None,
             "finished_at": r.finished_at.isoformat() if r.finished_at else None,
         }
