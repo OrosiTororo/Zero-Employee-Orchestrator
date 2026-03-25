@@ -1,7 +1,7 @@
 name: Dependabot Auto-Merge
 
 # Dependabot の patch/minor アップデートを CI 通過後に自動マージする。
-# メジャーバージョンアップは dependabot.yml で ignore しているため到達しない。
+# メジャーバージョンアップは dependabot.yml で ignore しているた���到達しない。
 # セキュリティアップデートは常に自動マージ対象。
 
 on:
@@ -22,16 +22,7 @@ jobs:
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Auto-approve patch and minor updates
-        if: >-
-          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
-          steps.metadata.outputs.update-type == 'version-update:semver-minor'
-        run: gh pr review --approve "$PR_URL"
-        env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Enable auto-merge for patch and minor updates
+      - name: Enable auto-merge for patch and minor updates (no approval)
         if: >-
           steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
           steps.metadata.outputs.update-type == 'version-update:semver-minor'
