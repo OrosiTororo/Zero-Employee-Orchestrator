@@ -69,6 +69,12 @@ _PII_PATTERNS: list[tuple[PIICategory, re.Pattern, str]] = [
         re.compile(r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"),
         "[EMAIL]",
     ),
+    # クレジットカード番号（4桁×4グループ）— 電話番号より先に評価する
+    (
+        PIICategory.CREDIT_CARD,
+        re.compile(r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b"),
+        "[CREDIT_CARD]",
+    ),
     # 電話番号（日本）
     (
         PIICategory.PHONE,
@@ -80,12 +86,6 @@ _PII_PATTERNS: list[tuple[PIICategory, re.Pattern, str]] = [
         PIICategory.PHONE,
         re.compile(r"(?:\+\d{1,3}[-\s]?)?\(?\d{2,4}\)?[-\s]?\d{3,4}[-\s]?\d{3,4}"),
         "[PHONE]",
-    ),
-    # クレジットカード番号（4桁×4グループ）
-    (
-        PIICategory.CREDIT_CARD,
-        re.compile(r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b"),
-        "[CREDIT_CARD]",
     ),
     # マイナンバー（12桁）
     (

@@ -46,7 +46,7 @@ export function SpecPlanPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [spec, setSpec] = useState<Spec | null>(null)
-  const [plan, setPlan] = useState<Plan | null>(null)
+  const [, setPlan] = useState<Plan | null>(null)
   const [tasks, setTasks] = useState<TaskNode[]>([])
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
