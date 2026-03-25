@@ -72,9 +72,7 @@ api_router.include_router(
 )
 api_router.include_router(self_improvement.router, tags=["self-improvement"])
 api_router.include_router(browser_assist.router, tags=["browser-assist"])
-api_router.include_router(
-    browser_automation.router, tags=["browser-automation", "web-ai"]
-)
+api_router.include_router(browser_automation.router, tags=["browser-automation", "web-ai"])
 api_router.include_router(security_settings.router, tags=["security"])
 api_router.include_router(media_generation.router, tags=["media-generation"])
 api_router.include_router(ai_tools.router, tags=["ai-tools"])
