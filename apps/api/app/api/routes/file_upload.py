@@ -297,6 +297,26 @@ async def download_file(file_id: str, user: User = Depends(get_current_user)) ->
     if not path.exists():
         raise HTTPException(status_code=404, detail="ファイルがストレージ上に見つかりません")
 
+    # サンドボックスチェック — ファイルパスが許可範囲内か
+    try:
+        from app.security.sandbox import AccessType, filesystem_sandbox
+
+        access = filesystem_sandbox.check_access(str(path), AccessType.READ)
+        if not access.allowed:
+            logger.warning(
+                "Sandbox blocked file download: path=%s reason=%s",
+                path,
+                access.reason,
+            )
+            raise HTTPException(
+                status_code=403,
+                detail=f"サンドボックスポリシーによりアクセスが拒否されました: {access.reason}",
+            )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.debug("Sandbox check skipped: %s", exc)
+
     return FileResponse(
         path=str(path),
         filename=stored.original_name,

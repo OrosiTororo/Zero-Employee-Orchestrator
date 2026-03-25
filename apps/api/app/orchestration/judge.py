@@ -112,17 +112,41 @@ class PolicyPackJudge:
         violations = []
         suggestions = []
 
-        # Check dangerous operations
+        # Check dangerous operations via approval_gate
         if operations:
             dangerous = self.check_dangerous_operations(operations)
             if dangerous:
                 violations.extend([f"承認必須操作が含まれています: {op}" for op in dangerous])
+
+            # autonomy_boundary チェック
+            try:
+                from app.policies.autonomy_boundary import check_autonomy
+
+                for op in operations:
+                    autonomy = check_autonomy(op)
+                    if autonomy.requires_approval and op not in dangerous:
+                        violations.append(f"自律実行境界: {autonomy.reason}")
+            except ImportError:
+                pass
 
         # Check credential exposure
         content = str(output)
         if self.check_credential_exposure(content):
             violations.append("認証情報が平文で含まれている可能性があります")
             suggestions.append("機密情報をマスキングまたは参照ID化してください")
+
+        # PII チェック — 出力に個人情報が含まれていないか
+        try:
+            from app.security.pii_guard import detect_and_mask_pii
+
+            pii_result = detect_and_mask_pii(content[:5000])  # 先頭5000文字をスキャン
+            if pii_result.has_pii:
+                suggestions.append(
+                    f"PII 検出 ({pii_result.detected_count}件): "
+                    f"{', '.join(pii_result.detected_types)} — マスキングを推奨"
+                )
+        except ImportError:
+            pass
 
         score = 1.0 - (len(violations) * 0.3)
         score = max(0.0, score)

@@ -318,10 +318,27 @@ class RSSToSMonitor:
         return all_changes
 
     async def _check_rss(self, service: MonitoredService) -> list[DetectedChange]:
-        """RSS フィードを取得してチェックする."""
+        """RSS フィードを取得してチェックする.
+
+        取得した外部コンテンツはプロンプトインジェクション検査を適用する。
+        """
         content = await self._fetch_url(service.rss_url)
         if not content:
             return []
+
+        # 外部データのプロンプトインジェクション検査
+        try:
+            from app.security.prompt_guard import scan_prompt_injection
+
+            guard = scan_prompt_injection(content[:3000])
+            if not guard.is_safe:
+                logger.warning(
+                    "Prompt injection detected in RSS feed %s: %s",
+                    service.name,
+                    guard.detections,
+                )
+        except ImportError:
+            pass
 
         content_hash = self._hash_content(content)
         cache_key = f"rss:{service.id}"

@@ -111,7 +111,7 @@ class KnowledgeStore:
             try:
                 from app.security.workspace_isolation import workspace_isolation
 
-                ws_check = workspace_isolation.check_path_access(value)
+                ws_check = workspace_isolation.check_access(value)
                 if not ws_check.allowed:
                     logger.warning(
                         "Workspace isolation blocked knowledge store: path=%s reason=%s",
