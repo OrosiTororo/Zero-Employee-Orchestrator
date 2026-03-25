@@ -11,8 +11,10 @@ import {
   Eye,
   EyeOff,
   Check,
+  Globe,
 } from "lucide-react"
 import { api } from "../shared/api/client"
+import { useT, useI18n, LOCALE_LABELS, type Locale } from "@/shared/i18n"
 
 interface ProviderInfo {
   name: string
@@ -24,65 +26,39 @@ const PROVIDER_KEYS = [
   {
     key: "OPENROUTER_API_KEY",
     name: "OpenRouter",
-    description: "複数LLMを一括利用",
     placeholder: "sk-or-v1-xxxxxxxxxxxx",
   },
   {
     key: "OPENAI_API_KEY",
     name: "OpenAI",
-    description: "GPT-5.4等を直接利用",
     placeholder: "sk-xxxxxxxxxxxx",
   },
   {
     key: "ANTHROPIC_API_KEY",
     name: "Anthropic",
-    description: "Claude等を直接利用",
     placeholder: "sk-ant-xxxxxxxxxxxx",
   },
   {
     key: "GEMINI_API_KEY",
     name: "Google Gemini",
-    description: "無料枠あり・クレカ不要",
     placeholder: "AIzaSy-xxxxxxxxxxxx",
   },
 ] as const
 
 const EXECUTION_MODES = [
-  { value: "quality", label: "高品質", labelEn: "Quality" },
-  { value: "speed", label: "高速", labelEn: "Speed" },
-  { value: "cost", label: "コスト効率", labelEn: "Cost" },
-  { value: "free", label: "無料", labelEn: "Free" },
-  { value: "subscription", label: "サブスク", labelEn: "Subscription" },
+  { value: "quality", labelKey: "modeQuality" as const, descKey: "modeQualityDesc" as const },
+  { value: "speed", labelKey: "modeSpeed" as const, descKey: "modeSpeedDesc" as const },
+  { value: "cost", labelKey: "modeCost" as const, descKey: "modeCostDesc" as const },
+  { value: "free", labelKey: "modeFree" as const, descKey: "modeFreeDesc" as const },
+  { value: "subscription", labelKey: "modeSubscription" as const, descKey: "modeSubscriptionDesc" as const },
 ] as const
 
-const providers = [
-  {
-    id: "openrouter",
-    name: "OpenRouter",
-    description: "LLMゲートウェイ",
-    connected: false,
-  },
-  {
-    id: "google",
-    name: "Google",
-    description: "Google Workspace 連携",
-    connected: false,
-  },
-  {
-    id: "github",
-    name: "GitHub",
-    description: "リポジトリ連携",
-    connected: false,
-  },
-  {
-    id: "slack",
-    name: "Slack",
-    description: "通知・コミュニケーション",
-    connected: false,
-  },
-]
+const LOCALES: Locale[] = ["ja", "en", "zh"]
 
 export function SettingsPage() {
+  const t = useT()
+  const { locale, setLocale } = useI18n()
+
   const [companyName, setCompanyName] = useState("")
   const [mission, setMission] = useState("")
   const [executionMode, setExecutionMode] = useState("quality")
@@ -127,12 +103,12 @@ export function SettingsPage() {
     setSaving(true)
     try {
       await api.put("/config", { key, value })
-      setSaveMessage(`${key} を保存しました`)
+      setSaveMessage(t.settings.saved)
       setApiKeys((prev) => ({ ...prev, [key]: "" }))
       await loadConfig()
       setTimeout(() => setSaveMessage(""), 3000)
     } catch {
-      setSaveMessage("保存に失敗しました")
+      setSaveMessage(t.settings.saveFailed)
       setTimeout(() => setSaveMessage(""), 3000)
     } finally {
       setSaving(false)
@@ -148,24 +124,60 @@ export function SettingsPage() {
     }
   }
 
+  const handleLanguageChange = async (newLocale: Locale) => {
+    setLocale(newLocale)
+    try {
+      await api.put("/config", { key: "LANGUAGE", value: newLocale })
+    } catch {
+      // Backend may not be available; frontend change still applies
+    }
+  }
+
   const handleSave = async () => {
     setSaving(true)
     try {
       // TODO: PUT /settings (company settings)
       await new Promise((r) => setTimeout(r, 500))
-      setSaveMessage("設定を保存しました")
+      setSaveMessage(t.settings.saved)
       setTimeout(() => setSaveMessage(""), 3000)
     } finally {
       setSaving(false)
     }
   }
 
+  const providers = [
+    {
+      id: "openrouter",
+      name: "OpenRouter",
+      description: "LLM Gateway",
+      connected: false,
+    },
+    {
+      id: "google",
+      name: "Google",
+      description: "Google Workspace",
+      connected: false,
+    },
+    {
+      id: "github",
+      name: "GitHub",
+      description: "Repository",
+      connected: false,
+    },
+    {
+      id: "slack",
+      name: "Slack",
+      description: "Notifications",
+      connected: false,
+    },
+  ]
+
   return (
     <div className="h-full overflow-auto">
       <div className="max-w-[720px] mx-auto px-6 py-6">
         <div className="flex items-center gap-2 mb-6">
           <Settings size={18} className="text-[#007acc]" />
-          <h2 className="text-[14px] font-medium text-[#cccccc]">設定</h2>
+          <h2 className="text-[14px] font-medium text-[#cccccc]">{t.settings.title}</h2>
         </div>
 
         {saveMessage && (
@@ -175,14 +187,49 @@ export function SettingsPage() {
           </div>
         )}
 
+        {/* Language Settings */}
+        <SettingsSection icon={Globe} title={t.settings.languageSettings}>
+          <div className="flex flex-col gap-4">
+            <div>
+              <label className="text-[11px] text-[#6a6a6a] block mb-2">
+                {t.settings.uiLanguage}
+              </label>
+              <div className="flex gap-2">
+                {LOCALES.map((loc) => (
+                  <button
+                    key={loc}
+                    onClick={() => handleLanguageChange(loc)}
+                    className="px-4 py-2 rounded text-[12px] border transition-colors"
+                    style={{
+                      background: locale === loc ? "#007acc" : "transparent",
+                      color: locale === loc ? "#ffffff" : "#cccccc",
+                      borderColor: locale === loc ? "#007acc" : "#3e3e42",
+                    }}
+                  >
+                    {LOCALE_LABELS[loc]}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-[11px] text-[#6a6a6a] block mb-1">
+                {t.settings.aiLanguage}
+              </label>
+              <div className="text-[11px] text-[#6a6a6a]">
+                {t.settings.aiLanguageDesc}
+              </div>
+            </div>
+          </div>
+        </SettingsSection>
+
         {/* LLM API Keys */}
-        <SettingsSection icon={Key} title="LLM API キー設定">
+        <SettingsSection icon={Key} title={t.settings.apiKeys}>
           <div className="flex flex-col gap-1 mb-3">
             <div className="text-[11px] text-[#6a6a6a]">
-              .env ファイルを直接編集する代わりに、ここから API キーを設定できます。
+              {t.settings.apiKeysDesc}
             </div>
             <div className="text-[11px] text-[#6a6a6a]">
-              CLI からも設定可能: <code className="text-[#dcdcaa] bg-[#1e1e1e] px-1 rounded">zero-employee config set GEMINI_API_KEY</code>
+              {t.settings.apiKeysCli} <code className="text-[#dcdcaa] bg-[#1e1e1e] px-1 rounded">zero-employee config set GEMINI_API_KEY</code>
             </div>
           </div>
           <div className="flex flex-col gap-3">
@@ -205,11 +252,10 @@ export function SettingsPage() {
                         style={{ background: isConfigured ? "#4ec9b0" : "#6a6a6a" }}
                       />
                       <span className="text-[13px] text-[#cccccc]">{provider.name}</span>
-                      <span className="text-[11px] text-[#6a6a6a]">{provider.description}</span>
                     </div>
                     {isConfigured && (
                       <span className="text-[10px] text-[#4ec9b0] border border-[#4ec9b0] rounded px-1.5 py-0.5">
-                        設定済み
+                        {t.settings.configured}
                       </span>
                     )}
                   </div>
@@ -224,7 +270,7 @@ export function SettingsPage() {
                             [provider.key]: e.target.value,
                           }))
                         }
-                        placeholder={isConfigured ? "（新しいキーで上書き）" : provider.placeholder}
+                        placeholder={isConfigured ? t.settings.overwrite : provider.placeholder}
                         className="w-full px-3 py-1.5 pr-8 rounded text-[12px] outline-none bg-[#3c3c3c] text-[#cccccc] border border-[#3e3e42] focus:border-[#007acc] font-mono"
                       />
                       <button
@@ -248,7 +294,7 @@ export function SettingsPage() {
                       disabled={!apiKeys[provider.key] || saving}
                       className="px-3 py-1.5 rounded text-[11px] bg-[#007acc] text-white disabled:opacity-40"
                     >
-                      保存
+                      {t.common.save}
                     </button>
                   </div>
                 </div>
@@ -263,21 +309,21 @@ export function SettingsPage() {
                 className="w-2 h-2 rounded-full"
                 style={{ background: providerStatus.ollama?.configured ? "#4ec9b0" : "#6a6a6a" }}
               />
-              <span className="text-[13px] text-[#cccccc]">Ollama (ローカルLLM)</span>
-              <span className="text-[11px] text-[#6a6a6a]">APIキー不要・オフライン・無制限</span>
+              <span className="text-[13px] text-[#cccccc]">{t.settings.ollamaLocal}</span>
+              <span className="text-[11px] text-[#6a6a6a]">{t.settings.ollamaDesc}</span>
             </div>
             <div className="text-[11px] text-[#6a6a6a] ml-4">
-              Ollama がインストール済みであれば自動検出されます。
+              {t.settings.ollamaAutoDetect}{" "}
               CLI: <code className="text-[#dcdcaa] bg-[#252526] px-1 rounded">zero-employee models</code>
             </div>
           </div>
         </SettingsSection>
 
         {/* Execution Mode */}
-        <SettingsSection icon={Cpu} title="実行モード">
+        <SettingsSection icon={Cpu} title={t.settings.executionMode}>
           <div>
             <label className="text-[11px] text-[#6a6a6a] block mb-2">
-              LLM の利用方法を選択
+              {t.settings.executionModeDesc}
             </label>
             <div className="flex flex-wrap gap-2">
               {EXECUTION_MODES.map((mode) => (
@@ -291,42 +337,38 @@ export function SettingsPage() {
                     borderColor: executionMode === mode.value ? "#007acc" : "#3e3e42",
                   }}
                 >
-                  {mode.label}
+                  {t.settings[mode.labelKey]}
                 </button>
               ))}
             </div>
             <div className="text-[11px] text-[#6a6a6a] mt-2">
-              {executionMode === "quality" && "最高品質モデルを使用（APIキー必要）"}
-              {executionMode === "speed" && "高速軽量モデルを使用（APIキー必要）"}
-              {executionMode === "cost" && "コスト効率を最優先（APIキー必要）"}
-              {executionMode === "free" && "Gemini無料枠 / Ollamaを使用"}
-              {executionMode === "subscription" && "g4f経由でAPIキー不要（試用向け）"}
+              {EXECUTION_MODES.find((m) => m.value === executionMode)
+                ? t.settings[EXECUTION_MODES.find((m) => m.value === executionMode)!.descKey]
+                : ""}
             </div>
           </div>
         </SettingsSection>
 
         {/* Company Settings */}
-        <SettingsSection icon={Building2} title="企業設定">
+        <SettingsSection icon={Building2} title={t.settings.companySettings}>
           <div className="flex flex-col gap-3">
             <div>
               <label className="text-[11px] text-[#6a6a6a] block mb-1">
-                企業名
+                {t.settings.companyName}
               </label>
               <input
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                placeholder="株式会社サンプル"
                 className="w-full px-3 py-2 rounded text-[12px] outline-none bg-[#3c3c3c] text-[#cccccc] border border-[#3e3e42] focus:border-[#007acc]"
               />
             </div>
             <div>
               <label className="text-[11px] text-[#6a6a6a] block mb-1">
-                ミッション
+                {t.settings.companyMission}
               </label>
               <textarea
                 value={mission}
                 onChange={(e) => setMission(e.target.value)}
-                placeholder="テクノロジーで世界をより良くする"
                 className="w-full px-3 py-2 rounded text-[12px] outline-none bg-[#3c3c3c] text-[#cccccc] border border-[#3e3e42] focus:border-[#007acc] resize-none"
                 rows={3}
               />
@@ -335,7 +377,7 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* Provider Connections */}
-        <SettingsSection icon={Link2} title="プロバイダー接続">
+        <SettingsSection icon={Link2} title={t.settings.providerConnections}>
           <div className="flex flex-col gap-2">
             {providers.map((p) => (
               <div
@@ -359,12 +401,12 @@ export function SettingsPage() {
                 {p.connected ? (
                   <button className="flex items-center gap-1 px-2 py-1 rounded text-[11px] border border-[#3e3e42] text-[#f44747]">
                     <Unlink size={12} />
-                    切断
+                    {t.settings.disconnect}
                   </button>
                 ) : (
                   <button className="flex items-center gap-1 px-2 py-1 rounded text-[11px] bg-[#007acc] text-white">
                     <Link2 size={12} />
-                    接続
+                    {t.settings.connect}
                   </button>
                 )}
               </div>
@@ -373,14 +415,11 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* Policies */}
-        <SettingsSection icon={Shield} title="ポリシー">
+        <SettingsSection icon={Shield} title={t.settings.policies}>
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-[13px] text-[#cccccc]">自動承認</div>
-                <div className="text-[11px] text-[#6a6a6a]">
-                  低リスクのアクションを自動的に承認する
-                </div>
+                <div className="text-[13px] text-[#cccccc]">{t.settings.autoApprove}</div>
               </div>
               <button
                 onClick={() => setAutoApprove(!autoApprove)}
@@ -403,7 +442,7 @@ export function SettingsPage() {
           className="flex items-center gap-2 px-4 py-2 rounded text-[12px] bg-[#007acc] text-white mt-4"
         >
           <Save size={14} />
-          {saving ? "保存中..." : "設定を保存"}
+          {saving ? t.settings.saving : t.common.save}
         </button>
       </div>
     </div>
