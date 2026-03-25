@@ -40,6 +40,7 @@ class Task(Base, TimestampMixin):
     requires_approval: Mapped[bool] = mapped_column(Boolean, default=False)
     depends_on_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     verification_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    provider_override_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 

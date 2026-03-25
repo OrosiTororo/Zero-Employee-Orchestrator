@@ -1,13 +1,17 @@
-"""メディア生成統合 — 画像・動画・音声の生成ツール連携.
+"""メディア生成統合 — 画像・動画・音声・3D の生成ツール連携.
 
-外部 API を利用した画像生成、動画生成、音声生成を統合する。
+外部 API を利用した画像生成、動画生成、音声生成、3Dモデル生成を統合する。
 すべての生成はデータ保護ポリシーと承認ゲートを経由する。
 
-対応サービス:
+ビルトイン対応サービス:
 - 画像生成: OpenAI DALL-E, Stability AI (Stable Diffusion), Replicate
 - 動画生成: Runway ML, Replicate (SVD/AnimateDiff), Pika
 - 音声生成: OpenAI TTS, ElevenLabs
 - 音楽生成: Suno, Udio
+
+動的プロバイダー登録:
+- ユーザーが API 経由で新規プロバイダーを追加可能（3D ツール等）
+- ビルトインプロバイダーは削除・無効化不可
 
 安全性:
 - プロンプトインジェクション検査（生成プロンプトにも適用）
@@ -34,10 +38,11 @@ class MediaType(str, Enum):
     VIDEO = "video"
     AUDIO = "audio"
     MUSIC = "music"
+    THREE_D = "3d"
 
 
 class GenerationProvider(str, Enum):
-    """生成プロバイダー."""
+    """ビルトイン生成プロバイダー（後方互換用）."""
 
     # 画像
     OPENAI_DALLE = "openai_dalle"
@@ -70,12 +75,231 @@ class GenerationStatus(str, Enum):
 
 
 @dataclass
+class MediaProviderEntry:
+    """メディアプロバイダー登録エントリ."""
+
+    id: str
+    media_type: str  # MediaType value (image, video, audio, music, 3d)
+    api_base: str
+    env_key: str
+    models: list[str] = field(default_factory=list)
+    default_model: str = ""
+    max_prompt_length: int = 5000
+    cost_per_generation: float = 0.0
+    extra_config: dict = field(default_factory=dict)
+    builtin: bool = False
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "media_type": self.media_type,
+            "api_base": self.api_base,
+            "env_key": self.env_key,
+            "models": self.models,
+            "default_model": self.default_model,
+            "max_prompt_length": self.max_prompt_length,
+            "cost_per_generation": self.cost_per_generation,
+            "extra_config": self.extra_config,
+            "builtin": self.builtin,
+        }
+
+
+class MediaProviderRegistry:
+    """メディアプロバイダーの動的レジストリ.
+
+    ビルトインプロバイダーは初期化時に登録され、削除不可。
+    ユーザーは API 経由で新規プロバイダーを追加・削除できる。
+    """
+
+    def __init__(self) -> None:
+        self._providers: dict[str, MediaProviderEntry] = {}
+        self._init_builtin_providers()
+
+    def _init_builtin_providers(self) -> None:
+        """ビルトインプロバイダーを登録."""
+        builtins = [
+            MediaProviderEntry(
+                id="openai_dalle",
+                media_type="image",
+                api_base="https://api.openai.com/v1/images/generations",
+                env_key="OPENAI_API_KEY",
+                models=["dall-e-3", "dall-e-2"],
+                default_model="dall-e-3",
+                max_prompt_length=4000,
+                cost_per_generation=0.04,
+                extra_config={
+                    "supported_sizes": ["1024x1024", "1024x1792", "1792x1024"],
+                },
+                builtin=True,
+            ),
+            MediaProviderEntry(
+                id="stability_ai",
+                media_type="image",
+                api_base="https://api.stability.ai/v2beta/stable-image/generate",
+                env_key="STABILITY_API_KEY",
+                models=["sd3.5-large", "sd3.5-medium", "sd3-turbo"],
+                default_model="sd3.5-large",
+                max_prompt_length=10000,
+                cost_per_generation=0.065,
+                builtin=True,
+            ),
+            MediaProviderEntry(
+                id="replicate_image",
+                media_type="image",
+                api_base="https://api.replicate.com/v1/predictions",
+                env_key="REPLICATE_API_TOKEN",
+                models=["flux-1.1-pro", "sdxl", "kandinsky"],
+                default_model="flux-1.1-pro",
+                max_prompt_length=5000,
+                cost_per_generation=0.03,
+                builtin=True,
+            ),
+            MediaProviderEntry(
+                id="runway_ml",
+                media_type="video",
+                api_base="https://api.dev.runwayml.com/v1",
+                env_key="RUNWAY_API_KEY",
+                models=["gen-3-alpha"],
+                default_model="gen-3-alpha",
+                max_prompt_length=2000,
+                cost_per_generation=0.50,
+                builtin=True,
+            ),
+            MediaProviderEntry(
+                id="replicate_video",
+                media_type="video",
+                api_base="https://api.replicate.com/v1/predictions",
+                env_key="REPLICATE_API_TOKEN",
+                models=["stable-video-diffusion", "animate-diff"],
+                default_model="stable-video-diffusion",
+                max_prompt_length=2000,
+                cost_per_generation=0.10,
+                builtin=True,
+            ),
+            MediaProviderEntry(
+                id="pika",
+                media_type="video",
+                api_base="https://api.pika.art/v1",
+                env_key="PIKA_API_KEY",
+                models=["pika-2.0"],
+                default_model="pika-2.0",
+                max_prompt_length=2000,
+                cost_per_generation=0.20,
+                builtin=True,
+            ),
+            MediaProviderEntry(
+                id="openai_tts",
+                media_type="audio",
+                api_base="https://api.openai.com/v1/audio/speech",
+                env_key="OPENAI_API_KEY",
+                models=["tts-1", "tts-1-hd"],
+                default_model="tts-1",
+                max_prompt_length=4096,
+                cost_per_generation=0.015,
+                extra_config={
+                    "voices": ["alloy", "echo", "fable", "onyx", "nova", "shimmer"],
+                },
+                builtin=True,
+            ),
+            MediaProviderEntry(
+                id="elevenlabs",
+                media_type="audio",
+                api_base="https://api.elevenlabs.io/v1/text-to-speech",
+                env_key="ELEVENLABS_API_KEY",
+                models=["eleven_multilingual_v2"],
+                default_model="eleven_multilingual_v2",
+                max_prompt_length=5000,
+                cost_per_generation=0.03,
+                builtin=True,
+            ),
+            MediaProviderEntry(
+                id="suno",
+                media_type="music",
+                api_base="https://api.suno.ai/v1",
+                env_key="SUNO_API_KEY",
+                models=["suno-v4"],
+                default_model="suno-v4",
+                max_prompt_length=3000,
+                cost_per_generation=0.10,
+                builtin=True,
+            ),
+            MediaProviderEntry(
+                id="udio",
+                media_type="music",
+                api_base="https://api.udio.com/v1",
+                env_key="UDIO_API_KEY",
+                models=["udio-v2"],
+                default_model="udio-v2",
+                max_prompt_length=3000,
+                cost_per_generation=0.10,
+                builtin=True,
+            ),
+        ]
+        for entry in builtins:
+            self._providers[entry.id] = entry
+
+    def register(self, entry: MediaProviderEntry) -> None:
+        """プロバイダーを登録（既存のユーザー定義プロバイダーは上書き）."""
+        existing = self._providers.get(entry.id)
+        if existing and existing.builtin:
+            raise ValueError(f"Cannot overwrite builtin provider: {entry.id}")
+        self._providers[entry.id] = entry
+        logger.info("Media provider registered: %s (type=%s)", entry.id, entry.media_type)
+
+    def unregister(self, provider_id: str) -> bool:
+        """プロバイダーを削除（ビルトインは削除不可）."""
+        entry = self._providers.get(provider_id)
+        if not entry:
+            return False
+        if entry.builtin:
+            raise ValueError(f"Cannot remove builtin provider: {provider_id}")
+        del self._providers[provider_id]
+        logger.info("Media provider unregistered: %s", provider_id)
+        return True
+
+    def get(self, provider_id: str) -> MediaProviderEntry | None:
+        """プロバイダーを取得."""
+        return self._providers.get(provider_id)
+
+    def list_all(self, media_type: str | None = None) -> list[MediaProviderEntry]:
+        """全プロバイダーを返す（オプションでメディアタイプでフィルタ）."""
+        entries = list(self._providers.values())
+        if media_type:
+            entries = [e for e in entries if e.media_type == media_type]
+        return entries
+
+    def get_available(self, media_type: str | None = None) -> list[dict]:
+        """利用可能なプロバイダー一覧（API キー設定済みかどうかを含む）."""
+        import os
+
+        result = []
+        for entry in self.list_all(media_type):
+            available = bool(os.environ.get(entry.env_key)) if entry.env_key else False
+            result.append(
+                {
+                    "provider": entry.id,
+                    "media_type": entry.media_type,
+                    "models": entry.models,
+                    "default_model": entry.default_model,
+                    "available": available,
+                    "builtin": entry.builtin,
+                    "cost_per_generation": entry.cost_per_generation,
+                }
+            )
+        return result
+
+
+# グローバルレジストリインスタンス
+media_provider_registry = MediaProviderRegistry()
+
+
+@dataclass
 class GenerationRequest:
     """メディア生成リクエスト."""
 
     prompt: str
-    media_type: MediaType
-    provider: GenerationProvider
+    media_type: str  # MediaType value (string)
+    provider: str  # provider ID (string, not enum)
     user_id: str
     parameters: dict = field(default_factory=dict)
     negative_prompt: str = ""
@@ -88,8 +312,8 @@ class GenerationResult:
 
     request_id: str
     status: GenerationStatus
-    media_type: MediaType
-    provider: GenerationProvider
+    media_type: str
+    provider: str
     output_url: str = ""
     output_base64: str = ""
     metadata: dict = field(default_factory=dict)
@@ -98,135 +322,24 @@ class GenerationResult:
     created_at: str = ""
 
 
-# プロバイダー設定
-_PROVIDER_CONFIG: dict[GenerationProvider, dict] = {
-    GenerationProvider.OPENAI_DALLE: {
-        "media_type": MediaType.IMAGE,
-        "api_base": "https://api.openai.com/v1/images/generations",
-        "env_key": "OPENAI_API_KEY",
-        "models": ["dall-e-3", "dall-e-2"],
-        "default_model": "dall-e-3",
-        "max_prompt_length": 4000,
-        "supported_sizes": ["1024x1024", "1024x1792", "1792x1024"],
-        "cost_per_generation": 0.04,  # DALL-E 3 standard
-    },
-    GenerationProvider.STABILITY_AI: {
-        "media_type": MediaType.IMAGE,
-        "api_base": "https://api.stability.ai/v2beta/stable-image/generate",
-        "env_key": "STABILITY_API_KEY",
-        "models": ["sd3.5-large", "sd3.5-medium", "sd3-turbo"],
-        "default_model": "sd3.5-large",
-        "max_prompt_length": 10000,
-        "cost_per_generation": 0.065,
-    },
-    GenerationProvider.REPLICATE_IMAGE: {
-        "media_type": MediaType.IMAGE,
-        "api_base": "https://api.replicate.com/v1/predictions",
-        "env_key": "REPLICATE_API_TOKEN",
-        "models": ["flux-1.1-pro", "sdxl", "kandinsky"],
-        "default_model": "flux-1.1-pro",
-        "max_prompt_length": 5000,
-        "cost_per_generation": 0.03,
-    },
-    GenerationProvider.RUNWAY_ML: {
-        "media_type": MediaType.VIDEO,
-        "api_base": "https://api.dev.runwayml.com/v1",
-        "env_key": "RUNWAY_API_KEY",
-        "models": ["gen-3-alpha"],
-        "default_model": "gen-3-alpha",
-        "max_prompt_length": 2000,
-        "cost_per_generation": 0.50,
-    },
-    GenerationProvider.REPLICATE_VIDEO: {
-        "media_type": MediaType.VIDEO,
-        "api_base": "https://api.replicate.com/v1/predictions",
-        "env_key": "REPLICATE_API_TOKEN",
-        "models": ["stable-video-diffusion", "animate-diff"],
-        "default_model": "stable-video-diffusion",
-        "max_prompt_length": 2000,
-        "cost_per_generation": 0.10,
-    },
-    GenerationProvider.PIKA: {
-        "media_type": MediaType.VIDEO,
-        "api_base": "https://api.pika.art/v1",
-        "env_key": "PIKA_API_KEY",
-        "models": ["pika-2.0"],
-        "default_model": "pika-2.0",
-        "max_prompt_length": 2000,
-        "cost_per_generation": 0.20,
-    },
-    GenerationProvider.OPENAI_TTS: {
-        "media_type": MediaType.AUDIO,
-        "api_base": "https://api.openai.com/v1/audio/speech",
-        "env_key": "OPENAI_API_KEY",
-        "models": ["tts-1", "tts-1-hd"],
-        "default_model": "tts-1",
-        "voices": ["alloy", "echo", "fable", "onyx", "nova", "shimmer"],
-        "max_prompt_length": 4096,
-        "cost_per_generation": 0.015,
-    },
-    GenerationProvider.ELEVENLABS: {
-        "media_type": MediaType.AUDIO,
-        "api_base": "https://api.elevenlabs.io/v1/text-to-speech",
-        "env_key": "ELEVENLABS_API_KEY",
-        "models": ["eleven_multilingual_v2"],
-        "default_model": "eleven_multilingual_v2",
-        "max_prompt_length": 5000,
-        "cost_per_generation": 0.03,
-    },
-    GenerationProvider.SUNO: {
-        "media_type": MediaType.MUSIC,
-        "api_base": "https://api.suno.ai/v1",
-        "env_key": "SUNO_API_KEY",
-        "models": ["suno-v4"],
-        "default_model": "suno-v4",
-        "max_prompt_length": 3000,
-        "cost_per_generation": 0.10,
-    },
-    GenerationProvider.UDIO: {
-        "media_type": MediaType.MUSIC,
-        "api_base": "https://api.udio.com/v1",
-        "env_key": "UDIO_API_KEY",
-        "models": ["udio-v2"],
-        "default_model": "udio-v2",
-        "max_prompt_length": 3000,
-        "cost_per_generation": 0.10,
-    },
-}
-
-
 class MediaGenerationService:
     """メディア生成サービス.
 
-    画像・動画・音声の生成を統合管理する。
+    画像・動画・音声・3D の生成を統合管理する。
+    動的プロバイダーレジストリを使用して、ユーザー登録プロバイダーにも対応。
     """
 
-    def __init__(self) -> None:
+    def __init__(self, registry: MediaProviderRegistry | None = None) -> None:
+        self._registry = registry or media_provider_registry
         self._results: dict[str, GenerationResult] = {}
 
     def get_available_providers(self) -> list[dict]:
         """利用可能なプロバイダー一覧を返す."""
-        import os
+        return self._registry.get_available()
 
-        providers = []
-        for provider, config in _PROVIDER_CONFIG.items():
-            env_key = config.get("env_key", "")
-            available = bool(os.environ.get(env_key)) if env_key else False
-            providers.append(
-                {
-                    "provider": provider.value,
-                    "media_type": config["media_type"].value,
-                    "models": config.get("models", []),
-                    "default_model": config.get("default_model", ""),
-                    "available": available,
-                    "cost_per_generation": config.get("cost_per_generation", 0),
-                }
-            )
-        return providers
-
-    def get_providers_by_type(self, media_type: MediaType) -> list[dict]:
+    def get_providers_by_type(self, media_type: str) -> list[dict]:
         """メディアタイプ別のプロバイダーを返す."""
-        return [p for p in self.get_available_providers() if p["media_type"] == media_type.value]
+        return self._registry.get_available(media_type)
 
     async def generate(self, request: GenerationRequest) -> GenerationResult:
         """メディアを生成する.
@@ -238,6 +351,18 @@ class MediaGenerationService:
         4. コスト見積もり確認
         """
         request_id = str(uuid.uuid4())
+
+        # プロバイダー解決
+        entry = self._registry.get(request.provider)
+        if not entry:
+            return GenerationResult(
+                request_id=request_id,
+                status=GenerationStatus.FAILED,
+                media_type=request.media_type,
+                provider=request.provider,
+                error=f"Unknown provider: {request.provider}",
+                created_at=datetime.now(UTC).isoformat(),
+            )
 
         # プロンプトインジェクション検査
         from app.security.prompt_guard import scan_prompt_injection
@@ -256,8 +381,7 @@ class MediaGenerationService:
         # データ保護チェック
         from app.security.data_protection import data_protection_guard
 
-        api_config = _PROVIDER_CONFIG.get(request.provider, {})
-        api_base = api_config.get("api_base", "")
+        api_base = entry.api_base
         if api_base:
             from urllib.parse import urlparse
 
@@ -285,8 +409,8 @@ class MediaGenerationService:
                 provider=request.provider,
                 metadata={
                     "prompt": request.prompt,
-                    "provider": request.provider.value,
-                    "estimated_cost": api_config.get("cost_per_generation", 0),
+                    "provider": request.provider,
+                    "estimated_cost": entry.cost_per_generation,
                 },
                 created_at=datetime.now(UTC).isoformat(),
             )
@@ -295,7 +419,7 @@ class MediaGenerationService:
 
         # 実際の生成（外部 API 呼び出し）
         try:
-            result = await self._execute_generation(request_id, request)
+            result = await self._execute_generation(request_id, request, entry)
             self._results[request_id] = result
             return result
         except Exception as exc:
@@ -315,16 +439,12 @@ class MediaGenerationService:
         self,
         request_id: str,
         request: GenerationRequest,
+        entry: MediaProviderEntry,
     ) -> GenerationResult:
-        """外部 API を呼び出してメディアを生成する.
-
-        各プロバイダーの API 仕様に合わせたリクエストを構築・実行する。
-        実際の HTTP 呼び出しは httpx / aiohttp を使用。
-        """
+        """外部 API を呼び出してメディアを生成する."""
         import os
 
-        config = _PROVIDER_CONFIG.get(request.provider, {})
-        api_key = os.environ.get(config.get("env_key", ""))
+        api_key = os.environ.get(entry.env_key)
 
         if not api_key:
             return GenerationResult(
@@ -332,8 +452,7 @@ class MediaGenerationService:
                 status=GenerationStatus.FAILED,
                 media_type=request.media_type,
                 provider=request.provider,
-                error=f"API key not configured: set {config.get('env_key', 'UNKNOWN')} "
-                f"environment variable",
+                error=f"API key not configured: set {entry.env_key} environment variable",
                 created_at=datetime.now(UTC).isoformat(),
             )
 
@@ -349,14 +468,14 @@ class MediaGenerationService:
                 created_at=datetime.now(UTC).isoformat(),
             )
 
-        api_base = config["api_base"]
-        model = request.parameters.get("model", config.get("default_model", ""))
+        api_base = entry.api_base
+        model = request.parameters.get("model", entry.default_model)
 
         # プロバイダー別のリクエスト構築
         headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
         body: dict = {}
 
-        if request.provider == GenerationProvider.OPENAI_DALLE:
+        if request.provider == "openai_dalle":
             body = {
                 "model": model,
                 "prompt": request.prompt,
@@ -364,17 +483,14 @@ class MediaGenerationService:
                 "size": request.parameters.get("size", "1024x1024"),
                 "response_format": "b64_json",
             }
-        elif request.provider == GenerationProvider.OPENAI_TTS:
+        elif request.provider == "openai_tts":
             body = {
                 "model": model,
                 "input": request.prompt,
                 "voice": request.parameters.get("voice", "alloy"),
                 "response_format": request.parameters.get("format", "mp3"),
             }
-        elif request.provider in (
-            GenerationProvider.REPLICATE_IMAGE,
-            GenerationProvider.REPLICATE_VIDEO,
-        ):
+        elif request.provider in ("replicate_image", "replicate_video"):
             body = {
                 "version": model,
                 "input": {
@@ -384,7 +500,7 @@ class MediaGenerationService:
                 },
             }
         else:
-            # Generic request
+            # Generic request — ビルトイン以外のプロバイダーもこのパスを通る
             body = {
                 "model": model,
                 "prompt": request.prompt,
@@ -400,27 +516,24 @@ class MediaGenerationService:
         output_url = ""
         output_base64 = ""
 
-        if request.provider == GenerationProvider.OPENAI_DALLE:
+        if request.provider == "openai_dalle":
             items = data.get("data", [])
             if items:
                 output_base64 = items[0].get("b64_json", "")
                 output_url = items[0].get("url", "")
-        elif request.provider in (
-            GenerationProvider.REPLICATE_IMAGE,
-            GenerationProvider.REPLICATE_VIDEO,
-        ):
+        elif request.provider in ("replicate_image", "replicate_video"):
             output_url = data.get("output", "")
             if isinstance(output_url, list):
                 output_url = output_url[0] if output_url else ""
         else:
             output_url = data.get("url", data.get("output_url", ""))
 
-        cost = config.get("cost_per_generation", 0)
+        cost = entry.cost_per_generation
 
         logger.info(
             "Media generated: type=%s, provider=%s, request_id=%s, cost=$%.3f",
-            request.media_type.value,
-            request.provider.value,
+            request.media_type,
+            request.provider,
             request_id,
             cost,
         )

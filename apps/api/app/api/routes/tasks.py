@@ -29,12 +29,21 @@ from app.services.task_service import (
 router = APIRouter()
 
 
+class TaskProviderOverride(BaseModel):
+    """タスク単位のプロバイダー指定."""
+
+    provider: str | None = None  # e.g. "anthropic", "openai", "ollama"
+    model: str | None = None  # e.g. "anthropic/claude-opus"
+    execution_mode: str | None = None  # e.g. "quality", "speed", "cost"
+
+
 class TaskCreate(BaseModel):
     title: str
     description: str = ""
     task_type: str = "execution"
     requires_approval: bool = False
     sequence_no: int = 0
+    provider_override: TaskProviderOverride | None = None
 
 
 @router.post("/plans/{plan_id}/tasks")
@@ -54,10 +63,47 @@ async def create_task(
         status="pending",
         task_type=req.task_type,
         requires_approval=req.requires_approval,
+        provider_override_json=(
+            req.provider_override.model_dump(exclude_none=True)
+            if req.provider_override
+            else None
+        ),
     )
     db.add(task)
     await db.flush()
-    return {"id": str(task.id), "title": task.title, "status": task.status}
+    return {
+        "id": str(task.id),
+        "title": task.title,
+        "status": task.status,
+        "provider_override": task.provider_override_json,
+    }
+
+
+@router.patch("/tasks/{task_id}/provider")
+async def update_task_provider(
+    task_id: str,
+    req: TaskProviderOverride,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """タスクのプロバイダー指定を更新"""
+    result = await db.execute(select(Task).where(Task.id == parse_uuid(task_id, "task_id")))
+    task = result.scalar_one_or_none()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    if task.status not in ("pending", "ready", "blocked"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot change provider for task in status: {task.status}",
+        )
+    override = req.model_dump(exclude_none=True)
+    task.provider_override_json = override if override else None
+    await db.commit()
+    return {
+        "id": str(task.id),
+        "title": task.title,
+        "provider_override": task.provider_override_json,
+    }
 
 
 @router.post("/tasks/{task_id}/start")

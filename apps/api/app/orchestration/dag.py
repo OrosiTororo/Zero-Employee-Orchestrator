@@ -30,6 +30,7 @@ class TaskNode:
     estimated_cost_usd: float = 0.0
     estimated_minutes: int = 0
     verification_criteria: str | None = None
+    provider_override: dict | None = None
 
 
 @dataclass
@@ -108,6 +109,7 @@ class ExecutionDAG:
                     "requires_approval": n.requires_approval,
                     "estimated_cost_usd": n.estimated_cost_usd,
                     "estimated_minutes": n.estimated_minutes,
+                    "provider_override": n.provider_override,
                 }
                 for n in self.nodes
             ],
