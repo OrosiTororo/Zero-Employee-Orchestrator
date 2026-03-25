@@ -208,7 +208,8 @@ budgets, audit, registry, models, observability (traces/communications/monitor),
 ollama, knowledge, config, self-improvement, browser-assist, secretary,
 brainstorm, conversation-memory, hypotheses, sessions, org-setup, platform,
 security, media, ai-tools, **files, user-input, resources, ipaas, export,
-marketplace, teams, governance**
+marketplace, teams, governance, quality-insights** (prerequisite-monitor,
+spec-contradiction, task-replay, judgment-review, plan-quality)
 
 ## Skill / Plugin / Extension
 

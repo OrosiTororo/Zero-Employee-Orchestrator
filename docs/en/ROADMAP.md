@@ -2,7 +2,7 @@
 
 # Roadmap
 
-> Last updated: 2026-03-18
+> Last updated: 2026-03-25
 > Current version: v0.1
 
 ---
@@ -36,6 +36,17 @@ v0.1 includes all features originally planned for v0.2 through v1.0, implemented
 ## Future Roadmap
 
 The following items require community growth and resource allocation.
+
+### Features Requiring Community, Funding, or Large-Scale Infrastructure
+
+The following features have code foundations implemented in v0.1, but require user base, hardware, or legal costs for production operation:
+
+| Feature | Required Resources | Current State |
+|---------|-------------------|---------------|
+| **Marketplace production operation** | User base needed for reviews/install counts | API & UI implemented, awaiting community |
+| **VR/AR & IoT integration** | Hardware dependent, device diversity | Protocol abstraction layer implemented |
+| **Enterprise governance** | HIPAA/SOC2 certification costs and legal | Policy framework implemented |
+| **Large-scale multi-tenant operation** | Infrastructure scaling, operations team | Team & permission models implemented |
 
 ### v0.2 — Frontend Completion & Community
 
