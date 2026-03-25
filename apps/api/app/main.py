@@ -18,6 +18,7 @@ from app.api.ws.events import router as ws_router
 from app.core.config import settings
 from app.core.database import Base, engine
 from app.core.rate_limit import limiter, rate_limit_exceeded_handler
+from app.security.input_sanitization import InputSanitizationMiddleware
 from app.security.security_headers import (
     RequestValidationMiddleware,
     SecurityHeadersMiddleware,
@@ -106,6 +107,9 @@ app.add_middleware(SecurityHeadersMiddleware)
 
 # Request validation — 不正リクエストの早期拒否
 app.add_middleware(RequestValidationMiddleware)
+
+# Input sanitization — プロンプトインジェクション・PII 自動検査
+app.add_middleware(InputSanitizationMiddleware)
 
 # CORS — allow_methods / allow_headers を明示的に制限
 app.add_middleware(

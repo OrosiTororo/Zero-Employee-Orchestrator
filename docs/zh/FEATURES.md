@@ -44,6 +44,59 @@ Zero-Employee Orchestrator 是一个 **AI 编排平台**，可通过自然语言
 25. [Cloudflare Workers 部署](#25-cloudflare-workers-部署)
 26. [桌面应用 (Tauri)](#26-桌面应用-tauri)
 27. [CLI / TUI](#27-cli--tui)
+28. [外部工具集成](#28-外部工具集成-v01)
+29. [社区插件共享](#29-社区插件共享-v01)
+30. [AI 自我改进 — Level 2](#30-ai-self-improvement--level-2-自我改进的萌芽-v01)
+31. [v0.1 功能膨胀审查](#31-v01-功能膨胀审查--核心与扩展的边界)
+32. [元技能概念](#32-元技能概念-v01)
+33. [通过文件附件创建计划](#33-通过文件附件创建计划-v01)
+34. [安全增强](#34-安全增强-v01)
+35. [RSS/ToS 自动更新管道](#35-rstos-自动更新管道-v01)
+36. [Knowledge Refresh — 上下文窗口管理](#36-knowledge-refresh--上下文窗口管理-v01)
+37. [A2A 双向通信](#37-a2a-双向通信-v01)
+38. [Avatar AI Co-evolution — 与用户共同进化](#38-avatar-ai-co-evolution--与用户共同进化-v01)
+39. [Longrun Scheduler — 24/365 持续执行](#39-longrun-scheduler--24365-持续执行-v01)
+40. [Agent Session — 上下文持久化](#40-agent-session--上下文持久化-v01)
+41. [Artifact Bridge — 跨阶段产物连接](#41-artifact-bridge--跨阶段产物连接-v01)
+42. [媒体生成集成](#42-媒体生成集成-v01)
+43. [AI 工具注册表](#43-ai-工具注册表-v01)
+44. [iPaaS 集成 — 工作流编排](#44-ipaas-集成--工作流编排-v01)
+45. [产物导出](#45-产物导出-v01)
+46. [AI 共创内容再利用引擎](#46-ai-共创内容再利用引擎-v01)
+47. [Obsidian 集成](#47-obsidian-集成-v01)
+48. [云原生集成](#48-云原生集成-v01)
+49. [智能设备 / VR/AR 集成](#49-智能设备--vrar-集成-v01)
+50. [治理与合规](#50-治理与合规-v01)
+51. [Skill 市场](#51-skill-市场-v01)
+52. [多用户与团队管理](#52-多用户与团队管理-v01)
+53. [Red-team 安全测试](#53-red-team-安全测试-v01)
+54. [工作区隔离](#54-工作区隔离-v01)
+55. [Design Interview 历史失败模式反馈](#55-design-interview-历史失败模式反馈-v01)
+56. [前提变化通用监控 — Prerequisite Monitor](#56-前提变化通用监控--prerequisite-monitor-v01)
+57. [Spec 间矛盾检测](#57-spec-间矛盾检测--spec-contradiction-detector-v01)
+58. [任务执行回放与比较](#58-任务执行回放与比较--task-replay--comparison-v01)
+59. [用户判断回顾报告](#59-用户判断回顾报告--judgment-review-v01)
+60. [目标→Plan 分解质量验证](#60-目标plan-分解质量验证--plan-quality-verifier-v01)
+61. [多模型比较](#61-多模型比较-v01)
+62. [头脑风暴会话](#62-头脑风暴会话-v01)
+63. [对话记忆 — Conversation Memory](#63-对话记忆--conversation-memory-v01)
+64. [文本分析服务](#64-文本分析服务-v01)
+65. [基于角色的模型配置](#65-基于角色的模型配置-v01)
+66. [AI 组织动态管理](#66-ai-组织动态管理-v01)
+67. [自定义代理角色](#67-自定义代理角色-v01)
+68. [自然语言功能请求](#68-自然语言功能请求-v01)
+69. [脑暴转储 / Secretary AI](#69-脑暴转储--secretary-ai-v01)
+70. [文件上传管理](#70-文件上传管理-v01)
+71. [任务执行中的用户输入](#71-任务执行中的用户输入-v01)
+72. [资源导入](#72-资源导入-v01)
+73. [项目与目标管理](#73-项目与目标管理-v01)
+74. [假设引擎 — Hypothesis Engine](#74-假设引擎--hypothesis-engine-v01)
+75. [AI 调查引擎 — AI Investigator](#75-ai-调查引擎--ai-investigator-v01)
+76. [浏览器自动化 — Browser Automation](#76-浏览器自动化--browser-automation-v01)
+77. [LSP 集成 — Language Server Protocol](#77-lsp-集成--language-server-protocol-v01)
+78. [MCP 集成 — Model Context Protocol](#78-mcp-集成--model-context-protocol-v01)
+79. [外部技能搜索与导入](#79-外部技能搜索与导入-v01)
+80. [输入安全中间件](#80-输入安全中间件-v01)
 
 ---
 
@@ -1761,3 +1814,463 @@ API: `/api/v1/teams/*`
 | 端点 | 说明 |
 |------|------|
 | `POST /quality-insights/plan-quality/verify` | 验证 Plan 品质 |
+
+---
+
+## 61. 多模型比较 (v0.1)
+
+将相同的输入同时发送到多个 LLM 模型，比较响应质量、延迟和令牌使用量。
+
+### 功能概述
+
+| 项目 | 说明 |
+|------|------|
+| **同时比较** | 将相同的提示发送到多个模型并行获取结果 |
+| **指标记录** | 自动记录每个模型的延迟、令牌数和成本 |
+| **会话管理** | 保存和搜索比较会话历史 |
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `POST /companies/{id}/multi-model/compare` | 执行多模型比较 |
+
+---
+
+## 62. 头脑风暴会话 (v0.1)
+
+使用多个 AI 代理运行辩论、评审和策略会话。
+
+### 会话类型
+
+| 类型 | 说明 |
+|------|------|
+| **debate** | 不同模型之间的辩论形式 |
+| **review** | 评审和批评会话 |
+| **strategy** | 策略规划会话 |
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `POST /companies/{id}/brainstorm` | 创建会话 |
+| `POST /brainstorm/{session_id}/message` | 添加消息 |
+| `GET /brainstorm/{session_id}` | 获取会话（含对话历史和洞察） |
+| `GET /companies/{id}/brainstorm/sessions` | 会话列表 |
+| `POST /brainstorm/{session_id}/status` | 更新状态 |
+| `GET /companies/{id}/brainstorm/search` | 搜索会话 |
+
+---
+
+## 63. 对话记忆 — Conversation Memory (v0.1)
+
+持久化存储所有用户与代理之间的对话，支持搜索和统计查询。
+
+### 内容类型
+
+| 类型 | 说明 |
+|------|------|
+| `text` | 文本消息 |
+| `brainstorm` | 头脑风暴 |
+| `comparison` | 模型比较 |
+| `task` | 任务相关 |
+| `secretary` | Secretary AI |
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `POST /companies/{id}/conversation-memory` | 存储消息 |
+| `GET /companies/{id}/conversation-memory` | 获取历史（支持筛选） |
+| `GET /companies/{id}/conversation-memory/search` | 全文搜索 |
+| `GET /companies/{id}/conversation-memory/stats` | 对话统计 |
+
+---
+
+## 64. 文本分析服务 (v0.1)
+
+提供精确的 Unicode 字符计数和详细分类。
+
+### 分析类别
+
+| 类别 | 说明 |
+|------|------|
+| **平假名** | 平假名字符数 |
+| **片假名** | 片假名字符数 |
+| **汉字** | 汉字（CJK统一表意文字）字符数 |
+| **ASCII** | 英文数字和符号 |
+| **数字** | 数字字符数 |
+| **空格** | 空白字符数 |
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `POST /text/analyze` | 执行文本分析 |
+
+---
+
+## 65. 基于角色的模型配置 (v0.1)
+
+为代理角色指定特定的 LLM 模型，支持回退模型设置。
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `PUT /companies/{id}/role-models` | 设置角色模型配置 |
+| `GET /companies/{id}/role-models` | 获取所有角色配置 |
+| `GET /companies/{id}/role-models/{role}` | 获取特定角色配置 |
+| `DELETE /role-models/{config_id}` | 删除配置 |
+
+---
+
+## 66. AI 组织动态管理 (v0.1)
+
+在运行时按角色添加、删除和更新代理，支持自定义系统提示。
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `POST /companies/{id}/agents/by-role` | 按角色添加代理 |
+| `DELETE /agents/{id}/remove` | 删除代理 |
+| `PATCH /agents/{id}/role` | 更新代理角色 |
+
+---
+
+## 67. 自定义代理角色 (v0.1)
+
+除预设角色外，用户可定义自定义角色。
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `POST /companies/{id}/custom-roles` | 创建自定义角色 |
+| `GET /companies/{id}/custom-roles` | 自定义角色列表 |
+| `DELETE /custom-roles/{role_id}` | 删除自定义角色 |
+| `GET /companies/{id}/available-roles` | 获取所有可用角色（预设+自定义） |
+
+---
+
+## 68. 自然语言功能请求 (v0.1)
+
+用自然语言向 AI 组织提交请求，系统自动解释意图并可自动执行。
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `POST /companies/{id}/feature-requests` | 提交功能请求 |
+| `GET /companies/{id}/feature-requests` | 请求列表 |
+
+---
+
+## 69. 脑暴转储 / Secretary AI (v0.1)
+
+CEO/用户可自由记录想法、创意和待办事项，系统自动分类、标签和追踪。
+
+### 类别
+
+| 类别 | 说明 |
+|------|------|
+| `idea` | 创意 |
+| `todo` | 待办事项 |
+| `decision` | 决策 |
+| `reflection` | 反思 |
+| `strategy` | 策略 |
+| `problem` | 问题 |
+| `opportunity` | 机会 |
+| `memo` | 备忘录 |
+| `daily_log` | 日志 |
+
+### 功能
+
+- 自动标签
+- 行动项提取
+- 优先级追踪
+- 日统计
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `POST /companies/{id}/brain-dump` | 创建脑暴转储 |
+| `GET /companies/{id}/brain-dumps` | 列表（支持筛选） |
+| `GET /brain-dumps/{id}` | 获取详情 |
+| `PATCH /brain-dumps/{id}` | 更新 |
+| `GET /companies/{id}/brain-dumps/search` | 搜索 |
+| `GET /companies/{id}/brain-dumps/action-items` | 提取所有行动项 |
+| `GET /companies/{id}/brain-dumps/daily-stats` | 日统计 |
+
+---
+
+## 70. 文件上传管理 (v0.1)
+
+支持最大 50MB 的文件上传，通过扩展名白名单安全管理。
+
+### 支持的格式
+
+| 类别 | 扩展名 |
+|------|--------|
+| **文档** | txt, md, csv, json, yaml, xml, html, pdf, docx, xlsx, pptx |
+| **图片** | png, jpg, jpeg, gif, svg, webp |
+| **代码** | py, js, ts, tsx, jsx, rb, go, rs, java, c, cpp, h |
+| **压缩包** | zip, tar, gz |
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `POST /files/upload` | 单文件上传 |
+| `POST /files/upload-multiple` | 多文件上传 |
+| `GET /files/{id}` | 获取文件信息 |
+| `GET /files/{id}/download` | 下载文件 |
+| `DELETE /files/{id}` | 删除文件 |
+| `GET /files` | 文件列表（分页） |
+
+---
+
+## 71. 任务执行中的用户输入 (v0.1)
+
+AI 可在任务执行过程中向用户请求额外信息，支持超时机制。
+
+### 输入类型
+
+| 类型 | 说明 |
+|------|------|
+| `text` | 文本输入 |
+| `file` | 文件附件 |
+| `choice` | 从选项中选择 |
+| `confirmation` | 确认（是/否） |
+| `multi_file` | 多文件附件 |
+
+### 状态
+
+| 状态 | 说明 |
+|------|------|
+| `pending` | 等待回复 |
+| `answered` | 已回复 |
+| `expired` | 已超时 |
+| `cancelled` | 已取消 |
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `POST /user-input/request` | 创建输入请求 |
+| `GET /user-input/pending` | 获取所有待处理请求 |
+| `GET /user-input/pending/{task_id}` | 获取任务相关待处理请求 |
+| `POST /user-input/{id}/answer` | 提交回复 |
+| `DELETE /user-input/{id}` | 取消请求 |
+
+---
+
+## 72. 资源导入 (v0.1)
+
+从文件、文件夹或 URL 导入业务手册、规定和文档，作为 AI 上下文使用。
+
+### 资源类型
+
+| 类型 | 说明 |
+|------|------|
+| `manual` | 业务手册 |
+| `rule` | 规定和规则 |
+| `documentation` | 文档 |
+| `template` | 模板 |
+| `code_example` | 代码示例 |
+| `config` | 配置文件 |
+| `data_reference` | 数据参考 |
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `POST /resources/import/file` | 导入文件 |
+| `POST /resources/import/folder` | 导入文件夹（递归） |
+| `POST /resources/import/url` | 从 URL 导入 |
+| `GET /resources` | 资源列表（支持筛选） |
+| `GET /resources/search` | 全文搜索 |
+| `GET /resources/{id}` | 获取资源详情 |
+| `DELETE /resources/{id}` | 删除资源 |
+
+---
+
+## 73. 项目与目标管理 (v0.1)
+
+创建项目并定义层级目标。
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `GET /companies/{id}/projects` | 项目列表 |
+| `POST /companies/{id}/projects` | 创建项目 |
+| `GET /projects/{id}/goals` | 目标列表 |
+| `POST /projects/{id}/goals` | 创建目标 |
+
+---
+
+## 74. 假设引擎 — Hypothesis Engine (v0.1)
+
+多代理并行假设验证与交叉评审。
+
+### 假设状态
+
+| 状态 | 说明 |
+|------|------|
+| `proposed` | 已提出 |
+| `investigating` | 调查中 |
+| `evidence_found` | 发现证据 |
+| `refuted` | 已反驳 |
+| `confirmed` | 已确认 |
+| `needs_review` | 需要评审 |
+| `reviewed` | 已评审 |
+
+### 功能
+
+- 假设提出与调查员分配
+- 支持/反驳证据收集
+- 交叉评审提交
+- 支持度评分计算（-1.0 至 1.0）
+- 评审共识追踪
+
+---
+
+## 75. AI 调查引擎 — AI Investigator (v0.1)
+
+AI 安全的只读数据库查询接口，用于故障排查和分析。
+
+### 安全性
+
+| 约束 | 说明 |
+|------|------|
+| **只读** | 仅允许 SELECT 查询 |
+| **表白名单** | tickets, tasks, agents, audit_logs, knowledge_store 等 |
+| **SQL 注入防御** | 禁止关键词检测 |
+| **行数限制** | 每次查询最多 500 行 |
+
+### 功能
+
+- 安全的 SELECT 查询执行
+- 审计日志筛选搜索
+- 错误模式分析
+- 任务执行历史获取
+- 知识库搜索
+- 系统指标收集
+
+---
+
+## 76. 浏览器自动化 — Browser Automation (v0.1)
+
+基于 Playwright 的网页浏览器自动化，配备审批门和审计日志。
+
+### 支持的操作
+
+| 操作 | 说明 |
+|------|------|
+| `navigate` | 导航到 URL |
+| `click` | 点击元素 |
+| `type` | 输入文本 |
+| `screenshot` | 截图 |
+| `extract` | 提取数据 |
+| `fill_form` | 填写表单 |
+| `wait` | 等待元素 |
+| `scroll` | 滚动页面 |
+| `select` | 选择下拉选项 |
+
+### 安全性
+
+- 通过 `approval_gate.py` 进行执行前审批
+- 所有操作的完整审计日志
+- 数据保护策略执行
+
+---
+
+## 77. LSP 集成 — Language Server Protocol (v0.1)
+
+通过 LSP 提供代码补全、悬停信息、跳转定义、引用搜索和诊断。
+
+### 支持的语言
+
+| 语言 | 服务器 |
+|------|--------|
+| Python | pyright / pylsp |
+| TypeScript | tsserver |
+| JavaScript | tsserver |
+| Rust | rust-analyzer |
+| Go | gopls |
+| Java | jdtls |
+
+### 功能
+
+| 功能 | 说明 |
+|------|------|
+| `completion` | 代码补全 |
+| `hover` | 悬停信息 |
+| `definition` | 跳转定义 |
+| `references` | 查找引用 |
+| `diagnostics` | 诊断（错误和警告） |
+| `formatting` | 代码格式化 |
+| `rename` | 重命名 |
+
+---
+
+## 78. MCP 集成 — Model Context Protocol (v0.1)
+
+通过模型上下文协议（MCP）集成外部工具、资源和提示。
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `GET /mcp/capabilities` | 获取 MCP 服务器能力 |
+| `GET /mcp/tools` | 可用工具列表 |
+| `POST /mcp/tools/call` | 调用工具 |
+| `GET /mcp/resources` | 资源列表 |
+| `GET /mcp/prompts` | 提示列表 |
+
+---
+
+## 79. 外部技能搜索与导入 (v0.1)
+
+从 GitHub 和各种注册表搜索技能，一键安装。
+
+### 支持的来源
+
+| 来源 | 说明 |
+|------|------|
+| `github_agent_skills` | GitHub Agent Skills 仓库 |
+| `skills_sh` | skills.sh 注册表 |
+| `openclaw` | OpenClaw 注册表 |
+| `claude_code` | Claude Code 技能 |
+| `git_repo` | 任意 Git 仓库 |
+| `url` | 直接 URL 指定 |
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `POST /skills/external/search` | 搜索外部技能 |
+| `POST /skills/external/import` | 导入并安装技能 |
+
+---
+
+## 80. 输入安全中间件 (v0.1)
+
+自动对所有 API 端点输入应用提示注入扫描和 PII 检测的中间件。
+
+### 检查内容
+
+| 检查 | 说明 |
+|------|------|
+| **提示注入** | 40+ 模式的 5 级威胁检测 |
+| **PII 检测** | 13 类个人信息检测和掩码 |
+| **外部数据包装** | 对发送到 LLM 的外部数据添加边界标记 |
+
+### 实现
+
+- `InputSanitizationMiddleware` — 请求体扫描
+- 检测到 CRITICAL/HIGH 威胁时拒绝请求（HTTP 422）
+- PII 检测仅记录日志（掩码在服务层执行）

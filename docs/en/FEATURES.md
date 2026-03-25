@@ -44,6 +44,59 @@ This document provides a comprehensive summary of currently implemented features
 25. [Cloudflare Workers Deployment](#25-cloudflare-workers-deployment)
 26. [Desktop Application (Tauri)](#26-desktop-application-tauri)
 27. [CLI / TUI](#27-cli--tui)
+28. [External Tool Integration](#28-external-tool-integration-v01)
+29. [Community Plugin Sharing](#29-community-plugin-sharing-v01)
+30. [AI Self-Improvement — Level 2](#30-ai-self-improvement--level-2-seeds-of-self-improvement-v01)
+31. [v0.1 Feature Bloat Review](#31-v01-feature-bloat-review--core-vs-extension-boundary)
+32. [Meta-Skills Concept](#32-meta-skills-concept-v01)
+33. [File Attachment for Plan Creation](#33-file-attachment-for-plan-creation-v01)
+34. [Security Enhancement](#34-security-enhancement-v01)
+35. [RSS/ToS Auto-Update Pipeline](#35-rstos-auto-update-pipeline-v01)
+36. [Knowledge Refresh](#36-knowledge-refresh--context-window-management-v01)
+37. [A2A Bidirectional Communication](#37-a2a-bidirectional-communication-v01)
+38. [Avatar AI Co-evolution](#38-avatar-ai-co-evolution--co-evolution-with-users-v01)
+39. [Longrun Scheduler](#39-longrun-scheduler--24365-continuous-execution-v01)
+40. [Agent Session](#40-agent-session--context-persistence-v01)
+41. [Artifact Bridge](#41-artifact-bridge--cross-stage-artifact-linking-v01)
+42. [Media Generation Integration](#42-media-generation-integration-v01)
+43. [AI Tools Registry](#43-ai-tools-registry-v01)
+44. [iPaaS Integration](#44-ipaas-integration--workflow-orchestration-v01)
+45. [Artifact Export](#45-artifact-export-v01)
+46. [AI Co-creation Repurpose Engine](#46-ai-co-creation-repurpose-engine-v01)
+47. [Obsidian Integration](#47-obsidian-integration-v01)
+48. [Cloud-Native Integration](#48-cloud-native-integration-v01)
+49. [Smart Devices / VR/AR Integration](#49-smart-devices--vrar-integration-v01)
+50. [Governance & Compliance](#50-governance--compliance-v01)
+51. [Skill Marketplace](#51-skill-marketplace-v01)
+52. [Multi-User & Team Management](#52-multi-user--team-management-v01)
+53. [Red-Team Security Testing](#53-red-team-security-testing-v01)
+54. [Workspace Isolation](#54-workspace-isolation-v01)
+55. [Design Interview Failure Pattern Feedback](#55-design-interview-failure-pattern-feedback-v01)
+56. [Prerequisite Monitor](#56-prerequisite-monitor-v01)
+57. [Spec Contradiction Detector](#57-spec-contradiction-detector-v01)
+58. [Task Replay & Comparison](#58-task-replay--comparison-v01)
+59. [Judgment Review](#59-judgment-review-v01)
+60. [Plan Quality Verifier](#60-plan-quality-verifier-v01)
+61. [Multi-Model Comparison](#61-multi-model-comparison-v01)
+62. [Brainstorming Sessions](#62-brainstorming-sessions-v01)
+63. [Conversation Memory](#63-conversation-memory-v01)
+64. [Text Analysis Service](#64-text-analysis-service-v01)
+65. [Role-Based Model Configuration](#65-role-based-model-configuration-v01)
+66. [Dynamic AI Organization Management](#66-dynamic-ai-organization-management-v01)
+67. [Custom Agent Roles](#67-custom-agent-roles-v01)
+68. [Natural Language Feature Requests](#68-natural-language-feature-requests-v01)
+69. [Brain Dump / Secretary AI](#69-brain-dump--secretary-ai-v01)
+70. [File Upload Management](#70-file-upload-management-v01)
+71. [User Input During Task Execution](#71-user-input-during-task-execution-v01)
+72. [Resource Import](#72-resource-import-v01)
+73. [Project & Goal Management](#73-project--goal-management-v01)
+74. [Hypothesis Engine](#74-hypothesis-engine-v01)
+75. [AI Investigator](#75-ai-investigator-v01)
+76. [Browser Automation](#76-browser-automation-v01)
+77. [LSP Integration — Language Server Protocol](#77-lsp-integration--language-server-protocol-v01)
+78. [MCP Integration — Model Context Protocol](#78-mcp-integration--model-context-protocol-v01)
+79. [External Skill Search & Import](#79-external-skill-search--import-v01)
+80. [Input Security Middleware](#80-input-security-middleware-v01)
 
 ---
 
@@ -1771,3 +1824,463 @@ Verifies whether Spec → Plan decomposition is "Mutually Exclusive, Collectivel
 | Endpoint | Description |
 |----------|-------------|
 | `POST /quality-insights/plan-quality/verify` | Verify plan quality |
+
+---
+
+## 61. Multi-Model Comparison (v0.1)
+
+Send identical input to multiple LLM models simultaneously and compare response quality, latency, and token usage.
+
+### Features
+
+| Item | Description |
+|------|-------------|
+| **Simultaneous comparison** | Send the same prompt to multiple models and retrieve results in parallel |
+| **Metrics recording** | Automatically record latency, token count, and cost per model |
+| **Session management** | Save and search comparison session history |
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /companies/{id}/multi-model/compare` | Execute multi-model comparison |
+
+---
+
+## 62. Brainstorming Sessions (v0.1)
+
+Run debate, review, and strategy sessions with multiple AI agents.
+
+### Session Types
+
+| Type | Description |
+|------|-------------|
+| **debate** | Debate format between different models |
+| **review** | Review and critique sessions |
+| **strategy** | Strategy planning sessions |
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /companies/{id}/brainstorm` | Create session |
+| `POST /brainstorm/{session_id}/message` | Add message |
+| `GET /brainstorm/{session_id}` | Get session (with conversation history & insights) |
+| `GET /companies/{id}/brainstorm/sessions` | List sessions |
+| `POST /brainstorm/{session_id}/status` | Update status |
+| `GET /companies/{id}/brainstorm/search` | Search sessions |
+
+---
+
+## 63. Conversation Memory (v0.1)
+
+Persistently store all user-agent conversations with search and statistics capabilities.
+
+### Content Types
+
+| Type | Description |
+|------|-------------|
+| `text` | Text messages |
+| `brainstorm` | Brainstorming |
+| `comparison` | Model comparison |
+| `task` | Task-related |
+| `secretary` | Secretary AI |
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /companies/{id}/conversation-memory` | Store message |
+| `GET /companies/{id}/conversation-memory` | Get history (with filtering) |
+| `GET /companies/{id}/conversation-memory/search` | Full-text search |
+| `GET /companies/{id}/conversation-memory/stats` | Conversation statistics |
+
+---
+
+## 64. Text Analysis Service (v0.1)
+
+Provides accurate Unicode character counting with detailed categorization.
+
+### Analysis Categories
+
+| Category | Description |
+|----------|-------------|
+| **Hiragana** | Hiragana character count |
+| **Katakana** | Katakana character count |
+| **Kanji** | Kanji (CJK Unified Ideographs) count |
+| **ASCII** | Alphanumeric and symbols |
+| **Digits** | Digit count |
+| **Spaces** | Whitespace count |
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /text/analyze` | Execute text analysis |
+
+---
+
+## 65. Role-Based Model Configuration (v0.1)
+
+Assign specific LLM models to agent roles with fallback support.
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `PUT /companies/{id}/role-models` | Set role-based model config |
+| `GET /companies/{id}/role-models` | Get all role configs |
+| `GET /companies/{id}/role-models/{role}` | Get specific role config |
+| `DELETE /role-models/{config_id}` | Delete config |
+
+---
+
+## 66. Dynamic AI Organization Management (v0.1)
+
+Add, remove, and update agents by role at runtime with custom system prompts.
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /companies/{id}/agents/by-role` | Add agent by role |
+| `DELETE /agents/{id}/remove` | Remove agent |
+| `PATCH /agents/{id}/role` | Update agent role |
+
+---
+
+## 67. Custom Agent Roles (v0.1)
+
+Define custom roles in addition to preset roles.
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /companies/{id}/custom-roles` | Create custom role |
+| `GET /companies/{id}/custom-roles` | List custom roles |
+| `DELETE /custom-roles/{role_id}` | Delete custom role |
+| `GET /companies/{id}/available-roles` | Get all available roles (preset + custom) |
+
+---
+
+## 68. Natural Language Feature Requests (v0.1)
+
+Submit natural language requests to the AI organization, which auto-interprets intent and can auto-execute.
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /companies/{id}/feature-requests` | Submit feature request |
+| `GET /companies/{id}/feature-requests` | List requests |
+
+---
+
+## 69. Brain Dump / Secretary AI (v0.1)
+
+CEO/users can freely dump thoughts, ideas, and TODOs, which are auto-categorized, auto-tagged, and tracked.
+
+### Categories
+
+| Category | Description |
+|----------|-------------|
+| `idea` | Ideas |
+| `todo` | To-dos |
+| `decision` | Decisions |
+| `reflection` | Reflections |
+| `strategy` | Strategy |
+| `problem` | Problems |
+| `opportunity` | Opportunities |
+| `memo` | Memos |
+| `daily_log` | Daily logs |
+
+### Features
+
+- Auto-tagging
+- Action item extraction
+- Priority tracking
+- Daily statistics
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /companies/{id}/brain-dump` | Create brain dump |
+| `GET /companies/{id}/brain-dumps` | List (with filtering) |
+| `GET /brain-dumps/{id}` | Get detail |
+| `PATCH /brain-dumps/{id}` | Update |
+| `GET /companies/{id}/brain-dumps/search` | Search |
+| `GET /companies/{id}/brain-dumps/action-items` | Extract all action items |
+| `GET /companies/{id}/brain-dumps/daily-stats` | Daily statistics |
+
+---
+
+## 70. File Upload Management (v0.1)
+
+Upload files up to 50MB with extension whitelist for secure management.
+
+### Supported Formats
+
+| Category | Extensions |
+|----------|-----------|
+| **Documents** | txt, md, csv, json, yaml, xml, html, pdf, docx, xlsx, pptx |
+| **Images** | png, jpg, jpeg, gif, svg, webp |
+| **Code** | py, js, ts, tsx, jsx, rb, go, rs, java, c, cpp, h |
+| **Archives** | zip, tar, gz |
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /files/upload` | Single file upload |
+| `POST /files/upload-multiple` | Multiple file upload |
+| `GET /files/{id}` | Get file info |
+| `GET /files/{id}/download` | Download file |
+| `DELETE /files/{id}` | Delete file |
+| `GET /files` | List files (paginated) |
+
+---
+
+## 71. User Input During Task Execution (v0.1)
+
+AI can request additional information from users during task execution, with timeout support.
+
+### Input Types
+
+| Type | Description |
+|------|-------------|
+| `text` | Text input |
+| `file` | File attachment |
+| `choice` | Select from options |
+| `confirmation` | Yes/No confirmation |
+| `multi_file` | Multiple file attachment |
+
+### Status
+
+| Status | Description |
+|--------|-------------|
+| `pending` | Awaiting response |
+| `answered` | Answered |
+| `expired` | Timed out |
+| `cancelled` | Cancelled |
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /user-input/request` | Create input request |
+| `GET /user-input/pending` | Get all pending requests |
+| `GET /user-input/pending/{task_id}` | Get task-specific pending requests |
+| `POST /user-input/{id}/answer` | Submit answer |
+| `DELETE /user-input/{id}` | Cancel request |
+
+---
+
+## 72. Resource Import (v0.1)
+
+Import business manuals, rules, and documentation from files, folders, or URLs for use as AI context.
+
+### Resource Types
+
+| Type | Description |
+|------|-------------|
+| `manual` | Business manuals |
+| `rule` | Rules and regulations |
+| `documentation` | Documentation |
+| `template` | Templates |
+| `code_example` | Code examples |
+| `config` | Configuration files |
+| `data_reference` | Data references |
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /resources/import/file` | Import file |
+| `POST /resources/import/folder` | Import folder (recursive) |
+| `POST /resources/import/url` | Import from URL |
+| `GET /resources` | List resources (with filtering) |
+| `GET /resources/search` | Full-text search |
+| `GET /resources/{id}` | Get resource detail |
+| `DELETE /resources/{id}` | Delete resource |
+
+---
+
+## 73. Project & Goal Management (v0.1)
+
+Create projects and define hierarchical goals.
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /companies/{id}/projects` | List projects |
+| `POST /companies/{id}/projects` | Create project |
+| `GET /projects/{id}/goals` | List goals |
+| `POST /projects/{id}/goals` | Create goal |
+
+---
+
+## 74. Hypothesis Engine (v0.1)
+
+Multi-agent parallel hypothesis verification with cross-review capabilities.
+
+### Hypothesis Status
+
+| Status | Description |
+|--------|-------------|
+| `proposed` | Proposed |
+| `investigating` | Under investigation |
+| `evidence_found` | Evidence found |
+| `refuted` | Refuted |
+| `confirmed` | Confirmed |
+| `needs_review` | Needs review |
+| `reviewed` | Reviewed |
+
+### Features
+
+- Hypothesis proposal and investigator assignment
+- Supporting/refuting evidence collection
+- Cross-review submission
+- Support score calculation (-1.0 to 1.0)
+- Review consensus tracking
+
+---
+
+## 75. AI Investigator (v0.1)
+
+AI-safe read-only database query interface for troubleshooting and analysis.
+
+### Security
+
+| Constraint | Description |
+|-----------|-------------|
+| **Read-only** | Only SELECT queries allowed |
+| **Table whitelist** | tickets, tasks, agents, audit_logs, knowledge_store, etc. |
+| **SQL injection defense** | Forbidden keyword detection |
+| **Row limit** | Maximum 500 rows per query |
+
+### Capabilities
+
+- Safe SELECT query execution
+- Audit log search with filters
+- Error pattern analysis
+- Task execution history retrieval
+- Knowledge store search
+- System metrics collection
+
+---
+
+## 76. Browser Automation (v0.1)
+
+Playwright-based web browser automation with approval gates and audit logging.
+
+### Supported Actions
+
+| Action | Description |
+|--------|-------------|
+| `navigate` | Navigate to URL |
+| `click` | Click element |
+| `type` | Type text |
+| `screenshot` | Take screenshot |
+| `extract` | Extract data |
+| `fill_form` | Fill form |
+| `wait` | Wait for element |
+| `scroll` | Scroll page |
+| `select` | Select dropdown option |
+
+### Security
+
+- Pre-execution approval via `approval_gate.py`
+- Full audit logging of all operations
+- Data protection policy enforcement
+
+---
+
+## 77. LSP Integration — Language Server Protocol (v0.1)
+
+Code completion, hover info, go-to-definition, references, and diagnostics via LSP.
+
+### Supported Languages
+
+| Language | Server |
+|----------|--------|
+| Python | pyright / pylsp |
+| TypeScript | tsserver |
+| JavaScript | tsserver |
+| Rust | rust-analyzer |
+| Go | gopls |
+| Java | jdtls |
+
+### Capabilities
+
+| Capability | Description |
+|-----------|-------------|
+| `completion` | Code completion |
+| `hover` | Hover information |
+| `definition` | Go to definition |
+| `references` | Find references |
+| `diagnostics` | Diagnostics (errors & warnings) |
+| `formatting` | Code formatting |
+| `rename` | Rename symbol |
+
+---
+
+## 78. MCP Integration — Model Context Protocol (v0.1)
+
+Integrate external tools, resources, and prompts via Model Context Protocol (MCP).
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /mcp/capabilities` | Get MCP server capabilities |
+| `GET /mcp/tools` | List available tools |
+| `POST /mcp/tools/call` | Call a tool |
+| `GET /mcp/resources` | List resources |
+| `GET /mcp/prompts` | List prompts |
+
+---
+
+## 79. External Skill Search & Import (v0.1)
+
+Search skills from GitHub and various registries, and install with one click.
+
+### Supported Sources
+
+| Source | Description |
+|--------|-------------|
+| `github_agent_skills` | GitHub Agent Skills repository |
+| `skills_sh` | skills.sh registry |
+| `openclaw` | OpenClaw registry |
+| `claude_code` | Claude Code skills |
+| `git_repo` | Any Git repository |
+| `url` | Direct URL |
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /skills/external/search` | Search external skills |
+| `POST /skills/external/import` | Import and install skill |
+
+---
+
+## 80. Input Security Middleware (v0.1)
+
+Middleware that automatically applies prompt injection scanning and PII detection to all API endpoint inputs.
+
+### Inspection Items
+
+| Inspection | Description |
+|-----------|-------------|
+| **Prompt injection** | 5-level threat detection with 40+ patterns |
+| **PII detection** | Detection and masking of 13 PII categories |
+| **External data wrapping** | Boundary marker application for external data sent to LLM |
+
+### Implementation
+
+- `InputSanitizationMiddleware` — Request body scanning
+- Requests are rejected (HTTP 422) when CRITICAL/HIGH threats are detected
+- PII detection is logged only (masking is performed at the service layer)
