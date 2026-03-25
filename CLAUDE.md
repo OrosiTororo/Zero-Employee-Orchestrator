@@ -43,17 +43,17 @@ apps/
 ├── api/              # FastAPI バックエンド (Python 3.12+)
 │   ├── app/
 │   │   ├── core/           # 設定・DB・レート制限・i18n
-│   │   ├── api/routes/     # REST API エンドポイント (36 ルートモジュール)
+│   │   ├── api/routes/     # REST API エンドポイント (37 ルートモジュール)
 │   │   ├── api/ws/         # WebSocket (events, browser_assist_ws)
 │   │   ├── api/deps/       # 依存性注入
 │   │   ├── models/         # SQLAlchemy ORM
 │   │   ├── schemas/        # Pydantic DTO
-│   │   ├── services/       # ビジネスロジック (18 サービス)
+│   │   ├── services/       # ビジネスロジック (19 サービス + Plugin Loader)
 │   │   ├── repositories/   # DB 入出力抽象化
-│   │   ├── orchestration/  # DAG・Judge・状態機械・Knowledge・Memory・MetaSkill・A2A (21 モジュール)
+│   │   ├── orchestration/  # DAG・Judge・状態機械・Knowledge・Memory・MetaSkill・A2A・Transparency (22 モジュール)
 │   │   ├── heartbeat/      # Heartbeat スケジューラ
-│   │   ├── providers/      # LLM ゲートウェイ・Ollama・g4f・RAG・ModelRegistry
-│   │   ├── tools/          # 外部ツール接続 (MCP/Webhook/API/CLI/GraphQL/ブラウザ自動操作/LSP)
+│   │   ├── providers/      # LLM ゲートウェイ・Ollama・g4f・RAG・ModelRegistry・WebSession
+│   │   ├── tools/          # 外部ツール接続 (MCP/Webhook/API/CLI/GraphQL/ブラウザ自動操作/BrowserAdapter/LSP)
 │   │   ├── policies/       # 承認ゲート・自律実行境界
 │   │   ├── security/       # IAM・シークレット・サニタイズ・プロンプト防御・PII・サンドボックス・データ保護・レッドチーム
 │   │   ├── integrations/   # Sentry・MCP・外部スキル・ブラウザアシスト・AI調査・メディア生成・AIツール・iPaaS・エクスポート・リパーパス・RSS/ToS・Obsidian・クラウド・スマートデバイス
@@ -65,7 +65,7 @@ apps/
 ├── edge/             # Cloudflare Workers (proxy / full)
 └── worker/           # バックグラウンドワーカー
 skills/builtin/       # 組み込み Skill (7 個 + browser-assist)
-plugins/              # Plugin マニフェスト (9 Plugin)
+plugins/              # Plugin マニフェスト (10 Plugin + browser-use)
 extensions/           # Extension マニフェスト (5 Extension + Chrome 拡張機能)
 ```
 
@@ -191,10 +191,48 @@ WebSocket エンドポイント: `ws://localhost:18234/ws/browser-assist`
 
 ファイル・画像の添付に対応（Chrome 拡張機能、REST API 両方）。
 
+## プラグイン方式ブラウザ自動操作 (Browser Adapter)
+
+VSCode のエクステンションのように、ブラウザ自動操作ツールをプラグインとして追加・切替可能。
+初期状態では最小限の Playwright アダプタのみ同梱。browser-use 等は Plugin でインストール。
+
+- アダプタレジストリ: `apps/api/app/tools/browser_adapter.py`
+- browser-use Plugin: `plugins/browser-use/manifest.json`
+- API: `/api/v1/browser-automation/adapters`, `/api/v1/browser-automation/tasks`
+
+## プラグインローダー (Plugin Loader)
+
+VSCode 的なプラグイン動的管理。自然言語で「browser-use を追加して」「画像生成ツールを追加」と言うだけでインストール。
+
+- Plugin Loader: `apps/api/app/services/plugin_loader.py`
+- 汎用ツールレジストリ: ToolRegistry（AI エージェントがタスクに最適なツールを動的選択）
+- 対応カテゴリ: browser-automation, image-generation, music-generation, audio-generation, video-generation, search, data-analysis, three-d, communication, code-generation, custom
+- 環境自動チェック: pip パッケージ・API キー・ブラウザ・LLM プロバイダーの有無を自動検査
+- API: `/api/v1/browser-automation/plugins/*`, `/api/v1/browser-automation/tools/*`
+
+## 透明性・ファクトチェック (Transparency Layer)
+
+AI がブラックボックスにならないための透明性レイヤー。
+
+- 透明性レポート: `apps/api/app/orchestration/transparency.py`
+- AI が参照したソース・情報をユーザーに開示
+- 承認時に判断に必要な情報（コスト・リスク・権限・データフロー・可逆性）を提示
+- ファクトチェック項目のユーザー確認フロー
+- AI の推論概要・不確実性・質問事項を明示
+
+## Web AI セッション (API 料金なしで AI を利用)
+
+API 料金なしで GPT・Gemini・Claude 等を利用する方式。
+
+- Web Session Provider: `apps/api/app/providers/web_session_provider.py`
+- 利用方式: g4f 経由（推奨）、Ollama（ローカル）、ブラウザセッション
+- API: `/api/v1/browser-automation/web-ai/*`
+
 ## メディア生成・AI ツール統合
 
 - メディア生成: `apps/api/app/integrations/media_generation.py`（画像・動画・音声・音楽・3D、動的プロバイダー登録対応）
 - AI ツールレジストリ: `apps/api/app/integrations/ai_tools.py`（25+ 外部ツール）
+- **ツールは固定せずユーザーが自由に選択・切替可能** — Plugin Loader の ToolRegistry で管理
 - API: `/api/v1/media/*`, `/api/v1/ai-tools/*`
 
 ## API エンドポイント
@@ -205,10 +243,10 @@ WebSocket エンドポイント: `ws://localhost:18234/ws/browser-assist`
 
 主要グループ: auth, companies, agents, tickets, specs-plans, tasks, approvals,
 budgets, audit, registry, models, observability (traces/communications/monitor),
-ollama, knowledge, config, self-improvement, browser-assist, secretary,
-brainstorm, conversation-memory, hypotheses, sessions, org-setup, platform,
-security, media, ai-tools, **files, user-input, resources, ipaas, export,
-marketplace, teams, governance, quality-insights** (prerequisite-monitor,
+ollama, knowledge, config, self-improvement, browser-assist, **browser-automation**,
+secretary, brainstorm, conversation-memory, hypotheses, sessions, org-setup,
+platform, security, media, ai-tools, **files, user-input, resources, ipaas,
+export, marketplace, teams, governance, quality-insights** (prerequisite-monitor,
 spec-contradiction, task-replay, judgment-review, plan-quality)
 
 ## Skill / Plugin / Extension
