@@ -65,9 +65,7 @@ async def create_task(
         task_type=req.task_type,
         requires_approval=req.requires_approval,
         provider_override_json=(
-            req.provider_override.model_dump(exclude_none=True)
-            if req.provider_override
-            else None
+            req.provider_override.model_dump(exclude_none=True) if req.provider_override else None
         ),
     )
     db.add(task)
