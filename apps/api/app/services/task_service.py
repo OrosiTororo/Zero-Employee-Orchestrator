@@ -65,9 +65,7 @@ async def start_task(
             db.add(audit)
             await db.commit()
             await db.refresh(task)
-            raise PermissionError(
-                f"操作 '{operation_type}' は承認が必要です: {gate_result.reason}"
-            )
+            raise PermissionError(f"操作 '{operation_type}' は承認が必要です: {gate_result.reason}")
 
     task.status = "running"
     task.started_at = datetime.now(UTC)

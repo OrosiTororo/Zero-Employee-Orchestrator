@@ -47,7 +47,13 @@ class ExecutionDAG:
         self._node_map[node.id] = node
 
     def get_ready_nodes(self) -> list[TaskNode]:
-        """Return nodes whose dependencies are all satisfied."""
+        """Return nodes whose dependencies are all satisfied.
+
+        Nodes requiring approval (based on autonomy_boundary check) are
+        automatically marked with requires_approval=True.
+        """
+        from app.policies.autonomy_boundary import check_autonomy
+
         ready = []
         for node in self.nodes:
             if node.status != TaskNodeStatus.PENDING:
@@ -58,6 +64,10 @@ class ExecutionDAG:
                 for dep_id in node.depends_on
             )
             if deps_satisfied:
+                # 自律実行境界チェック: task_type が承認必須かを判定
+                autonomy = check_autonomy(node.task_type)
+                if autonomy.requires_approval:
+                    node.requires_approval = True
                 ready.append(node)
         return ready
 
