@@ -2,7 +2,7 @@
 
 > 日本語 | [English](en/FEATURES.md) | [中文](zh/FEATURES.md)
 
-> 最終更新: 2026-03-12
+> 最終更新: 2026-03-25
 > 対象バージョン: v0.1
 
 ---
@@ -1669,3 +1669,195 @@ Design Interview 実行時に、Experience Memory と Failure Taxonomy から過
 5. Interview セッションに警告と追加質問を注入
 6. Spec 生成時にリスクノートとして統合
 ```
+
+---
+
+## 56. 前提変化の汎用監視 — Prerequisite Monitor (v0.1)
+
+RSS/ToS パイプラインを拡張し、業務に関わる外部情報源（競合サイト、法規制ページ、依存 API changelogs 等）をユーザーが登録して定期チェックする仕組みです。Heartbeat + Web fetch の組み合わせで実現。
+
+### 監視対象カテゴリ
+
+| カテゴリ | 説明 | 例 |
+|---------|------|-----|
+| `competitor` | 競合サイト | 競合の料金ページ、機能一覧 |
+| `regulation` | 法規制ページ | GDPR ガイドライン、各国データ保護法 |
+| `dependency_api` | 依存 API | Stripe API changelog、AWS サービス更新 |
+| `pricing` | 料金ページ | SaaS 料金改定 |
+| `tos` | 利用規約 | サービス利用規約の変更 |
+| `documentation` | ドキュメント | API ドキュメント、SDK リリースノート |
+| `security` | セキュリティ | CVE、セキュリティアドバイザリ |
+| `custom` | カスタム | 任意の Web ページ |
+
+### 影響レベル自動判定
+
+コンテンツ内のキーワードに基づいて影響レベルを自動判定します。
+
+| レベル | トリガーキーワード例 |
+|--------|-------------------|
+| **CRITICAL** | breaking change, deprecated, shutdown, security vulnerability |
+| **HIGH** | migration required, regulation change, price increase |
+| **MEDIUM** | update, new version, release, terms |
+| **LOW** | 上記に該当しない変更 |
+
+### 機能
+
+- ユーザーによる監視対象の登録・更新・削除
+- コンテンツハッシュ比較による変更検出
+- キーワードマッチングによる関連変更の強調
+- チケットとの紐付け（影響を受ける業務の追跡）
+- 変更の確認（acknowledge）フロー
+- 会社単位のサマリーダッシュボード
+
+### API エンドポイント
+
+| エンドポイント | 説明 |
+|-------------|------|
+| `POST /quality-insights/prerequisites/sources` | 監視対象登録 |
+| `GET /quality-insights/prerequisites/sources` | 監視対象一覧 |
+| `PUT /quality-insights/prerequisites/sources/{id}` | 監視対象更新 |
+| `DELETE /quality-insights/prerequisites/sources/{id}` | 監視対象削除 |
+| `POST /quality-insights/prerequisites/check` | 手動チェック実行 |
+| `GET /quality-insights/prerequisites/changes` | 変更履歴 |
+| `POST /quality-insights/prerequisites/changes/{id}/ack` | 変更確認 |
+| `GET /quality-insights/prerequisites/summary` | サマリー |
+
+---
+
+## 57. Spec 間矛盾検出 — Spec Contradiction Detector (v0.1)
+
+複数チケットの Spec が互いに矛盾していないかを CrossModelJudge の応用で検証します。既存の Judge 基盤（否定パターン検出・数値不整合・セマンティック比較）を流用。
+
+### 検出される矛盾タイプ
+
+| タイプ | 説明 | 深刻度 |
+|--------|------|--------|
+| `objective_conflict` | 目的の矛盾 | ERROR |
+| `constraint_conflict` | 制約条件の矛盾 | ERROR |
+| `acceptance_criteria_conflict` | 受け入れ基準の矛盾 | ERROR |
+| `resource_conflict` | リソース割り当ての競合 | WARNING |
+| `schedule_conflict` | スケジュール・期限の矛盾 | WARNING |
+| `priority_conflict` | 類似目的での優先度不一致 | INFO |
+| `negation_conflict` | 否定パターンによる矛盾 | ERROR |
+| `numeric_discrepancy` | 数値の不整合 | WARNING |
+
+### 検出ロジック
+
+- **否定パターン検出**: Judge Layer の 16 パターン（is/is not, true/false, increase/decrease 等）
+- **数値不整合**: 5% 以上の差異を検出
+- **セマンティック比較**: Jaccard 類似度による関連性判定
+- **一貫性スコア**: 矛盾の数と深刻度から 0.0〜1.0 のスコアを算出
+
+### API エンドポイント
+
+| エンドポイント | 説明 |
+|-------------|------|
+| `POST /quality-insights/spec-contradictions/check` | 矛盾検出実行 |
+
+---
+
+## 58. タスク実行のリプレイ・比較 — Task Replay & Comparison (v0.1)
+
+同一タスクを異なるモデルやパラメータで再実行し、結果を比較します。A/B テストの延長で、Skill 単位ではなくタスク単位の比較を実現。
+
+### 比較軸
+
+| 軸 | 説明 | 重み |
+|----|------|------|
+| **品質 (Quality)** | 元の出力との類似度 | 50% |
+| **速度 (Speed)** | 実行時間 | 20% |
+| **コスト (Cost)** | API コスト | 20% |
+| **一貫性 (Consistency)** | 他の実行結果との類似度 | 10% |
+
+### リプレイジョブのフロー
+
+```
+1. リプレイジョブ作成（元タスク + 比較する設定リスト）
+2. 各設定での実行結果を記録
+3. 全実行完了時に自動比較
+4. 総合勝者の判定
+```
+
+### API エンドポイント
+
+| エンドポイント | 説明 |
+|-------------|------|
+| `POST /quality-insights/task-replay/jobs` | リプレイジョブ作成 |
+| `GET /quality-insights/task-replay/jobs` | ジョブ一覧 |
+| `GET /quality-insights/task-replay/jobs/{id}` | ジョブ詳細 |
+| `POST /quality-insights/task-replay/jobs/{id}/execute` | 実行結果記録 |
+
+---
+
+## 59. ユーザー判断の振り返りレポート — Judgment Review (v0.1)
+
+承認・却下の履歴から「あなたはこの期間にこういう判断傾向があった」と可視化します。ユーザー自身の意思決定の自己認識を支える方向。
+
+### 分析項目
+
+| 項目 | 説明 |
+|------|------|
+| **承認/却下率** | 期間内の判断比率 |
+| **カテゴリ別洞察** | Plan承認、外部送信、公開等のカテゴリ別分析 |
+| **リスク分布** | low/medium/high/critical 別の判断分布 |
+| **応答時間** | 承認要求から判断までの平均時間 |
+| **週次トレンド** | 判断傾向の時系列変化 |
+| **パターン検出** | 判断傾向の自動検出（後述） |
+
+### 検出されるパターン
+
+| パターン | 説明 | 提案 |
+|---------|------|------|
+| `high_rejection_rate` | 却下率が 50% 超 | AI 提案品質の確認、要件の詳細化 |
+| `category_concentration` | 特定カテゴリへの判断集中 | 自律実行範囲の拡大 |
+| `high_risk_auto_approve` | 高リスク操作の承認率が高い | 承認基準の見直し |
+| `slow_response` | 平均応答時間が 1 時間超 | 通知設定の確認 |
+
+### API エンドポイント
+
+| エンドポイント | 説明 |
+|-------------|------|
+| `POST /quality-insights/judgment-review/record` | 判断記録 |
+| `GET /quality-insights/judgment-review/report` | レポート生成 |
+
+---
+
+## 60. 目的→Plan 分解の品質検証 — Plan Quality Verifier (v0.1)
+
+Spec から Plan への分解が「漏れなく・重複なく（MECE）」かを Judge Layer で検証するステージ追加です。
+
+### 検証項目
+
+| 検証項目 | 説明 | スコア配分 |
+|---------|------|-----------|
+| **目的カバレッジ** | Spec の目的がタスクでカバーされているか | 30% |
+| **制約条件の反映** | 制約がタスクレベルで考慮されているか | 20% |
+| **受け入れ基準の対応** | 各基準に対応するタスクが存在するか | 30% |
+| **重複検出** | 類似タスクの検出（70% 以上の類似度） | 10% |
+| **問題検出** | 依存関係の整合性、スコープクリープ | 10% |
+
+### 品質レベル
+
+| レベル | スコア範囲 | 説明 |
+|--------|----------|------|
+| **EXCELLENT** | 0.9 以上 | 漏れなく・重複なく分解されている |
+| **GOOD** | 0.7〜0.9 | おおむね良好、軽微な改善可能 |
+| **FAIR** | 0.5〜0.7 | 改善が必要な箇所あり |
+| **POOR** | 0.5 未満 | 大幅な見直しが必要 |
+
+### 検出される問題
+
+| 問題タイプ | 説明 |
+|-----------|------|
+| `missing_coverage` | Spec の要素がタスクでカバーされていない |
+| `duplicate_task` | 類似タスクが存在する |
+| `constraint_not_reflected` | 制約条件がタスクに反映されていない |
+| `acceptance_not_mapped` | 受け入れ基準に対応するタスクがない |
+| `dependency_issue` | 存在しないタスクへの依存、循環依存 |
+| `scope_creep` | Spec の範囲外のタスク |
+
+### API エンドポイント
+
+| エンドポイント | 説明 |
+|-------------|------|
+| `POST /quality-insights/plan-quality/verify` | Plan 品質検証 |

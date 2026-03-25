@@ -2,7 +2,7 @@
 
 # Zero-Employee Orchestrator — 功能一览
 
-> 最后更新：2026-03-12
+> 最后更新：2026-03-25
 > 目标版本：v0.1
 
 ---
@@ -1630,3 +1630,134 @@ API: `/api/v1/teams/*`
 5. 将警告和额外问题注入 Interview 会话
 6. 在 Spec 生成时作为风险说明集成
 ```
+
+---
+
+## 56. 前提变化通用监控 — Prerequisite Monitor (v0.1)
+
+扩展 RSS/ToS 管道，允许用户注册与业务相关的外部信息源（竞争对手网站、法规页面、依赖 API 变更日志等）并定期检查。通过 Heartbeat + Web fetch 组合实现。
+
+### 监控类别
+
+| 类别 | 说明 | 示例 |
+|------|------|------|
+| `competitor` | 竞争对手网站 | 定价页面、功能列表 |
+| `regulation` | 法规页面 | GDPR 指南、数据保护法 |
+| `dependency_api` | 依赖 API | Stripe API changelog、AWS 服务更新 |
+| `pricing` | 定价页面 | SaaS 定价变更 |
+| `tos` | 服务条款 | 服务条款变更 |
+| `documentation` | 文档 | API 文档、SDK 发布说明 |
+| `security` | 安全 | CVE、安全公告 |
+| `custom` | 自定义 | 任意网页 |
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `POST /quality-insights/prerequisites/sources` | 注册监控源 |
+| `GET /quality-insights/prerequisites/sources` | 监控源列表 |
+| `POST /quality-insights/prerequisites/check` | 手动检查 |
+| `GET /quality-insights/prerequisites/changes` | 变更历史 |
+| `GET /quality-insights/prerequisites/summary` | 摘要仪表板 |
+
+---
+
+## 57. Spec 间矛盾检测 — Spec Contradiction Detector (v0.1)
+
+验证多个工单的 Spec 之间是否存在矛盾，利用 CrossModelJudge 的否定模式检测、数值不一致检测和语义比较。
+
+### 检测的矛盾类型
+
+| 类型 | 说明 | 严重程度 |
+|------|------|---------|
+| `objective_conflict` | 目标矛盾 | ERROR |
+| `constraint_conflict` | 约束条件矛盾 | ERROR |
+| `acceptance_criteria_conflict` | 验收标准矛盾 | ERROR |
+| `resource_conflict` | 资源分配冲突 | WARNING |
+| `priority_conflict` | 类似目标的优先级不一致 | INFO |
+| `negation_conflict` | 否定模式矛盾 | ERROR |
+| `numeric_discrepancy` | 数值不一致 | WARNING |
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `POST /quality-insights/spec-contradictions/check` | 执行矛盾检测 |
+
+---
+
+## 58. 任务执行重放与比较 — Task Replay & Comparison (v0.1)
+
+使用不同模型或参数重新执行同一任务并比较结果。将 A/B 测试从 Skill 级别扩展到任务级别的比较。
+
+### 比较维度
+
+| 维度 | 说明 | 权重 |
+|------|------|------|
+| **品质** | 与原始输出的相似度 | 50% |
+| **速度** | 执行时间 | 20% |
+| **成本** | API 成本 | 20% |
+| **一致性** | 各次执行间的相似度 | 10% |
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `POST /quality-insights/task-replay/jobs` | 创建重放任务 |
+| `GET /quality-insights/task-replay/jobs` | 任务列表 |
+| `GET /quality-insights/task-replay/jobs/{id}` | 任务详情 |
+| `POST /quality-insights/task-replay/jobs/{id}/execute` | 记录执行结果 |
+
+---
+
+## 59. 用户判断回顾报告 — Judgment Review (v0.1)
+
+从审批/拒绝历史中可视化判断趋势："在此期间，您有这些判断倾向"。支持用户自身决策意识的提升。
+
+### 检测的模式
+
+| 模式 | 说明 | 建议 |
+|------|------|------|
+| `high_rejection_rate` | 拒绝率 > 50% | 检查 AI 提案质量 |
+| `category_concentration` | 判断集中于特定类别 | 扩大自主执行范围 |
+| `high_risk_auto_approve` | 高风险操作审批率高 | 审查审批标准 |
+| `slow_response` | 平均响应 > 1 小时 | 检查通知设置 |
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `POST /quality-insights/judgment-review/record` | 记录判断 |
+| `GET /quality-insights/judgment-review/report` | 生成报告 |
+
+---
+
+## 60. 目标→Plan 分解品质验证 — Plan Quality Verifier (v0.1)
+
+验证 Spec 到 Plan 的分解是否"不遗漏、不重复（MECE）"，使用 Judge Layer 进行验证。
+
+### 品质等级
+
+| 等级 | 分数范围 | 说明 |
+|------|---------|------|
+| **EXCELLENT** | 0.9 以上 | 无遗漏、无重复 |
+| **GOOD** | 0.7–0.9 | 整体良好，可轻微改进 |
+| **FAIR** | 0.5–0.7 | 需要改进 |
+| **POOR** | 0.5 以下 | 需要大幅修改 |
+
+### 检测的问题
+
+| 问题类型 | 说明 |
+|---------|------|
+| `missing_coverage` | Spec 要素未被任务覆盖 |
+| `duplicate_task` | 存在类似任务 |
+| `constraint_not_reflected` | 约束未反映在任务中 |
+| `acceptance_not_mapped` | 验收标准无对应任务 |
+| `dependency_issue` | 缺失或循环依赖 |
+| `scope_creep` | Spec 范围外的任务 |
+
+### API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `POST /quality-insights/plan-quality/verify` | 验证 Plan 品质 |

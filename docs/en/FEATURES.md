@@ -2,7 +2,7 @@
 
 # Zero-Employee Orchestrator — Feature List
 
-> Last updated: 2026-03-12
+> Last updated: 2026-03-25
 > Target version: v0.1
 
 ---
@@ -1631,3 +1631,143 @@ During Design Interview, automatically searches Experience Memory and Failure Ta
 5. Inject warnings and additional questions into Interview session
 6. Integrate as risk notes during Spec generation
 ```
+
+---
+
+## 56. Prerequisite Monitor — General-Purpose Change Monitoring (v0.1)
+
+Extends the RSS/ToS pipeline to allow users to register and periodically check any external information sources relevant to their business (competitor sites, regulatory pages, dependency API changelogs, etc.). Implemented via Heartbeat + Web fetch combination.
+
+### Monitored Categories
+
+| Category | Description | Examples |
+|----------|-------------|---------|
+| `competitor` | Competitor sites | Pricing pages, feature lists |
+| `regulation` | Regulatory pages | GDPR guidelines, data protection laws |
+| `dependency_api` | Dependency APIs | Stripe API changelog, AWS service updates |
+| `pricing` | Pricing pages | SaaS pricing changes |
+| `tos` | Terms of service | Service terms changes |
+| `documentation` | Documentation | API docs, SDK release notes |
+| `security` | Security | CVEs, security advisories |
+| `custom` | Custom | Any web page |
+
+### Auto Impact Assessment
+
+| Level | Trigger Keywords |
+|-------|-----------------|
+| **CRITICAL** | breaking change, deprecated, shutdown, security vulnerability |
+| **HIGH** | migration required, regulation change, price increase |
+| **MEDIUM** | update, new version, release, terms |
+| **LOW** | Changes not matching above keywords |
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /quality-insights/prerequisites/sources` | Register source |
+| `GET /quality-insights/prerequisites/sources` | List sources |
+| `POST /quality-insights/prerequisites/check` | Manual check |
+| `GET /quality-insights/prerequisites/changes` | Change history |
+| `GET /quality-insights/prerequisites/summary` | Summary dashboard |
+
+---
+
+## 57. Spec Contradiction Detector (v0.1)
+
+Verifies whether Specs across multiple tickets contradict each other, using CrossModelJudge's negation pattern detection, numeric discrepancy detection, and semantic comparison.
+
+### Detected Contradiction Types
+
+| Type | Description | Severity |
+|------|-------------|----------|
+| `objective_conflict` | Objective contradiction | ERROR |
+| `constraint_conflict` | Constraint contradiction | ERROR |
+| `acceptance_criteria_conflict` | Acceptance criteria contradiction | ERROR |
+| `resource_conflict` | Resource allocation conflict | WARNING |
+| `priority_conflict` | Priority mismatch for similar objectives | INFO |
+| `negation_conflict` | Negation pattern contradiction | ERROR |
+| `numeric_discrepancy` | Numeric inconsistency | WARNING |
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /quality-insights/spec-contradictions/check` | Run contradiction detection |
+
+---
+
+## 58. Task Replay & Comparison (v0.1)
+
+Re-execute the same task with different models or parameters and compare results. Extends A/B testing from Skill-level to task-level comparison.
+
+### Comparison Dimensions
+
+| Dimension | Description | Weight |
+|-----------|-------------|--------|
+| **Quality** | Similarity to original output | 50% |
+| **Speed** | Execution time | 20% |
+| **Cost** | API cost | 20% |
+| **Consistency** | Similarity across executions | 10% |
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /quality-insights/task-replay/jobs` | Create replay job |
+| `GET /quality-insights/task-replay/jobs` | List jobs |
+| `GET /quality-insights/task-replay/jobs/{id}` | Job details |
+| `POST /quality-insights/task-replay/jobs/{id}/execute` | Record execution |
+
+---
+
+## 59. Judgment Review Report (v0.1)
+
+Visualizes approval/rejection history patterns: "During this period, you had these judgment tendencies." Supports user self-awareness of decision-making patterns.
+
+### Detected Patterns
+
+| Pattern | Description | Suggestion |
+|---------|-------------|------------|
+| `high_rejection_rate` | Rejection rate > 50% | Review AI proposal quality |
+| `category_concentration` | Judgments concentrated in one category | Expand autonomous execution scope |
+| `high_risk_auto_approve` | High approval rate for high-risk ops | Review approval criteria |
+| `slow_response` | Average response > 1 hour | Check notification settings |
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /quality-insights/judgment-review/record` | Record judgment |
+| `GET /quality-insights/judgment-review/report` | Generate report |
+
+---
+
+## 60. Plan Quality Verifier — MECE Check (v0.1)
+
+Verifies whether Spec → Plan decomposition is "Mutually Exclusive, Collectively Exhaustive (MECE)" using the Judge Layer.
+
+### Quality Levels
+
+| Level | Score Range | Description |
+|-------|-----------|-------------|
+| **EXCELLENT** | 0.9+ | No gaps, no overlaps |
+| **GOOD** | 0.7–0.9 | Generally good, minor improvements possible |
+| **FAIR** | 0.5–0.7 | Improvements needed |
+| **POOR** | < 0.5 | Major revision required |
+
+### Detected Issues
+
+| Issue Type | Description |
+|-----------|-------------|
+| `missing_coverage` | Spec elements not covered by tasks |
+| `duplicate_task` | Similar tasks detected |
+| `constraint_not_reflected` | Constraints not reflected in tasks |
+| `acceptance_not_mapped` | No task for acceptance criteria |
+| `dependency_issue` | Missing or circular dependencies |
+| `scope_creep` | Tasks outside Spec scope |
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /quality-insights/plan-quality/verify` | Verify plan quality |

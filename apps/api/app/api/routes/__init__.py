@@ -28,6 +28,7 @@ from app.api.routes import (
     org_setup,
     platform,
     projects,
+    quality_insights,
     registry,
     resource_import,
     secretary,
@@ -81,3 +82,8 @@ api_router.include_router(export.router, tags=["export"])
 api_router.include_router(marketplace.router, tags=["marketplace"])
 api_router.include_router(team.router, tags=["teams"])
 api_router.include_router(governance.router, tags=["governance"])
+api_router.include_router(
+    quality_insights.router,
+    tags=["quality-insights", "prerequisite-monitor", "spec-contradiction",
+          "task-replay", "judgment-review", "plan-quality"],
+)
