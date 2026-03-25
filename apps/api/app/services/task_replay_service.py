@@ -154,8 +154,12 @@ class TaskReplayService:
             created_by=created_by,
         )
         self._jobs[job.id] = job
-        logger.info("Created replay job %s for task %s with %d configs",
-                     job.id, task_id, len(replay_configs))
+        logger.info(
+            "Created replay job %s for task %s with %d configs",
+            job.id,
+            task_id,
+            len(replay_configs),
+        )
         return job
 
     def record_execution(
@@ -216,53 +220,59 @@ class TaskReplayService:
         # 品質比較
         quality_scores = {e.id: e.quality_score for e in successful}
         best_quality = max(successful, key=lambda e: e.quality_score)
-        comparisons.append(ComparisonResult(
-            dimension=ComparisonDimension.QUALITY,
-            winner_execution_id=best_quality.id,
-            winner_model=best_quality.config.model_id,
-            scores=quality_scores,
-            details=f"最高品質スコア: {best_quality.quality_score:.3f} ({best_quality.config.model_id})",
-        ))
+        comparisons.append(
+            ComparisonResult(
+                dimension=ComparisonDimension.QUALITY,
+                winner_execution_id=best_quality.id,
+                winner_model=best_quality.config.model_id,
+                scores=quality_scores,
+                details=f"最高品質スコア: {best_quality.quality_score:.3f} ({best_quality.config.model_id})",
+            )
+        )
 
         # 速度比較
         speed_scores = {e.id: e.execution_time_ms for e in successful}
         fastest = min(successful, key=lambda e: e.execution_time_ms)
-        comparisons.append(ComparisonResult(
-            dimension=ComparisonDimension.SPEED,
-            winner_execution_id=fastest.id,
-            winner_model=fastest.config.model_id,
-            scores=speed_scores,
-            details=f"最速: {fastest.execution_time_ms:.0f}ms ({fastest.config.model_id})",
-        ))
+        comparisons.append(
+            ComparisonResult(
+                dimension=ComparisonDimension.SPEED,
+                winner_execution_id=fastest.id,
+                winner_model=fastest.config.model_id,
+                scores=speed_scores,
+                details=f"最速: {fastest.execution_time_ms:.0f}ms ({fastest.config.model_id})",
+            )
+        )
 
         # コスト比較
         cost_scores = {e.id: e.estimated_cost for e in successful}
         cheapest = min(successful, key=lambda e: e.estimated_cost)
-        comparisons.append(ComparisonResult(
-            dimension=ComparisonDimension.COST,
-            winner_execution_id=cheapest.id,
-            winner_model=cheapest.config.model_id,
-            scores=cost_scores,
-            details=f"最低コスト: ${cheapest.estimated_cost:.4f} ({cheapest.config.model_id})",
-        ))
+        comparisons.append(
+            ComparisonResult(
+                dimension=ComparisonDimension.COST,
+                winner_execution_id=cheapest.id,
+                winner_model=cheapest.config.model_id,
+                scores=cost_scores,
+                details=f"最低コスト: ${cheapest.estimated_cost:.4f} ({cheapest.config.model_id})",
+            )
+        )
 
         # 一貫性比較（実行間の出力類似度）
         if len(successful) >= 2:
             consistency_scores: dict[str, float] = {}
             for e in successful:
                 others = [o for o in successful if o.id != e.id]
-                avg_sim = sum(
-                    _jaccard_similarity(e.output, o.output) for o in others
-                ) / len(others)
+                avg_sim = sum(_jaccard_similarity(e.output, o.output) for o in others) / len(others)
                 consistency_scores[e.id] = avg_sim
             most_consistent = max(successful, key=lambda e: consistency_scores.get(e.id, 0))
-            comparisons.append(ComparisonResult(
-                dimension=ComparisonDimension.CONSISTENCY,
-                winner_execution_id=most_consistent.id,
-                winner_model=most_consistent.config.model_id,
-                scores=consistency_scores,
-                details=f"最も一貫性の高い出力: {most_consistent.config.model_id}",
-            ))
+            comparisons.append(
+                ComparisonResult(
+                    dimension=ComparisonDimension.CONSISTENCY,
+                    winner_execution_id=most_consistent.id,
+                    winner_model=most_consistent.config.model_id,
+                    scores=consistency_scores,
+                    details=f"最も一貫性の高い出力: {most_consistent.config.model_id}",
+                )
+            )
 
         # 総合判定（品質 50% + 速度 20% + コスト 20% + 一貫性 10%）
         overall_scores: dict[str, float] = {}
@@ -277,21 +287,20 @@ class TaskReplayService:
             overall_scores[e.id] = q * 0.5 + s * 0.2 + c * 0.2 + con * 0.1
 
         best_overall = max(successful, key=lambda e: overall_scores.get(e.id, 0))
-        comparisons.append(ComparisonResult(
-            dimension=ComparisonDimension.OVERALL,
-            winner_execution_id=best_overall.id,
-            winner_model=best_overall.config.model_id,
-            scores=overall_scores,
-            details=f"総合勝者: {best_overall.config.model_id} (スコア: {overall_scores.get(best_overall.id, 0):.3f})",
-        ))
+        comparisons.append(
+            ComparisonResult(
+                dimension=ComparisonDimension.OVERALL,
+                winner_execution_id=best_overall.id,
+                winner_model=best_overall.config.model_id,
+                scores=overall_scores,
+                details=f"総合勝者: {best_overall.config.model_id} (スコア: {overall_scores.get(best_overall.id, 0):.3f})",
+            )
+        )
 
         job.comparisons = comparisons
         job.status = ReplayStatus.COMPLETED
         job.completed_at = datetime.now(UTC)
-        job.summary = (
-            f"{len(successful)} モデルを比較。"
-            f"総合勝者: {best_overall.config.model_id}"
-        )
+        job.summary = f"{len(successful)} モデルを比較。総合勝者: {best_overall.config.model_id}"
 
     def get_job(self, job_id: str) -> ReplayJob | None:
         """リプレイジョブを取得する."""

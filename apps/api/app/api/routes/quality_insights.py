@@ -260,9 +260,7 @@ async def acknowledge_prerequisite_change(
     current_user: User = Depends(get_current_user),
 ):
     """変更を確認済みにする."""
-    change = prerequisite_monitor.acknowledge_change(
-        change_id, str(current_user.id)
-    )
+    change = prerequisite_monitor.acknowledge_change(change_id, str(current_user.id))
     if not change:
         raise HTTPException(status_code=404, detail="Change not found")
     return {"message": "Change acknowledged"}
@@ -600,7 +598,9 @@ async def verify_plan_quality(
             matched_task_ids=report.objective_coverage.matched_task_ids,
             matched_task_titles=report.objective_coverage.matched_task_titles,
             similarity_score=report.objective_coverage.similarity_score,
-        ) if report.objective_coverage else None,
+        )
+        if report.objective_coverage
+        else None,
         constraint_coverage=[
             CoverageItemResponse(
                 source_type=c.source_type,
@@ -670,9 +670,7 @@ def _source_to_response(source) -> PrerequisiteSourceResponse:
         status=source.status.value,
         last_checked=source.last_checked.isoformat() if source.last_checked else None,
         last_change_detected=(
-            source.last_change_detected.isoformat()
-            if source.last_change_detected
-            else None
+            source.last_change_detected.isoformat() if source.last_change_detected else None
         ),
         created_at=source.created_at.isoformat(),
         linked_ticket_ids=source.linked_ticket_ids,

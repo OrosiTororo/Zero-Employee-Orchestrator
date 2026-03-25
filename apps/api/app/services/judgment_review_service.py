@@ -180,9 +180,7 @@ class JudgmentReviewService:
         records = [
             r
             for r in self._records
-            if r.user_id == user_id
-            and r.company_id == company_id
-            and r.decided_at >= period_start
+            if r.user_id == user_id and r.company_id == company_id and r.decided_at >= period_start
         ]
 
         if not records:
@@ -202,13 +200,9 @@ class JudgmentReviewService:
 
         # 平均応答時間
         response_times = [
-            r.response_time_seconds
-            for r in records
-            if r.response_time_seconds is not None
+            r.response_time_seconds for r in records if r.response_time_seconds is not None
         ]
-        avg_response = (
-            sum(response_times) / len(response_times) if response_times else None
-        )
+        avg_response = sum(response_times) / len(response_times) if response_times else None
 
         # カテゴリ別洞察
         category_insights = self._analyze_categories(records)
@@ -239,9 +233,7 @@ class JudgmentReviewService:
             detected_patterns=patterns,
         )
 
-    def _analyze_categories(
-        self, records: list[JudgmentRecord]
-    ) -> list[CategoryInsight]:
+    def _analyze_categories(self, records: list[JudgmentRecord]) -> list[CategoryInsight]:
         """カテゴリ別に分析する."""
         by_cat: dict[str, list[JudgmentRecord]] = defaultdict(list)
         for r in records:
@@ -254,9 +246,7 @@ class JudgmentReviewService:
             rejected = sum(1 for r in cat_records if r.action == JudgmentAction.REJECTED)
             deferred = sum(1 for r in cat_records if r.action == JudgmentAction.DEFERRED)
             times = [
-                r.response_time_seconds
-                for r in cat_records
-                if r.response_time_seconds is not None
+                r.response_time_seconds for r in cat_records if r.response_time_seconds is not None
             ]
             avg_time = sum(times) / len(times) if times else None
 
@@ -286,16 +276,10 @@ class JudgmentReviewService:
         current = start
         while current < end:
             week_end = current + timedelta(days=7)
-            week_records = [
-                r for r in records if current <= r.decided_at < week_end
-            ]
+            week_records = [r for r in records if current <= r.decided_at < week_end]
             total = len(week_records)
-            approved = sum(
-                1 for r in week_records if r.action == JudgmentAction.APPROVED
-            )
-            rejected = sum(
-                1 for r in week_records if r.action == JudgmentAction.REJECTED
-            )
+            approved = sum(1 for r in week_records if r.action == JudgmentAction.APPROVED)
+            rejected = sum(1 for r in week_records if r.action == JudgmentAction.REJECTED)
             trend_points.append(
                 TrendPoint(
                     period=current.strftime("%Y-%m-%d"),
@@ -347,9 +331,7 @@ class JudgmentReviewService:
         # パターン3: リスクレベルと判断の相関
         high_risk = [r for r in records if r.risk_level in ("high", "critical")]
         if high_risk:
-            high_approved = sum(
-                1 for r in high_risk if r.action == JudgmentAction.APPROVED
-            )
+            high_approved = sum(1 for r in high_risk if r.action == JudgmentAction.APPROVED)
             if high_approved / len(high_risk) > 0.8:
                 patterns.append(
                     JudgmentPattern(
@@ -361,11 +343,7 @@ class JudgmentReviewService:
                 )
 
         # パターン4: 応答時間の傾向
-        times = [
-            r.response_time_seconds
-            for r in records
-            if r.response_time_seconds is not None
-        ]
+        times = [r.response_time_seconds for r in records if r.response_time_seconds is not None]
         if times:
             avg_time = sum(times) / len(times)
             if avg_time > 3600:  # 1時間以上
@@ -387,11 +365,7 @@ class JudgmentReviewService:
         limit: int = 100,
     ) -> list[JudgmentRecord]:
         """判断記録を取得する."""
-        records = [
-            r
-            for r in self._records
-            if r.user_id == user_id and r.company_id == company_id
-        ]
+        records = [r for r in self._records if r.user_id == user_id and r.company_id == company_id]
         records.sort(key=lambda r: r.decided_at, reverse=True)
         return records[:limit]
 

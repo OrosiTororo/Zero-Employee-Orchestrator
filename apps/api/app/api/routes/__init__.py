@@ -84,6 +84,12 @@ api_router.include_router(team.router, tags=["teams"])
 api_router.include_router(governance.router, tags=["governance"])
 api_router.include_router(
     quality_insights.router,
-    tags=["quality-insights", "prerequisite-monitor", "spec-contradiction",
-          "task-replay", "judgment-review", "plan-quality"],
+    tags=[
+        "quality-insights",
+        "prerequisite-monitor",
+        "spec-contradiction",
+        "task-replay",
+        "judgment-review",
+        "plan-quality",
+    ],
 )

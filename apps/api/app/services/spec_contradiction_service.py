@@ -149,7 +149,7 @@ class SpecContradictionDetector:
 
         # 一貫性スコア: 矛盾が多いほど低い
         max_pairs = max(len(specs) * (len(specs) - 1) // 2, 1)
-        penalty = (critical * 0.3 + error * 0.15 + warning * 0.05 + info * 0.01)
+        penalty = critical * 0.3 + error * 0.15 + warning * 0.05 + info * 0.01
         score = max(0.0, 1.0 - penalty / max_pairs)
 
         return SpecContradictionReport(
@@ -164,17 +164,13 @@ class SpecContradictionDetector:
             overall_consistency_score=round(score, 3),
         )
 
-    def _compare_pair(
-        self, spec_a: SpecSummary, spec_b: SpecSummary
-    ) -> list[ContradictionDetail]:
+    def _compare_pair(self, spec_a: SpecSummary, spec_b: SpecSummary) -> list[ContradictionDetail]:
         """2つの Spec を比較して矛盾を検出する."""
         results: list[ContradictionDetail] = []
 
         # 1. 目的の矛盾チェック（否定パターン検出）
         if spec_a.objective and spec_b.objective:
-            negations = self._check_negation_conflict(
-                spec_a.objective, spec_b.objective
-            )
+            negations = self._check_negation_conflict(spec_a.objective, spec_b.objective)
             if negations:
                 results.append(
                     ContradictionDetail(
@@ -218,23 +214,29 @@ class SpecContradictionDetector:
                 # 数値不整合チェック
                 num_conflict = self._check_numeric_conflict(ca, cb)
                 if num_conflict:
-                    results.append(num_conflict._replace_ids(
-                        spec_a.spec_id, spec_a.ticket_title,
-                        spec_b.spec_id, spec_b.ticket_title,
-                    ) if False else ContradictionDetail(
-                        type=ContradictionType.NUMERIC_DISCREPANCY,
-                        severity=ContradictionSeverity.WARNING,
-                        spec_a_id=spec_a.spec_id,
-                        spec_a_ticket=spec_a.ticket_title,
-                        spec_b_id=spec_b.spec_id,
-                        spec_b_ticket=spec_b.ticket_title,
-                        field_a="constraint",
-                        value_a=ca[:200],
-                        field_b="constraint",
-                        value_b=cb[:200],
-                        description="制約条件の数値に不整合があります",
-                        suggestion="数値を確認・統一してください",
-                    ))
+                    results.append(
+                        num_conflict._replace_ids(
+                            spec_a.spec_id,
+                            spec_a.ticket_title,
+                            spec_b.spec_id,
+                            spec_b.ticket_title,
+                        )
+                        if False
+                        else ContradictionDetail(
+                            type=ContradictionType.NUMERIC_DISCREPANCY,
+                            severity=ContradictionSeverity.WARNING,
+                            spec_a_id=spec_a.spec_id,
+                            spec_a_ticket=spec_a.ticket_title,
+                            spec_b_id=spec_b.spec_id,
+                            spec_b_ticket=spec_b.ticket_title,
+                            field_a="constraint",
+                            value_a=ca[:200],
+                            field_b="constraint",
+                            value_b=cb[:200],
+                            description="制約条件の数値に不整合があります",
+                            suggestion="数値を確認・統一してください",
+                        )
+                    )
 
         # 3. 受け入れ基準の矛盾チェック
         for aa in spec_a.acceptance_criteria:
@@ -326,6 +328,7 @@ class SpecContradictionDetector:
     def _check_numeric_conflict(self, text_a: str, text_b: str) -> bool:
         """数値不整合を検出する."""
         import re
+
         nums_a = re.findall(r"\d+(?:\.\d+)?%?", text_a)
         nums_b = re.findall(r"\d+(?:\.\d+)?%?", text_b)
         for na in nums_a:

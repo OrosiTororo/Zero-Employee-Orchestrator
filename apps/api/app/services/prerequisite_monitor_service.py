@@ -103,20 +103,43 @@ class PrerequisiteChange:
 # ---------------------------------------------------------------------------
 
 _CRITICAL_KEYWORDS = [
-    "breaking change", "deprecated", "removed", "shutdown",
-    "security vulnerability", "critical", "urgent", "breach",
-    "data loss", "service termination", "end of life", "eol",
+    "breaking change",
+    "deprecated",
+    "removed",
+    "shutdown",
+    "security vulnerability",
+    "critical",
+    "urgent",
+    "breach",
+    "data loss",
+    "service termination",
+    "end of life",
+    "eol",
 ]
 
 _HIGH_KEYWORDS = [
-    "major update", "migration required", "incompatible",
-    "regulation change", "compliance", "mandatory", "deadline",
-    "rate limit", "quota change", "price increase",
+    "major update",
+    "migration required",
+    "incompatible",
+    "regulation change",
+    "compliance",
+    "mandatory",
+    "deadline",
+    "rate limit",
+    "quota change",
+    "price increase",
 ]
 
 _MEDIUM_KEYWORDS = [
-    "update", "change", "new version", "release", "amendment",
-    "revised", "modified", "pricing", "terms",
+    "update",
+    "change",
+    "new version",
+    "release",
+    "amendment",
+    "revised",
+    "modified",
+    "pricing",
+    "terms",
 ]
 
 
@@ -326,9 +349,7 @@ class PrerequisiteMonitorService:
         if source_id:
             changes = [c for c in changes if c.source_id == source_id]
         if company_id:
-            source_ids = {
-                s.id for s in self._sources.values() if s.company_id == company_id
-            }
+            source_ids = {s.id for s in self._sources.values() if s.company_id == company_id}
             changes = [c for c in changes if c.source_id in source_ids]
         if impact:
             changes = [c for c in changes if c.impact == impact]
@@ -337,9 +358,7 @@ class PrerequisiteMonitorService:
         changes.sort(key=lambda c: c.detected_at, reverse=True)
         return changes[:limit]
 
-    def acknowledge_change(
-        self, change_id: str, user_id: str
-    ) -> PrerequisiteChange | None:
+    def acknowledge_change(self, change_id: str, user_id: str) -> PrerequisiteChange | None:
         """変更を確認済みにする."""
         for change in self._changes:
             if change.id == change_id:

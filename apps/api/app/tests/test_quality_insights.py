@@ -81,7 +81,9 @@ class TestPrerequisiteMonitor:
     def test_check_source_detects_change(self):
         """内容変更を検出できる."""
         source = self.monitor.register_source(
-            "c1", "API Docs", "https://api.example.com/docs",
+            "c1",
+            "API Docs",
+            "https://api.example.com/docs",
             keywords=["breaking change"],
         )
         self.monitor.check_source(source.id, "version 1.0")
@@ -165,8 +167,7 @@ class TestSpecContradiction:
         ]
         report = self.detector.detect_contradictions(specs)
         negation_conflicts = [
-            c for c in report.contradictions
-            if c.type == ContradictionType.NEGATION_CONFLICT
+            c for c in report.contradictions if c.type == ContradictionType.NEGATION_CONFLICT
         ]
         assert len(negation_conflicts) > 0
 
@@ -201,8 +202,7 @@ class TestSpecContradiction:
         ]
         report = self.detector.detect_contradictions(specs)
         priority_conflicts = [
-            c for c in report.contradictions
-            if c.type == ContradictionType.PRIORITY_CONFLICT
+            c for c in report.contradictions if c.type == ContradictionType.PRIORITY_CONFLICT
         ]
         assert len(priority_conflicts) > 0
 
@@ -261,10 +261,18 @@ class TestTaskReplay:
         )
 
         self.service.record_execution(
-            job.id, 0, "output from model a", execution_time_ms=100, estimated_cost=0.01,
+            job.id,
+            0,
+            "output from model a",
+            execution_time_ms=100,
+            estimated_cost=0.01,
         )
         self.service.record_execution(
-            job.id, 1, "output from model b different", execution_time_ms=200, estimated_cost=0.02,
+            job.id,
+            1,
+            "output from model b different",
+            execution_time_ms=200,
+            estimated_cost=0.02,
         )
 
         job = self.service.get_job(job.id)
@@ -322,13 +330,17 @@ class TestJudgmentReview:
         """判断データからレポートを生成できる."""
         for _ in range(7):
             self.service.record_judgment(
-                "u1", "c1", JudgmentAction.APPROVED,
+                "u1",
+                "c1",
+                JudgmentAction.APPROVED,
                 JudgmentCategory.PLAN_APPROVAL,
                 response_time_seconds=60.0,
             )
         for _ in range(3):
             self.service.record_judgment(
-                "u1", "c1", JudgmentAction.REJECTED,
+                "u1",
+                "c1",
+                JudgmentAction.REJECTED,
                 JudgmentCategory.EXTERNAL_SEND,
                 response_time_seconds=120.0,
             )
@@ -388,9 +400,21 @@ class TestPlanQuality:
             plan_id="p1",
             spec_id="s1",
             tasks=[
-                PlanTaskInput(task_id="t1", title="市場規模調査", description="市場規模の推定値を算出する"),
-                PlanTaskInput(task_id="t2", title="競合分析", description="競合5社の分析を行う", depends_on=["t1"]),
-                PlanTaskInput(task_id="t3", title="レポート作成", description="調査結果をレポートにまとめる", depends_on=["t1", "t2"]),
+                PlanTaskInput(
+                    task_id="t1", title="市場規模調査", description="市場規模の推定値を算出する"
+                ),
+                PlanTaskInput(
+                    task_id="t2",
+                    title="競合分析",
+                    description="競合5社の分析を行う",
+                    depends_on=["t1"],
+                ),
+                PlanTaskInput(
+                    task_id="t3",
+                    title="レポート作成",
+                    description="調査結果をレポートにまとめる",
+                    depends_on=["t1", "t2"],
+                ),
             ],
         )
         report = self.verifier.verify(spec, plan)
@@ -416,8 +440,12 @@ class TestPlanQuality:
             plan_id="p1",
             spec_id="s1",
             tasks=[
-                PlanTaskInput(task_id="t1", title="競合分析レポート作成", description="競合企業を分析"),
-                PlanTaskInput(task_id="t2", title="競合分析レポート作成", description="競合企業を分析する"),
+                PlanTaskInput(
+                    task_id="t1", title="競合分析レポート作成", description="競合企業を分析"
+                ),
+                PlanTaskInput(
+                    task_id="t2", title="競合分析レポート作成", description="競合企業を分析する"
+                ),
             ],
         )
         report = self.verifier.verify(spec, plan)

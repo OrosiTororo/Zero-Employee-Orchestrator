@@ -204,15 +204,11 @@ class PlanQualityVerifier:
     def verify(self, spec: SpecInput, plan: PlanInput) -> PlanQualityReport:
         """Spec と Plan の整合性を検証する."""
         issues: list[QualityIssue] = []
-        task_texts = [
-            f"{t.title} {t.description}" for t in plan.tasks
-        ]
+        task_texts = [f"{t.title} {t.description}" for t in plan.tasks]
         combined_tasks = " ".join(task_texts)
 
         # 1. 目的のカバレッジ
-        objective_cov = self._check_objective_coverage(
-            spec.objective, plan.tasks, combined_tasks
-        )
+        objective_cov = self._check_objective_coverage(spec.objective, plan.tasks, combined_tasks)
         if objective_cov.status == CoverageStatus.NOT_COVERED:
             issues.append(
                 QualityIssue(
@@ -228,9 +224,7 @@ class PlanQualityVerifier:
         constraint_covs = []
         covered_constraints = 0
         for constraint in spec.constraints:
-            cov = self._check_text_coverage(
-                constraint, "constraint", plan.tasks
-            )
+            cov = self._check_text_coverage(constraint, "constraint", plan.tasks)
             constraint_covs.append(cov)
             if cov.status != CoverageStatus.NOT_COVERED:
                 covered_constraints += 1
@@ -249,9 +243,7 @@ class PlanQualityVerifier:
         acceptance_covs = []
         covered_acceptance = 0
         for criteria in spec.acceptance_criteria:
-            cov = self._check_text_coverage(
-                criteria, "acceptance_criteria", plan.tasks
-            )
+            cov = self._check_text_coverage(criteria, "acceptance_criteria", plan.tasks)
             acceptance_covs.append(cov)
             if cov.status != CoverageStatus.NOT_COVERED:
                 covered_acceptance += 1
@@ -404,9 +396,7 @@ class PlanQualityVerifier:
             similarity_score=round(max_sim, 3),
         )
 
-    def _detect_duplicates(
-        self, tasks: list[PlanTaskInput]
-    ) -> list[DuplicatePair]:
+    def _detect_duplicates(self, tasks: list[PlanTaskInput]) -> list[DuplicatePair]:
         """タスク間の重複を検出する."""
         duplicates = []
         for i in range(len(tasks)):
@@ -426,9 +416,7 @@ class PlanQualityVerifier:
                     )
         return duplicates
 
-    def _check_dependencies(
-        self, tasks: list[PlanTaskInput]
-    ) -> list[QualityIssue]:
+    def _check_dependencies(self, tasks: list[PlanTaskInput]) -> list[QualityIssue]:
         """依存関係の整合性を確認する."""
         issues = []
         task_ids = {t.task_id for t in tasks}
@@ -498,21 +486,13 @@ class PlanQualityVerifier:
 
         # 制約カバレッジ (20%)
         if constraint_covs:
-            covered = sum(
-                1
-                for c in constraint_covs
-                if c.status != CoverageStatus.NOT_COVERED
-            )
+            covered = sum(1 for c in constraint_covs if c.status != CoverageStatus.NOT_COVERED)
             constraint_rate = covered / len(constraint_covs)
             score -= (1 - constraint_rate) * 0.2
 
         # 受け入れ基準カバレッジ (30%)
         if acceptance_covs:
-            covered = sum(
-                1
-                for c in acceptance_covs
-                if c.status != CoverageStatus.NOT_COVERED
-            )
+            covered = sum(1 for c in acceptance_covs if c.status != CoverageStatus.NOT_COVERED)
             acceptance_rate = covered / len(acceptance_covs)
             score -= (1 - acceptance_rate) * 0.3
 
