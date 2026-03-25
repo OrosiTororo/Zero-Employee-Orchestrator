@@ -321,6 +321,26 @@ def cmd_local(args: argparse.Namespace) -> None:
                     break
                 continue
 
+            # 自然言語コマンドプロセッサで意図を判定
+            try:
+                from app.services.nl_command_service import nl_command_processor
+
+                parsed = nl_command_processor.parse(user_input)
+                if parsed.confidence >= 0.3 and parsed.category.value != "conversation":
+                    result = await nl_command_processor.execute(parsed)
+                    if result.message:
+                        print(f"\n  \033[38;5;78m[{parsed.category.value}]\033[0m {result.message}")
+                    if result.suggestions:
+                        print("\n  \033[38;5;245mヒント:\033[0m")
+                        for s in result.suggestions:
+                            print(f"    • {s}")
+                    if not result.data.get("delegate_to_llm"):
+                        print()
+                        continue
+                    # delegate_to_llm の場合は LLM にも送信
+            except Exception:
+                pass  # NL プロセッサが利用不可の場合はそのまま LLM に送信
+
             # Multi-line input (triple quotes)
             if user_input.startswith('"""') or user_input.startswith("'''"):
                 delim = user_input[:3]
@@ -382,6 +402,114 @@ def cmd_local(args: argparse.Namespace) -> None:
     asyncio.run(_chat())
 
 
+def cmd_chat(args: argparse.Namespace) -> None:
+    """チャットモード — 全プロバイダー対応の対話型業務エージェント.
+
+    Ollama だけでなく、全 LLM プロバイダーで利用可能。
+    自然言語で設定変更・チケット作成・モデル管理等あらゆる操作に対応。
+    """
+
+    async def _chat() -> None:
+        from app.banner import print_local_banner
+        from app.core.i18n import get_language, set_language, t
+        from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
+
+        if args.lang:
+            set_language(args.lang)
+        language = get_language()
+
+        # Determine mode
+        mode_str = args.mode or "quality"
+        mode_map = {
+            "quality": ExecutionMode.QUALITY,
+            "speed": ExecutionMode.SPEED,
+            "cost": ExecutionMode.COST,
+            "free": ExecutionMode.FREE,
+            "subscription": ExecutionMode.SUBSCRIPTION,
+        }
+        mode = mode_map.get(mode_str, ExecutionMode.QUALITY)
+
+        model = llm_gateway.select_model(mode)
+        print_local_banner(
+            model=model,
+            engine_url="LLM Gateway (multi-provider)",
+            mode="orchestrator",
+            language=language,
+            ollama_available=True,
+        )
+
+        print(f"  \033[38;5;245mMode: {mode.value} | Model: {model}\033[0m")
+        print(
+            "  \033[38;5;245m自然言語であらゆる操作が可能です。「何ができる？」と聞いてください。\033[0m"
+        )
+        print()
+
+        conversation: list[dict] = []
+        system_prompt = _build_system_prompt(language)
+
+        while True:
+            try:
+                user_input = input("\033[38;5;51m>\033[0m ").strip()
+            except (KeyboardInterrupt, EOFError):
+                print(f"\n\n  {t('chat_goodbye')}")
+                break
+
+            if not user_input:
+                continue
+
+            if user_input.startswith("/"):
+                handled = _handle_command(user_input, language)
+                if handled == "quit":
+                    print(f"\n  {t('chat_goodbye')}")
+                    break
+                continue
+
+            # 自然言語コマンドプロセッサ
+            try:
+                from app.services.nl_command_service import nl_command_processor
+
+                parsed = nl_command_processor.parse(user_input)
+                if parsed.confidence >= 0.3 and parsed.category.value != "conversation":
+                    result = await nl_command_processor.execute(parsed)
+                    if result.message:
+                        print(f"\n  \033[38;5;78m[{parsed.category.value}]\033[0m {result.message}")
+                    if result.suggestions:
+                        for s in result.suggestions:
+                            print(f"    • {s}")
+                    if not result.data.get("delegate_to_llm"):
+                        print()
+                        continue
+            except Exception:
+                pass
+
+            # LLM に送信
+            conversation.append({"role": "user", "content": user_input})
+            messages = [{"role": "system", "content": system_prompt}] + conversation
+
+            print(f"\n  \033[38;5;245m{t('chat_thinking')}\033[0m", end="", flush=True)
+
+            request = CompletionRequest(
+                messages=messages,
+                model=model,
+                temperature=args.temperature,
+                max_tokens=args.max_tokens,
+                mode=mode,
+            )
+            response = await llm_gateway.complete(request)
+
+            print(f"\r  \033[38;5;78massistant:\033[0m {response.content}")
+
+            if response.content:
+                conversation.append({"role": "assistant", "content": response.content})
+
+            # コンテキスト圧縮
+            ctx_tokens = sum(len(m["content"]) // 4 for m in messages)
+            if ctx_tokens > 24000:
+                conversation = _compress_context(conversation)
+
+    asyncio.run(_chat())
+
+
 def _build_system_prompt(language: str) -> str:
     """Build the system prompt for local orchestration mode."""
     lang_instructions = {
@@ -393,7 +521,15 @@ def _build_system_prompt(language: str) -> str:
             "- 業務目的の理解と要件の深掘り\n"
             "- タスクの分解と実行計画の作成\n"
             "- 危険な操作（送信・削除・課金）は必ずユーザーに確認\n"
-            "- 進捗の報告と問題発生時の対処提案\n"
+            "- 進捗の報告と問題発生時の対処提案\n\n"
+            "ユーザーは自然言語であらゆる操作を指示できます:\n"
+            "- 設定変更: 「Geminiを使うように設定して」「実行モードをfreeに変更して」\n"
+            "- チケット: 「競合分析レポートを作成して」\n"
+            "- モデル: 「モデルを更新して」「qwen3:8bをダウンロードして」\n"
+            "- スキル: 「browser-useを追加して」「新しいスキルを生成して」\n"
+            "- セキュリティ: 「セキュリティ設定を確認して」\n"
+            "- 承認: 「承認待ちを見せて」\n"
+            "- メディア: 「オフィスの画像を生成して」\n"
         ),
         "en": (
             "You are a task execution agent for Zero-Employee Orchestrator.\n"
@@ -403,7 +539,15 @@ def _build_system_prompt(language: str) -> str:
             "- Understand business objectives and clarify requirements\n"
             "- Decompose tasks and create execution plans\n"
             "- Always confirm dangerous operations (sending, deleting, billing)\n"
-            "- Report progress and propose solutions when issues arise\n"
+            "- Report progress and propose solutions when issues arise\n\n"
+            "Users can control everything via natural language:\n"
+            "- Config: 'Set up to use Gemini', 'Change mode to free'\n"
+            "- Tickets: 'Create a competitive analysis report'\n"
+            "- Models: 'Update models', 'Download qwen3:8b'\n"
+            "- Skills: 'Add browser-use', 'Generate a new skill'\n"
+            "- Security: 'Check security settings'\n"
+            "- Approvals: 'Show pending approvals'\n"
+            "- Media: 'Generate an office image'\n"
         ),
         "zh": (
             "你是 Zero-Employee Orchestrator 的任务执行代理。\n"
@@ -413,7 +557,14 @@ def _build_system_prompt(language: str) -> str:
             "- 理解业务目标并深入挖掘需求\n"
             "- 分解任务并创建执行计划\n"
             "- 危险操作（发送、删除、计费）必须确认\n"
-            "- 报告进度并在出现问题时提出解决方案\n"
+            "- 报告进度并在出现问题时提出解决方案\n\n"
+            "用户可以用自然语言控制一切:\n"
+            "- 配置: '设置使用Gemini', '将模式更改为free'\n"
+            "- 工单: '创建竞争分析报告'\n"
+            "- 模型: '更新模型', '下载qwen3:8b'\n"
+            "- 技能: '添加browser-use', '生成新技能'\n"
+            "- 安全: '检查安全设置'\n"
+            "- 审批: '显示待审批项'\n"
         ),
     }
     return lang_instructions.get(language, lang_instructions["en"])
@@ -622,6 +773,37 @@ def build_parser() -> argparse.ArgumentParser:
         help="Max output tokens (default: 4096)",
     )
     local_parser.set_defaults(func=cmd_local)
+
+    # chat — 全プロバイダー対応チャットモード
+    chat_parser = subparsers.add_parser(
+        "chat",
+        help="チャットモード (全プロバイダー対応・自然言語で全操作可能)",
+    )
+    chat_parser.add_argument(
+        "--mode",
+        default="",
+        choices=["quality", "speed", "cost", "free", "subscription", ""],
+        help="実行モード (default: auto)",
+    )
+    chat_parser.add_argument(
+        "--lang",
+        default="",
+        choices=["ja", "en", "zh", ""],
+        help="Language (ja/en/zh, default: auto)",
+    )
+    chat_parser.add_argument(
+        "--temperature",
+        type=float,
+        default=0.7,
+        help="Sampling temperature (default: 0.7)",
+    )
+    chat_parser.add_argument(
+        "--max-tokens",
+        type=int,
+        default=4096,
+        help="Max output tokens (default: 4096)",
+    )
+    chat_parser.set_defaults(func=cmd_chat)
 
     # models — モデル一覧
     models_parser = subparsers.add_parser("models", help="利用可能モデル一覧")

@@ -24,6 +24,7 @@ from app.api.routes import (
     media_generation,
     models,
     multi_model,
+    nl_command,
     observability,
     ollama,
     org_setup,
@@ -84,6 +85,7 @@ api_router.include_router(export.router, tags=["export"])
 api_router.include_router(marketplace.router, tags=["marketplace"])
 api_router.include_router(team.router, tags=["teams"])
 api_router.include_router(governance.router, tags=["governance"])
+api_router.include_router(nl_command.router, tags=["nl-command"])
 api_router.include_router(
     quality_insights.router,
     tags=[
