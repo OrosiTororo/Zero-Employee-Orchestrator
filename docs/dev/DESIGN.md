@@ -355,7 +355,7 @@ GitHub Actions による手動デプロイ (`.github/workflows/deploy-workers.ym
 - tickets
 - specs
 - plans
-- tasks
+- tasks (provider_override_json: JSON nullable — タスク単位の LLM プロバイダー指定)
 - task_dependencies
 - executions
 - outputs
@@ -402,6 +402,7 @@ GitHub Actions による手動デプロイ (`.github/workflows/deploy-workers.ym
 - `POST /api/tasks`
 - `GET /api/tasks/{id}`
 - `POST /api/tasks/{id}/transition`
+- `PATCH /api/v1/tasks/{id}/provider` — タスク単位プロバイダー指定の更新
 
 #### 実行・レビュー
 - `POST /api/orchestrate`
@@ -442,6 +443,13 @@ GitHub Actions による手動デプロイ (`.github/workflows/deploy-workers.ym
 - `GET /api/settings`
 - `PUT /api/settings`
 - `GET /api/health`
+
+#### メディア生成・プロバイダーレジストリ (v0.1 実装済み)
+- `GET /api/v1/media/providers` — メディア生成プロバイダー一覧（ビルトイン＋ユーザー登録）
+- `GET /api/v1/media/providers/{media_type}` — メディアタイプ別プロバイダー一覧
+- `POST /api/v1/media/providers` — 新規プロバイダー登録（3D 等）
+- `DELETE /api/v1/media/providers/{id}` — ユーザー登録プロバイダーの削除
+- `POST /api/v1/media/generate` — メディア生成（任意のプロバイダー ID を指定可能）
 
 #### ランタイム設定管理 (v0.1 実装済み)
 - `GET /api/v1/config` — 全設定値（機密値はマスク済み）

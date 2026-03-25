@@ -193,7 +193,7 @@ WebSocket エンドポイント: `ws://localhost:18234/ws/browser-assist`
 
 ## メディア生成・AI ツール統合
 
-- メディア生成: `apps/api/app/integrations/media_generation.py`（画像・動画・音声・音楽）
+- メディア生成: `apps/api/app/integrations/media_generation.py`（画像・動画・音声・音楽・3D、動的プロバイダー登録対応）
 - AI ツールレジストリ: `apps/api/app/integrations/ai_tools.py`（25+ 外部ツール）
 - API: `/api/v1/media/*`, `/api/v1/ai-tools/*`
 

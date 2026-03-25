@@ -107,6 +107,7 @@ class ActiveExecution:
     current_step: str = ""
     trace_id: str | None = None
     model_used: str | None = None
+    provider_override: dict | None = None
     tokens_used: int = 0
     cost_usd: float = 0.0
     reasoning_steps: int = 0
@@ -123,6 +124,7 @@ class ActiveExecution:
             "current_step": self.current_step,
             "trace_id": self.trace_id,
             "model_used": self.model_used,
+            "provider_override": self.provider_override,
             "tokens_used": self.tokens_used,
             "cost_usd": self.cost_usd,
             "reasoning_steps": self.reasoning_steps,
@@ -178,6 +180,7 @@ class ExecutionMonitor:
         *,
         model: str | None = None,
         trace_id: str | None = None,
+        provider_override: dict | None = None,
     ) -> None:
         """タスク実行開始."""
         execution = ActiveExecution(
@@ -186,6 +189,7 @@ class ExecutionMonitor:
             company_id=company_id,
             trace_id=trace_id,
             model_used=model,
+            provider_override=provider_override,
         )
         self._active[task_id] = execution
 

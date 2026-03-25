@@ -66,7 +66,10 @@ async def start_task(
         target_type="task",
         target_id=task.id,
         task_id=task.id,
-        details_json={"run_no": run.run_no},
+        details_json={
+            "run_no": run.run_no,
+            "provider_override": task.provider_override_json,
+        },
     )
     db.add(audit)
 
@@ -113,6 +116,24 @@ async def complete_task(
     await db.commit()
     await db.refresh(task)
     return task
+
+
+def resolve_task_provider(
+    task: Task,
+    company_default_provider: str | None = None,
+    company_execution_mode: str = "quality",
+) -> dict:
+    """タスクの実行プロバイダーを解決する.
+
+    優先順位: タスク単位のオーバーライド > 会社デフォルト
+    Returns dict with keys: provider, model, execution_mode (all optional).
+    """
+    override = task.provider_override_json or {}
+    return {
+        "provider": override.get("provider") or company_default_provider,
+        "model": override.get("model"),
+        "execution_mode": override.get("execution_mode") or company_execution_mode,
+    }
 
 
 async def request_task_approval(

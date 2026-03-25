@@ -20,13 +20,22 @@ from app.services.task_service import (
     request_task_approval as svc_request_approval,
 )
 from app.services.task_service import (
-    start_task as svc_start_task,
+    resolve_task_provider,
+    validate_task_transition,
 )
 from app.services.task_service import (
-    validate_task_transition,
+    start_task as svc_start_task,
 )
 
 router = APIRouter()
+
+
+class TaskProviderOverride(BaseModel):
+    """タスク単位のプロバイダー指定."""
+
+    provider: str | None = None  # e.g. "anthropic", "openai", "ollama"
+    model: str | None = None  # e.g. "anthropic/claude-opus"
+    execution_mode: str | None = None  # e.g. "quality", "speed", "cost"
 
 
 class TaskCreate(BaseModel):
@@ -35,6 +44,7 @@ class TaskCreate(BaseModel):
     task_type: str = "execution"
     requires_approval: bool = False
     sequence_no: int = 0
+    provider_override: TaskProviderOverride | None = None
 
 
 @router.post("/plans/{plan_id}/tasks")
@@ -54,10 +64,45 @@ async def create_task(
         status="pending",
         task_type=req.task_type,
         requires_approval=req.requires_approval,
+        provider_override_json=(
+            req.provider_override.model_dump(exclude_none=True) if req.provider_override else None
+        ),
     )
     db.add(task)
     await db.flush()
-    return {"id": str(task.id), "title": task.title, "status": task.status}
+    return {
+        "id": str(task.id),
+        "title": task.title,
+        "status": task.status,
+        "provider_override": task.provider_override_json,
+    }
+
+
+@router.patch("/tasks/{task_id}/provider")
+async def update_task_provider(
+    task_id: str,
+    req: TaskProviderOverride,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """タスクのプロバイダー指定を更新"""
+    result = await db.execute(select(Task).where(Task.id == parse_uuid(task_id, "task_id")))
+    task = result.scalar_one_or_none()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    if task.status not in ("pending", "ready", "blocked"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot change provider for task in status: {task.status}",
+        )
+    override = req.model_dump(exclude_none=True)
+    task.provider_override_json = override if override else None
+    await db.commit()
+    return {
+        "id": str(task.id),
+        "title": task.title,
+        "provider_override": task.provider_override_json,
+    }
 
 
 @router.post("/tasks/{task_id}/start")
@@ -71,9 +116,31 @@ async def start_task(
         raise HTTPException(status_code=404, detail="Task not found")
     try:
         run = await svc_start_task(db, task)
-        return {"status": "running", "run_id": str(run.id), "run_no": run.run_no}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+    # プロバイダー解決 & 実行モニター通知
+    resolved = resolve_task_provider(task)
+    try:
+        from app.orchestration.execution_monitor import get_execution_monitor
+
+        monitor = get_execution_monitor()
+        await monitor.on_task_started(
+            task_id=str(task.id),
+            agent_id=str(task.assignee_agent_id) if task.assignee_agent_id else "system",
+            company_id=str(task.company_id),
+            model=resolved.get("model"),
+            provider_override=task.provider_override_json,
+        )
+    except Exception:
+        pass  # モニターが利用不可でもタスク実行は継続
+
+    return {
+        "status": "running",
+        "run_id": str(run.id),
+        "run_no": run.run_no,
+        "resolved_provider": resolved,
+    }
 
 
 @router.post("/tasks/{task_id}/complete")
