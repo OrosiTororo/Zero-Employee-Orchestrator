@@ -7,6 +7,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.1] - 2026-03-25
+
+### 新增
+
+- **Design Interview 过去失败模式反馈** — 自动从 Experience Memory 和 Failure Taxonomy 搜索类似失败模式，在 Interview 过程中动态注入警告和追加问题。在 Spec 生成时作为风险备注整合。
+- **FEATURES.md 追加 21 项未记录功能** — RSS/ToS 自动更新、Knowledge Refresh、A2A 双向通信、Avatar AI 共进化、Longrun Scheduler、Agent Session、Artifact Bridge、媒体生成、AI 工具注册表、iPaaS 集成、成果物导出、Repurpose 引擎、Obsidian 集成、云原生集成、智能设备集成、治理与合规、市场、团队管理、Red-team 测试、工作区隔离
+
+### 安全
+
+- **Sandbox 符号链接攻击防护增强** — 检测并阻止 resolve() 后的路径指向与原始路径不同的目录
+- **Data Protection 密码模式匹配修复** — 修正为不区分大小写的模式匹配
+- **CI: 在 Dependabot PR 上运行测试** — 修复之前在 Dependabot PR 上跳过的 lint-and-test 任务
+
+### 变更
+
+- **Dependabot 配置大幅强化** — 忽略主版本更新、分组、覆盖全生态系统（pip/npm/cargo/github-actions）、Cloudflare Workers 单独管理
+- **Dependabot 自动合并工作流添加** — CI 通过后自动批准和 squash 合并 patch/minor 更新
+
 ## [0.1.0] - 2026-03-12 — Platform v0.1 (Consolidated Release)
 
 ### 新增 — AI 自我改进 (Level 2: 自我改善的萌芽)

@@ -43,7 +43,7 @@ apps/
 ├── api/              # FastAPI バックエンド (Python 3.12+)
 │   ├── app/
 │   │   ├── core/           # 設定・DB・レート制限・i18n
-│   │   ├── api/routes/     # REST API エンドポイント (37 ルートモジュール)
+│   │   ├── api/routes/     # REST API エンドポイント (38 ルートモジュール・327+ エンドポイント)
 │   │   ├── api/ws/         # WebSocket (events, browser_assist_ws)
 │   │   ├── api/deps/       # 依存性注入
 │   │   ├── models/         # SQLAlchemy ORM

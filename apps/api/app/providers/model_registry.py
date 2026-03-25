@@ -513,6 +513,101 @@ class ModelRegistry:
         entry.cost_per_1k_output = cost_output
         return True
 
+    def update_latest_model_id(self, family_id: str, new_model_id: str) -> bool:
+        """ファミリーの latest_model_id を更新し、カタログを自動保存する.
+
+        ユーザーがファイルを手動編集することなく AI モデル更新を自動反映する。
+
+        Args:
+            family_id: ファミリー ID (e.g. "anthropic/claude-opus")
+            new_model_id: 新しい API モデル ID (e.g. "claude-opus-4-7")
+
+        Returns:
+            更新が成功したかどうか
+        """
+        entry = self._models.get(family_id)
+        if entry is None:
+            logger.warning("Unknown model family: %s", family_id)
+            return False
+
+        old_id = entry.latest_model_id
+        entry.latest_model_id = new_model_id
+        self.save_catalog()
+        logger.info(
+            "Auto-updated model %s: %s → %s",
+            family_id,
+            old_id,
+            new_model_id,
+        )
+        return True
+
+    async def refresh_catalog(self) -> dict[str, str]:
+        """プロバイダー API からモデル可用性を再チェックし、カタログを更新する.
+
+        ユーザーの操作なしで最新のモデル状態をカタログに反映する。
+        Ollama のモデル一覧も自動検出して更新する。
+
+        Returns:
+            更新されたモデルの辞書 {family_id: new_latest_model_id}
+        """
+        updated: dict[str, str] = {}
+
+        # Ollama のモデルを自動検出して更新
+        try:
+            from app.providers.ollama_provider import ollama_provider
+
+            is_up = await ollama_provider.health_check()
+            if is_up:
+                models = await ollama_provider.list_models()
+                for m in models:
+                    family_id = f"ollama/{m.name}"
+                    if family_id not in self._models:
+                        self.add_model(
+                            ModelEntry(
+                                id=family_id,
+                                provider="ollama",
+                                display_name=m.name,
+                                latest_model_id=m.name,
+                                cost_per_1k_input=0.0,
+                                cost_per_1k_output=0.0,
+                                tags=["free"],
+                            )
+                        )
+                        updated[family_id] = m.name
+                        logger.info("Auto-discovered Ollama model: %s", m.name)
+        except Exception as exc:
+            logger.debug("Ollama model refresh failed: %s", exc)
+
+        # g4f モデルを自動更新
+        try:
+            from app.providers.g4f_provider import _G4F_MODEL_MAP
+
+            for model_key, info in _G4F_MODEL_MAP.items():
+                if model_key not in self._models:
+                    self.add_model(
+                        ModelEntry(
+                            id=model_key,
+                            provider="g4f",
+                            display_name=info.get("description", model_key),
+                            latest_model_id=info.get("model", ""),
+                            cost_per_1k_input=0.0,
+                            cost_per_1k_output=0.0,
+                            tags=["free", "subscription"],
+                        )
+                    )
+                    updated[model_key] = info.get("model", "")
+        except Exception as exc:
+            logger.debug("g4f model refresh failed: %s", exc)
+
+        # 全プロバイダーの可用性をチェック
+        await self.check_all_providers()
+
+        if updated:
+            self.save_catalog()
+            logger.info("Catalog refreshed: %d models updated", len(updated))
+
+        return updated
+
     @property
     def catalog_version(self) -> str:
         return self._catalog_version

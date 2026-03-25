@@ -50,7 +50,7 @@
 | `docs/ABOUT.md` | "なぜ ZEO が必要か" を訴求する説明文書 | 非エンジニア・経営者・評価者 | [en](en/ABOUT.md) / [zh](zh/ABOUT.md) |
 | `docs/USER_GUIDE.md` | エンドユーザー向けの操作マニュアル | エンドユーザー | ja / [en](en/USER_GUIDE.md) / [zh](zh/USER_GUIDE.md) |
 | `docs/OVERVIEW.md` | 初見の方向け総合ガイド | すべての方 | [en](en/OVERVIEW.md) / [zh](zh/OVERVIEW.md) |
-| `docs/FEATURES.md` | 実装済み機能の全体像（全34セクション） | 機能確認・評価者、開発者 | [en](en/FEATURES.md) / [zh](zh/FEATURES.md) |
+| `docs/FEATURES.md` | 実装済み機能の全体像（全80セクション） | 機能確認・評価者、開発者 | [en](en/FEATURES.md) / [zh](zh/FEATURES.md) |
 | `docs/SECURITY.md` | セキュリティポリシーとデプロイ前チェックリスト | 運用者・デプロイ担当者 | [en](en/SECURITY.md) / [zh](zh/SECURITY.md) |
 | `docs/CHANGELOG.md` | バージョン別の変更履歴 | すべての利用者・開発者 | [en](en/CHANGELOG.md) / [zh](zh/CHANGELOG.md) |
 | `docs/SCALING_AND_COSTS.md` | コスト・ハードウェア制約・活用例 | 導入検討者・運用者・経営者 | [en](en/SCALING_AND_COSTS.md) / [zh](zh/SCALING_AND_COSTS.md) |

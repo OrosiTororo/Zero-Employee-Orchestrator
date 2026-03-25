@@ -55,6 +55,11 @@ class PIIDetectionResult:
     detected_types: list[str] = field(default_factory=list)
     detections: list[dict] = field(default_factory=list)
 
+    @property
+    def has_pii(self) -> bool:
+        """PII が検出されたかどうか."""
+        return self.detected_count > 0
+
 
 # PII パターン定義
 _PII_PATTERNS: list[tuple[PIICategory, re.Pattern, str]] = [

@@ -651,7 +651,8 @@ class RSSToSMonitor:
         """モデルカタログの更新をトリガーする.
 
         MODEL_UPDATE タイプの変更が検出された場合にモデルカタログの
-        更新処理を起動する。
+        更新処理を起動する。ユーザーがファイルを一切触らずに
+        AI モデル更新を自動で行う。
 
         Args:
             change: 検出されたモデル更新の変更
@@ -672,21 +673,48 @@ class RSSToSMonitor:
             change.title,
         )
 
-        # model_catalog.json の更新をスケジュール
-        # 実際の更新は ModelRegistry 経由で行われる
         try:
-            from app.providers.model_registry import model_registry
+            from app.providers.model_registry import get_model_registry
 
-            if hasattr(model_registry, "refresh_catalog"):
-                await model_registry.refresh_catalog()
-                logger.info("モデルカタログ更新完了: %s", service_name)
-                return True
-        except ImportError:
-            logger.warning("ModelRegistry が利用できないため手動更新が必要です")
+            registry = get_model_registry()
+            updated = await registry.refresh_catalog()
+            if updated:
+                logger.info(
+                    "モデルカタログ自動更新完了: service=%s, updated=%s",
+                    service_name,
+                    updated,
+                )
+            else:
+                logger.info("モデルカタログ変更なし: %s", service_name)
+            return True
         except Exception as exc:
             logger.error("モデルカタログ更新失敗: %s", exc)
 
         return False
+
+    async def check_and_auto_update(self) -> dict:
+        """全サービスをチェックし、モデル更新を自動適用する.
+
+        RSS/ToS パイプラインからモデル更新を検出し、
+        model_catalog.json を自動で更新する。
+        ユーザーの手動操作は不要。
+
+        Returns:
+            更新結果の概要
+        """
+        changes = await self.check_all()
+        model_updates = [c for c in changes if c.change_type == ChangeType.MODEL_UPDATE]
+        auto_updated = 0
+
+        for change in model_updates:
+            if await self.update_model_catalog(change):
+                auto_updated += 1
+
+        return {
+            "total_changes": len(changes),
+            "model_updates_detected": len(model_updates),
+            "auto_updated": auto_updated,
+        }
 
     async def _fetch_url(self, url: str) -> str:
         """URL からコンテンツを取得する.

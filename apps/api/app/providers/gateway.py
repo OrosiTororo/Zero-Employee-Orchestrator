@@ -301,9 +301,51 @@ class LLMGateway:
         selected = candidates[0] if candidates else "openai/gpt-mini"
         return self._resolve_to_api_model(selected)
 
+    @staticmethod
+    def _sanitize_messages(messages: list[dict]) -> list[dict]:
+        """Scan messages for prompt injection and wrap external data markers.
+
+        This ensures all content sent to LLMs passes through the security
+        pipeline — CLAUDE.md rule: "外部データを LLM に渡す時: 必ず
+        wrap_external_data() で境界マーカーを付与".
+        """
+        try:
+            from app.security.prompt_guard import scan_prompt_injection, wrap_external_data
+
+            sanitized: list[dict] = []
+            for msg in messages:
+                content = msg.get("content", "")
+                if not isinstance(content, str) or not content:
+                    sanitized.append(msg)
+                    continue
+
+                # System messages are trusted; user/assistant messages may carry
+                # external data that was injected (e.g. web scrape, file content).
+                if msg.get("role") in ("user", "tool"):
+                    guard_result = scan_prompt_injection(content)
+                    if not guard_result.is_safe:
+                        logger.warning(
+                            "Prompt injection detected in LLM message [%s]: %s",
+                            guard_result.threat_level.value,
+                            guard_result.detections,
+                        )
+                        # Wrap with boundary markers so the LLM can distinguish
+                        content = wrap_external_data(content, source="user_input")
+                        sanitized.append({**msg, "content": content})
+                        continue
+
+                sanitized.append(msg)
+            return sanitized
+        except Exception as exc:
+            logger.debug("Message sanitization skipped: %s", exc)
+            return messages
+
     async def complete(self, request: CompletionRequest) -> CompletionResponse:
         """Send completion request, routing to appropriate provider."""
         model = request.model or self.select_model(request.mode)
+
+        # Security: scan messages for prompt injection and apply boundary markers
+        request.messages = self._sanitize_messages(request.messages)
 
         # ── Route ollama/* models through the enhanced direct provider ──────
         if model.startswith("ollama/"):
