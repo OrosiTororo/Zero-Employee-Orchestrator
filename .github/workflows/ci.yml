@@ -18,7 +18,7 @@ jobs:
     name: Check pyproject.toml Sync
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Verify pyproject.toml metadata sync
         run: |
@@ -80,7 +80,6 @@ jobs:
 
   lint-and-test:
     name: Lint & Test (Python)
-    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     defaults:
       run:

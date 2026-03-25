@@ -1198,3 +1198,436 @@ Attach files to Design Interview and integrate them as context for Spec (specifi
 | **RAG input validation** | Content size limit (10 MB) and metadata key count restriction |
 | **CORS restriction hardening** | Changed wildcard to explicit method and header lists |
 | **UUID input validation** | Fixed to return 400 for invalid UUIDs |
+
+---
+
+## 35. RSS/ToS Auto-Update Pipeline (v0.1)
+
+Periodically monitors RSS feeds, Terms of Service, and pricing pages of AI providers to automatically detect changes.
+
+### Monitored Providers
+
+| Provider | RSS | ToS | Pricing | Check Interval |
+|----------|-----|-----|---------|----------------|
+| **OpenAI** | Yes | Yes | Yes | 12 hours |
+| **Anthropic** | Yes | Yes | Yes | 12 hours |
+| **Google AI** | Yes | Yes | Yes | 12 hours |
+| **Mistral AI** | Yes | Yes | Yes | 24 hours |
+| **Cohere** | Yes | Yes | Yes | 24 hours |
+| **Meta AI** | Yes | Yes | — | 24 hours |
+
+### Detected Change Types
+
+| Change Type | Impact Level | Description |
+|------------|-------------|-------------|
+| `MODEL_UPDATE` | MEDIUM | New model release / version update |
+| `PRICING_CHANGE` | MEDIUM | Pricing changes |
+| `TOS_UPDATE` | HIGH | Terms of Service revisions |
+| `NEW_FEATURE` | LOW | New feature additions |
+| `DEPRECATION` | HIGH | Model / API deprecation notices |
+| `API_CHANGE` | HIGH | Breaking API changes |
+| `SECURITY_ADVISORY` | CRITICAL | Security advisories |
+
+### Auto-Update Flow
+
+1. Periodically fetch RSS feeds, ToS pages, and pricing pages
+2. Detect changes via hash comparison
+3. Classify change type using keyword matching
+4. Auto-assess impact level (escalate to CRITICAL on urgent keywords)
+5. Automatically trigger `ModelRegistry.refresh_catalog()` on `MODEL_UPDATE` detection
+6. Custom monitoring services can be added
+
+---
+
+## 36. Knowledge Refresh — Context Window Management (v0.1)
+
+Dynamically selects and injects only task-relevant knowledge to handle LLM context window limitations.
+
+### Knowledge Pipeline
+
+```
+Acquisition → Extraction → Splitting → Indexing → Search → Citation/Summary → Promotion to verified knowledge / Rejection
+```
+
+### Knowledge Types
+
+| Type | Description |
+|------|-------------|
+| `conversation_log` | Conversation history |
+| `reusable_improvement` | Reusable improvement knowledge |
+| `experimental_knowledge` | Experimental knowledge |
+| `verified_knowledge` | Verified knowledge |
+| `experience_memory` | Success patterns |
+| `failure_taxonomy` | Failure classification |
+| `policy_memory` | Approval conditions / prohibitions |
+| `skill_improvement` | Skill improvement knowledge |
+| `plugin_operation` | Plugin operational know-how |
+
+### Knowledge Lifecycle
+
+```
+RAW → EXTRACTED → INDEXED → VERIFIED (approved)
+                           → EXPERIMENTAL
+                           → REJECTED
+```
+
+---
+
+## 37. A2A Bidirectional Communication (v0.1)
+
+A hub for peer-to-peer agent communication. Supports equal communication, negotiation, and channel-based broadcasting beyond parent→child sub-agent instructions.
+
+### Features
+
+| Feature | Description |
+|---------|-------------|
+| **Direct Messages** | 1:1 message send/receive between agents |
+| **Channel Communication** | Named channels for group communication / broadcast |
+| **Thread Tracking** | Automatic message thread grouping |
+| **Negotiation Protocol** | Consensus-building protocol between agents |
+| **Priority Control** | LOW / NORMAL / HIGH / URGENT message priorities |
+
+---
+
+## 38. Avatar AI Co-evolution — Co-evolution with Users (v0.1)
+
+A co-evolution engine that learns decision-making criteria from user interaction patterns, allowing AI to grow alongside users.
+
+### Features
+
+| Feature | Description |
+|---------|-------------|
+| **Interaction Recording** | Records user approval/rejection/edit operations |
+| **Preference Extraction** | Automatically extracts user preferences from operation patterns |
+| **Decision Criteria Learning** | Accumulates approval/rejection judgment criteria |
+| **Choice Ranking** | Prioritizes suggestions based on user preferences |
+| **User Model Management** | Export/import support |
+
+---
+
+## 39. Longrun Scheduler — 24/365 Continuous Execution (v0.1)
+
+A scheduler for AI organizations to operate continuously 24 hours a day, 365 days a year.
+
+### Schedule Types
+
+| Type | Description |
+|------|-------------|
+| `INTERVAL` | Repeated execution at fixed intervals |
+| `CRON` | Schedule based on cron expressions |
+| `EVENT_DRIVEN` | Execution triggered by external events |
+| `CONTINUOUS` | Continuous execution (until stop instruction) |
+
+---
+
+## 40. Agent Session — Context Persistence (v0.1)
+
+Session management that allows AI agents to maintain context across multiple rounds of interaction.
+
+### Features
+
+- Session state management: ACTIVE / IDLE / EXPIRED / TERMINATED
+- Context DB persistence (SQLAlchemy async)
+- Idle waiting with context retention
+- Automatic session expiration
+
+---
+
+## 41. Artifact Bridge — Inter-Process Artifact Handoff (v0.1)
+
+Enables artifact handoff between processes with version management and reuse.
+
+### Features
+
+| Feature | Description |
+|---------|-------------|
+| **Auto-linking** | Automatic DAG output→input linking |
+| **Cross-domain transformation** | Artifact type conversion across domains |
+| **Compatibility Matrix** | Compatibility mapping between artifact types |
+| **Artifact Search** | Search for compatible artifacts |
+| **Pipeline Support** | Skill chain artifact flow construction |
+
+---
+
+## 42. Media Generation Integration (v0.1)
+
+Integrates image, video, audio, and music generation using external APIs.
+
+### Supported Services
+
+| Category | Services |
+|----------|----------|
+| **Image Generation** | OpenAI DALL-E, Stability AI (Stable Diffusion), Replicate |
+| **Video Generation** | Runway ML, Replicate (SVD/AnimateDiff), Pika |
+| **Voice Generation** | OpenAI TTS, ElevenLabs |
+| **Music Generation** | Suno, Udio |
+
+Safety: Prompt injection inspection, approval gate, data protection policy enforcement, audit logging.
+
+API: `/api/v1/media/*`
+
+---
+
+## 43. AI Tool Registry (v0.1)
+
+Centrally manages 25+ external tools that AI agents can operate.
+
+### Supported Tool Categories
+
+| Category | Examples |
+|----------|----------|
+| Code | GitHub, GitLab, Bitbucket, Code Review |
+| Documents | Google Docs, Notion, Confluence, Obsidian |
+| Communication | Slack, Discord, LINE, Email |
+| Project Management | Jira, Linear, Asana, Trello |
+| Design | Figma (via MCP) |
+| Data Analysis | Google Sheets, Airtable |
+| Cloud | AWS, GCP, Azure (via CLI) |
+| Search | Web Search, RAG, Knowledge Base |
+| Media Generation | Image/Video/Audio (media_generation.py) |
+| Browser Automation | Browser Assist, Playwright |
+
+All tool operations go through approval gate, audit logging, and data protection policy.
+
+API: `/api/v1/ai-tools/*`
+
+---
+
+## 44. iPaaS Integration — Workflow Connectivity (v0.1)
+
+Connects with external iPaaS platforms via Webhook triggers.
+
+### Supported Platforms
+
+| Platform | Description |
+|----------|-------------|
+| **n8n** | Self-hosted open-source automation |
+| **Zapier** | Cloud-based iPaaS (Webhook trigger) |
+| **Make (Integromat)** | Visual automation |
+
+API: `/api/v1/ipaas/*`
+
+---
+
+## 45. Artifact Export (v0.1)
+
+Exports task artifacts in various formats for local storage or external service delivery.
+
+### Supported Formats
+
+PDF / Markdown / HTML / JSON / CSV / DOCX
+
+### Destinations
+
+- Local file system (sandbox whitelisted folders)
+- Google Docs
+- Notion
+- n8n Webhook
+
+API: `/api/v1/export/*`
+
+---
+
+## 46. AI Co-creation Repurpose Engine (v0.1)
+
+Automatically converts a single piece of content into multiple media formats, adjusting tone based on brand voice and style guides.
+
+### Target Formats
+
+Blog posts / Social media posts / Tweet threads / Email newsletters / Slide decks / Infographics / Press releases / FAQs / Video scripts / Podcast transcripts
+
+Safety: Prompt injection inspection, PII guard, audit logging.
+
+---
+
+## 47. Obsidian Integration (v0.1)
+
+Provides bidirectional sync with Obsidian Vault.
+
+### Features
+
+| Feature | Description |
+|---------|-------------|
+| **Note Read/Write** | Create, update, delete notes in Vault |
+| **Link Graph Construction** | Auto-parse `[[wikilink]]` and generate graph |
+| **Full-text Search** | Search all notes in Vault |
+| **Backlink Analysis** | Reverse lookup from reference target to source |
+| **Knowledge Store Integration** | Bidirectional sync with ZEO Knowledge Store |
+
+File access is restricted to permitted directories via sandbox.
+
+---
+
+## 48. Cloud Service Native Integration (v0.1)
+
+Provides unified interface for multi-cloud resource management, storage, serverless execution, and cost estimation.
+
+### Supported Providers
+
+| Provider | Supported Resources |
+|----------|--------------------|
+| **AWS** | S3, Lambda, EC2, RDS, etc. |
+| **GCP** | Cloud Storage, Cloud Functions, GKE, etc. |
+| **Azure** | Blob Storage, Functions, AKS, etc. |
+| **Cloudflare** | Workers, R2, D1, etc. |
+
+All operations go through approval gate, audit logging, and credentials via secret_manager.
+
+---
+
+## 49. Smart Device / VR/AR Integration (v0.1)
+
+Unified management of IoT sensors, smart displays, VR/AR headsets, robots, and drones.
+
+### Supported Protocols
+
+| Protocol | Usage |
+|----------|-------|
+| **MQTT** | IoT sensors / actuators |
+| **HTTP** | REST API-compatible devices |
+| **WebSocket** | Real-time streaming |
+| **Bluetooth** | Short-range communication devices |
+| **Zigbee** | Smart home devices |
+| **Matter** | Next-gen smart home standard |
+
+All device operations go through approval gate, audit logging, and data protection policy.
+
+---
+
+## 50. Governance & Compliance (v0.1)
+
+Provides enterprise-grade audit, permission management, and data policies.
+
+### Supported Frameworks
+
+| Framework | Description |
+|-----------|-------------|
+| **GDPR** | EU General Data Protection Regulation |
+| **HIPAA** | US Health Insurance Portability and Accountability Act |
+| **SOC2** | Service Organization Control 2 |
+| **ISO27001** | Information Security Management |
+| **CCPA** | California Consumer Privacy Act |
+| **APPI** | Japan Act on the Protection of Personal Information |
+
+### Policy Types
+
+| Type | Description |
+|------|-------------|
+| `DATA_RETENTION` | Data retention period / auto-deletion |
+| `ACCESS_CONTROL` | Access control rules |
+| `AUDIT_REQUIREMENT` | Audit requirements |
+| `EXPORT_RESTRICTION` | Data export restrictions |
+| `AI_USAGE_LIMIT` | AI usage limits |
+| `PII_HANDLING` | Personal information handling |
+| `ENCRYPTION_REQUIREMENT` | Encryption requirements |
+
+API: `/api/v1/governance/*`
+
+---
+
+## 51. Skill Marketplace (v0.1)
+
+A marketplace for publishing, searching, reviewing, and installing community Skills / Plugins / Extensions.
+
+### Publishing Flow
+
+```
+DRAFT → PENDING_REVIEW → PUBLISHED
+                        → REJECTED
+```
+
+### Categories
+
+Productivity / Communication / Data Analysis / Development / Marketing / Design / Security / DevOps / Finance / Education
+
+### Features
+
+- Category and tag search
+- User reviews (1-5 star rating + comments)
+- Install count tracking
+- Approval-based publishing flow
+
+API: `/api/v1/marketplace/*`
+
+---
+
+## 52. Multi-User / Team Management (v0.1)
+
+Provides team-based authentication and permission management.
+
+### Team Roles
+
+| Role | Permissions |
+|------|------------|
+| **Owner** | Full permissions (including team settings, member management) |
+| **Admin** | Member management, AI settings |
+| **Member** | Ticket creation, task execution |
+| **Viewer** | Read-only |
+| **AI Operator** | AI-related resources only |
+
+### Features
+
+- Team creation and invitation (email / link)
+- Invitation expiry and usage limits
+- Permission matrix by resource type × action
+
+API: `/api/v1/teams/*`
+
+---
+
+## 53. Red-team Security Testing (v0.1)
+
+Automatically tests the system's security defenses to detect and report vulnerabilities early.
+
+### Test Categories
+
+| Category | Description |
+|----------|-------------|
+| **Prompt Injection** | Adversarial input tests against LLM |
+| **Data Leakage** | Unauthorized information exfiltration tests |
+| **Privilege Escalation** | IAM bypass tests |
+| **PII Leakage** | Unauthorized personal information exposure tests |
+| **Unauthorized Access** | Authentication/authorization bypass tests |
+| **Sandbox Escape** | File system restriction breach tests |
+| **Rate Limit Bypass** | API rate limit circumvention tests |
+| **Auth Bypass** | Authentication mechanism bypass tests |
+
+---
+
+## 54. Workspace Isolation (v0.1)
+
+An isolation layer that strictly restricts AI agent file access and network access.
+
+### Features
+
+- No local or cloud connections by default (principle of least privilege)
+- Internal storage access only
+- When chat instructions differ from system settings, `should_request_approval()` asks user for permission
+- Environment override audit logging
+
+---
+
+## 55. Design Interview Historical Failure Pattern Feedback (v0.1)
+
+During Design Interview, automatically searches Experience Memory and Failure Taxonomy for similar past failure patterns, providing feedback such as "This type of objective has failed in the past due to XX reasons."
+
+### Features
+
+| Feature | Description |
+|---------|-------------|
+| **Objective-based failure search** | Search past failure patterns similar to user's input objective |
+| **Frequent failure auto-warning** | Automatically display warnings for failure patterns that occurred 2+ times |
+| **Prevention strategy presentation** | Present prevention strategies for past failures in structured format |
+| **Recovery success rate display** | Show recovery success rate for each failure pattern numerically |
+| **Dynamic Interview question injection** | Auto-generate additional questions based on past failure patterns |
+
+### Flow
+
+```
+1. User inputs objective
+2. Search Experience Memory using objective text
+3. Get frequent failure patterns from Failure Taxonomy
+4. Format matched failure patterns as feedback
+5. Inject warnings and additional questions into Interview session
+6. Integrate as risk notes during Spec generation
+```

@@ -208,7 +208,8 @@ class FileSystemSandbox:
                 sandbox_level=self._config.level,
             )
 
-        # シンボリックリンクチェック
+        # シンボリックリンクチェック（解決前の元パスでリンクを検出）
+        # 注意: os.path.islink は resolve() 前の元パスで実行する必要がある
         if not self._config.allow_symlink_follow and os.path.islink(path):
             return AccessCheckResult(
                 allowed=False,
@@ -217,6 +218,20 @@ class FileSystemSandbox:
                 reason="Symlink following is disabled",
                 sandbox_level=self._config.level,
             )
+
+        # 解決後パスが元パスと大きく異なる場合もシンボリックリンク攻撃の可能性
+        # (シンボリックリンクチェーンや間接リンクへの対策)
+        if not self._config.allow_symlink_follow:
+            original_dir = str(Path(path).parent.resolve())
+            resolved_dir = str(Path(resolved_path).parent)
+            if original_dir != resolved_dir:
+                return AccessCheckResult(
+                    allowed=False,
+                    path=resolved_path,
+                    access_type=access_type,
+                    reason="Path resolves to different directory (possible symlink attack)",
+                    sandbox_level=self._config.level,
+                )
 
         # 禁止パスチェック（全レベル共通）
         for denied in self._config.denied_paths:
