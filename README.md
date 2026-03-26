@@ -1,697 +1,110 @@
+**Language:** English | [日本語](docs/ja-JP/README.md) | [简体中文](docs/zh-CN/README.md) | [繁體中文](docs/zh-TW/README.md) | [한국어](docs/ko-KR/README.md) | [Português (Brasil)](docs/pt-BR/README.md) | [Türkçe](docs/tr/README.md)
+
 # Zero-Employee Orchestrator
 
-<p align="center">
-  <img src="assets/logo.svg" alt="Zero-Employee Orchestrator" width="640">
-</p>
+[![Stars](https://img.shields.io/github/stars/OrosiTororo/Zero-Employee-Orchestrator?style=flat)](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/stargazers)
+[![Forks](https://img.shields.io/github/forks/OrosiTororo/Zero-Employee-Orchestrator?style=flat)](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/network/members)
+[![Contributors](https://img.shields.io/github/contributors/OrosiTororo/Zero-Employee-Orchestrator?style=flat)](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/graphs/contributors)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Python](https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/-FastAPI-009688?logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/-React-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?logo=typescript&logoColor=white)
+![Rust](https://img.shields.io/badge/-Rust-000000?logo=rust&logoColor=white)
+![Docker](https://img.shields.io/badge/-Docker-2496ED?logo=docker&logoColor=white)
 
-```
-    ███████╗███████╗ ██████╗
-    ╚══███╔╝██╔════╝██╔═══██╗
-      ███╔╝ █████╗  ██║   ██║
-     ███╔╝  ██╔══╝  ██║   ██║
-    ███████╗███████╗╚██████╔╝
-    ╚══════╝╚══════╝ ╚═════╝
-```
-
-> **v0.1 — AI Orchestration Platform — Design · Execute · Verify · Improve**
->
-> 自然言語で業務を定義し、複数 AI を役割分担させ、人間の承認と監査可能性を前提に業務を実行・再計画・改善できる AI オーケストレーション基盤。
-
-Define business workflows in natural language, orchestrate multiple AI agents with role-based delegation, and execute tasks with human approval and full auditability.
-
-用自然语言定义业务流程，让多个AI按角色分工协作，在人类审批和可审计的前提下执行、重新规划和改进业务。
+> **AI Orchestration Platform — Design · Execute · Verify · Improve**
 
 ---
 
-## 日本語 | [English](#english) | [中文](#中文)
+<div align="center">
 
-### これは何？
+**🌐 Language / 言語 / 语言**
 
-Zero-Employee Orchestrator は、単なる AI チャットや単発自動化ツールではなく、**AI を「組織」として運用するための基盤**です。
+[**English**](README.md) | [日本語](docs/ja-JP/README.md) | [简体中文](docs/zh-CN/README.md) | [繁體中文](docs/zh-TW/README.md) | [한국어](docs/ko-KR/README.md) | [Português (Brasil)](docs/pt-BR/README.md) | [Türkçe](docs/tr/README.md)
 
-- **AI を組織として扱う** — 単一エージェントではなく、計画・実行・検証・改善を役割分担したチーム構造
-- **人間の最終承認を外さない** — 投稿・送信・課金・削除・権限変更は必ず承認可能
-- **ブラックボックスを減らす** — 誰が何をなぜどのモデルで実行したかを可視化
-- **最新性は拡張で担保** — 本体は安定性重視、業務差分は Skill / Plugin / Extension で吸収
-- **汎用業務基盤** — 会社業務全体の実行基盤として設計
-
-### 設計思想
-
-- **ミニマルな初期状態** — 設定不要で起動でき、ユーザーが必要な機能だけを自分で有効化・接続していく
-- **LLM・ツール非依存** — 特定のプロバイダーに依存せず、LLM・ツール・サイト・デプロイ先はすべてユーザーの自由
-- **ユーザー主導の拡張性** — 新しい LLM やツールが登場しても、ユーザー側で追加対応可能
-- **セルフホスト前提** — セキュリティ設定・DB 選択・デプロイ先はユーザーが各自の環境で決定
-- **開発者が管理するのは ZEO 本体の品質のみ** — Sentry によるエラー監視・レッドチームテストで品質を担保
+</div>
 
 ---
 
-## インストール
+**The platform for running AI as an organization — not just a chatbot.**
 
-### PyPI からインストール
+Define business workflows in natural language, orchestrate multiple AI agents with role-based delegation, and execute tasks with human approval gates and full auditability. Built with a 9-layer architecture featuring Self-Healing DAG, Judge Layer, and Experience Memory.
+
+ZEO itself is free and open source. LLM API costs are paid directly by users to each provider.
+
+---
+
+## The Guides
+
+This repo is the platform itself. The guides explain the architecture and philosophy.
+
+<table>
+<tr>
+<td width="33%">
+<a href="docs/guides/quickstart-guide.md">
+<img src="assets/images/guides/quickstart-guide.svg" alt="Quickstart Guide" />
+</a>
+</td>
+<td width="33%">
+<a href="docs/guides/architecture-guide.md">
+<img src="assets/images/guides/architecture-guide.svg" alt="Architecture Deep Dive" />
+</a>
+</td>
+<td width="33%">
+<a href="docs/guides/security-guide.md">
+<img src="assets/images/guides/security-guide.svg" alt="Security Guide" />
+</a>
+</td>
+</tr>
+<tr>
+<td align="center"><b>Quickstart Guide</b><br/>Installation, first workflow, CLI basics. <b>Read this first.</b></td>
+<td align="center"><b>Architecture Deep Dive</b><br/>9-layer architecture, DAG orchestration, Judge Layer, Experience Memory.</td>
+<td align="center"><b>Security Guide</b><br/>Prompt injection defense, approval gates, IAM, sandbox, PII protection.</td>
+</tr>
+</table>
+
+| Topic | What You'll Learn |
+|-------|-------------------|
+| 9-Layer Architecture | User → Design Interview → Task Orchestrator → Skill → Judge → Re-Propose → Memory → Provider → Registry |
+| Self-Healing DAG | Automatic re-planning and re-proposal on task failure |
+| Judge Layer | Two-stage + Cross-Model quality verification |
+| Skill / Plugin / Extension | 3-tier extensibility with natural language skill generation |
+| Human-in-the-Loop | 12 categories of dangerous operations require human approval |
+| Security-First Design | Prompt injection defense (40+ patterns), PII masking, file sandbox |
+
+---
+
+## What's New
+
+### v0.1.0 — Initial Release (Mar 2026)
+
+- **9-layer architecture** — User Layer → Design Interview → Task Orchestrator → Skill Layer → Judge Layer → Re-Propose → State & Memory → Provider → Skill Registry
+- **Self-Healing DAG** — Automatic re-planning on task failure with dynamic DAG reconstruction
+- **Judge Layer** — Rule-based first-pass + Cross-Model high-accuracy verification
+- **Experience Memory** — Learns from past executions to improve future performance
+- **Skill / Plugin / Extension** — 3-tier extensibility: 8 built-in skills, 10 plugins, 5 extensions
+- **Natural language skill generation** — Describe a skill in plain language and AI auto-generates it (with safety checks)
+- **Browser Assist** — Chrome extension overlay chat with real-time screen sharing and error diagnosis
+- **Media generation** — Image (DALL-E, SD), video (Runway ML, Pika), audio (TTS, ElevenLabs), music (Suno), 3D (dynamic provider registration)
+- **AI tool integration** — 25+ external tools (GitHub, Slack, Jira, Figma, etc.) operable by AI
+- **Security-first** — Prompt injection defense (5 categories, 40+ patterns), approval gates, IAM, PII protection, file sandbox
+- **Multi-model support** — Dynamic model catalog via `model_catalog.json`, auto-fallback for deprecated models
+- **i18n** — Japanese / English / Chinese — UI, AI responses, and CLI all switch seamlessly
+- **Autonomous operation** — Docker / Cloudflare Workers for 24/365 background execution
+- **Self-Improvement** — AI analyzes and improves its own skills (with approval)
+- **A2A communication** — Peer-to-peer agent messaging, channels, and negotiation
+
+---
+
+## 🚀 Quick Start
+
+Get up and running in under 2 minutes:
+
+### Step 1: Install
 
 ```bash
-pip install zero-employee-orchestrator
-```
-
-### ソースからインストール
-
-```bash
-git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
-cd Zero-Employee-Orchestrator
-pip install .
-```
-
-### Docker
-
-```bash
-docker compose up -d
-```
-
-### 動作確認
-
-```bash
-zero-employee health
-zero-employee --help
-```
-
----
-
-## クイックスタート
-
-### 1. API キー不要で始める
-
-```bash
-# 方法 1: サブスクリプションモード（キー不要）
-zero-employee config set DEFAULT_EXECUTION_MODE subscription
-
-# 方法 2: Ollama ローカル LLM（完全オフライン・キー不要）
-zero-employee config set DEFAULT_EXECUTION_MODE free
-zero-employee pull qwen3:8b
-
-# 方法 3: マルチ LLM プラットフォーム（1 つのキーで複数モデル利用可能）
-zero-employee config set OPENROUTER_API_KEY <your-key>
-
-# 方法 4: 各プロバイダーの API キーを個別設定
-zero-employee config set GEMINI_API_KEY <your-key>    # Google Gemini（無料枠あり）
-```
-
-> **ZEO 自体は利用料金を徴収しません。** LLM の API 費用はユーザーが各プロバイダーに直接支払います。
-> 詳しい設定方法は [USER_SETUP.md](USER_SETUP.md) を参照してください。
-
-### 2. サーバー起動
-
-```bash
-zero-employee serve
-# → http://localhost:18234
-```
-
-### 3. ローカルチャットモード（Ollama）
-
-```bash
-zero-employee local
-zero-employee local --model qwen3:8b --lang ja
-```
-
----
-
-## 主な機能
-
-| 機能 | 説明 |
-|------|------|
-| **Design Interview** | 自然言語で業務依頼を受け、要件を深掘り |
-| **Spec / Plan / Tasks** | 中間成果物として構造化保存、再利用・監査・差し戻し可能 |
-| **Task Orchestrator** | DAG ベースの計画生成、コスト見積り、品質モード切替 |
-| **Judge Layer** | ルールベース一次判定 + Cross-Model 高精度判定 |
-| **Self-Healing / Re-Propose** | 障害時の自動再計画・再提案 |
-| **Skill / Plugin / Extension** | 3 層の拡張体系で業務機能を追加（完全 CRUD 管理対応） |
-| **自然言語スキル生成** | 自然言語でスキルを説明するだけで AI が自動生成（安全性チェック付き） |
-| **多言語対応 (i18n)** | 日本語 / English / 中文の 3 言語切替（UI・AI 応答・CLI すべて対応） |
-| **システム保護** | システム必須スキルは削除・無効化不可（6 種のビルトインスキルを保護） |
-| **分身AI / 秘書AI** | ユーザーの判断基準を学習する分身AI、AI組織との橋渡しをする秘書AI（Plugin） |
-| **ブラウザアシスト** | Chrome 拡張機能でオーバーレイチャット表示、ユーザーの画面をリアルタイムで AI が確認・操作案内・エラー診断 |
-| **メディア生成** | 画像（DALL-E, Stable Diffusion）、動画（Runway ML, Pika）、音声（OpenAI TTS, ElevenLabs）、音楽（Suno）の生成。3D 等の新規プロバイダーを API から動的追加可能 |
-| **AI ツール統合** | 25+ の外部ツール（GitHub, Slack, Jira, Figma 等）を AI が操作可能 |
-| **ファイルサンドボックス** | AI がアクセスできるフォルダをユーザー許可制で制限（初期設定: STRICT） |
-| **データ保護** | AI のアップロード・ダウンロードをポリシーで制御（初期設定: LOCKDOWN） |
-| **PII 保護** | 個人情報の自動検出・マスキング（メール、電話番号、クレジットカード等 13 カテゴリ） |
-| **プロンプトインジェクション防御** | 外部からの不正指示を検出・遮断 |
-| **Self-Improvement** | AI が自身のスキルを分析・改善・テスト生成（承認必須） |
-| **メタスキル** | AI に「学び方を学ぶ能力」を付与（Feeling / Seeing / Dreaming / Making / Learning） |
-| **A2A 双方向通信** | エージェント間のピアツーピア通信・チャンネル・交渉 |
-| **分身 AI 共進化** | ユーザーとの対話から判断基準を学習し共に成長 |
-| **Skill マーケットプレイス** | コミュニティ Skill の公開・検索・レビュー・インストール |
-| **マルチユーザー / チーム** | チーム運用向けのロール・招待・権限管理 |
-| **iPaaS 連携** | n8n / Zapier / Make との Webhook 連携 |
-| **成果物エクスポート** | PDF / Markdown / HTML / JSON / CSV へのエクスポート |
-| **リソースインポート** | 業務マニュアル・資料フォルダの取り込みと AI 学習 |
-| **ファイルアップロード** | タスク実行中のファイル受け渡し |
-| **AI 共創リパーパス** | 1 つのコンテンツを 10 種のメディア形式に自動変換 |
-| **RSS / ToS 監視** | AI サービスのモデル更新・料金変更を自動検知 |
-| **レッドチーム セキュリティ** | 8 カテゴリ・20+ テストで自己脆弱性を定期検査 |
-| **ガバナンス・コンプライアンス** | GDPR / HIPAA / SOC2 等 6 フレームワーク対応 |
-| **ブラウザ自動操作** | Playwright ベースの Web 自動操作（承認フロー付き） |
-| **Obsidian 連携** | Markdown ベースナレッジ管理ツールとの同期 |
-| **クラウドネイティブ** | AWS / GCP / Azure / Cloudflare との統合抽象化層 |
-| **24/365 長期実行** | ジョブスケジューラによる継続稼働 |
-| **スマートデバイス / VR/AR** | IoT・スマートグラス・VR ヘッドセット等のデバイスハブ |
-| **自律運用** | Docker / Cloudflare Workers で PC がオフでもバックグラウンド実行 |
-| **自動アップデート** | PyPI バージョンチェック・CLI update コマンド・Tauri デスクトップ自動更新 |
-
----
-
-## 9 層アーキテクチャ
-
-```
-┌─────────────────────────────────────────┐
-│  1. User Layer     — 自然言語で目的を伝える    │
-│  2. Design Interview — 壁打ち・要件深掘り      │
-│  3. Task Orchestrator — DAG分解・進行管理     │
-│  4. Skill Layer    — 専門Skill + Context     │
-│  5. Judge Layer    — Two-stage + Cross-Model │
-│  6. Re-Propose     — 差し戻し・動的DAG再構築   │
-│  7. State & Memory — Experience Memory      │
-│  8. Provider       — LLMゲートウェイ (LiteLLM)  │
-│  9. Skill Registry — Skill公開・検索・Import   │
-└─────────────────────────────────────────┘
-```
-
----
-
-## セキュリティ
-
-Zero-Employee Orchestrator は**セキュリティファースト**で設計されています。
-
-### 多層防御
-
-| レイヤー | 機能 |
-|---------|------|
-| **プロンプトインジェクション防御** | 外部入力からの指示注入を検出・遮断（5 カテゴリ・40+ パターン） |
-| **承認ゲート** | 12 カテゴリの危険操作（送信・削除・課金・権限変更等）を人間承認必須化 |
-| **自律実行境界** | AI が自律実行できる操作を明示的に制限 |
-| **IAM** | 人間/AI アカウント分離、AI に対するシークレット・管理権限の拒否 |
-| **シークレット管理** | Fernet 暗号化・自動マスキング・ローテーション支援 |
-| **サニタイズ** | API キー・トークン・個人情報の自動除去 |
-| **セキュリティヘッダー** | CSP・HSTS・X-Frame-Options 等を全レスポンスに付与 |
-| **リクエスト検証** | ボディサイズ制限・Host ヘッダー検証 |
-| **レート制限** | slowapi による API レート制限 |
-| **監査ログ** | 全重要操作を記録（後付けではなく設計段階から組込み） |
-
-### プロンプトインジェクション防御
-
-外部ソース（ウェブページ、メール本文、ファイル内容、API レスポンス等）に埋め込まれた不正な指示を自動検出・遮断します。
-
-- **CRITICAL**: システムプロンプト書き換え試行（"ignore previous instructions" 等）
-- **HIGH**: 権限昇格・データ漏洩試行
-- **MEDIUM**: 間接的インジェクション・境界操作
-- 外部データは構造的に分離（境界マーカー方式）
-- 全検出はログに記録
-
-### 本番環境デプロイ前チェックリスト
-
-本番環境の設定手順（秘密鍵生成・CORS・DB 設定等）は [USER_SETUP.md](USER_SETUP.md) を参照してください。
-
-脆弱性の報告は [SECURITY.md](SECURITY.md) を参照してください。
-
----
-
-## 自律運用（PC がオフでも稼働）
-
-### Docker Compose（推奨）
-
-```bash
-docker compose up -d
-# API + Worker がバックグラウンドで自動稼働
-# restart: unless-stopped で自動再起動
-```
-
-### Cloudflare Workers（サーバーレス）
-
-```bash
-cd apps/edge/full
-npm run deploy
-# サーバー不要、D1 データベースで永続化
-```
-
-### Heartbeat スケジューラ
-
-9 種類の発火契機に対応:
-- スケジュール（cron 形式）
-- チケット作成・タスク割当・差し戻し
-- 外部イベント・予算閾値・承認完了
-- マネージャー指示・依存完了
-
----
-
-## ブラウザアシスト（Extension + Chrome 拡張機能）
-
-ユーザーが Chrome 等のウェブブラウザを使用中に、**ページ上にオーバーレイチャットを表示**し、AI がリアルタイムで操作案内・エラー診断を行います。スクリーンショットを手動で撮らなくても、ユーザーが見ている画面を AI が直接確認できます。
-
-### 利用方法
-
-#### 方法 1: Chrome 拡張機能（推奨）
-
-```
-1. extensions/browser-assist/chrome-extension/ を Chrome にロード
-   → chrome://extensions → デベロッパーモード → 「パッケージ化されていない拡張機能を読み込む」
-2. 任意のウェブサイトで右下のチャットアイコンをクリック
-3. テキストで質問、またはスクリーンショットボタンで画面を AI に共有
-4. ファイル（画像・PDF 等）の添付も可能
-```
-
-#### 方法 2: REST API（デスクトップアプリ・他ブラウザ）
-
-```bash
-POST /api/v1/browser-assist/consent  # 同意を付与
-POST /api/v1/browser-assist/analyze  # スクリーンショット分析
-```
-
-#### 方法 3: WebSocket（リアルタイム通信）
-
-```
-ws://localhost:18234/ws/browser-assist
-```
-
-### 機能
-
-- **オーバーレイチャット**: ウェブサイト上に直接チャット UI を表示（Chrome 拡張機能）
-- **リアルタイム画面共有**: スクショを貼らずにユーザーの画面を AI が確認
-- **画面分析**: スクリーンショットから UI 要素を特定
-- **操作案内**: ステップバイステップで操作手順を提示
-- **エラー診断**: 画面上のエラーメッセージを読み取り、解決策を提案
-- **フォーム入力支援**: 各フィールドの入力方法を案内
-- **ファイル添付**: 画像・PDF・テキストファイルの添付に対応
-
-### プライバシーと安全性
-
-- スクリーンショットは一時的にのみ処理（永続保存しない）
-- PII（個人識別情報）自動検出・マスキング
-- パスワードフィールドは自動ぼかし対応
-- ユーザーの明示的な同意が必須
-- 自律的なクリック操作は行わない（案内のみ）
-- 全キャプチャは監査ログに記録
-
----
-
-## メディア生成（画像・動画・音声・音楽・3D）
-
-AI ツールとして画像生成・動画生成・音声生成・3D モデル生成に対応。外部 API との連携により各種メディアを生成できます。
-
-**動的プロバイダー登録**: ビルトインプロバイダーに加え、ユーザーが API から新規プロバイダー（3D ツール等）を登録可能。
-
-| カテゴリ | プロバイダー | 説明 |
-|---------|------------|------|
-| 画像生成 | OpenAI DALL-E, Stability AI, Replicate (Flux) | テキストから画像を生成 |
-| 動画生成 | Runway ML, Replicate (SVD), Pika | テキスト/画像から動画を生成 |
-| 音声生成 | OpenAI TTS, ElevenLabs | テキストから音声を生成 |
-| 音楽生成 | Suno, Udio | テキストから音楽を生成 |
-| 3D ほか | ユーザー登録可能 | API から新規プロバイダーを動的追加 |
-
-```bash
-# メディア生成
-POST /api/v1/media/generate
-{
-  "prompt": "A futuristic office with AI assistants",
-  "media_type": "image",
-  "provider": "openai_dalle"
-}
-
-# プロバイダー一覧
-GET /api/v1/media/providers
-GET /api/v1/media/providers/image
-
-# 新規プロバイダー登録（例: 3D ツール）
-POST /api/v1/media/providers
-{
-  "id": "meshy_3d",
-  "media_type": "3d",
-  "api_base": "https://api.meshy.ai/v1/generate",
-  "env_key": "MESHY_API_KEY",
-  "models": ["meshy-v2"],
-  "default_model": "meshy-v2",
-  "cost_per_generation": 0.30
-}
-
-# プロバイダー削除（ユーザー登録分のみ）
-DELETE /api/v1/media/providers/{provider_id}
-```
-
-すべてのメディア生成はデータ保護ポリシーと承認ゲートを経由します。
-
----
-
-## AI ツール統合
-
-AI が操作可能な 25+ の外部ツールを統合管理しています。
-
-| カテゴリ | ツール |
-|---------|-------|
-| コード | GitHub, GitLab |
-| ドキュメント | Google Docs, Notion, Obsidian |
-| コミュニケーション | Slack, Discord, LINE, Email |
-| プロジェクト管理 | Jira, Linear |
-| デザイン | Figma (MCP 経由) |
-| データ | Google Sheets |
-| クラウド | AWS CLI, Google Cloud CLI |
-| 検索 | Web Search, Local RAG |
-| メディア生成 | 画像・動画・音声・音楽・3D（動的プロバイダー追加可能） |
-| ブラウザ | Browser Assist, Playwright |
-
-```bash
-GET /api/v1/ai-tools           # 全ツール一覧
-GET /api/v1/ai-tools/available # 利用可能なツール
-POST /api/v1/ai-tools/toggle   # ツールの有効化/無効化
-```
-
----
-
-## セキュリティ設定
-
-- **ファイルサンドボックス**: AI がアクセスできるフォルダをユーザー許可制で制限（初期設定: STRICT）
-- **データ保護**: AI のアップロード・ダウンロードをポリシーで制御（初期設定: LOCKDOWN）
-
-設定方法の詳細（サンドボックスレベル・データ保護ポリシー・GUI/CLI 設定手順）は [USER_SETUP.md](USER_SETUP.md) を参照してください。
-
-### PII（個人情報）保護
-
-ユーザーが意図せず個人情報を AI に渡すことを防止します（メールアドレス、電話番号、クレジットカード番号等 13 カテゴリを自動検出・マスキング）。
-
-### 初期設定
-
-セキュリティファーストの初期設定: サンドボックス STRICT、データ転送 LOCKDOWN、PII 自動検出有効、パスワード転送は常にブロック。
-
-初期設定の詳細一覧は [USER_SETUP.md](USER_SETUP.md) を参照してください。
-
----
-
-## CLI コマンド
-
-```bash
-zero-employee serve              # API サーバーを起動
-zero-employee serve --port 8000  # ポート指定
-zero-employee serve --reload     # ホットリロード
-
-zero-employee chat               # チャットモード (全プロバイダー対応・自然言語で全操作可能)
-zero-employee chat --mode free   # Ollama / g4f で無料利用
-zero-employee chat --lang en     # 英語モード
-
-zero-employee local              # ローカルチャットモード (Ollama)
-zero-employee local --model qwen3:8b --lang ja
-
-zero-employee models             # インストール済みモデル一覧
-zero-employee pull qwen3:8b      # モデルダウンロード
-
-zero-employee config list        # 全設定値を表示
-zero-employee config set <KEY>   # 設定値を保存
-zero-employee config get <KEY>   # 設定値を取得
-zero-employee config delete <KEY> # 設定値を削除
-zero-employee config keys        # 設定可能なキーの一覧
-
-zero-employee db upgrade         # DB マイグレーション
-zero-employee health             # ヘルスチェック
-zero-employee security status    # セキュリティ状態
-
-zero-employee update             # 最新版にアップデート
-zero-employee update --check     # アップデート確認のみ
-```
-
----
-
-## 対応 LLM モデル
-
-`model_catalog.json` で一元管理。コード変更なしにモデルを入れ替え可能。
-
-| 実行モード | 説明 | 例 |
-|-----------|------|-----|
-| **Quality** | 最高品質 | Claude Opus, GPT-5.4, Gemini 2.5 Pro |
-| **Speed** | 高速応答 | Claude Haiku, GPT-5 Mini, Gemini 2.5 Flash |
-| **Cost** | 低コスト | Haiku, Mini, Flash Lite, DeepSeek |
-| **Free** | 無料 | Gemini 無料枠, Ollama ローカル |
-| **Subscription** | API キー不要 | g4f 経由 |
-
-### タスク単位のプロバイダー指定
-
-タスクごとに使用する LLM プロバイダー・モデル・実行モードを指定可能です。指定がない場合は会社デフォルト設定にフォールバックします。
-
-```bash
-# タスク作成時に指定
-POST /api/v1/plans/{plan_id}/tasks
-{
-  "title": "高精度な仕様書レビュー",
-  "provider_override": {
-    "provider": "anthropic",
-    "model": "anthropic/claude-opus",
-    "execution_mode": "quality"
-  }
-}
-
-# 既存タスクのプロバイダーを変更
-PATCH /api/v1/tasks/{task_id}/provider
-{
-  "provider": "openai",
-  "model": "openai/gpt-4o"
-}
-```
-
-### Ollama ローカルモード
-
-```bash
-# 推奨モデル
-zero-employee pull qwen3:8b
-zero-employee pull qwen3:32b
-zero-employee pull deepseek-coder-v2
-```
-
----
-
-## Skill / Plugin / Extension
-
-### 3 層の拡張体系
-
-| 種別 | 説明 | 例 |
-|------|------|-----|
-| **Skill** | 単一目的の専門処理 | spec-writer, review-assistant, browser-assist |
-| **Plugin** | 複数 Skill をバンドル | ai-secretary, ai-self-improvement, youtube |
-| **Extension** | システム連携・インフラ | mcp, oauth, notifications, browser-assist |
-
-### 自然言語でスキル生成
-
-```bash
-POST /api/v1/registry/skills/generate
-{
-  "description": "長文ドキュメントを3つの要点にまとめるスキル"
-}
-```
-
-16 種類の危険パターンを自動検出。安全性チェック通過後にのみ登録。
-
-### 外部スキルのインポート
-
-```bash
-POST /api/v1/registry/plugins/search-external
-{ "query": "document summarizer" }
-
-POST /api/v1/registry/plugins/import
-{ "source_uri": "https://github.com/user/agent-skills-repo" }
-```
-
----
-
-## API エンドポイント
-
-バージョンプレフィックス: `/api/v1`
-
-<details>
-<summary>全エンドポイント一覧（クリックで展開）</summary>
-
-| グループ | パス | 説明 |
-|---------|------|------|
-| 認証 | `/auth` | 認証・セッション |
-| 組織 | `/companies` | 会社・組織 |
-| エージェント | `/companies/{id}/agents` | エージェント管理 |
-| チケット | `/companies/{id}/tickets` | チケット管理 |
-| 仕様・計画 | `/tickets/{id}/specs` | Spec/Plan/Tasks |
-| タスク | `/tasks/{id}` | タスク実行 |
-| 承認 | `/approvals` | 承認管理 |
-| 予算 | `/companies/{id}/budgets` | 予算・コスト |
-| 監査 | `/companies/{id}/audit-logs` | 監査ログ |
-| レジストリ | `/registry` | Skill/Plugin/Extension |
-| モデル | `/models` | モデルカタログ |
-| 推論トレース | `/traces` | エージェント判断過程 |
-| 通信ログ | `/communications` | エージェント間通信 |
-| 監視 | `/monitor` | リアルタイム実行監視 |
-| WebSocket | `/ws/events` | リアルタイムイベント |
-| ナレッジ | `/knowledge` | ナレッジストア |
-| Ollama | `/ollama` | ローカル LLM |
-| MCP | `/mcp` | MCP サーバー |
-| IAM | `/iam` | アクセス制御 |
-| 設定 | `/config` | ランタイム設定（言語・API キー・実行モード等） |
-| Self-Improvement | `/self-improvement` | AI 自己改善 |
-| ブラウザアシスト | `/browser-assist` | 画面分析・操作案内（REST + WebSocket + Chrome 拡張機能） |
-| セキュリティ | `/security` | サンドボックス・データ保護・PII 設定 |
-| メディア生成 | `/media` | 画像・動画・音声・音楽・3D の生成。プロバイダー動的登録対応 |
-| AI ツール | `/ai-tools` | 外部 AI ツールの管理 |
-| ファイル | `/files` | ファイルアップロード・ダウンロード |
-| ユーザー入力 | `/user-input` | タスク実行中の入力要求 |
-| リソース | `/resources` | リソースインポート |
-| iPaaS | `/ipaas` | n8n / Zapier / Make 連携 |
-| エクスポート | `/export` | 成果物エクスポート |
-| マーケットプレイス | `/marketplace` | Skill マーケット |
-| チーム | `/teams` | チーム管理 |
-| ガバナンス | `/governance` | コンプライアンス |
-| 壁打ち | `/companies/{id}/brainstorm` | ブレインストーミング |
-| 会話記憶 | `/companies/{id}/conversation-memory` | 会話永続保管 |
-| 仮説検証 | `/hypotheses` | 並行検証 |
-| セッション | `/sessions` | エージェントセッション |
-| 秘書AI | `/secretary` | ブレインダンプ・整理 |
-| 組織構築 | `/org-setup` | AI ヒアリング・組織生成 |
-| 自然言語コマンド | `/command` | 自然言語で設定変更 |
-| プロジェクト | `/projects` | プロジェクト・ゴール管理 |
-| 品質インサイト | `/quality-insights` | 前提監視・矛盾検出・リプレイ |
-
-</details>
-
----
-
-## 技術スタック
-
-### バックエンド
-- Python 3.12+ / FastAPI / uvicorn
-- SQLAlchemy 2.x (async) + Alembic
-- SQLite (開発) / PostgreSQL (本番推奨)
-- LiteLLM Router SDK
-- bcrypt / Fernet 暗号化
-- slowapi レート制限
-
-### フロントエンド
-- React 19 + TypeScript + Vite
-- shadcn/ui + Tailwind CSS
-- TanStack Query + Zustand
-
-### デスクトップ
-- Tauri v2 (Rust) + Python サイドカー
-
-### デプロイ
-- Docker + docker-compose
-- Cloudflare Workers (サーバーレス)
-
----
-
-## ディレクトリ構成
-
-```
-apps/
-├── api/              # FastAPI バックエンド
-│   └── app/
-│       ├── core/           # 設定・DB・セキュリティ・i18n
-│       ├── api/routes/     # 39 REST API ルートモジュール
-│       ├── api/ws/         # WebSocket
-│       ├── models/         # SQLAlchemy ORM
-│       ├── schemas/        # Pydantic DTO
-│       ├── services/       # ビジネスロジック
-│       ├── repositories/   # DB 入出力抽象化
-│       ├── orchestration/  # DAG・Judge・状態機械
-│       ├── providers/      # LLM ゲートウェイ・Ollama・RAG
-│       ├── security/       # IAM・シークレット・サニタイズ・プロンプト防御
-│       ├── policies/       # 承認ゲート・自律実行境界
-│       ├── integrations/   # Sentry・MCP・外部スキル・ブラウザアシスト
-│       └── tools/          # 外部ツール接続
-├── desktop/          # Tauri + React UI
-├── edge/             # Cloudflare Workers
-└── worker/           # バックグラウンドワーカー
-skills/               # ビルトインスキル（8 個）
-plugins/              # Plugin マニフェスト（10 Plugin）
-extensions/           # Extension マニフェスト（5 Extension）
-packages/             # 共有 NPM パッケージ
-```
-
----
-
-## 開発
-
-```bash
-# 開発環境セットアップ
-git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
-cd Zero-Employee-Orchestrator
-pip install -e ".[dev]"
-
-# サーバー起動（ホットリロード）
-zero-employee serve --reload
-
-# テスト
-pytest apps/api/app/tests/
-
-# リント
-ruff check apps/api/app/
-ruff format apps/api/app/
-```
-
----
-
-## コントリビューション
-
-1. Fork → Branch → PR の標準フロー
-2. セキュリティ問題は [SECURITY.md](SECURITY.md) に従い、非公開で報告
-3. コーディング規約: ruff フォーマット・型ヒント必須・async def
-
----
-
-## ライセンス
-
-[MIT License](LICENSE)
-
----
-
-<a id="english"></a>
-## English
-
-### What is this?
-
-Zero-Employee Orchestrator is a platform for running **AI as an organization** — not just a single chatbot, but a team of AI agents with role-based delegation, human approval gates, and full auditability.
-
-### Design Philosophy
-
-- **Minimal initial state** — Starts with zero configuration; users enable and connect only what they need
-- **LLM & tool agnostic** — No vendor lock-in; LLMs, tools, hosting, and deployment are all user's choice
-- **User-driven extensibility** — New LLMs and tools can be added by users without modifying the core
-- **Self-hosted by design** — Security, database, and deployment decisions are made per-environment
-- **Core team manages quality only** — Error monitoring (Sentry) and red-team testing ensure platform reliability
-
-### Key Features
-
-- **Multi-Agent Orchestration**: DAG-based task planning with specialized agents
-- **Human-in-the-Loop**: 12 categories of dangerous operations require human approval
-- **Skill / Plugin / Extension**: 3-layer extensibility with natural language skill generation
-- **Prompt Injection Defense**: 40+ patterns detected across 5 threat categories
-- **Browser Assist**: Chrome extension overlay chat — AI sees your screen in real-time and guides you
-- **Media Generation**: Image (DALL-E, SD), video (Runway ML), audio (TTS), music (Suno) generation
-- **AI Tool Integration**: 25+ external tools (GitHub, Slack, Jira, Figma, etc.) operable by AI
-- **File Sandbox**: AI can only access user-permitted folders (default: STRICT whitelist)
-- **Data Protection**: Upload/download policy control (default: LOCKDOWN — all transfers blocked)
-- **PII Protection**: Auto-detect and mask personal information (13 categories)
-- **Self-Improvement**: AI analyzes and improves its own skills (with approval)
-- **Meta-Skills**: AI learns how to learn (Feeling/Seeing/Dreaming/Making/Learning)
-- **A2A Communication**: Peer-to-peer agent messaging, channels, and negotiation
-- **Skill Marketplace**: Community skill publishing, search, review, and installation
-- **Multi-user/Team**: Role-based team management with invitations and permissions
-- **iPaaS Integration**: n8n / Zapier / Make webhook integration
-- **Artifact Export**: PDF / Markdown / HTML / JSON / CSV export
-- **Repurpose Engine**: Auto-convert content to 10 media formats
-- **RSS/ToS Monitor**: Auto-detect AI service model updates and pricing changes
-- **Red-team Security**: 8-category, 20+ test self-vulnerability assessment
-- **Governance & Compliance**: GDPR / HIPAA / SOC2 / ISO27001 / CCPA / APPI
-- **Browser Automation**: Playwright-based web automation with approval flows
-- **Obsidian Integration**: Markdown knowledge management sync
-- **Cloud Native**: AWS / GCP / Azure / Cloudflare abstraction layer
-- **24/365 Scheduler**: Job scheduling for continuous AI operation
-- **Smart Device / VR/AR**: IoT, smart glasses, VR headset device hub
-- **Autonomous Operation**: Runs in Docker/Cloudflare Workers even when your PC is off
-- **Multi-Model Support**: Dynamic model catalog, auto-fallback for deprecated models
-- **i18n / Multilingual**: Japanese / English / Chinese — UI, AI responses, and CLI all switch seamlessly
-- **Auto-Update**: PyPI version check on startup, `zero-employee update` CLI command, Tauri desktop auto-updater
-
-### Installation
-
-```bash
+# PyPI
 pip install zero-employee-orchestrator
 
 # or from source
@@ -702,137 +115,384 @@ cd Zero-Employee-Orchestrator && pip install .
 docker compose up -d
 ```
 
-### Quick Start
+### Step 2: Configure (No API Key Required)
 
 ```bash
-# No API key needed — works out of the box in subscription mode
-zero-employee serve
+# Option A: Subscription mode (no key needed)
+zero-employee config set DEFAULT_EXECUTION_MODE subscription
 
-# Or use Ollama for fully offline, local AI
+# Option B: Ollama local LLM (fully offline)
 zero-employee config set DEFAULT_EXECUTION_MODE free
 zero-employee pull qwen3:8b
-zero-employee local --model qwen3:8b --lang en
 
-# Or use a multi-LLM platform for access to many models with one key
+# Option C: Multi-LLM platform (one key, many models)
 zero-employee config set OPENROUTER_API_KEY <your-key>
+
+# Option D: Individual provider keys
+zero-employee config set GEMINI_API_KEY <your-key>
 ```
 
-> **ZEO itself is free.** LLM API costs are paid directly by users to each provider. See [USER_SETUP.md](USER_SETUP.md) for details.
+> **ZEO itself is free.** LLM API costs are paid directly to each provider. See [USER_SETUP.md](USER_SETUP.md) for details.
+
+### Step 3: Start
+
+```bash
+# Web UI
+zero-employee serve
+# → http://localhost:18234
+
+# Local chat (Ollama)
+zero-employee local --model qwen3:8b --lang en
+```
+
+✨ **That's it!** You now have a full AI orchestration platform with human approval gates and auditability.
+
+---
+
+## 📦 What's Inside
+
+```
+Zero-Employee-Orchestrator/
+├── apps/
+│   ├── api/                  # FastAPI backend
+│   │   └── app/
+│   │       ├── core/               # Config, DB, security, i18n
+│   │       ├── api/routes/         # 39 REST API route modules
+│   │       ├── api/ws/             # WebSocket
+│   │       ├── models/             # SQLAlchemy ORM
+│   │       ├── schemas/            # Pydantic DTO
+│   │       ├── services/           # Business logic
+│   │       ├── repositories/       # DB I/O abstraction
+│   │       ├── orchestration/      # DAG, Judge, state machine
+│   │       ├── providers/          # LLM gateway, Ollama, RAG
+│   │       ├── security/           # IAM, secrets, sanitize, prompt defense
+│   │       ├── policies/           # Approval gates, autonomy boundaries
+│   │       ├── integrations/       # Sentry, MCP, external skills, Browser Assist
+│   │       └── tools/              # External tool connectors
+│   ├── desktop/              # Tauri v2 + React UI
+│   ├── edge/                 # Cloudflare Workers
+│   └── worker/               # Background workers
+├── skills/                   # 8 built-in skills
+├── plugins/                  # 10 plugin manifests
+├── extensions/               # 5 extension manifests
+│   └── browser-assist/
+│       └── chrome-extension/ # Chrome extension for Browser Assist
+├── packages/                 # Shared NPM packages
+├── docs/                     # Multi-language docs & guides
+│   ├── ja-JP/                # 日本語
+│   ├── zh-CN/                # 简体中文
+│   ├── zh-TW/                # 繁體中文
+│   ├── ko-KR/                # 한국어
+│   ├── pt-BR/                # Português (Brasil)
+│   ├── tr/                   # Türkçe
+│   └── guides/               # Architecture, security, quickstart guides
+└── assets/
+    └── images/
+        ├── guides/           # Guide header images
+        └── logo/             # Logo assets
+```
+
+---
+
+## 🏗️ 9-Layer Architecture
+
+```
+┌─────────────────────────────────────────┐
+│  1. User Layer       — Natural language input          │
+│  2. Design Interview — Requirements exploration        │
+│  3. Task Orchestrator — DAG decomposition & scheduling  │
+│  4. Skill Layer      — Specialized Skills + Context     │
+│  5. Judge Layer      — Two-stage + Cross-Model QA       │
+│  6. Re-Propose       — Rejection → dynamic DAG rebuild  │
+│  7. State & Memory   — Experience Memory               │
+│  8. Provider         — LLM Gateway (LiteLLM)           │
+│  9. Skill Registry   — Publish / Search / Import        │
+└─────────────────────────────────────────┘
+```
+
+---
+
+## 🎯 Key Features
+
+### Core Orchestration
+
+| Feature | Description |
+|---------|-------------|
+| **Design Interview** | Natural language requirements exploration and refinement |
+| **Spec / Plan / Tasks** | Structured intermediate artifacts — reusable, auditable, reversible |
+| **Task Orchestrator** | DAG-based planning with cost estimation and quality mode switching |
+| **Judge Layer** | Rule-based first pass + Cross-Model high-accuracy verification |
+| **Self-Healing / Re-Propose** | Automatic re-planning on failure with dynamic DAG reconstruction |
+| **Experience Memory** | Learns from past executions to improve future performance |
+
+### Extensibility
+
+| Feature | Description |
+|---------|-------------|
+| **Skill / Plugin / Extension** | 3-tier extensibility with full CRUD management |
+| **Natural Language Skill Generation** | Describe in plain language → AI auto-generates (with safety checks) |
+| **Skill Marketplace** | Community skill publishing, search, review, and installation |
+| **External Skill Import** | Import skills from GitHub repositories |
+| **Self-Improvement** | AI analyzes and improves its own skills (with approval) |
+| **Meta-Skills** | AI learns how to learn (Feeling / Seeing / Dreaming / Making / Learning) |
+
+### AI Capabilities
+
+| Feature | Description |
+|---------|-------------|
+| **Browser Assist** | Chrome extension overlay — AI sees your screen in real-time |
+| **Media Generation** | Image, video, audio, music, 3D — with dynamic provider registration |
+| **AI Tool Integration** | 25+ external tools (GitHub, Slack, Jira, Figma, etc.) |
+| **A2A Communication** | Peer-to-peer agent messaging, channels, and negotiation |
+| **Avatar AI** | Learns your decision patterns and evolves with you |
+| **Secretary AI** | Brain dump → structured tasks, bridges you and the AI org |
+| **Repurpose Engine** | Auto-convert 1 content to 10 media formats |
 
 ### Security
 
-- Prompt injection defense (5 categories, 40+ patterns)
-- Approval gates for 12 categories of dangerous operations
-- IAM with human/AI account separation
-- Secret management with Fernet encryption
-- Security headers (CSP, HSTS, X-Frame-Options)
-- Audit logging from design stage
+| Feature | Description |
+|---------|-------------|
+| **Prompt Injection Defense** | 5 categories, 40+ detection patterns |
+| **Approval Gates** | 12 categories of dangerous operations require human approval |
+| **File Sandbox** | AI can only access user-permitted folders (default: STRICT) |
+| **Data Protection** | Upload/download policy control (default: LOCKDOWN) |
+| **PII Protection** | Auto-detect and mask 13 categories of personal information |
+| **IAM** | Human/AI account separation, AI denied admin/secret access |
+| **Red-team Security** | 8-category, 20+ test self-vulnerability assessment |
+
+### Operations
+
+| Feature | Description |
+|---------|-------------|
+| **Multi-model Support** | Dynamic catalog, auto-fallback, per-task provider override |
+| **i18n** | Japanese / English / Chinese — UI, AI responses, CLI |
+| **Autonomous Operation** | Docker / Cloudflare Workers — runs when your PC is off |
+| **24/365 Scheduler** | 9 trigger types: cron, ticket creation, budget threshold, etc. |
+| **iPaaS Integration** | n8n / Zapier / Make webhook integration |
+| **Cloud Native** | AWS / GCP / Azure / Cloudflare abstraction layer |
+| **Governance & Compliance** | GDPR / HIPAA / SOC2 / ISO27001 / CCPA / APPI |
+
+---
+
+## 🔒 Security
+
+ZEO is designed **security-first** with multi-layered defense:
+
+| Layer | Description |
+|-------|-------------|
+| **Prompt Injection Defense** | Detects and blocks instruction injection from external inputs (5 categories, 40+ patterns) |
+| **Approval Gates** | 12 categories of dangerous operations (send, delete, billing, permission changes) require human approval |
+| **Autonomy Boundaries** | Explicitly limits what AI can do autonomously |
+| **IAM** | Separate human/AI accounts; AI denied secrets and admin permissions |
+| **Secret Management** | Fernet encryption, auto-masking, rotation support |
+| **Sanitization** | Auto-removal of API keys, tokens, and PII |
+| **Security Headers** | CSP, HSTS, X-Frame-Options on all responses |
+| **Rate Limiting** | slowapi-based API rate limiting |
+| **Audit Logging** | All critical operations recorded (built-in from design, not bolted on) |
 
 See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 
 ---
 
-<a id="中文"></a>
-## 中文
-
-### 这是什么？
-
-Zero-Employee Orchestrator 是一个将 **AI 作为组织来运营**的平台——不只是单一聊天机器人，而是一个具有角色分工、人类审批和完整审计能力的 AI 代理团队。
-
-### 设计理念
-
-- **最小初始状态** — 零配置即可启动，用户按需启用和连接功能
-- **LLM 和工具无关** — 不绑定任何供应商，LLM、工具、部署方式由用户自由选择
-- **用户驱动的扩展性** — 新的 LLM 和工具可由用户自行添加，无需修改核心代码
-- **自托管设计** — 安全、数据库、部署决策由用户在各自环境中做出
-- **核心团队仅管理质量** — 通过 Sentry 错误监控和红队测试保障平台可靠性
-
-### 主要功能
-
-- **多代理编排**: 基于 DAG 的任务规划与专业代理
-- **人机协作**: 12 类危险操作需要人类审批
-- **技能/插件/扩展**: 三层可扩展体系，支持自然语言生成技能
-- **提示注入防御**: 5 个威胁类别，40+ 检测模式
-- **浏览器辅助**: Chrome 扩展程序叠加聊天 — AI 实时查看您的屏幕并指导操作
-- **媒体生成**: 图像（DALL-E, SD）、视频（Runway ML）、音频（TTS）、音乐（Suno）生成
-- **AI 工具集成**: 25+ 外部工具（GitHub、Slack、Jira、Figma 等）可由 AI 操作
-- **文件沙箱**: AI 仅可访问用户许可的文件夹（默认: STRICT 白名单）
-- **数据保护**: 上传/下载策略控制（默认: LOCKDOWN — 阻止所有传输）
-- **PII 保护**: 自动检测和脱敏个人信息（13 个类别）
-- **自我改进**: AI 分析和改进自身技能（需审批）
-- **元技能**: AI 学习如何学习（Feeling/Seeing/Dreaming/Making/Learning）
-- **A2A 通信**: 代理间点对点消息、频道和协商
-- **分身AI 共进化**: 从用户对话中学习判断标准，共同成长
-- **Skill 市场**: 社区技能的发布、搜索、评审和安装
-- **多用户/团队**: 基于角色的团队管理，支持邀请和权限控制
-- **iPaaS 集成**: n8n / Zapier / Make Webhook 集成
-- **成果物导出**: PDF / Markdown / HTML / JSON / CSV 导出
-- **AI 再利用引擎**: 自动将内容转换为 10 种媒体格式
-- **RSS/ToS 监控**: 自动检测 AI 服务模型更新和价格变更
-- **红队安全**: 8 个类别、20+ 测试的自我漏洞评估
-- **治理与合规**: GDPR / HIPAA / SOC2 / ISO27001 / CCPA / APPI
-- **浏览器自动化**: 基于 Playwright 的 Web 自动操作（带审批流程）
-- **Obsidian 集成**: Markdown 知识管理同步
-- **云原生**: AWS / GCP / Azure / Cloudflare 抽象层
-- **24/365 调度器**: 作业调度，实现持续 AI 运行
-- **智能设备 / VR/AR**: IoT、智能眼镜、VR 头显设备中心
-- **自主运行**: 通过 Docker/Cloudflare Workers 即使 PC 关机也能运行
-- **多模型支持**: 动态模型目录，已弃用模型自动回退
-- **多语言 (i18n)**: 日本語 / English / 中文——界面、AI 回复和 CLI 无缝切换
-- **自动更新**: 启动时 PyPI 版本检查、`zero-employee update` CLI 命令、Tauri 桌面自动更新
-
-### 安装
+## 🖥️ CLI Reference
 
 ```bash
-pip install zero-employee-orchestrator
+zero-employee serve              # Start API server
+zero-employee serve --port 8000  # Custom port
+zero-employee serve --reload     # Hot reload
 
-# 或从源码安装
-git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
-cd Zero-Employee-Orchestrator && pip install .
+zero-employee chat               # Chat mode (all providers)
+zero-employee chat --mode free   # Free mode (Ollama / g4f)
+zero-employee chat --lang en     # Language selection
 
-# 或使用 Docker
-docker compose up -d
+zero-employee local              # Local chat (Ollama)
+zero-employee local --model qwen3:8b --lang ja
+
+zero-employee models             # List installed models
+zero-employee pull qwen3:8b      # Download model
+
+zero-employee config list        # Show all settings
+zero-employee config set <KEY>   # Set a value
+zero-employee config get <KEY>   # Get a value
+
+zero-employee db upgrade         # Run DB migrations
+zero-employee health             # Health check
+zero-employee security status    # Security status
+zero-employee update             # Update to latest version
 ```
-
-### 快速开始
-
-```bash
-# 无需 API 密钥 — 订阅模式开箱即用
-zero-employee serve
-
-# 或使用 Ollama 实现完全离线的本地 AI
-zero-employee config set DEFAULT_EXECUTION_MODE free
-zero-employee pull qwen3:8b
-zero-employee local --model qwen3:8b --lang zh
-
-# 或使用多 LLM 平台，一个密钥访问多个模型
-zero-employee config set OPENROUTER_API_KEY <your-key>
-```
-
-> **ZEO 本身是免费的。** LLM API 费用由用户直接向各提供商支付。详见 [USER_SETUP.md](USER_SETUP.md)。
-
-### 安全
-
-- 提示注入防御（5 个类别，40+ 检测模式）
-- 12 类危险操作的审批门控
-- 人类/AI 账户分离的 IAM
-- Fernet 加密的密钥管理
-- 安全头（CSP、HSTS、X-Frame-Options）
-- 从设计阶段就内置的审计日志
-
-漏洞报告请参阅 [SECURITY.md](SECURITY.md)。
 
 ---
 
-## Star History
+## 🤖 Supported LLM Models
 
-如果这个项目对您有用，请给一个 Star！
+Managed via `model_catalog.json` — swap models without code changes.
 
-If you find this project useful, please give it a star!
+| Mode | Description | Examples |
+|------|-------------|---------|
+| **Quality** | Highest quality | Claude Opus, GPT-5.4, Gemini 2.5 Pro |
+| **Speed** | Fast response | Claude Haiku, GPT-5 Mini, Gemini 2.5 Flash |
+| **Cost** | Low cost | Haiku, Mini, Flash Lite, DeepSeek |
+| **Free** | Free | Gemini free tier, Ollama local |
+| **Subscription** | No API key needed | via g4f |
+
+Per-task provider override is supported — specify provider, model, and execution mode per task.
+
+---
+
+## 🧩 Skill / Plugin / Extension
+
+### 3-Tier Extensibility
+
+| Type | Description | Examples |
+|------|-------------|---------|
+| **Skill** | Single-purpose specialized processing | spec-writer, review-assistant, browser-assist |
+| **Plugin** | Bundles multiple Skills | ai-secretary, ai-self-improvement, youtube |
+| **Extension** | System integration & infrastructure | mcp, oauth, notifications, browser-assist |
+
+### Generate Skills with Natural Language
+
+```bash
+POST /api/v1/registry/skills/generate
+{
+  "description": "A skill that summarizes long documents into 3 key points"
+}
+```
+
+16 dangerous patterns are auto-detected. Only skills passing safety checks are registered.
+
+---
+
+## 🌐 Browser Assist
+
+Chrome extension overlay chat — AI sees your screen in real-time and guides you.
+
+- **Overlay Chat**: Chat UI directly on any website
+- **Real-time Screen Sharing**: AI sees what you see (no manual screenshots)
+- **Error Diagnosis**: AI reads error messages on screen and suggests fixes
+- **Form Assistance**: Step-by-step field-by-field guidance
+- **Privacy-first**: Screenshots processed temporarily, PII auto-masked, password fields blurred
+
+### Setup
+
+```
+1. Load extensions/browser-assist/chrome-extension/ in Chrome
+   → chrome://extensions → Developer mode → "Load unpacked"
+2. Click the chat icon on any website
+3. Ask questions or share your screen with the screenshot button
+```
+
+---
+
+## 🛠️ Tech Stack
+
+### Backend
+- Python 3.12+ / FastAPI / uvicorn
+- SQLAlchemy 2.x (async) + Alembic
+- SQLite (dev) / PostgreSQL (production)
+- LiteLLM Router SDK
+- bcrypt / Fernet encryption
+- slowapi rate limiting
+
+### Frontend
+- React 19 + TypeScript + Vite
+- shadcn/ui + Tailwind CSS
+- TanStack Query + Zustand
+
+### Desktop
+- Tauri v2 (Rust) + Python sidecar
+
+### Deploy
+- Docker + docker-compose
+- Cloudflare Workers (serverless)
+
+---
+
+## ❓ FAQ
+
+<details>
+<summary><b>Do I need API keys to start?</b></summary>
+
+No. You can use subscription mode (no key needed) or Ollama for fully offline local AI. See the Quick Start section above.
+</details>
+
+<details>
+<summary><b>How much does it cost?</b></summary>
+
+ZEO itself is free. LLM API costs are paid directly by you to each provider (OpenAI, Anthropic, Google, etc.). You can also run completely free with Ollama local models.
+</details>
+
+<details>
+<summary><b>Can I use multiple LLM providers simultaneously?</b></summary>
+
+Yes. ZEO supports per-task provider override — you can use Claude for high-quality spec reviews and GPT for fast task execution in the same workflow.
+</details>
+
+<details>
+<summary><b>Is my data safe?</b></summary>
+
+ZEO is self-hosted by design. Your data stays on your infrastructure. File sandbox defaults to STRICT, data transfer defaults to LOCKDOWN, and PII auto-detection is enabled by default.
+</details>
+
+<details>
+<summary><b>How is this different from AutoGen / CrewAI / LangGraph?</b></summary>
+
+ZEO is a **business workflow platform**, not a developer framework. It provides human approval gates, audit logging, a 3-tier extensibility system, browser assist, media generation, and a complete REST API — all designed for running AI as an organization, not just chaining prompts.
+</details>
+
+---
+
+## 🧪 Development
+
+```bash
+# Setup
+git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
+cd Zero-Employee-Orchestrator
+pip install -e ".[dev]"
+
+# Start (hot reload)
+zero-employee serve --reload
+
+# Test
+pytest apps/api/app/tests/
+
+# Lint
+ruff check apps/api/app/
+ruff format apps/api/app/
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome.
+
+1. Fork → Branch → PR (standard flow)
+2. Security issues: follow [SECURITY.md](SECURITY.md) for private reporting
+3. Coding standards: ruff format, type hints required, async def
+
+---
+
+## 💜 Sponsors
+
+This project is free and open source. Sponsors help keep it maintained and growing.
+
+[**Become a Sponsor**](https://github.com/sponsors/OrosiTororo)
+
+---
+
+## 🌟 Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=OrosiTororo/Zero-Employee-Orchestrator&type=Date)](https://star-history.com/#OrosiTororo/Zero-Employee-Orchestrator&Date)
+
+---
+
+## 📄 License
+
+MIT — Use freely, modify as needed, contribute back if you can.
 
 ---
 
 <p align="center">
-  <strong>Zero-Employee Orchestrator</strong> — AI を組織として運用する基盤<br>
+  <strong>Zero-Employee Orchestrator</strong> — Run AI as an organization.<br>
   Built with security, auditability, and human oversight in mind.
 </p>

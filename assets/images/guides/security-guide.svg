@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#059669;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0d9488;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0078d4;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#34d399;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#5eead4;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="shield" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#34d399;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:0.6" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" rx="24" fill="#0f172a"/>
+  <rect width="1200" height="630" rx="24" fill="url(#bg)" opacity="0.12"/>
+
+  <!-- Shield icon -->
+  <g transform="translate(600, 200)" filter="url(#glow)">
+    <!-- Shield shape -->
+    <path d="M0,-70 L50,-50 L50,10 L0,60 L-50,10 L-50,-50 Z" fill="url(#shield)" opacity="0.3"/>
+    <path d="M0,-55 L38,-38 L38,5 L0,45 L-38,5 L-38,-38 Z" fill="url(#shield)" opacity="0.2"/>
+
+    <!-- Lock icon inside shield -->
+    <rect x="-12" y="-10" width="24" height="20" rx="4" fill="#34d399" opacity="0.6"/>
+    <path d="M-8,-10 L-8,-20 Q-8,-30 0,-30 Q8,-30 8,-20 L8,-10" fill="none" stroke="#34d399" stroke-width="3" opacity="0.6"/>
+    <circle cx="0" cy="2" r="4" fill="#0f172a"/>
+
+    <!-- Orbiting security nodes -->
+    <circle cx="-60" cy="-30" r="5" fill="#34d399" opacity="0.5"/>
+    <circle cx="60" cy="-30" r="5" fill="#5eead4" opacity="0.5"/>
+    <circle cx="-45" cy="40" r="5" fill="#34d399" opacity="0.5"/>
+    <circle cx="45" cy="40" r="5" fill="#5eead4" opacity="0.5"/>
+    <circle cx="0" cy="-75" r="5" fill="#34d399" opacity="0.5"/>
+  </g>
+
+  <!-- ZEO badge -->
+  <rect x="520" y="90" width="160" height="36" rx="18" fill="#059669" opacity="0.3"/>
+  <text x="600" y="114" font-family="'SF Mono', 'Fira Code', monospace" font-size="16" fill="#34d399" text-anchor="middle" font-weight="600">ZEO GUIDES</text>
+
+  <!-- Title -->
+  <text x="600" y="380" font-family="'Inter', 'Helvetica Neue', sans-serif" font-size="56" font-weight="800" fill="white" text-anchor="middle" letter-spacing="2">Security Guide</text>
+
+  <!-- Subtitle -->
+  <text x="600" y="430" font-family="'Inter', 'Helvetica Neue', sans-serif" font-size="22" fill="#94a3b8" text-anchor="middle">Prompt injection defense, approval gates, IAM, sandbox, PII protection</text>
+
+  <!-- Security badges -->
+  <g transform="translate(330, 480)">
+    <rect x="0" y="0" width="100" height="32" rx="16" fill="#059669" opacity="0.2"/>
+    <text x="50" y="21" font-family="'SF Mono', monospace" font-size="12" fill="#34d399" text-anchor="middle">40+ Rules</text>
+  </g>
+  <g transform="translate(460, 480)">
+    <rect x="0" y="0" width="120" height="32" rx="16" fill="#0d9488" opacity="0.2"/>
+    <text x="60" y="21" font-family="'SF Mono', monospace" font-size="12" fill="#5eead4" text-anchor="middle">12 Gate Types</text>
+  </g>
+  <g transform="translate(610, 480)">
+    <rect x="0" y="0" width="120" height="32" rx="16" fill="#059669" opacity="0.2"/>
+    <text x="60" y="21" font-family="'SF Mono', monospace" font-size="12" fill="#34d399" text-anchor="middle">13 PII Types</text>
+  </g>
+  <g transform="translate(760, 480)">
+    <rect x="0" y="0" width="110" height="32" rx="16" fill="#0d9488" opacity="0.2"/>
+    <text x="55" y="21" font-family="'SF Mono', monospace" font-size="12" fill="#5eead4" text-anchor="middle">Red Team</text>
+  </g>
+
+  <!-- Decorative dots -->
+  <circle cx="100" cy="80" r="3" fill="#059669" opacity="0.4"/>
+  <circle cx="130" cy="60" r="2" fill="#0d9488" opacity="0.3"/>
+  <circle cx="80" cy="100" r="1.5" fill="#0078d4" opacity="0.5"/>
+  <circle cx="1100" cy="550" r="3" fill="#34d399" opacity="0.4"/>
+  <circle cx="1120" cy="530" r="2" fill="#5eead4" opacity="0.3"/>
+  <circle cx="1080" cy="560" r="1.5" fill="#34d399" opacity="0.5"/>
+</svg>
