@@ -1,0 +1,19 @@
+{
+  "name": "logseq",
+  "version": "0.1.0",
+  "description": "Logseq 連携拡張 — Logseq グラフのブロック単位読み書き・グラフ構造解析・Knowledge Source としての取り込み。",
+  "type": "extension",
+  "status": "experimental",
+  "required_permissions": ["read_local", "file_write"],
+  "external_connections": [],
+  "dangerous_operations": false,
+  "approval_required_operations": ["write_blocks"],
+  "capabilities": {
+    "import": "Logseq グラフ内の Markdown/Org ファイルを Knowledge Source として取得",
+    "export": "成果物を Logseq ブロック形式で出力",
+    "graph_analysis": "ブロック参照・タグによるグラフ構造の解析",
+    "search": "グラフ全体のキーワード・タグ検索"
+  },
+  "note": "完全オフラインで動作。Logseq グラフのディレクトリパスを設定するだけで連携可能。",
+  "author": "Zero-Employee Orchestrator Team"
+}

@@ -6,14 +6,19 @@
 対応ツールカテゴリ:
 1. コード関連: GitHub, GitLab, Bitbucket, コードレビュー
 2. ドキュメント: Google Docs, Notion, Confluence, Obsidian
-3. コミュニケーション: Slack, Discord, LINE, Email
-4. プロジェクト管理: Jira, Linear, Asana, Trello
-5. デザイン: Figma (MCP 経由)
+3. コミュニケーション: Slack, Discord, LINE, Teams, Email
+4. プロジェクト管理: Jira, Linear, Asana, Trello, ClickUp
+5. デザイン: Figma, Canva (MCP 経由)
 6. データ分析: Google Sheets, Airtable
 7. クラウド: AWS, GCP, Azure (CLI 経由)
 8. 検索: Web Search, RAG, Knowledge Base
 9. メディア生成: 画像・動画・音声 (media_generation.py)
 10. ブラウザ操作: Browser Assist, Playwright
+11. ナレッジベース: Obsidian, Notion, Logseq, Joplin, Roam Research, Anytype
+12. CRM: HubSpot, Salesforce
+13. カレンダー: Google Calendar, Outlook Calendar
+14. クラウドストレージ: Google Drive, Dropbox, OneDrive
+15. オートメーション: n8n, Zapier, Make
 
 すべてのツール操作は:
 - 承認ゲート経由
@@ -46,6 +51,12 @@ class ToolCategory(str, Enum):
     FILE_SYSTEM = "file_system"
     DATABASE = "database"
     AI_MODEL = "ai_model"
+    KNOWLEDGE_BASE = "knowledge_base"
+    CRM = "crm"
+    CALENDAR = "calendar"
+    CLOUD_STORAGE = "cloud_storage"
+    AUTOMATION = "automation"
+    PRODUCTIVITY = "productivity"
 
 
 class ToolStatus(str, Enum):
@@ -347,6 +358,225 @@ _AI_TOOLS: list[AIToolDefinition] = [
         requires_api_key=False,
         requires_approval=False,
         capabilities=["query", "search"],
+    ),
+    # --- ナレッジベース ---
+    AIToolDefinition(
+        id="logseq",
+        name="Logseq",
+        category=ToolCategory.KNOWLEDGE_BASE,
+        description="Logseq グラフとの同期・ブロック単位の読み書き",
+        description_en="Sync with Logseq graphs, block-level read/write",
+        requires_api_key=False,
+        requires_approval=False,
+        capabilities=["read_blocks", "write_blocks", "search", "graph_analysis"],
+    ),
+    AIToolDefinition(
+        id="joplin",
+        name="Joplin",
+        category=ToolCategory.KNOWLEDGE_BASE,
+        description="Joplin ノートの読み書き・検索",
+        description_en="Joplin note read/write/search via REST API",
+        requires_api_key=True,
+        env_key="JOPLIN_TOKEN",
+        requires_approval=False,
+        capabilities=["read_notes", "write_notes", "search"],
+    ),
+    AIToolDefinition(
+        id="roam_research",
+        name="Roam Research",
+        category=ToolCategory.KNOWLEDGE_BASE,
+        description="Roam Research グラフの読み書き",
+        description_en="Roam Research graph read/write",
+        requires_api_key=True,
+        env_key="ROAM_API_KEY",
+        capabilities=["read_blocks", "write_blocks", "search"],
+    ),
+    AIToolDefinition(
+        id="anytype",
+        name="Anytype",
+        category=ToolCategory.KNOWLEDGE_BASE,
+        description="Anytype オブジェクトの読み取り・検索",
+        description_en="Read and search Anytype objects",
+        requires_api_key=False,
+        requires_approval=False,
+        capabilities=["read_objects", "search"],
+    ),
+    AIToolDefinition(
+        id="confluence",
+        name="Confluence",
+        category=ToolCategory.DOCUMENT,
+        description="Confluence ページ・スペースの読み書き",
+        description_en="Read/write Confluence pages and spaces",
+        requires_api_key=True,
+        env_key="CONFLUENCE_API_TOKEN",
+        capabilities=["read_pages", "write_pages", "search"],
+    ),
+    # --- CRM ---
+    AIToolDefinition(
+        id="hubspot",
+        name="HubSpot",
+        category=ToolCategory.CRM,
+        description="HubSpot CRM の連絡先・取引操作",
+        description_en="HubSpot CRM contacts and deals operations",
+        requires_api_key=True,
+        env_key="HUBSPOT_API_KEY",
+        requires_approval=True,
+        capabilities=["read_contacts", "create_deal", "search"],
+    ),
+    AIToolDefinition(
+        id="salesforce",
+        name="Salesforce",
+        category=ToolCategory.CRM,
+        description="Salesforce CRM オブジェクト操作",
+        description_en="Salesforce CRM object operations",
+        requires_api_key=True,
+        env_key="SALESFORCE_CLIENT_ID",
+        requires_approval=True,
+        capabilities=["read_objects", "create_record", "search"],
+    ),
+    # --- カレンダー ---
+    AIToolDefinition(
+        id="google_calendar",
+        name="Google Calendar",
+        category=ToolCategory.CALENDAR,
+        description="Google カレンダーのイベント操作",
+        description_en="Google Calendar event operations",
+        requires_api_key=True,
+        env_key="GOOGLE_SERVICE_ACCOUNT",
+        requires_approval=True,
+        capabilities=["read_events", "create_event", "update_event"],
+    ),
+    AIToolDefinition(
+        id="outlook_calendar",
+        name="Outlook Calendar",
+        category=ToolCategory.CALENDAR,
+        description="Outlook カレンダーのイベント操作",
+        description_en="Outlook Calendar event operations",
+        requires_api_key=True,
+        env_key="MICROSOFT_CLIENT_ID",
+        requires_approval=True,
+        capabilities=["read_events", "create_event", "update_event"],
+    ),
+    # --- クラウドストレージ ---
+    AIToolDefinition(
+        id="google_drive",
+        name="Google Drive",
+        category=ToolCategory.CLOUD_STORAGE,
+        description="Google Drive ファイル操作",
+        description_en="Google Drive file operations",
+        requires_api_key=True,
+        env_key="GOOGLE_SERVICE_ACCOUNT",
+        requires_approval=True,
+        capabilities=["search_files", "download", "upload"],
+    ),
+    AIToolDefinition(
+        id="dropbox",
+        name="Dropbox",
+        category=ToolCategory.CLOUD_STORAGE,
+        description="Dropbox ファイル操作",
+        description_en="Dropbox file operations",
+        requires_api_key=True,
+        env_key="DROPBOX_ACCESS_TOKEN",
+        requires_approval=True,
+        capabilities=["search_files", "download", "upload"],
+    ),
+    AIToolDefinition(
+        id="onedrive",
+        name="OneDrive",
+        category=ToolCategory.CLOUD_STORAGE,
+        description="OneDrive ファイル操作",
+        description_en="OneDrive file operations",
+        requires_api_key=True,
+        env_key="MICROSOFT_CLIENT_ID",
+        requires_approval=True,
+        capabilities=["search_files", "download", "upload"],
+    ),
+    # --- プロジェクト管理（追加） ---
+    AIToolDefinition(
+        id="asana",
+        name="Asana",
+        category=ToolCategory.PROJECT_MANAGEMENT,
+        description="Asana タスク・プロジェクト操作",
+        description_en="Asana task and project operations",
+        requires_api_key=True,
+        env_key="ASANA_ACCESS_TOKEN",
+        capabilities=["create_task", "update_task", "search"],
+    ),
+    AIToolDefinition(
+        id="trello",
+        name="Trello",
+        category=ToolCategory.PROJECT_MANAGEMENT,
+        description="Trello ボード・カード操作",
+        description_en="Trello board and card operations",
+        requires_api_key=True,
+        env_key="TRELLO_API_KEY",
+        capabilities=["create_card", "update_card", "search"],
+    ),
+    AIToolDefinition(
+        id="clickup",
+        name="ClickUp",
+        category=ToolCategory.PROJECT_MANAGEMENT,
+        description="ClickUp タスク操作",
+        description_en="ClickUp task operations",
+        requires_api_key=True,
+        env_key="CLICKUP_API_KEY",
+        capabilities=["create_task", "update_task", "search"],
+    ),
+    # --- コミュニケーション（追加） ---
+    AIToolDefinition(
+        id="teams",
+        name="Microsoft Teams",
+        category=ToolCategory.COMMUNICATION,
+        description="Microsoft Teams メッセージ送受信",
+        description_en="Send/receive Microsoft Teams messages",
+        requires_api_key=True,
+        env_key="MICROSOFT_CLIENT_ID",
+        requires_approval=True,
+        capabilities=["send_message", "read_channel"],
+    ),
+    # --- オートメーション ---
+    AIToolDefinition(
+        id="n8n",
+        name="n8n",
+        category=ToolCategory.AUTOMATION,
+        description="n8n ワークフローのトリガー・管理",
+        description_en="Trigger and manage n8n workflows",
+        requires_api_key=False,
+        requires_approval=False,
+        capabilities=["trigger_workflow", "list_workflows"],
+    ),
+    AIToolDefinition(
+        id="zapier",
+        name="Zapier",
+        category=ToolCategory.AUTOMATION,
+        description="Zapier Zap のトリガー",
+        description_en="Trigger Zapier Zaps via webhook",
+        requires_api_key=False,
+        requires_approval=True,
+        capabilities=["trigger_zap"],
+    ),
+    # --- 生産性 ---
+    AIToolDefinition(
+        id="microsoft_365",
+        name="Microsoft 365",
+        category=ToolCategory.PRODUCTIVITY,
+        description="Word・Excel・PowerPoint の操作",
+        description_en="Operate Word, Excel, PowerPoint via Microsoft Graph",
+        requires_api_key=True,
+        env_key="MICROSOFT_CLIENT_ID",
+        requires_approval=True,
+        capabilities=["read_docs", "write_docs", "search"],
+    ),
+    # --- デザイン（追加） ---
+    AIToolDefinition(
+        id="canva",
+        name="Canva",
+        category=ToolCategory.DESIGN,
+        description="Canva デザインの取得・エクスポート",
+        description_en="Retrieve and export Canva designs",
+        requires_api_key=True,
+        env_key="CANVA_API_KEY",
+        capabilities=["get_designs", "export"],
     ),
 ]
 

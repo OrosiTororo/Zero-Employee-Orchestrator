@@ -45,7 +45,7 @@ apps/
 ├── api/              # FastAPI バックエンド (Python 3.12+)
 │   ├── app/
 │   │   ├── core/           # 設定・DB・レート制限・i18n
-│   │   ├── api/routes/     # REST API エンドポイント (39 ルートモジュール・333 エンドポイント)
+│   │   ├── api/routes/     # REST API エンドポイント (40 ルートモジュール・350+ エンドポイント)
 │   │   ├── api/ws/         # WebSocket (events, browser_assist_ws)
 │   │   ├── api/deps/       # 依存性注入
 │   │   ├── models/         # SQLAlchemy ORM
@@ -58,7 +58,7 @@ apps/
 │   │   ├── tools/          # 外部ツール接続 (MCP/Webhook/API/CLI/GraphQL/ブラウザ自動操作/BrowserAdapter/LSP)
 │   │   ├── policies/       # 承認ゲート・自律実行境界
 │   │   ├── security/       # IAM・シークレット・サニタイズ・プロンプト防御・PII・サンドボックス・データ保護・レッドチーム
-│   │   ├── integrations/   # Sentry・MCP・外部スキル・ブラウザアシスト・AI調査・メディア生成・AIツール・iPaaS・エクスポート・リパーパス・RSS/ToS・Obsidian・クラウド・スマートデバイス
+│   │   ├── integrations/   # Sentry・MCP・外部スキル・ブラウザアシスト・AI調査・メディア生成・AIツール・iPaaS・エクスポート・リパーパス・RSS/ToS・Obsidian・クラウド・スマートデバイス・汎用アプリ連携ハブ
 │   │   ├── audit/          # 監査ログ
 │   │   └── tests/          # テスト
 │   ├── alembic/            # DB マイグレーション
@@ -68,7 +68,7 @@ apps/
 └── worker/           # バックグラウンドワーカー
 skills/builtin/       # 組み込み Skill (8 個: 7 Python モジュール + browser-assist マニフェスト)
 plugins/              # Plugin マニフェスト (10 Plugin)
-extensions/           # Extension マニフェスト (5 Extension + Chrome 拡張機能)
+extensions/           # Extension マニフェスト (10 Extension + Chrome 拡張機能)
 ```
 
 ## コマンド
@@ -235,10 +235,26 @@ API 料金なしで GPT・Gemini・Claude 等を利用する方式。
 - 利用方式: g4f 経由（推奨）、Ollama（ローカル）、ブラウザセッション
 - API: `/api/v1/browser-automation/web-ai/*`
 
+## 汎用アプリケーション連携ハブ (App Connector Hub)
+
+外部アプリケーションとの統合を統一的に管理する連携ハブ。
+ユーザーが許可した範囲でのみ動作する。
+
+- 連携ハブ: `apps/api/app/integrations/app_connector.py`
+- 対応カテゴリ (16): knowledge_base, note_taking, document, productivity, project_management, communication, crm, calendar, email, cloud_storage, design, code_hosting, database, analytics, automation, custom
+- 対応アプリ (35+): Obsidian, Notion, Logseq, Joplin, Anytype, Roam Research, Google Docs/Sheets/Drive/Calendar/Gmail, Microsoft 365/Teams/OneDrive/Outlook, Confluence, Jira, Linear, Asana, Trello, ClickUp, Slack, Discord, HubSpot, Salesforce, Figma, Canva, Airtable, Dropbox, GitHub, GitLab, n8n, Zapier, Make
+- カスタムアプリ登録対応（ユーザーが任意のアプリを追加可能）
+- API: `/api/v1/app-integrations/*`
+
+セキュリティ:
+- 接続はユーザーが明示的に許可するまで確立されない
+- パーミッション制御（read/write/delete/sync/export + パス制限）
+- ワークスペース隔離・承認ゲート・PII ガード・監査ログ適用
+
 ## メディア生成・AI ツール統合
 
 - メディア生成: `apps/api/app/integrations/media_generation.py`（画像・動画・音声・音楽・3D、動的プロバイダー登録対応）
-- AI ツールレジストリ: `apps/api/app/integrations/ai_tools.py`（25+ 外部ツール）
+- AI ツールレジストリ: `apps/api/app/integrations/ai_tools.py`（45+ 外部ツール、19 カテゴリ）
 - **ツールは固定せずユーザーが自由に選択・切替可能** — Plugin Loader の ToolRegistry で管理
 - API: `/api/v1/media/*`, `/api/v1/ai-tools/*`
 
@@ -252,9 +268,9 @@ API 料金なしで GPT・Gemini・Claude 等を利用する方式。
 budgets, audit, registry, models, observability (traces/communications/monitor),
 ollama, knowledge, config, self-improvement, browser-assist, **browser-automation**,
 secretary, brainstorm, conversation-memory, hypotheses, sessions, org-setup,
-platform, security, media, ai-tools, **files, user-input, resources, ipaas,
-export, marketplace, teams, governance, quality-insights** (prerequisite-monitor,
-spec-contradiction, task-replay, judgment-review, plan-quality)
+platform, security, media, ai-tools, **app-integrations**, **files, user-input,
+resources, ipaas, export, marketplace, teams, governance, quality-insights**
+(prerequisite-monitor, spec-contradiction, task-replay, judgment-review, plan-quality)
 
 ## Skill / Plugin / Extension
 
@@ -262,7 +278,7 @@ spec-contradiction, task-replay, judgment-review, plan-quality)
 |------|------|-----|
 | Skill | 単一目的の専門処理 | spec-writer, review-assistant, browser-assist |
 | Plugin | 複数 Skill をバンドル | ai-secretary, ai-avatar, research |
-| Extension | システム連携・インフラ | mcp, oauth, notifications, obsidian, browser-assist (Chrome 拡張機能) |
+| Extension | システム連携・インフラ | mcp, oauth, notifications, obsidian, notion, logseq, joplin, google-workspace, microsoft-365, browser-assist (Chrome 拡張機能) |
 
 - ビルトイン Skill (8 個): spec-writer, plan-writer, task-breakdown, review-assistant, artifact-summarizer, local-context, domain-skills, browser-assist
 - システム保護 Skill は削除・無効化不可

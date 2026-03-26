@@ -83,11 +83,12 @@ This repo is the platform itself. The guides explain the architecture and philos
 - **Self-Healing DAG** — Automatic re-planning on task failure with dynamic DAG reconstruction
 - **Judge Layer** — Rule-based first-pass + Cross-Model high-accuracy verification
 - **Experience Memory** — Learns from past executions to improve future performance
-- **Skill / Plugin / Extension** — 3-tier extensibility: 8 built-in skills, 10 plugins, 5 extensions
+- **Skill / Plugin / Extension** — 3-tier extensibility: 8 built-in skills, 10 plugins, 10 extensions
 - **Natural language skill generation** — Describe a skill in plain language and AI auto-generates it (with safety checks)
 - **Browser Assist** — Chrome extension overlay chat with real-time screen sharing and error diagnosis
 - **Media generation** — Image (DALL-E, SD), video (Runway ML, Pika), audio (TTS, ElevenLabs), music (Suno), 3D (dynamic provider registration)
-- **AI tool integration** — 25+ external tools (GitHub, Slack, Jira, Figma, etc.) operable by AI
+- **App Connector Hub** — 35+ external apps (Obsidian, Notion, Logseq, Google Workspace, Microsoft 365, Jira, HubSpot, etc.) with unified integration management
+- **AI tool integration** — 45+ external tools across 19 categories operable by AI
 - **Security-first** — Prompt injection defense (5 categories, 40+ patterns), approval gates, IAM, PII protection, file sandbox
 - **Multi-model support** — Dynamic model catalog via `model_catalog.json`, auto-fallback for deprecated models
 - **i18n** — Japanese / English / Chinese — UI, AI responses, and CLI all switch seamlessly
@@ -174,7 +175,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # Background workers
 ├── skills/                   # 8 built-in skills
 ├── plugins/                  # 10 plugin manifests
-├── extensions/               # 5 extension manifests
+├── extensions/               # 10 extension manifests
 │   └── browser-assist/
 │       └── chrome-extension/ # Chrome extension for Browser Assist
 ├── packages/                 # Shared NPM packages
@@ -242,7 +243,8 @@ Zero-Employee-Orchestrator/
 |---------|-------------|
 | **Browser Assist** | Chrome extension overlay — AI sees your screen in real-time |
 | **Media Generation** | Image, video, audio, music, 3D — with dynamic provider registration |
-| **AI Tool Integration** | 25+ external tools (GitHub, Slack, Jira, Figma, etc.) |
+| **App Connector Hub** | 35+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, etc.) |
+| **AI Tool Integration** | 45+ external tools across 19 categories |
 | **A2A Communication** | Peer-to-peer agent messaging, channels, and negotiation |
 | **Avatar AI** | Learns your decision patterns and evolves with you |
 | **Secretary AI** | Brain dump → structured tasks, bridges you and the AI org |
