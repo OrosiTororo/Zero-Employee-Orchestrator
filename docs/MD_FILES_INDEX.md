@@ -55,7 +55,7 @@ The base language for `docs/` is English. Translations are in language-specific 
 | `docs/SECURITY.md` | Security policy and pre-deployment checklist | Operators, deployment engineers |
 | `docs/CHANGELOG.md` | Version-by-version change history | All users and developers |
 | `docs/SCALING_AND_COSTS.md` | Costs, hardware constraints, use cases | Prospective adopters, operators, executives |
-| `docs/Zero-Employee Orchestrator.md` | **Top-level reference document**. Philosophy, requirements, MVP | Designers, PO, AI agents |
+| `docs/Zero-Employee Orchestrator.md` | **Top-level reference document**. Philosophy, requirements, MVP (Japanese) | Designers, PO, AI agents |
 | `docs/MD_FILES_INDEX.md` | **This document**. Index of all `.md` files | All users and developers |
 
 ---
