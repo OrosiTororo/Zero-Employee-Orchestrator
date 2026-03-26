@@ -122,7 +122,7 @@ def check_budget(
             current_usage_usd=current_usage_usd,
             projected_usage_usd=current_usage_usd + estimated_cost_usd,
             usage_pct=0.0,
-            message="予算制限なし",
+            message="No budget limit",
         )
 
     projected = current_usage_usd + estimated_cost_usd
@@ -130,13 +130,13 @@ def check_budget(
 
     if usage_pct >= stop_threshold_pct:
         decision = CostDecision.BLOCK
-        message = f"予算上限超過: {usage_pct:.1f}% (上限 ${budget_limit_usd:.2f})"
+        message = f"Budget limit exceeded: {usage_pct:.1f}% (limit ${budget_limit_usd:.2f})"
     elif usage_pct >= warn_threshold_pct:
         decision = CostDecision.WARN
-        message = f"予算警告: {usage_pct:.1f}% (上限 ${budget_limit_usd:.2f})"
+        message = f"Budget warning: {usage_pct:.1f}% (limit ${budget_limit_usd:.2f})"
     else:
         decision = CostDecision.ALLOW
-        message = f"予算内: {usage_pct:.1f}% (残り ${budget_limit_usd - current_usage_usd:.2f})"
+        message = f"Within budget: {usage_pct:.1f}% (remaining ${budget_limit_usd - current_usage_usd:.2f})"
 
     return CostGuardResult(
         decision=decision,
@@ -158,7 +158,7 @@ def pre_execution_check(
     warn_threshold_pct: float = 80.0,
     stop_threshold_pct: float = 100.0,
 ) -> CostGuardResult:
-    """タスク実行前の統合チェック: コスト見積もり + 予算チェック."""
+    """Pre-execution integrated check: cost estimation + budget check."""
     estimate = estimate_cost(model_name, estimated_input_tokens, estimated_output_tokens)
     result = check_budget(
         estimated_cost_usd=estimate.estimated_cost_usd,

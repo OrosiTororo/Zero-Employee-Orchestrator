@@ -322,8 +322,8 @@ class FileSystemSandbox:
         )
 
     def _check_permissive(self, resolved_path: str, access_type: AccessType) -> AccessCheckResult:
-        """PERMISSIVE モード: 禁止リスト以外すべて許可（非推奨）."""
-        # 禁止パスは既にチェック済み
+        """PERMISSIVE mode: allow everything except denied list (not recommended)."""
+        # Denied paths already checked above
         return AccessCheckResult(
             allowed=True,
             path=resolved_path,
@@ -333,7 +333,7 @@ class FileSystemSandbox:
         )
 
     def check_file_size(self, path: str) -> bool:
-        """ファイルサイズが制限内かチェックする."""
+        """Check whether the file size is within limits."""
         try:
             size_mb = os.path.getsize(path) / (1024 * 1024)
             return size_mb <= self._config.max_file_size_mb
@@ -341,13 +341,13 @@ class FileSystemSandbox:
             return False
 
     def get_allowed_paths(self) -> list[str]:
-        """許可パス一覧を返す."""
+        """Return the list of allowed paths."""
         return list(self._config.allowed_paths)
 
     def get_denied_paths(self) -> list[str]:
-        """禁止パス一覧を返す."""
+        """Return the list of denied paths."""
         return list(self._config.denied_paths)
 
 
-# グローバルインスタンス
+# Global instance
 filesystem_sandbox = FileSystemSandbox()

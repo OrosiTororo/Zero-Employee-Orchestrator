@@ -64,7 +64,7 @@ class ExecutionDAG:
                 for dep_id in node.depends_on
             )
             if deps_satisfied:
-                # 自律実行境界チェック: task_type が承認必須かを判定
+                # Autonomy boundary check: determine if task_type requires approval
                 autonomy = check_autonomy(node.task_type)
                 if autonomy.requires_approval:
                     node.requires_approval = True

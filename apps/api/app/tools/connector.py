@@ -1,8 +1,8 @@
-"""外部ツール接続 — Tool Connection の管理と実行.
+"""External tool connection — Tool Connection management and execution.
 
-Zero-Employee Orchestrator.md §42.1 に基づき、外部ツールとの接続を管理する。
-MCP、Webhook、外部 API、CLI ツールなど多様な接続タイプに対応し、
-接続タイプごとに適切なディスパッチを行う。
+Based on Zero-Employee Orchestrator.md section 42.1, manages connections
+with external tools. Supports diverse connection types including MCP,
+Webhook, external APIs, CLI tools, and dispatches appropriately per type.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class ConnectionType(str, Enum):
-    """外部接続のタイプ."""
+    """External connection type."""
 
     REST_API = "rest_api"
     WEBHOOK = "webhook"
@@ -34,7 +34,7 @@ class ConnectionType(str, Enum):
 
 
 class ConnectionStatus(str, Enum):
-    """接続のステータス."""
+    """Connection status."""
 
     ACTIVE = "active"
     INACTIVE = "inactive"
@@ -43,7 +43,7 @@ class ConnectionStatus(str, Enum):
 
 
 class AuthType(str, Enum):
-    """認証タイプ."""
+    """Authentication type."""
 
     NONE = "none"
     API_KEY = "api_key"
@@ -55,7 +55,7 @@ class AuthType(str, Enum):
 
 @dataclass
 class ToolCallResult:
-    """ツール呼び出しの結果."""
+    """Tool call result."""
 
     tool_name: str
     success: bool
@@ -69,7 +69,7 @@ class ToolCallResult:
 
 @dataclass
 class ToolConnectionConfig:
-    """ツール接続の設定."""
+    """Tool connection configuration."""
 
     name: str
     connection_type: ConnectionType
@@ -82,39 +82,39 @@ class ToolConnectionConfig:
 
 
 class ToolConnector:
-    """外部ツールへの接続を管理するコネクタ.
+    """Connector that manages connections to external tools.
 
-    対応する接続タイプごとに適切なディスパッチを行い、
-    REST API / GraphQL / CLI / Webhook / MCP など多様な外部システムと通信する。
+    Dispatches appropriately for each connection type, communicating with
+    diverse external systems including REST API / GraphQL / CLI / Webhook / MCP.
 
-    対応可能な CLI ツール例:
-    - gws (Google Workspace CLI) — Google Workspace API 全操作
-    - gh (GitHub CLI) — GitHub リポジトリ・Issue・PR 操作
-    - aws (AWS CLI) — AWS サービス操作
-    - gcloud (Google Cloud CLI) — GCP サービス操作
-    - az (Azure CLI) — Azure サービス操作
+    Supported CLI tools (examples):
+    - gws (Google Workspace CLI) — All Google Workspace API operations
+    - gh (GitHub CLI) — GitHub repository, issue, and PR operations
+    - aws (AWS CLI) — AWS service operations
+    - gcloud (Google Cloud CLI) — GCP service operations
+    - az (Azure CLI) — Azure service operations
     """
 
     def __init__(self) -> None:
         self._connections: dict[str, ToolConnectionConfig] = {}
 
     def register(self, config: ToolConnectionConfig) -> str:
-        """ツール接続を登録する."""
+        """Register a tool connection."""
         conn_id = str(uuid.uuid4())
         self._connections[conn_id] = config
         logger.info("Tool connection registered: %s (%s)", config.name, config.connection_type)
         return conn_id
 
     def get_connection(self, conn_id: str) -> ToolConnectionConfig | None:
-        """接続設定を取得する."""
+        """Get connection configuration."""
         return self._connections.get(conn_id)
 
     def list_connections(self) -> list[tuple[str, ToolConnectionConfig]]:
-        """登録済みの全接続を返す."""
+        """Return all registered connections."""
         return list(self._connections.items())
 
     def remove(self, conn_id: str) -> bool:
-        """接続を削除する."""
+        """Delete a connection."""
         if conn_id in self._connections:
             config = self._connections.pop(conn_id)
             logger.info("Tool connection removed: %s", config.name)
@@ -122,7 +122,7 @@ class ToolConnector:
         return False
 
     def update_credentials(self, conn_id: str, credentials: dict[str, str]) -> bool:
-        """接続の認証情報を更新する."""
+        """Update connection credentials."""
         config = self._connections.get(conn_id)
         if config is None:
             return False
@@ -138,7 +138,7 @@ class ToolConnector:
         payload: dict | None = None,
         trace_id: str | None = None,
     ) -> ToolCallResult:
-        """ツールを実行する — 接続タイプに応じてディスパッチ."""
+        """Execute a tool — dispatch based on connection type."""
         config = self._connections.get(conn_id)
         if config is None:
             return ToolCallResult(
@@ -223,13 +223,13 @@ class ToolConnector:
         calls: list[dict[str, Any]],
         trace_id: str | None = None,
     ) -> list[ToolCallResult]:
-        """複数のツール呼び出しをバッチ実行する.
+        """Batch execute multiple tool calls.
 
         Parameters
         ----------
-        conn_id: 接続 ID
-        calls: ``[{"method": str, "payload": dict}, ...]`` 形式のリスト
-        trace_id: 親トレース ID（各呼び出しに引き継がれる）
+        conn_id: Connection ID
+        calls: List in ``[{"method": str, "payload": dict}, ...]`` format
+        trace_id: Parent trace ID (inherited by each call)
         """
         results: list[ToolCallResult] = []
         for call in calls:
@@ -243,7 +243,7 @@ class ToolConnector:
         return results
 
     async def health_check(self, conn_id: str) -> ToolCallResult:
-        """接続のヘルスチェックを実行する."""
+        """Execute a connection health check."""
         config = self._connections.get(conn_id)
         if config is None:
             return ToolCallResult(
@@ -290,7 +290,7 @@ class ToolConnector:
             )
 
     # ------------------------------------------------------------------ #
-    #  接続タイプ別の実行メソッド
+    #  Execution methods by connection type
     # ------------------------------------------------------------------ #
 
     async def _execute_rest_api(
@@ -299,7 +299,7 @@ class ToolConnector:
         method: str,
         payload: dict[str, Any],
     ) -> dict[str, Any]:
-        """REST API を呼び出す."""
+        """Call REST API."""
         import httpx
 
         url = self._build_url(config, payload.pop("path", ""))
@@ -337,7 +337,7 @@ class ToolConnector:
         method: str,
         payload: dict[str, Any],
     ) -> dict[str, Any]:
-        """GraphQL エンドポイントにクエリを送信する."""
+        """Send query to GraphQL endpoint."""
         import httpx
 
         url = self._build_url(config, payload.pop("path", ""))
@@ -363,19 +363,19 @@ class ToolConnector:
         method: str,
         payload: dict[str, Any],
     ) -> dict[str, Any]:
-        """CLI ツールをサブプロセスで実行する."""
+        """Execute a CLI tool as a subprocess."""
         command_parts: list[str] = []
 
-        # config.config にベースコマンドが含まれる場合
+        # If config.config contains a base command
         base_cmd = (config.config or {}).get("command", "")
         if base_cmd:
             command_parts.append(base_cmd)
 
-        # method をサブコマンドとして追加
+        # Add method as subcommand
         if method:
             command_parts.extend(method.split())
 
-        # payload の args をコマンド引数として追加
+        # Add payload's args as command arguments
         args = payload.get("args", [])
         if isinstance(args, list):
             command_parts.extend(str(a) for a in args)
@@ -414,7 +414,7 @@ class ToolConnector:
         method: str,
         payload: dict[str, Any],
     ) -> dict[str, Any]:
-        """Webhook に POST を送信する."""
+        """Send POST to webhook."""
         import httpx
 
         url = config.base_url or ""
@@ -447,7 +447,7 @@ class ToolConnector:
         method: str,
         payload: dict[str, Any],
     ) -> dict[str, Any]:
-        """MCP サーバーにツール呼び出しを委譲する."""
+        """Delegate tool call to MCP server."""
         from app.integrations.mcp_server import mcp_server
 
         result = await mcp_server.handle_call_tool(method, payload)
@@ -459,13 +459,13 @@ class ToolConnector:
         method: str,
         payload: dict[str, Any],
     ) -> dict[str, Any]:
-        """WebSocket で単一メッセージを送受信する."""
+        """Send and receive a single message via WebSocket."""
         url = config.base_url or ""
         if not url:
             raise ValueError("WebSocket URL is not configured")
 
-        # httpx は WebSocket を直接サポートしないため、
-        # 送信データの構造のみ返す（実際の WS 接続は専用クライアントで行う）
+        # httpx does not directly support WebSocket,
+        # so only the data structure is returned (actual WS connection uses a dedicated client)
         return {
             "status": "delegated",
             "message": (
@@ -480,7 +480,7 @@ class ToolConnector:
         method: str,
         payload: dict[str, Any],
     ) -> dict[str, Any]:
-        """ファイルシステム操作を実行する（サンドボックス経由）."""
+        """Execute file system operations (via sandbox)."""
         from app.security.sandbox import sandbox_guard
 
         path = payload.get("path", "")
@@ -501,7 +501,7 @@ class ToolConnector:
         method: str,
         payload: dict[str, Any],
     ) -> dict[str, Any]:
-        """データベース操作のプレースホルダ."""
+        """Database operation placeholder."""
         return {
             "status": "delegated",
             "method": method,
@@ -514,7 +514,7 @@ class ToolConnector:
         method: str,
         payload: dict[str, Any],
     ) -> dict[str, Any]:
-        """gRPC 呼び出しのプレースホルダ."""
+        """gRPC call placeholder."""
         return {
             "status": "delegated",
             "method": method,
@@ -528,7 +528,7 @@ class ToolConnector:
         method: str,
         payload: dict[str, Any],
     ) -> dict[str, Any]:
-        """OAuth 保護リソースへのアクセス."""
+        """Access OAuth-protected resources."""
         import httpx
 
         url = self._build_url(config, payload.pop("path", ""))
@@ -549,11 +549,11 @@ class ToolConnector:
                 return {"status_code": resp.status_code, "body": resp.text}
 
     # ------------------------------------------------------------------ #
-    #  ヘルスチェック内部メソッド
+    #  Health check internal methods
     # ------------------------------------------------------------------ #
 
     async def _http_health_check(self, config: ToolConnectionConfig) -> dict[str, Any]:
-        """HTTP ベースの接続ヘルスチェック."""
+        """HTTP-based connection health check."""
         import httpx
 
         url = config.base_url or ""
@@ -570,7 +570,7 @@ class ToolConnector:
             }
 
     async def _cli_health_check(self, config: ToolConnectionConfig) -> dict[str, Any]:
-        """CLI ツールの存在確認."""
+        """Verify CLI tool existence."""
         base_cmd = (config.config or {}).get("command", "")
         if not base_cmd:
             return {"status": "no_command", "healthy": False}
@@ -591,18 +591,18 @@ class ToolConnector:
         }
 
     # ------------------------------------------------------------------ #
-    #  ユーティリティ
+    #  Utilities
     # ------------------------------------------------------------------ #
 
     def _build_url(self, config: ToolConnectionConfig, path: str = "") -> str:
-        """ベース URL とパスを結合する."""
+        """Combine base URL and path."""
         base = (config.base_url or "").rstrip("/")
         if path:
             return f"{base}/{path.lstrip('/')}"
         return base
 
     def _build_auth_headers(self, config: ToolConnectionConfig) -> dict[str, str]:
-        """認証タイプに基づいてヘッダーを構築する."""
+        """Build headers based on authentication type."""
         headers: dict[str, str] = {}
         creds = config.credentials
 
