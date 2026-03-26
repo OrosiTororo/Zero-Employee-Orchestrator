@@ -41,7 +41,7 @@ class AgentResponse(BaseModel):
 async def list_agents(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """エージェント一覧"""
+    """List agents."""
     cid = uuid.UUID(company_id)
     result = await db.execute(select(Agent).where(Agent.company_id == cid))
     agents = result.scalars().all()
@@ -67,7 +67,7 @@ async def create_agent(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """エージェント作成"""
+    """Create an agent."""
     agent = Agent(
         id=uuid.uuid4(),
         company_id=uuid.UUID(company_id),
@@ -102,7 +102,7 @@ async def create_agent(
 async def get_agent(
     agent_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """エージェント詳細"""
+    """Get agent details."""
     result = await db.execute(select(Agent).where(Agent.id == uuid.UUID(agent_id)))
     agent = result.scalar_one_or_none()
     if not agent:
@@ -123,7 +123,7 @@ async def get_agent(
 async def pause_agent(
     agent_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """エージェントを一時停止"""
+    """Pause an agent."""
     result = await db.execute(select(Agent).where(Agent.id == uuid.UUID(agent_id)))
     agent = result.scalar_one_or_none()
     if not agent:
@@ -136,7 +136,7 @@ async def pause_agent(
 async def resume_agent(
     agent_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """エージェントを再開"""
+    """Resume an agent."""
     result = await db.execute(select(Agent).where(Agent.id == uuid.UUID(agent_id)))
     agent = result.scalar_one_or_none()
     if not agent:

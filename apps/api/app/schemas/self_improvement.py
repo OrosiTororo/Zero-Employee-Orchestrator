@@ -110,17 +110,17 @@ class JudgeTuningResponse(BaseModel):
 
 
 class JudgeTuningApplyRequest(BaseModel):
-    """Judge 調整適用リクエスト（承認後）."""
+    """Judge tuning apply request (after approval)."""
 
     company_id: str
     rule_names: list[str] = Field(
         default_factory=list,
-        description="適用するルール名リスト（空なら全ルール）",
+        description="List of rule names to apply (empty means all rules)",
     )
 
 
 class JudgeTuningApplyResponse(BaseModel):
-    """Judge 調整適用結果."""
+    """Judge tuning apply result."""
 
     applied_count: int
     message: str
@@ -132,14 +132,14 @@ class JudgeTuningApplyResponse(BaseModel):
 
 
 class FailureToSkillRequest(BaseModel):
-    """失敗パターンから Skill 生成リクエスト."""
+    """Request to generate a Skill from failure patterns."""
 
     company_id: str
-    min_occurrences: int = Field(default=2, ge=1, description="最小発生回数")
+    min_occurrences: int = Field(default=2, ge=1, description="Minimum number of occurrences")
 
 
 class FailureToSkillProposalResponse(BaseModel):
-    """失敗パターンから生成された Skill 提案."""
+    """Skill proposal generated from failure patterns."""
 
     failure_category: str
     failure_subcategory: str
@@ -153,14 +153,14 @@ class FailureToSkillProposalResponse(BaseModel):
 
 
 class FailureToSkillResponse(BaseModel):
-    """失敗パターンから生成された Skill 提案リスト."""
+    """List of Skill proposals generated from failure patterns."""
 
     proposals: list[FailureToSkillProposalResponse]
     total_failures_analyzed: int
 
 
 class FailureToSkillRegisterRequest(BaseModel):
-    """失敗防止 Skill 登録リクエスト（承認後）."""
+    """Failure prevention Skill registration request (after approval)."""
 
     company_id: str
     slug: str
@@ -175,16 +175,16 @@ class FailureToSkillRegisterRequest(BaseModel):
 
 
 class SkillABTestRequest(BaseModel):
-    """Skill A/B テストリクエスト."""
+    """Skill A/B test request."""
 
-    skill_a_id: str = Field(..., description="比較対象 Skill A の ID")
-    skill_b_id: str = Field(..., description="比較対象 Skill B の ID")
-    test_input: dict[str, Any] = Field(default_factory=dict, description="テスト入力データ")
-    iterations: int = Field(default=3, ge=1, le=10, description="実行回数")
+    skill_a_id: str = Field(..., description="ID of Skill A to compare")
+    skill_b_id: str = Field(..., description="ID of Skill B to compare")
+    test_input: dict[str, Any] = Field(default_factory=dict, description="Test input data")
+    iterations: int = Field(default=3, ge=1, le=10, description="Number of iterations")
 
 
 class SkillABTestResponse(BaseModel):
-    """Skill A/B テスト結果."""
+    """Skill A/B test result."""
 
     test_id: str
     skill_a_id: str
@@ -205,13 +205,13 @@ class SkillABTestResponse(BaseModel):
 
 
 class AutoTestRequest(BaseModel):
-    """テスト自動生成リクエスト."""
+    """Auto test generation request."""
 
-    skill_id: str = Field(..., description="テスト対象のスキルID")
+    skill_id: str = Field(..., description="ID of the skill to generate tests for")
 
 
 class GeneratedTestCaseResponse(BaseModel):
-    """自動生成テストケース."""
+    """Auto-generated test case."""
 
     test_name: str
     test_type: str
@@ -221,7 +221,7 @@ class GeneratedTestCaseResponse(BaseModel):
 
 
 class AutoTestResponse(BaseModel):
-    """テスト自動生成結果."""
+    """Auto test generation result."""
 
     skill_id: str
     skill_slug: str
@@ -234,12 +234,12 @@ class AutoTestResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Self-Improvement ダッシュボード
+# Self-Improvement Dashboard
 # ---------------------------------------------------------------------------
 
 
 class SelfImprovementStatusResponse(BaseModel):
-    """Self-Improvement 全体ステータス."""
+    """Self-Improvement overall status."""
 
     plugin_version: str
     skills_analyzed: int

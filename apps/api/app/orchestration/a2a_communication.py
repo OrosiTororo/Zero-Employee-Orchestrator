@@ -395,7 +395,7 @@ class A2ACommunicationHub:
 
         subscribers = self._channels[channel]
         if agent_id in subscribers:
-            return True  # 既に参加済み
+            return True  # Already joined
 
         subscribers.append(agent_id)
         if agent_id not in self._mailboxes:
@@ -405,7 +405,7 @@ class A2ACommunicationHub:
         return True
 
     def leave_channel(self, channel: str, agent_id: str) -> bool:
-        """チャネルから離脱する."""
+        """Leave a channel."""
         if channel not in self._channels:
             return False
 
@@ -418,7 +418,7 @@ class A2ACommunicationHub:
         return True
 
     # ------------------------------------------------------------------
-    # 交渉プロトコル
+    # Negotiation protocol
     # ------------------------------------------------------------------
 
     def negotiate(
@@ -427,15 +427,15 @@ class A2ACommunicationHub:
         topic: str,
         initial_proposal: str,
     ) -> Negotiation:
-        """エージェント間の交渉セッションを開始する.
+        """Start a negotiation session between agents.
 
         Args:
-            agent_ids: 交渉参加エージェント ID のリスト。
-            topic: 交渉テーマ。
-            initial_proposal: 初期提案。
+            agent_ids: List of participating agent IDs.
+            topic: Negotiation topic.
+            initial_proposal: Initial proposal.
 
         Returns:
-            作成された交渉セッション。
+            The created negotiation session.
         """
         negotiation = Negotiation(
             topic=topic,
@@ -451,7 +451,7 @@ class A2ACommunicationHub:
         )
         self._negotiations[negotiation.id] = negotiation
 
-        # 参加者全員に交渉開始を通知
+        # Notify all participants of negotiation start
         initiator = agent_ids[0] if agent_ids else "system"
         for agent_id in agent_ids:
             if agent_id not in self._mailboxes:
@@ -460,7 +460,7 @@ class A2ACommunicationHub:
                 self.send_message(
                     sender_id=initiator,
                     receiver_id=agent_id,
-                    content=f"交渉開始: {topic} — 提案: {initial_proposal}",
+                    content=f"Negotiation started: {topic} — Proposal: {initial_proposal}",
                     msg_type=MessageType.NEGOTIATION,
                     priority=MessagePriority.HIGH,
                     metadata={
@@ -482,7 +482,7 @@ class A2ACommunicationHub:
         agent_id: str,
         proposal: str,
     ) -> bool:
-        """交渉に対案を提出する."""
+        """Submit a counter-proposal for a negotiation."""
         neg = self._negotiations.get(negotiation_id)
         if not neg or agent_id not in neg.participants:
             return False
@@ -496,13 +496,13 @@ class A2ACommunicationHub:
         )
         neg.status = NegotiationStatus.COUNTER_PROPOSED
 
-        # 他の参加者に通知
+        # Notify other participants
         for pid in neg.participants:
             if pid != agent_id:
                 self.send_message(
                     sender_id=agent_id,
                     receiver_id=pid,
-                    content=f"対案: {proposal}",
+                    content=f"Counter-proposal: {proposal}",
                     msg_type=MessageType.NEGOTIATION,
                     priority=MessagePriority.HIGH,
                     metadata={

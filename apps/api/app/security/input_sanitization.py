@@ -1,10 +1,10 @@
-"""入力サニタイゼーションミドルウェア — 全APIリクエストの入力を自動検査する.
+"""Input sanitization middleware -- Automatically inspects all API request input.
 
-全 POST/PUT/PATCH リクエストのボディを自動スキャンし、
-プロンプトインジェクション試行を検出・拒否する。
-PII 検出はログ記録のみ行い、マスキングはサービス層に委譲する。
+Automatically scans the body of all POST/PUT/PATCH requests,
+detecting and rejecting prompt injection attempts.
+PII detection is logged only; masking is delegated to the service layer.
 
-これにより、個別ルートでの scan_prompt_injection() 呼び出し漏れを防止する。
+This prevents missed scan_prompt_injection() calls in individual routes.
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ from app.security.prompt_guard import ThreatLevel, scan_prompt_injection
 
 logger = logging.getLogger(__name__)
 
-# スキャン対象外のパス（認証・ヘルスチェック等）
+# Paths excluded from scanning (authentication, health checks, etc.)
 _SKIP_PATHS: frozenset[str] = frozenset(
     {
         "/healthz",
@@ -33,7 +33,7 @@ _SKIP_PATHS: frozenset[str] = frozenset(
     }
 )
 
-# ファイルアップロード系のContent-Typeはスキップ
+# Skip file upload Content-Types
 _SKIP_CONTENT_TYPES: frozenset[str] = frozenset(
     {
         "multipart/form-data",
@@ -43,18 +43,18 @@ _SKIP_CONTENT_TYPES: frozenset[str] = frozenset(
 
 
 class InputSanitizationMiddleware(BaseHTTPMiddleware):
-    """リクエストボディのプロンプトインジェクション検査ミドルウェア.
+    """Middleware for prompt injection inspection of request bodies.
 
-    POST/PUT/PATCH リクエストの JSON ボディをスキャンし、
-    CRITICAL/HIGH レベルの脅威を検出した場合は HTTP 422 で拒否する。
+    Scans JSON bodies of POST/PUT/PATCH requests and rejects
+    with HTTP 422 when CRITICAL/HIGH level threats are detected.
     """
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        # GET/DELETE/OPTIONS はスキップ
+        # Skip GET/DELETE/OPTIONS
         if request.method in ("GET", "DELETE", "OPTIONS", "HEAD"):
             return await call_next(request)
 
-        # パスベースのスキップ
+        # Path-based skip
         if request.url.path in _SKIP_PATHS:
             return await call_next(request)
 

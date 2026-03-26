@@ -277,10 +277,10 @@ class CloudNativeIntegration:
         bucket: str,
         key: str,
     ) -> dict:
-        """ストレージからファイルをダウンロードする."""
+        """Download a file from storage."""
         self._require_credential(provider)
         logger.info(
-            "ストレージダウンロード: provider=%s bucket=%s key=%s",
+            "Storage download: provider=%s bucket=%s key=%s",
             provider.value,
             bucket,
             key,
@@ -291,11 +291,11 @@ class CloudNativeIntegration:
             "key": key,
             "downloaded_at": self._now(),
             "status": "success",
-            "data": b"",  # 実際にはクラウド SDK からデータを取得
+            "data": b"",  # In production, data would be fetched from cloud SDK
         }
 
     # ------------------------------------------------------------------
-    # サーバーレス
+    # Serverless
     # ------------------------------------------------------------------
 
     async def invoke_serverless(
@@ -304,10 +304,10 @@ class CloudNativeIntegration:
         function_name: str,
         payload: dict,
     ) -> dict:
-        """サーバーレス関数を実行する."""
+        """Invoke a serverless function."""
         self._require_credential(provider)
         logger.info(
-            "サーバーレス実行: provider=%s function=%s",
+            "Serverless invocation: provider=%s function=%s",
             provider.value,
             function_name,
         )
@@ -316,12 +316,12 @@ class CloudNativeIntegration:
             "function_name": function_name,
             "invoked_at": self._now(),
             "status": "success",
-            "response": {},  # 実際には関数の戻り値
+            "response": {},  # In production, the function's return value
             "duration_ms": 0,
         }
 
     # ------------------------------------------------------------------
-    # コスト見積もり
+    # Cost estimation
     # ------------------------------------------------------------------
 
     async def get_cost_estimate(

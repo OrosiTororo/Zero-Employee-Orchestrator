@@ -206,7 +206,7 @@ async def link_anonymous_to_account(
     if user.role != "anonymous":
         raise HTTPException(status_code=400, detail="Already linked to an account")
 
-    # メールの重複チェック
+    # Check for duplicate email
     result = await db.execute(select(User).where(User.email == req.email))
     if result.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="This email address is already registered")
@@ -225,7 +225,7 @@ async def link_anonymous_to_account(
         "user_id": str(user.id),
         "display_name": req.display_name,
         "linked": True,
-        "message": "アカウントが作成されました。複数デバイスでの共有が有効です",
+        "message": "Account created. Multi-device sharing is now enabled",
     }
 
 
@@ -233,7 +233,7 @@ async def get_optional_user(
     db: AsyncSession = Depends(get_db),
     authorization: str | None = Header(None),
 ) -> User | None:
-    """認証は任意 — トークンがあればユーザーを返し、なければNone."""
+    """Authentication is optional — returns user if token is present, otherwise None."""
     if not authorization:
         return None
     token = authorization.replace("Bearer ", "")

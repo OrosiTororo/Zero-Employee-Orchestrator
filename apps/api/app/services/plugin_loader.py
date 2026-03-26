@@ -810,7 +810,7 @@ class EnvironmentResolver:
         self,
         requirements: list[dict],
     ) -> EnvironmentReport:
-        """プラグインの全要件をチェックし、レポートを生成する."""
+        """Check all plugin requirements and generate a report."""
         results: list[RequirementCheckResult] = []
         setup_instructions: list[str] = []
         all_satisfied = True
@@ -830,52 +830,52 @@ class EnvironmentResolver:
 
             if req.type == RequirementType.PIP_PACKAGE:
                 if self.check_pip_package(req.name):
-                    detail = f"{req.name} はインストール済み"
+                    detail = f"{req.name} is installed"
                 else:
                     status = RequirementStatus.MISSING
-                    detail = f"{req.name} が見つかりません"
-                    setup_instructions.append(f"パッケージをインストール: {req.install_hint}")
+                    detail = f"{req.name} not found"
+                    setup_instructions.append(f"Install package: {req.install_hint}")
 
             elif req.type == RequirementType.SYSTEM_COMMAND:
                 if self.check_system_command(req.name):
-                    detail = f"{req.name} コマンドが利用可能"
+                    detail = f"{req.name} command is available"
                 else:
                     status = RequirementStatus.MISSING
-                    detail = f"{req.name} コマンドが見つかりません"
-                    setup_instructions.append(f"コマンドをインストール: {req.install_hint}")
+                    detail = f"{req.name} command not found"
+                    setup_instructions.append(f"Install command: {req.install_hint}")
 
             elif req.type == RequirementType.API_KEY:
                 if self.check_env_var(req.name):
-                    detail = f"{req.name} が設定済み"
+                    detail = f"{req.name} is configured"
                 else:
                     status = RequirementStatus.MISSING
-                    detail = f"{req.name} が未設定"
-                    setup_instructions.append(f"API キーを設定: {req.install_hint}")
+                    detail = f"{req.name} is not set"
+                    setup_instructions.append(f"Set API key: {req.install_hint}")
 
             elif req.type == RequirementType.ENV_VAR:
                 if self.check_env_var(req.name):
-                    detail = f"{req.name} が設定済み"
+                    detail = f"{req.name} is configured"
                 else:
                     status = RequirementStatus.MISSING
-                    detail = f"{req.name} が未設定"
-                    setup_instructions.append(f"環境変数を設定: {req.install_hint}")
+                    detail = f"{req.name} is not set"
+                    setup_instructions.append(f"Set environment variable: {req.install_hint}")
 
             elif req.type == RequirementType.LLM_PROVIDER:
                 available, provider_name = self.check_llm_provider(req.alternatives)
                 if available:
-                    detail = f"LLM プロバイダー利用可能: {provider_name}"
+                    detail = f"LLM provider available: {provider_name}"
                 else:
                     status = RequirementStatus.MISSING
-                    detail = "利用可能な LLM プロバイダーがありません"
-                    setup_instructions.append(f"LLM プロバイダーを設定:\n{req.install_hint}")
+                    detail = "No LLM provider available"
+                    setup_instructions.append(f"Set up LLM provider:\n{req.install_hint}")
 
             elif req.type == RequirementType.BROWSER:
                 if self.check_browser():
-                    detail = "ブラウザが利用可能"
+                    detail = "Browser is available"
                 else:
                     status = RequirementStatus.MISSING
-                    detail = "ブラウザが見つかりません"
-                    setup_instructions.append(f"ブラウザをインストール: {req.install_hint}")
+                    detail = "Browser not found"
+                    setup_instructions.append(f"Install browser: {req.install_hint}")
 
             if status == RequirementStatus.MISSING and not req.required:
                 status = RequirementStatus.OPTIONAL
@@ -900,23 +900,23 @@ class EnvironmentResolver:
 
 
 # ---------------------------------------------------------------------------
-# プラグインローダー
+# Plugin loader
 # ---------------------------------------------------------------------------
 
 
 class PluginLoader:
-    """プラグインの検索・環境チェック・インストール・有効化を統合管理する.
+    """Manages plugin search, environment check, installation, and activation.
 
-    VSCode のエクステンション管理と同様に:
-    1. 検索: ユーザーが名前やキーワードで検索（自然言語対応）
-    2. チェック: 依存関係・環境要件を自動検査
-    3. インストール: pip パッケージのインストール支援
-    4. 有効化: アダプタ/サービスの登録と有効化
-    5. ツール切替: カテゴリごとにアクティブツールを切り替え
+    Similar to VSCode extension management:
+    1. Search: Users search by name or keyword (natural language supported)
+    2. Check: Automatic inspection of dependencies and environment requirements
+    3. Install: Assistance with pip package installation
+    4. Activate: Register and activate adapters/services
+    5. Tool switch: Switch active tools per category
 
-    AI エージェント組織との連携:
-    - エージェントは tool_registry.resolve_tool_for_task() でタスクに最適なツールを選択
-    - ユーザーが設定したアクティブツールをエージェントが自動的に使用
+    Integration with AI agent organization:
+    - Agents select the optimal tool per task via tool_registry.resolve_tool_for_task()
+    - Agents automatically use the active tool configured by the user
     """
 
     def __init__(self) -> None:
@@ -924,25 +924,25 @@ class PluginLoader:
         self._installed_plugins: dict[str, dict] = {}
         self.tool_registry = ToolRegistry()
 
-    # ----- 検索 -----
+    # ----- Search -----
 
     def search(self, query: str) -> list[dict]:
-        """自然言語クエリでプラグインを検索する.
+        """Search plugins with a natural language query.
 
-        ユーザーが「ブラウザ操作」「browser-use」「Web 自動化」等と
-        入力したときに適切なプラグインを返す。
+        Returns appropriate plugins when users enter queries like
+        "browser automation", "browser-use", "web automation", etc.
 
         Args:
-            query: 検索クエリ（自然言語 or プラグイン名）
+            query: Search query (natural language or plugin name)
 
         Returns:
-            マッチしたプラグインテンプレートのリスト
+            List of matching plugin templates
         """
         query_lower = query.lower()
         results = []
 
         for slug, template in _KNOWN_PLUGIN_TEMPLATES.items():
-            # スラッグ・名前・説明・カテゴリでマッチ
+            # Match by slug, name, description, category
             searchable = " ".join(
                 [
                     slug,

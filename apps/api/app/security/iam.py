@@ -237,7 +237,7 @@ class IAMManager:
     async def get_account_for_agent(
         self, db: AsyncSession, agent_id: str
     ) -> AIServiceAccount | None:
-        """エージェントのサービスアカウントを取得."""
+        """Get the service account for an agent."""
         result = await db.execute(
             select(AIServiceAccount).where(
                 AIServiceAccount.agent_id == agent_id,
@@ -249,7 +249,7 @@ class IAMManager:
     async def list_ai_accounts(
         self, db: AsyncSession, company_id: str | uuid.UUID | None = None
     ) -> list[AIServiceAccount]:
-        """AIサービスアカウント一覧."""
+        """List AI service accounts."""
         stmt = select(AIServiceAccount).where(AIServiceAccount.is_active.is_(True))
         if company_id:
             cid = (
@@ -260,7 +260,7 @@ class IAMManager:
         return list(result.scalars().all())
 
     async def revoke_ai_account(self, db: AsyncSession, account_id: str | uuid.UUID) -> bool:
-        """AIサービスアカウントを無効化."""
+        """Deactivate an AI service account."""
         aid = uuid.UUID(str(account_id)) if not isinstance(account_id, uuid.UUID) else account_id
         result = await db.execute(select(AIServiceAccount).where(AIServiceAccount.id == aid))
         account = result.scalar_one_or_none()
