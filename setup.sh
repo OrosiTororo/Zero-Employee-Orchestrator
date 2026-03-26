@@ -265,7 +265,7 @@ async def init():
 
 asyncio.run(init())
 "
-ok "データベースの初期化が完了しました"
+ok "Database initialization complete"
 
 deactivate
 cd "$ROOT_DIR"
@@ -273,31 +273,31 @@ cd "$ROOT_DIR"
 echo ""
 
 # ---------------------------------------------------------------------------
-# 4. フロントエンドのセットアップ
+# 4. Frontend setup
 # ---------------------------------------------------------------------------
-info "フロントエンドをセットアップしています..."
+info "Setting up frontend..."
 
 cd "$ROOT_DIR/apps/desktop/ui"
 pnpm install
-ok "フロントエンド依存関係をインストールしました"
+ok "Installed frontend dependencies"
 
 cd "$ROOT_DIR"
 
 echo ""
 
 # ---------------------------------------------------------------------------
-# 5. スクリプトに実行権限を付与
+# 5. Grant execute permissions to scripts
 # ---------------------------------------------------------------------------
 chmod +x "$ROOT_DIR/setup.sh" 2>/dev/null || true
 chmod +x "$ROOT_DIR/start.sh" 2>/dev/null || true
 chmod +x "$ROOT_DIR/scripts/dev/"*.sh 2>/dev/null || true
 
 # ---------------------------------------------------------------------------
-# 完了
+# Done
 # ---------------------------------------------------------------------------
 echo ""
 echo "=============================================="
-echo -e "  ${GREEN}セットアップが完了しました！${NC}"
+echo -e "  ${GREEN}Setup complete!${NC}"
 echo "=============================================="
 echo ""
 echo "  次のステップ:"
