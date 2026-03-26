@@ -1,10 +1,10 @@
-"""Sentry Integration — バグ・エラー・パフォーマンス監視.
+"""Sentry Integration — bug, error, and performance monitoring.
 
-Sentry と連携してリアルタイムのエラー検出、パフォーマンス監視、
-開発者通知を行う。Sentry SDK を使用したクラッシュレポーティングと
-カスタムイベントトラッキングを提供。
+Integrates with Sentry for real-time error detection, performance monitoring,
+and developer notifications. Provides crash reporting and custom event
+tracking using the Sentry SDK.
 
-参考: https://github.com/getsentry/sentry
+Reference: https://github.com/getsentry/sentry
 """
 
 from __future__ import annotations
@@ -35,7 +35,7 @@ class EventType(str, Enum):
 
 @dataclass
 class SentryEvent:
-    """Sentry互換のイベント."""
+    """Sentry-compatible event."""
 
     event_id: str = ""
     event_type: EventType = EventType.ERROR
@@ -77,10 +77,10 @@ class SentryEvent:
 
 
 class SentryIntegration:
-    """Sentry互換のエラー監視プラットフォーム連携.
+    """Sentry-compatible error monitoring platform integration.
 
-    Sentry SDK がインストールされている場合はそれを使用し、
-    なければ内蔵のイベントストアに記録する。
+    Uses the Sentry SDK if installed; otherwise records events
+    in the built-in event store.
     """
 
     def __init__(self, dsn: str | None = None, environment: str = "development") -> None:
@@ -95,7 +95,7 @@ class SentryIntegration:
             self._try_init_sdk(dsn, environment)
 
     def _try_init_sdk(self, dsn: str, environment: str) -> None:
-        """Sentry SDK の初期化を試行."""
+        """Attempt to initialize the Sentry SDK."""
         try:
             import sentry_sdk  # type: ignore[import-untyped]
 
@@ -122,7 +122,7 @@ class SentryIntegration:
         user: dict[str, str] | None = None,
         level: SeverityLevel = SeverityLevel.ERROR,
     ) -> str:
-        """例外をキャプチャ."""
+        """Capture an exception."""
         import traceback as tb
         import uuid
 
@@ -145,7 +145,7 @@ class SentryIntegration:
             except Exception as send_err:
                 logger.debug("Sentry SDK send failed: %s", send_err)
 
-        # 内蔵ストアにも記録
+        # Also record in built-in store
         event = SentryEvent(
             event_id=event_id,
             event_type=EventType.ERROR,
@@ -176,7 +176,7 @@ class SentryIntegration:
         tags: dict[str, str] | None = None,
         extra: dict[str, Any] | None = None,
     ) -> str:
-        """メッセージイベントをキャプチャ."""
+        """Capture a message event."""
         import uuid
 
         event_id = str(uuid.uuid4())
@@ -201,7 +201,7 @@ class SentryIntegration:
         return event_id
 
     def start_transaction(self, name: str, op: str = "task") -> TransactionContext:
-        """パフォーマンストランザクションを開始."""
+        """Start a performance transaction."""
         return TransactionContext(
             integration=self,
             name=name,
@@ -216,7 +216,7 @@ class SentryIntegration:
         level: str = "info",
         data: dict[str, Any] | None = None,
     ) -> None:
-        """パンくずリストに記録."""
+        """Record a breadcrumb."""
         if self._sdk_available:
             try:
                 import sentry_sdk  # type: ignore[import-untyped]
@@ -228,7 +228,7 @@ class SentryIntegration:
                 pass
 
     def on_alert(self, callback: Any) -> None:
-        """アラートコールバックを登録."""
+        """Register an alert callback."""
         self._alert_callbacks.append(callback)
 
     def get_recent_events(
@@ -237,7 +237,7 @@ class SentryIntegration:
         event_type: EventType | None = None,
         limit: int = 50,
     ) -> list[SentryEvent]:
-        """最近のイベントを取得."""
+        """Get recent events."""
         result = self._events
         if level:
             result = [e for e in result if e.level == level]
@@ -246,7 +246,7 @@ class SentryIntegration:
         return result[-limit:]
 
     def get_error_stats(self) -> dict[str, Any]:
-        """エラー統計を取得."""
+        """Get error statistics."""
         now = time.time()
         hour_ago = now - 3600
         day_ago = now - 86400
@@ -255,7 +255,7 @@ class SentryIntegration:
         errors_1h = [e for e in errors if e.timestamp > hour_ago]
         errors_24h = [e for e in errors if e.timestamp > day_ago]
 
-        # エラータイプ別集計
+        # Aggregate by error type
         by_type: dict[str, int] = {}
         for e in errors_24h:
             key = e.exception_type or "unknown"
@@ -285,7 +285,7 @@ class SentryIntegration:
 
 
 class TransactionContext:
-    """パフォーマンス計測用トランザクション."""
+    """Transaction for performance measurement."""
 
     def __init__(
         self,
@@ -346,7 +346,7 @@ def create_sentry_integration(
     dsn: str | None = None,
     environment: str = "development",
 ) -> SentryIntegration:
-    """Sentry連携インスタンスを作成."""
+    """Create a Sentry integration instance."""
     return SentryIntegration(dsn=dsn, environment=environment)
 
 

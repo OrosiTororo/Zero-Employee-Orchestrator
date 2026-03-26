@@ -517,7 +517,7 @@ class A2ACommunicationHub:
         negotiation_id: str,
         accepted: bool,
     ) -> bool:
-        """交渉を解決する."""
+        """Resolve a negotiation."""
         neg = self._negotiations.get(negotiation_id)
         if not neg:
             return False
@@ -527,15 +527,15 @@ class A2ACommunicationHub:
         return True
 
     # ------------------------------------------------------------------
-    # スレッド追跡
+    # Thread tracking
     # ------------------------------------------------------------------
 
     def get_conversation_thread(self, message_id: str) -> list[AgentMessage]:
-        """メッセージ ID を起点とした会話スレッドを取得する.
+        """Retrieve a conversation thread starting from a message ID.
 
-        指定メッセージとそのすべての返信チェーンを時系列で返す。
+        Returns the specified message and all its reply chains in chronological order.
         """
-        # ルートメッセージを探索
+        # Find root message
         root_id = message_id
         visited: set[str] = set()
         while True:
@@ -551,7 +551,7 @@ class A2ACommunicationHub:
                 break
             root_id = parent
 
-        # ルートから全子孫を収集
+        # Collect all descendants from root
         thread: list[AgentMessage] = []
         queue = [root_id]
         seen: set[str] = set()
@@ -568,43 +568,43 @@ class A2ACommunicationHub:
                 if msg.reply_to == current_id and msg.id not in seen:
                     queue.append(msg.id)
 
-        # 時系列ソート
+        # Sort chronologically
         thread.sort(key=lambda m: m.created_at)
         return thread
 
     # ------------------------------------------------------------------
-    # ユーティリティ
+    # Utilities
     # ------------------------------------------------------------------
 
     def _trim_mailbox(self, mailbox: AgentMailbox) -> None:
-        """メールボックスの容量制限を適用する."""
+        """Apply mailbox capacity limits."""
         if len(mailbox.inbox) > _MAX_MAILBOX_SIZE:
             mailbox.inbox = mailbox.inbox[-_MAX_MAILBOX_SIZE:]
         if len(mailbox.outbox) > _MAX_MAILBOX_SIZE:
             mailbox.outbox = mailbox.outbox[-_MAX_MAILBOX_SIZE:]
 
     def get_mailbox(self, agent_id: str) -> AgentMailbox | None:
-        """エージェントのメールボックスを取得する."""
+        """Get an agent's mailbox."""
         return self._mailboxes.get(agent_id)
 
     def list_channels(self) -> dict[str, int]:
-        """全チャネルと購読者数を返す."""
+        """Return all channels and their subscriber counts."""
         return {name: len(subs) for name, subs in self._channels.items()}
 
     def get_negotiation(self, negotiation_id: str) -> Negotiation | None:
-        """交渉セッションを取得する."""
+        """Get a negotiation session."""
         return self._negotiations.get(negotiation_id)
 
     @property
     def total_agents(self) -> int:
-        """登録エージェント数."""
+        """Number of registered agents."""
         return len(self._mailboxes)
 
     @property
     def total_messages(self) -> int:
-        """総メッセージ数."""
+        """Total number of messages."""
         return len(self._all_messages)
 
 
-# グローバルインスタンス
+# Global instance
 a2a_hub = A2ACommunicationHub()

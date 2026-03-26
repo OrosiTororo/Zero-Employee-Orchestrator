@@ -1,6 +1,6 @@
-"""iPaaS ワークフロー管理 API エンドポイント.
+"""iPaaS workflow management API endpoints.
 
-n8n / Zapier / Make のワークフロー登録・トリガー・ステータス管理を行う API。
+API for registering, triggering, and managing workflows for n8n / Zapier / Make.
 """
 
 from __future__ import annotations
@@ -26,12 +26,12 @@ router = APIRouter(prefix="/ipaas", tags=["ipaas"])
 
 
 # ------------------------------------------------------------------ #
-#  リクエスト / レスポンス スキーマ
+#  Request / Response schemas
 # ------------------------------------------------------------------ #
 
 
 class WebhookTriggerSchema(BaseModel):
-    """Webhook トリガー設定."""
+    """Webhook trigger settings."""
 
     url: str
     method: str = "POST"
@@ -40,7 +40,7 @@ class WebhookTriggerSchema(BaseModel):
 
 
 class WorkflowCreateRequest(BaseModel):
-    """ワークフロー登録リクエスト."""
+    """Workflow registration request."""
 
     name: str
     provider: str
@@ -50,13 +50,13 @@ class WorkflowCreateRequest(BaseModel):
 
 
 class WorkflowTriggerRequest(BaseModel):
-    """ワークフロートリガーリクエスト."""
+    """Workflow trigger request."""
 
     payload: dict[str, Any] = Field(default_factory=dict)
 
 
 # ------------------------------------------------------------------ #
-#  エンドポイント
+#  Endpoints
 # ------------------------------------------------------------------ #
 
 
@@ -64,7 +64,7 @@ class WorkflowTriggerRequest(BaseModel):
 async def register_workflow(
     req: WorkflowCreateRequest, user: User = Depends(get_current_user)
 ) -> dict:
-    """ワークフローを登録する."""
+    """Register a workflow."""
     try:
         provider = IPaaSProvider(req.provider)
     except ValueError:
@@ -107,7 +107,7 @@ async def register_workflow(
 async def list_workflows(
     provider: str | None = None, user: User = Depends(get_current_user)
 ) -> dict:
-    """登録済みワークフロー一覧を返す."""
+    """Return list of registered workflows."""
     filter_provider: IPaaSProvider | None = None
     if provider:
         try:
@@ -142,7 +142,7 @@ async def list_workflows(
 async def trigger_workflow(
     workflow_id: str, req: WorkflowTriggerRequest, user: User = Depends(get_current_user)
 ) -> dict:
-    """ワークフローをトリガーする."""
+    """Trigger a workflow."""
     result = await ipaas_service.trigger_workflow(workflow_id, req.payload)
 
     if not result.success and not result.run_id:
@@ -160,7 +160,7 @@ async def trigger_workflow(
 
 @router.get("/workflows/{workflow_id}/status")
 async def get_workflow_status(workflow_id: str, user: User = Depends(get_current_user)) -> dict:
-    """ワークフローのステータスを取得する."""
+    """Get workflow status."""
     status = await ipaas_service.sync_status(workflow_id)
     if "error" in status:
         raise HTTPException(status_code=404, detail=status["error"])
@@ -169,7 +169,7 @@ async def get_workflow_status(workflow_id: str, user: User = Depends(get_current
 
 @router.delete("/workflows/{workflow_id}")
 async def remove_workflow(workflow_id: str, user: User = Depends(get_current_user)) -> dict:
-    """ワークフローを削除する."""
+    """Delete a workflow."""
     removed = ipaas_service.remove_workflow(workflow_id)
     if not removed:
         raise HTTPException(

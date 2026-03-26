@@ -329,8 +329,8 @@ class CloudNativeIntegration:
         provider: CloudProvider,
         resources: list[dict],
     ) -> dict:
-        """リソースのコスト見積もりを取得する."""
-        # 簡易見積もりロジック（実際にはクラウドプロバイダーの Pricing API を使用）
+        """Get a cost estimate for resources."""
+        # Simple estimation logic (in production, use cloud provider Pricing APIs)
         cost_map = {
             "compute": 0.05,  # USD/hour
             "storage": 0.023,  # USD/GB/month
@@ -346,11 +346,11 @@ class CloudNativeIntegration:
             quantity = resource.get("quantity", 1)
             rate = cost_map.get(service, 0.05)
             if service == "compute":
-                cost = rate * 24 * 30 * quantity  # 月額
+                cost = rate * 24 * 30 * quantity  # monthly
             elif service == "storage":
-                cost = rate * quantity  # GB 単位
+                cost = rate * quantity  # per GB
             elif service == "serverless":
-                cost = rate * quantity  # 呼び出し数
+                cost = rate * quantity  # per invocation
             else:
                 cost = rate * 24 * 30 * quantity
 
@@ -370,15 +370,15 @@ class CloudNativeIntegration:
             "currency": "USD",
             "breakdown": breakdown,
             "estimated_at": self._now(),
-            "note": "概算見積もり。実際のコストはプロバイダーの料金体系により異なります",
+            "note": "Approximate estimate. Actual costs vary by provider pricing.",
         }
 
     # ------------------------------------------------------------------
-    # プロバイダーステータス
+    # Provider status
     # ------------------------------------------------------------------
 
     async def get_provider_status(self) -> dict:
-        """設定済み全プロバイダーのステータスを取得する."""
+        """Get the status of all configured providers."""
         statuses: dict[str, dict] = {}
         for provider in CloudProvider:
             cred = self._credentials.get(provider)
@@ -400,5 +400,5 @@ class CloudNativeIntegration:
         return statuses
 
 
-# グローバルインスタンス
+# Global instance
 cloud_native = CloudNativeIntegration()

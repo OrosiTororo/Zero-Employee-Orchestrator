@@ -1,6 +1,6 @@
-"""Platform API — MCP・外部スキル・Sentry・IAM・仮説検証・セッション管理.
+"""Platform API — MCP, external skills, Sentry, IAM, hypothesis testing, session management.
 
-v0.1 で追加されたプラットフォーム横断的な機能のAPIエンドポイント。
+API endpoints for cross-platform features added in v0.1.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ router = APIRouter()
 
 
 # ===================================================================
-# MCP エンドポイント
+# MCP endpoints
 # ===================================================================
 
 
@@ -28,7 +28,7 @@ class MCPToolCallRequest(BaseModel):
 
 @router.get("/mcp/capabilities")
 async def mcp_capabilities(user: User = Depends(get_current_user)):
-    """MCP サーバーのケイパビリティを取得."""
+    """Get MCP server capabilities."""
     from app.integrations.mcp_server import mcp_server
 
     return mcp_server.get_capabilities()
@@ -36,7 +36,7 @@ async def mcp_capabilities(user: User = Depends(get_current_user)):
 
 @router.get("/mcp/tools")
 async def mcp_list_tools(user: User = Depends(get_current_user)):
-    """MCP ツール一覧."""
+    """List MCP tools."""
     from app.integrations.mcp_server import mcp_server
 
     return await mcp_server.handle_list_tools()
@@ -44,7 +44,7 @@ async def mcp_list_tools(user: User = Depends(get_current_user)):
 
 @router.post("/mcp/tools/call")
 async def mcp_call_tool(req: MCPToolCallRequest, user: User = Depends(get_current_user)):
-    """MCP ツール実行."""
+    """Execute MCP tool."""
     from app.integrations.mcp_server import mcp_server
 
     return await mcp_server.handle_call_tool(req.name, req.arguments)
@@ -52,7 +52,7 @@ async def mcp_call_tool(req: MCPToolCallRequest, user: User = Depends(get_curren
 
 @router.get("/mcp/resources")
 async def mcp_list_resources(user: User = Depends(get_current_user)):
-    """MCP リソース一覧."""
+    """List MCP resources."""
     from app.integrations.mcp_server import mcp_server
 
     return await mcp_server.handle_list_resources()
@@ -60,14 +60,14 @@ async def mcp_list_resources(user: User = Depends(get_current_user)):
 
 @router.get("/mcp/prompts")
 async def mcp_list_prompts(user: User = Depends(get_current_user)):
-    """MCP プロンプト一覧."""
+    """List MCP prompts."""
     from app.integrations.mcp_server import mcp_server
 
     return await mcp_server.handle_list_prompts()
 
 
 # ===================================================================
-# 外部スキルインポート エンドポイント
+# External skill import endpoints
 # ===================================================================
 
 
@@ -84,7 +84,7 @@ class SkillImportRequest(BaseModel):
 
 @router.post("/skills/external/search")
 async def search_external_skills(req: SkillSearchRequest, user: User = Depends(get_current_user)):
-    """外部ソースからスキルを検索."""
+    """Search for skills from external sources."""
     from app.integrations.external_skills import SkillSourceType, skill_importer
 
     source = SkillSourceType(req.source_type) if req.source_type else None
@@ -113,7 +113,7 @@ async def import_external_skill(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """外部ソースからスキルをインポートしてインストール."""
+    """Import and install a skill from an external source."""
     from app.integrations.external_skills import SkillSourceType, skill_importer
     from app.schemas.registry import SkillCreate
     from app.services import skill_service
@@ -121,14 +121,14 @@ async def import_external_skill(
     source_type = SkillSourceType(req.source_type)
     manifest = await skill_importer.fetch_skill_manifest(source_type, req.source_uri)
     if not manifest:
-        raise HTTPException(status_code=404, detail="スキルマニフェストが取得できません")
+        raise HTTPException(status_code=404, detail="Unable to retrieve skill manifest")
 
     data = skill_importer.to_skill_create_data(manifest)
 
-    # 既存チェック
+    # Check for existing
     existing = await skill_service.get_skill_by_slug(db, data["slug"])
     if existing:
-        raise HTTPException(status_code=409, detail=f"スキル '{data['slug']}' は既に存在します")
+        raise HTTPException(status_code=409, detail=f"Skill '{data['slug']}' already exists")
 
     skill = await skill_service.create_skill(db, SkillCreate(**data))
     await db.commit()
@@ -143,13 +143,13 @@ async def import_external_skill(
 
 
 # ===================================================================
-# Sentry連携 エンドポイント
+# Sentry integration endpoints
 # ===================================================================
 
 
 @router.get("/sentry/stats")
 async def sentry_stats(user: User = Depends(get_current_user)):
-    """Sentryエラー統計."""
+    """Sentry error statistics."""
     from app.integrations.sentry_integration import sentry
 
     return sentry.get_error_stats()
@@ -162,7 +162,7 @@ async def sentry_events(
     limit: int = 50,
     user: User = Depends(get_current_user),
 ):
-    """Sentryイベント一覧."""
+    """List Sentry events."""
     from app.integrations.sentry_integration import EventType, SeverityLevel, sentry
 
     lvl = SeverityLevel(level) if level else None
@@ -181,7 +181,7 @@ async def sentry_capture_message(
     tags: dict | None = None,
     user: User = Depends(get_current_user),
 ):
-    """カスタムイベントをキャプチャ."""
+    """Capture a custom event."""
     from app.integrations.sentry_integration import SeverityLevel, sentry
 
     event_id = sentry.capture_message(message, SeverityLevel(level), tags=tags)
@@ -189,7 +189,7 @@ async def sentry_capture_message(
 
 
 # ===================================================================
-# IAM エンドポイント
+# IAM endpoints
 # ===================================================================
 
 
@@ -206,7 +206,7 @@ async def create_ai_account(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """AIエージェント用サービスアカウントを作成."""
+    """Create a service account for an AI agent."""
     from app.security.iam import iam_manager
 
     account, token = await iam_manager.create_ai_account(
@@ -221,7 +221,7 @@ async def create_ai_account(
         "account_id": str(account.id),
         "agent_id": account.agent_id,
         "account_name": account.account_name,
-        "token": token,  # 一度だけ表示
+        "token": token,  # Displayed only once
         "permissions": account.permissions,
     }
 
@@ -232,7 +232,7 @@ async def list_ai_accounts(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """AIサービスアカウント一覧."""
+    """List AI service accounts."""
     from app.security.iam import iam_manager
 
     accounts = await iam_manager.list_ai_accounts(db, company_id)
@@ -258,23 +258,23 @@ async def revoke_ai_account(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """AIサービスアカウントを無効化."""
+    """Revoke an AI service account."""
     from app.security.iam import iam_manager
 
     ok = await iam_manager.revoke_ai_account(db, account_id)
     await db.commit()
     if not ok:
-        raise HTTPException(status_code=404, detail="アカウントが見つかりません")
+        raise HTTPException(status_code=404, detail="Account not found")
     return {"revoked": True}
 
 
 # ===================================================================
-# AI Investigator エンドポイント
+# AI Investigator endpoints
 # ===================================================================
 
 
 class DBQueryRequest(BaseModel):
-    query: str = Field(..., description="SELECT文のみ実行可能")
+    query: str = Field(..., description="Only SELECT statements can be executed")
     params: dict | None = None
 
 
@@ -292,7 +292,7 @@ async def investigate_query(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """AI調査: 安全なDB読み取りクエリ."""
+    """AI investigation: safe DB read query."""
     from app.integrations.ai_investigator import ai_investigator
 
     result = await ai_investigator.query_db(db, req.query, req.params)
@@ -305,7 +305,7 @@ async def investigate_audit(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """AI調査: 監査ログ検索."""
+    """AI investigation: audit log search."""
     from app.integrations.ai_investigator import ai_investigator
 
     result = await ai_investigator.search_audit_logs(
@@ -326,7 +326,7 @@ async def investigate_errors(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """AI調査: エラーパターン分析."""
+    """AI investigation: error pattern analysis."""
     from app.integrations.ai_investigator import ai_investigator
 
     result = await ai_investigator.analyze_errors(db, since_hours, limit)
@@ -338,7 +338,7 @@ async def investigate_metrics(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """AI調査: システムメトリクス."""
+    """AI investigation: system metrics."""
     from app.integrations.ai_investigator import ai_investigator
 
     return await ai_investigator.get_system_metrics(db)
@@ -346,14 +346,14 @@ async def investigate_metrics(
 
 @router.get("/investigate/history")
 async def investigate_history(limit: int = 50, user: User = Depends(get_current_user)):
-    """AI調査: 調査履歴."""
+    """AI investigation: investigation history."""
     from app.integrations.ai_investigator import ai_investigator
 
     return {"history": ai_investigator.get_investigation_history(limit)}
 
 
 # ===================================================================
-# 仮説検証 エンドポイント
+# Hypothesis testing endpoints
 # ===================================================================
 
 
@@ -387,7 +387,7 @@ class ReviewRequest(BaseModel):
 
 @router.post("/hypotheses")
 async def propose_hypothesis(req: HypothesisRequest, user: User = Depends(get_current_user)):
-    """仮説を提案."""
+    """Propose a hypothesis."""
     from app.orchestration.hypothesis_engine import hypothesis_engine
 
     h = hypothesis_engine.propose(
@@ -407,7 +407,7 @@ async def list_hypotheses(
     task_id: str | None = None,
     user: User = Depends(get_current_user),
 ):
-    """仮説一覧."""
+    """List hypotheses."""
     from app.orchestration.hypothesis_engine import hypothesis_engine
 
     if task_id:
@@ -419,18 +419,18 @@ async def list_hypotheses(
 
 @router.get("/hypotheses/{hypothesis_id}")
 async def get_hypothesis(hypothesis_id: str, user: User = Depends(get_current_user)):
-    """仮説詳細."""
+    """Get hypothesis details."""
     from app.orchestration.hypothesis_engine import hypothesis_engine
 
     h = hypothesis_engine.get(hypothesis_id)
     if not h:
-        raise HTTPException(status_code=404, detail="仮説が見つかりません")
+        raise HTTPException(status_code=404, detail="Hypothesis not found")
     return h.to_dict()
 
 
 @router.post("/hypotheses/evidence")
 async def add_evidence(req: EvidenceRequest, user: User = Depends(get_current_user)):
-    """エビデンスを追加."""
+    """Add evidence."""
     from app.orchestration.hypothesis_engine import hypothesis_engine
 
     ev = hypothesis_engine.add_evidence(
@@ -443,13 +443,13 @@ async def add_evidence(req: EvidenceRequest, user: User = Depends(get_current_us
         data=req.data,
     )
     if not ev:
-        raise HTTPException(status_code=404, detail="仮説が見つかりません")
+        raise HTTPException(status_code=404, detail="Hypothesis not found")
     return {"evidence_id": ev.evidence_id, "added": True}
 
 
 @router.post("/hypotheses/review")
 async def submit_review(req: ReviewRequest, user: User = Depends(get_current_user)):
-    """レビューを提出."""
+    """Submit a review."""
     from app.orchestration.hypothesis_engine import ReviewVerdict, hypothesis_engine
 
     review = hypothesis_engine.submit_review(
@@ -461,7 +461,7 @@ async def submit_review(req: ReviewRequest, user: User = Depends(get_current_use
         suggested_actions=req.suggested_actions,
     )
     if not review:
-        raise HTTPException(status_code=404, detail="仮説が見つかりません")
+        raise HTTPException(status_code=404, detail="Hypothesis not found")
     return {"review_id": review.review_id, "submitted": True}
 
 
@@ -469,12 +469,12 @@ async def submit_review(req: ReviewRequest, user: User = Depends(get_current_use
 async def resolve_hypothesis(
     hypothesis_id: str, confirmed: bool = True, user: User = Depends(get_current_user)
 ):
-    """仮説を解決."""
+    """Resolve a hypothesis."""
     from app.orchestration.hypothesis_engine import hypothesis_engine
 
     ok = hypothesis_engine.resolve(hypothesis_id, confirmed)
     if not ok:
-        raise HTTPException(status_code=404, detail="仮説が見つかりません")
+        raise HTTPException(status_code=404, detail="Hypothesis not found")
     return {"resolved": True, "confirmed": confirmed}
 
 
@@ -482,7 +482,7 @@ async def resolve_hypothesis(
 async def hypotheses_needing_review(
     company_id: str | None = None, user: User = Depends(get_current_user)
 ):
-    """レビューが必要な仮説一覧."""
+    """List hypotheses needing review."""
     from app.orchestration.hypothesis_engine import hypothesis_engine
 
     hypotheses = hypothesis_engine.get_needing_review(company_id)
@@ -490,7 +490,7 @@ async def hypotheses_needing_review(
 
 
 # ===================================================================
-# エージェントセッション エンドポイント
+# Agent session endpoints
 # ===================================================================
 
 
@@ -518,7 +518,7 @@ class WorkingMemoryRequest(BaseModel):
 
 @router.post("/sessions")
 async def create_session(req: CreateSessionRequest, user: User = Depends(get_current_user)):
-    """エージェントセッションを作成."""
+    """Create an agent session."""
     from app.orchestration.agent_session import session_manager
 
     session = session_manager.create_session(
@@ -539,7 +539,7 @@ async def list_sessions(
     agent_id: str | None = None,
     user: User = Depends(get_current_user),
 ):
-    """セッション一覧."""
+    """List sessions."""
     from app.orchestration.agent_session import SessionStatus, session_manager
 
     st = SessionStatus(status) if status else None
@@ -549,23 +549,23 @@ async def list_sessions(
 
 @router.get("/sessions/{session_id}")
 async def get_session(session_id: str, user: User = Depends(get_current_user)):
-    """セッション詳細."""
+    """Get session details."""
     from app.orchestration.agent_session import session_manager
 
     session = session_manager.get_session(session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="セッションが見つかりません")
+        raise HTTPException(status_code=404, detail="Session not found")
     return session.to_dict()
 
 
 @router.get("/sessions/agent/{agent_id}")
 async def get_agent_session(agent_id: str, user: User = Depends(get_current_user)):
-    """エージェントのアクティブセッションを取得."""
+    """Get active session for an agent."""
     from app.orchestration.agent_session import session_manager
 
     session = session_manager.get_active_session(agent_id)
     if not session:
-        raise HTTPException(status_code=404, detail="アクティブセッションがありません")
+        raise HTTPException(status_code=404, detail="No active session found")
     return session.to_dict()
 
 
@@ -573,7 +573,7 @@ async def get_agent_session(agent_id: str, user: User = Depends(get_current_user
 async def get_or_create_session(
     agent_id: str, req: CreateSessionRequest, user: User = Depends(get_current_user)
 ):
-    """セッションを取得、なければ作成."""
+    """Get session or create if not found."""
     from app.orchestration.agent_session import session_manager
 
     session = session_manager.get_or_create_session(
@@ -589,58 +589,58 @@ async def get_or_create_session(
 
 @router.post("/sessions/message")
 async def add_session_message(req: SessionMessageRequest, user: User = Depends(get_current_user)):
-    """セッションにメッセージを追加."""
+    """Add a message to a session."""
     from app.orchestration.agent_session import session_manager
 
     session = session_manager.get_session(req.session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="セッションが見つかりません")
+        raise HTTPException(status_code=404, detail="Session not found")
     session.add_message(req.role, req.content, req.metadata)
     return {"added": True, "message_count": session.message_count}
 
 
 @router.post("/sessions/memory")
 async def add_working_memory(req: WorkingMemoryRequest, user: User = Depends(get_current_user)):
-    """ワーキングメモリに情報を追加."""
+    """Add information to working memory."""
     from app.orchestration.agent_session import session_manager
 
     session = session_manager.get_session(req.session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="セッションが見つかりません")
+        raise HTTPException(status_code=404, detail="Session not found")
     session.add_to_working_memory(req.key, req.value)
     return {"stored": True, "key": req.key}
 
 
 @router.post("/sessions/{session_id}/idle")
 async def set_session_idle(session_id: str, user: User = Depends(get_current_user)):
-    """セッションをアイドル状態に."""
+    """Set session to idle state."""
     from app.orchestration.agent_session import session_manager
 
     session = session_manager.get_session(session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="セッションが見つかりません")
+        raise HTTPException(status_code=404, detail="Session not found")
     session.go_idle()
     return {"status": "idle", "session_id": session_id}
 
 
 @router.post("/sessions/{session_id}/resume")
 async def resume_session(session_id: str, user: User = Depends(get_current_user)):
-    """セッションを復帰."""
+    """Resume a session."""
     from app.orchestration.agent_session import session_manager
 
     session = session_manager.get_session(session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="セッションが見つかりません")
+        raise HTTPException(status_code=404, detail="Session not found")
     session.resume()
     return session.get_context_summary()
 
 
 @router.delete("/sessions/{session_id}")
 async def terminate_session(session_id: str, user: User = Depends(get_current_user)):
-    """セッションを終了."""
+    """Terminate a session."""
     from app.orchestration.agent_session import session_manager
 
     ok = session_manager.terminate_session(session_id)
     if not ok:
-        raise HTTPException(status_code=404, detail="セッションが見つかりません")
+        raise HTTPException(status_code=404, detail="Session not found")
     return {"terminated": True}

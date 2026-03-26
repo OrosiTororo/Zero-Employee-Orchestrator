@@ -200,7 +200,7 @@ async def run_ollama_heartbeat(
     execution.add_action(
         HeartbeatAction(
             action_type="check_ollama",
-            description="Ollama ヘルスチェック",
+            description="Ollama health check",
             result="available" if is_up else "unavailable",
         )
     )
@@ -217,7 +217,7 @@ async def run_ollama_heartbeat(
         execution.add_action(
             HeartbeatAction(
                 action_type="check_embedding",
-                description="エンベディングモデルの確認",
+                description="Embedding model check",
                 result="available" if embedding_available else "unavailable",
             )
         )
@@ -227,7 +227,7 @@ async def run_ollama_heartbeat(
     execution.add_action(
         HeartbeatAction(
             action_type="check_rag",
-            description="RAG ベクトルストアの確認",
+            description="RAG vector store check",
             result=f"{rag_count} documents",
         )
     )
@@ -283,9 +283,9 @@ def store_ollama_experience(
     if success:
         entry = KnowledgeEntry(
             id=entry_id,
-            title=f"{model} で {task_type} を実行成功",
+            title=f"Successfully executed {task_type} with {model}",
             content=(
-                f"モデル {model} が {task_type} タスクを {duration_seconds:.1f}秒で完了。{details}"
+                f"Model {model} completed {task_type} task in {duration_seconds:.1f}s. {details}"
             ),
             knowledge_type=KnowledgeType.EXPERIENCE_MEMORY,
             status=KnowledgeStatus.INDEXED,
@@ -296,10 +296,10 @@ def store_ollama_experience(
     else:
         entry = KnowledgeEntry(
             id=entry_id,
-            title=f"{model} で {task_type} が失敗",
+            title=f"{task_type} failed with {model}",
             content=(
-                f"モデル {model} が {task_type} タスクで失敗。"
-                f"所要時間: {duration_seconds:.1f}秒。{details}"
+                f"Model {model} failed on {task_type} task. "
+                f"Duration: {duration_seconds:.1f}s. {details}"
             ),
             knowledge_type=KnowledgeType.FAILURE_TAXONOMY,
             status=KnowledgeStatus.INDEXED,
@@ -394,7 +394,7 @@ def register_rag_artifact(
         artifact_type=ArtifactType.DATA,
         content_or_path=store_path,
         mime_type="application/json",
-        summary=summary or f"RAG ベクトルインデックス ({doc_count} ドキュメント)",
+        summary=summary or f"RAG vector index ({doc_count} documents)",
         storage_type=StorageType.LOCAL,
     )
     return ref.artifact_id
@@ -433,7 +433,7 @@ def register_ollama_output(
         artifact_type=atype,
         content_or_path=content,
         mime_type=mime_type,
-        summary=f"Ollama 生成: {title[:100]}",
+        summary=f"Ollama generated: {title[:100]}",
         storage_type=StorageType.INLINE,
     )
     return ref.artifact_id

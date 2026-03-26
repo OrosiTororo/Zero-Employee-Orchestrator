@@ -1,13 +1,13 @@
-"""ブラウザアシスト API エンドポイント.
+"""Browser Assist API endpoints.
 
-ユーザーがブラウザやアプリケーションの操作中に画面を共有し、
-AI から操作案内やエラー診断を受けるための API。
+API for users to share their screen while operating a browser or application
+and receive operation guidance or error diagnosis from AI.
 
-安全性:
-- ユーザーの明示的な同意（consent）が必要
-- スクリーンショットは一時的にのみ処理（永続保存しない）
-- 全リクエストは監査ログに記録
-- プロンプトインジェクション検査を実施
+Safety:
+- Requires explicit user consent
+- Screenshots are processed temporarily only (not permanently stored)
+- All requests are recorded in audit logs
+- Prompt injection inspection is performed
 """
 
 from __future__ import annotations
@@ -31,14 +31,14 @@ router = APIRouter(prefix="/browser-assist", tags=["browser-assist"])
 
 
 class ConsentRequest(BaseModel):
-    """画面共有同意リクエスト."""
+    """Screen sharing consent request."""
 
     user_id: str
     consent: bool = True
 
 
 class AssistRequest(BaseModel):
-    """アシストリクエスト."""
+    """Assist request."""
 
     user_id: str
     action: str = Field(default="analyze_screen")
@@ -50,7 +50,7 @@ class AssistRequest(BaseModel):
 
 
 class AssistStepResponse(BaseModel):
-    """操作手順の1ステップ."""
+    """One step of operation instructions."""
 
     step_number: int
     instruction: str
@@ -58,7 +58,7 @@ class AssistStepResponse(BaseModel):
 
 
 class AssistResponse(BaseModel):
-    """アシスト結果."""
+    """Assist result."""
 
     action: str
     steps: list[AssistStepResponse] = []
@@ -69,10 +69,10 @@ class AssistResponse(BaseModel):
 
 @router.post("/consent")
 async def update_consent(req: ConsentRequest, user: User = Depends(get_current_user)) -> dict:
-    """画面共有の同意を設定する.
+    """Set screen sharing consent.
 
-    ユーザーがブラウザアシスト機能を利用する前に、
-    明示的に同意を付与する必要がある。
+    Users must explicitly grant consent before using
+    the browser assist feature.
     """
     if req.consent:
         browser_assist_service.grant_consent(req.user_id)
@@ -86,19 +86,19 @@ async def update_consent(req: ConsentRequest, user: User = Depends(get_current_u
 async def analyze_screen(
     req: AssistRequest, user: User = Depends(get_current_user)
 ) -> AssistResponse:
-    """スクリーンショットを分析し、操作案内やエラー診断を提供する.
+    """Analyze a screenshot and provide operation guidance or error diagnosis.
 
-    ユーザーの画面を AI が分析し、操作方法・手順・エラー解決策を回答する。
-    事前に /consent で同意を付与する必要がある。
+    AI analyzes the user's screen and responds with operation methods, steps, and error solutions.
+    Consent must be granted in advance via /consent.
     """
-    # 同意チェック
+    # Consent check
     if not browser_assist_service.check_user_consent(req.user_id):
         raise HTTPException(
             status_code=403,
             detail="Screen sharing consent not granted. Call POST /browser-assist/consent first.",
         )
 
-    # プロンプトインジェクション検査
+    # Prompt injection inspection
     guard_result = scan_prompt_injection(req.user_question)
     if not guard_result.is_safe:
         logger.warning(
@@ -113,7 +113,7 @@ async def analyze_screen(
                 detail="Request blocked: potentially unsafe content detected in question.",
             )
 
-    # アクション種別の変換
+    # Convert action type
     try:
         action = AssistAction(req.action)
     except ValueError:
@@ -122,7 +122,7 @@ async def analyze_screen(
             detail=f"Invalid action: {req.action}. Valid: {[a.value for a in AssistAction]}",
         )
 
-    # スクリーンショット分析を実行
+    # Execute screenshot analysis
     result = await browser_assist_service.analyze_screenshot(
         screenshot_base64=req.screenshot_base64,
         user_question=req.user_question,
@@ -151,7 +151,7 @@ async def analyze_screen(
 
 @router.get("/status")
 async def assist_status(user: User = Depends(get_current_user)) -> dict:
-    """ブラウザアシスト機能のステータスを返す."""
+    """Return browser assist feature status."""
     return {
         "available": True,
         "supported_actions": [a.value for a in AssistAction],

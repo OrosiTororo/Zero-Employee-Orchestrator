@@ -58,13 +58,13 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
         if request.url.path in _SKIP_PATHS:
             return await call_next(request)
 
-        # ファイルアップロードはスキップ（バイナリデータ）
+        # Skip file uploads (binary data)
         content_type = request.headers.get("content-type", "")
         for skip_ct in _SKIP_CONTENT_TYPES:
             if skip_ct in content_type:
                 return await call_next(request)
 
-        # JSON ボディのみスキャン
+        # Scan JSON bodies only
         if "application/json" not in content_type:
             return await call_next(request)
 
@@ -77,7 +77,7 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
             if not text_values:
                 return await call_next(request)
 
-            # プロンプトインジェクションスキャン
+            # Prompt injection scan
             combined_text = " ".join(text_values)
             guard_result = scan_prompt_injection(combined_text)
 
@@ -102,7 +102,7 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
                     media_type="application/json",
                 )
 
-            # PII 検出（ログ記録のみ、ブロックしない）
+            # PII detection (logging only, no blocking)
             pii_result = detect_and_mask_pii(combined_text)
             if pii_result.has_pii:
                 logger.info(
@@ -113,14 +113,14 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
                 )
 
         except Exception:
-            # パース失敗時はスキップ（JSONでないリクエスト等）
+            # Skip on parse failure (e.g., non-JSON requests)
             pass
 
         return await call_next(request)
 
 
 def _extract_text_values(body: bytes, max_depth: int = 5) -> list[str]:
-    """JSON ボディから文字列値を再帰的に抽出する."""
+    """Recursively extract string values from a JSON body."""
     try:
         data = json.loads(body)
     except (json.JSONDecodeError, UnicodeDecodeError):
@@ -132,7 +132,7 @@ def _extract_text_values(body: bytes, max_depth: int = 5) -> list[str]:
 
 
 def _walk(obj: object, values: list[str], depth: int) -> None:
-    """再帰的に JSON 値を走査し文字列を収集する."""
+    """Recursively walk JSON values and collect strings."""
     if depth <= 0:
         return
     if isinstance(obj, str) and len(obj) > 5:

@@ -1,18 +1,18 @@
-"""AI 共創リパーパスエンジン — コンテンツを複数メディア形式に変換.
+"""AI co-creation repurpose engine — convert content to multiple media formats.
 
-1 つのコンテンツ（ブログ記事・音声・動画など）を複数のメディア形式に
-自動変換する。ブランドボイスやスタイルガイドに基づいてトーンを調整し、
-各フォーマットに最適化された出力を生成する。
+Automatically converts a single piece of content (blog post, audio, video, etc.)
+to multiple media formats. Adjusts tone based on brand voice and style guides,
+generating output optimized for each format.
 
-対応する変換先:
-- ブログ記事 / SNS 投稿 / ツイートスレッド / メールニュースレター
-- スライドデッキ / インフォグラフィック / プレスリリース / FAQ
-- ビデオスクリプト / ポッドキャストトランスクリプト
+Supported conversion targets:
+- Blog post / Social post / Tweet thread / Email newsletter
+- Slide deck / Infographic / Press release / FAQ
+- Video script / Podcast transcript
 
-安全性:
-- プロンプトインジェクション検査
-- PII ガード適用
-- 監査ログ記録
+Safety:
+- Prompt injection inspection
+- PII guard applied
+- Audit log recording
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 class ContentType(str, Enum):
-    """生成対象のコンテンツ形式."""
+    """Target content format for generation."""
 
     BLOG_POST = "blog_post"
     VIDEO_SCRIPT = "video_script"
@@ -43,7 +43,7 @@ class ContentType(str, Enum):
 
 
 class SourceFormat(str, Enum):
-    """ソースコンテンツの形式."""
+    """Source content format."""
 
     TEXT = "text"
     AUDIO = "audio"
@@ -55,7 +55,7 @@ class SourceFormat(str, Enum):
 
 @dataclass
 class RepurposeRequest:
-    """リパーパスリクエスト."""
+    """Repurpose request."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     source_content: str = ""
@@ -69,7 +69,7 @@ class RepurposeRequest:
 
 @dataclass
 class RepurposeResult:
-    """リパーパス結果."""
+    """Repurpose result."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     request_id: str = ""
@@ -81,7 +81,7 @@ class RepurposeResult:
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
-# ソースフォーマット別の変換可能ターゲット
+# Supported conversion targets by source format
 _SUPPORTED_CONVERSIONS: dict[SourceFormat, list[ContentType]] = {
     SourceFormat.TEXT: list(ContentType),
     SourceFormat.MARKDOWN: list(ContentType),
@@ -106,10 +106,10 @@ _SUPPORTED_CONVERSIONS: dict[SourceFormat, list[ContentType]] = {
 
 
 class RepurposeEngine:
-    """AI 共創リパーパスエンジン.
+    """AI co-creation repurpose engine.
 
-    単一のコンテンツを複数のメディア形式に変換する。
-    ブランドボイスやスタイルガイドに基づいてトーン・構成を最適化する。
+    Converts a single piece of content to multiple media formats.
+    Optimizes tone and structure based on brand voice and style guides.
     """
 
     def __init__(self) -> None:
@@ -118,7 +118,7 @@ class RepurposeEngine:
 
     @staticmethod
     def _build_templates() -> dict[ContentType, str]:
-        """各コンテンツ形式のテンプレートを構築する."""
+        """Build templates for each content format."""
         return {
             ContentType.BLOG_POST: (
                 "# {title}\n\n"
@@ -170,13 +170,13 @@ class RepurposeEngine:
         }
 
     async def repurpose(self, request: RepurposeRequest) -> list[RepurposeResult]:
-        """リクエストに基づいて全対象形式のコンテンツを生成する.
+        """Generate content for all target formats based on the request.
 
         Args:
-            request: リパーパスリクエスト
+            request: Repurpose request
 
         Returns:
-            各ターゲット形式に対する生成結果のリスト
+            List of generation results for each target format
         """
         results: list[RepurposeResult] = []
         key_points = self._extract_key_points(request.source_content)
@@ -185,7 +185,7 @@ class RepurposeEngine:
             supported = self.get_supported_conversions(request.source_format)
             if target not in supported:
                 logger.warning(
-                    "変換非対応: %s -> %s",
+                    "Conversion not supported: %s -> %s",
                     request.source_format.value,
                     target.value,
                 )
@@ -196,8 +196,8 @@ class RepurposeEngine:
                         generated_content="",
                         quality_score=0.0,
                         suggestions=[
-                            f"{request.source_format.value} から"
-                            f" {target.value} への変換は非対応です"
+                            f"Conversion from {request.source_format.value}"
+                            f" to {target.value} is not supported"
                         ],
                     )
                 )
@@ -228,7 +228,7 @@ class RepurposeEngine:
 
         self._results[request.id] = results
         logger.info(
-            "リパーパス完了: request_id=%s, targets=%d, results=%d",
+            "Repurpose complete: request_id=%s, targets=%d, results=%d",
             request.id,
             len(request.target_types),
             len(results),
@@ -242,7 +242,7 @@ class RepurposeEngine:
         key_points: list[str],
         request: RepurposeRequest,
     ) -> str:
-        """コンテンツ形式に応じた生成メソッドを呼び出す."""
+        """Call the generation method for the content format."""
         generators = {
             ContentType.BLOG_POST: self._generate_blog_post,
             ContentType.SOCIAL_POST: self._generate_social_post,
@@ -262,14 +262,14 @@ class RepurposeEngine:
             else:
                 return generator(source)
 
-        # 汎用生成: テンプレートにキーポイントを埋め込む
+        # Generic generation: embed key points into template
         return self._generate_generic(target, source, key_points)
 
     def _generate_blog_post(self, source: str, style: str = "") -> str:
-        """ブログ記事を生成する.
+        """Generate a blog post.
 
-        ソースコンテンツからブログ記事形式のテキストを構築する。
-        タイトル・導入・本文・まとめの構造を持つ。
+        Builds blog post format text from source content.
+        Has a structure of title, introduction, body, and conclusion.
         """
         key_points = self._extract_key_points(source)
         title = self._extract_title(source)
@@ -288,9 +288,9 @@ class RepurposeEngine:
         )
 
     def _generate_social_post(self, source: str, platform: str = "general") -> str:
-        """SNS 投稿を生成する.
+        """Generate a social media post.
 
-        プラットフォームに合わせた文字数・形式でコンテンツを生成する。
+        Generates content with character count and format suited for the platform.
         """
         key_points = self._extract_key_points(source)
         max_length = {"twitter": 280, "instagram": 2200, "linkedin": 3000}.get(platform, 500)
@@ -313,9 +313,9 @@ class RepurposeEngine:
         return content
 
     def _generate_tweet_thread(self, source: str) -> str:
-        """ツイートスレッドを生成する.
+        """Generate a tweet thread.
 
-        280 文字以内のツイートに分割し、スレッド形式で出力する。
+        Splits into tweets of 280 characters or less and outputs in thread format.
         """
         key_points = self._extract_key_points(source)
         tweets: list[str] = []
@@ -336,9 +336,9 @@ class RepurposeEngine:
         return self._templates[ContentType.TWEET_THREAD].format(tweets=thread_text)
 
     def _generate_email_newsletter(self, source: str) -> str:
-        """メールニュースレターを生成する.
+        """Generate an email newsletter.
 
-        件名・挨拶・本文・CTA・フッターの構造を持つ。
+        Has a structure of subject, greeting, body, CTA, and footer.
         """
         title = self._extract_title(source)
         key_points = self._extract_key_points(source)
@@ -353,9 +353,9 @@ class RepurposeEngine:
         )
 
     def _generate_slide_deck(self, source: str) -> str:
-        """スライドデッキのアウトラインを生成する.
+        """Generate a slide deck outline.
 
-        スライド単位に分割した構造化テキストを出力する。
+        Outputs structured text split into individual slides.
         """
         title = self._extract_title(source)
         key_points = self._extract_key_points(source)
@@ -375,9 +375,9 @@ class RepurposeEngine:
         )
 
     def _generate_faq(self, source: str) -> str:
-        """FAQ を生成する.
+        """Generate FAQ.
 
-        ソースコンテンツからよくある質問と回答のペアを抽出・構築する。
+        Extracts and builds question-answer pairs from source content.
         """
         key_points = self._extract_key_points(source)
         qa_pairs: list[str] = []
@@ -395,9 +395,9 @@ class RepurposeEngine:
         )
 
     def _generate_press_release(self, source: str) -> str:
-        """プレスリリースを生成する.
+        """Generate a press release.
 
-        見出し・リード・本文・会社概要・問い合わせ先の構造を持つ。
+        Has a structure of headline, lead, body, company overview, and contact.
         """
         title = self._extract_title(source)
         key_points = self._extract_key_points(source)
@@ -420,12 +420,12 @@ class RepurposeEngine:
         source: str,
         key_points: list[str],
     ) -> str:
-        """テンプレートベースの汎用生成."""
+        """Template-based generic generation."""
         template = self._templates.get(target, "{content}")
         content = "\n".join(key_points) if key_points else source[:500]
 
         try:
-            # テンプレート内のプレースホルダーにコンテンツを埋め込む
+            # Embed content into placeholders in the template
             placeholders = re.findall(r"\{(\w+)\}", template)
             fill = {p: content for p in placeholders}
             return template.format(**fill)
@@ -433,27 +433,27 @@ class RepurposeEngine:
             return content
 
     def _extract_key_points(self, source: str) -> list[str]:
-        """ソースコンテンツから主要ポイントを抽出する.
+        """Extract key points from source content.
 
-        文単位に分割し、意味のある長さを持つ文を抽出する。
+        Splits into sentences and extracts those with meaningful length.
         """
         if not source:
             return []
 
-        # 段落分割を試行
+        # Try paragraph splitting
         paragraphs = [p.strip() for p in source.split("\n\n") if p.strip()]
         if len(paragraphs) >= 3:
             return paragraphs[:10]
 
-        # 文単位に分割
+        # Split into sentences
         sentences = re.split(r"[。.!！?\?？\n]+", source)
         points = [s.strip() for s in sentences if len(s.strip()) > 10]
         return points[:10]
 
     def _adapt_tone(self, content: str, brand_voice: str) -> str:
-        """ブランドボイスに基づいてトーンを調整する.
+        """Adjust tone based on brand voice.
 
-        指定されたブランドボイスに合わせてコンテンツの表現を変換する。
+        Converts content expressions to match the specified brand voice.
         """
         voice_lower = brand_voice.lower()
 
@@ -472,37 +472,37 @@ class RepurposeEngine:
         return content
 
     def get_supported_conversions(self, source_format: SourceFormat) -> list[ContentType]:
-        """ソースフォーマットに対して変換可能なターゲット形式を返す.
+        """Return convertible target formats for a source format.
 
         Args:
-            source_format: ソースコンテンツの形式
+            source_format: Format of the source content
 
         Returns:
-            変換可能なコンテンツ形式のリスト
+            List of convertible content formats
         """
         return _SUPPORTED_CONVERSIONS.get(source_format, [])
 
     def _extract_title(self, source: str) -> str:
-        """ソースコンテンツからタイトルを推定する."""
-        # Markdown のヘッダーを検索
+        """Infer a title from source content."""
+        # Search for Markdown headers
         match = re.search(r"^#\s+(.+)$", source, re.MULTILINE)
         if match:
             return match.group(1).strip()
 
-        # 最初の行を使用
+        # Use the first line
         first_line = source.strip().split("\n")[0].strip()
         if len(first_line) <= 100:
             return first_line
         return first_line[:97] + "..."
 
     def _extract_tags(self, source: str) -> list[str]:
-        """ソースコンテンツからタグを抽出する."""
-        # 既存のハッシュタグを抽出
+        """Extract tags from source content."""
+        # Extract existing hashtags
         hashtags = re.findall(r"#(\w+)", source)
         if hashtags:
             return hashtags[:10]
 
-        # キーワードを簡易抽出（長めの単語を採用）
+        # Simple keyword extraction (use longer words)
         words = re.findall(r"[A-Za-z\u3040-\u9fff]{3,}", source)
         seen: set[str] = set()
         tags: list[str] = []
@@ -516,7 +516,7 @@ class RepurposeEngine:
         return tags
 
     def _build_introduction(self, source: str, key_points: list[str]) -> str:
-        """導入文を構築する."""
+        """Build an introduction."""
         if key_points:
             return (
                 f"この記事では、{key_points[0].rstrip('。')}について解説します。"
@@ -525,7 +525,7 @@ class RepurposeEngine:
         return source[:200]
 
     def _build_body(self, key_points: list[str], style: str = "") -> str:
-        """本文を構築する."""
+        """Build the body."""
         if not key_points:
             return ""
         sections: list[str] = []
@@ -534,23 +534,23 @@ class RepurposeEngine:
         return "\n\n".join(sections)
 
     def _build_conclusion(self, key_points: list[str]) -> str:
-        """まとめ文を構築する."""
+        """Build a conclusion."""
         if not key_points:
             return "ご覧いただきありがとうございました。"
         count = len(key_points)
         return f"以上、{count}つのポイントをご紹介しました。ぜひ参考にしてください。"
 
     def _assess_quality(self, content: str, target: ContentType) -> float:
-        """生成コンテンツの品質スコアを算出する.
+        """Calculate quality score of generated content.
 
-        文字数・構造・形式の観点から 0.0-1.0 のスコアを返す。
+        Returns a 0.0-1.0 score based on character count, structure, and format.
         """
         if not content:
             return 0.0
 
-        score = 0.5  # ベーススコア
+        score = 0.5  # Base score
 
-        # 文字数の妥当性
+        # Character count validity
         length = len(content)
         ideal_lengths: dict[ContentType, tuple[int, int]] = {
             ContentType.BLOG_POST: (500, 5000),
@@ -570,13 +570,13 @@ class RepurposeEngine:
         elif length > 0:
             score += 0.1
 
-        # 構造の存在（見出しやリスト）
+        # Presence of structure (headings and lists)
         if re.search(r"^#{1,3}\s", content, re.MULTILINE):
             score += 0.15
         if re.search(r"^[-*]\s", content, re.MULTILINE):
             score += 0.1
 
-        # 空でないセクションが複数
+        # Multiple non-empty sections
         sections = [s for s in content.split("\n\n") if s.strip()]
         if len(sections) >= 3:
             score += 0.05
@@ -588,7 +588,7 @@ class RepurposeEngine:
         content: str,
         target: ContentType,
     ) -> list[str]:
-        """生成コンテンツに対する改善提案を生成する."""
+        """Generate improvement suggestions for generated content."""
         suggestions: list[str] = []
 
         if len(content) < 100:
@@ -606,5 +606,5 @@ class RepurposeEngine:
         return suggestions
 
 
-# グローバルインスタンス
+# Global instance
 repurpose_engine = RepurposeEngine()

@@ -634,5 +634,5 @@ class ToolConnector:
         return headers
 
 
-# グローバルインスタンス
+# Global instance
 tool_connector = ToolConnector()

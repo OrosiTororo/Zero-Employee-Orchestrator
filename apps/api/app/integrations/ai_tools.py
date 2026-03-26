@@ -1,29 +1,29 @@
-"""AI ツール統合 — このシステムから AI が操作可能な外部ツール一覧と管理.
+"""AI tool integration — list and manage external tools operable by AI.
 
-ブラウザアシスト、メディア生成に加え、AI が操作可能な各種ツールを
-統合管理する。
+In addition to browser assist and media generation, manages various tools
+that AI can operate.
 
-対応ツールカテゴリ:
-1. コード関連: GitHub, GitLab, Bitbucket, コードレビュー
-2. ドキュメント: Google Docs, Notion, Confluence, Obsidian
-3. コミュニケーション: Slack, Discord, LINE, Teams, Email
-4. プロジェクト管理: Jira, Linear, Asana, Trello, ClickUp
-5. デザイン: Figma, Canva (MCP 経由)
-6. データ分析: Google Sheets, Airtable
-7. クラウド: AWS, GCP, Azure (CLI 経由)
-8. 検索: Web Search, RAG, Knowledge Base
-9. メディア生成: 画像・動画・音声 (media_generation.py)
-10. ブラウザ操作: Browser Assist, Playwright
-11. ナレッジベース: Obsidian, Notion, Logseq, Joplin, Roam Research, Anytype
+Supported tool categories:
+1. Code: GitHub, GitLab, Bitbucket, code review
+2. Documents: Google Docs, Notion, Confluence, Obsidian
+3. Communication: Slack, Discord, LINE, Teams, Email
+4. Project management: Jira, Linear, Asana, Trello, ClickUp
+5. Design: Figma, Canva (via MCP)
+6. Data analysis: Google Sheets, Airtable
+7. Cloud: AWS, GCP, Azure (via CLI)
+8. Search: Web Search, RAG, Knowledge Base
+9. Media generation: image, video, audio (media_generation.py)
+10. Browser: Browser Assist, Playwright
+11. Knowledge base: Obsidian, Notion, Logseq, Joplin, Roam Research, Anytype
 12. CRM: HubSpot, Salesforce
-13. カレンダー: Google Calendar, Outlook Calendar
-14. クラウドストレージ: Google Drive, Dropbox, OneDrive
-15. オートメーション: n8n, Zapier, Make
+13. Calendar: Google Calendar, Outlook Calendar
+14. Cloud storage: Google Drive, Dropbox, OneDrive
+15. Automation: n8n, Zapier, Make
 
-すべてのツール操作は:
-- 承認ゲート経由
-- 監査ログ記録
-- データ保護ポリシー適用
+All tool operations:
+- Go through approval gates
+- Are recorded in audit logs
+- Follow data protection policies
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 class ToolCategory(str, Enum):
-    """ツールカテゴリ."""
+    """Tool category."""
 
     CODE = "code"
     DOCUMENT = "document"
@@ -60,7 +60,7 @@ class ToolCategory(str, Enum):
 
 
 class ToolStatus(str, Enum):
-    """ツールの状態."""
+    """Tool status."""
 
     AVAILABLE = "available"
     CONFIGURED = "configured"
@@ -71,7 +71,7 @@ class ToolStatus(str, Enum):
 
 @dataclass
 class AIToolDefinition:
-    """AI ツール定義."""
+    """AI tool definition."""
 
     id: str
     name: str
@@ -86,9 +86,9 @@ class AIToolDefinition:
     config: dict = field(default_factory=dict)
 
 
-# 全ツール定義
+# All tool definitions
 _AI_TOOLS: list[AIToolDefinition] = [
-    # --- コード関連 ---
+    # --- Code ---
     AIToolDefinition(
         id="github",
         name="GitHub",
@@ -109,7 +109,7 @@ _AI_TOOLS: list[AIToolDefinition] = [
         env_key="GITLAB_TOKEN",
         capabilities=["create_issue", "create_mr", "review_code"],
     ),
-    # --- ドキュメント ---
+    # --- Documents ---
     AIToolDefinition(
         id="google_docs",
         name="Google Docs",
@@ -139,7 +139,7 @@ _AI_TOOLS: list[AIToolDefinition] = [
         requires_api_key=False,
         capabilities=["import_notes", "export_notes", "link_notes"],
     ),
-    # --- コミュニケーション ---
+    # --- Communication ---
     AIToolDefinition(
         id="slack",
         name="Slack",
@@ -184,7 +184,7 @@ _AI_TOOLS: list[AIToolDefinition] = [
         requires_approval=True,
         capabilities=["send_email"],
     ),
-    # --- プロジェクト管理 ---
+    # --- Project management ---
     AIToolDefinition(
         id="jira",
         name="Jira",
@@ -205,7 +205,7 @@ _AI_TOOLS: list[AIToolDefinition] = [
         env_key="LINEAR_API_KEY",
         capabilities=["create_issue", "update_issue"],
     ),
-    # --- デザイン ---
+    # --- Design ---
     AIToolDefinition(
         id="figma",
         name="Figma",
@@ -216,7 +216,7 @@ _AI_TOOLS: list[AIToolDefinition] = [
         env_key="FIGMA_ACCESS_TOKEN",
         capabilities=["get_design", "get_screenshot", "code_connect"],
     ),
-    # --- データ ---
+    # --- Data ---
     AIToolDefinition(
         id="google_sheets",
         name="Google Sheets",
@@ -227,7 +227,7 @@ _AI_TOOLS: list[AIToolDefinition] = [
         env_key="GOOGLE_SERVICE_ACCOUNT",
         capabilities=["read_sheet", "write_sheet", "create_sheet"],
     ),
-    # --- クラウド ---
+    # --- Cloud ---
     AIToolDefinition(
         id="aws_cli",
         name="AWS CLI",
@@ -250,7 +250,7 @@ _AI_TOOLS: list[AIToolDefinition] = [
         requires_approval=True,
         capabilities=["compute", "storage", "functions"],
     ),
-    # --- 検索 ---
+    # --- Search ---
     AIToolDefinition(
         id="web_search",
         name="Web Search",
@@ -271,7 +271,7 @@ _AI_TOOLS: list[AIToolDefinition] = [
         requires_approval=False,
         capabilities=["index", "search", "similarity"],
     ),
-    # --- メディア生成 ---
+    # --- Media generation ---
     AIToolDefinition(
         id="image_generation",
         name="Image Generation",
@@ -316,7 +316,7 @@ _AI_TOOLS: list[AIToolDefinition] = [
         requires_approval=True,
         capabilities=["generate_music", "extend_music"],
     ),
-    # --- ブラウザ ---
+    # --- Browser ---
     AIToolDefinition(
         id="browser_assist",
         name="Browser Assist",
@@ -337,7 +337,7 @@ _AI_TOOLS: list[AIToolDefinition] = [
         requires_approval=True,
         capabilities=["navigate", "click", "fill_form", "screenshot", "scrape"],
     ),
-    # --- ファイルシステム ---
+    # --- File system ---
     AIToolDefinition(
         id="file_system",
         name="File System",
@@ -348,7 +348,7 @@ _AI_TOOLS: list[AIToolDefinition] = [
         requires_approval=False,
         capabilities=["read", "write", "list", "search"],
     ),
-    # --- データベース ---
+    # --- Database ---
     AIToolDefinition(
         id="database",
         name="Database (Read-only)",
@@ -359,7 +359,7 @@ _AI_TOOLS: list[AIToolDefinition] = [
         requires_approval=False,
         capabilities=["query", "search"],
     ),
-    # --- ナレッジベース ---
+    # --- Knowledge base ---
     AIToolDefinition(
         id="logseq",
         name="Logseq",
@@ -434,7 +434,7 @@ _AI_TOOLS: list[AIToolDefinition] = [
         requires_approval=True,
         capabilities=["read_objects", "create_record", "search"],
     ),
-    # --- カレンダー ---
+    # --- Calendar ---
     AIToolDefinition(
         id="google_calendar",
         name="Google Calendar",
@@ -457,7 +457,7 @@ _AI_TOOLS: list[AIToolDefinition] = [
         requires_approval=True,
         capabilities=["read_events", "create_event", "update_event"],
     ),
-    # --- クラウドストレージ ---
+    # --- Cloud storage ---
     AIToolDefinition(
         id="google_drive",
         name="Google Drive",
@@ -491,7 +491,7 @@ _AI_TOOLS: list[AIToolDefinition] = [
         requires_approval=True,
         capabilities=["search_files", "download", "upload"],
     ),
-    # --- プロジェクト管理（追加） ---
+    # --- Project management (additional) ---
     AIToolDefinition(
         id="asana",
         name="Asana",
@@ -522,7 +522,7 @@ _AI_TOOLS: list[AIToolDefinition] = [
         env_key="CLICKUP_API_KEY",
         capabilities=["create_task", "update_task", "search"],
     ),
-    # --- コミュニケーション（追加） ---
+    # --- Communication (additional) ---
     AIToolDefinition(
         id="teams",
         name="Microsoft Teams",
@@ -534,7 +534,7 @@ _AI_TOOLS: list[AIToolDefinition] = [
         requires_approval=True,
         capabilities=["send_message", "read_channel"],
     ),
-    # --- オートメーション ---
+    # --- Automation ---
     AIToolDefinition(
         id="n8n",
         name="n8n",
@@ -555,7 +555,7 @@ _AI_TOOLS: list[AIToolDefinition] = [
         requires_approval=True,
         capabilities=["trigger_zap"],
     ),
-    # --- 生産性 ---
+    # --- Productivity ---
     AIToolDefinition(
         id="microsoft_365",
         name="Microsoft 365",
@@ -567,7 +567,7 @@ _AI_TOOLS: list[AIToolDefinition] = [
         requires_approval=True,
         capabilities=["read_docs", "write_docs", "search"],
     ),
-    # --- デザイン（追加） ---
+    # --- Design (additional) ---
     AIToolDefinition(
         id="canva",
         name="Canva",
@@ -582,9 +582,9 @@ _AI_TOOLS: list[AIToolDefinition] = [
 
 
 class AIToolRegistry:
-    """AI ツールレジストリ.
+    """AI tool registry.
 
-    利用可能なツールの管理と状態確認を行う。
+    Manages available tools and checks their status.
     """
 
     def __init__(self) -> None:
@@ -592,19 +592,19 @@ class AIToolRegistry:
         self._disabled_tools: set[str] = set()
 
     def get_all_tools(self) -> list[AIToolDefinition]:
-        """全ツール一覧を返す."""
+        """Return all tools."""
         return list(self._tools.values())
 
     def get_tool(self, tool_id: str) -> AIToolDefinition | None:
-        """ツールを取得する."""
+        """Get a tool."""
         return self._tools.get(tool_id)
 
     def get_tools_by_category(self, category: ToolCategory) -> list[AIToolDefinition]:
-        """カテゴリ別のツール一覧を返す."""
+        """Return tools by category."""
         return [t for t in self._tools.values() if t.category == category]
 
     def get_available_tools(self) -> list[AIToolDefinition]:
-        """利用可能な（設定済みの）ツール一覧を返す."""
+        """Return a list of available (configured) tools."""
         import os
 
         available = []
@@ -623,7 +623,7 @@ class AIToolRegistry:
         return available
 
     def disable_tool(self, tool_id: str) -> bool:
-        """ツールを無効化する."""
+        """Disable a tool."""
         if tool_id in self._tools:
             self._disabled_tools.add(tool_id)
             self._tools[tool_id].status = ToolStatus.DISABLED
@@ -632,7 +632,7 @@ class AIToolRegistry:
         return False
 
     def enable_tool(self, tool_id: str) -> bool:
-        """ツールを有効化する."""
+        """Enable a tool."""
         self._disabled_tools.discard(tool_id)
         if tool_id in self._tools:
             self._tools[tool_id].status = ToolStatus.NOT_CONFIGURED
@@ -641,7 +641,7 @@ class AIToolRegistry:
         return False
 
     def get_summary(self) -> dict:
-        """ツール概要を返す."""
+        """Return tool summary."""
         all_tools = self.get_all_tools()
         available = self.get_available_tools()
         return {
@@ -652,5 +652,5 @@ class AIToolRegistry:
         }
 
 
-# グローバルインスタンス
+# Global instance
 ai_tool_registry = AIToolRegistry()

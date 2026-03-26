@@ -1,7 +1,8 @@
-"""秘書サービス — CEO の思考吐き出し・整理・蓄積.
+"""Secretary Service — CEO thought dump, organization, and accumulation.
 
-CEO が脳内の思考やアイデア、ToDo をすべて投げ込む場所として機能し、
-情報を分類・整理・蓄積して「資産」として活用する。
+Functions as a place where the CEO can dump all thoughts, ideas, and TODOs
+from their mind, classifying, organizing, and accumulating information
+as assets for future use.
 """
 
 from __future__ import annotations
@@ -18,21 +19,21 @@ from app.core.database import Base
 
 
 class ThoughtCategory(str, Enum):
-    """思考の分類."""
+    """Thought classification."""
 
-    IDEA = "idea"  # アイデア・ひらめき
-    TODO = "todo"  # やるべきこと
-    DECISION = "decision"  # 意思決定・判断
-    REFLECTION = "reflection"  # 振り返り・気づき
-    STRATEGY = "strategy"  # 戦略・方針
-    PROBLEM = "problem"  # 課題・困りごと
-    OPPORTUNITY = "opportunity"  # 機会・チャンス
-    MEMO = "memo"  # メモ・雑記
-    DAILY_LOG = "daily_log"  # その日の記録
+    IDEA = "idea"  # Ideas and inspirations
+    TODO = "todo"  # Things to do
+    DECISION = "decision"  # Decision-making and judgment
+    REFLECTION = "reflection"  # Reflection and insights
+    STRATEGY = "strategy"  # Strategy and direction
+    PROBLEM = "problem"  # Issues and challenges
+    OPPORTUNITY = "opportunity"  # Opportunities and chances
+    MEMO = "memo"  # Notes and miscellaneous
+    DAILY_LOG = "daily_log"  # Daily records
 
 
 class ThoughtPriority(str, Enum):
-    """思考の優先度."""
+    """Thought priority."""
 
     HIGH = "high"
     MEDIUM = "medium"
@@ -40,7 +41,7 @@ class ThoughtPriority(str, Enum):
 
 
 class BrainDumpRecord(Base):
-    """CEO のブレインダンプ記録."""
+    """CEO brain dump record."""
 
     __tablename__ = "brain_dumps"
 
@@ -65,7 +66,7 @@ class BrainDumpRecord(Base):
 
 
 class DailySummaryRecord(Base):
-    """1 日のブレインダンプの要約."""
+    """Daily brain dump summary."""
 
     __tablename__ = "daily_summaries"
 
@@ -82,7 +83,7 @@ class DailySummaryRecord(Base):
 
 
 # ---------------------------------------------------------------------------
-# キーワードベース自動分類
+# Keyword-based auto-classification
 # ---------------------------------------------------------------------------
 
 _CATEGORY_KEYWORDS: dict[str, list[str]] = {
@@ -188,7 +189,7 @@ _PRIORITY_KEYWORDS: dict[str, list[str]] = {
 
 
 def auto_classify(text: str) -> tuple[str, str]:
-    """テキストからカテゴリと優先度を自動推定する."""
+    """Auto-estimate category and priority from text."""
     text_lower = text.lower()
 
     category = ThoughtCategory.MEMO
@@ -209,7 +210,7 @@ def auto_classify(text: str) -> tuple[str, str]:
 
 
 def extract_action_items(text: str) -> list[str]:
-    """テキストからアクションアイテムを抽出する."""
+    """Extract action items from text."""
     action_items: list[str] = []
     lines = text.split("\n")
     action_markers = [
@@ -225,7 +226,7 @@ def extract_action_items(text: str) -> list[str]:
     for line in lines:
         stripped = line.strip()
         if any(stripped.startswith(m) or stripped.startswith(m.lower()) for m in action_markers):
-            # マーカーを除去してアクションアイテムとして追加
+            # Remove marker and add as action item
             for m in action_markers:
                 if stripped.startswith(m):
                     stripped = stripped[len(m) :].strip()
@@ -236,7 +237,7 @@ def extract_action_items(text: str) -> list[str]:
 
 
 def generate_title(text: str, max_len: int = 60) -> str:
-    """テキストからタイトルを生成する."""
+    """Generate a title from text."""
     first_line = text.strip().split("\n")[0].strip()
     if len(first_line) <= max_len:
         return first_line
@@ -249,7 +250,7 @@ def generate_title(text: str, max_len: int = 60) -> str:
 
 
 class SecretaryService:
-    """秘書サービス — CEO の思考を整理・蓄積する."""
+    """Secretary Service — Organize and accumulate CEO thoughts."""
 
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
@@ -264,19 +265,19 @@ class SecretaryService:
         priority: str | None = None,
         tags: list[str] | None = None,
     ) -> BrainDumpRecord:
-        """思考を受け取り、分類・整理して保存する."""
+        """Receive a thought, classify, organize, and save it."""
         cid = uuid.UUID(company_id)
         uid = uuid.UUID(user_id) if user_id else None
 
-        # 自動分類
+        # Auto-classification
         auto_cat, auto_prio = auto_classify(raw_text)
         final_category = category or auto_cat
         final_priority = priority or auto_prio
 
-        # アクションアイテム抽出
+        # Extract action items
         action_items = extract_action_items(raw_text)
 
-        # タイトル生成
+        # Generate title
         title = generate_title(raw_text)
 
         record = BrainDumpRecord(
@@ -305,7 +306,7 @@ class SecretaryService:
         offset: int = 0,
         limit: int = 50,
     ) -> list[BrainDumpRecord]:
-        """ブレインダンプ一覧を取得."""
+        """Retrieve brain dump list."""
         cid = uuid.UUID(company_id)
         stmt = select(BrainDumpRecord).where(
             BrainDumpRecord.company_id == cid,
@@ -321,7 +322,7 @@ class SecretaryService:
         return list(result.scalars().all())
 
     async def get_dump(self, dump_id: str) -> BrainDumpRecord | None:
-        """単一のブレインダンプを取得."""
+        """Retrieve a single brain dump."""
         result = await self._db.execute(
             select(BrainDumpRecord).where(BrainDumpRecord.id == uuid.UUID(dump_id))
         )
@@ -337,7 +338,7 @@ class SecretaryService:
         is_archived: bool | None = None,
         is_processed: bool | None = None,
     ) -> BrainDumpRecord | None:
-        """ブレインダンプを更新."""
+        """Update a brain dump."""
         record = await self.get_dump(dump_id)
         if not record:
             return None
@@ -363,7 +364,7 @@ class SecretaryService:
         *,
         limit: int = 20,
     ) -> list[BrainDumpRecord]:
-        """ブレインダンプをキーワード検索."""
+        """Search brain dumps by keyword."""
         cid = uuid.UUID(company_id)
         pattern = f"%{query}%"
         stmt = (
@@ -385,7 +386,7 @@ class SecretaryService:
         *,
         unprocessed_only: bool = True,
     ) -> list[dict]:
-        """全ブレインダンプからアクションアイテムを集約."""
+        """Aggregate action items from all brain dumps."""
         cid = uuid.UUID(company_id)
         stmt = select(BrainDumpRecord).where(
             BrainDumpRecord.company_id == cid,
@@ -421,7 +422,7 @@ class SecretaryService:
         company_id: str,
         date_str: str,
     ) -> dict:
-        """指定日のブレインダンプ統計を取得."""
+        """Retrieve brain dump statistics for a specified date."""
         cid = uuid.UUID(company_id)
 
         stmt = select(BrainDumpRecord).where(

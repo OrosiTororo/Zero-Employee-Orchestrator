@@ -1,9 +1,9 @@
-"""Observability API routes — 推論トレース・通信ログ・実行監視.
+"""Observability API routes — reasoning traces, communication logs, execution monitoring.
 
-マルチエージェントのブラックボックス化を解消するための API:
-  - /traces/*       — 推論トレース（なぜその判断をしたか）
-  - /communications/* — エージェント間通信ログ
-  - /monitor/*      — リアルタイム実行監視
+API to eliminate the black-box nature of multi-agent systems:
+  - /traces/*       — Reasoning traces (why a decision was made)
+  - /communications/* — Inter-agent communication logs
+  - /monitor/*      — Real-time execution monitoring
 """
 
 from __future__ import annotations
@@ -123,7 +123,7 @@ class EscalationResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# 推論トレース API
+# Reasoning Trace API
 # ---------------------------------------------------------------------------
 
 
@@ -135,9 +135,9 @@ async def list_traces(
     limit: int = 50,
     user: User = Depends(get_current_user),
 ):
-    """推論トレース一覧を取得.
+    """List reasoning traces.
 
-    エージェントの思考過程・判断理由を確認できる。
+    View agent thought processes and decision rationale.
     """
     from app.orchestration.reasoning_trace import trace_store
 
@@ -156,7 +156,7 @@ async def list_traces(
 
 @router.get("/traces/active", response_model=TraceListResponse)
 async def list_active_traces(user: User = Depends(get_current_user)):
-    """現在実行中の推論トレースを取得."""
+    """Get currently active reasoning traces."""
     from app.orchestration.reasoning_trace import trace_store
 
     traces = trace_store.get_active()
@@ -168,9 +168,9 @@ async def list_active_traces(user: User = Depends(get_current_user)):
 
 @router.get("/traces/{trace_id}", response_model=TraceResponse)
 async def get_trace(trace_id: str, user: User = Depends(get_current_user)):
-    """特定の推論トレースの詳細を取得.
+    """Get details of a specific reasoning trace.
 
-    各ステップの推論過程、意思決定理由、確信度を含む。
+    Includes reasoning process, decision rationale, and confidence for each step.
     """
     from app.orchestration.reasoning_trace import trace_store
 
@@ -183,9 +183,9 @@ async def get_trace(trace_id: str, user: User = Depends(get_current_user)):
 
 @router.get("/traces/{trace_id}/decisions")
 async def get_trace_decisions(trace_id: str, user: User = Depends(get_current_user)):
-    """推論トレースの意思決定ステップのみ抽出.
+    """Extract only the decision steps from a reasoning trace.
 
-    エージェントが何を選択し、なぜそう判断したかを簡潔に確認できる。
+    Concisely view what the agent chose and why it made that decision.
     """
     from app.orchestration.reasoning_trace import trace_store
 
@@ -213,7 +213,7 @@ async def get_trace_decisions(trace_id: str, user: User = Depends(get_current_us
 
 
 # ---------------------------------------------------------------------------
-# エージェント間通信 API
+# Inter-agent Communication API
 # ---------------------------------------------------------------------------
 
 
@@ -226,9 +226,9 @@ async def list_communications(
     limit: int = 50,
     user: User = Depends(get_current_user),
 ):
-    """エージェント間通信ログの一覧.
+    """List inter-agent communication logs.
 
-    マルチエージェント協調時の全メッセージを確認できる。
+    View all messages during multi-agent coordination.
     """
     from app.orchestration.agent_communication import MessageType, comm_log
 
@@ -253,9 +253,9 @@ async def list_escalations(
     limit: int = 20,
     user: User = Depends(get_current_user),
 ):
-    """エスカレーション一覧.
+    """List escalations.
 
-    エージェントが判断できず人間に委ねた事項を一覧表示。
+    Display items where agents could not make a decision and deferred to humans.
     """
     from app.orchestration.agent_communication import comm_log
 
@@ -268,9 +268,9 @@ async def list_escalations(
 
 @router.get("/communications/agent/{agent_id}/interactions")
 async def get_agent_interactions(agent_id: str, user: User = Depends(get_current_user)):
-    """特定エージェントの通信相手別の集計.
+    """Aggregated communication statistics for a specific agent.
 
-    どのエージェントと最も多くやり取りしているかを把握できる。
+    Understand which agents interact most frequently.
     """
     from app.orchestration.agent_communication import comm_log
 
@@ -285,7 +285,7 @@ async def get_agent_interactions(agent_id: str, user: User = Depends(get_current
 
 @router.get("/communications/threads/{thread_id}", response_model=ThreadResponse)
 async def get_thread(thread_id: str, user: User = Depends(get_current_user)):
-    """会話スレッドの詳細."""
+    """Get conversation thread details."""
     from app.orchestration.agent_communication import comm_log
 
     thread = comm_log.get_thread(thread_id)
@@ -305,15 +305,15 @@ async def get_thread(thread_id: str, user: User = Depends(get_current_user)):
 
 
 # ---------------------------------------------------------------------------
-# 実行監視 API
+# Execution Monitoring API
 # ---------------------------------------------------------------------------
 
 
 @router.get("/monitor/dashboard", response_model=MonitorDashboardResponse)
 async def monitor_dashboard(company_id: str | None = None, user: User = Depends(get_current_user)):
-    """実行監視ダッシュボード.
+    """Execution monitoring dashboard.
 
-    現在実行中のタスク、最近のイベント、システムサマリーを一括取得。
+    Retrieve currently running tasks, recent events, and system summary in one call.
     """
     from app.orchestration.execution_monitor import get_execution_monitor
 
@@ -333,7 +333,7 @@ async def monitor_dashboard(company_id: str | None = None, user: User = Depends(
 async def list_active_executions(
     company_id: str | None = None, user: User = Depends(get_current_user)
 ):
-    """現在実行中のタスク一覧."""
+    """List currently running tasks."""
     from app.orchestration.execution_monitor import get_execution_monitor
 
     monitor = get_execution_monitor()
@@ -343,7 +343,7 @@ async def list_active_executions(
 
 @router.get("/monitor/agent/{agent_id}")
 async def get_agent_activity(agent_id: str, user: User = Depends(get_current_user)):
-    """特定エージェントのアクティビティ."""
+    """Get activity for a specific agent."""
     from app.orchestration.execution_monitor import get_execution_monitor
 
     monitor = get_execution_monitor()
@@ -357,7 +357,7 @@ async def list_monitor_events(
     limit: int = 50,
     user: User = Depends(get_current_user),
 ):
-    """監視イベント一覧."""
+    """List monitoring events."""
     from app.orchestration.execution_monitor import get_execution_monitor
 
     monitor = get_execution_monitor()

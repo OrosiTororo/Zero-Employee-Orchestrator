@@ -28,7 +28,7 @@ class ArtifactCreate(BaseModel):
 async def list_artifacts(
     ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """チケットの成果物一覧"""
+    """List artifacts for a ticket."""
     tid = uuid.UUID(ticket_id)
     result = await db.execute(
         select(Artifact).where(Artifact.ticket_id == tid).order_by(Artifact.created_at.desc())
@@ -53,7 +53,7 @@ async def create_artifact(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """成果物を追加"""
+    """Add an artifact."""
     artifact = Artifact(
         id=uuid.uuid4(),
         ticket_id=uuid.UUID(ticket_id),

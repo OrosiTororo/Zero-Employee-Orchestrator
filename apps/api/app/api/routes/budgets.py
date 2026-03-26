@@ -28,7 +28,7 @@ class BudgetPolicyCreate(BaseModel):
 async def list_budgets(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """予算ポリシー一覧"""
+    """List budget policies."""
     cid = uuid.UUID(company_id)
     result = await db.execute(select(BudgetPolicy).where(BudgetPolicy.company_id == cid))
     budgets = result.scalars().all()
@@ -53,7 +53,7 @@ async def create_budget(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """予算ポリシー作成"""
+    """Create a budget policy."""
     policy = BudgetPolicy(
         id=uuid.uuid4(),
         company_id=uuid.UUID(company_id),
@@ -73,7 +73,7 @@ async def create_budget(
 async def get_cost_summary(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """コスト概要"""
+    """Get cost summary."""
     cid = uuid.UUID(company_id)
     total = await db.execute(
         select(func.coalesce(func.sum(CostLedger.cost_usd), 0)).where(CostLedger.company_id == cid)

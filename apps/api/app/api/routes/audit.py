@@ -23,7 +23,7 @@ async def list_audit_logs(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """監査ログ一覧"""
+    """List audit logs."""
     cid = uuid.UUID(company_id)
     query = select(AuditLog).where(AuditLog.company_id == cid)
     if event_type:

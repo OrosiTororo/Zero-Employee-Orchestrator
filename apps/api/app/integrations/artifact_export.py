@@ -1,12 +1,12 @@
-"""アーティファクトエクスポート — PDF / Markdown / HTML / JSON / CSV / DOCX 出力.
+"""Artifact export — PDF / Markdown / HTML / JSON / CSV / DOCX output.
 
-タスク成果物やドキュメントを各種フォーマットでエクスポートし、
-ローカル保存または外部サービス (Google Docs / Notion / n8n Webhook) へ送信する。
+Exports task artifacts and documents in various formats,
+saving locally or sending to external services (Google Docs / Notion / n8n Webhook).
 
-安全性:
-- ファイル出力はサンドボックスのホワイトリストフォルダに限定
-- 外部送信時はデータ保護ポリシーを適用
-- エクスポート操作は監査ログに記録
+Safety:
+- File output is limited to sandbox whitelisted folders
+- Data protection policies are applied for external transmission
+- Export operations are recorded in audit logs
 """
 
 from __future__ import annotations
@@ -25,12 +25,12 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-# デフォルトのエクスポートディレクトリ
+# Default export directory
 _DEFAULT_EXPORT_DIR = os.environ.get("EXPORT_DIR", os.path.join(os.getcwd(), "exports"))
 
 
 class ExportFormat(str, Enum):
-    """エクスポートフォーマット."""
+    """Export format."""
 
     PDF = "pdf"
     MARKDOWN = "markdown"
@@ -41,7 +41,7 @@ class ExportFormat(str, Enum):
 
 
 class ExportTarget(str, Enum):
-    """エクスポート先."""
+    """Export target."""
 
     LOCAL = "local"
     GOOGLE_DOCS = "google_docs"
@@ -51,7 +51,7 @@ class ExportTarget(str, Enum):
 
 @dataclass
 class ExportRequest:
-    """エクスポートリクエスト."""
+    """Export request."""
 
     content: str | list[dict[str, Any]]
     format: ExportFormat
@@ -62,7 +62,7 @@ class ExportRequest:
 
 @dataclass
 class ExportResult:
-    """エクスポート結果."""
+    """Export result."""
 
     success: bool
     file_path: str = ""
@@ -74,21 +74,21 @@ class ExportResult:
 
 
 class ArtifactExporter:
-    """成果物エクスポートサービス.
+    """Artifact export service.
 
-    コンテンツを指定フォーマットに変換し、ローカルまたは外部サービスへ出力する。
+    Converts content to the specified format and outputs to local or external services.
     """
 
     def __init__(self, export_dir: str = _DEFAULT_EXPORT_DIR) -> None:
         self._export_dir = export_dir
 
     async def export(self, request: ExportRequest) -> ExportResult:
-        """メインエクスポートメソッド — フォーマットとターゲットに応じてディスパッチ."""
+        """Main export method — dispatches based on format and target."""
         filename = request.filename or f"export-{uuid.uuid4().hex[:8]}"
         now = datetime.now(UTC).isoformat()
 
         try:
-            # フォーマット変換
+            # Format conversion
             format_handlers = {
                 ExportFormat.MARKDOWN: self._export_markdown,
                 ExportFormat.HTML: self._export_html,
@@ -111,7 +111,7 @@ class ArtifactExporter:
             result.format = request.format
             result.exported_at = now
 
-            # ターゲットへの送信
+            # Send to target
             if request.target != ExportTarget.LOCAL and result.success:
                 target_result = await self._send_to_target(
                     request.target,
@@ -143,7 +143,7 @@ class ArtifactExporter:
     async def _export_markdown(
         self, content: str | list[dict[str, Any]], filename: str
     ) -> ExportResult:
-        """Markdown 形式でエクスポートする."""
+        """Export in Markdown format."""
         text = self._to_text(content)
         file_path = self._resolve_path(filename, ".md")
         self._ensure_dir(file_path)
@@ -160,7 +160,7 @@ class ArtifactExporter:
     async def _export_html(
         self, content: str | list[dict[str, Any]], filename: str
     ) -> ExportResult:
-        """HTML 形式でエクスポートする."""
+        """Export in HTML format."""
         text = self._to_text(content)
         html = self._markdown_to_html(text)
         file_path = self._resolve_path(filename, ".html")
@@ -178,7 +178,7 @@ class ArtifactExporter:
     async def _export_json(
         self, content: str | list[dict[str, Any]], filename: str
     ) -> ExportResult:
-        """JSON 形式でエクスポートする."""
+        """Export in JSON format."""
         if isinstance(content, str):
             data = {"content": content, "exported_at": datetime.now(UTC).isoformat()}
         else:
@@ -198,10 +198,10 @@ class ArtifactExporter:
         )
 
     async def _export_csv(self, content: str | list[dict[str, Any]], filename: str) -> ExportResult:
-        """CSV 形式でエクスポートする.
+        """Export in CSV format.
 
-        content がリスト (list[dict]) の場合はそのまま CSV 変換する。
-        文字列の場合は単一カラム ``content`` として出力する。
+        If content is a list (list[dict]), it is directly converted to CSV.
+        If it is a string, it is output as a single column ``content``.
         """
         file_path = self._resolve_path(filename, ".csv")
         self._ensure_dir(file_path)
@@ -232,11 +232,11 @@ class ArtifactExporter:
         )
 
     async def _export_pdf(self, content: str | list[dict[str, Any]], filename: str) -> ExportResult:
-        """PDF 形式でエクスポートする.
+        """Export in PDF format.
 
-        HTML を中間フォーマットとして使用し、基本的な PDF 変換を行う。
-        weasyprint が利用可能であればそれを使用し、なければ HTML ファイルと
-        併せて簡易テキスト PDF を生成する。
+        Uses HTML as an intermediate format for basic PDF conversion.
+        If weasyprint is available it is used; otherwise a simple text PDF
+        is generated alongside an HTML file.
         """
         text = self._to_text(content)
         html = self._markdown_to_html(text)
@@ -248,11 +248,11 @@ class ArtifactExporter:
 
             WeasyprintHTML(string=html).write_pdf(file_path)
         except ImportError:
-            # weasyprint がない場合は HTML をフォールバック保存
+            # If weasyprint is not available, fallback to HTML
             logger.warning("weasyprint not available — falling back to HTML export for PDF")
             fallback_path = self._resolve_path(filename, ".html")
             Path(fallback_path).write_text(html, encoding="utf-8")
-            # 簡易的にテキスト形式で PDF 代替ファイルを作成
+            # Create a simple text-based PDF alternative file
             pdf_content = self._build_simple_pdf(text)
             Path(file_path).write_bytes(pdf_content)
 
@@ -266,9 +266,9 @@ class ArtifactExporter:
     async def _export_docx(
         self, content: str | list[dict[str, Any]], filename: str
     ) -> ExportResult:
-        """DOCX 形式でエクスポートする.
+        """Export in DOCX format.
 
-        python-docx が利用可能であればそれを使用し、なければエラーを返す。
+        If python-docx is available it is used; otherwise an error is returned.
         """
         text = self._to_text(content)
         file_path = self._resolve_path(filename, ".docx")
@@ -305,7 +305,7 @@ class ArtifactExporter:
         )
 
     # ------------------------------------------------------------------ #
-    #  外部ターゲットへの送信
+    #  Send to external targets
     # ------------------------------------------------------------------ #
 
     async def _send_to_target(
@@ -315,7 +315,7 @@ class ArtifactExporter:
         content: str | list[dict[str, Any]],
         metadata: dict[str, Any],
     ) -> ExportResult:
-        """エクスポート先にコンテンツを送信する."""
+        """Send content to the export target."""
         if target == ExportTarget.NOTION:
             return await self._send_to_notion(content, metadata)
         elif target == ExportTarget.GOOGLE_DOCS:
@@ -333,7 +333,7 @@ class ArtifactExporter:
     async def _send_to_notion(
         self, content: str | list[dict[str, Any]], config: dict[str, Any]
     ) -> ExportResult:
-        """Notion API 経由でページを作成する."""
+        """Create a page via Notion API."""
         import httpx
 
         api_key = os.environ.get("NOTION_API_KEY", config.get("api_key", ""))
@@ -352,7 +352,7 @@ class ArtifactExporter:
             )
 
         text = self._to_text(content)
-        # Notion API のブロックに変換（最大 2000 文字ずつ分割）
+        # Convert to Notion API blocks (split into chunks of up to 2000 characters)
         blocks = []
         for chunk in self._chunk_text(text, 2000):
             blocks.append(
@@ -368,7 +368,7 @@ class ArtifactExporter:
             "properties": {
                 "title": {"title": [{"text": {"content": title}}]},
             },
-            "children": blocks[:100],  # Notion API は最大 100 ブロック
+            "children": blocks[:100],  # Notion API max 100 blocks
         }
 
         headers = {
@@ -398,7 +398,7 @@ class ArtifactExporter:
     async def _send_to_google_docs(
         self, content: str | list[dict[str, Any]], config: dict[str, Any]
     ) -> ExportResult:
-        """Google Docs API 経由でドキュメントを作成する."""
+        """Create a document via Google Docs API."""
         import httpx
 
         access_token = os.environ.get("GOOGLE_ACCESS_TOKEN", config.get("access_token", ""))
@@ -412,7 +412,7 @@ class ArtifactExporter:
 
         text = self._to_text(content)
 
-        # 1. ドキュメントを作成
+        # 1. Create document
         headers = {
             "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json",
@@ -428,7 +428,7 @@ class ArtifactExporter:
             doc_data = create_resp.json()
             doc_id = doc_data["documentId"]
 
-            # 2. テキストを挿入
+            # 2. Insert text
             requests_body = {
                 "requests": [
                     {
@@ -459,7 +459,7 @@ class ArtifactExporter:
         content: str | list[dict[str, Any]],
         webhook_url: str,
     ) -> ExportResult:
-        """n8n Webhook にコンテンツを送信する."""
+        """Send content to n8n webhook."""
         import httpx
 
         text = self._to_text(content)
@@ -487,30 +487,30 @@ class ArtifactExporter:
         )
 
     # ------------------------------------------------------------------ #
-    #  ユーティリティ
+    #  Utilities
     # ------------------------------------------------------------------ #
 
     def _resolve_path(self, filename: str, ext: str) -> str:
-        """ファイルパスを解決する."""
+        """Resolve file path."""
         if not filename.endswith(ext):
             filename = f"{filename}{ext}"
         return os.path.join(self._export_dir, filename)
 
     @staticmethod
     def _ensure_dir(file_path: str) -> None:
-        """親ディレクトリが存在しなければ作成する."""
+        """Create parent directory if it does not exist."""
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
     @staticmethod
     def _to_text(content: str | list[dict[str, Any]]) -> str:
-        """コンテンツをテキストに変換する."""
+        """Convert content to text."""
         if isinstance(content, str):
             return content
         return json.dumps(content, ensure_ascii=False, indent=2)
 
     @staticmethod
     def _chunk_text(text: str, max_len: int) -> list[str]:
-        """テキストを指定長以下のチャンクに分割する."""
+        """Split text into chunks of specified maximum length."""
         chunks: list[str] = []
         while text:
             chunks.append(text[:max_len])
@@ -519,9 +519,9 @@ class ArtifactExporter:
 
     @staticmethod
     def _markdown_to_html(markdown_text: str) -> str:
-        """Markdown をシンプルな HTML に変換する.
+        """Convert Markdown to simple HTML.
 
-        外部ライブラリが不要な最小限の変換を行う。
+        Performs minimal conversion without requiring external libraries.
         """
         lines = markdown_text.splitlines()
         html_lines: list[str] = [
@@ -579,15 +579,15 @@ class ArtifactExporter:
 
     @staticmethod
     def _build_simple_pdf(text: str) -> bytes:
-        """最小限の PDF バイト列を生成する（外部ライブラリ不要）.
+        """Generate a minimal PDF byte sequence (no external libraries required).
 
-        PDF 1.4 仕様に準拠した最小構造を手動構築する。
-        日本語テキストは含められないため、ASCII のみのフォールバック。
+        Manually constructs a minimal structure conforming to the PDF 1.4 spec.
+        Only ASCII fallback since Japanese text cannot be included.
         """
-        # ASCII のみに変換
+        # Convert to ASCII only
         safe_text = text.encode("ascii", errors="replace").decode("ascii")
         lines = safe_text.splitlines()
-        # 長いテキストは切り詰め
+        # Truncate long text
         page_lines = lines[:100]
         content = "\\n".join(
             line.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
@@ -619,41 +619,41 @@ class ArtifactExporter:
         return pdf.encode("ascii")
 
     def get_supported_formats(self) -> list[dict[str, str]]:
-        """サポートするフォーマット一覧を返す."""
+        """Return a list of supported formats."""
         return [
             {"format": f.value, "description": self._format_description(f)} for f in ExportFormat
         ]
 
     def get_supported_targets(self) -> list[dict[str, str]]:
-        """サポートするエクスポート先一覧を返す."""
+        """Return a list of supported export targets."""
         return [
             {"target": t.value, "description": self._target_description(t)} for t in ExportTarget
         ]
 
     @staticmethod
     def _format_description(fmt: ExportFormat) -> str:
-        """フォーマットの説明を返す."""
+        """Return format description."""
         descriptions = {
-            ExportFormat.PDF: "PDF ドキュメント",
-            ExportFormat.MARKDOWN: "Markdown テキスト",
-            ExportFormat.HTML: "HTML ページ",
-            ExportFormat.JSON: "JSON データ",
-            ExportFormat.CSV: "CSV スプレッドシート",
-            ExportFormat.DOCX: "Microsoft Word ドキュメント",
+            ExportFormat.PDF: "PDF document",
+            ExportFormat.MARKDOWN: "Markdown text",
+            ExportFormat.HTML: "HTML page",
+            ExportFormat.JSON: "JSON data",
+            ExportFormat.CSV: "CSV spreadsheet",
+            ExportFormat.DOCX: "Microsoft Word document",
         }
         return descriptions.get(fmt, fmt.value)
 
     @staticmethod
     def _target_description(target: ExportTarget) -> str:
-        """ターゲットの説明を返す."""
+        """Return target description."""
         descriptions = {
-            ExportTarget.LOCAL: "ローカルファイルシステム",
+            ExportTarget.LOCAL: "Local file system",
             ExportTarget.GOOGLE_DOCS: "Google Docs",
-            ExportTarget.NOTION: "Notion ページ",
+            ExportTarget.NOTION: "Notion page",
             ExportTarget.N8N_WEBHOOK: "n8n Webhook",
         }
         return descriptions.get(target, target.value)
 
 
-# グローバルインスタンス
+# Global instance
 artifact_exporter = ArtifactExporter()

@@ -974,21 +974,21 @@ class PluginLoader:
         return results
 
     def get_template(self, slug: str) -> dict | None:
-        """プラグインテンプレートを取得する."""
+        """Get a plugin template."""
         return _KNOWN_PLUGIN_TEMPLATES.get(slug)
 
-    # ----- 環境チェック -----
+    # ----- Environment check -----
 
     def check_environment(self, slug: str) -> EnvironmentReport:
-        """プラグインの環境要件をチェックする.
+        """Check the environment requirements for a plugin.
 
-        インストール前にユーザーに何が必要かを提示する。
+        Presents what is needed to the user before installation.
 
         Args:
-            slug: プラグインスラッグ
+            slug: Plugin slug
 
         Returns:
-            環境チェックレポート
+            Environment check report
         """
         template = _KNOWN_PLUGIN_TEMPLATES.get(slug)
         if not template:
@@ -996,7 +996,7 @@ class PluginLoader:
                 plugin_name=slug,
                 all_satisfied=False,
                 results=[],
-                setup_instructions=[f"プラグイン '{slug}' が見つかりません"],
+                setup_instructions=[f"Plugin '{slug}' not found"],
             )
 
         requirements = template.get("requirements", [])
@@ -1004,7 +1004,7 @@ class PluginLoader:
         report.plugin_name = template["name"]
         return report
 
-    # ----- インストール -----
+    # ----- Install -----
 
     async def install_plugin(
         self,
@@ -1013,25 +1013,25 @@ class PluginLoader:
         auto_install_packages: bool = False,
         dry_run: bool = False,
     ) -> dict:
-        """プラグインをインストールする.
+        """Install a plugin.
 
         Args:
-            slug: プラグインスラッグ
-            auto_install_packages: pip パッケージを自動インストールするか
-            dry_run: 実際にはインストールせず、手順のみ返す
+            slug: Plugin slug
+            auto_install_packages: Whether to auto-install pip packages
+            dry_run: Only return instructions without actually installing
 
         Returns:
-            インストール結果
+            Installation result
         """
         template = _KNOWN_PLUGIN_TEMPLATES.get(slug)
         if not template:
             return {
                 "success": False,
-                "error": f"プラグイン '{slug}' が見つかりません",
+                "error": f"Plugin '{slug}' not found",
                 "available_plugins": list(_KNOWN_PLUGIN_TEMPLATES.keys()),
             }
 
-        # 環境チェック
+        # Environment check
         env_report = self.check_environment(slug)
 
         if dry_run:
@@ -1055,7 +1055,7 @@ class PluginLoader:
                 },
             }
 
-        # pip パッケージの自動インストール
+        # Auto-install pip packages
         if auto_install_packages and not env_report.all_satisfied:
             for result in env_report.results:
                 if (
@@ -1063,7 +1063,7 @@ class PluginLoader:
                     and result.requirement.type == RequirementType.PIP_PACKAGE
                 ):
                     package = result.requirement.name
-                    logger.info("自動インストール: %s", package)
+                    logger.info("Auto-installing: %s", package)
                     try:
                         subprocess.check_call(
                             [sys.executable, "-m", "pip", "install", package],
@@ -1072,14 +1072,14 @@ class PluginLoader:
                             timeout=120,
                         )
                         result.status = RequirementStatus.SATISFIED
-                        result.detail = f"{package} をインストールしました"
+                        result.detail = f"{package} has been installed"
                     except Exception as exc:
-                        logger.error("パッケージインストール失敗 %s: %s", package, exc)
+                        logger.error("Package installation failed %s: %s", package, exc)
 
-            # 再チェック
+            # Re-check
             env_report = self.check_environment(slug)
 
-        # アダプタ登録
+        # Adapter registration
         adapter_config = template.get("adapter", {})
         adapter_registered = False
 
@@ -1089,21 +1089,21 @@ class PluginLoader:
                 adapter_cls = getattr(module, adapter_config["class"])
                 adapter_instance = adapter_cls()
 
-                # ブラウザアダプタレジストリに登録
+                # Register in browser adapter registry
                 from app.tools.browser_adapter import browser_adapter_registry
 
                 browser_adapter_registry.register(slug, adapter_instance)
                 adapter_registered = True
-                logger.info("アダプタ登録完了: %s", slug)
+                logger.info("Adapter registered: %s", slug)
             except Exception as exc:
-                logger.warning("アダプタ登録失敗: %s — %s", slug, exc)
+                logger.warning("Adapter registration failed: %s — %s", slug, exc)
 
         self._installed_plugins[slug] = {
             "template": template,
             "adapter_registered": adapter_registered,
         }
 
-        # ツールレジストリに登録（AI エージェントが利用可能に）
+        # Register in tool registry (makes it available to AI agents)
         category = template.get("category", "custom")
         self.tool_registry.register_tool(
             slug=slug,
@@ -1130,14 +1130,14 @@ class PluginLoader:
             },
         }
 
-    # ----- アンインストール -----
+    # ----- Uninstall -----
 
     def uninstall_plugin(self, slug: str) -> dict:
-        """プラグインを登録解除する（pip パッケージは削除しない）."""
+        """Unregister a plugin (does not remove pip packages)."""
         if slug not in self._installed_plugins:
-            return {"success": False, "error": f"プラグイン '{slug}' はインストールされていません"}
+            return {"success": False, "error": f"Plugin '{slug}' is not installed"}
 
-        # ブラウザアダプタレジストリからも解除
+        # Also unregister from browser adapter registry
         try:
             from app.tools.browser_adapter import browser_adapter_registry
 
@@ -1145,16 +1145,16 @@ class PluginLoader:
         except Exception:
             pass
 
-        # ツールレジストリからも解除
+        # Also unregister from tool registry
         self.tool_registry.unregister_tool(slug)
 
         del self._installed_plugins[slug]
-        return {"success": True, "message": f"プラグイン '{slug}' を削除しました"}
+        return {"success": True, "message": f"Plugin '{slug}' has been removed"}
 
-    # ----- 一覧 -----
+    # ----- List -----
 
     def list_installed(self) -> list[dict]:
-        """インストール済みプラグイン一覧を返す."""
+        """Return a list of installed plugins."""
         return [
             {
                 "slug": slug,
@@ -1165,7 +1165,7 @@ class PluginLoader:
         ]
 
     def list_available(self) -> list[dict]:
-        """利用可能な全プラグイン一覧を返す."""
+        """Return a list of all available plugins."""
         return [
             {
                 "slug": slug,
@@ -1185,7 +1185,7 @@ class PluginLoader:
 
 
 # ---------------------------------------------------------------------------
-# グローバルインスタンス
+# Global instance
 # ---------------------------------------------------------------------------
 
 plugin_loader = PluginLoader()

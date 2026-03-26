@@ -1,12 +1,12 @@
-"""AI Self-Improvement サービス — Level 2: 自己改善の芽.
+"""AI Self-Improvement Service — Level 2: Seeds of Self-Improvement.
 
-ai-self-improvement Plugin の 6 Skill を実装する:
-1. skill-analyzer:     既存 Skill のコード品質分析と改善提案
-2. skill-improver:     分析結果に基づく改善版 Skill の自動生成
-3. judge-tuner:        Experience Memory から Judge 基準の自動調整
-4. failure-to-skill:   失敗パターンから新 Skill の自動生成
-5. skill-ab-test:      Skill 間の A/B テスト比較
-6. auto-test-generator: テストコードの自動生成と品質検証
+Implements the 6 Skills of the ai-self-improvement Plugin:
+1. skill-analyzer:      Code quality analysis and improvement suggestions for existing Skills
+2. skill-improver:      Auto-generation of improved Skill versions based on analysis results
+3. judge-tuner:         Auto-tuning of Judge criteria from Experience Memory
+4. failure-to-skill:    Auto-generation of new Skills from failure patterns
+5. skill-ab-test:       A/B test comparison between Skills
+6. auto-test-generator: Auto-generation of test code and quality verification
 """
 
 from __future__ import annotations
@@ -40,12 +40,12 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# データ構造
+# Data structures
 # ---------------------------------------------------------------------------
 
 
 class AnalysisCategory(str, Enum):
-    """Skill 分析カテゴリ."""
+    """Skill analysis category."""
 
     CODE_QUALITY = "code_quality"
     PERFORMANCE = "performance"
@@ -56,7 +56,7 @@ class AnalysisCategory(str, Enum):
 
 
 class ImprovementPriority(str, Enum):
-    """改善提案の優先度."""
+    """Improvement proposal priority."""
 
     LOW = "low"
     MEDIUM = "medium"
@@ -66,7 +66,7 @@ class ImprovementPriority(str, Enum):
 
 @dataclass
 class AnalysisFinding:
-    """分析結果の個別項目."""
+    """Individual item in analysis results."""
 
     category: AnalysisCategory
     priority: ImprovementPriority
@@ -78,7 +78,7 @@ class AnalysisFinding:
 
 @dataclass
 class SkillAnalysisResult:
-    """Skill 分析結果."""
+    """Skill analysis result."""
 
     skill_id: str
     skill_slug: str
@@ -94,7 +94,7 @@ class SkillAnalysisResult:
 
 @dataclass
 class SkillImprovementProposal:
-    """Skill 改善提案."""
+    """Skill improvement proposal."""
 
     original_skill_id: str
     original_version: str
@@ -114,20 +114,20 @@ class SkillImprovementProposal:
 
 @dataclass
 class JudgeTuningRule:
-    """Judge 自動調整ルール."""
+    """Judge auto-tuning rule."""
 
     rule_name: str
     rule_type: str  # "pattern_match" | "threshold" | "category_filter"
     condition: dict[str, Any]
     action: str  # "warn" | "fail" | "pass"
     confidence: float  # 0.0 - 1.0
-    source_patterns: int  # 根拠となるパターン数
+    source_patterns: int  # Number of patterns used as evidence
     description: str
 
 
 @dataclass
 class JudgeTuningResult:
-    """Judge 調整結果."""
+    """Judge tuning result."""
 
     company_id: str
     proposed_rules: list[JudgeTuningRule]
@@ -144,7 +144,7 @@ class JudgeTuningResult:
 
 @dataclass
 class FailureToSkillProposal:
-    """失敗パターンから生成された Skill 提案."""
+    """Skill proposal generated from failure patterns."""
 
     failure_category: str
     failure_subcategory: str
@@ -159,7 +159,7 @@ class FailureToSkillProposal:
 
 @dataclass
 class ABTestConfig:
-    """A/B テスト設定."""
+    """A/B test configuration."""
 
     test_id: str
     skill_a_id: str
@@ -177,7 +177,7 @@ class ABTestConfig:
 
 @dataclass
 class ABTestResult:
-    """A/B テスト結果."""
+    """A/B test result."""
 
     test_id: str
     skill_a_id: str
@@ -198,7 +198,7 @@ class ABTestResult:
 
 @dataclass
 class GeneratedTestCase:
-    """自動生成テストケース."""
+    """Auto-generated test case."""
 
     test_name: str
     test_type: str  # "normal" | "edge" | "error"
@@ -209,7 +209,7 @@ class GeneratedTestCase:
 
 @dataclass
 class AutoTestResult:
-    """テスト自動生成結果."""
+    """Auto test generation result."""
 
     skill_id: str
     skill_slug: str
@@ -226,24 +226,24 @@ class AutoTestResult:
 
 
 # ---------------------------------------------------------------------------
-# 1. Skill Analyzer — 既存 Skill のコード品質分析
+# 1. Skill Analyzer — Code quality analysis for existing Skills
 # ---------------------------------------------------------------------------
 
 
 _ANALYSIS_SYSTEM_PROMPT = """\
-あなたは Zero-Employee Orchestrator のスキル品質分析エンジンです。
-与えられた Python スキルコードを分析し、以下の観点で評価してください。
+You are the skill quality analysis engine for Zero-Employee Orchestrator.
+Analyze the given Python skill code and evaluate it from the following perspectives.
 
-## 分析観点
-1. **code_quality** — コード品質（構造、可読性、命名規則、DRY原則）
-2. **performance** — パフォーマンス（不要な処理、N+1クエリ、メモリ使用）
-3. **error_handling** — エラーハンドリング（例外処理、フォールバック、入力検証）
-4. **security** — セキュリティ（インジェクション、認証情報の露出、危険な操作）
-5. **test_coverage** — テストカバレッジ（テスト可能性、エッジケースの考慮）
-6. **documentation** — ドキュメント（docstring、型ヒント、コメント）
+## Analysis perspectives
+1. **code_quality** — Code quality (structure, readability, naming conventions, DRY principle)
+2. **performance** — Performance (unnecessary processing, N+1 queries, memory usage)
+3. **error_handling** — Error handling (exception handling, fallbacks, input validation)
+4. **security** — Security (injection, credential exposure, dangerous operations)
+5. **test_coverage** — Test coverage (testability, edge case consideration)
+6. **documentation** — Documentation (docstrings, type hints, comments)
 
-## 出力フォーマット
-以下の JSON 形式で出力してください:
+## Output format
+Output in the following JSON format:
 
 ```json
 {
@@ -252,12 +252,12 @@ _ANALYSIS_SYSTEM_PROMPT = """\
     {
       "category": "code_quality|performance|error_handling|security|test_coverage|documentation",
       "priority": "low|medium|high|critical",
-      "title": "問題のタイトル",
-      "description": "問題の詳細説明",
-      "suggestion": "具体的な改善提案"
+      "title": "Title of the issue",
+      "description": "Detailed description of the issue",
+      "suggestion": "Specific improvement suggestion"
     }
   ],
-  "summary": "全体の評価サマリ（日本語）"
+  "summary": "Overall evaluation summary"
 }
 ```
 """
@@ -267,9 +267,9 @@ async def analyze_skill(
     db: AsyncSession,
     skill_id: uuid.UUID,
 ) -> SkillAnalysisResult:
-    """既存 Skill のコードを分析し、改善提案を生成する.
+    """Analyze existing Skill code and generate improvement suggestions.
 
-    LLM を使った深い分析と、静的パターンマッチによる基本分析を組み合わせる。
+    Combines deep analysis using LLM with basic analysis via static pattern matching.
     """
     result = await db.execute(select(Skill).where(Skill.id == skill_id))
     skill = result.scalar_one_or_none()
@@ -279,19 +279,19 @@ async def analyze_skill(
     code = skill.generated_code or ""
     findings: list[AnalysisFinding] = []
 
-    # -- 静的分析（常に実行）--
+    # -- Static analysis (always executed) --
     findings.extend(_static_analyze(code))
 
-    # -- 安全性チェック --
+    # -- Safety check --
     safety = analyze_code_safety(code)
     if safety.has_dangerous_code:
         findings.append(
             AnalysisFinding(
                 category=AnalysisCategory.SECURITY,
                 priority=ImprovementPriority.CRITICAL,
-                title="危険なコードパターンの検出",
+                title="Dangerous code pattern detected",
                 description=safety.summary,
-                suggestion="eval/exec/subprocess などの危険なパターンを安全な代替手段に置き換えてください",
+                suggestion="Replace dangerous patterns such as eval/exec/subprocess with safe alternatives",
             )
         )
     if safety.has_external_communication:
@@ -299,20 +299,20 @@ async def analyze_skill(
             AnalysisFinding(
                 category=AnalysisCategory.SECURITY,
                 priority=ImprovementPriority.HIGH,
-                title="外部通信の検出",
-                description="外部HTTP通信が含まれています",
-                suggestion="必要最小限の通信のみ行い、タイムアウトとエラーハンドリングを追加してください",
+                title="External communication detected",
+                description="External HTTP communication is included",
+                suggestion="Limit to only necessary communication and add timeout and error handling",
             )
         )
 
-    # -- LLM 分析 --
+    # -- LLM analysis --
     try:
         llm_findings = await _llm_analyze(code)
         findings.extend(llm_findings)
     except Exception as exc:
-        logger.warning("LLM分析をスキップ: %s", exc)
+        logger.warning("Skipping LLM analysis: %s", exc)
 
-    # スコア算出
+    # Calculate score
     overall_score = _calculate_overall_score(findings)
 
     summary_parts = []
@@ -323,12 +323,12 @@ async def analyze_skill(
         critical_count = sum(1 for i in items if i.priority == ImprovementPriority.CRITICAL)
         high_count = sum(1 for i in items if i.priority == ImprovementPriority.HIGH)
         summary_parts.append(
-            f"{cat}: {len(items)}件 (critical={critical_count}, high={high_count})"
+            f"{cat}: {len(items)} items (critical={critical_count}, high={high_count})"
         )
 
     summary = (
-        f"スキル '{skill.slug}' の分析完了。スコア: {overall_score:.0%}。"
-        f" 検出事項: {len(findings)}件。{'; '.join(summary_parts)}"
+        f"Analysis of skill '{skill.slug}' complete. Score: {overall_score:.0%}."
+        f" Findings: {len(findings)} items. {'; '.join(summary_parts)}"
     )
 
     return SkillAnalysisResult(
@@ -341,7 +341,7 @@ async def analyze_skill(
 
 
 def _static_analyze(code: str) -> list[AnalysisFinding]:
-    """静的パターンマッチによるコード分析."""
+    """Code analysis via static pattern matching."""
     findings: list[AnalysisFinding] = []
 
     if not code.strip():
@@ -349,28 +349,28 @@ def _static_analyze(code: str) -> list[AnalysisFinding]:
             AnalysisFinding(
                 category=AnalysisCategory.CODE_QUALITY,
                 priority=ImprovementPriority.CRITICAL,
-                title="コードが空です",
-                description="スキルの実装コードが存在しません",
-                suggestion="execute(context) 関数を実装してください",
+                title="Code is empty",
+                description="No implementation code exists for the skill",
+                suggestion="Implement the execute(context) function",
             )
         )
         return findings
 
     lines = code.split("\n")
 
-    # docstring チェック
+    # docstring check
     if '"""' not in code and "'''" not in code:
         findings.append(
             AnalysisFinding(
                 category=AnalysisCategory.DOCUMENTATION,
                 priority=ImprovementPriority.MEDIUM,
-                title="docstring が未記述",
-                description="関数やモジュールに docstring が見つかりません",
-                suggestion="各関数に docstring を追加してください",
+                title="Missing docstring",
+                description="No docstring found for functions or modules",
+                suggestion="Add docstrings to each function",
             )
         )
 
-    # 型ヒントチェック
+    # Type hint check
     func_defs = re.findall(r"(async\s+)?def\s+\w+\([^)]*\)", code)
     for func_def in func_defs:
         if (
@@ -381,29 +381,29 @@ def _static_analyze(code: str) -> list[AnalysisFinding]:
                 AnalysisFinding(
                     category=AnalysisCategory.DOCUMENTATION,
                     priority=ImprovementPriority.LOW,
-                    title="戻り値の型ヒントが未記述",
-                    description=f"関数定義に戻り値の型ヒントがありません: {func_def[:60]}",
-                    suggestion="-> ReturnType の形式で戻り値の型を明示してください",
+                    title="Missing return type hint",
+                    description=f"Function definition is missing a return type hint: {func_def[:60]}",
+                    suggestion="Explicitly specify the return type in the form -> ReturnType",
                 )
             )
-            break  # 1つ見つけたら十分
+            break  # One finding is enough
 
-    # try/except チェック
+    # try/except check
     if "try:" not in code and "except" not in code:
         findings.append(
             AnalysisFinding(
                 category=AnalysisCategory.ERROR_HANDLING,
                 priority=ImprovementPriority.HIGH,
-                title="エラーハンドリングが未実装",
-                description="try/except ブロックが見つかりません",
-                suggestion="外部APIコール・ファイル操作には try/except を追加してください",
+                title="Error handling not implemented",
+                description="No try/except blocks found",
+                suggestion="Add try/except for external API calls and file operations",
             )
         )
 
-    # ハードコードされた値
+    # Hardcoded values
     hardcoded_patterns = [
-        (r'https?://[^\s"\']+', "ハードコードされたURL"),
-        (r'["\'][\w-]+\.[\w-]+@[\w-]+\.[\w]+["\']', "ハードコードされたメールアドレス"),
+        (r'https?://[^\s"\']+', "Hardcoded URL"),
+        (r'["\'][\w-]+\.[\w-]+@[\w-]+\.[\w]+["\']', "Hardcoded email address"),
     ]
     for pattern, desc in hardcoded_patterns:
         if re.search(pattern, code):
@@ -412,12 +412,12 @@ def _static_analyze(code: str) -> list[AnalysisFinding]:
                     category=AnalysisCategory.CODE_QUALITY,
                     priority=ImprovementPriority.MEDIUM,
                     title=desc,
-                    description=f"{desc}がコード内に検出されました",
-                    suggestion="設定値やコンテキストから注入するようにしてください",
+                    description=f"{desc} detected in code",
+                    suggestion="Inject via configuration values or context instead",
                 )
             )
 
-    # 長すぎる関数
+    # Function too long
     current_func_lines = 0
     in_func = False
     for line in lines:
@@ -427,9 +427,9 @@ def _static_analyze(code: str) -> list[AnalysisFinding]:
                     AnalysisFinding(
                         category=AnalysisCategory.CODE_QUALITY,
                         priority=ImprovementPriority.MEDIUM,
-                        title="長すぎる関数",
-                        description=f"50行を超える関数が存在します ({current_func_lines}行)",
-                        suggestion="関数を小さな単位に分割してください",
+                        title="Function too long",
+                        description=f"A function exceeding 50 lines exists ({current_func_lines} lines)",
+                        suggestion="Split the function into smaller units",
                     )
                 )
             in_func = True
@@ -441,7 +441,7 @@ def _static_analyze(code: str) -> list[AnalysisFinding]:
 
 
 async def _llm_analyze(code: str) -> list[AnalysisFinding]:
-    """LLM を使ったコード分析."""
+    """Code analysis using LLM."""
     from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
 
     response = await llm_gateway.complete(
@@ -450,7 +450,7 @@ async def _llm_analyze(code: str) -> list[AnalysisFinding]:
                 {"role": "system", "content": _ANALYSIS_SYSTEM_PROMPT},
                 {
                     "role": "user",
-                    "content": f"以下のスキルコードを分析してください:\n\n```python\n{code}\n```",
+                    "content": f"Please analyze the following skill code:\n\n```python\n{code}\n```",
                 },
             ],
             temperature=0.2,
@@ -484,7 +484,7 @@ async def _llm_analyze(code: str) -> list[AnalysisFinding]:
 
 
 def _calculate_overall_score(findings: list[AnalysisFinding]) -> float:
-    """検出事項から全体スコアを算出."""
+    """Calculate the overall score from findings."""
     if not findings:
         return 1.0
 
@@ -503,29 +503,29 @@ def _calculate_overall_score(findings: list[AnalysisFinding]) -> float:
 
 
 # ---------------------------------------------------------------------------
-# 2. Skill Improver — 分析結果に基づく改善版生成
+# 2. Skill Improver — Generate improved version based on analysis results
 # ---------------------------------------------------------------------------
 
 
 _IMPROVE_SYSTEM_PROMPT = """\
-あなたは Zero-Employee Orchestrator のスキル改善エンジンです。
-既存のスキルコードと分析結果を受け取り、改善版のコードを生成してください。
+You are the skill improvement engine for Zero-Employee Orchestrator.
+Receive the existing skill code and analysis results, and generate an improved version of the code.
 
-## ルール
-- `async def execute(context: dict) -> dict` のインターフェースを維持すること
-- 既存の機能を壊さないこと
-- 安全でないコード (eval, exec, subprocess) を使わないこと
-- 改善内容を変更点サマリとして出力すること
+## Rules
+- Maintain the `async def execute(context: dict) -> dict` interface
+- Do not break existing functionality
+- Do not use unsafe code (eval, exec, subprocess)
+- Output improvement details as a changes summary
 
-## 出力フォーマット
+## Output format
 ```python
-{改善されたコード全体}
+{entire improved code}
 ```
 
 ```json
 {
-  "changes": ["変更点1", "変更点2"],
-  "expected_improvements": ["改善効果1", "改善効果2"]
+  "changes": ["change 1", "change 2"],
+  "expected_improvements": ["improvement effect 1", "improvement effect 2"]
 }
 ```
 """
@@ -536,9 +536,9 @@ async def improve_skill(
     skill_id: uuid.UUID,
     analysis: SkillAnalysisResult | None = None,
 ) -> SkillImprovementProposal:
-    """分析結果に基づいて Skill の改善版を生成する.
+    """Generate an improved version of a Skill based on analysis results.
 
-    analysis が未指定の場合は先に分析を実行する。
+    If analysis is not provided, analysis is performed first.
     """
     result = await db.execute(select(Skill).where(Skill.id == skill_id))
     skill = result.scalar_one_or_none()
@@ -550,9 +550,9 @@ async def improve_skill(
 
     original_code = skill.generated_code or ""
     if not original_code.strip():
-        raise ValueError("改善対象のコードが存在しません")
+        raise ValueError("No code exists to improve")
 
-    # 分析結果のサマリを構築
+    # Build summary of analysis results
     findings_text = "\n".join(
         f"- [{f.priority.value}] {f.category.value}: {f.title} — {f.suggestion}"
         for f in analysis.findings
@@ -572,9 +572,9 @@ async def improve_skill(
                     {
                         "role": "user",
                         "content": (
-                            f"## 元のコード\n```python\n{original_code}\n```\n\n"
-                            f"## 分析結果 (スコア: {analysis.overall_score:.0%})\n{findings_text}\n\n"
-                            "上記の分析結果に基づいてコードを改善してください。"
+                            f"## Original code\n```python\n{original_code}\n```\n\n"
+                            f"## Analysis results (score: {analysis.overall_score:.0%})\n{findings_text}\n\n"
+                            "Please improve the code based on the above analysis results."
                         ),
                     },
                 ],
@@ -595,19 +595,19 @@ async def improve_skill(
             expected = meta.get("expected_improvements", [])
 
     except Exception as exc:
-        logger.warning("LLM改善生成をスキップ、静的改善のみ適用: %s", exc)
+        logger.warning("Skipping LLM improvement generation, applying static improvements only: %s", exc)
         improved_code, changes = _apply_static_improvements(original_code, analysis.findings)
-        expected = ["静的分析に基づく基本的な改善"]
+        expected = ["Basic improvements based on static analysis"]
 
-    # 安全性チェック
+    # Safety check
     safety = analyze_code_safety(improved_code)
     if safety.risk_level == "high":
-        logger.warning("改善版コードに安全性リスクあり、元コードを維持")
+        logger.warning("Safety risk in improved code, keeping original code")
         improved_code = original_code
-        changes = ["安全性リスクにより改善を却下"]
+        changes = ["Improvement rejected due to safety risk"]
         expected = []
 
-    # バージョン番号を更新
+    # Update version number
     current_version = skill.version or "0.1.0"
     parts = current_version.split(".")
     try:
@@ -622,27 +622,27 @@ async def improve_skill(
         proposed_version=proposed_version,
         original_code=original_code,
         improved_code=improved_code,
-        changes_summary=changes if changes else ["コードの品質改善"],
-        expected_improvements=expected if expected else ["コード品質の向上"],
+        changes_summary=changes if changes else ["Code quality improvement"],
+        expected_improvements=expected if expected else ["Improved code quality"],
         requires_approval=True,
     )
 
 
 def _apply_static_improvements(code: str, findings: list[AnalysisFinding]) -> tuple[str, list[str]]:
-    """LLM なしで適用可能な静的改善."""
+    """Static improvements applicable without LLM."""
     improved = code
     changes: list[str] = []
 
-    # エラーハンドリング追加
+    # Add error handling
     has_error_handling = any(f.category == AnalysisCategory.ERROR_HANDLING for f in findings)
     if has_error_handling and "try:" not in improved:
-        # execute 関数の本体を try/except で囲む
+        # Wrap the execute function body with try/except
         if "async def execute(" in improved:
             improved = improved.replace(
                 "async def execute(context: dict) -> dict:",
                 "async def execute(context: dict) -> dict:\n    try:",
             )
-            # インデントを調整
+            # Adjust indentation
             lines = improved.split("\n")
             new_lines = []
             in_execute = False
@@ -664,7 +664,7 @@ def _apply_static_improvements(code: str, findings: list[AnalysisFinding]) -> tu
                     new_lines.append(line)
             improved = "\n".join(new_lines)
             improved += '\n    except Exception as exc:\n        return {"status": "error", "output": str(exc), "artifacts": [], "cost_usd": 0.0}\n'
-            changes.append("execute() 関数にエラーハンドリングを追加")
+            changes.append("Added error handling to execute() function")
 
     return improved, changes
 
@@ -674,13 +674,13 @@ async def apply_improvement(
     skill_id: uuid.UUID,
     proposal: SkillImprovementProposal,
 ) -> Skill:
-    """改善提案を適用する（承認後に呼び出し）."""
+    """Apply an improvement proposal (called after approval)."""
     result = await db.execute(select(Skill).where(Skill.id == skill_id))
     skill = result.scalar_one_or_none()
     if skill is None:
         raise ValueError(f"Skill not found: {skill_id}")
 
-    # バージョン履歴を manifest_json に保存
+    # Save version history in manifest_json
     manifest = skill.manifest_json or {}
     version_history = manifest.get("version_history", [])
     version_history.append(
@@ -693,13 +693,13 @@ async def apply_improvement(
     manifest["version_history"] = version_history
     skill.manifest_json = manifest
 
-    # 更新適用
+    # Apply update
     skill.generated_code = proposal.improved_code
     skill.version = proposal.proposed_version
     await db.flush()
 
     logger.info(
-        "Skill改善適用: %s v%s -> v%s",
+        "Skill improvement applied: %s v%s -> v%s",
         skill.slug,
         proposal.original_version,
         proposal.proposed_version,
@@ -708,7 +708,7 @@ async def apply_improvement(
 
 
 # ---------------------------------------------------------------------------
-# 3. Judge Tuner — Experience Memory からの Judge 基準自動調整
+# 3. Judge Tuner — Auto-tuning Judge criteria from Experience Memory
 # ---------------------------------------------------------------------------
 
 
@@ -716,9 +716,9 @@ async def tune_judge_from_experience(
     db: AsyncSession,
     company_id: uuid.UUID,
 ) -> JudgeTuningResult:
-    """Experience Memory の承認/却下パターンから Judge ルールを提案する."""
+    """Propose Judge rules from approval/rejection patterns in Experience Memory."""
 
-    # 成功パターン取得
+    # Retrieve success patterns
     success_records = await db.execute(
         select(ExperienceMemoryRecord)
         .where(
@@ -728,7 +728,7 @@ async def tune_judge_from_experience(
     )
     successes = list(success_records.scalars().all())
 
-    # 失敗パターン取得
+    # Retrieve failure patterns
     failure_records = await db.execute(
         select(FailureTaxonomyRecord)
         .where(
@@ -744,7 +744,7 @@ async def tune_judge_from_experience(
 
     proposed_rules: list[JudgeTuningRule] = []
 
-    # -- パターン1: 頻発する失敗カテゴリから自動ルール生成 --
+    # -- Pattern 1: Auto-generate rules from frequently occurring failure categories --
     failure_categories: dict[str, int] = {}
     for f in failures:
         failure_categories[f.category] = failure_categories.get(f.category, 0) + f.occurrence_count
@@ -759,11 +759,11 @@ async def tune_judge_from_experience(
                     action="warn",
                     confidence=min(0.9, 0.5 + count * 0.05),
                     source_patterns=count,
-                    description=f"失敗カテゴリ '{category}' が{count}回発生。出力に該当パターンがないか追加チェックを推奨。",
+                    description=f"Failure category '{category}' occurred {count} times. Additional checks recommended for matching patterns in output.",
                 )
             )
 
-    # -- パターン2: 高い有効性スコアのパターンからルール生成 --
+    # -- Pattern 2: Generate rules from patterns with high effectiveness scores --
     high_effectiveness = [s for s in successes if s.effectiveness_score >= 0.8]
     if high_effectiveness:
         categories = {}
@@ -779,11 +779,11 @@ async def tune_judge_from_experience(
                         action="pass",
                         confidence=min(0.85, 0.5 + cnt * 0.1),
                         source_patterns=cnt,
-                        description=f"カテゴリ '{cat}' で有効性スコア0.8以上の成功パターンが{cnt}件。このカテゴリの出力は品質が高い傾向。",
+                        description=f"Category '{cat}' has {cnt} success patterns with effectiveness score >= 0.8. Output in this category tends to be high quality.",
                     )
                 )
 
-    # -- パターン3: 回復成功率の低い障害から厳格チェック --
+    # -- Pattern 3: Strict checks from failures with low recovery success rates --
     low_recovery = [
         f for f in failures if f.recovery_success_rate < 0.3 and f.occurrence_count >= 2
     ]
@@ -801,22 +801,22 @@ async def tune_judge_from_experience(
                 confidence=min(0.95, 0.6 + f.occurrence_count * 0.05),
                 source_patterns=f.occurrence_count,
                 description=(
-                    f"'{f.category}/{f.subcategory}' は回復成功率が{f.recovery_success_rate:.0%}と低く、"
-                    f"{f.occurrence_count}回発生。事前に厳格チェックで防止を推奨。"
+                    f"'{f.category}/{f.subcategory}' has a low recovery success rate of {f.recovery_success_rate:.0%} "
+                    f"and occurred {f.occurrence_count} times. Strict pre-checks recommended for prevention."
                 ),
             )
         )
 
-    # -- LLM による追加ルール提案 --
+    # -- Additional rule proposals via LLM --
     try:
         llm_rules = await _llm_propose_judge_rules(successes, failures)
         proposed_rules.extend(llm_rules)
     except Exception as exc:
-        logger.warning("LLMによるJudgeルール提案をスキップ: %s", exc)
+        logger.warning("Skipping LLM Judge rule proposals: %s", exc)
 
     summary = (
-        f"分析パターン数: {total_patterns} (成功: {len(successes)}, 失敗: {len(failures)})。"
-        f" 承認率: {approval_rate:.0%}。提案ルール数: {len(proposed_rules)}。"
+        f"Analyzed patterns: {total_patterns} (success: {len(successes)}, failure: {len(failures)})."
+        f" Approval rate: {approval_rate:.0%}. Proposed rules: {len(proposed_rules)}."
     )
 
     return JudgeTuningResult(
@@ -833,33 +833,33 @@ async def _llm_propose_judge_rules(
     successes: list[ExperienceMemoryRecord],
     failures: list[FailureTaxonomyRecord],
 ) -> list[JudgeTuningRule]:
-    """LLM を使ってパターンからルールを提案."""
+    """Propose rules from patterns using LLM."""
     from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
 
-    # データを要約
+    # Summarize data
     success_summary = "\n".join(
-        f"- [{s.category}] {s.title} (有効性: {s.effectiveness_score})" for s in successes[:20]
+        f"- [{s.category}] {s.title} (effectiveness: {s.effectiveness_score})" for s in successes[:20]
     )
     failure_summary = "\n".join(
-        f"- [{f.category}/{f.subcategory}] {f.description} (発生: {f.occurrence_count}回, 回復率: {f.recovery_success_rate:.0%})"
+        f"- [{f.category}/{f.subcategory}] {f.description} (occurrences: {f.occurrence_count}, recovery rate: {f.recovery_success_rate:.0%})"
         for f in failures[:20]
     )
 
-    prompt = f"""以下のデータから Judge Layer の品質チェックルールを提案してください。
+    prompt = f"""Please propose quality check rules for the Judge Layer from the following data.
 
-## 成功パターン
-{success_summary or "（データなし）"}
+## Success patterns
+{success_summary or "(no data)"}
 
-## 失敗パターン
-{failure_summary or "（データなし）"}
+## Failure patterns
+{failure_summary or "(no data)"}
 
-JSON配列で出力:
+Output as a JSON array:
 ```json
 [
   {{
-    "rule_name": "ルール名（英語snake_case）",
-    "description": "ルールの説明（日本語）",
-    "action": "warn または fail"
+    "rule_name": "rule_name (English snake_case)",
+    "description": "Description of the rule",
+    "action": "warn or fail"
   }}
 ]
 ```"""
@@ -867,7 +867,7 @@ JSON配列で出力:
     response = await llm_gateway.complete(
         CompletionRequest(
             messages=[
-                {"role": "system", "content": "あなたは品質管理の専門家です。"},
+                {"role": "system", "content": "You are a quality management expert."},
                 {"role": "user", "content": prompt},
             ],
             temperature=0.3,
@@ -881,7 +881,7 @@ JSON配列で出力:
         json_match = re.search(r"```json\s*\n(.*?)\n```", response.content, re.DOTALL)
         if json_match:
             items = json.loads(json_match.group(1))
-            for item in items[:5]:  # 最大5ルール
+            for item in items[:5]:  # Maximum 5 rules
                 rules.append(
                     JudgeTuningRule(
                         rule_name=item.get("rule_name", "llm_rule"),
@@ -903,7 +903,7 @@ async def apply_judge_tuning(
     tuning_result: JudgeTuningResult,
     judge: RuleBasedJudge | None = None,
 ) -> int:
-    """提案された Judge ルールを適用する（承認後に呼び出し）."""
+    """Apply proposed Judge rules (called after approval)."""
     target_judge = judge or rule_judge
     applied = 0
 
@@ -915,7 +915,7 @@ async def apply_judge_tuning(
 
         def make_check(r: JudgeTuningRule):
             def check_fn(output: dict, context: dict) -> bool:
-                # カテゴリフィルタの場合
+                # For category filter
                 if r.rule_type == "category_filter":
                     cat = r.condition.get("failure_category", "")
                     content = json.dumps(output, ensure_ascii=False, default=str)
@@ -931,12 +931,12 @@ async def apply_judge_tuning(
         )
         applied += 1
 
-    logger.info("Judge ルール %d 件を適用", applied)
+    logger.info("Applied %d Judge rules", applied)
     return applied
 
 
 # ---------------------------------------------------------------------------
-# 4. Failure-to-Skill — 失敗パターンから新 Skill 自動生成
+# 4. Failure-to-Skill — Auto-generate new Skills from failure patterns
 # ---------------------------------------------------------------------------
 
 
@@ -945,7 +945,7 @@ async def generate_skills_from_failures(
     company_id: uuid.UUID,
     min_occurrences: int = 2,
 ) -> list[FailureToSkillProposal]:
-    """頻発する失敗パターンから予防 Skill を提案する."""
+    """Propose prevention Skills from frequently occurring failure patterns."""
     memory = PersistentExperienceMemory(db, company_id)
     frequent_failures = await memory.get_frequent_failures(min_count=min_occurrences)
 
@@ -956,21 +956,21 @@ async def generate_skills_from_failures(
         slug = re.sub(r"[^a-z0-9-]", "-", slug)
         slug = re.sub(r"-+", "-", slug).strip("-")
 
-        name = f"失敗防止: {failure.category}/{failure.subcategory}"
+        name = f"Failure prevention: {failure.category}/{failure.subcategory}"
 
         description = (
-            f"失敗パターン '{failure.category}/{failure.subcategory}' の再発を防止するスキル。"
-            f" {failure.description}。予防策: {failure.prevention_strategy}"
+            f"Skill to prevent recurrence of failure pattern '{failure.category}/{failure.subcategory}'."
+            f" {failure.description}. Prevention strategy: {failure.prevention_strategy}"
         )
 
-        # LLM でコード生成を試みる
+        # Attempt code generation with LLM
         code = ""
         try:
             code = await _generate_prevention_skill_code(failure)
         except Exception as exc:
-            logger.warning("LLM予防スキル生成をスキップ: %s", exc)
+            logger.warning("Skipping LLM prevention skill generation: %s", exc)
 
-        # フォールバック: テンプレートベースコード
+        # Fallback: template-based code
         if not code:
             code = _generate_prevention_template(slug, failure)
 
@@ -996,33 +996,33 @@ async def generate_skills_from_failures(
 async def _generate_prevention_skill_code(
     failure: FailureTaxonomyRecord,
 ) -> str:
-    """LLM を使って予防スキルのコードを生成."""
+    """Generate prevention skill code using LLM."""
     from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
 
-    prompt = f"""以下の失敗パターンを防止するスキルのPythonコードを生成してください。
+    prompt = f"""Generate Python code for a skill that prevents the following failure pattern.
 
-## 失敗パターン
-- カテゴリ: {failure.category}
-- サブカテゴリ: {failure.subcategory}
-- 説明: {failure.description}
-- 予防策: {failure.prevention_strategy}
-- 発生回数: {failure.occurrence_count}
+## Failure pattern
+- Category: {failure.category}
+- Subcategory: {failure.subcategory}
+- Description: {failure.description}
+- Prevention strategy: {failure.prevention_strategy}
+- Occurrences: {failure.occurrence_count}
 
-## ルール
-- `async def execute(context: dict) -> dict` を実装
-- context には input, local_context, provider, settings が含まれる
-- 戻り値: {{ status, output, artifacts, cost_usd }}
-- eval/exec/subprocess は使わない
-- タスク実行前にチェックし、問題があれば警告を返す
+## Rules
+- Implement `async def execute(context: dict) -> dict`
+- context contains input, local_context, provider, settings
+- Return value: {{ status, output, artifacts, cost_usd }}
+- Do not use eval/exec/subprocess
+- Check before task execution and return warnings if issues are found
 
 ```python
-{{コード}}
+{{code}}
 ```"""
 
     response = await llm_gateway.complete(
         CompletionRequest(
             messages=[
-                {"role": "system", "content": "あなたはスキルコード生成の専門家です。"},
+                {"role": "system", "content": "You are an expert in skill code generation."},
                 {"role": "user", "content": prompt},
             ],
             temperature=0.3,
@@ -1036,40 +1036,40 @@ async def _generate_prevention_skill_code(
 
 
 def _generate_prevention_template(slug: str, failure: FailureTaxonomyRecord) -> str:
-    """テンプレートベースの予防スキルコード."""
+    """Template-based prevention skill code."""
     safe_cat = failure.category.replace('"', '\\"')
     safe_sub = failure.subcategory.replace('"', '\\"')
     safe_desc = failure.description.replace('"', '\\"').replace("\n", "\\n")
     safe_prev = failure.prevention_strategy.replace('"', '\\"').replace("\n", "\\n")
 
-    return f'''"""失敗防止スキル: {slug}
+    return f'''"""Failure prevention skill: {slug}
 
-カテゴリ: {safe_cat}/{safe_sub}
-予防策: {safe_prev}
+Category: {safe_cat}/{safe_sub}
+Prevention strategy: {safe_prev}
 """
 
 
 async def execute(context: dict) -> dict:
-    """タスク実行前に失敗パターンをチェックする.
+    """Check for failure patterns before task execution.
 
-    検出対象: {safe_desc}
+    Detection target: {safe_desc}
     """
     user_input = context.get("input", "")
     warnings: list[str] = []
 
-    # 失敗パターンのキーワードチェック
+    # Failure pattern keyword check
     risk_keywords = ["{safe_cat}", "{safe_sub}"]
     for keyword in risk_keywords:
         if keyword.lower() in user_input.lower():
             warnings.append(
-                f"入力に失敗パターン関連キーワード '{{keyword}}' が含まれています。"
-                f"予防策: {safe_prev}"
+                f"Input contains failure pattern keyword '{{keyword}}'."
+                f" Prevention strategy: {safe_prev}"
             )
 
     if warnings:
         return {{
             "status": "warning",
-            "output": "失敗パターンの兆候を検出しました: " + "; ".join(warnings),
+            "output": "Failure pattern signs detected: " + "; ".join(warnings),
             "artifacts": [],
             "cost_usd": 0.0,
             "prevention_advice": "{safe_prev}",
@@ -1077,7 +1077,7 @@ async def execute(context: dict) -> dict:
 
     return {{
         "status": "success",
-        "output": "失敗パターンの兆候は検出されませんでした",
+        "output": "No failure pattern signs detected",
         "artifacts": [],
         "cost_usd": 0.0,
     }}
@@ -1085,7 +1085,7 @@ async def execute(context: dict) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# 5. Skill A/B Test — Skill 間の性能比較
+# 5. Skill A/B Test — Performance comparison between Skills
 # ---------------------------------------------------------------------------
 
 
@@ -1096,7 +1096,7 @@ async def run_skill_ab_test(
     test_input: dict[str, Any],
     iterations: int = 3,
 ) -> ABTestResult:
-    """2つの Skill を同じ入力で実行し、品質・速度を比較する."""
+    """Execute two Skills with the same input and compare quality and speed."""
     result_a = await db.execute(select(Skill).where(Skill.id == skill_a_id))
     skill_a = result_a.scalar_one_or_none()
     result_b = await db.execute(select(Skill).where(Skill.id == skill_b_id))
@@ -1115,13 +1115,13 @@ async def run_skill_ab_test(
     details: list[dict[str, Any]] = []
 
     for i in range(iterations):
-        # Skill A 実行
+        # Execute Skill A
         a_result, a_time = await _execute_skill_for_test(skill_a, test_input)
         a_score = _evaluate_output_quality(a_result)
         a_scores.append(a_score)
         a_times.append(a_time)
 
-        # Skill B 実行
+        # Execute Skill B
         b_result, b_time = await _execute_skill_for_test(skill_b, test_input)
         b_score = _evaluate_output_quality(b_result)
         b_scores.append(b_score)
@@ -1148,22 +1148,22 @@ async def run_skill_ab_test(
     avg_a_time = sum(a_times) / len(a_times) if a_times else 0
     avg_b_time = sum(b_times) / len(b_times) if b_times else 0
 
-    # 勝者判定: 品質を優先、同等なら速度で判定
+    # Winner determination: prioritize quality, use speed as tiebreaker
     score_diff = avg_a_score - avg_b_score
     if abs(score_diff) > 0.05:
         winner = str(skill_a_id) if score_diff > 0 else str(skill_b_id)
         winner_reason = (
-            f"品質スコア差: {abs(score_diff):.2f} (A: {avg_a_score:.2f}, B: {avg_b_score:.2f})"
+            f"Quality score difference: {abs(score_diff):.2f} (A: {avg_a_score:.2f}, B: {avg_b_score:.2f})"
         )
-    elif abs(avg_a_time - avg_b_time) > 100:  # 100ms以上の差
+    elif abs(avg_a_time - avg_b_time) > 100:  # More than 100ms difference
         winner = str(skill_a_id) if avg_a_time < avg_b_time else str(skill_b_id)
         winner_reason = (
-            f"品質同等、速度差: {abs(avg_a_time - avg_b_time):.0f}ms "
+            f"Quality equivalent, speed difference: {abs(avg_a_time - avg_b_time):.0f}ms "
             f"(A: {avg_a_time:.0f}ms, B: {avg_b_time:.0f}ms)"
         )
     else:
         winner = "tie"
-        winner_reason = f"品質・速度ともに同等 (A: {avg_a_score:.2f}/{avg_a_time:.0f}ms, B: {avg_b_score:.2f}/{avg_b_time:.0f}ms)"
+        winner_reason = f"Quality and speed both equivalent (A: {avg_a_score:.2f}/{avg_a_time:.0f}ms, B: {avg_b_score:.2f}/{avg_b_time:.0f}ms)"
 
     return ABTestResult(
         test_id=test_id,
@@ -1183,10 +1183,10 @@ async def _execute_skill_for_test(
     skill: Skill,
     test_input: dict[str, Any],
 ) -> tuple[dict[str, Any], float]:
-    """Skill をテスト実行し、結果と実行時間を返す."""
+    """Execute a Skill for testing and return the result and execution time."""
     code = skill.generated_code or ""
     if not code.strip():
-        return {"status": "error", "output": "コードなし"}, 0.0
+        return {"status": "error", "output": "No code"}, 0.0
 
     context = {
         "input": test_input.get("input", ""),
@@ -1197,14 +1197,14 @@ async def _execute_skill_for_test(
 
     start = time.monotonic()
     try:
-        # サンドボックス実行: compile + exec で execute 関数を取り出し安全に実行
+        # Sandbox execution: extract execute function via compile + exec and run safely
         namespace: dict[str, Any] = {}
         compiled = compile(code, f"<skill:{skill.slug}>", "exec")
         exec(compiled, namespace)  # noqa: S102 — sandbox execution
 
         execute_fn = namespace.get("execute")
         if execute_fn is None:
-            return {"status": "error", "output": "execute関数が未定義"}, 0.0
+            return {"status": "error", "output": "execute function not defined"}, 0.0
 
         import asyncio
 
@@ -1221,33 +1221,33 @@ async def _execute_skill_for_test(
 
     except Exception as exc:
         elapsed = (time.monotonic() - start) * 1000
-        return {"status": "error", "output": f"実行エラー: {exc}"}, elapsed
+        return {"status": "error", "output": f"Execution error: {exc}"}, elapsed
 
 
 def _evaluate_output_quality(output: dict[str, Any]) -> float:
-    """出力の品質をスコアリング."""
+    """Score the quality of the output."""
     score = 0.0
 
-    # ステータスチェック
+    # Status check
     status = output.get("status", "")
     if status == "success":
         score += 0.4
     elif status == "warning":
         score += 0.2
 
-    # 出力内容の充実度
+    # Output content richness
     content = str(output.get("output", ""))
-    if content and content != "コードなし":
+    if content and content != "No code":
         score += 0.3
         if len(content) > 50:
             score += 0.1
 
-    # artifacts の有無
+    # Presence of artifacts
     artifacts = output.get("artifacts", [])
     if artifacts:
         score += 0.1
 
-    # エラーがない
+    # No errors
     if "error" not in content.lower() and "エラー" not in content:
         score += 0.1
 
@@ -1255,28 +1255,28 @@ def _evaluate_output_quality(output: dict[str, Any]) -> float:
 
 
 # ---------------------------------------------------------------------------
-# 6. Auto Test Generator — テストコード自動生成
+# 6. Auto Test Generator — Auto-generation of test code
 # ---------------------------------------------------------------------------
 
 
 _TEST_GEN_SYSTEM_PROMPT = """\
-あなたは Zero-Employee Orchestrator のテスト自動生成エンジンです。
-与えられたスキルコードから、pytest 形式のテストコードを生成してください。
+You are the test auto-generation engine for Zero-Employee Orchestrator.
+Generate pytest-format test code from the given skill code.
 
-## テストの種類
-1. **normal** — 正常系テスト（期待通りの入力で正常動作を確認）
-2. **edge** — エッジケーステスト（空入力、長大入力、特殊文字）
-3. **error** — 異常系テスト（不正入力、provider=None、例外発生）
+## Test types
+1. **normal** — Normal tests (verify correct behavior with expected input)
+2. **edge** — Edge case tests (empty input, very long input, special characters)
+3. **error** — Error tests (invalid input, provider=None, exception raising)
 
-## 出力フォーマット
+## Output format
 ```json
 {
   "test_cases": [
     {
-      "test_name": "test_正常な入力で成功を返す",
+      "test_name": "test_returns_success_with_normal_input",
       "test_type": "normal|edge|error",
-      "input_data": {"input": "テスト入力"},
-      "expected_behavior": "status=success を返す",
+      "input_data": {"input": "test input"},
+      "expected_behavior": "returns status=success",
       "test_code": "async def test_...(): ..."
     }
   ]
@@ -1289,7 +1289,7 @@ async def generate_tests_for_skill(
     db: AsyncSession,
     skill_id: uuid.UUID,
 ) -> AutoTestResult:
-    """Skill のコードからテストケースを自動生成する."""
+    """Auto-generate test cases from Skill code."""
     result = await db.execute(select(Skill).where(Skill.id == skill_id))
     skill = result.scalar_one_or_none()
     if skill is None:
@@ -1298,15 +1298,15 @@ async def generate_tests_for_skill(
     code = skill.generated_code or ""
     test_cases: list[GeneratedTestCase] = []
 
-    # -- 静的テスト生成（常に実行）--
+    # -- Static test generation (always executed) --
     test_cases.extend(_generate_static_tests(skill.slug, code))
 
-    # -- LLM テスト生成 --
+    # -- LLM test generation --
     try:
         llm_tests = await _llm_generate_tests(skill.slug, code)
         test_cases.extend(llm_tests)
     except Exception as exc:
-        logger.warning("LLMテスト生成をスキップ: %s", exc)
+        logger.warning("Skipping LLM test generation: %s", exc)
 
     normal_count = sum(1 for t in test_cases if t.test_type == "normal")
     edge_count = sum(1 for t in test_cases if t.test_type == "edge")
@@ -1324,30 +1324,30 @@ async def generate_tests_for_skill(
 
 
 def _generate_static_tests(slug: str, code: str) -> list[GeneratedTestCase]:
-    """静的分析に基づくテストケース生成."""
+    """Test case generation based on static analysis."""
     tests: list[GeneratedTestCase] = []
     safe_slug = slug.replace("-", "_")
 
-    # 正常系: 基本実行テスト
+    # Normal: basic execution test
     tests.append(
         GeneratedTestCase(
             test_name=f"test_{safe_slug}_normal_execution",
             test_type="normal",
-            input_data={"input": "テスト入力データ"},
-            expected_behavior="status が success または warning を返す",
+            input_data={"input": "test input data"},
+            expected_behavior="Returns status of success or warning",
             test_code=f'''import pytest
 
 
 @pytest.mark.asyncio
 async def test_{safe_slug}_normal_execution():
-    """正常な入力で実行できることを確認."""
+    """Verify execution with normal input."""
     context = {{
-        "input": "テスト入力データ",
+        "input": "test input data",
         "local_context": {{}},
         "provider": None,
         "settings": {{}},
     }}
-    # execute 関数を取得
+    # Get execute function
     namespace = {{}}
     exec(SKILL_CODE, namespace)
     execute = namespace["execute"]
@@ -1359,19 +1359,19 @@ async def test_{safe_slug}_normal_execution():
         )
     )
 
-    # エッジ: 空入力テスト
+    # Edge: empty input test
     tests.append(
         GeneratedTestCase(
             test_name=f"test_{safe_slug}_empty_input",
             test_type="edge",
             input_data={"input": ""},
-            expected_behavior="空入力でもエラーにならない",
+            expected_behavior="Does not error on empty input",
             test_code=f'''import pytest
 
 
 @pytest.mark.asyncio
 async def test_{safe_slug}_empty_input():
-    """空入力でもクラッシュしないことを確認."""
+    """Verify no crash on empty input."""
     context = {{
         "input": "",
         "local_context": {{}},
@@ -1388,19 +1388,19 @@ async def test_{safe_slug}_empty_input():
         )
     )
 
-    # 異常系: context が不完全
+    # Error: incomplete context
     tests.append(
         GeneratedTestCase(
             test_name=f"test_{safe_slug}_minimal_context",
             test_type="error",
             input_data={},
-            expected_behavior="最小限の context でもエラーハンドリングされる",
+            expected_behavior="Error handling works with minimal context",
             test_code=f'''import pytest
 
 
 @pytest.mark.asyncio
 async def test_{safe_slug}_minimal_context():
-    """最小限のcontextでもクラッシュしないことを確認."""
+    """Verify no crash with minimal context."""
     context = {{}}
     namespace = {{}}
     exec(SKILL_CODE, namespace)
@@ -1409,7 +1409,7 @@ async def test_{safe_slug}_minimal_context():
         result = await execute(context)
         assert isinstance(result, dict)
     except (KeyError, TypeError):
-        pass  # context 未チェックの場合は例外が発生しうる
+        pass  # Exception may occur if context is not checked
 ''',
         )
     )
@@ -1418,7 +1418,7 @@ async def test_{safe_slug}_minimal_context():
 
 
 async def _llm_generate_tests(slug: str, code: str) -> list[GeneratedTestCase]:
-    """LLM を使ったテストケース生成."""
+    """Test case generation using LLM."""
     from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
 
     response = await llm_gateway.complete(
@@ -1427,7 +1427,7 @@ async def _llm_generate_tests(slug: str, code: str) -> list[GeneratedTestCase]:
                 {"role": "system", "content": _TEST_GEN_SYSTEM_PROMPT},
                 {
                     "role": "user",
-                    "content": f"以下のスキルコードのテストを生成:\n\n```python\n{code}\n```",
+                    "content": f"Generate tests for the following skill code:\n\n```python\n{code}\n```",
                 },
             ],
             temperature=0.3,

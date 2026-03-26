@@ -1,7 +1,7 @@
-"""PyPI バージョンチェック — 起動時に最新バージョンを通知する.
+"""PyPI version check -- Notify of the latest version at startup.
 
-ネットワーク不通時やタイムアウト時はサイレントにスキップし、
-ユーザー体験を妨げない。
+Silently skips on network failures or timeouts so as not to
+disrupt the user experience.
 """
 
 from __future__ import annotations
@@ -28,16 +28,16 @@ _DIM = "\033[2m"
 
 
 def get_current_version() -> str:
-    """現在インストールされているバージョンを取得する."""
+    """Get the currently installed version."""
     try:
         return importlib.metadata.version(PACKAGE_NAME)
     except importlib.metadata.PackageNotFoundError:
-        # 開発モード（editable install でない場合）はpyproject.tomlから取得
+        # Development mode (when not an editable install) falls back to pyproject.toml
         return _read_version_from_pyproject()
 
 
 def _read_version_from_pyproject() -> str:
-    """pyproject.toml からバージョンを読み取る (フォールバック)."""
+    """Read version from pyproject.toml (fallback)."""
     import pathlib
 
     for candidate in [
@@ -53,9 +53,9 @@ def _read_version_from_pyproject() -> str:
 
 
 def check_latest_version_sync(timeout: float = 3.0) -> str | None:
-    """PyPI から最新バージョンを同期的に取得する.
+    """Synchronously fetch the latest version from PyPI.
 
-    タイムアウトやエラー時は None を返す。
+    Returns None on timeout or error.
     """
     if httpx is None:
         return None
@@ -69,24 +69,24 @@ def check_latest_version_sync(timeout: float = 3.0) -> str | None:
             data = resp.json()
             return data.get("info", {}).get("version")
     except Exception:
-        # ネットワーク不通、タイムアウト等 — サイレントにスキップ
+        # Network unavailable, timeout, etc. -- silently skip
         logger.debug("PyPI version check failed (network unavailable or timeout)")
     return None
 
 
 def is_newer_version(current: str, latest: str) -> bool:
-    """latest が current より新しいかどうかを判定する."""
+    """Determine whether latest is newer than current."""
     try:
         from packaging.version import Version
 
         return Version(latest) > Version(current)
     except Exception:
-        # packaging がない場合は単純な文字列比較
+        # Fall back to simple string comparison if packaging is unavailable
         return latest != current and latest > current
 
 
 def print_update_notice(current: str, latest: str) -> None:
-    """ターミナルにアップデート通知を表示する."""
+    """Display an update notice in the terminal."""
     print()
     print(f"  {_YELLOW}╔══════════════════════════════════════════════╗{_RESET}")
     print(
@@ -107,9 +107,9 @@ def print_update_notice(current: str, latest: str) -> None:
 
 
 def check_and_notify(quiet: bool = False) -> None:
-    """バージョンチェックを実行し、更新があれば通知する.
+    """Run the version check and notify if an update is available.
 
-    quiet=True の場合、更新がなければ何も表示しない。
+    If quiet=True, nothing is displayed when already up to date.
     """
     current = get_current_version()
     latest = check_latest_version_sync()

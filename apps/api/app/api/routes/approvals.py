@@ -1,7 +1,7 @@
 """Approval management endpoints.
 
-承認エンドポイントは全て認証必須。
-承認・却下は人間ユーザーのみが実行可能（CLAUDE.md §12.3 準拠）。
+All approval endpoints require authentication.
+Approval and rejection can only be performed by human users (per CLAUDE.md §12.3).
 """
 
 import uuid
@@ -40,7 +40,7 @@ class BatchApprovalDecision(BaseModel):
 
 
 def _validate_uuid(value: str, name: str = "ID") -> uuid.UUID:
-    """UUID 文字列を安全にパースする."""
+    """Safely parse a UUID string."""
     try:
         return uuid.UUID(value)
     except (ValueError, AttributeError):
@@ -54,7 +54,7 @@ async def list_approvals(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """承認待ち一覧"""
+    """List pending approvals."""
     cid = _validate_uuid(company_id, "company_id")
     query = select(ApprovalRequest).where(ApprovalRequest.company_id == cid)
     if status:
@@ -166,7 +166,7 @@ async def approve(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """承認 — 認証済みユーザーのみ実行可能"""
+    """Approve — only authenticated users can perform this action."""
     aid = _validate_uuid(approval_id, "approval_id")
     result = await db.execute(select(ApprovalRequest).where(ApprovalRequest.id == aid))
     approval = result.scalar_one_or_none()
@@ -202,7 +202,7 @@ async def reject(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """却下 — 認証済みユーザーのみ実行可能"""
+    """Reject — only authenticated users can perform this action."""
     aid = _validate_uuid(approval_id, "approval_id")
     result = await db.execute(select(ApprovalRequest).where(ApprovalRequest.id == aid))
     approval = result.scalar_one_or_none()

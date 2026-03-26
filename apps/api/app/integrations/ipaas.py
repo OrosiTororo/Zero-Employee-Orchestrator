@@ -1,12 +1,12 @@
-"""iPaaS 統合 — n8n / Zapier / Make とのワークフロー連携.
+"""iPaaS integration — workflow orchestration with n8n / Zapier / Make.
 
-外部の iPaaS (Integration Platform as a Service) プラットフォームと連携し、
-Webhook トリガー経由でワークフローの登録・実行・ステータス同期を行う。
+Integrates with external iPaaS (Integration Platform as a Service) platforms,
+handling workflow registration, execution, and status sync via webhook triggers.
 
-対応プラットフォーム:
-- n8n: セルフホスト対応のオープンソースオートメーション
-- Zapier: クラウド型 iPaaS（Webhook トリガー）
-- Make (Integromat): ビジュアルオートメーション
+Supported platforms:
+- n8n: Self-hosted open-source automation
+- Zapier: Cloud-based iPaaS (webhook trigger)
+- Make (Integromat): Visual automation
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class IPaaSProvider(str, Enum):
-    """iPaaS プロバイダー."""
+    """iPaaS provider."""
 
     N8N = "n8n"
     ZAPIER = "zapier"
@@ -30,7 +30,7 @@ class IPaaSProvider(str, Enum):
 
 
 class WorkflowStatus(str, Enum):
-    """ワークフローのステータス."""
+    """Workflow status."""
 
     ACTIVE = "active"
     INACTIVE = "inactive"
@@ -41,7 +41,7 @@ class WorkflowStatus(str, Enum):
 
 @dataclass
 class WebhookTrigger:
-    """Webhook トリガー設定."""
+    """Webhook trigger configuration."""
 
     url: str
     method: str = "POST"
@@ -51,7 +51,7 @@ class WebhookTrigger:
 
 @dataclass
 class IPaaSWorkflow:
-    """iPaaS ワークフロー定義."""
+    """iPaaS workflow definition."""
 
     id: str
     name: str
@@ -68,7 +68,7 @@ class IPaaSWorkflow:
 
 @dataclass
 class WorkflowRunResult:
-    """ワークフロー実行結果."""
+    """Workflow run result."""
 
     workflow_id: str
     run_id: str
@@ -81,10 +81,10 @@ class WorkflowRunResult:
 
 
 class IPaaSIntegration:
-    """iPaaS ワークフロー管理サービス.
+    """iPaaS workflow management service.
 
-    n8n / Zapier / Make の Webhook を通じてワークフローを
-    登録・トリガー・ステータス同期する。
+    Registers, triggers, and syncs workflow status through
+    n8n / Zapier / Make webhooks.
     """
 
     def __init__(self) -> None:
@@ -92,12 +92,12 @@ class IPaaSIntegration:
         self._run_history: list[WorkflowRunResult] = []
 
     def register_workflow(self, workflow: IPaaSWorkflow) -> str:
-        """ワークフローを登録する.
+        """Register a workflow.
 
         Returns
         -------
         str
-            登録されたワークフロー ID
+            Registered workflow ID
         """
         if not workflow.id:
             workflow.id = str(uuid.uuid4())
@@ -117,7 +117,7 @@ class IPaaSIntegration:
         workflow_id: str,
         payload: dict[str, Any] | None = None,
     ) -> WorkflowRunResult:
-        """ワークフローをトリガーする — Webhook に HTTP リクエストを送信."""
+        """Trigger a workflow — send an HTTP request to the webhook."""
         workflow = self._workflows.get(workflow_id)
         if workflow is None:
             return WorkflowRunResult(
@@ -144,7 +144,7 @@ class IPaaSIntegration:
             )
 
         run_id = str(uuid.uuid4())
-        trigger = workflow.triggers[0]  # プライマリトリガーを使用
+        trigger = workflow.triggers[0]  # Use primary trigger
         started_at = datetime.now(UTC)
 
         try:
@@ -157,7 +157,7 @@ class IPaaSIntegration:
                 error="httpx is required. Install with: pip install httpx",
             )
 
-        # ペイロードの構築: テンプレートがあればマージ
+        # Build payload: merge with template if available
         body = {**trigger.payload_template}
         if payload:
             body.update(payload)
@@ -191,7 +191,7 @@ class IPaaSIntegration:
                 latency_ms=latency,
             )
 
-            # ワークフロー統計を更新
+            # Update workflow statistics
             workflow.last_run_at = started_at.isoformat()
             workflow.run_count += 1
             workflow.updated_at = finished_at.isoformat()
@@ -218,24 +218,24 @@ class IPaaSIntegration:
         return result
 
     def list_workflows(self, provider: IPaaSProvider | None = None) -> list[IPaaSWorkflow]:
-        """登録済みワークフロー一覧を返す."""
+        """Return a list of registered workflows."""
         workflows = list(self._workflows.values())
         if provider is not None:
             workflows = [w for w in workflows if w.provider == provider]
         return workflows
 
     async def sync_status(self, workflow_id: str) -> dict[str, Any]:
-        """ワークフローの実行ステータスを同期する.
+        """Synchronize workflow execution status.
 
-        直近の実行結果をもとにステータスを更新する。
-        プロバイダー固有の API（n8n の /executions 等）が利用可能であれば
-        そちらを優先する。
+        Updates status based on recent run results.
+        If provider-specific APIs (e.g., n8n /executions) are available,
+        those are prioritized.
         """
         workflow = self._workflows.get(workflow_id)
         if workflow is None:
             return {"error": f"Workflow not found: {workflow_id}"}
 
-        # 直近の実行結果からステータスを推定
+        # Estimate status from recent run results
         recent_runs = [r for r in self._run_history if r.workflow_id == workflow_id]
         if not recent_runs:
             return {
@@ -261,7 +261,7 @@ class IPaaSIntegration:
         }
 
     def remove_workflow(self, workflow_id: str) -> bool:
-        """ワークフローを削除する."""
+        """Delete a workflow."""
         if workflow_id in self._workflows:
             wf = self._workflows.pop(workflow_id)
             logger.info("iPaaS workflow removed: %s", wf.name)
@@ -274,18 +274,18 @@ class IPaaSIntegration:
         event_types: list[str] | None = None,
         workflow_name: str = "",
     ) -> str:
-        """n8n Webhook ワークフローを簡易登録する.
+        """Quick-register an n8n webhook workflow.
 
         Parameters
         ----------
-        url: n8n の Webhook URL（例: https://n8n.example.com/webhook/xxx）
-        event_types: トリガーするイベントタイプ
-        workflow_name: ワークフロー名
+        url: n8n Webhook URL (e.g., https://n8n.example.com/webhook/xxx)
+        event_types: Event types to trigger
+        workflow_name: Workflow name
 
         Returns
         -------
         str
-            登録されたワークフロー ID
+            Registered workflow ID
         """
         trigger = WebhookTrigger(
             url=url,
@@ -311,18 +311,18 @@ class IPaaSIntegration:
         event_types: list[str] | None = None,
         workflow_name: str = "",
     ) -> str:
-        """Zapier Webhook (Catch Hook) ワークフローを簡易登録する.
+        """Quick-register a Zapier Webhook (Catch Hook) workflow.
 
         Parameters
         ----------
-        url: Zapier の Webhook URL
-        event_types: トリガーするイベントタイプ
-        workflow_name: ワークフロー名
+        url: Zapier Webhook URL
+        event_types: Event types to trigger
+        workflow_name: Workflow name
 
         Returns
         -------
         str
-            登録されたワークフロー ID
+            Registered workflow ID
         """
         trigger = WebhookTrigger(
             url=url,
@@ -347,12 +347,12 @@ class IPaaSIntegration:
         workflow_id: str | None = None,
         limit: int = 50,
     ) -> list[WorkflowRunResult]:
-        """実行履歴を取得する."""
+        """Get run history."""
         runs = self._run_history
         if workflow_id:
             runs = [r for r in runs if r.workflow_id == workflow_id]
         return runs[-limit:]
 
 
-# グローバルインスタンス
+# Global instance
 ipaas_service = IPaaSIntegration()

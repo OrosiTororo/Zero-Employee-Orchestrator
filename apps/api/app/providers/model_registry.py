@@ -1,14 +1,14 @@
-"""Dynamic Model Registry — LLM モデルの動的管理と自動更新.
+"""Dynamic Model Registry -- Dynamic LLM model management and auto-update.
 
-ハードコードされたモデル名に依存せず、外部設定ファイル (model_catalog.json) と
-プロバイダー API からの動的検出を組み合わせてモデルを管理する。
+Manages models by combining an external config file (model_catalog.json)
+with dynamic discovery from provider APIs, without relying on hardcoded model names.
 
-主な機能:
-  - JSON ファイルベースのモデルカタログ管理
-  - プロバイダー API へのモデル可用性チェック
-  - 廃止モデルの自動検出とフォールバック
-  - コスト情報の動的更新
-  - モデルカタログの定期リフレッシュ
+Key features:
+  - JSON file-based model catalog management
+  - Model availability checks via provider APIs
+  - Auto-detection and fallback for deprecated models
+  - Dynamic cost information updates
+  - Periodic model catalog refresh
 """
 
 from __future__ import annotations
@@ -32,33 +32,32 @@ _HEALTH_CHECK_TTL = 300  # 5 minutes
 
 @dataclass
 class ModelEntry:
-    """個別モデルの定義."""
+    """Individual model definition."""
 
-    id: str  # e.g. "anthropic/claude-opus" (ファミリー名)
+    id: str  # e.g. "anthropic/claude-opus" (family name)
     provider: str  # e.g. "anthropic"
     display_name: str  # e.g. "Claude Opus"
-    latest_model_id: str = ""  # 実際の API 呼び出しに使うモデル ID (e.g. "claude-opus-4-6")
+    latest_model_id: str = ""  # Actual model ID used for API calls (e.g. "claude-opus-4-6")
     cost_per_1k_input: float = 0.0
     cost_per_1k_output: float = 0.0
     max_tokens: int = 4096
     supports_tools: bool = False
     supports_vision: bool = False
-    deprecated: bool = False  # サービス終了フラグ
-    successor: str | None = None  # 後継モデル ID
+    deprecated: bool = False  # End-of-service flag
+    successor: str | None = None  # Successor model ID
     tags: list[str] = field(default_factory=list)  # e.g. ["quality", "speed"]
 
     def resolve_api_model_id(self) -> str:
-        """API 呼び出しに使う実際のモデル ID を返す.
+        """Return the actual model ID used for API calls.
 
-        latest_model_id が設定されている場合はそれを使用し、
-        未設定の場合はファミリー ID をそのまま返す。
+        Uses latest_model_id if set, otherwise returns the family ID as-is.
         """
         return self.latest_model_id or self.id
 
 
 @dataclass
 class ModeCatalog:
-    """実行モード別のモデル優先リスト."""
+    """Model priority list per execution mode."""
 
     quality: list[str] = field(default_factory=list)
     speed: list[str] = field(default_factory=list)
@@ -69,7 +68,7 @@ class ModeCatalog:
 
 @dataclass
 class QualitySLAModels:
-    """品質モード別のモデル設定."""
+    """Model configuration per quality mode."""
 
     draft: dict[str, list[str]] = field(default_factory=dict)
     standard: dict[str, list[str]] = field(default_factory=dict)
@@ -79,7 +78,7 @@ class QualitySLAModels:
 
 @dataclass
 class ProviderHealthStatus:
-    """プロバイダーの健全性ステータス."""
+    """Provider health status."""
 
     provider: str
     available: bool
@@ -89,11 +88,10 @@ class ProviderHealthStatus:
 
 
 class ModelRegistry:
-    """動的モデルレジストリ.
+    """Dynamic model registry.
 
-    JSON カタログファイルからモデル定義を読み込み、
-    プロバイダー API への可用性チェックと組み合わせて
-    最適なモデル選択を行う。
+    Loads model definitions from a JSON catalog file and combines
+    them with provider API availability checks for optimal model selection.
     """
 
     def __init__(self, catalog_path: str | Path | None = None) -> None:
@@ -111,7 +109,7 @@ class ModelRegistry:
     # ------------------------------------------------------------------
 
     def _load_catalog(self) -> None:
-        """JSON カタログファイルからモデル定義を読み込む."""
+        """Load model definitions from the JSON catalog file."""
         if not self._catalog_path.exists():
             logger.warning(
                 "Model catalog not found at %s, using empty registry",
@@ -125,7 +123,7 @@ class ModelRegistry:
 
             self._catalog_version = data.get("version", "unknown")
 
-            # モデル定義
+            # Model definitions
             for m in data.get("models", []):
                 entry = ModelEntry(
                     id=m["id"],
@@ -143,7 +141,7 @@ class ModelRegistry:
                 )
                 self._models[entry.id] = entry
 
-            # モード別カタログ
+            # Per-mode catalog
             modes = data.get("mode_catalog", {})
             self._mode_catalog = ModeCatalog(
                 quality=modes.get("quality", []),
@@ -153,7 +151,7 @@ class ModelRegistry:
                 subscription=modes.get("subscription", []),
             )
 
-            # 品質SLA設定
+            # Quality SLA configuration
             sla = data.get("quality_sla", {})
             self._quality_sla = QualitySLAModels(
                 draft=sla.get("draft", {}),
@@ -172,19 +170,19 @@ class ModelRegistry:
             logger.error("Failed to load model catalog: %s", exc)
 
     def reload(self) -> None:
-        """カタログを再読み込みする."""
+        """Reload the catalog."""
         self._models.clear()
         self._load_catalog()
 
     def save_catalog(self) -> None:
-        """現在のレジストリ状態を JSON カタログファイルに保存."""
+        """Save the current registry state to the JSON catalog file."""
         data: dict[str, Any] = {
             "version": self._catalog_version,
             "updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "description": (
-                "Zero-Employee Orchestrator モデルカタログ. "
-                "モデルの追加・削除・コスト更新はこのファイルを編集してください。"
-                "アプリ再起動またはAPI経由のリロードで反映されます。"
+                "Zero-Employee Orchestrator model catalog. "
+                "Edit this file to add/remove models or update costs. "
+                "Changes take effect on app restart or API-triggered reload."
             ),
             "models": [
                 {
@@ -227,11 +225,11 @@ class ModelRegistry:
     # ------------------------------------------------------------------
 
     def get_model(self, model_id: str) -> ModelEntry | None:
-        """モデルIDからエントリを取得."""
+        """Get an entry by model ID."""
         return self._models.get(model_id)
 
     def get_active_model(self, model_id: str) -> ModelEntry | None:
-        """非廃止のモデルを取得。廃止されている場合は後継モデルを返す."""
+        """Get a non-deprecated model. Returns the successor if deprecated."""
         entry = self._models.get(model_id)
         if entry is None:
             return None
@@ -249,7 +247,7 @@ class ModelRegistry:
     def list_models(
         self, provider: str | None = None, include_deprecated: bool = False
     ) -> list[ModelEntry]:
-        """モデル一覧を取得."""
+        """Get a list of models."""
         result = []
         for m in self._models.values():
             if not include_deprecated and m.deprecated:
@@ -260,10 +258,10 @@ class ModelRegistry:
         return result
 
     def resolve_api_id(self, family_id: str) -> str:
-        """ファミリー ID を実際の API モデル ID に解決する.
+        """Resolve a family ID to the actual API model ID.
 
-        例: "anthropic/claude-opus" → "claude-opus-4-6"
-        未知のモデルの場合はファミリー ID をそのまま返す。
+        Example: "anthropic/claude-opus" -> "claude-opus-4-6"
+        Returns the family ID as-is for unknown models.
         """
         entry = self._models.get(family_id)
         if entry is None:
@@ -271,7 +269,7 @@ class ModelRegistry:
         return entry.resolve_api_model_id()
 
     def get_models_for_mode(self, mode: str) -> list[str]:
-        """実行モードに対応するモデルIDリストを取得."""
+        """Get the list of model IDs for the given execution mode."""
         catalog_map = {
             "quality": self._mode_catalog.quality,
             "speed": self._mode_catalog.speed,
@@ -280,11 +278,11 @@ class ModelRegistry:
             "subscription": self._mode_catalog.subscription,
         }
         models = catalog_map.get(mode, self._mode_catalog.quality)
-        # 廃止モデルを後継に自動置換
+        # Auto-replace deprecated models with successors
         return self._resolve_deprecated(models)
 
     def get_sla_models(self, quality_mode: str) -> dict[str, list[str]]:
-        """品質モードに対応するモデル設定を取得."""
+        """Get the model configuration for the given quality mode."""
         sla_map = {
             "draft": self._quality_sla.draft,
             "standard": self._quality_sla.standard,
@@ -298,18 +296,18 @@ class ModelRegistry:
         }
 
     def estimate_cost(self, model_id: str, input_tokens: int, output_tokens: int) -> float:
-        """モデルのコストを見積もる.
+        """Estimate model cost.
 
-        ファミリー ID または latest_model_id のどちらでもルックアップ可能。
+        Lookup is possible by either family ID or latest_model_id.
         """
-        # g4f / ollama は常に無料
+        # g4f / ollama are always free
         if model_id.startswith(("g4f/", "ollama/")):
             return 0.0
 
-        # まずファミリー ID で検索
+        # First search by family ID
         entry = self._models.get(model_id)
         if entry is None:
-            # latest_model_id で逆引き
+            # Reverse lookup by latest_model_id
             for m in self._models.values():
                 if m.latest_model_id and (
                     m.latest_model_id == model_id or f"{m.provider}/{m.latest_model_id}" == model_id
@@ -320,13 +318,13 @@ class ModelRegistry:
             return (input_tokens / 1000 * entry.cost_per_1k_input) + (
                 output_tokens / 1000 * entry.cost_per_1k_output
             )
-        # フォールバック: 未知のモデルは中程度のコストを仮定
+        # Fallback: assume moderate cost for unknown models
         return (input_tokens / 1000 * 0.001) + (output_tokens / 1000 * 0.002)
 
     def get_cost_table(self) -> dict[str, dict[str, float]]:
-        """CostGuard 互換のコストテーブルを生成.
+        """Generate a CostGuard-compatible cost table.
 
-        ファミリー ID、latest_model_id、ショート名のすべてでルックアップ可能。
+        Lookup is possible by family ID, latest_model_id, and short name.
         """
         table: dict[str, dict[str, float]] = {}
         for m in self._models.values():
@@ -336,15 +334,15 @@ class ModelRegistry:
                 "input": m.cost_per_1k_input,
                 "output": m.cost_per_1k_output,
             }
-            # ファミリー ID (e.g. "anthropic/claude-opus")
+            # Family ID (e.g. "anthropic/claude-opus")
             table[m.id] = cost_entry
-            # ファミリーのショート名 (e.g. "claude-opus")
+            # Family short name (e.g. "claude-opus")
             short_name = m.id.split("/", 1)[-1] if "/" in m.id else m.id
             table[short_name] = cost_entry
             # latest_model_id (e.g. "claude-opus-4-6")
             if m.latest_model_id:
                 table[m.latest_model_id] = cost_entry
-                # プロバイダー付き latest (e.g. "anthropic/claude-opus-4-6")
+                # Provider-prefixed latest (e.g. "anthropic/claude-opus-4-6")
                 table[f"{m.provider}/{m.latest_model_id}"] = cost_entry
         return table
 
@@ -353,7 +351,7 @@ class ModelRegistry:
     # ------------------------------------------------------------------
 
     def _resolve_deprecated(self, model_ids: list[str]) -> list[str]:
-        """廃止モデルを後継モデルに自動置換."""
+        """Auto-replace deprecated models with their successors."""
         resolved: list[str] = []
         seen: set[str] = set()
         for mid in model_ids:
@@ -370,7 +368,7 @@ class ModelRegistry:
         return resolved
 
     def mark_deprecated(self, model_id: str, successor: str | None = None) -> bool:
-        """モデルを廃止としてマークする."""
+        """Mark a model as deprecated."""
         entry = self._models.get(model_id)
         if entry is None:
             return False
@@ -380,7 +378,7 @@ class ModelRegistry:
         return True
 
     def get_deprecated_models(self) -> list[ModelEntry]:
-        """廃止済みモデルの一覧."""
+        """List of deprecated models."""
         return [m for m in self._models.values() if m.deprecated]
 
     # ------------------------------------------------------------------
@@ -388,7 +386,7 @@ class ModelRegistry:
     # ------------------------------------------------------------------
 
     async def check_provider_health(self, provider: str) -> ProviderHealthStatus:
-        """プロバイダーの可用性をチェック."""
+        """Check provider availability."""
         cached = self._provider_health.get(provider)
         if cached and (time.time() - cached.checked_at) < _HEALTH_CHECK_TTL:
             return cached
@@ -415,7 +413,7 @@ class ModelRegistry:
         return status
 
     async def check_all_providers(self) -> dict[str, ProviderHealthStatus]:
-        """全プロバイダーの可用性を一括チェック."""
+        """Batch check availability of all providers."""
         providers = set()
         for m in self._models.values():
             if not m.deprecated:
@@ -427,7 +425,7 @@ class ModelRegistry:
         return dict(self._provider_health)
 
     async def _check_ollama(self) -> ProviderHealthStatus:
-        """Ollama の可用性チェック."""
+        """Ollama availability check."""
         try:
             from app.providers.ollama_provider import ollama_provider
 
@@ -448,7 +446,7 @@ class ModelRegistry:
             )
 
     async def _check_api_provider(self, provider: str) -> ProviderHealthStatus:
-        """クラウド API プロバイダーの可用性チェック（APIキー存在確認）."""
+        """Cloud API provider availability check (API key existence verification)."""
         env_keys = {
             "openai": "OPENAI_API_KEY",
             "anthropic": "ANTHROPIC_API_KEY",
@@ -471,7 +469,7 @@ class ModelRegistry:
         )
 
     def _check_g4f(self) -> ProviderHealthStatus:
-        """g4f の可用性チェック."""
+        """g4f availability check."""
         try:
             import g4f  # noqa: F401
 
@@ -497,15 +495,15 @@ class ModelRegistry:
     # ------------------------------------------------------------------
 
     def add_model(self, entry: ModelEntry) -> None:
-        """モデルをレジストリに追加."""
+        """Add a model to the registry."""
         self._models[entry.id] = entry
 
     def remove_model(self, model_id: str) -> bool:
-        """モデルをレジストリから削除."""
+        """Remove a model from the registry."""
         return self._models.pop(model_id, None) is not None
 
     def update_cost(self, model_id: str, cost_input: float, cost_output: float) -> bool:
-        """モデルのコスト情報を更新."""
+        """Update a model's cost information."""
         entry = self._models.get(model_id)
         if entry is None:
             return False
@@ -514,16 +512,16 @@ class ModelRegistry:
         return True
 
     def update_latest_model_id(self, family_id: str, new_model_id: str) -> bool:
-        """ファミリーの latest_model_id を更新し、カタログを自動保存する.
+        """Update a family's latest_model_id and auto-save the catalog.
 
-        ユーザーがファイルを手動編集することなく AI モデル更新を自動反映する。
+        Automatically reflects AI model updates without manual file editing.
 
         Args:
-            family_id: ファミリー ID (e.g. "anthropic/claude-opus")
-            new_model_id: 新しい API モデル ID (e.g. "claude-opus-4-7")
+            family_id: Family ID (e.g. "anthropic/claude-opus")
+            new_model_id: New API model ID (e.g. "claude-opus-4-7")
 
         Returns:
-            更新が成功したかどうか
+            Whether the update was successful.
         """
         entry = self._models.get(family_id)
         if entry is None:
@@ -542,17 +540,17 @@ class ModelRegistry:
         return True
 
     async def refresh_catalog(self) -> dict[str, str]:
-        """プロバイダー API からモデル可用性を再チェックし、カタログを更新する.
+        """Re-check model availability from provider APIs and update the catalog.
 
-        ユーザーの操作なしで最新のモデル状態をカタログに反映する。
-        Ollama のモデル一覧も自動検出して更新する。
+        Reflects the latest model state in the catalog without user intervention.
+        Also auto-detects and updates the Ollama model list.
 
         Returns:
-            更新されたモデルの辞書 {family_id: new_latest_model_id}
+            Dictionary of updated models {family_id: new_latest_model_id}.
         """
         updated: dict[str, str] = {}
 
-        # Ollama のモデルを自動検出して更新
+        # Auto-detect and update Ollama models
         try:
             from app.providers.ollama_provider import ollama_provider
 
@@ -578,7 +576,7 @@ class ModelRegistry:
         except Exception as exc:
             logger.debug("Ollama model refresh failed: %s", exc)
 
-        # g4f モデルを自動更新
+        # Auto-update g4f models
         try:
             from app.providers.g4f_provider import _G4F_MODEL_MAP
 
@@ -599,7 +597,7 @@ class ModelRegistry:
         except Exception as exc:
             logger.debug("g4f model refresh failed: %s", exc)
 
-        # 全プロバイダーの可用性をチェック
+        # Check availability of all providers
         await self.check_all_providers()
 
         if updated:
@@ -633,7 +631,7 @@ _registry: ModelRegistry | None = None
 
 
 def get_model_registry() -> ModelRegistry:
-    """グローバルモデルレジストリを取得."""
+    """Get the global model registry."""
     global _registry
     if _registry is None:
         catalog_path = os.environ.get("MODEL_CATALOG_PATH", str(_DEFAULT_CATALOG_PATH))
@@ -642,7 +640,7 @@ def get_model_registry() -> ModelRegistry:
 
 
 def reload_model_registry() -> ModelRegistry:
-    """モデルレジストリを再読み込み."""
+    """Reload the model registry."""
     global _registry
     catalog_path = os.environ.get("MODEL_CATALOG_PATH", str(_DEFAULT_CATALOG_PATH))
     _registry = ModelRegistry(catalog_path=catalog_path)

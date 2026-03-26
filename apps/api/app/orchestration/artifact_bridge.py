@@ -1,15 +1,15 @@
-"""Artifact Bridge — 成果物の管理と工程間連携.
+"""Artifact Bridge — Artifact management and inter-stage coordination.
 
-Zero-Employee Orchestrator.md の Layer 7 (State & Memory) で定義される
-Artifact Bridge を実装する。工程間で成果物を受け渡し、バージョン管理
-と再利用を可能にする。
+Implements the Artifact Bridge defined in Layer 7 (State & Memory) of
+Zero-Employee Orchestrator.md. Enables artifact handoff between stages
+with version management and reuse.
 
-Phase 2 で以下の機能を追加:
-- Auto-linking: DAG の出力→入力を自動連携
-- Cross-domain transformation: ドメイン間でアーティファクトタイプを変換
-- Artifact compatibility matrix: 互換性マッピング
-- Artifact search: 互換アーティファクトの検索
-- Pipeline support: スキルチェーンのアーティファクトフロー構築
+Phase 2 additions:
+- Auto-linking: Automatic DAG output-to-input linking
+- Cross-domain transformation: Convert artifact types across domains
+- Artifact compatibility matrix: Compatibility mapping
+- Artifact search: Search for compatible artifacts
+- Pipeline support: Build artifact flow for skill chains
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ from typing import Any
 
 
 class ArtifactType(str, Enum):
-    """成果物のタイプ."""
+    """Artifact type."""
 
     DOCUMENT = "document"
     CODE = "code"
@@ -35,7 +35,7 @@ class ArtifactType(str, Enum):
     REPORT = "report"
     CONFIG = "config"
     LOG = "log"
-    # Phase 2: ドメインスキル固有のアーティファクトタイプ
+    # Phase 2: Domain skill-specific artifact types
     STRUCTURED_CONTENT = "structured_content"
     TREND_REPORT = "trend_report"
     COMPETITOR_REPORT = "competitor_report"
@@ -45,17 +45,17 @@ class ArtifactType(str, Enum):
 
 
 class StorageType(str, Enum):
-    """保存先のタイプ."""
+    """Storage type."""
 
     LOCAL = "local"
     DATABASE = "database"
     CLOUD = "cloud"
-    INLINE = "inline"  # DB の JSON カラムに埋め込み
+    INLINE = "inline"  # Embedded in DB JSON column
 
 
 @dataclass
 class ArtifactRef:
-    """成果物への参照."""
+    """Reference to an artifact."""
 
     artifact_id: str
     title: str
@@ -71,7 +71,7 @@ class ArtifactRef:
 
 @dataclass
 class ArtifactBridgeResult:
-    """Artifact Bridge の操作結果."""
+    """Artifact Bridge operation result."""
 
     success: bool
     artifact: ArtifactRef | None = None
@@ -104,7 +104,7 @@ ARTIFACT_COMPATIBILITY_MATRIX: dict[str, list[str]] = {
 
 
 def _are_types_compatible(source_type: str, target_type: str) -> bool:
-    """2 つのアーティファクトタイプに互換性があるかチェックする."""
+    """Check if two artifact types are compatible."""
     if source_type == target_type:
         return True
     compatible_targets = ARTIFACT_COMPATIBILITY_MATRIX.get(source_type, [])
@@ -118,10 +118,10 @@ def _are_types_compatible(source_type: str, target_type: str) -> bool:
 
 @dataclass
 class _DagNode:
-    """DAG ノードの最小プロトコル（テスト・型ヒント用）.
+    """Minimal protocol for DAG nodes (for testing and type hints).
 
-    実際のオーケストレーション DAG ノードは任意のオブジェクトで良いが、
-    以下の属性を持っていれば auto_link_outputs_to_inputs で使える。
+    Actual orchestration DAG nodes can be any object, but if they have
+    the following attributes, they can be used with auto_link_outputs_to_inputs.
     """
 
     task_id: str
@@ -133,15 +133,15 @@ class _DagNode:
 # Skill registry integration helper
 # ---------------------------------------------------------------------------
 
-# Lazy import を避けるためのキャッシュ
+# Cache to avoid lazy imports
 _skill_artifact_cache: dict[str, dict[str, list[str]]] = {}
 
 
 def _get_skill_artifact_info(skill_id: str) -> dict[str, list[str]]:
-    """スキルの accepts / produces 情報を取得する.
+    """Get a skill's accepts/produces artifact type information.
 
-    domain_skills が利用可能ならそちらから取得し、
-    そうでなければ空のリストを返す。
+    Retrieves from domain_skills if available,
+    otherwise returns empty lists.
     """
     if skill_id in _skill_artifact_cache:
         return _skill_artifact_cache[skill_id]
@@ -169,15 +169,15 @@ def _get_skill_artifact_info(skill_id: str) -> dict[str, list[str]]:
 
 
 class ArtifactBridge:
-    """工程間の成果物受け渡しを管理する.
+    """Manage artifact handoff between stages.
 
-    - タスク A の出力をタスク B の入力として連携
-    - 成果物のバージョン管理
-    - 成果物のメタデータ管理
-    - Auto-linking: DAG 内の互換アーティファクトを自動連携
-    - Cross-domain transformation: ドメイン間でアーティファクトタイプを変換
-    - Artifact search: 互換アーティファクトの検索
-    - Pipeline support: スキルチェーンのアーティファクトフロー構築
+    - Link task A's output as task B's input
+    - Artifact version management
+    - Artifact metadata management
+    - Auto-linking: Automatically link compatible artifacts within a DAG
+    - Cross-domain transformation: Convert artifact types across domains
+    - Artifact search: Search for compatible artifacts
+    - Pipeline support: Build artifact flow for skill chains
     """
 
     def __init__(self) -> None:
@@ -201,7 +201,7 @@ class ArtifactBridge:
         storage_type: StorageType = StorageType.INLINE,
         domain: str = "",
     ) -> ArtifactRef:
-        """タスクの出力成果物を登録する."""
+        """Register a task's output artifact."""
         artifact_id = str(uuid.uuid4())
         ref = ArtifactRef(
             artifact_id=artifact_id,
@@ -222,7 +222,7 @@ class ArtifactBridge:
         return ref
 
     def link_input(self, task_id: str, artifact_id: str) -> bool:
-        """成果物をタスクの入力として紐づける."""
+        """Link an artifact as a task's input."""
         if artifact_id not in self._artifacts:
             return False
         if task_id not in self._task_inputs:
@@ -231,12 +231,12 @@ class ArtifactBridge:
         return True
 
     def get_task_inputs(self, task_id: str) -> list[ArtifactRef]:
-        """タスクの入力成果物を取得する."""
+        """Get a task's input artifacts."""
         ids = self._task_inputs.get(task_id, [])
         return [self._artifacts[aid] for aid in ids if aid in self._artifacts]
 
     def get_task_outputs(self, task_id: str) -> list[ArtifactRef]:
-        """タスクの出力成果物を取得する."""
+        """Get a task's output artifacts."""
         ids = self._task_outputs.get(task_id, [])
         return [self._artifacts[aid] for aid in ids if aid in self._artifacts]
 
@@ -256,17 +256,17 @@ class ArtifactBridge:
         self,
         dag: list[Any],
     ) -> list[dict[str, str]]:
-        """DAG を走査し、互換性のある出力→入力を自動リンクする.
+        """Traverse the DAG and automatically link compatible outputs to inputs.
 
-        各 DAG ノードは task_id, skill_id, depends_on 属性を持つことを前提とする。
-        完了済みタスクの出力アーティファクトと、後続タスクが受け入れるタイプを
-        マッチングし、互換性があれば自動的に link_input する。
+        Assumes each DAG node has task_id, skill_id, and depends_on attributes.
+        Matches completed tasks' output artifacts with the types accepted by
+        downstream tasks, and automatically calls link_input when compatible.
 
         Args:
-            dag: DAG ノードのリスト（task_id, skill_id, depends_on を持つ任意のオブジェクト）
+            dag: List of DAG nodes (any objects with task_id, skill_id, depends_on)
 
         Returns:
-            作成されたリンクのリスト [{"from_task": ..., "to_task": ..., "artifact_id": ..., "type": ...}, ...]
+            List of created links [{"from_task": ..., "to_task": ..., "artifact_id": ..., "type": ...}, ...]
         """
         links_created: list[dict[str, str]] = []
 
@@ -326,17 +326,17 @@ class ArtifactBridge:
         artifact_id: str,
         target_type: str,
     ) -> ArtifactBridgeResult:
-        """アーティファクトを別タイプとして再登録する（クロスドメイン変換）.
+        """Re-register an artifact as a different type (cross-domain transformation).
 
-        元のアーティファクトを維持したまま、互換タイプの新しい ArtifactRef を
-        作成して返す。互換性がなければ失敗を返す。
+        Creates and returns a new ArtifactRef of a compatible type while
+        preserving the original artifact. Returns failure if incompatible.
 
         Args:
-            artifact_id: 変換元のアーティファクト ID
-            target_type: 変換先のアーティファクトタイプ文字列
+            artifact_id: Source artifact ID
+            target_type: Target artifact type string
 
         Returns:
-            ArtifactBridgeResult (成功時は新しい ArtifactRef を含む)
+            ArtifactBridgeResult (contains new ArtifactRef on success)
         """
         source = self._artifacts.get(artifact_id)
         if source is None:
@@ -395,19 +395,19 @@ class ArtifactBridge:
         required_type: str,
         domain: str | None = None,
     ) -> list[ArtifactRef]:
-        """指定タイプに互換性のあるアーティファクトを検索する.
+        """Search for artifacts compatible with the specified type.
 
         Args:
-            required_type: 必要なアーティファクトタイプ
-            domain: 絞り込み用ドメイン（None なら全ドメイン）
+            required_type: Required artifact type
+            domain: Domain filter (None for all domains)
 
         Returns:
-            互換性のある ArtifactRef のリスト
+            List of compatible ArtifactRef objects
         """
         results: list[ArtifactRef] = []
 
         for artifact in self._artifacts.values():
-            # ドメインフィルタ
+            # Domain filter
             if domain is not None and artifact.domain and artifact.domain != domain:
                 continue
 
@@ -430,16 +430,16 @@ class ArtifactBridge:
         self,
         skill_chain: list[str],
     ) -> list[dict[str, Any]]:
-        """スキルチェーンを通じた成果物フローを計算する.
+        """Calculate the artifact flow through a skill chain.
 
-        各スキルが produces するタイプと次のスキルが accepts するタイプを
-        マッチングし、パイプライン全体の期待フローを返す。
+        Matches each skill's produced types with the next skill's accepted types,
+        and returns the expected flow for the entire pipeline.
 
         Args:
-            skill_chain: スキル ID のリスト（実行順）
+            skill_chain: List of skill IDs (in execution order)
 
         Returns:
-            パイプラインステップのリスト:
+            List of pipeline steps:
             [
                 {
                     "step": 0,
@@ -459,7 +459,7 @@ class ArtifactBridge:
             accepts = info["accepts"]
             produces = info["produces"]
 
-            # 前のステップの出力と今のステップの入力の交差を計算
+            # Calculate intersection of previous step's outputs and current step's inputs
             auto_linked: list[dict[str, str]] = []
             for prev_type in previous_produces:
                 for acc_type in accepts:
@@ -486,5 +486,5 @@ class ArtifactBridge:
         return pipeline
 
 
-# グローバルインスタンス
+# Global instance
 artifact_bridge = ArtifactBridge()

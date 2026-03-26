@@ -1,6 +1,6 @@
-"""AI ツール管理 API エンドポイント.
+"""AI tool management API endpoints.
 
-AI が操作可能な外部ツールの一覧表示・設定・有効化/無効化を行う API。
+API for listing, configuring, and enabling/disabling external tools operable by AI.
 """
 
 from __future__ import annotations
@@ -23,16 +23,16 @@ router = APIRouter(prefix="/ai-tools", tags=["ai-tools"])
 
 
 class ToolToggleRequest(BaseModel):
-    """ツール有効化/無効化リクエスト."""
+    """Tool enable/disable request."""
 
     tool_id: str
     enabled: bool
 
 
-# 認証不要: ツール一覧は公開情報
+# No auth required: tool list is public information
 @router.get("")
 async def list_all_tools() -> dict:
-    """全 AI ツール一覧を返す."""
+    """Return all AI tools."""
     tools = ai_tool_registry.get_all_tools()
     return {
         "tools": [
@@ -54,10 +54,10 @@ async def list_all_tools() -> dict:
     }
 
 
-# 認証不要: ツール一覧は公開情報
+# No auth required: tool list is public information
 @router.get("/available")
 async def list_available_tools() -> dict:
-    """利用可能な（設定済み）ツール一覧を返す."""
+    """Return available (configured) tools."""
     tools = ai_tool_registry.get_available_tools()
     return {
         "tools": [
@@ -74,10 +74,10 @@ async def list_available_tools() -> dict:
     }
 
 
-# 認証不要: ツール一覧は公開情報
+# No auth required: tool list is public information
 @router.get("/category/{category}")
 async def list_tools_by_category(category: str) -> dict:
-    """カテゴリ別のツール一覧を返す."""
+    """Return tools by category."""
     try:
         cat = ToolCategory(category)
     except ValueError:
@@ -103,7 +103,7 @@ async def list_tools_by_category(category: str) -> dict:
 
 @router.post("/toggle")
 async def toggle_tool(req: ToolToggleRequest, user: User = Depends(get_current_user)) -> dict:
-    """ツールの有効化/無効化を切り替える."""
+    """Toggle tool enable/disable."""
     if req.enabled:
         success = ai_tool_registry.enable_tool(req.tool_id)
     else:
@@ -119,8 +119,8 @@ async def toggle_tool(req: ToolToggleRequest, user: User = Depends(get_current_u
     }
 
 
-# 認証不要: ツール一覧は公開情報
+# No auth required: tool list is public information
 @router.get("/summary")
 async def get_tools_summary() -> dict:
-    """ツール概要を返す."""
+    """Return tools summary."""
     return ai_tool_registry.get_summary()

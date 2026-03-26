@@ -568,7 +568,7 @@ class BrowserAdapterRegistry:
 
 
 # ---------------------------------------------------------------------------
-# グローバルインスタンス
+# Global instance
 # ---------------------------------------------------------------------------
 
 browser_adapter_registry = BrowserAdapterRegistry()

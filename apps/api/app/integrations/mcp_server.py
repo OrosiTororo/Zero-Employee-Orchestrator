@@ -1,9 +1,9 @@
-"""MCP Server — Model Context Protocol サーバー実装.
+"""MCP Server — Model Context Protocol server implementation.
 
-MCP (Model Context Protocol) を使って、外部のAIエージェントや
-ツールからZero-Employee Orchestratorの機能を呼び出せるようにする。
+Uses MCP (Model Context Protocol) to allow external AI agents and tools
+to invoke Zero-Employee Orchestrator functionality.
 
-MCP仕様に基づき、ツール・リソース・プロンプトを公開する。
+Exposes tools, resources, and prompts based on the MCP specification.
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ class MCPCapability(str, Enum):
 
 @dataclass
 class MCPTool:
-    """MCP公開ツール."""
+    """MCP exposed tool."""
 
     name: str
     description: str
@@ -41,7 +41,7 @@ class MCPTool:
 
 @dataclass
 class MCPResource:
-    """MCP公開リソース."""
+    """MCP exposed resource."""
 
     uri: str
     name: str
@@ -59,7 +59,7 @@ class MCPResource:
 
 @dataclass
 class MCPPrompt:
-    """MCP公開プロンプトテンプレート."""
+    """MCP exposed prompt template."""
 
     name: str
     description: str
@@ -74,15 +74,15 @@ class MCPPrompt:
 
 
 class MCPServer:
-    """Zero-Employee Orchestrator の MCP サーバー.
+    """Zero-Employee Orchestrator MCP server.
 
-    外部AIエージェントに以下の機能を公開:
-      - チケット管理（作成、一覧、状態更新）
-      - タスク管理（実行、監視）
-      - スキル管理（一覧、実行）
-      - ナレッジ検索（Experience Memory、RAG）
-      - 監査ログ閲覧
-      - エージェント状態モニタリング
+    Exposes the following capabilities to external AI agents:
+      - Ticket management (create, list, update status)
+      - Task management (execute, monitor)
+      - Skill management (list, execute)
+      - Knowledge search (Experience Memory, RAG)
+      - Audit log viewing
+      - Agent state monitoring
     """
 
     def __init__(self) -> None:
@@ -94,19 +94,19 @@ class MCPServer:
         self._register_builtin_prompts()
 
     def _register_builtin_tools(self) -> None:
-        """組み込みツールを登録."""
+        """Register built-in tools."""
         tools = [
             MCPTool(
                 name="create_ticket",
-                description="新しい業務チケットを作成する",
+                description="Create a new business ticket",
                 input_schema={
                     "type": "object",
                     "properties": {
                         "title": {
                             "type": "string",
-                            "description": "チケットのタイトル",
+                            "description": "Ticket title",
                         },
-                        "description": {"type": "string", "description": "詳細説明"},
+                        "description": {"type": "string", "description": "Detailed description"},
                         "priority": {
                             "type": "string",
                             "enum": ["low", "medium", "high", "critical"],
@@ -117,13 +117,13 @@ class MCPServer:
             ),
             MCPTool(
                 name="list_tickets",
-                description="チケット一覧を取得する",
+                description="Retrieve ticket list",
                 input_schema={
                     "type": "object",
                     "properties": {
                         "status": {
                             "type": "string",
-                            "description": "ステータスフィルター",
+                            "description": "Status filter",
                         },
                         "limit": {"type": "integer", "default": 20},
                     },
@@ -131,25 +131,25 @@ class MCPServer:
             ),
             MCPTool(
                 name="get_agent_status",
-                description="エージェントの現在の状態を取得する",
+                description="Get the current status of an agent",
                 input_schema={
                     "type": "object",
                     "properties": {
-                        "agent_id": {"type": "string", "description": "エージェントID"},
+                        "agent_id": {"type": "string", "description": "Agent ID"},
                     },
                     "required": ["agent_id"],
                 },
             ),
             MCPTool(
                 name="search_knowledge",
-                description="ナレッジベースを検索する",
+                description="Search the knowledge base",
                 input_schema={
                     "type": "object",
                     "properties": {
-                        "query": {"type": "string", "description": "検索クエリ"},
+                        "query": {"type": "string", "description": "Search query"},
                         "category": {
                             "type": "string",
-                            "description": "カテゴリフィルター",
+                            "description": "Category filter",
                         },
                     },
                     "required": ["query"],
@@ -157,33 +157,33 @@ class MCPServer:
             ),
             MCPTool(
                 name="execute_skill",
-                description="登録済みスキルを実行する",
+                description="Execute a registered skill",
                 input_schema={
                     "type": "object",
                     "properties": {
-                        "skill_slug": {"type": "string", "description": "スキルのslug"},
-                        "inputs": {"type": "object", "description": "入力パラメータ"},
+                        "skill_slug": {"type": "string", "description": "Skill slug"},
+                        "inputs": {"type": "object", "description": "Input parameters"},
                     },
                     "required": ["skill_slug"],
                 },
             ),
             MCPTool(
                 name="get_audit_logs",
-                description="監査ログを取得する",
+                description="Retrieve audit logs",
                 input_schema={
                     "type": "object",
                     "properties": {
                         "limit": {"type": "integer", "default": 50},
                         "action_type": {
                             "type": "string",
-                            "description": "アクションタイプ",
+                            "description": "Action type",
                         },
                     },
                 },
             ),
             MCPTool(
                 name="monitor_executions",
-                description="実行中のタスクを監視する",
+                description="Monitor running tasks",
                 input_schema={
                     "type": "object",
                     "properties": {},
@@ -191,7 +191,7 @@ class MCPServer:
             ),
             MCPTool(
                 name="propose_hypothesis",
-                description="仮説を提案して並行検証を開始する",
+                description="Propose a hypothesis and start parallel verification",
                 input_schema={
                     "type": "object",
                     "properties": {
@@ -208,59 +208,59 @@ class MCPServer:
             self._tools[tool.name] = tool
 
     def _register_builtin_resources(self) -> None:
-        """組み込みリソースを登録."""
+        """Register built-in resources."""
         resources = [
             MCPResource(
                 uri="zero-employee://dashboard",
-                name="ダッシュボード",
-                description="システム全体のダッシュボードデータ",
+                name="Dashboard",
+                description="System-wide dashboard data",
             ),
             MCPResource(
                 uri="zero-employee://agents",
-                name="エージェント一覧",
-                description="登録済みエージェントの一覧と状態",
+                name="Agent List",
+                description="List and status of registered agents",
             ),
             MCPResource(
                 uri="zero-employee://skills",
-                name="スキル一覧",
-                description="利用可能なスキルの一覧",
+                name="Skill List",
+                description="List of available skills",
             ),
             MCPResource(
                 uri="zero-employee://knowledge",
-                name="ナレッジストア",
-                description="永続化されたナレッジの一覧",
+                name="Knowledge Store",
+                description="List of persisted knowledge entries",
             ),
         ]
         for r in resources:
             self._resources[r.uri] = r
 
     def _register_builtin_prompts(self) -> None:
-        """組み込みプロンプトテンプレートを登録."""
+        """Register built-in prompt templates."""
         prompts = [
             MCPPrompt(
                 name="task_planning",
-                description="タスク計画のためのプロンプト",
+                description="Prompt for task planning",
                 arguments=[
-                    {"name": "objective", "description": "達成目標", "required": True},
+                    {"name": "objective", "description": "Goal to achieve", "required": True},
                     {
                         "name": "constraints",
-                        "description": "制約条件",
+                        "description": "Constraints",
                         "required": False,
                     },
                 ],
             ),
             MCPPrompt(
                 name="code_review",
-                description="コードレビューのためのプロンプト",
+                description="Prompt for code review",
                 arguments=[
                     {
                         "name": "code",
-                        "description": "レビュー対象コード",
+                        "description": "Code to review",
                         "required": True,
                     },
                     {
                         "name": "language",
-                        "description": "プログラミング言語",
+                        "description": "Programming language",
                         "required": False,
                     },
                 ],
@@ -270,7 +270,7 @@ class MCPServer:
             self._prompts[p.name] = p
 
     def register_tool(self, tool: MCPTool) -> None:
-        """カスタムツールを登録."""
+        """Register a custom tool."""
         self._tools[tool.name] = tool
         logger.info("MCP tool registered: %s", tool.name)
 
@@ -283,7 +283,7 @@ class MCPServer:
     # --- MCP Protocol Handlers ---
 
     async def handle_initialize(self, params: dict[str, Any]) -> dict[str, Any]:
-        """MCP initialize ハンドラ."""
+        """MCP initialize handler."""
         return {
             "protocolVersion": "2024-11-05",
             "capabilities": {

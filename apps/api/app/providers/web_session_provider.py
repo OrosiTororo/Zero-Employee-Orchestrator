@@ -1,23 +1,23 @@
-"""Web ブラウザ経由 AI セッションプロバイダー.
+"""Web browser-based AI session provider.
 
-GPT・Gemini・Claude 等の AI サービスを Web ブラウザ UI 経由で利用し、
-API 料金なしでシステムに組み込む方式。
+Integrates AI services such as GPT, Gemini, Claude, etc. into the system
+via web browser UI without API fees.
 
-仕組み:
-1. ブラウザ自動操作（browser-use 等）で AI の Web UI にアクセス
-2. プロンプトを入力し、レスポンスを取得
-3. ZEO の LLM Gateway に統合
+How it works:
+1. Access AI web UIs through browser automation (browser-use, etc.)
+2. Input prompts and retrieve responses
+3. Integrate into ZEO's LLM Gateway
 
-利用パターン:
-- Pattern A: g4f (gpt4free) — Web エンドポイントを自動的にルーティング（既存）
-- Pattern B: ブラウザセッション — 実際のブラウザで AI Web UI を操作
-- Pattern C: Cookie/セッション認証 — ログイン済みセッションを再利用
+Usage patterns:
+- Pattern A: g4f (gpt4free) -- Automatically routes through web endpoints (existing)
+- Pattern B: Browser session -- Operates AI web UIs via actual browser automation
+- Pattern C: Cookie/session auth -- Reuses already-logged-in sessions
 
-注意:
-- 各 AI サービスの利用規約を確認すること
-- API キーを使った公式 API が最も安定・確実
-- Web UI 経由はレート制限やブロックのリスクがある
-- 本番環境では公式 API を推奨
+Notes:
+- Review the terms of service for each AI service
+- Official APIs with API keys are the most stable and reliable
+- Web UI access carries risks of rate limiting and blocking
+- Official APIs are recommended for production environments
 """
 
 from __future__ import annotations
@@ -31,12 +31,12 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# Web AI サービス定義
+# Web AI service definitions
 # ---------------------------------------------------------------------------
 
 
 class WebAIService(str, Enum):
-    """ブラウザ経由で利用可能な AI サービス."""
+    """AI services available via browser."""
 
     CHATGPT = "chatgpt"
     GEMINI = "gemini"
@@ -48,30 +48,30 @@ class WebAIService(str, Enum):
 
 @dataclass
 class WebSessionConfig:
-    """Web AI セッションの設定."""
+    """Web AI session configuration."""
 
     service: WebAIService
-    session_cookies: dict | None = None  # ブラウザからエクスポートした Cookie
-    profile_dir: str | None = None  # Chrome プロファイルディレクトリ
+    session_cookies: dict | None = None  # Cookies exported from browser
+    profile_dir: str | None = None  # Chrome profile directory
     headless: bool = True
     timeout_seconds: int = 120
 
 
 @dataclass
 class WebSessionResponse:
-    """Web セッション経由の AI レスポンス."""
+    """AI response via web session."""
 
     content: str
     service: str
-    model_hint: str = ""  # Web UI で選択されたモデル（取得可能な場合）
-    cost_usd: float = 0.0  # Web UI 経由は常に 0
+    model_hint: str = ""  # Model selected in web UI (if retrievable)
+    cost_usd: float = 0.0  # Always 0 via web UI
     finish_reason: str = "stop"
     tokens_input: int = 0
     tokens_output: int = 0
 
 
 # ---------------------------------------------------------------------------
-# Web AI セッションカタログ
+# Web AI session catalog
 # ---------------------------------------------------------------------------
 
 _WEB_AI_CATALOG: dict[WebAIService, dict] = {
@@ -151,30 +151,30 @@ _WEB_AI_CATALOG: dict[WebAIService, dict] = {
 
 
 # ---------------------------------------------------------------------------
-# プロバイダークラス
+# Provider class
 # ---------------------------------------------------------------------------
 
 
 class WebSessionProvider:
-    """Web ブラウザ経由で AI サービスを利用するプロバイダー.
+    """Provider that uses AI services via web browser.
 
-    3 つの方式を提供:
-    1. g4f 経由 (推奨) — 最も簡単。g4f が Web エンドポイントを自動ルーティング
-    2. ブラウザセッション — browser-use 等でブラウザを自動操作
-    3. Cookie 認証 — ログイン済みセッションの Cookie を再利用
+    Offers 3 methods:
+    1. Via g4f (recommended) -- Simplest. g4f auto-routes through web endpoints
+    2. Browser session -- Automates browsers via browser-use, etc.
+    3. Cookie auth -- Reuses cookies from already-logged-in sessions
 
-    推奨利用順序:
-    1. 無料枠のある公式 API (Gemini free tier, etc.)
-    2. g4f (既存の g4f_provider.py)
-    3. Ollama (ローカル)
-    4. ブラウザセッション (本クラス)
+    Recommended usage order:
+    1. Official APIs with free tiers (Gemini free tier, etc.)
+    2. g4f (existing g4f_provider.py)
+    3. Ollama (local)
+    4. Browser session (this class)
     """
 
     def __init__(self) -> None:
         self._sessions: dict[str, WebSessionConfig] = {}
 
     def list_services(self) -> list[dict]:
-        """利用可能な Web AI サービス一覧を返す."""
+        """Return a list of available Web AI services."""
         services = []
         for service, info in _WEB_AI_CATALOG.items():
             has_cookie = bool(os.environ.get(info["env_cookie_key"], ""))
@@ -194,22 +194,22 @@ class WebSessionProvider:
         return services
 
     def get_recommended_free_options(self) -> list[dict]:
-        """API 料金なしで利用できるオプションを推奨順に返す.
+        """Return options available without API fees in recommended order.
 
-        ユーザーがコストをかけずに AI を利用する方法を整理:
-        1. 無料 API キー (Gemini free tier)
-        2. g4f (Web エンドポイント自動ルーティング)
-        3. Ollama (ローカル)
-        4. Web AI セッション (本プロバイダー)
+        Organized methods for using AI at no cost:
+        1. Free API keys (Gemini free tier)
+        2. g4f (web endpoint auto-routing)
+        3. Ollama (local)
+        4. Web AI sessions (this provider)
         """
         options = [
             {
                 "method": "gemini_free_api",
-                "name": "Google Gemini 無料 API",
+                "name": "Google Gemini Free API",
                 "description": (
-                    "Google AI Studio から無料 API キーを取得。レート制限はあるが安定性が高い。"
+                    "Get a free API key from Google AI Studio. Rate-limited but highly stable."
                 ),
-                "setup": "GEMINI_API_KEY を設定",
+                "setup": "Set GEMINI_API_KEY",
                 "stability": "high",
                 "rate_limit": "15 RPM (free tier)",
                 "cost": 0.0,
@@ -219,37 +219,37 @@ class WebSessionProvider:
                 "method": "g4f",
                 "name": "g4f (gpt4free)",
                 "description": (
-                    "Web エンドポイントを自動ルーティング。複数プロバイダーにフォールバック。"
+                    "Auto-routes through web endpoints. Falls back across multiple providers."
                 ),
-                "setup": "pip install g4f (USE_G4F=true がデフォルト)",
+                "setup": "pip install g4f (USE_G4F=true is the default)",
                 "stability": "medium",
-                "rate_limit": "プロバイダーにより異なる",
+                "rate_limit": "Varies by provider",
                 "cost": 0.0,
                 "recommended": True,
             },
             {
                 "method": "ollama",
-                "name": "Ollama (ローカル LLM)",
+                "name": "Ollama (Local LLM)",
                 "description": (
-                    "ローカルで LLM を実行。完全オフライン・無料。"
-                    "GPUがあれば高品質なモデルも利用可能。"
+                    "Run LLMs locally. Completely offline and free. "
+                    "High-quality models are available with a GPU."
                 ),
-                "setup": "Ollama をインストールし、モデルを pull",
+                "setup": "Install Ollama and pull a model",
                 "stability": "high",
-                "rate_limit": "ハードウェア依存",
+                "rate_limit": "Hardware-dependent",
                 "cost": 0.0,
                 "recommended": True,
             },
             {
                 "method": "web_session",
-                "name": "Web AI セッション",
+                "name": "Web AI Session",
                 "description": (
-                    "ChatGPT / Gemini / Claude 等の Web UI をブラウザ経由で利用。"
-                    "各サービスのサブスクリプション料金のみで API 料金不要。"
+                    "Use ChatGPT / Gemini / Claude, etc. web UIs via browser. "
+                    "Only requires each service's subscription fee; no API fees."
                 ),
-                "setup": "browser-use Plugin をインストール、または Cookie を設定",
+                "setup": "Install browser-use Plugin or configure cookies",
                 "stability": "low",
-                "rate_limit": "Web UI のレート制限に依存",
+                "rate_limit": "Depends on web UI rate limits",
                 "cost": 0.0,
                 "recommended": False,
             },
@@ -262,42 +262,42 @@ class WebSessionProvider:
         messages: list[dict],
         config: WebSessionConfig | None = None,
     ) -> WebSessionResponse:
-        """Web AI セッション経由で補完リクエストを送信する.
+        """Send a completion request via web AI session.
 
-        現在の実装では g4f へのフォールバックを行う。
-        browser-use アダプタがインストールされている場合はブラウザ操作モードも利用可能。
+        The current implementation falls back to g4f.
+        Browser automation mode is also available when the browser-use adapter is installed.
 
         Args:
-            service: 利用する AI サービス
-            messages: メッセージリスト
-            config: セッション設定（省略時はデフォルト）
+            service: AI service to use
+            messages: Message list
+            config: Session configuration (defaults if omitted)
 
         Returns:
-            AI レスポンス
+            AI response
         """
         catalog_entry = _WEB_AI_CATALOG.get(service)
         if not catalog_entry:
             return WebSessionResponse(
-                content=f"[未対応のサービス: {service.value}]",
+                content=f"[Unsupported service: {service.value}]",
                 service=service.value,
                 finish_reason="error",
             )
 
-        # 方式 1: g4f 経由（推奨・最も安定）
+        # Method 1: Via g4f (recommended, most stable)
         g4f_result = await self._try_g4f(service, messages)
         if g4f_result and g4f_result.finish_reason != "error":
             return g4f_result
 
-        # 方式 2: ブラウザセッション経由
+        # Method 2: Via browser session
         browser_result = await self._try_browser_session(service, messages, catalog_entry, config)
         if browser_result:
             return browser_result
 
-        # フォールバック
+        # Fallback
         return WebSessionResponse(
             content=(
-                f"[{catalog_entry['name']} へのアクセスに失敗しました。"
-                "g4f をインストールするか、browser-use Plugin を追加してください。]"
+                f"[Failed to access {catalog_entry['name']}. "
+                "Install g4f or add the browser-use Plugin.]"
             ),
             service=service.value,
             finish_reason="error",
@@ -308,7 +308,7 @@ class WebSessionProvider:
         service: WebAIService,
         messages: list[dict],
     ) -> WebSessionResponse | None:
-        """g4f 経由でリクエストを試みる."""
+        """Attempt a request via g4f."""
         g4f_model_map: dict[WebAIService, str] = {
             WebAIService.CHATGPT: "g4f/OpenaiChat",
             WebAIService.GEMINI: "g4f/GeminiPro",
@@ -349,7 +349,7 @@ class WebSessionProvider:
         catalog_entry: dict,
         config: WebSessionConfig | None,
     ) -> WebSessionResponse | None:
-        """ブラウザセッション経由でリクエストを試みる."""
+        """Attempt a request via browser session."""
         try:
             from app.tools.browser_adapter import BrowserTask, browser_adapter_registry
 
@@ -357,18 +357,18 @@ class WebSessionProvider:
             if adapter is None:
                 return None
 
-            # メッセージを結合してプロンプトを作成
+            # Combine messages to create a prompt
             prompt = "\n".join(m.get("content", "") for m in messages if m.get("role") != "system")
 
             task = BrowserTask(
                 instruction=(
-                    f"{catalog_entry['url']} にアクセスして、"
-                    f"以下のプロンプトを入力し、AIの回答を取得してください:\n\n{prompt}"
+                    f"Access {catalog_entry['url']}, "
+                    f"enter the following prompt, and retrieve the AI response:\n\n{prompt}"
                 ),
                 url=catalog_entry["url"],
                 max_steps=20,
                 timeout_seconds=config.timeout_seconds if config else 120,
-                require_approval=False,  # Web AI セッションは承認不要
+                require_approval=False,  # Web AI sessions do not require approval
             )
 
             result = await adapter.execute_task(task)
@@ -387,7 +387,7 @@ class WebSessionProvider:
 
 
 # ---------------------------------------------------------------------------
-# グローバルインスタンス
+# Global instance
 # ---------------------------------------------------------------------------
 
 web_session_provider = WebSessionProvider()

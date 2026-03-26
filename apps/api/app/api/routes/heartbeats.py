@@ -28,7 +28,7 @@ class HeartbeatPolicyCreate(BaseModel):
 async def list_policies(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """Heartbeatポリシー一覧"""
+    """List heartbeat policies."""
     cid = uuid.UUID(company_id)
     result = await db.execute(select(HeartbeatPolicy).where(HeartbeatPolicy.company_id == cid))
     policies = result.scalars().all()
@@ -51,7 +51,7 @@ async def create_policy(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Heartbeatポリシー作成"""
+    """Create a heartbeat policy."""
     policy = HeartbeatPolicy(
         id=uuid.uuid4(),
         company_id=uuid.UUID(company_id),
@@ -71,7 +71,7 @@ async def create_policy(
 async def list_runs(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """Heartbeat実行履歴"""
+    """List heartbeat run history."""
     cid = uuid.UUID(company_id)
     result = await db.execute(
         select(HeartbeatRun)

@@ -1,8 +1,8 @@
-"""メディア生成 API エンドポイント.
+"""Media generation API endpoints.
 
-画像・動画・音声・音楽・3D の生成 API。
-すべての操作はデータ保護ポリシーと承認ゲートを経由する。
-動的プロバイダー登録・削除に対応。
+Generation API for image, video, audio, music, and 3D.
+All operations go through data protection policies and approval gates.
+Supports dynamic provider registration and removal.
 """
 
 from __future__ import annotations
@@ -44,7 +44,7 @@ def _validate_media_type(media_type: str) -> str:
 
 
 class GenerateRequest(BaseModel):
-    """メディア生成リクエスト."""
+    """Media generation request."""
 
     prompt: str = Field(..., min_length=1, max_length=10000)
     media_type: str = Field(..., description="image | video | audio | music | 3d")
@@ -56,7 +56,7 @@ class GenerateRequest(BaseModel):
 
 
 class GenerateResponse(BaseModel):
-    """メディア生成レスポンス."""
+    """Media generation response."""
 
     request_id: str
     status: str
@@ -68,7 +68,7 @@ class GenerateResponse(BaseModel):
 
 
 class MediaProviderRegisterRequest(BaseModel):
-    """プロバイダー登録リクエスト."""
+    """Provider registration request."""
 
     id: str = Field(..., min_length=1, max_length=100, pattern=r"^[a-z0-9_]+$")
     media_type: str = Field(..., description="image | video | audio | music | 3d")
@@ -82,7 +82,7 @@ class MediaProviderRegisterRequest(BaseModel):
 
 
 class MediaProviderResponse(BaseModel):
-    """プロバイダーレスポンス."""
+    """Provider response."""
 
     id: str
     media_type: str
@@ -98,13 +98,13 @@ class MediaProviderResponse(BaseModel):
 
 @router.get("/providers")
 async def list_providers() -> list[dict]:
-    """利用可能なメディア生成プロバイダー一覧（ビルトイン＋ユーザー登録）."""
+    """List available media generation providers (built-in + user-registered)."""
     return media_provider_registry.get_available()
 
 
 @router.get("/providers/{media_type}")
 async def list_providers_by_type(media_type: str) -> list[dict]:
-    """メディアタイプ別のプロバイダー一覧."""
+    """List providers by media type."""
     _validate_media_type(media_type)
     return media_provider_registry.get_available(media_type)
 
@@ -117,10 +117,10 @@ async def register_provider(
     req: MediaProviderRegisterRequest,
     user: User = Depends(get_current_user),
 ) -> dict:
-    """新規メディアプロバイダーを登録する.
+    """Register a new media provider.
 
-    3D ツールや新しい画像生成サービスなど、ビルトインにないプロバイダーを追加可能。
-    ビルトインプロバイダーの上書きは不可。
+    Add providers not available as built-in, such as 3D tools or new image generation services.
+    Built-in providers cannot be overwritten.
     """
     _validate_media_type(req.media_type)
 
@@ -151,7 +151,7 @@ async def unregister_provider(
     provider_id: str,
     user: User = Depends(get_current_user),
 ) -> dict:
-    """ユーザー登録プロバイダーを削除する（ビルトインは削除不可）."""
+    """Remove a user-registered provider (built-in providers cannot be removed)."""
     try:
         removed = media_provider_registry.unregister(provider_id)
     except ValueError as e:
@@ -171,10 +171,10 @@ async def unregister_provider(
 async def generate_media(
     req: GenerateRequest, user: User = Depends(get_current_user)
 ) -> GenerateResponse:
-    """メディアを生成する（ビルトイン＋ユーザー登録プロバイダー対応）."""
+    """Generate media (supports both built-in and user-registered providers)."""
     _validate_media_type(req.media_type)
 
-    # プロバイダーの存在確認（enum ではなくレジストリから解決）
+    # Check provider existence (resolved from registry, not enum)
     if not media_provider_registry.get(req.provider):
         available = [e.id for e in media_provider_registry.list_all()]
         raise HTTPException(
@@ -210,7 +210,7 @@ async def generate_media(
 
 @router.get("/status/{request_id}")
 async def get_generation_status(request_id: str) -> dict:
-    """生成リクエストのステータスを取得する."""
+    """Get generation request status."""
     result = media_generation_service.get_result(request_id)
     if result is None:
         raise HTTPException(status_code=404, detail="Request not found")

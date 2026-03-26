@@ -1,13 +1,13 @@
 """Runtime configuration manager for API keys and provider settings.
 
-.env ファイルを直接編集せずに、CLI・API・アプリケーション画面から
-API キーや実行モードなどの設定を変更できるようにする。
+Allows changing settings such as API keys and execution modes from
+the CLI, API, or application UI without directly editing .env files.
 
-設定は以下の優先順位で適用される:
-1. 環境変数（最優先）
-2. ランタイム設定ファイル (~/.zero-employee/config.json)
-3. .env ファイル
-4. デフォルト値
+Settings are applied in the following priority order:
+1. Environment variables (highest priority)
+2. Runtime config file (~/.zero-employee/config.json)
+3. .env file
+4. Default values
 """
 
 from __future__ import annotations
@@ -22,11 +22,11 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-# ランタイム設定ファイルのパス
+# Runtime config file path
 _CONFIG_DIR = Path.home() / ".zero-employee"
 _CONFIG_FILE = _CONFIG_DIR / "config.json"
 
-# 設定可能なキーとその説明
+# Configurable keys and their descriptions
 CONFIGURABLE_KEYS: dict[str, dict[str, str]] = {
     "OPENROUTER_API_KEY": {
         "description": "OpenRouter API key (multiple LLM providers via single key)",
@@ -291,12 +291,12 @@ CONFIGURABLE_KEYS: dict[str, dict[str, str]] = {
 
 
 def _ensure_config_dir() -> None:
-    """設定ディレクトリを作成する."""
+    """Create the config directory."""
     _CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _load_config() -> dict[str, Any]:
-    """ランタイム設定ファイルを読み込む."""
+    """Load the runtime config file."""
     if not _CONFIG_FILE.exists():
         return {}
     try:
@@ -307,13 +307,13 @@ def _load_config() -> dict[str, Any]:
 
 
 def _save_config(config: dict[str, Any]) -> None:
-    """ランタイム設定ファイルに保存する."""
+    """Save to the runtime config file."""
     _ensure_config_dir()
     _CONFIG_FILE.write_text(
         json.dumps(config, indent=2, ensure_ascii=False),
         encoding="utf-8",
     )
-    # ファイル権限をユーザーのみに制限（API キーを保護）
+    # Restrict file permissions to owner only (to protect API keys)
     try:
         os.chmod(_CONFIG_FILE, 0o600)
     except OSError:
@@ -321,27 +321,27 @@ def _save_config(config: dict[str, Any]) -> None:
 
 
 def get_config_value(key: str) -> str:
-    """設定値を取得する（優先順位: 環境変数 > ランタイム設定 > Settings デフォルト）."""
-    # 1. 環境変数を最優先
+    """Get a config value (priority: env var > runtime config > Settings default)."""
+    # 1. Environment variables take highest priority
     env_val = os.environ.get(key)
     if env_val is not None:
         return env_val
 
-    # 2. ランタイム設定ファイル
+    # 2. Runtime config file
     config = _load_config()
     if key in config:
         return str(config[key])
 
-    # 3. Settings デフォルト
+    # 3. Settings default
     return str(getattr(settings, key, ""))
 
 
 def set_config_value(key: str, value: str) -> None:
-    """ランタイム設定値を保存し、実行中の settings にも反映する."""
+    """Save a runtime config value and reflect it in the running settings."""
     if key not in CONFIGURABLE_KEYS:
         raise ValueError(f"Unknown config key: {key}")
 
-    # 値の基本バリデーション
+    # Basic value validation
     if key == "DEFAULT_EXECUTION_MODE" and value not in (
         "quality",
         "speed",
@@ -386,14 +386,14 @@ def set_config_value(key: str, value: str) -> None:
     config[key] = value
     _save_config(config)
 
-    # 実行中の settings オブジェクトにも反映（CONFIGURABLE_KEYS のみ許可）
+    # Also reflect in the running settings object (only CONFIGURABLE_KEYS allowed)
     if hasattr(settings, key) and key in CONFIGURABLE_KEYS:
         try:
             object.__setattr__(settings, key, value)
         except (TypeError, AttributeError):
             logger.debug("Could not update settings.%s at runtime", key)
 
-    # LANGUAGE 変更時は i18n モジュールにも即座に反映
+    # When LANGUAGE changes, immediately reflect in the i18n module
     if key == "LANGUAGE":
         from app.core.i18n import set_language
 
@@ -403,7 +403,7 @@ def set_config_value(key: str, value: str) -> None:
 
 
 def delete_config_value(key: str) -> bool:
-    """ランタイム設定値を削除する."""
+    """Delete a runtime config value."""
     config = _load_config()
     if key in config:
         del config[key]
@@ -413,7 +413,7 @@ def delete_config_value(key: str) -> bool:
 
 
 def get_all_config() -> dict[str, dict[str, Any]]:
-    """全設定値を取得する（機密値はマスク）."""
+    """Get all config values (sensitive values are masked)."""
     result: dict[str, dict[str, Any]] = {}
     config = _load_config()
 
@@ -421,7 +421,7 @@ def get_all_config() -> dict[str, dict[str, Any]]:
         value = get_config_value(key)
         is_sensitive = meta.get("sensitive") == "true"
 
-        # 機密値はマスクして返す
+        # Mask sensitive values before returning
         if is_sensitive and value:
             masked = value[:4] + "..." + value[-4:] if len(value) > 12 else "****"
         else:
@@ -441,7 +441,7 @@ def get_all_config() -> dict[str, dict[str, Any]]:
 
 
 def get_provider_status() -> dict[str, dict[str, Any]]:
-    """各プロバイダーの接続状態を取得する."""
+    """Get the connection status of each provider."""
     providers = {
         "openrouter": {
             "name": "OpenRouter",
@@ -482,8 +482,8 @@ def get_provider_status() -> dict[str, dict[str, Any]]:
             is_configured = value.lower() in ("true", "1", "yes")
         elif provider_id == "ollama":
             is_configured = bool(value) and value != "http://localhost:11434"
-            # Ollama はデフォルトURLでも使えるので、設定されていなくても有効
-            is_configured = True  # Ollama は常に試行可能
+            # Ollama works even with the default URL, so it's always available
+            is_configured = True  # Ollama can always be attempted
         else:
             is_configured = bool(value)
 
@@ -497,7 +497,7 @@ def get_provider_status() -> dict[str, dict[str, Any]]:
 
 
 def _get_source(key: str, runtime_config: dict[str, Any]) -> str:
-    """設定値のソースを判定する."""
+    """Determine the source of a config value."""
     if os.environ.get(key):
         return "environment"
     if key in runtime_config:
@@ -508,9 +508,9 @@ def _get_source(key: str, runtime_config: dict[str, Any]) -> str:
 
 
 def apply_runtime_config() -> None:
-    """起動時にランタイム設定ファイルの値を settings に適用する.
+    """Apply runtime config file values to settings at startup.
 
-    環境変数が設定されていない項目のみ、config.json の値で上書きする。
+    Only overrides with config.json values for items where no environment variable is set.
     """
     config = _load_config()
     applied = 0
@@ -523,7 +523,7 @@ def apply_runtime_config() -> None:
                 except (TypeError, AttributeError):
                     logger.debug("Could not apply runtime config: %s", key)
 
-    # LANGUAGE がランタイム設定にある場合は i18n モジュールにも反映
+    # If LANGUAGE is in the runtime config, also reflect in the i18n module
     if "LANGUAGE" in config and not os.environ.get("LANGUAGE"):
         from app.core.i18n import set_language
 

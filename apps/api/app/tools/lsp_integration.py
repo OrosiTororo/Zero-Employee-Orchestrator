@@ -755,5 +755,5 @@ class LSPIntegration:
         )
 
 
-# グローバルインスタンス
+# Global instance
 lsp_integration = LSPIntegration()

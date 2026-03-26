@@ -1,6 +1,6 @@
-"""監査ログリポジトリ — AuditLog の DB 操作.
+"""Audit log repository -- AuditLog DB operations.
 
-監査ログは append-only を前提とし、更新・削除を原則禁止する。
+Audit logs are append-only by design; updates and deletions are prohibited in principle.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from app.models.audit import AuditLog
 
 
 class AuditLogRepository:
-    """監査ログ専用リポジトリ（append-only）."""
+    """Dedicated audit log repository (append-only)."""
 
     def __init__(self, db: AsyncSession) -> None:
         self.db = db

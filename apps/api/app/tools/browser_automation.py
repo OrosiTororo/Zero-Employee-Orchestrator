@@ -424,5 +424,5 @@ class BrowserAutomation:
         return False
 
 
-# グローバルインスタンス
+# Global instance
 browser_automation = BrowserAutomation()

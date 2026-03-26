@@ -1,6 +1,6 @@
-"""ガバナンス・コンプライアンス API エンドポイント.
+"""Governance and compliance API endpoints.
 
-ポリシー管理・コンプライアンス監査・違反レポートを提供する。
+Provides policy management, compliance auditing, and violation reporting.
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ router = APIRouter(prefix="/governance", tags=["governance"])
 
 
 class AddPolicyRequest(BaseModel):
-    """ポリシー追加リクエスト."""
+    """Add policy request."""
 
     name: str = Field(..., min_length=1, max_length=200)
     policy_type: str = Field(...)
@@ -46,14 +46,14 @@ class AddPolicyRequest(BaseModel):
 
 @router.post("/policies", status_code=201)
 async def add_policy(req: AddPolicyRequest, user: User = Depends(get_current_user)) -> dict:
-    """ポリシールールを追加する."""
+    """Add a policy rule."""
     try:
         policy_type = PolicyType(req.policy_type)
     except ValueError:
         raise HTTPException(
             status_code=400,
-            detail=f"無効なポリシータイプ: {req.policy_type}。"
-            f"有効値: {[p.value for p in PolicyType]}",
+            detail=f"Invalid policy type: {req.policy_type}. "
+            f"Valid values: {[p.value for p in PolicyType]}",
         )
 
     try:
@@ -61,8 +61,8 @@ async def add_policy(req: AddPolicyRequest, user: User = Depends(get_current_use
     except ValueError:
         raise HTTPException(
             status_code=400,
-            detail=f"無効なフレームワーク: {req.framework}。"
-            f"有効値: {[f.value for f in ComplianceFramework]}",
+            detail=f"Invalid framework: {req.framework}. "
+            f"Valid values: {[f.value for f in ComplianceFramework]}",
         )
 
     try:
@@ -70,7 +70,7 @@ async def add_policy(req: AddPolicyRequest, user: User = Depends(get_current_use
     except ValueError:
         raise HTTPException(
             status_code=400,
-            detail=f"無効な深刻度: {req.severity}。有効値: {[s.value for s in ViolationSeverity]}",
+            detail=f"Invalid severity: {req.severity}. Valid values: {[s.value for s in ViolationSeverity]}",
         )
 
     rule = PolicyRule(
@@ -95,7 +95,7 @@ async def list_policies(
     active_only: bool = True,
     user: User = Depends(get_current_user),
 ) -> list[dict]:
-    """ポリシールール一覧を取得する."""
+    """List policy rules."""
     fw = None
     if framework:
         try:
@@ -103,7 +103,7 @@ async def list_policies(
         except ValueError:
             raise HTTPException(
                 status_code=400,
-                detail=f"無効なフレームワーク: {framework}",
+                detail=f"Invalid framework: {framework}",
             )
 
     pt = None
@@ -113,7 +113,7 @@ async def list_policies(
         except ValueError:
             raise HTTPException(
                 status_code=400,
-                detail=f"無効なポリシータイプ: {policy_type}",
+                detail=f"Invalid policy type: {policy_type}",
             )
 
     policies = await governance_service.list_policies(
@@ -128,14 +128,14 @@ async def run_compliance_check(
     resource_id: str = Query(default="", description="チェック対象リソース ID"),
     user: User = Depends(get_current_user),
 ) -> dict:
-    """指定フレームワークのコンプライアンスチェックを実行する."""
+    """Run compliance check for the specified framework."""
     try:
         fw = ComplianceFramework(framework)
     except ValueError:
         raise HTTPException(
             status_code=400,
-            detail=f"無効なフレームワーク: {framework}。"
-            f"有効値: {[f.value for f in ComplianceFramework]}",
+            detail=f"Invalid framework: {framework}. "
+            f"Valid values: {[f.value for f in ComplianceFramework]}",
         )
 
     results = await governance_service.check_compliance(fw, resource_id)
@@ -163,13 +163,13 @@ async def run_compliance_check(
 
 @router.get("/report/{framework}")
 async def get_compliance_report(framework: str, user: User = Depends(get_current_user)) -> dict:
-    """コンプライアンスレポートを取得する."""
+    """Get compliance report."""
     try:
         fw = ComplianceFramework(framework)
     except ValueError:
         raise HTTPException(
             status_code=400,
-            detail=f"無効なフレームワーク: {framework}",
+            detail=f"Invalid framework: {framework}",
         )
 
     return await governance_service.get_compliance_report(fw)
@@ -181,7 +181,7 @@ async def get_violations(
     limit: int = Query(default=50, ge=1, le=200),
     user: User = Depends(get_current_user),
 ) -> list[dict]:
-    """最近のポリシー違反を取得する."""
+    """Get recent policy violations."""
     sev = None
     if severity:
         try:
@@ -189,7 +189,7 @@ async def get_violations(
         except ValueError:
             raise HTTPException(
                 status_code=400,
-                detail=f"無効な深刻度: {severity}",
+                detail=f"Invalid severity: {severity}",
             )
 
     violations = await governance_service.get_policy_violations(severity=sev, limit=limit)
@@ -207,11 +207,11 @@ async def get_violations(
     ]
 
 
-# ---------- ヘルパー ----------
+# ---------- Helpers ----------
 
 
 def _policy_to_dict(rule: PolicyRule) -> dict:
-    """PolicyRule を dict に変換する."""
+    """Convert PolicyRule to dict."""
     return {
         "id": rule.id,
         "name": rule.name,

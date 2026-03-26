@@ -31,7 +31,7 @@ router = APIRouter()
 
 
 class TaskProviderOverride(BaseModel):
-    """タスク単位のプロバイダー指定."""
+    """Per-task provider override."""
 
     provider: str | None = None  # e.g. "anthropic", "openai", "ollama"
     model: str | None = None  # e.g. "anthropic/claude-opus"
@@ -54,7 +54,7 @@ async def create_task(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """タスク作成"""
+    """Create a task."""
     task = Task(
         id=uuid.uuid4(),
         plan_id=parse_uuid(plan_id, "plan_id"),
@@ -85,7 +85,7 @@ async def update_task_provider(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """タスクのプロバイダー指定を更新"""
+    """Update task provider override."""
     result = await db.execute(select(Task).where(Task.id == parse_uuid(task_id, "task_id")))
     task = result.scalar_one_or_none()
     if not task:
@@ -109,7 +109,7 @@ async def update_task_provider(
 async def start_task(
     task_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """タスク実行開始 (state machine enforced)"""
+    """Start task execution (state machine enforced)."""
     result = await db.execute(select(Task).where(Task.id == parse_uuid(task_id, "task_id")))
     task = result.scalar_one_or_none()
     if not task:
@@ -119,7 +119,7 @@ async def start_task(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    # プロバイダー解決 & 実行モニター通知
+    # Provider resolution & execution monitor notification
     resolved = resolve_task_provider(task)
     try:
         from app.orchestration.execution_monitor import get_execution_monitor
@@ -133,7 +133,7 @@ async def start_task(
             provider_override=task.provider_override_json,
         )
     except Exception:
-        pass  # モニターが利用不可でもタスク実行は継続
+        pass  # Continue task execution even if monitor is unavailable
 
     return {
         "status": "running",
@@ -147,7 +147,7 @@ async def start_task(
 async def complete_task(
     task_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """タスク完了"""
+    """Complete task."""
     result = await db.execute(select(Task).where(Task.id == parse_uuid(task_id, "task_id")))
     task = result.scalar_one_or_none()
     if not task:
@@ -171,7 +171,7 @@ async def complete_task(
 async def retry_task(
     task_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """タスク再試行"""
+    """Retry task."""
     result = await db.execute(select(Task).where(Task.id == parse_uuid(task_id, "task_id")))
     task = result.scalar_one_or_none()
     if not task:
@@ -187,7 +187,7 @@ async def retry_task(
 async def request_approval(
     task_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """タスクの承認を要求"""
+    """Request task approval."""
     result = await db.execute(select(Task).where(Task.id == parse_uuid(task_id, "task_id")))
     task = result.scalar_one_or_none()
     if not task:
@@ -203,7 +203,7 @@ async def request_approval(
 async def create_task_run(
     task_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """タスク実行記録を作成"""
+    """Create a task run record."""
     tid = parse_uuid(task_id, "task_id")
     existing = await db.execute(select(TaskRun).where(TaskRun.task_id == tid))
     count = len(existing.scalars().all())
@@ -223,7 +223,7 @@ async def create_task_run(
 async def list_task_runs(
     task_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """タスク実行履歴"""
+    """List task run history."""
     tid = parse_uuid(task_id, "task_id")
     result = await db.execute(
         select(TaskRun).where(TaskRun.task_id == tid).order_by(TaskRun.run_no.desc())

@@ -1,6 +1,6 @@
-"""品質・洞察 API ルート — Quality & Insights.
+"""Quality & Insights API routes.
 
-5つの品質・洞察機能の API エンドポイントを提供する:
+Provides API endpoints for 5 quality and insight features:
 
 1. 前提変化の汎用監視 (Prerequisite Monitor)
    - POST /quality-insights/prerequisites/sources          — 監視対象登録
@@ -119,7 +119,7 @@ async def register_prerequisite_source(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """外部情報源を監視対象として登録する."""
+    """Register an external information source for monitoring."""
     try:
         category = PrerequisiteCategory(body.category)
     except ValueError:
@@ -148,7 +148,7 @@ async def list_prerequisite_sources(
     category: str | None = None,
     current_user: User = Depends(get_current_user),
 ):
-    """登録済みの監視対象を一覧取得する."""
+    """List registered monitoring sources."""
     cat = PrerequisiteCategory(category) if category else None
     sources = prerequisite_monitor.list_sources(
         company_id=str(current_user.company_id) if current_user.company_id else "",
@@ -166,7 +166,7 @@ async def get_prerequisite_source(
     source_id: str,
     current_user: User = Depends(get_current_user),
 ):
-    """監視対象の詳細を取得する."""
+    """Get monitoring source details."""
     source = prerequisite_monitor.get_source(source_id)
     if not source:
         raise HTTPException(status_code=404, detail="Source not found")
@@ -183,7 +183,7 @@ async def update_prerequisite_source(
     body: PrerequisiteSourceUpdate,
     current_user: User = Depends(get_current_user),
 ):
-    """監視対象を更新する."""
+    """Update a monitoring source."""
     updates = body.model_dump(exclude_unset=True)
     try:
         source = prerequisite_monitor.update_source(source_id, **updates)
@@ -200,7 +200,7 @@ async def delete_prerequisite_source(
     source_id: str,
     current_user: User = Depends(get_current_user),
 ):
-    """監視対象を削除する."""
+    """Delete a monitoring source."""
     if not prerequisite_monitor.remove_source(source_id):
         raise HTTPException(status_code=404, detail="Source not found")
     return {"message": "Source deleted"}
@@ -215,7 +215,7 @@ async def check_prerequisite(
     body: PrerequisiteCheckRequest,
     current_user: User = Depends(get_current_user),
 ):
-    """監視対象の内容を手動でチェックする."""
+    """Manually check monitoring source content."""
     try:
         change = prerequisite_monitor.check_source(body.source_id, body.content)
     except ValueError:
@@ -237,7 +237,7 @@ async def list_prerequisite_changes(
     limit: int = Query(default=50, le=200),
     current_user: User = Depends(get_current_user),
 ):
-    """検出された変更の履歴を取得する."""
+    """Get history of detected changes."""
     from app.services.prerequisite_monitor_service import ChangeImpact
 
     imp = ChangeImpact(impact) if impact else None
@@ -259,7 +259,7 @@ async def acknowledge_prerequisite_change(
     change_id: str,
     current_user: User = Depends(get_current_user),
 ):
-    """変更を確認済みにする."""
+    """Mark a change as acknowledged."""
     change = prerequisite_monitor.acknowledge_change(change_id, str(current_user.id))
     if not change:
         raise HTTPException(status_code=404, detail="Change not found")
@@ -274,7 +274,7 @@ async def acknowledge_prerequisite_change(
 async def get_prerequisite_summary(
     current_user: User = Depends(get_current_user),
 ):
-    """監視のサマリーを取得する."""
+    """Get monitoring summary."""
     company_id = str(current_user.company_id) if current_user.company_id else ""
     summary = prerequisite_monitor.get_summary(company_id)
     return PrerequisiteSummaryResponse(**summary)
@@ -294,7 +294,7 @@ async def check_spec_contradictions(
     body: ContradictionCheckRequest,
     current_user: User = Depends(get_current_user),
 ):
-    """複数の Spec 間の矛盾を検出する."""
+    """Detect contradictions between multiple specs."""
     specs = [
         SpecSummary(
             spec_id=s.spec_id,
@@ -362,7 +362,7 @@ async def create_replay_job(
     body: ReplayJobCreateRequest,
     current_user: User = Depends(get_current_user),
 ):
-    """タスクのリプレイジョブを作成する."""
+    """Create a task replay job."""
     configs = [c.model_dump() for c in body.configs]
     job = task_replay_service.create_replay_job(
         task_id=body.task_id,
@@ -385,7 +385,7 @@ async def list_replay_jobs(
     limit: int = Query(default=50, le=200),
     current_user: User = Depends(get_current_user),
 ):
-    """リプレイジョブを一覧取得する."""
+    """List replay jobs."""
     from app.services.task_replay_service import ReplayStatus
 
     st = ReplayStatus(status) if status else None
@@ -402,7 +402,7 @@ async def get_replay_job(
     job_id: str,
     current_user: User = Depends(get_current_user),
 ):
-    """リプレイジョブの詳細を取得する."""
+    """Get replay job details."""
     job = task_replay_service.get_job(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -419,7 +419,7 @@ async def record_replay_execution(
     body: ReplayExecutionRecordRequest,
     current_user: User = Depends(get_current_user),
 ):
-    """リプレイ実行結果を記録する."""
+    """Record replay execution result."""
     try:
         execution = task_replay_service.record_execution(
             job_id=job_id,
@@ -458,7 +458,7 @@ async def record_judgment(
     body: JudgmentRecordCreate,
     current_user: User = Depends(get_current_user),
 ):
-    """ユーザーの判断（承認・却下等）を記録する."""
+    """Record a user judgment (approval, rejection, etc.)."""
     try:
         action = JudgmentAction(body.action)
     except ValueError:
@@ -492,7 +492,7 @@ async def get_judgment_review_report(
     period_days: int = Query(default=30, ge=1, le=365),
     current_user: User = Depends(get_current_user),
 ):
-    """ユーザーの判断傾向を分析したレポートを生成する."""
+    """Generate a report analyzing user judgment trends."""
     company_id = str(current_user.company_id) if current_user.company_id else ""
     report = judgment_review_service.generate_report(
         user_id=str(current_user.id),
@@ -559,7 +559,7 @@ async def verify_plan_quality(
     body: PlanQualityVerifyRequest,
     current_user: User = Depends(get_current_user),
 ):
-    """Spec → Plan 分解の品質を検証する（MECE チェック）."""
+    """Verify the quality of Spec to Plan decomposition (MECE check)."""
     spec = SpecInput(
         spec_id=body.spec.spec_id,
         objective=body.spec.objective,
@@ -653,7 +653,7 @@ async def verify_plan_quality(
 
 
 # ===========================================================================
-# ヘルパー関数
+# Helper functions
 # ===========================================================================
 
 

@@ -24,7 +24,7 @@ class ConnectionCreate(BaseModel):
 
 @router.get("/companies/{company_id}/settings")
 async def get_settings(company_id: str, user: User = Depends(get_current_user)):
-    """会社設定を取得"""
+    """Get company settings."""
     return {"company_id": company_id, "settings": {}}
 
 
@@ -32,7 +32,7 @@ async def get_settings(company_id: str, user: User = Depends(get_current_user)):
 async def update_settings(
     company_id: str, settings: dict | None = None, user: User = Depends(get_current_user)
 ):
-    """会社設定を更新"""
+    """Update company settings."""
     return {"company_id": company_id, "status": "updated"}
 
 
@@ -40,7 +40,7 @@ async def update_settings(
 async def list_connections(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """接続先一覧"""
+    """List tool connections."""
     cid = uuid.UUID(company_id)
     result = await db.execute(select(ToolConnection).where(ToolConnection.company_id == cid))
     connections = result.scalars().all()
@@ -63,7 +63,7 @@ async def create_connection(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """接続先を追加"""
+    """Add a tool connection."""
     conn = ToolConnection(
         id=uuid.uuid4(),
         company_id=uuid.UUID(company_id),

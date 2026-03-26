@@ -253,5 +253,5 @@ class LLMMockProvider:
         }
 
 
-# グローバルインスタンス
+# Global instance
 llm_mock = LLMMockProvider()
