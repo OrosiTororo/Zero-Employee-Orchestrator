@@ -63,34 +63,10 @@ jobs:
           }
 
           EN=$(extract_section docs/CHANGELOG.md)
-          JA=$(extract_section docs/ja-JP/CHANGELOG.md)
-          ZH=$(extract_section docs/zh/CHANGELOG.md)
 
           {
-            echo "## English | [日本語](#日本語) | [中文](#中文)"
-            echo ""
             if [ -n "$EN" ]; then
               echo "$EN"
-            else
-              echo "Release v${VERSION}"
-            fi
-            echo ""
-            echo "---"
-            echo ""
-            echo "## 日本語"
-            echo ""
-            if [ -n "$JA" ]; then
-              echo "$JA"
-            else
-              echo "Release v${VERSION}"
-            fi
-            echo ""
-            echo "---"
-            echo ""
-            echo "## 中文"
-            echo ""
-            if [ -n "$ZH" ]; then
-              echo "$ZH"
             else
               echo "Release v${VERSION}"
             fi

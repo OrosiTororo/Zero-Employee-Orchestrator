@@ -1,12 +1,12 @@
 #!/bin/bash
-# scripts/bump-version.sh — pyproject.toml バージョン同期スクリプト
+# scripts/bump-version.sh — pyproject.toml version sync script
 #
-# 使い方:
+# Usage:
 #   ./scripts/bump-version.sh 0.2.0
 #   ./scripts/bump-version.sh 1.0.0-rc1
 #
-# root/pyproject.toml と apps/api/pyproject.toml の両方のバージョンを更新し、
-# 更新後に一致を確認する。
+# Updates version in both root/pyproject.toml and apps/api/pyproject.toml,
+# then verifies they match.
 
 set -euo pipefail
 
@@ -15,26 +15,26 @@ ROOT_TOML="$REPO_ROOT/pyproject.toml"
 API_TOML="$REPO_ROOT/apps/api/pyproject.toml"
 
 # ────────────────────────────────────────────
-# 引数チェック
+# Argument check
 # ────────────────────────────────────────────
 if [ $# -ne 1 ]; then
   echo "Usage: $0 <version>"
-  echo "  例: $0 0.2.0"
-  echo "  例: $0 1.0.0-rc1"
+  echo "  e.g.: $0 0.2.0"
+  echo "  e.g.: $0 1.0.0-rc1"
   exit 1
 fi
 
 NEW_VERSION="$1"
 
-# バージョン形式の検証 (PEP 440 互換: X.Y.Z or X.Y.Z-suffix)
+# Version format validation (PEP 440 compatible: X.Y.Z or X.Y.Z-suffix)
 if ! echo "$NEW_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$'; then
-  echo "❌ 無効なバージョン形式: $NEW_VERSION"
-  echo "   有効な形式: X.Y.Z または X.Y.Z-suffix (例: 0.2.0, 1.0.0-rc1)"
+  echo "Invalid version format: $NEW_VERSION"
+  echo "   Valid formats: X.Y.Z or X.Y.Z-suffix (e.g., 0.2.0, 1.0.0-rc1)"
   exit 1
 fi
 
 # ────────────────────────────────────────────
-# 現在のバージョンを取得
+# Get current versions
 # ────────────────────────────────────────────
 get_version() {
   grep -m1 '^version = ' "$1" | sed 's/version = "\(.*\)"/\1/'
@@ -44,32 +44,32 @@ CURRENT_ROOT=$(get_version "$ROOT_TOML")
 CURRENT_API=$(get_version "$API_TOML")
 
 echo "=========================================="
-echo " Zero-Employee Orchestrator バージョン更新"
+echo " Zero-Employee Orchestrator Version Update"
 echo "=========================================="
 echo ""
-echo "現在のバージョン:"
+echo "Current versions:"
 echo "  root/pyproject.toml:     $CURRENT_ROOT"
 echo "  apps/api/pyproject.toml: $CURRENT_API"
 echo ""
-echo "新しいバージョン: $NEW_VERSION"
+echo "New version: $NEW_VERSION"
 echo ""
 
 if [ "$CURRENT_ROOT" != "$CURRENT_API" ]; then
-  echo "⚠️  警告: 現在のバージョンが一致していません！"
+  echo "Warning: Current versions do not match!"
   echo ""
 fi
 
 # ────────────────────────────────────────────
-# バージョンを更新
+# Update versions
 # ────────────────────────────────────────────
-# sed で version = "X.Y.Z" を置換（最初の出現のみ）
+# Replace version = "X.Y.Z" with sed (first occurrence only)
 update_version() {
   local file="$1"
   local label="$2"
   if sed -i "0,/^version = \".*\"/s//version = \"$NEW_VERSION\"/" "$file"; then
-    echo "✅ $label を更新しました"
+    echo "Updated $label"
   else
-    echo "❌ $label の更新に失敗しました"
+    echo "Failed to update $label"
     exit 1
   fi
 }
@@ -78,11 +78,11 @@ update_version "$ROOT_TOML" "root/pyproject.toml"
 update_version "$API_TOML"  "apps/api/pyproject.toml"
 
 # ────────────────────────────────────────────
-# 更新後の確認
+# Post-update verification
 # ────────────────────────────────────────────
 echo ""
 echo "=========================================="
-echo " 更新後の確認"
+echo " Post-Update Verification"
 echo "=========================================="
 
 UPDATED_ROOT=$(get_version "$ROOT_TOML")
@@ -93,9 +93,9 @@ echo "  apps/api/pyproject.toml: $UPDATED_API"
 echo ""
 
 if [ "$UPDATED_ROOT" = "$NEW_VERSION" ] && [ "$UPDATED_API" = "$NEW_VERSION" ]; then
-  echo "✅ 両ファイルのバージョンが一致しています: $NEW_VERSION"
+  echo "Both files match: $NEW_VERSION"
   exit 0
 else
-  echo "❌ バージョンの更新に問題があります。手動で確認してください。"
+  echo "Version update failed. Please check manually."
   exit 1
 fi

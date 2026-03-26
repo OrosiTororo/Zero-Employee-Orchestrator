@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
-# Zero-Employee Orchestrator — セットアップスクリプト
-# ダウンロード後に一度だけ実行してください
+# Zero-Employee Orchestrator — Setup Script
+# Run this once after downloading
 # =============================================================================
 
 set -e
@@ -21,16 +21,16 @@ error() { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 
 echo ""
 echo "=============================================="
-echo "  Zero-Employee Orchestrator  セットアップ"
+echo "  Zero-Employee Orchestrator  Setup"
 echo "=============================================="
 echo ""
 
 # ---------------------------------------------------------------------------
-# 1. 前提条件の確認と自動インストール
+# 1. Check prerequisites and auto-install
 # ---------------------------------------------------------------------------
-info "前提条件を確認しています..."
+info "Checking prerequisites..."
 
-# パッケージマネージャーの検出
+# Detect package manager
 detect_pkg_manager() {
     if command -v brew &> /dev/null; then
         echo "brew"
@@ -51,10 +51,10 @@ install_with_pkg_manager() {
     local name="$1"
     shift
     case "$PKG_MANAGER" in
-        brew)   info "$name をインストールしています (brew)..."; brew install "$@" ;;
-        apt)    info "$name をインストールしています (apt)..."; sudo apt-get update -qq && sudo apt-get install -y "$@" ;;
-        dnf)    info "$name をインストールしています (dnf)..."; sudo dnf install -y "$@" ;;
-        pacman) info "$name をインストールしています (pacman)..."; sudo pacman -S --noconfirm "$@" ;;
+        brew)   info "Installing $name (brew)..."; brew install "$@" ;;
+        apt)    info "Installing $name (apt)..."; sudo apt-get update -qq && sudo apt-get install -y "$@" ;;
+        dnf)    info "Installing $name (dnf)..."; sudo dnf install -y "$@" ;;
+        pacman) info "Installing $name (pacman)..."; sudo pacman -S --noconfirm "$@" ;;
         *)      return 1 ;;
     esac
 }
@@ -62,7 +62,7 @@ install_with_pkg_manager() {
 FAILED=()
 
 # --- Python 3.12+ ---
-# Python >= 3.12 のバイナリを探す (python3.13, python3.12, python3 の順)
+# Find Python >= 3.12 binary (tries python3.13, python3.12, python3 in order)
 find_python312() {
     for cmd in python3.13 python3.12 python3; do
         if command -v "$cmd" &> /dev/null; then
@@ -86,8 +86,8 @@ if [ -n "$PYTHON_CMD" ]; then
     ok "Python $PY_VER ($PYTHON_CMD)"
 elif command -v python3 &> /dev/null; then
     PY_VER=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
-    warn "Python $PY_VER が見つかりましたが 3.12 以上が必要です"
-    info "Python 3.12 のインストールを試みます..."
+    warn "Found Python $PY_VER but 3.12 or higher is required"
+    info "Attempting to install Python 3.12..."
     case "$PKG_MANAGER" in
         brew)   install_with_pkg_manager "Python 3.12" python@3.12 ;;
         apt)    install_with_pkg_manager "Python 3.12" python3.12 python3.12-venv ;;
@@ -97,12 +97,12 @@ elif command -v python3 &> /dev/null; then
     esac
     PYTHON_CMD=$(find_python312 || true)
     if [ -n "$PYTHON_CMD" ]; then
-        ok "Python 3.12+ をインストールしました ($PYTHON_CMD)"
+        ok "Installed Python 3.12+ ($PYTHON_CMD)"
     else
-        FAILED+=("python3.12+ (現在 $PY_VER — 3.12 以上が必要です)")
+        FAILED+=("python3.12+ (currently $PY_VER -- 3.12 or higher required)")
     fi
 else
-    info "Python が見つかりません。インストールを試みます..."
+    info "Python not found. Attempting to install..."
     case "$PKG_MANAGER" in
         brew)   install_with_pkg_manager "Python" python@3.12 ;;
         apt)    install_with_pkg_manager "Python" python3.12 python3.12-venv ;;
@@ -112,9 +112,9 @@ else
     esac
     PYTHON_CMD=$(find_python312 || true)
     if [ -n "$PYTHON_CMD" ]; then
-        ok "Python をインストールしました ($PYTHON_CMD)"
+        ok "Installed Python ($PYTHON_CMD)"
     else
-        FAILED+=("python3 (3.12+) -- パッケージマネージャーが見つかりません")
+        FAILED+=("python3 (3.12+) -- no package manager found")
     fi
 fi
 
@@ -125,16 +125,16 @@ if command -v node &> /dev/null; then
     if [ "$NODE_MAJOR" -ge 20 ]; then
         ok "Node.js v$NODE_VER"
     else
-        warn "Node.js v$NODE_VER が見つかりましたが v20 以上が推奨です"
+        warn "Found Node.js v$NODE_VER but v20 or higher is recommended"
     fi
 else
-    info "Node.js が見つかりません。インストールを試みます..."
+    info "Node.js not found. Attempting to install..."
     case "$PKG_MANAGER" in
-        brew)   install_with_pkg_manager "Node.js" node && ok "Node.js をインストールしました" ;;
-        apt)    install_with_pkg_manager "Node.js" nodejs npm && ok "Node.js をインストールしました" ;;
-        dnf)    install_with_pkg_manager "Node.js" nodejs && ok "Node.js をインストールしました" ;;
-        pacman) install_with_pkg_manager "Node.js" nodejs npm && ok "Node.js をインストールしました" ;;
-        *)      FAILED+=("node (v20+) -- パッケージマネージャーが見つかりません") ;;
+        brew)   install_with_pkg_manager "Node.js" node && ok "Installed Node.js" ;;
+        apt)    install_with_pkg_manager "Node.js" nodejs npm && ok "Installed Node.js" ;;
+        dnf)    install_with_pkg_manager "Node.js" nodejs && ok "Installed Node.js" ;;
+        pacman) install_with_pkg_manager "Node.js" nodejs npm && ok "Installed Node.js" ;;
+        *)      FAILED+=("node (v20+) -- no package manager found") ;;
     esac
     if ! command -v node &> /dev/null; then
         FAILED+=("node (v20+)")
@@ -145,13 +145,13 @@ fi
 if command -v pnpm &> /dev/null; then
     ok "pnpm $(pnpm -v)"
 else
-    info "pnpm が見つかりません。インストールを試みます..."
+    info "pnpm not found. Attempting to install..."
     if command -v npm &> /dev/null; then
-        npm install -g pnpm && ok "pnpm をインストールしました (npm)"
+        npm install -g pnpm && ok "Installed pnpm (npm)"
     elif command -v corepack &> /dev/null; then
-        corepack enable && corepack prepare pnpm@latest --activate && ok "pnpm をインストールしました (corepack)"
+        corepack enable && corepack prepare pnpm@latest --activate && ok "Installed pnpm (corepack)"
     elif [ "$PKG_MANAGER" = "brew" ]; then
-        install_with_pkg_manager "pnpm" pnpm && ok "pnpm をインストールしました (brew)"
+        install_with_pkg_manager "pnpm" pnpm && ok "Installed pnpm (brew)"
     else
         FAILED+=("pnpm (9+)")
     fi
@@ -161,87 +161,87 @@ fi
 HAS_UV=false
 HAS_PIP=false
 if command -v uv &> /dev/null; then
-    ok "uv が見つかりました"
+    ok "uv found"
     HAS_UV=true
 elif command -v pip3 &> /dev/null || command -v pip &> /dev/null; then
-    ok "pip が見つかりました"
+    ok "pip found"
     HAS_PIP=true
 else
-    FAILED+=("pip または uv (Python パッケージマネージャー)")
+    FAILED+=("pip or uv (Python package manager)")
 fi
 
 if [ ${#FAILED[@]} -gt 0 ]; then
     echo ""
-    error "以下のツールを自動インストールできませんでした:\n  ${FAILED[*]}\n\n手動でインストールしてから再実行してください。"
+    error "Could not automatically install the following tools:\n  ${FAILED[*]}\n\nPlease install them manually and re-run this script."
 fi
 
 echo ""
 
 # ---------------------------------------------------------------------------
-# 2. 環境変数ファイルの作成
+# 2. Create environment variable file
 # ---------------------------------------------------------------------------
-info "環境変数ファイルを設定しています..."
+info "Setting up environment variable file..."
 
 ENV_FILE="$ROOT_DIR/apps/api/.env"
 if [ ! -f "$ENV_FILE" ]; then
     SECRET=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))" 2>/dev/null || echo "change-this-$(date +%s)")
     cat > "$ENV_FILE" <<EOF
-# Zero-Employee Orchestrator 環境変数
-# このファイルは setup.sh により自動生成されました
+# Zero-Employee Orchestrator environment variables
+# This file was auto-generated by setup.sh
 
-# データベース (SQLite — 開発用。本番では PostgreSQL 推奨)
+# Database (SQLite -- for development. PostgreSQL recommended for production)
 DATABASE_URL=sqlite+aiosqlite:///./zero_employee_orchestrator.db
 
-# セキュリティ
+# Security
 SECRET_KEY=${SECRET}
 
 # CORS
 CORS_ORIGINS=["http://localhost:5173","http://localhost:3000","tauri://localhost","https://tauri.localhost"]
 
-# デバッグモード
+# Debug mode
 DEBUG=true
 
-# LLM Provider (必要に応じて設定してください)
+# LLM Provider (configure as needed)
 # OPENROUTER_API_KEY=
 # OPENAI_API_KEY=
 
-# Google OAuth (オプション)
+# Google OAuth (optional)
 # GOOGLE_CLIENT_ID=
 # GOOGLE_CLIENT_SECRET=
 EOF
-    ok ".env ファイルを作成しました: $ENV_FILE"
+    ok "Created .env file: $ENV_FILE"
 else
-    ok ".env ファイルは既に存在します（スキップ）"
+    ok ".env file already exists (skipped)"
 fi
 
 echo ""
 
 # ---------------------------------------------------------------------------
-# 3. Python バックエンドのセットアップ
+# 3. Python backend setup
 # ---------------------------------------------------------------------------
-info "Python バックエンドをセットアップしています..."
+info "Setting up Python backend..."
 
 cd "$ROOT_DIR/apps/api"
 
-# 仮想環境の作成 (Python 3.12+ を使用)
+# Create virtual environment (using Python 3.12+)
 PYTHON_CMD="${PYTHON_CMD:-python3}"
 if [ ! -d ".venv" ]; then
     "$PYTHON_CMD" -m venv .venv
-    ok "仮想環境を作成しました ($PYTHON_CMD)"
+    ok "Created virtual environment ($PYTHON_CMD)"
 else
-    # 既存 venv の Python バージョンを確認
+    # Check Python version of existing venv
     VENV_PY_VER=$(.venv/bin/python -c 'import sys; print(sys.version_info.minor)' 2>/dev/null || echo "0")
     if [ "$VENV_PY_VER" -lt 12 ]; then
-        warn "既存の仮想環境が Python 3.$VENV_PY_VER です。3.12+ で再作成します..."
+        warn "Existing virtual environment uses Python 3.$VENV_PY_VER. Recreating with 3.12+..."
         rm -rf .venv
         "$PYTHON_CMD" -m venv .venv
-        ok "仮想環境を再作成しました ($PYTHON_CMD)"
+        ok "Recreated virtual environment ($PYTHON_CMD)"
     else
-        ok "仮想環境は既に存在します (Python 3.$VENV_PY_VER)"
+        ok "Virtual environment already exists (Python 3.$VENV_PY_VER)"
     fi
 fi
 
-# 仮想環境を有効化して依存関係をインストール
+# Activate virtual environment and install dependencies
 source .venv/bin/activate
 
 if [ "$HAS_UV" = true ]; then
@@ -249,10 +249,10 @@ if [ "$HAS_UV" = true ]; then
 else
     pip install -e "."
 fi
-ok "Python 依存関係をインストールしました"
+ok "Installed Python dependencies"
 
-# データベースの初期化 (テーブル作成)
-info "データベースを初期化しています..."
+# Initialize database (create tables)
+info "Initializing database..."
 python3 -c "
 import asyncio
 from app.core.database import engine, Base
@@ -261,11 +261,11 @@ import app.models  # noqa
 async def init():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    print('  データベーステーブルを作成しました')
+    print('  Created database tables')
 
 asyncio.run(init())
 "
-ok "データベースの初期化が完了しました"
+ok "Database initialization complete"
 
 deactivate
 cd "$ROOT_DIR"
@@ -273,43 +273,43 @@ cd "$ROOT_DIR"
 echo ""
 
 # ---------------------------------------------------------------------------
-# 4. フロントエンドのセットアップ
+# 4. Frontend setup
 # ---------------------------------------------------------------------------
-info "フロントエンドをセットアップしています..."
+info "Setting up frontend..."
 
 cd "$ROOT_DIR/apps/desktop/ui"
 pnpm install
-ok "フロントエンド依存関係をインストールしました"
+ok "Installed frontend dependencies"
 
 cd "$ROOT_DIR"
 
 echo ""
 
 # ---------------------------------------------------------------------------
-# 5. スクリプトに実行権限を付与
+# 5. Grant execute permissions to scripts
 # ---------------------------------------------------------------------------
 chmod +x "$ROOT_DIR/setup.sh" 2>/dev/null || true
 chmod +x "$ROOT_DIR/start.sh" 2>/dev/null || true
 chmod +x "$ROOT_DIR/scripts/dev/"*.sh 2>/dev/null || true
 
 # ---------------------------------------------------------------------------
-# 完了
+# Done
 # ---------------------------------------------------------------------------
 echo ""
 echo "=============================================="
-echo -e "  ${GREEN}セットアップが完了しました！${NC}"
+echo -e "  ${GREEN}Setup complete!${NC}"
 echo "=============================================="
 echo ""
-echo "  次のステップ:"
+echo "  Next steps:"
 echo ""
-echo "    1. LLM API キーを設定（任意）:"
-echo "       $ENV_FILE を編集して OPENROUTER_API_KEY 等を設定"
+echo "    1. Configure LLM API keys (optional):"
+echo "       Edit $ENV_FILE to set OPENROUTER_API_KEY, etc."
 echo ""
-echo "    2. アプリケーションを起動:"
+echo "    2. Start the application:"
 echo "       ./start.sh"
 echo ""
-echo "    3. ブラウザでアクセス:"
+echo "    3. Open in browser:"
 echo "       http://localhost:5173"
 echo ""
-echo "  詳細は README.md を参照してください。"
+echo "  See README.md for details."
 echo ""

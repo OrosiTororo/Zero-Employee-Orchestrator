@@ -24,17 +24,14 @@ jobs:
           - platform: ubuntu-24.04
             target: linux
             rust_target: ''
-            wix_language: ''
           # macOS — universal binary (Intel + Apple Silicon)
           - platform: macos-latest
             target: macos
             rust_target: universal-apple-darwin
-            wix_language: ''
-          # Windows — single MSI (en-US) + NSIS exe; app handles i18n internally
+          # Windows — single installer; language selectable at runtime
           - platform: windows-latest
             target: windows
             rust_target: ''
-            wix_language: ''
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -73,21 +70,6 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Set WiX language for locale-specific MSI
-        if: matrix.wix_language != ''
-        shell: pwsh
-        run: |
-          $conf = Get-Content apps/desktop/src-tauri/tauri.conf.json | ConvertFrom-Json
-          if (-not $conf.bundle.windows) {
-            $conf.bundle | Add-Member -NotePropertyName windows -NotePropertyValue @{}
-          }
-          if (-not $conf.bundle.windows.wix) {
-            $conf.bundle.windows | Add-Member -NotePropertyName wix -NotePropertyValue @{}
-          }
-          $lang = '${{ matrix.wix_language }}' | ConvertFrom-Json
-          $conf.bundle.windows.wix | Add-Member -NotePropertyName language -NotePropertyValue $lang -Force
-          $conf | ConvertTo-Json -Depth 10 | Set-Content apps/desktop/src-tauri/tauri.conf.json
-
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v1
         env:
@@ -99,22 +81,20 @@ jobs:
           tagName: ${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}
           releaseName: "Zero-Employee Orchestrator ${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}"
           releaseBody: |
-            ## English | [日本語](#日本語) | [中文](#中文)
-
             AI Business Orchestration Platform. Define business workflows in natural language, orchestrate multiple AI agents with role-based delegation, and execute tasks with human approval and full auditability.
 
             ### Download
 
-            Click the file matching your OS from **Assets** below.
+            Click the file matching your OS from **Assets** below. Language can be changed after installation via the setup wizard or Settings.
 
             | OS | File | Description |
             |---|---|---|
-            | **Windows** | `_x64_en-US.msi` | Windows installer (.msi) ⭐ |
-            | **Windows** | `_x64-setup.exe` | Windows installer (.exe / NSIS) |
-            | **macOS** | `_universal.dmg` | macOS (Intel / Apple Silicon) ⭐ |
-            | **Linux** | `_amd64.AppImage` | Portable (no install needed) ⭐ |
-            | **Linux** | `_amd64.deb` | Debian / Ubuntu |
-            | **Linux** | `_x86_64.rpm` | Fedora / RHEL |
+            | **Windows** | `.msi` | Windows installer ⭐ |
+            | **Windows** | `-setup.exe` | Windows installer (NSIS) |
+            | **macOS** | `.dmg` | macOS (Intel / Apple Silicon) ⭐ |
+            | **Linux** | `.AppImage` | Portable (no install needed) ⭐ |
+            | **Linux** | `.deb` | Debian / Ubuntu |
+            | **Linux** | `.rpm` | Fedora / RHEL |
 
             ### Key Features
 
@@ -125,118 +105,26 @@ jobs:
             - Dynamic Model Registry (swap models without code changes)
             - Runtime config management (CLI / Web UI / .env)
             - Approval workflow + audit log
+            - Multi-language support (English / 日本語 / 中文) — switchable at any time
 
             ### First Setup
 
             1. Download the file matching your OS from Assets
             2. Run the installer
-            3. Register an account (or start without login)
-            4. Choose your language in the setup wizard (日本語 / English / 中文)
-            5. Enter your LLM API key in Settings
-            6. Request tasks in natural language from the Dashboard
+            3. Choose your language in the setup wizard
+            4. Enter your LLM API key in Settings (or use subscription mode — no key needed)
+            5. Request tasks in natural language from the Dashboard
 
             ### CLI / TUI (for developers)
 
             ```bash
             pip install zero-employee-orchestrator
-            # or: uv pip install zero-employee-orchestrator
+            zero-employee chat --lang en    # English (default)
+            zero-employee chat --lang ja    # Japanese
+            zero-employee chat --lang zh    # Chinese
             ```
 
             > Details: [README](https://github.com/OrosiTororo/Zero-Employee-Orchestrator#readme) | [User Guide](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/docs/USER_GUIDE.md) | [CHANGELOG](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/docs/CHANGELOG.md)
-
-            ---
-
-            ## 日本語
-
-            AI業務オーケストレーション基盤。自然言語で業務を定義し、複数 AI を役割分担させ、人間の承認と監査可能性を前提に業務を実行するプラットフォーム。
-
-            ### ダウンロード
-
-            下の **Assets** からお使いの OS に合ったファイルをクリックしてダウンロードしてください。
-
-            | OS | ファイル | 説明 |
-            |---|---|---|
-            | **Windows** | `_x64_en-US.msi` | Windows インストーラー（.msi）⭐ |
-            | **Windows** | `_x64-setup.exe` | Windows インストーラー（.exe / NSIS） |
-            | **macOS** | `_universal.dmg` | macOS（Intel / Apple Silicon）⭐ |
-            | **Linux** | `_amd64.AppImage` | そのまま実行可能（インストール不要）⭐ |
-            | **Linux** | `_amd64.deb` | Debian / Ubuntu |
-            | **Linux** | `_x86_64.rpm` | Fedora / RHEL |
-
-            ### 主な機能
-
-            - 9層アーキテクチャ（Design Interview〜Skill Registry）
-            - Self-Healing DAG によるタスクオーケストレーション
-            - Judge Layer（Two-stage Detection + Cross-Model Verification）
-            - Skill / Plugin / Extension の3層拡張体系
-            - Dynamic Model Registry（コード変更なしにモデル入替可能）
-            - ランタイム設定管理（CLI / Web UI / .env）
-            - 承認フロー + 監査ログ
-
-            ### 初回セットアップ
-
-            1. Assets からファイルをダウンロード
-            2. インストーラーを実行
-            3. アカウント登録（またはログインせずに開始）
-            4. セットアップウィザードで言語を選択（日本語 / English / 中文）
-            5. 設定画面で LLM API キーを入力
-            6. ダッシュボードから自然言語で業務を依頼
-
-            ### CLI / TUI 版（エンジニア向け）
-
-            ```bash
-            pip install zero-employee-orchestrator
-            # または uv pip install zero-employee-orchestrator
-            ```
-
-            > 詳細: [README](https://github.com/OrosiTororo/Zero-Employee-Orchestrator#readme) | [User Guide](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/docs/USER_GUIDE.md) | [CHANGELOG](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/docs/ja-JP/CHANGELOG.md)
-
-            ---
-
-            ## 中文
-
-            AI业务编排平台。用自然语言定义业务流程，让多个AI按角色分工协作，在人类审批和可审计的前提下执行任务。
-
-            ### 下载
-
-            请从下方 **Assets** 中点击与您操作系统匹配的文件进行下载。
-
-            | 操作系统 | 文件 | 说明 |
-            |---|---|---|
-            | **Windows** | `_x64_en-US.msi` | Windows 安装程序（.msi）⭐ |
-            | **Windows** | `_x64-setup.exe` | Windows 安装程序（.exe / NSIS） |
-            | **macOS** | `_universal.dmg` | macOS（Intel / Apple Silicon）⭐ |
-            | **Linux** | `_amd64.AppImage` | 便携版（无需安装）⭐ |
-            | **Linux** | `_amd64.deb` | Debian / Ubuntu |
-            | **Linux** | `_x86_64.rpm` | Fedora / RHEL |
-
-            ### 主要功能
-
-            - 9层架构（Design Interview 至 Skill Registry）
-            - 通过 Self-Healing DAG 进行任务编排
-            - Judge Layer（两阶段检测 + 跨模型验证）
-            - 三层扩展体系：Skill / Plugin / Extension
-            - 动态模型注册表（无需修改代码即可切换模型）
-            - 运行时配置管理（CLI / Web UI / .env）
-            - 审批流程 + 审计日志
-
-            ### 首次设置
-
-            1. 从 Assets 下载与您操作系统匹配的文件
-            2. 运行安装程序
-            3. 注册账户（或不登录直接开始）
-            4. 在设置向导中选择语言（日本語 / English / 中文）
-            5. 在设置界面输入 LLM API 密钥
-            6. 从仪表板用自然语言提交任务
-
-            ### CLI / TUI 版（面向开发者）
-
-            ```bash
-            pip install zero-employee-orchestrator
-            # 或: uv pip install zero-employee-orchestrator
-            ```
-
-            > 详情: [README](https://github.com/OrosiTororo/Zero-Employee-Orchestrator#readme) | [用户指南](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/docs/USER_GUIDE.md) | [CHANGELOG](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/docs/zh/CHANGELOG.md)
           releaseDraft: true
           prerelease: false
           includeUpdaterJson: false

@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
-# Zero-Employee Orchestrator — 起動スクリプト
-# バックエンド・フロントエンドを同時に起動します
+# Zero-Employee Orchestrator — Startup Script
+# Starts the backend and frontend simultaneously
 # =============================================================================
 
 set -e
@@ -20,7 +20,7 @@ warn()  { echo -e "${YELLOW}[WARN]${NC}  $*"; }
 error() { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 
 # ---------------------------------------------------------------------------
-# セットアップ済みかチェック — 未完了なら自動セットアップ
+# Check if setup is complete — run automatic setup if not
 # ---------------------------------------------------------------------------
 NEED_SETUP=false
 
@@ -33,13 +33,13 @@ if [ ! -d "$ROOT_DIR/apps/desktop/ui/node_modules" ]; then
 fi
 
 if [ "$NEED_SETUP" = true ]; then
-    warn "セットアップが完了していません。自動セットアップを実行します..."
+    warn "Setup is not complete. Running automatic setup..."
     echo ""
 
-    # Python venv + 依存関係 (Python 3.12+ が必要)
+    # Python venv + dependencies (Python 3.12+ required)
     if [ ! -d "$ROOT_DIR/apps/api/.venv" ]; then
-        info "Python 仮想環境を作成しています..."
-        # Python 3.12+ を探す
+        info "Creating Python virtual environment..."
+        # Find Python 3.12+
         PYTHON_CMD=""
         for cmd in python3.13 python3.12 python3; do
             if command -v "$cmd" &> /dev/null; then
@@ -51,7 +51,7 @@ if [ "$NEED_SETUP" = true ]; then
             fi
         done
         if [ -z "$PYTHON_CMD" ]; then
-            error "Python 3.12 以上が必要です。python3.12 をインストールしてください。"
+            error "Python 3.12 or higher is required. Please install python3.12."
         fi
         cd "$ROOT_DIR/apps/api"
         if command -v uv &> /dev/null; then
@@ -59,13 +59,13 @@ if [ "$NEED_SETUP" = true ]; then
         else
             "$PYTHON_CMD" -m venv .venv && .venv/bin/pip install -e "."
         fi
-        ok "Python 依存関係をインストールしました ($PYTHON_CMD)"
+        ok "Python dependencies installed ($PYTHON_CMD)"
         cd "$ROOT_DIR"
     fi
 
-    # .env ファイル自動生成
+    # Auto-generate .env file
     if [ ! -f "$ROOT_DIR/apps/api/.env" ]; then
-        info ".env ファイルを生成しています..."
+        info "Generating .env file..."
         SECRET=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))" 2>/dev/null || echo "auto-$(date +%s)")
         cat > "$ROOT_DIR/apps/api/.env" <<ENVEOF
 DATABASE_URL=sqlite+aiosqlite:///./zero_employee_orchestrator.db
@@ -75,40 +75,40 @@ CORS_ORIGINS=["http://localhost:5173","http://localhost:3000","tauri://localhost
 DEFAULT_EXECUTION_MODE=subscription
 USE_G4F=true
 ENVEOF
-        ok ".env ファイルを作成しました"
+        ok ".env file created"
     fi
 
-    # フロントエンド依存関係
+    # Frontend dependencies
     if [ ! -d "$ROOT_DIR/apps/desktop/ui/node_modules" ]; then
-        info "フロントエンド依存関係をインストールしています..."
+        info "Installing frontend dependencies..."
         cd "$ROOT_DIR/apps/desktop/ui"
         if command -v pnpm &> /dev/null; then
             pnpm install
         else
             npm install
         fi
-        ok "フロントエンド依存関係をインストールしました"
+        ok "Frontend dependencies installed"
         cd "$ROOT_DIR"
     fi
 
     echo ""
-    ok "自動セットアップが完了しました"
+    ok "Automatic setup completed"
     echo ""
 fi
 
 # ---------------------------------------------------------------------------
-# クリーンアップ用トラップ
+# Cleanup trap
 # ---------------------------------------------------------------------------
 PIDS=()
 
 cleanup() {
     echo ""
-    info "サーバーを停止しています..."
+    info "Stopping servers..."
     for pid in "${PIDS[@]}"; do
         kill "$pid" 2>/dev/null || true
     done
     wait 2>/dev/null || true
-    ok "すべてのサーバーを停止しました"
+    ok "All servers stopped"
     exit 0
 }
 
@@ -134,9 +134,9 @@ echo -e "  ${DIM}AI Orchestration Platform${NC}"
 echo ""
 
 # ---------------------------------------------------------------------------
-# バックエンド起動
+# Start backend
 # ---------------------------------------------------------------------------
-info "バックエンド API サーバーを起動しています (port 18234)..."
+info "Starting backend API server (port 18234)..."
 cd "$ROOT_DIR/apps/api"
 source .venv/bin/activate
 uvicorn app.main:app --reload --host 0.0.0.0 --port 18234 &
@@ -144,9 +144,9 @@ PIDS+=($!)
 cd "$ROOT_DIR"
 
 # ---------------------------------------------------------------------------
-# フロントエンド起動
+# Start frontend
 # ---------------------------------------------------------------------------
-info "フロントエンド開発サーバーを起動しています (port 5173)..."
+info "Starting frontend dev server (port 5173)..."
 cd "$ROOT_DIR/apps/desktop/ui"
 pnpm dev &
 PIDS+=($!)
@@ -154,17 +154,17 @@ cd "$ROOT_DIR"
 
 echo ""
 echo "=============================================="
-echo -e "  ${GREEN}起動完了！${NC}"
+echo -e "  ${GREEN}Startup complete!${NC}"
 echo "=============================================="
 echo ""
-echo "  バックエンド API:  http://localhost:18234"
-echo "  API ドキュメント:  http://localhost:18234/api/v1/openapi.json"
-echo "  フロントエンド:    http://localhost:5173"
+echo "  Backend API:       http://localhost:18234"
+echo "  API Docs:          http://localhost:18234/api/v1/openapi.json"
+echo "  Frontend:          http://localhost:5173"
 echo ""
-echo "  停止するには Ctrl+C を押してください"
+echo "  Press Ctrl+C to stop"
 echo ""
 
 # ---------------------------------------------------------------------------
-# プロセスを待機
+# Wait for processes
 # ---------------------------------------------------------------------------
 wait
