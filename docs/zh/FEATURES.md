@@ -1,4 +1,4 @@
-> [日本語](../FEATURES.md) | [English](../en/FEATURES.md) | 中文
+> [日本語](../ja-JP/FEATURES.md) | [English](../FEATURES.md) | 中文
 
 # Zero-Employee Orchestrator — 功能一览
 

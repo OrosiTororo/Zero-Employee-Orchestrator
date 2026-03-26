@@ -1,4 +1,4 @@
-> [日本語](../ABOUT.md) | [English](../en/ABOUT.md) | 中文
+> [日本語](../ja-JP/ABOUT.md) | [English](../ABOUT.md) | 中文
 
 # Zero-Employee Orchestrator — 为什么需要这个系统
 

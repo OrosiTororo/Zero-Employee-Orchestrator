@@ -17,16 +17,6 @@
 
 ---
 
-<div align="center">
-
-**🌐 Language / 言語 / 语言**
-
-[**English**](README.md) | [日本語](docs/ja-JP/README.md) | [简体中文](docs/zh-CN/README.md) | [繁體中文](docs/zh-TW/README.md) | [한국어](docs/ko-KR/README.md) | [Português (Brasil)](docs/pt-BR/README.md) | [Türkçe](docs/tr/README.md)
-
-</div>
-
----
-
 **The platform for running AI as an organization — not just a chatbot.**
 
 Define business workflows in natural language, orchestrate multiple AI agents with role-based delegation, and execute tasks with human approval gates and full auditability. Built with a 9-layer architecture featuring Self-Healing DAG, Judge Layer, and Experience Memory.
@@ -158,7 +148,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI backend
 │   │   └── app/
 │   │       ├── core/               # Config, DB, security, i18n
-│   │       ├── api/routes/         # 39 REST API route modules
+│   │       ├── api/routes/         # 40+ REST API route modules
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO

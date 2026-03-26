@@ -1,4 +1,4 @@
-> [日本語](../../ROADMAP.md) | [English](../en/ROADMAP.md) | 中文
+> [日本語](../ja-JP/../ROADMAP.md) | [English](../ROADMAP.md) | 中文
 
 # 路线图
 

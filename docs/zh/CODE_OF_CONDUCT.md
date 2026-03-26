@@ -1,4 +1,4 @@
-> [日本語](../../CODE_OF_CONDUCT.md) | [English](../en/CODE_OF_CONDUCT.md) | 中文
+> [日本語](../ja-JP/../CODE_OF_CONDUCT.md) | [English](../CODE_OF_CONDUCT.md) | 中文
 
 # 贡献者公约行为准则
 

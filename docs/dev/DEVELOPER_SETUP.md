@@ -1,17 +1,17 @@
-# 開発者セットアップガイド
+# Developer Setup Guide
 
-> ZEO 本体の開発・品質管理に関する設定項目の一覧。
-> ZEO のコードベースを開発・保守する開発者向けです。
+> Configuration items for ZEO core development and quality management.
+> For developers who develop and maintain the ZEO codebase.
 >
-> ZEO のインストール・運用・機能拡張に関するすべての設定（セキュリティ・データベース・デプロイ・API キー・ワークスペース等）については `USER_SETUP.md` を参照してください。
+> For all settings related to ZEO installation, operation, and feature expansion (security, database, deployment, API keys, workspace, etc.), see `USER_SETUP.md`.
 >
-> 最終更新: 2026-03-23
+> Last updated: 2026-03-26
 
 ---
 
-## 1. エラー監視（Sentry）
+## 1. Error Monitoring (Sentry)
 
-ZEO 本体のバグ追跡・エラー監視のための設定です。ユーザー環境ではなく、開発チームが ZEO の品質を監視する目的で使用します。
+Configuration for bug tracking and error monitoring of ZEO itself. Used by the development team to monitor ZEO quality, not for user environments.
 
 ```bash
 zero-employee config set SENTRY_DSN <your-dsn>
@@ -19,18 +19,18 @@ zero-employee config set SENTRY_DSN <your-dsn>
 
 ---
 
-## 2. レッドチーム セキュリティテスト
+## 2. Red-team Security Testing
 
-ZEO 本体の脆弱性を検証するためのテストです。リリース前後に定期的に実行することを推奨します。
+Tests for verifying ZEO's own vulnerabilities. Recommended to run periodically before and after releases.
 
 ```bash
-# セキュリティチェックスクリプト
+# Security check script
 ./scripts/security-check.sh
 
-# API 経由でレッドチームテスト実行
+# Run red-team tests via API
 POST /api/v1/security/redteam/run
 ```
 
 ---
 
-*Zero-Employee Orchestrator — 開発者セットアップガイド*
+*Zero-Employee Orchestrator -- Developer Setup Guide*

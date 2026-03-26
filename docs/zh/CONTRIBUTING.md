@@ -1,4 +1,4 @@
-> [日本語](../../CONTRIBUTING.md) | [English](../en/CONTRIBUTING.md) | 中文
+> [日本語](../ja-JP/../CONTRIBUTING.md) | [English](../CONTRIBUTING.md) | 中文
 
 # 为 Zero-Employee Orchestrator 做贡献
 

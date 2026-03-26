@@ -1,93 +1,76 @@
 # Contributing to Zero-Employee Orchestrator
 
-> 日本語 | [English](docs/en/CONTRIBUTING.md) | [中文](docs/zh/CONTRIBUTING.md)
+We welcome contributions to Zero-Employee Orchestrator. Whether it's bug reports, feature requests, or code improvements, all contributions are appreciated.
 
-Zero-Employee Orchestrator へのコントリビューションを歓迎します。
-バグ報告、機能リクエスト、コードの改善など、どのような形でも貢献をお待ちしています。
+## Getting Started
 
-## はじめに
+1. Fork the repository
+2. Create a branch: `git checkout -b feature/your-feature`
+3. Commit your changes: `git commit -m "Add your feature"`
+4. Push: `git push origin feature/your-feature`
+5. Create a Pull Request
 
-1. リポジトリを Fork する
-2. ブランチを作成する: `git checkout -b feature/your-feature`
-3. 変更をコミットする: `git commit -m "Add your feature"`
-4. プッシュする: `git push origin feature/your-feature`
-5. Pull Request を作成する
-
-## 開発環境のセットアップ
+## Development Setup
 
 ```bash
 git clone https://github.com/<your-username>/Zero-Employee-Orchestrator.git
 cd Zero-Employee-Orchestrator
-./setup.sh
+pip install -e ".[dev]"
 ```
 
-### バックエンド
-
+**Backend:**
 ```bash
 cd apps/api
 source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
-### フロントエンド
-
+**Frontend:**
 ```bash
 cd apps/desktop/ui
 pnpm install
 pnpm dev
 ```
 
-## コーディング規約
+## Coding Standards
 
-### Python
+**Python:** ruff for formatting/linting, type hints required, async def for FastAPI endpoints, pytest for testing.
 
-- **フォーマッター / リンター**: ruff
-- 型ヒント必須
-- FastAPI エンドポイントは `async def`
-- テスト: pytest + pytest-asyncio
+**TypeScript:** strict mode, functional components only, Tailwind CSS for styling.
 
-### TypeScript
+## Pull Request Guidelines
 
-- strict モード
-- 関数コンポーネントのみ
-- Tailwind CSS でスタイリング
+- Keep PRs small and focused (one change per PR)
+- Ensure existing tests pass
+- Add tests for new features
+- Write clear commit messages in English
+- Follow the coding conventions in `CLAUDE.md`
 
-## Pull Request のガイドライン
+## Bug Reports
 
-- PR は小さく保つ（1 つの PR で 1 つの変更）
-- 既存のテストが通ることを確認する
-- 新機能にはテストを追加する
-- コミットメッセージは英語で、変更内容を簡潔に記述する
-- `CLAUDE.md` のコーディング規約に従う
+Please report via [Issues](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/issues) with:
+- OS and version
+- Steps to reproduce
+- Expected vs. actual behavior
+- Error logs (if any)
 
-## バグ報告
+## Skill / Plugin Contributions
 
-[Issues](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/issues) から報告してください。
-
-以下の情報を含めてください:
-- OS とバージョン
-- 再現手順
-- 期待する動作と実際の動作
-- エラーログ（ある場合）
-
-## Skill / Plugin の貢献
-
-コミュニティ Skill や Plugin の作成・共有も大歓迎です。
-
-- Skill: `skills/templates/` のテンプレートを参考にしてください
-- Plugin: `plugins/` の既存 Plugin を参考にしてください
-- 安全性チェック（16 種類の危険パターン検出）を通過する必要があります
-- 個人情報・機密情報を含めないでください
+Community Skills and Plugins are welcome:
+- Skills: refer to templates in `skills/templates/`
+- Plugins: refer to existing plugins in `plugins/`
+- Must pass safety checks (16 dangerous pattern detections)
+- Do not include personal or sensitive information
 
 ## Translations
 
 We welcome translations! Current languages:
-- 日本語 (`docs/ja-JP/`)
-- 简体中文 (`docs/zh-CN/`)
-- 繁體中文 (`docs/zh-TW/`)
-- 한국어 (`docs/ko-KR/`)
-- Português (`docs/pt-BR/`)
-- Türkçe (`docs/tr/`)
+- Japanese (`docs/ja-JP/`)
+- Simplified Chinese (`docs/zh-CN/`)
+- Traditional Chinese (`docs/zh-TW/`)
+- Korean (`docs/ko-KR/`)
+- Portuguese (`docs/pt-BR/`)
+- Turkish (`docs/tr/`)
 
 To add a new language:
 1. Create `docs/<lang-code>/README.md`
@@ -95,6 +78,6 @@ To add a new language:
 3. Update language links in all existing READMEs
 4. Submit a PR
 
-## ライセンス
+## License
 
-コントリビューションは [MIT License](LICENSE) の下で公開されます。
+Contributions are released under the [MIT License](LICENSE).

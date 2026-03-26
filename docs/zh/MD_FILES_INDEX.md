@@ -1,4 +1,4 @@
-> [日本語](../MD_FILES_INDEX.md) | [English](../en/MD_FILES_INDEX.md) | 中文
+> [日本語](../ja-JP/MD_FILES_INDEX.md) | [English](../MD_FILES_INDEX.md) | 中文
 
 # 仓库内 Markdown 文件索引
 
@@ -27,10 +27,10 @@
 | 文件 | 用途 | 目标读者 | 多语言 |
 |------|------|---------|--------|
 | `README.md` | 项目第一印象。概述、功能、安装、技术栈 | 所有用户和开发者 | ja/en/zh (内联) |
-| `USER_SETUP.md` | ZEO 使用、运维、功能扩展设置指南 | 所有用户 | ja / [en](../en/USER_SETUP.md) / [zh](USER_SETUP.md) |
-| `ROADMAP.md` | v0.2 至 v1.0 路线图 | 用户、开发者、贡献者 | ja / [en](../en/ROADMAP.md) / [zh](ROADMAP.md) |
-| `CODE_OF_CONDUCT.md` | 社区行为准则 (Contributor Covenant 2.1) | 所有贡献者和用户 | ja / [en](../en/CODE_OF_CONDUCT.md) / [zh](CODE_OF_CONDUCT.md) |
-| `CONTRIBUTING.md` | 如何为项目做贡献 | 贡献者、开发者 | ja / [en](../en/CONTRIBUTING.md) / [zh](CONTRIBUTING.md) |
+| `USER_SETUP.md` | ZEO 使用、运维、功能扩展设置指南 | 所有用户 | ja / [en](../USER_SETUP.md) / [zh](USER_SETUP.md) |
+| `ROADMAP.md` | v0.2 至 v1.0 路线图 | 用户、开发者、贡献者 | ja / [en](../ROADMAP.md) / [zh](ROADMAP.md) |
+| `CODE_OF_CONDUCT.md` | 社区行为准则 (Contributor Covenant 2.1) | 所有贡献者和用户 | ja / [en](../CODE_OF_CONDUCT.md) / [zh](CODE_OF_CONDUCT.md) |
+| `CONTRIBUTING.md` | 如何为项目做贡献 | 贡献者、开发者 | ja / [en](../CONTRIBUTING.md) / [zh](CONTRIBUTING.md) |
 | `SECURITY.md` | 漏洞报告流程 | 安全报告者 | en |
 
 ### 面向开发者（根目录）
@@ -45,15 +45,15 @@
 
 | 文件 | 用途 | 目标读者 | 多语言 |
 |------|------|---------|--------|
-| `docs/ABOUT.md` | "为什么需要 ZEO" 说明文档 | 非工程师、管理层、评估者 | [en](../en/ABOUT.md) / [zh](ABOUT.md) |
-| `docs/USER_GUIDE.md` | 终端用户操作手册 | 终端用户 | ja / [en](../en/USER_GUIDE.md) / [zh](USER_GUIDE.md) |
-| `docs/OVERVIEW.md` | 面向初次访问者的综合指南 | 所有人 | [en](../en/OVERVIEW.md) / [zh](OVERVIEW.md) |
-| `docs/FEATURES.md` | 已实现功能完整列表（80 个章节） | 功能评审者、评估者、开发者 | [en](../en/FEATURES.md) / [zh](FEATURES.md) |
-| `docs/SECURITY.md` | 安全策略和部署前检查清单 | 运维人员、部署工程师 | [en](../en/SECURITY.md) / [zh](SECURITY.md) |
-| `docs/CHANGELOG.md` | 版本变更历史 | 所有用户和开发者 | [en](../en/CHANGELOG.md) / [zh](CHANGELOG.md) |
-| `docs/SCALING_AND_COSTS.md` | 成本、硬件约束、使用案例 | 潜在用户、运维人员、管理层 | [en](../en/SCALING_AND_COSTS.md) / [zh](SCALING_AND_COSTS.md) |
+| `docs/ABOUT.md` | "为什么需要 ZEO" 说明文档 | 非工程师、管理层、评估者 | [en](../ABOUT.md) / [zh](ABOUT.md) |
+| `docs/USER_GUIDE.md` | 终端用户操作手册 | 终端用户 | ja / [en](../USER_GUIDE.md) / [zh](USER_GUIDE.md) |
+| `docs/OVERVIEW.md` | 面向初次访问者的综合指南 | 所有人 | [en](../OVERVIEW.md) / [zh](OVERVIEW.md) |
+| `docs/FEATURES.md` | 已实现功能完整列表（80 个章节） | 功能评审者、评估者、开发者 | [en](../FEATURES.md) / [zh](FEATURES.md) |
+| `docs/SECURITY.md` | 安全策略和部署前检查清单 | 运维人员、部署工程师 | [en](../SECURITY.md) / [zh](SECURITY.md) |
+| `docs/CHANGELOG.md` | 版本变更历史 | 所有用户和开发者 | [en](../CHANGELOG.md) / [zh](CHANGELOG.md) |
+| `docs/SCALING_AND_COSTS.md` | 成本、硬件约束、使用案例 | 潜在用户、运维人员、管理层 | [en](../SCALING_AND_COSTS.md) / [zh](SCALING_AND_COSTS.md) |
 | `docs/Zero-Employee Orchestrator.md` | **最上层参考文档**。理念、需求、MVP 定义 | 设计者、PO、AI 代理 | ja |
-| `docs/MD_FILES_INDEX.md` | **本文档**。所有 `.md` 文件的索引 | 所有用户和开发者 | [en](../en/MD_FILES_INDEX.md) / [zh](MD_FILES_INDEX.md) |
+| `docs/MD_FILES_INDEX.md` | **本文档**。所有 `.md` 文件的索引 | 所有用户和开发者 | [en](../MD_FILES_INDEX.md) / [zh](MD_FILES_INDEX.md) |
 
 ---
 
@@ -90,24 +90,24 @@
 
 ---
 
-## 6. docs/en/ 和 docs/zh/ — 多语言文档
+## 6. docs/ 和 docs/zh/ — 多语言文档
 
-`docs/en/`（英语）和 `docs/zh/`（中文）包含以下日语文档的翻译版本：
+`docs/`（英语）和 `docs/zh/`（中文）包含以下日语文档的翻译版本：
 
 | 日语原文 | 英语版 | 中文版 |
 |---------|--------|--------|
-| `docs/ABOUT.md` | `docs/en/ABOUT.md` | `docs/zh/ABOUT.md` |
-| `docs/OVERVIEW.md` | `docs/en/OVERVIEW.md` | `docs/zh/OVERVIEW.md` |
-| `docs/FEATURES.md` | `docs/en/FEATURES.md` | `docs/zh/FEATURES.md` |
-| `docs/SECURITY.md` | `docs/en/SECURITY.md` | `docs/zh/SECURITY.md` |
-| `docs/SCALING_AND_COSTS.md` | `docs/en/SCALING_AND_COSTS.md` | `docs/zh/SCALING_AND_COSTS.md` |
-| `docs/CHANGELOG.md` | `docs/en/CHANGELOG.md` | `docs/zh/CHANGELOG.md` |
-| `docs/MD_FILES_INDEX.md` | `docs/en/MD_FILES_INDEX.md` | `docs/zh/MD_FILES_INDEX.md` |
-| `docs/USER_GUIDE.md` | `docs/en/USER_GUIDE.md` | `docs/zh/USER_GUIDE.md` |
-| `USER_SETUP.md` | `docs/en/USER_SETUP.md` | `docs/zh/USER_SETUP.md` |
-| `ROADMAP.md` | `docs/en/ROADMAP.md` | `docs/zh/ROADMAP.md` |
-| `CODE_OF_CONDUCT.md` | `docs/en/CODE_OF_CONDUCT.md` | `docs/zh/CODE_OF_CONDUCT.md` |
-| `CONTRIBUTING.md` | `docs/en/CONTRIBUTING.md` | `docs/zh/CONTRIBUTING.md` |
+| `docs/ABOUT.md` | `docs/ABOUT.md` | `docs/zh/ABOUT.md` |
+| `docs/OVERVIEW.md` | `docs/OVERVIEW.md` | `docs/zh/OVERVIEW.md` |
+| `docs/FEATURES.md` | `docs/FEATURES.md` | `docs/zh/FEATURES.md` |
+| `docs/SECURITY.md` | `docs/SECURITY.md` | `docs/zh/SECURITY.md` |
+| `docs/SCALING_AND_COSTS.md` | `docs/SCALING_AND_COSTS.md` | `docs/zh/SCALING_AND_COSTS.md` |
+| `docs/CHANGELOG.md` | `docs/CHANGELOG.md` | `docs/zh/CHANGELOG.md` |
+| `docs/MD_FILES_INDEX.md` | `docs/MD_FILES_INDEX.md` | `docs/zh/MD_FILES_INDEX.md` |
+| `docs/USER_GUIDE.md` | `docs/USER_GUIDE.md` | `docs/zh/USER_GUIDE.md` |
+| `USER_SETUP.md` | `docs/USER_SETUP.md` | `docs/zh/USER_SETUP.md` |
+| `ROADMAP.md` | `docs/ROADMAP.md` | `docs/zh/ROADMAP.md` |
+| `CODE_OF_CONDUCT.md` | `docs/CODE_OF_CONDUCT.md` | `docs/zh/CODE_OF_CONDUCT.md` |
+| `CONTRIBUTING.md` | `docs/CONTRIBUTING.md` | `docs/zh/CONTRIBUTING.md` |
 
 ---
 

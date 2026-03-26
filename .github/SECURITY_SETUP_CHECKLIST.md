@@ -1,27 +1,27 @@
-# 🔒 公開前セキュリティセットアップチェックリスト
+# Pre-Release Security Setup Checklist
 
-リポジトリを公開する前に、以下の項目をすべて完了してください。
+Complete all items below before making the repository public.
 
-## 必須（Must）
+## Required (Must)
 
-- [ ] `SECRET_KEY` を安全なランダム値に変更（`apps/api/.env`）
-- [ ] `JWT_SECRET` を設定（`wrangler secret put JWT_SECRET`）
-- [ ] `CLOUDFLARE_API_TOKEN` を GitHub Secrets に登録
-- [ ] `CLOUDFLARE_ACCOUNT_ID` を GitHub Secrets に登録
-- [ ] KV namespace `placeholder-id` を実際の値に置換（`apps/edge/proxy/wrangler.toml`）
-- [ ] D1 `database_id` の `placeholder-id` を実際の値に置換（`apps/edge/full/wrangler.toml`）
-- [ ] `scripts/security-check.sh` を実行して全項目パス
+- [ ] Change `SECRET_KEY` to a secure random value (`apps/api/.env`)
+- [ ] Set `JWT_SECRET` (`wrangler secret put JWT_SECRET`)
+- [ ] Register `CLOUDFLARE_API_TOKEN` in GitHub Secrets
+- [ ] Register `CLOUDFLARE_ACCOUNT_ID` in GitHub Secrets
+- [ ] Replace KV namespace `placeholder-id` with actual value (`apps/edge/proxy/wrangler.toml`)
+- [ ] Replace D1 `database_id` `placeholder-id` with actual value (`apps/edge/full/wrangler.toml`)
+- [ ] Run `scripts/security-check.sh` and pass all checks
 
-## 推奨（Should）
+## Recommended (Should)
 
-- [ ] Tauri 署名鍵の生成と設定（`apps/desktop/src-tauri/tauri.conf.json`）
-- [ ] CORS_ORIGINS を本番ドメインに変更
-- [ ] DATABASE_URL を PostgreSQL に変更
-- [ ] GitHub Secret Scanning を有効化
-- [ ] Dependabot を有効化（`.github/dependabot.yml` は本PRで追加済み）
-- [ ] `production` 環境の保護ルールを設定
+- [ ] Generate and configure Tauri signing keys (`apps/desktop/src-tauri/tauri.conf.json`)
+- [ ] Change CORS_ORIGINS to production domain
+- [ ] Change DATABASE_URL to PostgreSQL
+- [ ] Enable GitHub Secret Scanning
+- [ ] Enable Dependabot (`.github/dependabot.yml` included)
+- [ ] Set up `production` environment protection rules
 
-## 任意（Nice to Have）
+## Optional (Nice to Have)
 
-- [ ] Google OAuth の設定
-- [ ] シークレットローテーションスケジュールの策定
+- [ ] Configure Google OAuth
+- [ ] Establish a secret rotation schedule

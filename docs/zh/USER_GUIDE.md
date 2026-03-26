@@ -1,4 +1,4 @@
-> [日本語](../USER_GUIDE.md) | [English](../en/USER_GUIDE.md) | 中文
+> [日本語](../ja-JP/USER_GUIDE.md) | [English](../USER_GUIDE.md) | 中文
 
 # 中文用户指南
 

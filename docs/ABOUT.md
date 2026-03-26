@@ -1,329 +1,329 @@
-# Zero-Employee Orchestrator — なぜこのシステムが必要なのか
+> English | [日本語](ja-JP/ABOUT.md) | [中文](zh/ABOUT.md)
 
-> 日本語 | [English](en/ABOUT.md) | [中文](zh/ABOUT.md)
+# Zero-Employee Orchestrator — Why This System Is Needed
 
-> AI を「使う」時代から AI に「働かせる」時代へ。
-
----
-
-## 🤔 あなたの AI 活用、こうなっていませんか？
-
-「ChatGPT に質問するたびに、同じ背景情報を毎回入力している」
-
-「AI の回答を手動でコピーして、次のステップの入力に貼り付けている」
-
-「AI が出した答えが正しいかどうか、自分でいちいち確認しなければならない」
-
-「昨日 AI に依頼したタスクがどこまで進んだか把握できていない」
-
-「AI に何かを頼むとき、誤って重要なデータを消されたり、メールを誤送信されたりしないか不安」
-
-これらは AI チャットツールの **構造的な限界** です。Zero-Employee Orchestrator はこの問題を根本から解決するために作られました。
+> From the era of "using" AI to the era of "having AI work for you."
 
 ---
 
-## 💡 Zero-Employee Orchestrator とは
+## Are You Experiencing These AI Challenges?
 
-**AI を「1人で使うツール」から「組織として機能させるインフラ」へ**
+"Every time I ask ChatGPT a question, I have to re-enter the same background information."
 
-Zero-Employee Orchestrator は、自然言語で業務を指示するだけで、複数の AI エージェントがチームを組んで計画・実行・検証・改善を自律的に行う、**AI 業務オーケストレーション基盤**です。
+"I manually copy AI responses and paste them as input for the next step."
 
-単なる自動化ツールではありません。**あなたのビジネスに AI 組織を丸ごと持ち込む**、全く新しいプラットフォームです。
+"I have to verify every AI answer myself to check if it's correct."
 
----
+"I can't keep track of how far yesterday's AI task has progressed."
 
-## 🆚 従来のシステムとの比較
+"When I ask AI to do something, I worry it might accidentally delete important data or send emails to the wrong people."
 
-### 他の AI エージェント（AutoGPT, CrewAI 等）との違い
-
-| 観点 | 他の AI エージェント | Zero-Employee Orchestrator |
-|------|-------------------|---------------------------|
-| **複数 AI の協力** | 限定的（単一エージェント中心） | 役割分担した AI チームが並列実行 |
-| **記憶** | 実行中のみ（終了で消失） | 経験・パターン・失敗を永続記憶 |
-| **タスク管理** | 実行中のみ追跡 | Spec / Plan / Tasks で構造化保存 |
-| **品質保証** | なし or 単一モデル | Judge Layer が二段階 + Cross-Model 検証 |
-| **危険操作のガード** | なし（全自動実行） | 承認フローで必ずブロック |
-| **障害復旧** | 停止 or 単純リトライ | Self-Healing DAG が自動再計画 |
-| **監査ログ** | なし or 限定的 | 全操作を追跡・記録 |
-| **コスト管理** | なし | トークン消費・予算をリアルタイム追跡 |
-| **拡張性** | コード変更が必要 | Skill / Plugin / Extension で柔軟に拡張 |
-
-### RPA / 従来の業務自動化ツールとの違い
-
-| 観点 | 従来の RPA | Zero-Employee Orchestrator |
-|------|-----------|---------------------------|
-| **設定難易度** | フロー/スクリプトの手動設計が必要 | 自然言語で指示するだけ |
-| **変化への対応** | フローを手動で修正が必要 | AI が自律的に再計画 |
-| **非定型タスク** | 対応困難 | 自然言語を使って対応 |
-| **判断・推論** | ルールベース | LLM による高度な推論 |
-| **承認フロー** | 手動設定が必要 | 危険操作を自動検出・承認要求 |
-
-### n8n / Make（ローコード自動化）との違い
-
-| 観点 | n8n / Make | Zero-Employee Orchestrator |
-|------|-----------|---------------------------|
-| **タスク定義** | ノードをGUIで配置 | 自然言語の一文 |
-| **動的な再計画** | 静的フロー | 障害時に DAG を自動再構築 |
-| **AI との深い統合** | API ブロックとして追加 | AI がオーケストレーターそのもの |
-| **品質検証** | なし | Cross-Model Verification |
+These are **structural limitations** of AI chat tools. Zero-Employee Orchestrator was built to fundamentally solve these problems.
 
 ---
 
-## ✨ このシステムの優れている点
+## What Is Zero-Employee Orchestrator?
 
-### 1. 「一声かけるだけ」で AI 組織が動く
+**From "a tool used by one person" to "infrastructure that makes AI function as an organization"**
+
+Zero-Employee Orchestrator is an **AI business orchestration platform** where you simply give instructions in natural language, and multiple AI agents form a team to autonomously plan, execute, verify, and improve tasks.
+
+It is not just an automation tool. It is an entirely new platform that **brings an entire AI organization into your business**.
+
+---
+
+## Comparison with Existing Systems
+
+### Differences from Other AI Agents (AutoGPT, CrewAI, etc.)
+
+| Aspect | Other AI Agents | Zero-Employee Orchestrator |
+|--------|----------------|---------------------------|
+| **Multi-AI Collaboration** | Limited (single-agent focused) | Role-assigned AI teams execute in parallel |
+| **Memory** | Runtime only (lost on exit) | Persistent memory of experiences, patterns, and failures |
+| **Task Management** | Tracked only during execution | Structured storage via Spec / Plan / Tasks |
+| **Quality Assurance** | None or single model | Judge Layer with two-stage + Cross-Model Verification |
+| **Dangerous Operation Guards** | None (fully automatic execution) | Mandatory blocking via approval flow |
+| **Failure Recovery** | Stops or simple retry | Self-Healing DAG with automatic re-planning |
+| **Audit Logs** | None or limited | Full tracking and recording of all operations |
+| **Cost Management** | None | Real-time tracking of token consumption and budgets |
+| **Extensibility** | Requires code changes | Flexible extension via Skill / Plugin / Extension |
+
+### Differences from RPA / Traditional Business Automation Tools
+
+| Aspect | Traditional RPA | Zero-Employee Orchestrator |
+|--------|----------------|---------------------------|
+| **Configuration Difficulty** | Manual flow/script design required | Just give instructions in natural language |
+| **Adaptability to Change** | Manual flow modifications required | AI autonomously re-plans |
+| **Non-routine Tasks** | Difficult to handle | Handled using natural language |
+| **Judgment & Reasoning** | Rule-based | Advanced reasoning via LLM |
+| **Approval Flow** | Manual setup required | Automatic detection and approval requests for dangerous operations |
+
+### Differences from n8n / Make (Low-Code Automation)
+
+| Aspect | n8n / Make | Zero-Employee Orchestrator |
+|--------|-----------|---------------------------|
+| **Task Definition** | Arrange nodes in GUI | A single natural language sentence |
+| **Dynamic Re-planning** | Static flows | Automatic DAG reconstruction on failure |
+| **Deep AI Integration** | Added as API blocks | AI is the orchestrator itself |
+| **Quality Verification** | None | Cross-Model Verification |
+
+---
+
+## What Makes This System Outstanding
+
+### 1. Your AI Organization Starts Working with "Just One Command"
 
 ```
-「今月の SNS 投稿カレンダーを作って、各投稿の文案もまとめて」
+"Create this month's SNS posting calendar and compile drafts for each post."
 ```
 
-これを入力するだけで:
-1. AI が要件を深掘り（Design Interview）
-2. タスクを自動分解・並列スケジュール（DAG）
-3. 各 AI エージェントが担当タスクを実行
-4. Judge Layer が品質と安全性を検証
-5. 投稿前に必ずあなたの承認を求める
+Just enter this, and:
+1. AI deepens the requirements (Design Interview)
+2. Tasks are automatically decomposed and scheduled in parallel (DAG)
+3. Each AI agent executes their assigned tasks
+4. The Judge Layer verifies quality and safety
+5. Your approval is always requested before posting
 
-手作業は「承認ボタンを押す」だけです。
+The only manual work is "pressing the approve button."
 
 ---
 
-### 2. 安全性が設計レベルで組み込まれている
+### 2. Safety Is Built In at the Architecture Level
 
-AI に仕事を任せる最大の不安は「暴走するかもしれない」という恐怖です。
+The biggest concern when delegating work to AI is the fear that "it might go out of control."
 
-Zero-Employee Orchestrator はこれを**アーキテクチャレベルで解決**しています:
+Zero-Employee Orchestrator solves this **at the architecture level**:
 
 ```
-外部送信 → 必ず承認ダイアログ
-ファイル削除 → 必ず承認ダイアログ
-課金操作 → 必ず承認ダイアログ
-権限変更 → 必ず承認ダイアログ
+External transmission → Always requires approval dialog
+File deletion        → Always requires approval dialog
+Billing operations   → Always requires approval dialog
+Permission changes   → Always requires approval dialog
 ```
 
-危険な操作は、物理的にブロックされます。AI が直接実行することはできません。
+Dangerous operations are physically blocked. AI cannot execute them directly.
 
-また **Judge Layer** が AI の出力を二段階で検証します:
-- **Stage 1**: ルールベースの高速チェック（禁止操作・資格情報漏洩の検出）
-- **Stage 2**: 別モデルによる Cross-Model Verification（回答品質の相互確認）
-
----
-
-### 3. AI が「経験から学ぶ」
-
-従来の AI チャットは、会話が終わると全てを忘れます。
-
-Zero-Employee Orchestrator は **Experience Memory** によって:
-- 過去の成功パターンを記憶・再利用
-- 失敗の原因を分類（Failure Taxonomy）・再発防止
-- タスク実行のたびに賢くなる
-
-同じ種類の業務を繰り返すほど、AI チームの精度と速度が向上します。
+Additionally, the **Judge Layer** verifies AI output in two stages:
+- **Stage 1**: Rule-based fast checks (detection of prohibited operations and credential leaks)
+- **Stage 2**: Cross-Model Verification by a different model (mutual confirmation of answer quality)
 
 ---
 
-### 4. Self-Healing — 失敗しても止まらない
+### 3. AI "Learns from Experience"
 
-複雑なタスクは途中で失敗することがあります。
+Traditional AI chats forget everything when the conversation ends.
 
-従来の自動化ツールなら「エラーが出たので止まりました」で終わりです。
+Zero-Employee Orchestrator uses **Experience Memory** to:
+- Memorize and reuse past success patterns
+- Classify failure causes (Failure Taxonomy) and prevent recurrence
+- Become smarter with every task execution
 
-Zero-Employee Orchestrator の **Self-Healing DAG** は:
-1. 失敗を検知
-2. 原因を分析
-3. 代替アプローチを自動生成（Re-Propose Layer）
-4. DAG を再構築して実行を継続
-
-人間が介入しなくても、多くの障害を自律的に回避します。
+The more you repeat similar types of work, the more accurate and faster the AI team becomes.
 
 ---
 
-### 5. 完全な透明性と監査可能性
+### 4. Self-Healing — It Doesn't Stop When It Fails
 
-「AI が何をしたか分からない」は、企業での AI 活用の大きな障壁です。
+Complex tasks can fail midway.
 
-Zero-Employee Orchestrator は全ての重要操作を監査ログに記録します:
-- **誰が** 何を依頼したか
-- **どの AI モデルが** 実行したか
-- **いくらのコストが** かかったか
-- **何が出力されたか**
-- **誰が承認したか**
+With traditional automation tools, the result is "an error occurred, so it stopped."
 
-コンプライアンス・内部監査・コスト管理に完全対応します。
+Zero-Employee Orchestrator's **Self-Healing DAG**:
+1. Detects the failure
+2. Analyzes the cause
+3. Automatically generates alternative approaches (Re-Propose Layer)
+4. Reconstructs the DAG and continues execution
+
+It autonomously avoids many obstacles without human intervention.
 
 ---
 
-### 6. 無料で今すぐ始められる
+### 5. Complete Transparency and Auditability
 
-AI ツールの導入障壁の一つが「API キーの取得・課金設定」です。
+"Not knowing what AI did" is a major barrier to enterprise AI adoption.
 
-Zero-Employee Orchestrator は **3つの無料利用方法** を提供しています:
+Zero-Employee Orchestrator records all important operations in audit logs:
+- **Who** requested what
+- **Which AI model** executed it
+- **How much** it cost
+- **What** was output
+- **Who** approved it
 
-1. **Google Gemini 無料 API（推奨）**: クレジットカード不要で API キーを取得、安定動作
-2. **Ollama（ローカル LLM）**: PC にモデルをダウンロードして完全無料・オフライン・無制限
-3. **サブスクリプションモード**: API キー不要で即利用可能（試用向け・安定性は劣る）
+Fully compatible with compliance, internal auditing, and cost management.
 
-最もバランスの良い始め方:
+---
+
+### 6. Start for Free Right Now
+
+One of the barriers to adopting AI tools is "obtaining API keys and setting up billing."
+
+Zero-Employee Orchestrator provides **3 free usage methods**:
+
+1. **Google Gemini Free API (Recommended)**: Get an API key without a credit card, stable operation
+2. **Ollama (Local LLM)**: Download models to your PC for completely free, offline, unlimited use
+3. **Subscription Mode**: Use immediately without an API key (for trial purposes, less stable)
+
+The most balanced way to get started:
 ```env
-GEMINI_API_KEY=<Google AI Studio で取得したキー>
+GEMINI_API_KEY=<key obtained from Google AI Studio>
 DEFAULT_EXECUTION_MODE=free
 ```
 
-本格運用には、OpenRouter / OpenAI / Anthropic の API キーを設定することで、Claude Opus 4.6、GPT-5.4、Gemini 2.5 Pro などの高品質モデルが利用可能です。対応モデルは `model_catalog.json` で動的に管理されており、コード変更なしにモデルを追加・切替できます。
+For production use, setting up API keys for OpenRouter / OpenAI / Anthropic enables access to high-quality models such as Claude Opus 4.6, GPT-5.4, and Gemini 2.5 Pro. Supported models are dynamically managed in `model_catalog.json`, allowing you to add or switch models without code changes.
 
 ---
 
-### 7. 分身AI と秘書AI で「自分の代わり」が動く
+### 7. AI Avatar and AI Secretary — Your "Stand-Ins" at Work
 
-**分身AI（AI Avatar Plugin）** は、あなたの判断基準や文体を学習して「あなたの代わり」として振る舞います:
-- Judge Layer の品質判定にあなたの価値観を反映
-- あなたのトーンで下書きを作成
-- タスクの優先度をあなたの基準で判断
+**AI Avatar Plugin** learns your decision-making criteria and writing style to act "on your behalf":
+- Reflects your values in Judge Layer quality assessments
+- Creates drafts in your tone
+- Judges task priorities based on your criteria
 
-**秘書AI（AI Secretary Plugin）** は、AI 組織とあなたをつなぐ「ハブ」です:
-- 毎朝のブリーフィング（今日の承認待ち・進行中タスク・予定）
-- 次にやるべきことの優先度付き提案
-- Discord / Slack / LINE 経由での通知・操作
+**AI Secretary Plugin** serves as the "hub" connecting the AI organization to you:
+- Daily morning briefing (pending approvals, in-progress tasks, schedule)
+- Prioritized suggestions for what to do next
+- Notifications and operations via Discord / Slack / LINE
 
-どちらも Plugin として追加導入するため、不要なら入れなくて構いません。
+Both are installed as Plugins, so you don't need to install them if you don't need them.
 
 ---
 
-### 8. チャットツールから AI 組織に指示
+### 8. Command Your AI Organization from Chat Tools
 
-Discord / Slack / LINE の Bot Plugin をインストールすれば、普段使っているチャットアプリから直接操作できます。
+Install the Discord / Slack / LINE Bot Plugin, and you can operate directly from the chat apps you already use.
 
 ```
-/zeo ticket 競合分析レポートを作成して
+/zeo ticket Create a competitive analysis report
 /zeo briefing
 /zeo approve 12345
 ```
 
-わざわざ Web ダッシュボードを開かなくても、チャットの延長で AI 組織を動かせます。
+You can run your AI organization as an extension of your chat without even opening the web dashboard.
 
 ---
 
-### 9. 3層の拡張体系で業務をカスタマイズ
+### 9. Three-Layer Extension System to Customize Your Business
 
-すべての業務に対応できる汎用 AI を一から作るより、**専門化した AI チームを組む**方が圧倒的に効率的です。
+Rather than building a general-purpose AI that can handle all tasks from scratch, it's far more efficient to **assemble specialized AI teams**.
 
 ```
-Skill     — 単一目的の処理（例: Web スクレイピング、翻訳、分析）
-Plugin    — 業務機能パッケージ（例: 分身AI、秘書AI、YouTube 運用、Discord Bot）
-Extension — 接続先・UI の拡張（例: Obsidian 連携、MCP、通知）
+Skill     — Single-purpose processing (e.g., web scraping, translation, analysis)
+Plugin    — Business function packages (e.g., AI Avatar, AI Secretary, YouTube operations, Discord Bot)
+Extension — Connection and UI extensions (e.g., Obsidian integration, MCP, notifications)
 ```
 
-自然言語でスキルを説明するだけで、AI がスキルコードを自動生成します。専門的なプログラミング知識は不要です。
+Just describe a skill in natural language, and the AI automatically generates the skill code. No specialized programming knowledge is required.
 
 ---
 
-## 🎯 こんな業務に特に向いています
+## Particularly Well-Suited Use Cases
 
-### 情報収集・分析
-- 競合分析レポートの定期作成
-- ニュース・トレンドのモニタリングと要約
-- 顧客レビューの感情分析・集約
+### Information Gathering & Analysis
+- Regular creation of competitive analysis reports
+- News and trend monitoring with summaries
+- Sentiment analysis and aggregation of customer reviews
 
-### コンテンツ制作
-- SNS 投稿カレンダーの作成と文案生成
-- ブログ記事・メルマガの下書き作成
-- プレスリリース・提案書のドラフト
+### Content Creation
+- SNS posting calendar creation and draft generation
+- Blog article and newsletter draft creation
+- Press release and proposal drafting
 
-### データ処理・管理
-- 複数ソースからのデータ収集・統合
-- レポート・ダッシュボードの自動更新
-- 議事録・要約の自動作成
+### Data Processing & Management
+- Data collection and integration from multiple sources
+- Automatic report and dashboard updates
+- Automatic meeting minutes and summary creation
 
-### 開発・技術系タスク
-- コードレビュー・テスト自動化
-- ドキュメント生成・更新
-- バグ調査・修正案の提案
+### Development & Technical Tasks
+- Code review and test automation
+- Document generation and updates
+- Bug investigation and fix proposals
 
-### 承認が必要な業務
-- SNS 投稿（下書き作成 → 人間承認 → 投稿）
-- メール送信（下書き作成 → 人間承認 → 送信）
-- 請求書処理（データ抽出 → 人間確認 → 処理）
+### Tasks Requiring Approval
+- SNS posting (draft creation → human approval → posting)
+- Email sending (draft creation → human approval → sending)
+- Invoice processing (data extraction → human confirmation → processing)
 
 ---
 
-## 📊 導入効果のイメージ
+## Expected Impact
 
 ```
-定型的な情報収集タスク
-  従来: 担当者が 2〜3 時間かけて手動収集
-  ZEO:  依頼から完成レポートまで 15 分、人間の確認は 5 分
+Routine information gathering tasks
+  Before: Staff spend 2-3 hours on manual collection
+  ZEO:    15 minutes from request to completed report, 5 minutes for human review
 
-SNS コンテンツ制作（週10本）
-  従来: マーケター 1 名が週 8 時間
-  ZEO:  AI チームが下書き → 承認のみ週 1 時間
+SNS content creation (10 posts/week)
+  Before: One marketer spends 8 hours/week
+  ZEO:    AI team creates drafts → approval only takes 1 hour/week
 
-競合モニタリング（毎日）
-  従来: 毎朝 1 時間の手動チェック
-  ZEO:  毎朝 8 時に自動レポートが届く、確認は 10 分
+Competitive monitoring (daily)
+  Before: 1 hour of manual checking every morning
+  ZEO:    Automatic report delivered at 8 AM, 10 minutes to review
 ```
 
 ---
 
-## 🔒 エンタープライズ対応
+## Enterprise Ready
 
-### セキュリティ
-- 全 API キー・秘密情報は暗号化保存（SecretRef）
-- 危険操作は物理的な承認バリアで遮断
-- 全操作の監査ログ（削除不可）
+### Security
+- All API keys and secrets stored with encryption (SecretRef)
+- Dangerous operations blocked by physical approval barriers
+- Audit logs for all operations (non-deletable)
 
-### 組織管理
-- ロールベースアクセス制御（Owner / Admin / User / Auditor / Developer）
-- 複数チーム・複数プロジェクトの同時管理
-- 予算上限・コストアラート設定
+### Organization Management
+- Role-based access control (Owner / Admin / User / Auditor / Developer)
+- Simultaneous management of multiple teams and projects
+- Budget caps and cost alert settings
 
-### 可用性
-- Self-Healing DAG による自動復旧
-- Heartbeat 監視による死活監視
-- PostgreSQL 対応（本番環境向け）
+### Availability
+- Automatic recovery via Self-Healing DAG
+- Liveness monitoring via Heartbeat
+- PostgreSQL support (for production environments)
 
 ---
 
-## 🚀 今すぐ始める
+## Get Started Now
 
 ```bash
-# 1分で起動
+# Up and running in 1 minute
 git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
 cd Zero-Employee-Orchestrator
 ./setup.sh && ./start.sh
 ```
 
-ブラウザで `http://localhost:5173` を開き、セットアップウィザードを完了するだけです。
+Just open `http://localhost:5173` in your browser and complete the setup wizard.
 
-API キーなしでもそのまま動きます（サブスクリプションモード）。
-
----
-
-## 🧠 設計思想
-
-Zero-Employee Orchestrator は以下の信念のもとに設計されています:
-
-> **「AI は道具ではなく、組織の一員である」**
-
-単発の質問応答ではなく、業務の文脈を理解し、計画を立て、チームで協力し、失敗から学び、人間と適切な関係を築く — これが本当の AI 活用です。
-
-そのために:
-- **人間の最終決定権を絶対に外さない** — 危険操作は必ず承認
-- **ブラックボックスを作らない** — 全操作を可視化・記録
-- **継続的に改善する** — 経験記憶・失敗分類・品質向上
-- **拡張可能に保つ** — Skill / Plugin / Extension の明確な境界
+It works without an API key (Subscription Mode).
 
 ---
 
-## 📚 さらに詳しく
+## Design Philosophy
 
-| ドキュメント | 内容 |
-|------------|------|
-| [USER_GUIDE.md](USER_GUIDE.md) | セットアップから操作方法まで（日本語） |
-| [README.md](README.md) | クイックスタート・技術スタック |
-| [DESIGN.md](DESIGN.md) | 実装設計書（DB・API・状態遷移） |
-| [Zero-Employee Orchestrator.md](Zero-Employee%20Orchestrator.md) | 最上位基準文書（思想・要件） |
-| [docs/MD_FILES_INDEX.md](docs/MD_FILES_INDEX.md) | リポジトリ内全 `.md` ファイル一覧 |
+Zero-Employee Orchestrator is designed based on the following belief:
+
+> **"AI is not a tool, but a member of the organization."**
+
+Not just one-off Q&A, but understanding business context, making plans, collaborating as a team, learning from failures, and building appropriate relationships with humans — this is what true AI utilization looks like.
+
+To achieve this:
+- **Never remove human final decision authority** — dangerous operations always require approval
+- **Never create black boxes** — visualize and record all operations
+- **Continuously improve** — experience memory, failure classification, quality enhancement
+- **Keep it extensible** — clear boundaries between Skill / Plugin / Extension
 
 ---
 
-*Zero-Employee Orchestrator — AI が、組織として働く。*
+## Learn More
+
+| Document | Description |
+|----------|-------------|
+| [USER_GUIDE.md](../USER_GUIDE.md) | From setup to operation guide |
+| [README.md](../README.md) | Quick start and tech stack |
+| [DESIGN.md](../DESIGN.md) | Implementation design (DB, API, state transitions) |
+| [Zero-Employee Orchestrator.md](../Zero-Employee%20Orchestrator.md) | Top-level specification document (philosophy and requirements) |
+| [MD_FILES_INDEX.md](../MD_FILES_INDEX.md) | Index of all `.md` files in the repository |
+
+---
+
+*Zero-Employee Orchestrator — AI, working as an organization.*

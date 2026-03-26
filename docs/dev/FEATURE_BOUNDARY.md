@@ -1,261 +1,261 @@
-# 機能境界定義 — コア機能 vs Skill / Plugin / Extension
+# Feature Boundary Definition — Core Features vs Skill / Plugin / Extension
 
-> 作成日: 2026-03-09 / 更新: 2026-03-10 (v0.1 — 機能境界見直し)
-> 目的: 本体に最初から含めるべき機能と、Skill / Plugin / Extension で後から追加する機能の境界を明文化する
-
----
-
-## 原則
-
-1. **本体（コア）**: 認証・権限・監査・状態管理・実行制御・可観測性 → 安定性を最優先
-2. **Skill**: 単一タスクの実行能力 → 業務特化ロジック
-3. **Plugin**: 複数 Skill + 補助機能のまとまり → 業務機能パッケージ
-4. **Extension**: 接続先・UI・動作環境の拡張 → システム基盤の拡張
-
-**判断基準**: 「それがないと承認・監査・実行制御が成立しないか？」→ Yes ならコア、No なら拡張。
+> Created: 2026-03-09 / Updated: 2026-03-10 (v0.1 — Feature boundary revision)
+> Purpose: To explicitly define the boundary between features that should be included in the core from the start and features that should be added later as Skills / Plugins / Extensions.
 
 ---
 
-## コア機能（本体に必須）
+## Principles
 
-### 認証・セキュリティ
-- ローカル認証（ユーザー登録・ログイン・セッション管理）
-- ロールベースアクセス制御（Owner / Admin / User / Auditor / Developer）
-- Secret Manager（API キー暗号化保存）
-- サニタイザー（機密情報のマスキング）
+1. **Core**: Authentication, authorization, auditing, state management, execution control, observability — stability is the top priority
+2. **Skill**: Execution capability for a single task — business-specific logic
+3. **Plugin**: A bundle of multiple Skills plus supporting features — a business function package
+4. **Extension**: Expansion of connection targets, UI, and runtime environments — system infrastructure extensions
 
-### 9層アーキテクチャ基盤
-- **Design Interview** — 要件深掘りの質問生成・回答蓄積・ファイル添付によるコンテキスト統合
-- **Task Orchestrator** — DAG 生成・Skill 割当・コスト見積り・Self-Healing
-- **Skill 実行基盤** — Skill のロード・実行・結果取得のフレームワーク
-- **Judge Layer** — ルールベース一次判定 + Cross-Model Verification
-- **Re-Propose Layer** — 差し戻し・再提案・Plan Diff
-- **State Machine** — Ticket / Task / Approval / Agent の状態遷移
-- **Experience Memory** — 成功パターン・改善知識の永続記憶
-- **Failure Taxonomy** — 失敗分類・再発防止
-- **Provider Interface** — LLM Gateway（LiteLLM / Ollama 直接接続）
-
-### 承認・監査
-- 承認フロー（危険操作の強制ブロック）
-- 承認ゲート（12カテゴリの危険操作検出）
-- 自律実行境界の管理
-- 監査ログ（全重要操作の記録、削除不可）
-
-### データ管理
-- SQLite / PostgreSQL によるデータ永続化
-- Spec / Plan / Tasks の構造化保存
-- 成果物（Artifact）管理
-- コスト計測・予算管理
-
-### UI 基盤
-- ダッシュボード
-- チケット管理画面
-- 承認管理画面
-- 監査ログ画面
-- 設定画面
-
-### オフライン動作
-- Ollama Provider（ローカル LLM 直接接続）
-- ローカル RAG（ファイルベースベクトル DB）
-- SQLite による完全ローカル DB
-- g4f Provider（サブスクリプションモード）
+**Decision criteria**: "Would approval, auditing, or execution control break without it?" — If Yes, it's core. If No, it's an extension.
 
 ---
 
-## 組み込み Skill（本体に同梱）
+## Core Features (Required in the main system)
 
-| Skill | 用途 | 理由 |
-|-------|------|------|
-| `local_context` | ローカルファイルの安全な読み込み | コアの Local Context 機能に不可欠 |
-| `spec_writer` | Spec 文書の自動生成 | Design Interview フローの必須要素 |
-| `plan_writer` | Plan 文書の自動生成 | Task Orchestrator の必須要素 |
-| `task_breakdown` | タスク分解 | DAG 生成の必須要素 |
-| `review_assistant` | レビュー支援 | Judge Layer の補助 |
-| `artifact_summarizer` | 成果物要約 | Artifact Bridge の補助 |
+### Authentication & Security
+- Local authentication (user registration, login, session management)
+- Role-based access control (Owner / Admin / User / Auditor / Developer)
+- Secret Manager (encrypted API key storage)
+- Sanitizer (masking of sensitive information)
+
+### 9-Layer Architecture Foundation
+- **Design Interview** — Question generation for requirement deep-dives, answer accumulation, context integration via file attachments
+- **Task Orchestrator** — DAG generation, Skill assignment, cost estimation, Self-Healing
+- **Skill Execution Framework** — Framework for loading, executing, and retrieving results from Skills
+- **Judge Layer** — Rule-based primary evaluation + Cross-Model Verification
+- **Re-Propose Layer** — Rejection, re-proposal, Plan Diff
+- **State Machine** — State transitions for Ticket / Task / Approval / Agent
+- **Experience Memory** — Persistent memory of success patterns and improvement knowledge
+- **Failure Taxonomy** — Failure classification and recurrence prevention
+- **Provider Interface** — LLM Gateway (LiteLLM / direct Ollama connection)
+
+### Approval & Auditing
+- Approval workflow (mandatory blocking of dangerous operations)
+- Approval gate (detection of 12 categories of dangerous operations)
+- Autonomous execution boundary management
+- Audit log (recording of all significant operations, non-deletable)
+
+### Data Management
+- Data persistence via SQLite / PostgreSQL
+- Structured storage of Spec / Plan / Tasks
+- Artifact management
+- Cost measurement and budget management
+
+### UI Foundation
+- Dashboard
+- Ticket management screen
+- Approval management screen
+- Audit log screen
+- Settings screen
+
+### Offline Operation
+- Ollama Provider (direct local LLM connection)
+- Local RAG (file-based vector DB)
+- Fully local DB via SQLite
+- g4f Provider (subscription mode)
 
 ---
 
-## Plugin で追加する機能（本体に含めない）
+## Built-in Skills (Bundled with the main system)
 
-### 業務特化 Plugin
+| Skill | Purpose | Reason |
+|-------|---------|--------|
+| `local_context` | Safe reading of local files | Essential for the core Local Context feature |
+| `spec_writer` | Automatic Spec document generation | Required element of the Design Interview flow |
+| `plan_writer` | Automatic Plan document generation | Required element of the Task Orchestrator |
+| `task_breakdown` | Task decomposition | Required element of DAG generation |
+| `review_assistant` | Review support | Assists the Judge Layer |
+| `artifact_summarizer` | Artifact summarization | Assists the Artifact Bridge |
 
-| Plugin | 用途 | 状態 |
-|--------|------|------|
-| `youtube` | YouTube チャンネル運用 | manifest あり |
-| `research` | 競合分析・市場調査 | manifest あり |
-| `backoffice` | 経理・事務・書類整理 | manifest あり |
-| `discord-bot` | Discord からのマルチエージェント操作・対話・承認 | manifest あり (v0.2.0) |
-| `slack-bot` | Slack からのマルチエージェント操作・対話・承認 | manifest あり (v0.2.0) |
+---
 
-### AI エージェント拡張 Plugin
+## Features Added via Plugins (Not included in the core)
 
-| Plugin | 用途 | 状態 |
-|--------|------|------|
-| `ai-avatar` | 分身AI（ユーザーの判断基準・文体を学習し代理行動） | **新規追加** |
-| `ai-secretary` | 秘書AI（予定管理・ブリーフィング・AI組織とユーザーの橋渡し） | **新規追加** |
+### Business-Specific Plugins
 
-#### 分身AI (ai-avatar) の役割
+| Plugin | Purpose | Status |
+|--------|---------|--------|
+| `youtube` | YouTube channel management | manifest available |
+| `research` | Competitive analysis and market research | manifest available |
+| `backoffice` | Accounting, administration, and document organization | manifest available |
+| `discord-bot` | Multi-agent operation, interaction, and approval via Discord | manifest available (v0.2.0) |
+| `slack-bot` | Multi-agent operation, interaction, and approval via Slack | manifest available (v0.2.0) |
 
-ユーザーの「分身」として振る舞う AI エージェント。ユーザーの価値観・判断基準・文体を学習し:
+### AI Agent Extension Plugins
 
-- **Judge Layer との連携**: ユーザーの判断パターンを Judge Layer のカスタムルールとして提供し、品質判定の基準に反映
-- **代理レビュー**: ユーザー不在時のタスクレビュー・優先度判断（最終承認権限は常にユーザー本人に残る）
-- **文体再現**: ユーザーの文体・トーンで下書きを作成
-- **承認パターン学習**: 過去の承認・却下パターンから自律実行範囲を提案
+| Plugin | Purpose | Status |
+|--------|---------|--------|
+| `ai-avatar` | Avatar AI (learns the user's judgment criteria and writing style to act on their behalf) | **Newly added** |
+| `ai-secretary` | Secretary AI (schedule management, briefings, bridging between the AI organization and the user) | **Newly added** |
 
-#### 秘書AI (ai-secretary) の役割
+#### Avatar AI (ai-avatar) Role
 
-ユーザーと AI 組織をつなぐ「ハブ」として機能する AI エージェント:
+An AI agent that acts as the user's "avatar." It learns the user's values, judgment criteria, and writing style to:
 
-- **朝のブリーフィング**: 承認待ち・進行中タスク・今日の予定を要約
-- **次のアクション提案**: 優先度に基づいて次にやるべきことを提示
-- **進捗サマリー**: AI 組織の活動状況をユーザーに分かりやすく報告
-- **委任ルーティング**: ユーザーの指示を適切なエージェントに振り分け
-- **チャット連携**: Discord/Slack/LINE Bot Plugin と連携して外部チャットアプリにブリーフィングを配信
+- **Integration with Judge Layer**: Provides the user's judgment patterns as custom rules for the Judge Layer, reflecting them in quality evaluation criteria
+- **Proxy review**: Reviews tasks and makes priority judgments when the user is absent (final approval authority always remains with the user)
+- **Writing style reproduction**: Creates drafts in the user's writing style and tone
+- **Approval pattern learning**: Proposes autonomous execution boundaries based on past approval/rejection patterns
 
-### チャットツール連携 Plugin
+#### Secretary AI (ai-secretary) Role
 
-| Plugin | 用途 | 状態 |
-|--------|------|------|
-| `line-bot` | LINE からのマルチエージェント操作 | **新規追加** |
+An AI agent that functions as a "hub" connecting the user and the AI organization:
+
+- **Morning briefing**: Summarizes pending approvals, in-progress tasks, and today's schedule
+- **Next action suggestions**: Presents what should be done next based on priority
+- **Progress summary**: Reports AI organization activity status in a user-friendly manner
+- **Delegation routing**: Routes user instructions to the appropriate agents
+- **Chat integration**: Delivers briefings to external chat apps by integrating with Discord/Slack/LINE Bot Plugins
+
+### Chat Tool Integration Plugins
+
+| Plugin | Purpose | Status |
+|--------|---------|--------|
+| `line-bot` | Multi-agent operation from LINE | **Newly added** |
 
 ### AI Self-Improvement Plugin
 
-| Plugin | 用途 | 状態 |
-|--------|------|------|
-| `ai-self-improvement` | AI が AI を分析・改善・生成する自己改善プラグイン | **新規追加** |
+| Plugin | Purpose | Status |
+|--------|---------|--------|
+| `ai-self-improvement` | A self-improvement plugin where AI analyzes, improves, and generates AI | **Newly added** |
 
-#### AI Self-Improvement (ai-self-improvement) の役割
+#### AI Self-Improvement (ai-self-improvement) Role
 
-AI Self-Improvement の Phase 1（個人開発範囲）を実現するプラグイン:
+A plugin that realizes Phase 1 (individual development scope) of AI Self-Improvement:
 
-- **Skill Analyzer**: 既存 Skill のコード品質・パフォーマンス・エラーハンドリングを AI が評価し改善案を生成
-- **Experience-Driven Judge Tuning**: Experience Memory の承認/却下パターンから Judge Layer のカスタムルールを自動提案
-- **Failure-to-Skill**: Failure Taxonomy の蓄積データから失敗防止 Skill を自動生成
-- **Skill A/B Testing**: 同じタスクを複数の Skill で実行し品質・速度・コストを定量比較
-- **Auto Test Generator**: Skill のテストコードを自動生成・実行・レポート
+- **Skill Analyzer**: AI evaluates code quality, performance, and error handling of existing Skills and generates improvement proposals
+- **Experience-Driven Judge Tuning**: Automatically proposes custom rules for the Judge Layer based on approval/rejection patterns from Experience Memory
+- **Failure-to-Skill**: Automatically generates failure-prevention Skills from accumulated Failure Taxonomy data
+- **Skill A/B Testing**: Runs the same task with multiple Skills and quantitatively compares quality, speed, and cost
+- **Auto Test Generator**: Automatically generates, executes, and reports test code for Skills
 
-詳細は [docs/AI_SELF_IMPROVEMENT_ROADMAP.md](../AI_SELF_IMPROVEMENT_ROADMAP.md) を参照。
+See [docs/AI_SELF_IMPROVEMENT_ROADMAP.md](../AI_SELF_IMPROVEMENT_ROADMAP.md) for details.
 
-### 将来の Plugin 候補
+### Future Plugin Candidates
 
-| Plugin | 用途 |
-|--------|------|
-| `blog-manager` | ブログ記事の企画・下書き・公開管理 |
-| `sns-scheduler` | SNS 投稿カレンダーの自動作成 |
-| `code-review` | コードレビュー・テスト自動化 |
-
----
-
-## Extension で追加する機能（本体に含めない）
-
-### 接続・認証系
-
-| Extension | 用途 | 状態 |
-|-----------|------|------|
-| `oauth` | Google / GitHub 等の OAuth 認証 | manifest あり |
-| `mcp` | Model Context Protocol 対応ツール接続 | manifest あり |
-| `notifications` | Slack / Discord / LINE / メール通知 | manifest あり |
-| `obsidian` | Obsidian Vault との双方向連携 | manifest あり |
-| `notion` | Notion ページ・データベース連携 | manifest あり |
-| `logseq` | Logseq グラフ連携 | manifest あり |
-| `joplin` | Joplin ノート連携（REST API） | manifest あり |
-| `google-workspace` | Google Docs / Sheets / Drive / Calendar / Gmail | manifest あり |
-| `microsoft-365` | Word / Excel / OneDrive / Outlook / Teams | manifest あり |
-
-### 汎用アプリ連携ハブ
-
-`integrations/app_connector.py` に汎用アプリケーション連携ハブを実装。
-35+ の外部アプリケーションとの接続を統一管理する。
-ユーザーが明示的に許可した範囲でのみ動作し、カスタムアプリの登録にも対応。
-
-### v0.1 機能肥大化レビューによる整理
-
-以下の機能はコードベースに存在するが、**コア機能ではなく拡張機能として位置づける**。
-v0.1 では同梱されているが、将来的に Extension / Skill / Plugin として分離予定。
-
-| 機能 | 現在の場所 | 移行先 | 理由 |
-|------|-----------|--------|------|
-| **Sentry 連携** | `integrations/sentry_integration.py` | Extension | エラー監視は有用だが、コアの承認・監査・実行制御には不要 |
-| **AI 調査ツール** | `integrations/ai_investigator.py` | Skill | DB/ログ調査は単一目的タスクであり、Skill として提供すべき |
-| **仮説検証エンジン** | `orchestration/hypothesis_engine.py` | Plugin | マルチエージェント仮説検証は高度な機能であり、基本的なオーケストレーションには不要 |
-| **MCP サーバー** | `integrations/mcp_server.py` | Extension | MCP 対応は接続先拡張であり、コア必須ではない |
-| **外部スキルインポート** | `integrations/external_skills.py` | Extension | GitHub からのスキル検索・インポートは Registry の拡張機能 |
-
-> **注意**: 上記の機能は v0.1 ではコードベースに同梱されていますが、コア機能の判断基準
-> 「それがないと承認・監査・実行制御が成立しないか？」に照らして、拡張機能に分類されます。
-> 将来のバージョンで独立した Extension / Skill / Plugin パッケージとして分離します。
-
-### 将来の Extension 候補
-
-| Extension | 用途 |
-|-----------|------|
-| `sentry` | Sentry 互換のエラー・パフォーマンス監視 |
-| `proxy-network` | 社内プロキシ・VPN 対応 |
-| `google-drive` | Google Drive 連携 |
-| `github-integration` | GitHub Issues / PR 連携 |
-| `gws-integration` | Google Workspace CLI (gws) 連携 |
-| `vscode-ui` | VS Code 風 UI テーマ |
-| `generative-ui` | フォーム・表・グラフによる動的レスポンス |
-| `auto-update` | 自動アップデート機構 |
-| `ipaas-bridge` | Make / Zapier / n8n 連携ブリッジ |
-| `security-audit` | セキュリティ自己テスト（ホワイトハッカー班） |
-
-### 将来の Skill 候補
-
-| Skill | 用途 |
-|-------|------|
-| `ai-investigator` | AI による DB/ログ調査 |
-| `hypothesis-tester` | 仮説の並行検証 |
+| Plugin | Purpose |
+|--------|---------|
+| `blog-manager` | Blog article planning, drafting, and publication management |
+| `sns-scheduler` | Automatic creation of SNS posting calendars |
+| `code-review` | Code review and test automation |
 
 ---
 
-## コミュニティプラグイン共有の方針 (v0.1)
+## Features Added via Extensions (Not included in the core)
 
-ユーザーが Plugin を共有・公開できる仕組みを提供することで、開発者の追加作業なしに外部サービス連携が拡大します。
+### Connection & Authentication
 
-### 共有の仕組み
+| Extension | Purpose | Status |
+|-----------|---------|--------|
+| `oauth` | OAuth authentication for Google / GitHub, etc. | manifest available |
+| `mcp` | Tool connection via Model Context Protocol | manifest available |
+| `notifications` | Notifications via Slack / Discord / LINE / email | manifest available |
+| `obsidian` | Bidirectional integration with Obsidian Vault | manifest available |
+| `notion` | Notion page and database integration | manifest available |
+| `logseq` | Logseq graph integration | manifest available |
+| `joplin` | Joplin note integration (REST API) | manifest available |
+| `google-workspace` | Google Docs / Sheets / Drive / Calendar / Gmail | manifest available |
+| `microsoft-365` | Word / Excel / OneDrive / Outlook / Teams | manifest available |
 
-1. ユーザーがプラグインを開発し、GitHub リポジトリに `plugin.json` マニフェスト付きで公開
-2. リポジトリに `zeo-plugin` トピックを付与
-3. 他のユーザーが `POST /registry/plugins/search-external` で検索
-4. `POST /registry/plugins/import` でワンクリックインストール
+### General-Purpose App Connector Hub
 
-### 安全性の担保
+A general-purpose application connector hub is implemented in `integrations/app_connector.py`.
+It provides unified management of connections to 35+ external applications.
+It operates only within the scope explicitly authorized by the user and supports custom app registration.
 
-- インポート時に自動安全性チェック（16 種類の危険パターン検出）
-- 外部通信・認証情報アクセス・破壊的操作の検出と警告
-- 攻撃的・有害なプラグインの作成・共有・公開は禁止
-- インストール前にユーザーへリスクレベルを表示し確認を求める
+### Reorganization Based on v0.1 Feature Bloat Review
+
+The following features exist in the codebase but are **positioned as extensions rather than core features**.
+They are bundled in v0.1 but are planned for future separation as Extensions / Skills / Plugins.
+
+| Feature | Current Location | Migration Target | Reason |
+|---------|-----------------|-----------------|--------|
+| **Sentry integration** | `integrations/sentry_integration.py` | Extension | Error monitoring is useful but not required for core approval, auditing, or execution control |
+| **AI investigation tool** | `integrations/ai_investigator.py` | Skill | DB/log investigation is a single-purpose task and should be provided as a Skill |
+| **Hypothesis verification engine** | `orchestration/hypothesis_engine.py` | Plugin | Multi-agent hypothesis verification is an advanced feature not required for basic orchestration |
+| **MCP server** | `integrations/mcp_server.py` | Extension | MCP support is a connection target extension and not essential to the core |
+| **External skill import** | `integrations/external_skills.py` | Extension | Skill search and import from GitHub is an extension of the Registry |
+
+> **Note**: The features listed above are bundled in the codebase in v0.1, but according to the core feature
+> decision criteria — "Would approval, auditing, or execution control break without it?" — they are classified
+> as extensions. They will be separated into independent Extension / Skill / Plugin packages in future versions.
+
+### Future Extension Candidates
+
+| Extension | Purpose |
+|-----------|---------|
+| `sentry` | Sentry-compatible error and performance monitoring |
+| `proxy-network` | Corporate proxy and VPN support |
+| `google-drive` | Google Drive integration |
+| `github-integration` | GitHub Issues / PR integration |
+| `gws-integration` | Google Workspace CLI (gws) integration |
+| `vscode-ui` | VS Code-style UI theme |
+| `generative-ui` | Dynamic responses with forms, tables, and charts |
+| `auto-update` | Automatic update mechanism |
+| `ipaas-bridge` | Make / Zapier / n8n integration bridge |
+| `security-audit` | Security self-testing (white-hat team) |
+
+### Future Skill Candidates
+
+| Skill | Purpose |
+|-------|---------|
+| `ai-investigator` | AI-powered DB/log investigation |
+| `hypothesis-tester` | Parallel hypothesis verification |
 
 ---
 
-## 判断フローチャート
+## Community Plugin Sharing Policy (v0.1)
+
+By providing a mechanism for users to share and publish Plugins, external service integrations can expand without additional work from the developers.
+
+### Sharing Mechanism
+
+1. A user develops a plugin and publishes it to a GitHub repository with a `plugin.json` manifest
+2. The repository is tagged with the `zeo-plugin` topic
+3. Other users search via `POST /registry/plugins/search-external`
+4. One-click installation via `POST /registry/plugins/import`
+
+### Safety Assurance
+
+- Automatic safety checks at import time (detection of 16 types of dangerous patterns)
+- Detection and warning of external communication, credential access, and destructive operations
+- Creation, sharing, and publication of offensive or harmful plugins is prohibited
+- Risk level is displayed and confirmation is requested from the user before installation
+
+---
+
+## Decision Flowchart
 
 ```
-新機能の追加要求
+New feature request
     │
-    ├─ 承認・監査・状態管理に不可欠？ → YES → コア機能
+    ├─ Essential for approval, auditing, or state management? → YES → Core feature
     │
-    ├─ 単一タスクの実行能力？ → YES → Skill
+    ├─ Execution capability for a single task? → YES → Skill
     │
-    ├─ 特定業務の機能パッケージ？ → YES → Plugin
+    ├─ A function package for a specific business domain? → YES → Plugin
     │
-    └─ 接続先・UI・環境の拡張？ → YES → Extension
+    └─ Extension of connection targets, UI, or environment? → YES → Extension
 ```
 
-## オフライン動作の保証
+## Offline Operation Guarantee
 
-コア機能は **Ollama + SQLite** の組み合わせで完全オフライン動作が可能。
+Core features can operate fully offline with the **Ollama + SQLite** combination.
 
-| 機能 | オフライン | 備考 |
-|------|-----------|------|
-| Design Interview | 可能 | Ollama モデルで実行 |
-| Spec / Plan 生成 | 可能 | Ollama モデルで実行 |
-| Task 実行 | 可能 | ローカル Skill のみ |
-| Judge Layer | 可能 | ルールベース判定はオフライン可、Cross-Model は要オンライン |
-| 承認フロー | 可能 | ローカル UI で完結 |
-| 監査ログ | 可能 | SQLite に記録 |
-| ローカル RAG | 可能 | ファイルベース TF-IDF |
-| 外部 API 連携 | 不可 | オンライン必須 |
-| Registry 検索 | 不可 | ローカルインストール済みは利用可 |
+| Feature | Offline | Notes |
+|---------|---------|-------|
+| Design Interview | Available | Runs on Ollama models |
+| Spec / Plan generation | Available | Runs on Ollama models |
+| Task execution | Available | Local Skills only |
+| Judge Layer | Available | Rule-based evaluation works offline; Cross-Model requires online |
+| Approval workflow | Available | Completed within local UI |
+| Audit log | Available | Recorded in SQLite |
+| Local RAG | Available | File-based TF-IDF |
+| External API integration | Unavailable | Requires online |
+| Registry search | Unavailable | Already-installed local items are usable |
