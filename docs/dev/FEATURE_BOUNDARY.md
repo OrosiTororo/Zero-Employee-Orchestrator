@@ -135,7 +135,7 @@ A plugin that realizes Phase 1 (individual development scope) of AI Self-Improve
 - **Skill A/B Testing**: Runs the same task with multiple Skills and quantitatively compares quality, speed, and cost
 - **Auto Test Generator**: Automatically generates, executes, and reports test code for Skills
 
-See [docs/AI_SELF_IMPROVEMENT_ROADMAP.md](../AI_SELF_IMPROVEMENT_ROADMAP.md) for details.
+See [docs/ja-JP/AI_SELF_IMPROVEMENT_ROADMAP.md](../AI_SELF_IMPROVEMENT_ROADMAP.md) for details.
 
 ### Future Plugin Candidates
 

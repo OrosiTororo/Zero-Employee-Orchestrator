@@ -383,4 +383,4 @@ pip install -e "."
 | `README.md` | Quick start & tech stack |
 | `docs/SECURITY.md` | Security configuration & production deployment |
 | `docs/dev/DESIGN.md` | Implementation design (DB, API, state transitions) |
-| `docs/dev/BUILD_GUIDE.md` | Developer build guide |
+| `docs/ja-JP/BUILD_GUIDE.md` | Developer build guide (Japanese) |

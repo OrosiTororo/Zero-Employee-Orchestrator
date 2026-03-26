@@ -560,7 +560,7 @@ For details, see [docs/dev/FEATURE_BOUNDARY.md](../dev/FEATURE_BOUNDARY.md).
 | `docs/FEATURES.md` | Complete list of implemented features (34 sections) | Feature verification, evaluators |
 | `docs/SECURITY.md` | Security policy, pre-deployment checklist | Operators |
 | `docs/CHANGELOG.md` | Change history | Everyone |
-| `docs/Zero-Employee Orchestrator.md` | Top-level reference document (philosophy, requirements) | Designers |
+| `docs/ja-JP/Zero-Employee Orchestrator.md` | Top-level reference document (philosophy, requirements) | Designers |
 | `docs/MD_FILES_INDEX.md` | Index of all `.md` files | Everyone |
 
 **For Developers (`docs/dev/`):**
@@ -569,7 +569,7 @@ For details, see [docs/dev/FEATURE_BOUNDARY.md](../dev/FEATURE_BOUNDARY.md).
 |------|---------|----------------|
 | `docs/dev/DESIGN.md` | Implementation design document (DB, API, state transitions) | Implementers |
 | `docs/dev/MASTER_GUIDE.md` | Implementation and operations guide | AI agents, implementers |
-| `docs/dev/BUILD_GUIDE.md` | Step-by-step build instructions (with phase-by-phase code) | Source build users |
+| `docs/ja-JP/BUILD_GUIDE.md` | Step-by-step build instructions (Japanese, phase-by-phase) | Source build users |
 | `docs/dev/FEATURE_BOUNDARY.md` | Core vs. extension feature boundary definitions | Developers |
 | `docs/dev/PROPOSAL.md` | Project proposal document | Grant reviewers, sponsors |
 | `CLAUDE.md` | Development guide for Claude Code | AI agents |

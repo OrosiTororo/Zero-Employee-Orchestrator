@@ -55,7 +55,7 @@ The base language for `docs/` is English. Translations are in language-specific 
 | `docs/SECURITY.md` | Security policy and pre-deployment checklist | Operators, deployment engineers |
 | `docs/CHANGELOG.md` | Version-by-version change history | All users and developers |
 | `docs/SCALING_AND_COSTS.md` | Costs, hardware constraints, use cases | Prospective adopters, operators, executives |
-| `docs/Zero-Employee Orchestrator.md` | **Top-level reference document**. Philosophy, requirements, MVP (Japanese) | Designers, PO, AI agents |
+| `docs/ja-JP/Zero-Employee Orchestrator.md` | **Top-level reference document**. Philosophy, requirements, MVP (Japanese) | Designers, PO, AI agents |
 | `docs/MD_FILES_INDEX.md` | **This document**. Index of all `.md` files | All users and developers |
 
 ---
@@ -66,12 +66,12 @@ The base language for `docs/` is English. Translations are in language-specific 
 |------|---------|----------|
 | `docs/dev/DESIGN.md` | Implementation design (DB, API, state transitions, phases) | Implementers, AI agents |
 | `docs/dev/MASTER_GUIDE.md` | AI implementation approach, reference order, decision criteria | AI agents, implementation leads |
-| `docs/dev/BUILD_GUIDE.md` | Build from scratch guide (phase-by-phase) | Developers building from source |
+| `docs/ja-JP/BUILD_GUIDE.md` | Build from scratch guide (phase-by-phase, Japanese) | Developers building from source |
 | `docs/dev/FEATURE_BOUNDARY.md` | Core features vs Skill/Plugin/Extension boundary definition | Developers, designers |
 | `docs/dev/DEVELOPER_SETUP.md` | Developer setup (Sentry, red-team testing, etc.) | ZEO developers |
 | `docs/dev/SKILL.md` | SKILL.md file creation guide | Skill developers |
 | `docs/dev/PROPOSAL.md` | Project proposal document | Grant reviewers, sponsors |
-| `docs/dev/AI_SELF_IMPROVEMENT_ROADMAP.md` | AI self-improvement roadmap | Developers, researchers |
+| `docs/ja-JP/AI_SELF_IMPROVEMENT_ROADMAP.md` | AI self-improvement roadmap (Japanese) | Developers, researchers |
 
 ---
 
@@ -110,7 +110,7 @@ The base language is **English** (at `docs/` root and repository root). Translat
 
 | Language | Directory | Contents |
 |----------|-----------|----------|
-| Japanese | `docs/ja-JP/` | ABOUT, USER_GUIDE, OVERVIEW, FEATURES, SECURITY, CHANGELOG, SCALING_AND_COSTS, MD_FILES_INDEX, README |
+| Japanese | `docs/ja-JP/` | ABOUT, USER_GUIDE, OVERVIEW, FEATURES, SECURITY, CHANGELOG, SCALING_AND_COSTS, MD_FILES_INDEX, README, Zero-Employee Orchestrator, BUILD_GUIDE, AI_SELF_IMPROVEMENT_ROADMAP |
 | Chinese (Simplified) | `docs/zh/` | ABOUT, USER_GUIDE, OVERVIEW, FEATURES, SECURITY, CHANGELOG, SCALING_AND_COSTS, MD_FILES_INDEX, ROADMAP, CODE_OF_CONDUCT, CONTRIBUTING, USER_SETUP |
 | Chinese (Simplified) | `docs/zh-CN/` | README |
 | Chinese (Traditional) | `docs/zh-TW/` | README |
@@ -125,11 +125,11 @@ The base language is **English** (at `docs/` root and repository root). Translat
 ### For Developers and Implementers
 
 ```
-1. docs/Zero-Employee Orchestrator.md  <- Top-level reference (philosophy, requirements, MVP)
+1. docs/ja-JP/Zero-Employee Orchestrator.md  <- Top-level reference (philosophy, requirements, MVP)
 2. docs/dev/DESIGN.md                  <- Implementation design (DB, API, state transitions)
 3. docs/dev/MASTER_GUIDE.md            <- Operational guide (approach, criteria, prohibitions)
 4. CLAUDE.md                           <- AI agent development guide
-5. docs/dev/BUILD_GUIDE.md             <- Build from scratch guide (phase-by-phase)
+5. docs/ja-JP/BUILD_GUIDE.md             <- Build from scratch guide (phase-by-phase)
 ```
 
 ### For Users

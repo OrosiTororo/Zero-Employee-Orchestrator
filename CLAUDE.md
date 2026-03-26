@@ -16,10 +16,10 @@ ls apps/api/app/tests/
 
 Reference documents:
 - `README.md` -- **Always check first. Contains feature list, configuration, and security settings**
-- `docs/Zero-Employee Orchestrator.md` -- Top-level requirements document
+- `docs/ja-JP/Zero-Employee Orchestrator.md` -- Top-level requirements document (Japanese)
 - `docs/dev/DESIGN.md` -- Implementation design document
 - `docs/dev/MASTER_GUIDE.md` -- Implementation operations guide
-- `docs/dev/BUILD_GUIDE.md` -- Build-from-scratch guide (by phase)
+- `docs/ja-JP/BUILD_GUIDE.md` -- Build-from-scratch guide (by phase, Japanese)
 - `docs/dev/FEATURE_BOUNDARY.md` -- Core vs Skill/Plugin/Extension boundary definition
 - `ROADMAP.md` -- Roadmap (remaining tasks from v0.2 onward)
 - `docs/dev/DEVELOPER_SETUP.md` -- Developer setup guide (Sentry, red-team testing, etc.)

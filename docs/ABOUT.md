@@ -321,7 +321,7 @@ To achieve this:
 | [USER_GUIDE.md](../USER_GUIDE.md) | From setup to operation guide |
 | [README.md](../README.md) | Quick start and tech stack |
 | [DESIGN.md](../DESIGN.md) | Implementation design (DB, API, state transitions) |
-| [Zero-Employee Orchestrator.md](../Zero-Employee%20Orchestrator.md) | Top-level specification document (philosophy and requirements) |
+| [Zero-Employee Orchestrator.md](../ja-JP/Zero-Employee%20Orchestrator.md) | Top-level specification document (philosophy and requirements) |
 | [MD_FILES_INDEX.md](../MD_FILES_INDEX.md) | Index of all `.md` files in the repository |
 
 ---

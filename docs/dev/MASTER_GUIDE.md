@@ -1,7 +1,7 @@
 # Zero-Employee Orchestrator Master Guide
 
 > Created: 2026-03-08
-> Reference priority: `docs/Zero-Employee Orchestrator.md` → `docs/dev/DESIGN.md` → `docs/dev/BUILD_GUIDE.md`
+> Reference priority: `docs/ja-JP/Zero-Employee Orchestrator.md` → `docs/dev/DESIGN.md` → `docs/ja-JP/BUILD_GUIDE.md`
 
 ---
 
@@ -9,7 +9,7 @@
 
 This guide serves as the operational reference for implementing Zero-Employee Orchestrator using AI coding agents. It defines the **reference order, division of responsibilities, implementation order, decision criteria, and prohibited actions**.
 
-The original source of philosophy and requirements is `docs/Zero-Employee Orchestrator.md`, and the detailed design is in `docs/dev/DESIGN.md`. This guide defines "which documents to use and how to proceed with implementation."
+The original source of philosophy and requirements is `docs/ja-JP/Zero-Employee Orchestrator.md`, and the detailed design is in `docs/dev/DESIGN.md`. This guide defines "which documents to use and how to proceed with implementation."
 
 ---
 
@@ -39,10 +39,10 @@ The original source of philosophy and requirements is `docs/Zero-Employee Orches
 
 | File | Role | Usage |
 |---|---|---|
-| `docs/Zero-Employee Orchestrator.md` | Top-level reference document | Confirm philosophy, boundaries, requirements, and improvement policies |
+| `docs/ja-JP/Zero-Employee Orchestrator.md` | Top-level reference document | Confirm philosophy, boundaries, requirements, and improvement policies |
 | `docs/dev/DESIGN.md` | Implementation design document | Confirm DB, API, UI, state transitions, and architecture |
 | `docs/dev/MASTER_GUIDE.md` | Implementation operations guide | Guidance and decision criteria for AI agents |
-| `docs/dev/BUILD_GUIDE.md` | Construction guide | Step-by-step procedures for building from scratch (by phase) |
+| `docs/ja-JP/BUILD_GUIDE.md` | Construction guide | Step-by-step procedures for building from scratch (by phase) |
 | `docs/dev/FEATURE_BOUNDARY.md` | Boundary definition | Core vs Skill/Plugin/Extension |
 
 ---
@@ -51,10 +51,10 @@ The original source of philosophy and requirements is `docs/Zero-Employee Orches
 
 AI agents should read documents in the following order:
 
-1. `docs/Zero-Employee Orchestrator.md`
+1. `docs/ja-JP/Zero-Employee Orchestrator.md`
 2. `docs/dev/DESIGN.md`
 3. `docs/dev/MASTER_GUIDE.md`
-4. `docs/dev/BUILD_GUIDE.md` (phase-by-phase construction procedures)
+4. `docs/ja-JP/BUILD_GUIDE.md` (phase-by-phase construction procedures)
 5. Related code, existing directories, existing APIs, and existing tests as needed
 
 Do not reverse this order.
@@ -159,7 +159,7 @@ Items to extend later:
 
 ## 6. Expected Role of Each Area
 
-For detailed construction procedures, refer to `docs/dev/BUILD_GUIDE.md`.
+For detailed construction procedures, refer to `docs/ja-JP/BUILD_GUIDE.md`.
 
 | Area | Purpose | Focus |
 |------|---------|-------|
@@ -228,8 +228,8 @@ A minimum demo refers to a state where the following can be demonstrated end-to-
 
 ## 10. Current Alignment Policy
 
-- `docs/dev/DESIGN.md` and `docs/dev/MASTER_GUIDE.md` are considered updated to align with `docs/Zero-Employee Orchestrator.md`
-- `docs/dev/BUILD_GUIDE.md` is treated as already adapted to this new policy
+- `docs/dev/DESIGN.md` and `docs/dev/MASTER_GUIDE.md` are considered updated to align with `docs/ja-JP/Zero-Employee Orchestrator.md`
+- `docs/ja-JP/BUILD_GUIDE.md` is treated as already adapted to this new policy
 - Going forward, prioritize "localized fixes for gaps" over "rebuilding everything from scratch"
 - When uncertain during implementation, decide based on "Is this core or an extension?", "Does this require approval?", and "Is this auditable?"
 
@@ -243,6 +243,6 @@ When in doubt, decide in the following order:
 2. Can this operation be executed without human approval?
 3. Is this process auditable?
 4. Is this implementation reusable as a general-purpose business platform?
-5. Is this change aligned with the philosophy of `docs/Zero-Employee Orchestrator.md`?
+5. Is this change aligned with the philosophy of `docs/ja-JP/Zero-Employee Orchestrator.md`?
 
 Changes that do not satisfy these 5 conditions should not be adopted.

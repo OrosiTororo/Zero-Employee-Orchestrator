@@ -1,14 +1,14 @@
 # Zero-Employee Orchestrator Design Document
 
 > Created: 2026-03-08
-> Reference document: `Zero-Employee Orchestrator.md`
+> Reference document: `docs/ja-JP/Zero-Employee Orchestrator.md`
 > Role of this document: A design document that organizes the structure needed for implementation decisions to a granularity that AI coding agents can begin working with
 
 ---
 
 ## 0. Position of This Document
 
-This document is the core design document for translating `Zero-Employee Orchestrator.md` into implementation design.
+This document is the core design document for translating `docs/ja-JP/Zero-Employee Orchestrator.md` into implementation design.
 The reference document retains the comprehensive coverage of philosophy, background, and improvement requests; this document clarifies:
 
 1. What to include in the core system
@@ -657,7 +657,7 @@ Zero-Employee-Orchestrator/
 
 ## 14. Relationship Between This Document and Reference Documents
 
-- `docs/Zero-Employee Orchestrator.md`: Reference for philosophy, requests, background, improvement proposals, and overall vision
+- `docs/ja-JP/Zero-Employee Orchestrator.md`: Reference for philosophy, requests, background, improvement proposals, and overall vision
 - `docs/dev/DESIGN.md`: Reference for implementation design
 - `docs/dev/MASTER_GUIDE.md`: Reference for execution order, reference relationships, and task allocation for AI agents
 
