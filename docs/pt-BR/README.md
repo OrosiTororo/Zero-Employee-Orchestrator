@@ -97,6 +97,21 @@ Este repositório é a plataforma em si. Os guias explicam a arquitetura e a fil
 
 ---
 
+## 🖥️ Baixar Aplicativo Desktop
+
+Instaladores desktop pré-compilados estão disponíveis na página de [Releases](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases).
+
+| SO | Arquivo | Descrição |
+|---|---|---|
+| **Windows** | `.msi` / `-setup.exe` | Instalador Windows |
+| **macOS** | `.dmg` | macOS (Intel / Apple Silicon) |
+| **Linux** | `.AppImage` | Portátil (sem necessidade de instalação) |
+| **Linux** | `.deb` / `.rpm` | Debian/Ubuntu / Fedora/RHEL |
+
+Todos os instaladores incluem um **assistente de configuração** onde você escolhe seu idioma (English / 日本語 / 中文). O idioma pode ser alterado a qualquer momento em **Configurações**.
+
+---
+
 ## 🚀 Início Rápido
 
 Comece a operar em menos de 2 minutos:
@@ -146,6 +161,31 @@ zero-employee local --model qwen3:8b --lang en
 ```
 
 ✨ **Pronto!** Você agora tem uma plataforma completa de orquestração de IA com portões de aprovação humana e auditabilidade.
+
+### Alterando o Idioma (CLI)
+
+O idioma padrão é inglês. Você pode alterá-lo de várias formas:
+
+```bash
+# Na inicialização
+zero-employee chat --lang ja    # Japonês
+zero-employee chat --lang zh    # Chinês
+
+# Persistentemente (salvo em ~/.zero-employee/config.json)
+zero-employee config set LANGUAGE pt
+
+# Em tempo de execução (no modo chat)
+/lang en                         # Mudar para Inglês
+/lang ja                         # Mudar para Japonês
+/lang zh                         # Mudar para Chinês
+
+# Via API
+curl -X PUT http://localhost:18234/api/v1/config \
+  -H "Content-Type: application/json" \
+  -d '{"key": "LANGUAGE", "value": "pt"}'
+```
+
+A configuração de idioma se aplica em todo o sistema: saída do CLI, respostas da IA e a interface Web mudam juntas.
 
 ---
 

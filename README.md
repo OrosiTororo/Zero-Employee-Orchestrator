@@ -88,7 +88,22 @@ This repo is the platform itself. The guides explain the architecture and philos
 
 ---
 
-## 🚀 Quick Start
+## 🖥️ Download Desktop App
+
+Pre-built desktop installers are available on the [Releases](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases) page.
+
+| OS | File | Description |
+|---|---|---|
+| **Windows** | `.msi` / `-setup.exe` | Windows installer |
+| **macOS** | `.dmg` | macOS (Intel / Apple Silicon) |
+| **Linux** | `.AppImage` | Portable (no install needed) |
+| **Linux** | `.deb` / `.rpm` | Debian/Ubuntu / Fedora/RHEL |
+
+All installers include a **setup wizard** where you choose your language (English / 日本語 / 中文). Language can be changed at any time in **Settings**.
+
+---
+
+## 🚀 Quick Start (CLI)
 
 Get up and running in under 2 minutes:
 
@@ -137,6 +152,31 @@ zero-employee local --model qwen3:8b --lang en
 ```
 
 ✨ **That's it!** You now have a full AI orchestration platform with human approval gates and auditability.
+
+### Changing Language (CLI)
+
+The default language is English. You can change it in several ways:
+
+```bash
+# At startup
+zero-employee chat --lang ja    # Japanese
+zero-employee chat --lang zh    # Chinese
+
+# Persistently (saved to ~/.zero-employee/config.json)
+zero-employee config set LANGUAGE ja
+
+# At runtime (in chat mode)
+/lang en                         # Switch to English
+/lang ja                         # Switch to Japanese
+/lang zh                         # Switch to Chinese
+
+# Via API
+curl -X PUT http://localhost:18234/api/v1/config \
+  -H "Content-Type: application/json" \
+  -d '{"key": "LANGUAGE", "value": "ja"}'
+```
+
+The language setting applies system-wide: CLI output, AI responses, and the Web UI all switch together.
 
 ---
 
