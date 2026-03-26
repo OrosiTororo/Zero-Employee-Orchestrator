@@ -108,7 +108,7 @@ Instaladores desktop pré-compilados estão disponíveis na página de [Releases
 | **Linux** | `.AppImage` | Portátil (sem necessidade de instalação) |
 | **Linux** | `.deb` / `.rpm` | Debian/Ubuntu / Fedora/RHEL |
 
-Todos os instaladores incluem um **assistente de configuração** onde você escolhe seu idioma (English / 日本語 / 中文). O idioma pode ser alterado a qualquer momento em **Configurações**.
+Todos os instaladores incluem um **assistente de configuração** onde você escolhe seu idioma (English / 日本語 / 中文 / 한국어 / Português / Türkçe). O idioma pode ser alterado a qualquer momento em **Configurações**.
 
 ---
 
@@ -170,6 +170,9 @@ O idioma padrão é inglês. Você pode alterá-lo de várias formas:
 # Na inicialização
 zero-employee chat --lang ja    # Japonês
 zero-employee chat --lang zh    # Chinês
+zero-employee chat --lang ko    # Coreano
+zero-employee chat --lang pt    # Português
+zero-employee chat --lang tr    # Turco
 
 # Persistentemente (salvo em ~/.zero-employee/config.json)
 zero-employee config set LANGUAGE pt
@@ -178,6 +181,9 @@ zero-employee config set LANGUAGE pt
 /lang en                         # Mudar para Inglês
 /lang ja                         # Mudar para Japonês
 /lang zh                         # Mudar para Chinês
+/lang ko                         # Mudar para Coreano
+/lang pt                         # Mudar para Português
+/lang tr                         # Mudar para Turco
 
 # Via API
 curl -X PUT http://localhost:18234/api/v1/config \

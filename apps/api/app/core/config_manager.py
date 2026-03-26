@@ -77,8 +77,8 @@ CONFIGURABLE_KEYS: dict[str, dict[str, str]] = {
         "sensitive": "false",
     },
     "LANGUAGE": {
-        "description": "UI language: ja | en | zh",
-        "description_ja": "UI 言語: ja | en | zh",
+        "description": "UI language: ja | en | zh | ko | pt | tr",
+        "description_ja": "UI 言語: ja | en | zh | ko | pt | tr",
         "category": "general",
         "sensitive": "false",
     },
@@ -353,8 +353,8 @@ def set_config_value(key: str, value: str) -> None:
             f"Invalid execution mode: {value}. "
             "Must be one of: quality, speed, cost, free, subscription"
         )
-    if key == "LANGUAGE" and value not in ("ja", "en", "zh"):
-        raise ValueError(f"Invalid language: {value}. Must be one of: ja, en, zh")
+    if key == "LANGUAGE" and value not in ("ja", "en", "zh", "ko", "pt", "tr"):
+        raise ValueError(f"Invalid language: {value}. Must be one of: ja, en, zh, ko, pt, tr")
     if key == "SANDBOX_LEVEL" and value not in ("strict", "moderate", "permissive"):
         raise ValueError(
             f"Invalid sandbox level: {value}. Must be one of: strict, moderate, permissive"
