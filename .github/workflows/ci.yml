@@ -79,14 +79,14 @@ jobs:
 
           if [ "$FAIL" -ne 0 ]; then
             echo ""
-            echo "❌ pyproject.toml の同期が崩れています。"
-            echo "   ./scripts/bump-version.sh でバージョンを更新してください。"
-            echo "   その他のメタデータは手動で両方のファイルを更新してください。"
+            echo "❌ pyproject.toml metadata is out of sync."
+            echo "   Use ./scripts/bump-version.sh to update versions."
+            echo "   Update other metadata manually in both files."
             exit 1
           fi
 
           echo ""
-          echo "✅ すべてのメタデータが一致しています。"
+          echo "✅ All metadata is in sync."
 
   lint-and-test:
     name: Lint & Test (Python)

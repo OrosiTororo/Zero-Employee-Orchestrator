@@ -89,7 +89,7 @@ jobs:
           $conf | ConvertTo-Json -Depth 10 | Set-Content apps/desktop/src-tauri/tauri.conf.json
 
       - name: Build Tauri app
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -99,54 +99,7 @@ jobs:
           tagName: ${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}
           releaseName: "Zero-Employee Orchestrator ${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}"
           releaseBody: |
-            ## 日本語 | [English](#english) | [中文](#中文)
-
-            AI業務オーケストレーション基盤。自然言語で業務を定義し、複数 AI を役割分担させ、人間の承認と監査可能性を前提に業務を実行するプラットフォーム。
-
-            ### ダウンロード
-
-            下の **Assets** からお使いの OS に合ったファイルをクリックしてダウンロードしてください。
-
-            | OS | ファイル | 説明 |
-            |---|---|---|
-            | **Windows** | `_x64_en-US.msi` | Windows インストーラー（.msi）⭐ |
-            | **Windows** | `_x64-setup.exe` | Windows インストーラー（.exe / NSIS） |
-            | **macOS** | `_universal.dmg` | macOS（Intel / Apple Silicon）⭐ |
-            | **Linux** | `_amd64.AppImage` | そのまま実行可能（インストール不要）⭐ |
-            | **Linux** | `_amd64.deb` | Debian / Ubuntu |
-            | **Linux** | `_x86_64.rpm` | Fedora / RHEL |
-
-            ### 主な機能
-
-            - 9層アーキテクチャ（Design Interview〜Skill Registry）
-            - Self-Healing DAG によるタスクオーケストレーション
-            - Judge Layer（Two-stage Detection + Cross-Model Verification）
-            - Skill / Plugin / Extension の3層拡張体系
-            - Dynamic Model Registry（コード変更なしにモデル入替可能）
-            - ランタイム設定管理（CLI / Web UI / .env）
-            - 承認フロー + 監査ログ
-
-            ### 初回セットアップ
-
-            1. Assets からファイルをダウンロード
-            2. インストーラーを実行
-            3. アカウント登録（またはログインせずに開始）
-            4. セットアップウィザードで言語を選択（日本語 / English / 中文）
-            5. 設定画面で LLM API キーを入力
-            6. ダッシュボードから自然言語で業務を依頼
-
-            ### CLI / TUI 版（エンジニア向け）
-
-            ```bash
-            pip install zero-employee-orchestrator
-            # または uv pip install zero-employee-orchestrator
-            ```
-
-            > 詳細: [README](https://github.com/OrosiTororo/Zero-Employee-Orchestrator#readme) | [User Guide](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/docs/USER_GUIDE.md) | [CHANGELOG](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/docs/CHANGELOG.md)
-
-            ---
-
-            ## English
+            ## English | [日本語](#日本語) | [中文](#中文)
 
             AI Business Orchestration Platform. Define business workflows in natural language, orchestrate multiple AI agents with role-based delegation, and execute tasks with human approval and full auditability.
 
@@ -189,7 +142,54 @@ jobs:
             # or: uv pip install zero-employee-orchestrator
             ```
 
-            > Details: [README](https://github.com/OrosiTororo/Zero-Employee-Orchestrator#readme) | [User Guide](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/docs/USER_GUIDE.md) | [CHANGELOG](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/docs/en/CHANGELOG.md)
+            > Details: [README](https://github.com/OrosiTororo/Zero-Employee-Orchestrator#readme) | [User Guide](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/docs/USER_GUIDE.md) | [CHANGELOG](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/docs/CHANGELOG.md)
+
+            ---
+
+            ## 日本語
+
+            AI業務オーケストレーション基盤。自然言語で業務を定義し、複数 AI を役割分担させ、人間の承認と監査可能性を前提に業務を実行するプラットフォーム。
+
+            ### ダウンロード
+
+            下の **Assets** からお使いの OS に合ったファイルをクリックしてダウンロードしてください。
+
+            | OS | ファイル | 説明 |
+            |---|---|---|
+            | **Windows** | `_x64_en-US.msi` | Windows インストーラー（.msi）⭐ |
+            | **Windows** | `_x64-setup.exe` | Windows インストーラー（.exe / NSIS） |
+            | **macOS** | `_universal.dmg` | macOS（Intel / Apple Silicon）⭐ |
+            | **Linux** | `_amd64.AppImage` | そのまま実行可能（インストール不要）⭐ |
+            | **Linux** | `_amd64.deb` | Debian / Ubuntu |
+            | **Linux** | `_x86_64.rpm` | Fedora / RHEL |
+
+            ### 主な機能
+
+            - 9層アーキテクチャ（Design Interview〜Skill Registry）
+            - Self-Healing DAG によるタスクオーケストレーション
+            - Judge Layer（Two-stage Detection + Cross-Model Verification）
+            - Skill / Plugin / Extension の3層拡張体系
+            - Dynamic Model Registry（コード変更なしにモデル入替可能）
+            - ランタイム設定管理（CLI / Web UI / .env）
+            - 承認フロー + 監査ログ
+
+            ### 初回セットアップ
+
+            1. Assets からファイルをダウンロード
+            2. インストーラーを実行
+            3. アカウント登録（またはログインせずに開始）
+            4. セットアップウィザードで言語を選択（日本語 / English / 中文）
+            5. 設定画面で LLM API キーを入力
+            6. ダッシュボードから自然言語で業務を依頼
+
+            ### CLI / TUI 版（エンジニア向け）
+
+            ```bash
+            pip install zero-employee-orchestrator
+            # または uv pip install zero-employee-orchestrator
+            ```
+
+            > 詳細: [README](https://github.com/OrosiTororo/Zero-Employee-Orchestrator#readme) | [User Guide](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/docs/USER_GUIDE.md) | [CHANGELOG](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/docs/ja-JP/CHANGELOG.md)
 
             ---
 

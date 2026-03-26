@@ -13,6 +13,7 @@ build/
 
 # Lock files (keep pnpm-lock.yaml)
 uv.lock
+package-lock.json
 
 # IDE
 .vscode/
@@ -41,6 +42,9 @@ client_secret.json
 # Credentials
 ~/.zero-employee/
 .zero-employee/
+
+# Linter cache
+.ruff_cache/
 
 # Pytest
 .pytest_cache/

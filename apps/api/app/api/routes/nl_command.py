@@ -1,15 +1,18 @@
-"""自然言語コマンド API — GUI / CLI / TUI 共通の自然言語制御エンドポイント.
+"""Natural language command API — unified NL control endpoint for GUI / CLI / TUI.
 
-ユーザーの自然言語入力を受け取り、適切なアクションを実行して結果を返す。
-フロントエンドのチャット UI、CLI のローカルモード、TUI から統一的に利用可能。
+Receives natural language input from users, executes appropriate actions, and returns results.
+Accessible from the frontend chat UI, CLI local mode, and TUI in a unified manner.
 """
 
 from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
+
+from app.api.routes.auth import get_current_user
+from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -17,9 +20,9 @@ router = APIRouter()
 
 
 class NLCommandRequest(BaseModel):
-    text: str = Field(..., description="自然言語のコマンドテキスト")
-    language: str = Field(default="ja", description="言語コード (ja/en/zh)")
-    context: dict = Field(default_factory=dict, description="追加コンテキスト")
+    text: str = Field(..., description="Natural language command text")
+    language: str = Field(default="ja", description="Language code (ja/en/zh)")
+    context: dict = Field(default_factory=dict, description="Additional context")
 
 
 class NLCommandResponse(BaseModel):
@@ -34,20 +37,18 @@ class NLCommandResponse(BaseModel):
 
 
 @router.post("/command", response_model=NLCommandResponse)
-async def execute_nl_command(req: NLCommandRequest):
-    """自然言語コマンドを実行する.
+async def execute_nl_command(req: NLCommandRequest, user: User = Depends(get_current_user)):
+    """Execute a natural language command.
 
-    ユーザーの自然言語入力を解析し、設定変更・チケット作成・モデル管理等の
-    操作を自動的に実行する。コマンドとして認識されない場合は LLM に委譲する。
+    Parses user natural language input and automatically executes operations such as
+    configuration changes, ticket creation, and model management. Delegates to LLM
+    if the input is not recognized as a command.
 
-    GUI のチャットバー、CLI の対話モード、TUI から統一的に利用可能。
+    Accessible from GUI chat bar, CLI interactive mode, and TUI.
     """
     from app.services.nl_command_service import nl_command_processor
 
-    # 1. 自然言語を解析
     parsed = nl_command_processor.parse(req.text)
-
-    # 2. コマンドを実行
     result = await nl_command_processor.execute(parsed)
 
     return NLCommandResponse(
@@ -63,10 +64,10 @@ async def execute_nl_command(req: NLCommandRequest):
 
 
 @router.get("/command/capabilities")
-async def list_capabilities():
-    """自然言語コマンドで対応可能な操作一覧を返す.
+async def list_capabilities(user: User = Depends(get_current_user)):
+    """List available natural language command capabilities.
 
-    GUI / CLI / TUI のヘルプ画面で表示するための情報。
+    Returns information for display in GUI / CLI / TUI help screens.
     """
     return {
         "categories": [
