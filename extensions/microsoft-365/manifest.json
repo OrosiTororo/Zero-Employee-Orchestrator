@@ -1,0 +1,30 @@
+{
+  "name": "microsoft-365",
+  "version": "0.1.0",
+  "description": "Microsoft 365 連携拡張 — Word, Excel, PowerPoint, OneDrive, Outlook, Teams との統合。Microsoft Graph API 経由。",
+  "type": "extension",
+  "status": "experimental",
+  "required_permissions": ["internet_access", "credential_access"],
+  "external_connections": [
+    "login.microsoftonline.com",
+    "graph.microsoft.com"
+  ],
+  "dangerous_operations": false,
+  "approval_required_operations": [
+    "send_email",
+    "send_message",
+    "share_file",
+    "delete_file",
+    "create_event"
+  ],
+  "capabilities": {
+    "docs": "Word/Excel/PowerPoint の読み書き・エクスポート",
+    "onedrive": "OneDrive ファイルの検索・取得・アップロード",
+    "outlook": "Outlook メールの読み取り・送信・検索",
+    "calendar": "Outlook カレンダーのイベント作成・取得",
+    "teams": "Microsoft Teams メッセージの送受信"
+  },
+  "env_keys": ["MICROSOFT_CLIENT_ID", "MICROSOFT_CLIENT_SECRET", "MICROSOFT_TENANT_ID"],
+  "note": "Azure AD にアプリを登録し、Microsoft Graph API のアクセス許可を構成すること。",
+  "author": "Zero-Employee Orchestrator Team"
+}

@@ -513,7 +513,129 @@ Obsidian プラグイン「Local REST API」のインストールも推奨しま
 
 ---
 
-## 15. Heartbeat スケジューラ設定
+## 15. 汎用アプリケーション連携 (App Connector Hub)
+
+ZEO は 35 以上の外部アプリケーションとの統合に対応しています。
+すべての接続はユーザーが明示的に許可した範囲でのみ動作します。
+
+### 対応アプリケーション一覧の確認
+
+```bash
+# 全対応アプリの一覧
+GET /api/v1/app-integrations/apps
+
+# カテゴリ別フィルタ
+GET /api/v1/app-integrations/apps?category=knowledge_base
+GET /api/v1/app-integrations/apps?category=project_management
+
+# カテゴリ一覧
+GET /api/v1/app-integrations/categories
+```
+
+### ナレッジベースの接続
+
+```bash
+# Notion
+zero-employee config set NOTION_API_KEY <your-integration-token>
+POST /api/v1/app-integrations/connections
+{
+  "app_id": "notion",
+  "permissions": { "read": true, "write": false, "sync": true }
+}
+
+# Logseq（ローカルグラフ）
+POST /api/v1/app-integrations/connections
+{
+  "app_id": "logseq",
+  "config": { "path": "/path/to/your/logseq/graph" },
+  "permissions": { "read": true, "sync": true }
+}
+
+# Joplin（REST API 経由）
+zero-employee config set JOPLIN_TOKEN <your-token>
+POST /api/v1/app-integrations/connections
+{
+  "app_id": "joplin",
+  "permissions": { "read": true, "sync": true }
+}
+```
+
+### 生産性ツールの接続
+
+```bash
+# Google Workspace（OAuth 設定後）
+POST /api/v1/app-integrations/connections
+{ "app_id": "google_docs", "permissions": { "read": true, "write": true } }
+
+# Microsoft 365
+zero-employee config set MICROSOFT_CLIENT_ID <your-client-id>
+POST /api/v1/app-integrations/connections
+{ "app_id": "microsoft_365", "permissions": { "read": true } }
+```
+
+### プロジェクト管理ツールの接続
+
+```bash
+# Asana
+zero-employee config set ASANA_ACCESS_TOKEN <your-token>
+POST /api/v1/app-integrations/connections
+{ "app_id": "asana", "permissions": { "read": true, "write": true } }
+
+# ClickUp
+zero-employee config set CLICKUP_API_KEY <your-key>
+POST /api/v1/app-integrations/connections
+{ "app_id": "clickup", "permissions": { "read": true, "write": true } }
+```
+
+### CRM の接続
+
+```bash
+# HubSpot
+zero-employee config set HUBSPOT_API_KEY <your-key>
+POST /api/v1/app-integrations/connections
+{ "app_id": "hubspot", "permissions": { "read": true } }
+
+# Salesforce
+zero-employee config set SALESFORCE_CLIENT_ID <your-client-id>
+POST /api/v1/app-integrations/connections
+{ "app_id": "salesforce", "permissions": { "read": true } }
+```
+
+### カスタムアプリの登録
+
+ZEO が標準対応していないアプリでも登録可能です。
+
+```bash
+POST /api/v1/app-integrations/apps/custom
+{
+  "name": "My Custom App",
+  "category": "custom",
+  "description": "社内ツールとの連携",
+  "auth_method": "api_key",
+  "env_key": "CUSTOM_APP_KEY",
+  "base_url": "https://api.example.com",
+  "capabilities": ["read_data", "write_data"]
+}
+```
+
+### データ同期・ナレッジインポート
+
+```bash
+# 接続先とデータ同期
+POST /api/v1/app-integrations/connections/{connection_id}/sync
+{ "direction": "read_only" }
+
+# ナレッジストアへのインポート
+POST /api/v1/app-integrations/connections/{connection_id}/import-knowledge
+{ "query": "プロジェクト計画", "tags": ["planning"], "limit": 50 }
+
+# 同期履歴の確認
+GET /api/v1/app-integrations/connections/{connection_id}/sync-history
+```
+
+---
+
+## 16. Heartbeat スケジューラ設定
 
 定期実行タスクを設定する場合:
 

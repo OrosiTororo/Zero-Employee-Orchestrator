@@ -5,6 +5,7 @@ from fastapi import APIRouter
 from app.api.routes import (
     agents,
     ai_tools,
+    app_integrations,
     approvals,
     artifacts,
     audit,
@@ -77,6 +78,7 @@ api_router.include_router(browser_automation.router, tags=["browser-automation",
 api_router.include_router(security_settings.router, tags=["security"])
 api_router.include_router(media_generation.router, tags=["media-generation"])
 api_router.include_router(ai_tools.router, tags=["ai-tools"])
+api_router.include_router(app_integrations.router, tags=["app-integrations"])
 api_router.include_router(file_upload.router, tags=["files"])
 api_router.include_router(user_input.router, tags=["user-input"])
 api_router.include_router(resource_import.router, tags=["resources"])

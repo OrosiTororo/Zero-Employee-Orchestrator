@@ -1,0 +1,20 @@
+{
+  "name": "notion",
+  "version": "0.1.0",
+  "description": "Notion 連携拡張 — Notion ページ・データベースを Knowledge Source として読み込み、ZEO の成果物を Notion に出力する。",
+  "type": "extension",
+  "status": "experimental",
+  "required_permissions": ["internet_access"],
+  "external_connections": ["api.notion.com"],
+  "dangerous_operations": false,
+  "approval_required_operations": ["write_page", "delete_page"],
+  "capabilities": {
+    "import": "Notion ページ・データベースの内容を Knowledge Source として取得",
+    "export": "Spec/Plan/Tasks/成果物を Notion ページとして出力",
+    "database_query": "Notion データベースのクエリ・フィルタリング",
+    "search": "Notion 全体のキーワード検索"
+  },
+  "env_keys": ["NOTION_API_KEY"],
+  "note": "Notion Integration Token が必要。Notion 側で Internal Integration を作成し、対象ページ・データベースにアクセス権を付与すること。",
+  "author": "Zero-Employee Orchestrator Team"
+}

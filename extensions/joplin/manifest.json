@@ -1,0 +1,20 @@
+{
+  "name": "joplin",
+  "version": "0.1.0",
+  "description": "Joplin 連携拡張 — Joplin ノート・ノートブックの読み書き・検索。REST API 経由。",
+  "type": "extension",
+  "status": "experimental",
+  "required_permissions": ["internet_access"],
+  "external_connections": ["localhost:41184"],
+  "dangerous_operations": false,
+  "approval_required_operations": ["write_note", "delete_note"],
+  "capabilities": {
+    "import": "Joplin ノートを Knowledge Source として取得",
+    "export": "成果物を Joplin ノートとして出力",
+    "search": "ノート全文検索",
+    "notebooks": "ノートブック管理"
+  },
+  "env_keys": ["JOPLIN_TOKEN"],
+  "note": "Joplin Desktop の Web Clipper Service を有効にし、API トークンを取得すること。",
+  "author": "Zero-Employee Orchestrator Team"
+}

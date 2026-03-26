@@ -46,6 +46,18 @@ v0.1 では、9層アーキテクチャの完全実装に加え、当初 v0.2〜
 - **Obsidian 連携** — Vault 管理・ノート検索・リンクグラフ・ナレッジ同期
 - **LSP (Language Server Protocol) 統合** — 6 言語対応の基盤
 
+#### 汎用アプリケーション連携 (App Connector Hub)
+- **汎用アプリ連携ハブ** — 35+ アプリケーションとの統合を統一管理
+- **ナレッジベース連携** — Obsidian / Notion / Logseq / Joplin / Anytype / Roam Research
+- **生産性ツール連携** — Google Workspace / Microsoft 365
+- **プロジェクト管理連携** — Jira / Linear / Asana / Trello / ClickUp
+- **CRM 連携** — HubSpot / Salesforce
+- **クラウドストレージ連携** — Google Drive / Dropbox / OneDrive
+- **カレンダー・メール連携** — Google Calendar / Outlook / Gmail
+- **カスタムアプリ登録** — ユーザーが任意のアプリを定義・接続可能
+- **パーミッション制御** — 接続ごとに read / write / delete / sync / export + パス制限
+- **Extension マニフェスト** — Notion / Logseq / Joplin / Google Workspace / Microsoft 365
+
 #### プロダクション品質 (旧 v1.0)
 - **ガバナンスとコンプライアンス** — GDPR / HIPAA / SOC2 / ISO27001 / CCPA / APPI
 - **24/365 ロングラン実行** — スケジューラ・ジョブ管理基盤
