@@ -144,9 +144,9 @@ PIDS+=($!)
 cd "$ROOT_DIR"
 
 # ---------------------------------------------------------------------------
-# フロントエンド起動
+# Start frontend
 # ---------------------------------------------------------------------------
-info "フロントエンド開発サーバーを起動しています (port 5173)..."
+info "Starting frontend dev server (port 5173)..."
 cd "$ROOT_DIR/apps/desktop/ui"
 pnpm dev &
 PIDS+=($!)
@@ -154,17 +154,17 @@ cd "$ROOT_DIR"
 
 echo ""
 echo "=============================================="
-echo -e "  ${GREEN}起動完了！${NC}"
+echo -e "  ${GREEN}Startup complete!${NC}"
 echo "=============================================="
 echo ""
-echo "  バックエンド API:  http://localhost:18234"
-echo "  API ドキュメント:  http://localhost:18234/api/v1/openapi.json"
-echo "  フロントエンド:    http://localhost:5173"
+echo "  Backend API:       http://localhost:18234"
+echo "  API Docs:          http://localhost:18234/api/v1/openapi.json"
+echo "  Frontend:          http://localhost:5173"
 echo ""
-echo "  停止するには Ctrl+C を押してください"
+echo "  Press Ctrl+C to stop"
 echo ""
 
 # ---------------------------------------------------------------------------
-# プロセスを待機
+# Wait for processes
 # ---------------------------------------------------------------------------
 wait
