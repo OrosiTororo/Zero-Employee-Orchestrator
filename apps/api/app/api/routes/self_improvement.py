@@ -1,16 +1,16 @@
 """AI Self-Improvement API routes — Level 2: seeds of self-improvement.
 
 Provides API endpoints for 6 self-improvement skills:
-1. POST /self-improvement/analyze          — Skill 分析
-2. POST /self-improvement/improve          — Skill 改善提案生成
-3. POST /self-improvement/improve/apply    — 改善適用（承認後）
-4. POST /self-improvement/judge/tune       — Judge 基準自動調整
-5. POST /self-improvement/judge/tune/apply — Judge 調整適用（承認後）
-6. POST /self-improvement/failure-to-skill — 失敗から Skill 生成
-7. POST /self-improvement/failure-to-skill/register — 失敗防止 Skill 登録
-8. POST /self-improvement/ab-test          — A/B テスト実行
-9. POST /self-improvement/generate-tests   — テスト自動生成
-10. GET  /self-improvement/status          — ダッシュボード
+1. POST /self-improvement/analyze          — Skill analysis
+2. POST /self-improvement/improve          — Skill improvement proposal generation
+3. POST /self-improvement/improve/apply    — Apply improvement (after approval)
+4. POST /self-improvement/judge/tune       — Judge criteria auto-tuning
+5. POST /self-improvement/judge/tune/apply — Apply Judge tuning (after approval)
+6. POST /self-improvement/failure-to-skill — Generate skill from failures
+7. POST /self-improvement/failure-to-skill/register — Register failure prevention skill
+8. POST /self-improvement/ab-test          — A/B test execution
+9. POST /self-improvement/generate-tests   — Auto test generation
+10. GET  /self-improvement/status          — Dashboard
 """
 
 from __future__ import annotations

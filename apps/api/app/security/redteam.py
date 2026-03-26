@@ -814,7 +814,7 @@ class RedTeamService:
 
     async def get_recommendations(self) -> list[dict]:
         """Generate improvement recommendations based on recent test results."""
-        # 最新の失敗結果を分析
+        # Analyze recent failure results
         recent_failures = [r for r in self._results if not r.passed and r.vulnerability_found]
 
         recommendations: list[dict] = []
@@ -832,43 +832,43 @@ class RedTeamService:
             remediation_map = {
                 VulnerabilityType.PROMPT_INJECTION.value: {
                     "priority": "critical",
-                    "recommendation": "prompt_guard.py のパターンを更新し、検出精度を向上させてください",
-                    "action": "プロンプトインジェクションパターンの追加",
+                    "recommendation": "Update patterns in prompt_guard.py to improve detection accuracy",
+                    "action": "Add prompt injection patterns",
                 },
                 VulnerabilityType.DATA_LEAKAGE.value: {
                     "priority": "critical",
-                    "recommendation": "sanitizer.py のサニタイズルールを強化してください",
-                    "action": "出力サニタイズルールの更新",
+                    "recommendation": "Strengthen sanitization rules in sanitizer.py",
+                    "action": "Update output sanitization rules",
                 },
                 VulnerabilityType.PRIVILEGE_ESCALATION.value: {
                     "priority": "critical",
-                    "recommendation": "iam.py の権限チェックを見直してください",
-                    "action": "IAM ポリシーの強化",
+                    "recommendation": "Review permission checks in iam.py",
+                    "action": "Strengthen IAM policies",
                 },
                 VulnerabilityType.PII_EXPOSURE.value: {
                     "priority": "high",
-                    "recommendation": "pii_guard.py の検出パターンを追加してください",
-                    "action": "PII 検出パターンの拡張",
+                    "recommendation": "Add detection patterns to pii_guard.py",
+                    "action": "Expand PII detection patterns",
                 },
                 VulnerabilityType.SANDBOX_ESCAPE.value: {
                     "priority": "critical",
-                    "recommendation": "sandbox.py のアクセス制御を強化してください",
-                    "action": "サンドボックスルールの厳格化",
+                    "recommendation": "Strengthen access controls in sandbox.py",
+                    "action": "Tighten sandbox rules",
                 },
                 VulnerabilityType.RATE_LIMIT_BYPASS.value: {
                     "priority": "medium",
-                    "recommendation": "rate_limit.py のレート制限を調整してください",
-                    "action": "レート制限閾値の見直し",
+                    "recommendation": "Adjust rate limits in rate_limit.py",
+                    "action": "Review rate limit thresholds",
                 },
                 VulnerabilityType.UNAUTHORIZED_ACCESS.value: {
                     "priority": "high",
-                    "recommendation": "認証・認可ミドルウェアを確認してください",
-                    "action": "認証フローの見直し",
+                    "recommendation": "Review authentication and authorization middleware",
+                    "action": "Review authentication flow",
                 },
                 VulnerabilityType.AUTH_BYPASS.value: {
                     "priority": "critical",
-                    "recommendation": "JWT 検証・セッション管理を強化してください",
-                    "action": "認証メカニズムの強化",
+                    "recommendation": "Strengthen JWT verification and session management",
+                    "action": "Strengthen authentication mechanisms",
                 },
             }
 
@@ -876,8 +876,8 @@ class RedTeamService:
                 vtype,
                 {
                     "priority": "medium",
-                    "recommendation": f"{vtype} の防御を強化してください",
-                    "action": "セキュリティ設定の見直し",
+                    "recommendation": f"Strengthen defenses for {vtype}",
+                    "action": "Review security settings",
                 },
             )
             recommendations.append(
@@ -894,13 +894,13 @@ class RedTeamService:
                 {
                     "vulnerability_type": "none",
                     "priority": "info",
-                    "recommendation": "現時点で検出された脆弱性はありません。定期的にテストを実行してください",
-                    "action": "定期テストの継続",
+                    "recommendation": "No vulnerabilities detected at this time. Continue running tests periodically",
+                    "action": "Continue periodic testing",
                 }
             )
 
         return recommendations
 
 
-# グローバルインスタンス
+# Global instance
 redteam_service = RedTeamService()

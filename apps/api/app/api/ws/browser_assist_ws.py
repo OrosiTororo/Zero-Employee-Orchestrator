@@ -77,10 +77,10 @@ async def browser_assist_websocket(websocket: WebSocket):
     Client message format:
     {
         "type": "browser_assist_chat",
-        "content": "質問テキスト",
-        "url": "閲覧中の URL",
-        "title": "ページタイトル",
-        "user_id": "ユーザーID",
+        "content": "question text",
+        "url": "currently viewed URL",
+        "title": "page title",
+        "user_id": "user ID",
         "language": "ja",
         "attachments": [{"name": "...", "type": "image/png", "data": "data:..."}]
     }

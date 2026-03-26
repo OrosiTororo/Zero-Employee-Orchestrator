@@ -105,7 +105,7 @@ def _to_response(r: ImportedResource) -> ResourceResponse:
 
 
 # ---------------------------------------------------------------------------
-# エンドポイント
+# Endpoints
 # ---------------------------------------------------------------------------
 @router.post("/import/file", response_model=ResourceResponse)
 async def import_file(

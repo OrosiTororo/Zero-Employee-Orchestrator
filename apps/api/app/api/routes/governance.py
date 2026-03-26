@@ -125,7 +125,7 @@ async def list_policies(
 @router.post("/check/{framework}")
 async def run_compliance_check(
     framework: str,
-    resource_id: str = Query(default="", description="チェック対象リソース ID"),
+    resource_id: str = Query(default="", description="Resource ID to check"),
     user: User = Depends(get_current_user),
 ) -> dict:
     """Run compliance check for the specified framework."""

@@ -406,7 +406,7 @@ class AvatarCoevolution:
         accepted_count = sum(1 for i in interactions if i.user_accepted)
         acceptance_rate = accepted_count / total_interactions if total_interactions > 0 else 0.0
 
-        # ドメイン別統計
+        # Per-domain statistics
         domain_stats: dict[str, dict[str, int]] = {}
         for interaction in interactions:
             domain = interaction.context.get("domain", "general")
@@ -428,9 +428,9 @@ class AvatarCoevolution:
         }
 
     def get_alignment_score(self, user_id: str) -> float:
-        """AI がユーザーをどれだけ理解しているかのスコア（0.0〜1.0）を返す.
+        """Return a score (0.0-1.0) of how well AI understands the user.
 
-        嗜好の信頼度・意思決定基準の成功率・インタラクション数を総合評価する。
+        Comprehensively evaluates preference confidence, decision criteria success rate, and interaction count.
         """
         prefs = self._preferences.get(user_id, {})
         criteria = self._criteria.get(user_id, [])
@@ -439,20 +439,20 @@ class AvatarCoevolution:
         if not interactions:
             return 0.0
 
-        # 嗜好の平均信頼度
+        # Average preference confidence
         avg_pref_confidence = (
             sum(p.confidence for p in prefs.values()) / len(prefs) if prefs else 0.0
         )
 
-        # 意思決定基準の平均成功率
+        # Average decision criteria success rate
         avg_criteria_success = (
             sum(c.success_rate for c in criteria) / len(criteria) if criteria else 0.0
         )
 
-        # インタラクション数に基づく経験値（100 件で飽和）
+        # Experience factor based on interaction count (saturates at 100)
         experience_factor = min(1.0, len(interactions) / 100.0)
 
-        # 直近の受容率（最新 20 件）
+        # Recent acceptance rate (latest 20 interactions)
         recent = interactions[-20:]
         recent_acceptance = (
             sum(1 for i in recent if i.user_accepted) / len(recent) if recent else 0.0
@@ -468,7 +468,7 @@ class AvatarCoevolution:
         return round(min(1.0, alignment), 4)
 
     def get_evolution_history(self, user_id: str) -> list[dict[str, Any]]:
-        """ユーザーとの共進化の時系列履歴を返す."""
+        """Return the chronological history of co-evolution with a user."""
         interactions = [i for i in self._interactions if i.user_id == user_id]
 
         history: list[dict[str, Any]] = []

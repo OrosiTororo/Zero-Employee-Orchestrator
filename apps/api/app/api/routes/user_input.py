@@ -88,7 +88,7 @@ def _to_response(req: InputRequest) -> InputRequestResponse:
 
 
 # ---------------------------------------------------------------------------
-# エンドポイント
+# Endpoints
 # ---------------------------------------------------------------------------
 @router.post("/request", response_model=InputRequestResponse)
 async def create_input_request(
