@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0078d4;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#5b4fc4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#38bdf8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#818cf8;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" rx="24" fill="#0f172a"/>
+  <rect width="1200" height="630" rx="24" fill="url(#bg)" opacity="0.15"/>
+
+  <!-- Decorative grid -->
+  <g opacity="0.05" stroke="#818cf8" stroke-width="1">
+    <line x1="0" y1="100" x2="1200" y2="100"/>
+    <line x1="0" y1="200" x2="1200" y2="200"/>
+    <line x1="0" y1="300" x2="1200" y2="300"/>
+    <line x1="0" y1="400" x2="1200" y2="400"/>
+    <line x1="0" y1="500" x2="1200" y2="500"/>
+    <line x1="200" y1="0" x2="200" y2="630"/>
+    <line x1="400" y1="0" x2="400" y2="630"/>
+    <line x1="600" y1="0" x2="600" y2="630"/>
+    <line x1="800" y1="0" x2="800" y2="630"/>
+    <line x1="1000" y1="0" x2="1000" y2="630"/>
+  </g>
+
+  <!-- Rocket icon -->
+  <g transform="translate(600, 200)" filter="url(#glow)">
+    <polygon points="0,-60 20,-20 20,30 -20,30 -20,-20" fill="url(#accent)" opacity="0.3"/>
+    <polygon points="0,-50 15,-15 15,25 -15,25 -15,-15" fill="url(#accent)" opacity="0.6"/>
+    <circle cx="0" cy="0" r="8" fill="white"/>
+    <line x1="-15" y1="25" x2="-25" y2="50" stroke="#38bdf8" stroke-width="3" opacity="0.5"/>
+    <line x1="0" y1="25" x2="0" y2="55" stroke="#818cf8" stroke-width="3" opacity="0.5"/>
+    <line x1="15" y1="25" x2="25" y2="50" stroke="#a78bfa" stroke-width="3" opacity="0.5"/>
+  </g>
+
+  <!-- ZEO badge -->
+  <rect x="520" y="100" width="160" height="36" rx="18" fill="#0078d4" opacity="0.3"/>
+  <text x="600" y="124" font-family="'SF Mono', 'Fira Code', monospace" font-size="16" fill="#38bdf8" text-anchor="middle" font-weight="600">ZEO GUIDES</text>
+
+  <!-- Title -->
+  <text x="600" y="360" font-family="'Inter', 'Helvetica Neue', sans-serif" font-size="56" font-weight="800" fill="white" text-anchor="middle" letter-spacing="2">Quickstart Guide</text>
+
+  <!-- Subtitle -->
+  <text x="600" y="410" font-family="'Inter', 'Helvetica Neue', sans-serif" font-size="22" fill="#94a3b8" text-anchor="middle">Installation, first workflow, and CLI basics</text>
+
+  <!-- Step indicators -->
+  <g transform="translate(420, 470)">
+    <rect x="0" y="0" width="100" height="32" rx="16" fill="#0078d4" opacity="0.2"/>
+    <text x="50" y="21" font-family="'SF Mono', monospace" font-size="13" fill="#38bdf8" text-anchor="middle">Step 1</text>
+  </g>
+  <g transform="translate(550, 470)">
+    <rect x="0" y="0" width="100" height="32" rx="16" fill="#5b4fc4" opacity="0.2"/>
+    <text x="50" y="21" font-family="'SF Mono', monospace" font-size="13" fill="#818cf8" text-anchor="middle">Step 2</text>
+  </g>
+  <g transform="translate(680, 470)">
+    <rect x="0" y="0" width="100" height="32" rx="16" fill="#7c3aed" opacity="0.2"/>
+    <text x="50" y="21" font-family="'SF Mono', monospace" font-size="13" fill="#a78bfa" text-anchor="middle">Step 3</text>
+  </g>
+
+  <!-- Decorative dots -->
+  <circle cx="100" cy="80" r="3" fill="#0078d4" opacity="0.4"/>
+  <circle cx="130" cy="60" r="2" fill="#5b4fc4" opacity="0.3"/>
+  <circle cx="80" cy="100" r="1.5" fill="#7c3aed" opacity="0.5"/>
+  <circle cx="1100" cy="550" r="3" fill="#38bdf8" opacity="0.4"/>
+  <circle cx="1120" cy="530" r="2" fill="#818cf8" opacity="0.3"/>
+  <circle cx="1080" cy="560" r="1.5" fill="#a78bfa" opacity="0.5"/>
+</svg>

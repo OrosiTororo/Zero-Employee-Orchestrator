@@ -79,6 +79,22 @@ pnpm dev
 - 安全性チェック（16 種類の危険パターン検出）を通過する必要があります
 - 個人情報・機密情報を含めないでください
 
+## Translations
+
+We welcome translations! Current languages:
+- 日本語 (`docs/ja-JP/`)
+- 简体中文 (`docs/zh-CN/`)
+- 繁體中文 (`docs/zh-TW/`)
+- 한국어 (`docs/ko-KR/`)
+- Português (`docs/pt-BR/`)
+- Türkçe (`docs/tr/`)
+
+To add a new language:
+1. Create `docs/<lang-code>/README.md`
+2. Translate from the English README
+3. Update language links in all existing READMEs
+4. Submit a PR
+
 ## ライセンス
 
 コントリビューションは [MIT License](LICENSE) の下で公開されます。
