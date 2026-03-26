@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# 共通データ型
+# Common data types
 # ---------------------------------------------------------------------------
 
 
@@ -38,7 +38,7 @@ class AdapterType(str, Enum):
     """Supported browser automation backends."""
 
     BUILTIN = "builtin"  # Playwright (bundled with ZEO)
-    BROWSER_USE = "browser-use"  # browser-use ライブラリ
+    BROWSER_USE = "browser-use"  # browser-use library
     SELENIUM = "selenium"
     CUSTOM = "custom"
 
@@ -110,7 +110,7 @@ class AdapterInfo:
 
 
 # ---------------------------------------------------------------------------
-# 抽象アダプタインターフェース
+# Abstract adapter interface
 # ---------------------------------------------------------------------------
 
 

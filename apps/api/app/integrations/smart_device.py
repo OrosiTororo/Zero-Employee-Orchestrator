@@ -394,7 +394,7 @@ class SmartDeviceHub:
         return automation
 
     # ------------------------------------------------------------------
-    # VR/AR セッション
+    # VR/AR session
     # ------------------------------------------------------------------
 
     async def get_vr_session(self, device_id: str) -> VRSession:

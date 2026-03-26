@@ -40,7 +40,7 @@ async def start_task(
     if not validate_task_transition(task.status, "running"):
         raise ValueError(f"Cannot start task in status: {task.status}")
 
-    # 承認ゲートチェック: 危険操作は承認が必要
+    # Approval gate check: dangerous operations require approval
     if operation_type:
         from app.policies.approval_gate import check_approval_required
 
@@ -65,7 +65,7 @@ async def start_task(
             db.add(audit)
             await db.commit()
             await db.refresh(task)
-            raise PermissionError(f"操作 '{operation_type}' は承認が必要です: {gate_result.reason}")
+            raise PermissionError(f"Operation '{operation_type}' requires approval: {gate_result.reason}")
 
     task.status = "running"
     task.started_at = datetime.now(UTC)
@@ -151,9 +151,9 @@ def resolve_task_provider(
     company_default_provider: str | None = None,
     company_execution_mode: str = "quality",
 ) -> dict:
-    """タスクの実行プロバイダーを解決する.
+    """Resolve the execution provider for a task.
 
-    優先順位: タスク単位のオーバーライド > 会社デフォルト
+    Priority: task-level override > company default
     Returns dict with keys: provider, model, execution_mode (all optional).
     """
     override = task.provider_override_json or {}

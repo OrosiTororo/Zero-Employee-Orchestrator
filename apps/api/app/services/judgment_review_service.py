@@ -26,12 +26,12 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# データ構造
+# Data structures
 # ---------------------------------------------------------------------------
 
 
 class JudgmentAction(str, Enum):
-    """判断のアクション."""
+    """Judgment action."""
 
     APPROVED = "approved"
     REJECTED = "rejected"
@@ -40,7 +40,7 @@ class JudgmentAction(str, Enum):
 
 
 class JudgmentCategory(str, Enum):
-    """判断のカテゴリ."""
+    """Judgment category."""
 
     PLAN_APPROVAL = "plan_approval"
     TASK_REVIEW = "task_review"
@@ -57,7 +57,7 @@ class JudgmentCategory(str, Enum):
 
 @dataclass
 class JudgmentRecord:
-    """個別の判断記録."""
+    """Individual judgment record."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str = ""
@@ -74,7 +74,7 @@ class JudgmentRecord:
 
 @dataclass
 class CategoryInsight:
-    """カテゴリ別の洞察."""
+    """Per-category insight."""
 
     category: str = ""
     total: int = 0
@@ -87,7 +87,7 @@ class CategoryInsight:
 
 @dataclass
 class TrendPoint:
-    """トレンドのデータポイント."""
+    """Trend data point."""
 
     period: str = ""
     total: int = 0
@@ -98,7 +98,7 @@ class TrendPoint:
 
 @dataclass
 class JudgmentPattern:
-    """検出されたパターン."""
+    """Detected pattern."""
 
     pattern_type: str = ""
     description: str = ""
@@ -108,7 +108,7 @@ class JudgmentPattern:
 
 @dataclass
 class JudgmentReviewReport:
-    """ユーザー判断の振り返りレポート."""
+    """User judgment review report."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str = ""
@@ -127,14 +127,14 @@ class JudgmentReviewReport:
 
 
 # ---------------------------------------------------------------------------
-# メインサービス
+# Main service
 # ---------------------------------------------------------------------------
 
 
 class JudgmentReviewService:
-    """ユーザー判断の振り返りレポート生成サービス.
+    """User judgment review report generation service.
 
-    承認・却下の履歴を分析し、判断傾向を可視化する。
+    Analyzes approval/rejection history and visualizes judgment trends.
     """
 
     def __init__(self) -> None:
@@ -152,7 +152,7 @@ class JudgmentReviewService:
         reason: str = "",
         response_time_seconds: float | None = None,
     ) -> JudgmentRecord:
-        """判断を記録する."""
+        """Record a judgment."""
         record = JudgmentRecord(
             user_id=user_id,
             company_id=company_id,
@@ -173,11 +173,11 @@ class JudgmentReviewService:
         company_id: str,
         period_days: int = 30,
     ) -> JudgmentReviewReport:
-        """振り返りレポートを生成する."""
+        """Generate a review report."""
         now = datetime.now(UTC)
         period_start = now - timedelta(days=period_days)
 
-        # 期間内のレコードを取得
+        # Get records within the period
         records = [
             r
             for r in self._records
@@ -192,31 +192,31 @@ class JudgmentReviewService:
                 period_end=now,
             )
 
-        # 基本統計
+        # Basic statistics
         total = len(records)
         approved = sum(1 for r in records if r.action == JudgmentAction.APPROVED)
         rejected = sum(1 for r in records if r.action == JudgmentAction.REJECTED)
         approval_rate = approved / total if total > 0 else 0.0
         rejection_rate = rejected / total if total > 0 else 0.0
 
-        # 平均応答時間
+        # Average response time
         response_times = [
             r.response_time_seconds for r in records if r.response_time_seconds is not None
         ]
         avg_response = sum(response_times) / len(response_times) if response_times else None
 
-        # カテゴリ別洞察
+        # Per-category insights
         category_insights = self._analyze_categories(records)
 
-        # リスク分布
+        # Risk distribution
         risk_dist: dict[str, int] = defaultdict(int)
         for r in records:
             risk_dist[r.risk_level] += 1
 
-        # 週次トレンド
+        # Weekly trend
         weekly_trend = self._analyze_weekly_trend(records, period_start, now)
 
-        # パターン検出
+        # Pattern detection
         patterns = self._detect_patterns(records, category_insights)
 
         return JudgmentReviewReport(
@@ -235,7 +235,7 @@ class JudgmentReviewService:
         )
 
     def _analyze_categories(self, records: list[JudgmentRecord]) -> list[CategoryInsight]:
-        """カテゴリ別に分析する."""
+        """Analyze by category."""
         by_cat: dict[str, list[JudgmentRecord]] = defaultdict(list)
         for r in records:
             by_cat[r.category.value].append(r)
@@ -272,7 +272,7 @@ class JudgmentReviewService:
         start: datetime,
         end: datetime,
     ) -> list[TrendPoint]:
-        """週次トレンドを分析する."""
+        """Analyze weekly trends."""
         trend_points: list[TrendPoint] = []
         current = start
         while current < end:
@@ -298,7 +298,7 @@ class JudgmentReviewService:
         records: list[JudgmentRecord],
         category_insights: list[CategoryInsight],
     ) -> list[JudgmentPattern]:
-        """判断パターンを検出する."""
+        """Detect judgment patterns."""
         patterns: list[JudgmentPattern] = []
 
         total = len(records)
@@ -365,14 +365,14 @@ class JudgmentReviewService:
         company_id: str,
         limit: int = 100,
     ) -> list[JudgmentRecord]:
-        """判断記録を取得する."""
+        """Get judgment records."""
         records = [r for r in self._records if r.user_id == user_id and r.company_id == company_id]
         records.sort(key=lambda r: r.decided_at, reverse=True)
         return records[:limit]
 
 
 # ---------------------------------------------------------------------------
-# シングルトンインスタンス
+# Singleton instance
 # ---------------------------------------------------------------------------
 
 judgment_review_service = JudgmentReviewService()

@@ -60,7 +60,7 @@ class UserInputService:
     """
 
     def __init__(self) -> None:
-        """サービスを初期化する."""
+        """Initialize the service."""
         self._requests: dict[str, InputRequest] = {}
 
     async def request_input(
@@ -258,6 +258,6 @@ class UserInputService:
 
 
 # ---------------------------------------------------------------------------
-# グローバルインスタンス
+# Global instance
 # ---------------------------------------------------------------------------
 user_input_service = UserInputService()

@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class PolicyType(str, Enum):
-    """ポリシータイプ."""
+    """Policy type."""
 
     DATA_RETENTION = "data_retention"
     ACCESS_CONTROL = "access_control"
@@ -44,7 +44,7 @@ class PolicyType(str, Enum):
 
 
 class ComplianceFramework(str, Enum):
-    """コンプライアンスフレームワーク."""
+    """Compliance framework."""
 
     GDPR = "gdpr"
     HIPAA = "hipaa"
@@ -55,7 +55,7 @@ class ComplianceFramework(str, Enum):
 
 
 class CheckStatus(str, Enum):
-    """コンプライアンスチェック結果ステータス."""
+    """Compliance check result status."""
 
     PASS = "pass"
     FAIL = "fail"
@@ -63,7 +63,7 @@ class CheckStatus(str, Enum):
 
 
 class ViolationSeverity(str, Enum):
-    """違反の深刻度."""
+    """Violation severity."""
 
     LOW = "low"
     MEDIUM = "medium"
@@ -73,7 +73,7 @@ class ViolationSeverity(str, Enum):
 
 @dataclass
 class PolicyRule:
-    """ポリシールール."""
+    """Policy rule."""
 
     id: str
     name: str
@@ -89,7 +89,7 @@ class PolicyRule:
 
 @dataclass
 class ComplianceCheck:
-    """コンプライアンスチェック結果."""
+    """Compliance check result."""
 
     id: str
     framework: ComplianceFramework
@@ -102,7 +102,7 @@ class ComplianceCheck:
 
 @dataclass
 class DataRetentionPolicy:
-    """データ保持ポリシー."""
+    """Data retention policy."""
 
     resource_type: str
     max_retention_days: int
@@ -112,7 +112,7 @@ class DataRetentionPolicy:
 
 @dataclass
 class PolicyViolation:
-    """ポリシー違反レコード."""
+    """Policy violation record."""
 
     id: str
     rule_id: str
@@ -123,7 +123,7 @@ class PolicyViolation:
     detected_at: str
 
 
-# デフォルトポリシールール
+# Default policy rules
 _DEFAULT_POLICIES: list[PolicyRule] = [
     # GDPR
     PolicyRule(
@@ -279,9 +279,9 @@ _DEFAULT_POLICIES: list[PolicyRule] = [
 
 
 class GovernanceService:
-    """ガバナンス・コンプライアンスサービス.
+    """Governance and compliance service.
 
-    ポリシー管理・コンプライアンス監査・データ保持ポリシーを提供する。
+    Provides policy management, compliance auditing, and data retention policies.
     """
 
     def __init__(self) -> None:
@@ -290,19 +290,19 @@ class GovernanceService:
         self._retention_policies: list[DataRetentionPolicy] = []
         self._violations: list[PolicyViolation] = []
 
-        # デフォルト保持ポリシー初期化
+        # Initialize default retention policies
         for p in _DEFAULT_POLICIES:
             p.created_at = datetime.now(UTC).isoformat()
 
     # ------------------------------------------------------------------
-    # ヘルパー
+    # Helpers
     # ------------------------------------------------------------------
 
     def _now(self) -> str:
         return datetime.now(UTC).isoformat()
 
     # ------------------------------------------------------------------
-    # ポリシー CRUD
+    # Policy CRUD
     # ------------------------------------------------------------------
 
     async def add_policy(self, rule: PolicyRule) -> PolicyRule:
@@ -364,7 +364,7 @@ class GovernanceService:
         return results
 
     # ------------------------------------------------------------------
-    # コンプライアンスチェック
+    # Compliance checks
     # ------------------------------------------------------------------
 
     async def check_compliance(
@@ -451,7 +451,7 @@ class GovernanceService:
         return all_results
 
     # ------------------------------------------------------------------
-    # レポート
+    # Reports
     # ------------------------------------------------------------------
 
     async def get_compliance_report(self, framework: ComplianceFramework) -> dict:
@@ -507,7 +507,7 @@ class GovernanceService:
         return report
 
     # ------------------------------------------------------------------
-    # データ保持
+    # Data retention
     # ------------------------------------------------------------------
 
     async def enforce_data_retention(self) -> dict:
@@ -568,7 +568,7 @@ class GovernanceService:
         return policy
 
     # ------------------------------------------------------------------
-    # アクセスチェック
+    # Access checks
     # ------------------------------------------------------------------
 
     async def check_data_access(self, user_id: str, resource_type: str, action: str) -> dict:
@@ -598,7 +598,7 @@ class GovernanceService:
         }
 
     # ------------------------------------------------------------------
-    # 監査サマリー・違反
+    # Auditサマリー・違反
     # ------------------------------------------------------------------
 
     async def get_audit_summary(self, start_date: str = "", end_date: str = "") -> dict:
@@ -644,5 +644,5 @@ class GovernanceService:
         return sorted(violations, key=lambda v: v.detected_at, reverse=True)[:limit]
 
 
-# グローバルインスタンス
+# Global instance
 governance_service = GovernanceService()

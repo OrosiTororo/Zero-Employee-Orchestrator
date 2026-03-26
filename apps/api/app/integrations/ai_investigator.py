@@ -275,7 +275,7 @@ class AIInvestigator:
         """Get system metrics."""
         metrics: dict[str, Any] = {}
 
-        # テーブル行数カウント (allowed tables whitelist - no dynamic SQL)
+        # Table row count (allowed tables whitelist - no dynamic SQL)
         _ALLOWED_TABLES = frozenset(
             ["tickets", "tasks", "agents", "skills", "audit_logs"],
         )

@@ -1,13 +1,13 @@
-"""情報サニタイズ — 保存・共有時の機密情報除去.
+"""Information sanitization -- Remove sensitive data during storage and sharing.
 
-Zero-Employee Orchestrator.md §8.4 に基づき、保存・共有・公開の各段階で
-情報をそのまま扱わず、サニタイズ処理を行う。
+Based on Zero-Employee Orchestrator.md section 8.4, sanitization is performed
+at each stage of storage, sharing, and publication rather than handling data as-is.
 
-処理方針:
-- API キー、OAuth トークン、シークレット値はマスキングまたは参照 ID 化
-- 個人名、住所、決済情報などの個人情報は共有時に除去または匿名化
-- 社外秘資料、未公開情報、契約情報は公開対象から除外
-- 会話ログや改善ログを学習や共有に使う場合はユーザーが範囲を制御可能
+Processing policy:
+- API keys, OAuth tokens, and secret values are masked or replaced with reference IDs
+- Personal information such as names, addresses, and payment details are removed or anonymized during sharing
+- Confidential documents, unpublished information, and contract data are excluded from publication
+- When using conversation logs or improvement logs for learning or sharing, users control the scope
 """
 
 from __future__ import annotations
@@ -18,14 +18,14 @@ from dataclasses import dataclass
 
 @dataclass
 class SanitizeResult:
-    """サニタイズ処理の結果."""
+    """Sanitization result."""
 
     sanitized_text: str
     redacted_count: int
     redacted_types: list[str]
 
 
-# シークレット値のパターン
+# Secret value patterns
 _SECRET_PATTERNS: list[tuple[str, re.Pattern]] = [
     ("api_key", re.compile(r"(sk-[a-zA-Z0-9]{20,})")),
     ("api_key", re.compile(r"(sk-or-v1-[a-zA-Z0-9]{20,})")),
@@ -40,7 +40,7 @@ _SECRET_PATTERNS: list[tuple[str, re.Pattern]] = [
 
 
 def sanitize_text(text: str) -> SanitizeResult:
-    """テキストからシークレット値・個人情報をマスキングする."""
+    """Mask secret values and personal information from text."""
     sanitized = text
     redacted_count = 0
     redacted_types: list[str] = []
@@ -63,7 +63,7 @@ def sanitize_text(text: str) -> SanitizeResult:
 
 
 def sanitize_dict(data: dict, sensitive_keys: set[str] | None = None) -> dict:
-    """辞書からセンシティブなキーの値をマスキングする."""
+    """Mask values of sensitive keys in a dictionary."""
     default_sensitive = {
         "password",
         "secret",

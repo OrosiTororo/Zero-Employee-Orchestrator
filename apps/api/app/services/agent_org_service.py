@@ -21,24 +21,24 @@ from app.models.agent import Agent
 from app.models.audit import AuditLog
 
 # ---------------------------------------------------------------------------
-# プリセット役割定義
+# Preset role definitions
 # ---------------------------------------------------------------------------
 
 
 class AgentRolePreset(str, Enum):
-    """プリセットのエージェント役割."""
+    """Preset agent roles."""
 
-    SECRETARY = "secretary"  # 秘書
-    ADVISOR = "advisor"  # 相談役（壁打ち相手）
-    PM = "product_manager"  # プロダクトマネージャー
-    RESEARCHER = "researcher"  # リサーチャー
-    ENGINEER = "engineer"  # エンジニア
-    MARKETER = "marketer"  # マーケター
-    DESIGNER = "designer"  # デザイナー
-    ANALYST = "analyst"  # アナリスト
-    SUPPORT = "support"  # カスタマーサポート
-    CONTENT = "content_creator"  # コンテンツクリエイター
-    CUSTOM = "custom"  # ユーザー定義
+    SECRETARY = "secretary"  # Secretary
+    ADVISOR = "advisor"  # Advisor (brainstorming partner)
+    PM = "product_manager"  # Product Manager
+    RESEARCHER = "researcher"  # Researcher
+    ENGINEER = "engineer"  # Engineer
+    MARKETER = "marketer"  # Marketer
+    DESIGNER = "designer"  # Designer
+    ANALYST = "analyst"  # Analyst
+    SUPPORT = "support"  # Customer Support
+    CONTENT = "content_creator"  # Content Creator
+    CUSTOM = "custom"  # User-defined
 
 
 ROLE_DEFINITIONS: dict[str, dict[str, Any]] = {
@@ -133,12 +133,12 @@ ROLE_DEFINITIONS: dict[str, dict[str, Any]] = {
 
 
 # ---------------------------------------------------------------------------
-# 機能リクエスト DB モデル
+# Feature request DB model
 # ---------------------------------------------------------------------------
 
 
 class FeatureRequestRecord(Base):
-    """ユーザーからの自然言語による機能リクエスト."""
+    """Natural language feature request from user."""
 
     __tablename__ = "feature_requests"
 
@@ -156,7 +156,7 @@ class FeatureRequestRecord(Base):
 
 
 class CustomAgentRole(Base):
-    """ユーザー定義のカスタムエージェント役割."""
+    """User-defined custom agent role."""
 
     __tablename__ = "custom_agent_roles"
 
@@ -178,7 +178,7 @@ class CustomAgentRole(Base):
 
 
 # ---------------------------------------------------------------------------
-# 自然言語リクエスト解釈
+# Natural language request interpretation
 # ---------------------------------------------------------------------------
 
 _ACTION_KEYWORDS: dict[str, list[str]] = {
@@ -251,10 +251,10 @@ _ROLE_KEYWORDS: dict[str, list[str]] = {
 
 
 def interpret_natural_language_request(text: str) -> dict[str, Any]:
-    """自然言語リクエストをアクションに解釈する."""
+    """Interpret natural language request as an action."""
     text_lower = text.lower()
 
-    # アクション推定
+    # Action estimation
     action = "other"
     max_matches = 0
     for act, keywords in _ACTION_KEYWORDS.items():
@@ -263,7 +263,7 @@ def interpret_natural_language_request(text: str) -> dict[str, Any]:
             max_matches = matches
             action = act
 
-    # 役割推定
+    # Role estimation
     target_role = None
     for role, keywords in _ROLE_KEYWORDS.items():
         if any(kw.lower() in text_lower for kw in keywords):
@@ -279,12 +279,12 @@ def interpret_natural_language_request(text: str) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# AI 組織管理サービス
+# AI organization management service
 # ---------------------------------------------------------------------------
 
 
 class AgentOrgService:
-    """AI 組織のエージェント動的管理サービス."""
+    """Dynamic agent management service for AI organizations."""
 
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
@@ -301,13 +301,13 @@ class AgentOrgService:
         team_id: str | None = None,
         custom_system_prompt: str | None = None,
     ) -> Agent:
-        """プリセットまたはカスタム役割でエージェントを追加."""
+        """Add an agent with a preset or custom role."""
         cid = uuid.UUID(company_id)
 
-        # プリセット役割から定義を取得
+        # Get definition from preset roles
         role_def = ROLE_DEFINITIONS.get(role)
         if not role_def:
-            # カスタム役割を検索
+            # Search custom roles
             result = await self._db.execute(
                 select(CustomAgentRole).where(
                     CustomAgentRole.company_id == cid,
@@ -358,7 +358,7 @@ class AgentOrgService:
         )
         self._db.add(agent)
 
-        # 監査ログ
+        # Auditログ
         audit = AuditLog(
             id=generate_uuid(),
             company_id=cid,
@@ -379,7 +379,7 @@ class AgentOrgService:
         *,
         reason: str = "",
     ) -> bool:
-        """エージェントを組織から削除（廃止状態にする）."""
+        """Remove an agent from the organization (set to decommissioned status)."""
         result = await self._db.execute(select(Agent).where(Agent.id == uuid.UUID(agent_id)))
         agent = result.scalar_one_or_none()
         if not agent:
@@ -412,7 +412,7 @@ class AgentOrgService:
         autonomy_level: str | None = None,
         system_prompt: str | None = None,
     ) -> Agent | None:
-        """エージェントの役割設定を更新."""
+        """Update agent role settings."""
         result = await self._db.execute(select(Agent).where(Agent.id == uuid.UUID(agent_id)))
         agent = result.scalar_one_or_none()
         if not agent:
@@ -461,7 +461,7 @@ class AgentOrgService:
         autonomy_level: str = "supervised",
         can_delegate: bool = False,
     ) -> CustomAgentRole:
-        """カスタムエージェント役割を作成."""
+        """Create a custom agent role."""
         role = CustomAgentRole(
             id=uuid.uuid4(),
             company_id=uuid.UUID(company_id),
@@ -481,7 +481,7 @@ class AgentOrgService:
         self,
         company_id: str,
     ) -> list[CustomAgentRole]:
-        """カスタム役割一覧を取得."""
+        """Get a list of custom roles."""
         stmt = (
             select(CustomAgentRole)
             .where(
@@ -497,7 +497,7 @@ class AgentOrgService:
         self,
         role_id: str,
     ) -> bool:
-        """カスタム役割を削除."""
+        """Delete a custom role."""
         result = await self._db.execute(
             select(CustomAgentRole).where(CustomAgentRole.id == uuid.UUID(role_id))
         )
@@ -512,10 +512,10 @@ class AgentOrgService:
         self,
         company_id: str,
     ) -> list[dict]:
-        """利用可能な全役割を取得（プリセット + カスタム）."""
+        """Get all available roles (preset + custom)."""
         roles: list[dict] = []
 
-        # プリセット役割
+        # Preset roles
         for key, defn in ROLE_DEFINITIONS.items():
             roles.append(
                 {
@@ -527,7 +527,7 @@ class AgentOrgService:
                 }
             )
 
-        # カスタム役割
+        # Custom roles
         custom_roles = await self.list_custom_roles(company_id)
         for cr in custom_roles:
             roles.append(
@@ -550,7 +550,7 @@ class AgentOrgService:
         user_id: str | None = None,
         auto_execute: bool = False,
     ) -> FeatureRequestRecord:
-        """自然言語の要望を解釈し、機能リクエストとして記録."""
+        """Interpret a natural language request and record it as a feature request."""
         interpretation = interpret_natural_language_request(request_text)
 
         record = FeatureRequestRecord(
@@ -564,7 +564,7 @@ class AgentOrgService:
         )
         self._db.add(record)
 
-        # 自動実行が有効で信頼度が高い場合
+        # When auto-execution is enabled and confidence is high
         if auto_execute and interpretation["confidence"] >= 0.5:
             try:
                 result = await self._execute_interpreted_action(company_id, interpretation)
@@ -582,7 +582,7 @@ class AgentOrgService:
         company_id: str,
         interpretation: dict,
     ) -> dict:
-        """解釈されたアクションを実行."""
+        """Execute the interpreted action."""
         action = interpretation["action"]
         target_role = interpretation.get("target_role")
 
@@ -626,7 +626,7 @@ class AgentOrgService:
         status: str | None = None,
         limit: int = 50,
     ) -> list[FeatureRequestRecord]:
-        """機能リクエスト一覧を取得."""
+        """Get a list of feature requests."""
         stmt = select(FeatureRequestRecord).where(
             FeatureRequestRecord.company_id == uuid.UUID(company_id)
         )

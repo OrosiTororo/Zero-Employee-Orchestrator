@@ -122,51 +122,51 @@ class RepurposeEngine:
         return {
             ContentType.BLOG_POST: (
                 "# {title}\n\n"
-                "## はじめに\n{introduction}\n\n"
-                "## 本文\n{body}\n\n"
-                "## まとめ\n{conclusion}\n\n"
+                "## Introduction\n{introduction}\n\n"
+                "## Body\n{body}\n\n"
+                "## Conclusion\n{conclusion}\n\n"
                 "---\n*{tags}*"
             ),
             ContentType.VIDEO_SCRIPT: (
-                "[オープニング]\n{opening}\n\n"
-                "[メインコンテンツ]\n{main_content}\n\n"
-                "[エンディング]\n{ending}\n\n"
+                "[Opening]\n{opening}\n\n"
+                "[Main Content]\n{main_content}\n\n"
+                "[Ending]\n{ending}\n\n"
                 "[CTA]\n{call_to_action}"
             ),
             ContentType.PODCAST_TRANSCRIPT: (
-                "【イントロ】\n{intro}\n\n"
-                "【本編】\n{main_segment}\n\n"
-                "【ゲストコメント】\n{guest_notes}\n\n"
-                "【アウトロ】\n{outro}"
+                "[Intro]\n{intro}\n\n"
+                "[Main Segment]\n{main_segment}\n\n"
+                "[Guest Comments]\n{guest_notes}\n\n"
+                "[Outro]\n{outro}"
             ),
             ContentType.SOCIAL_POST: "{hook}\n\n{body}\n\n{hashtags}",
             ContentType.EMAIL_NEWSLETTER: (
-                "件名: {subject}\n\n{greeting}\n\n{body}\n\n{cta}\n\n{footer}"
+                "Subject: {subject}\n\n{greeting}\n\n{body}\n\n{cta}\n\n{footer}"
             ),
             ContentType.SLIDE_DECK: (
-                "---\nスライド 1: タイトル\n{title}\n\n"
-                "---\nスライド 2: 概要\n{overview}\n\n"
-                "---\nスライド 3-N: 本文\n{slides}\n\n"
-                "---\n最終スライド: まとめ\n{summary}"
+                "---\nSlide 1: Title\n{title}\n\n"
+                "---\nSlide 2: Overview\n{overview}\n\n"
+                "---\nSlide 3-N: Body\n{slides}\n\n"
+                "---\nFinal Slide: Summary\n{summary}"
             ),
             ContentType.INFOGRAPHIC_DATA: (
-                "# インフォグラフィックデータ\n\n"
-                "## タイトル: {title}\n"
-                "## 主要数値\n{key_metrics}\n\n"
-                "## セクション\n{sections}\n\n"
-                "## 出典\n{sources}"
+                "# Infographic Data\n\n"
+                "## Title: {title}\n"
+                "## Key Metrics\n{key_metrics}\n\n"
+                "## Sections\n{sections}\n\n"
+                "## Sources\n{sources}"
             ),
             ContentType.PRESS_RELEASE: (
-                "【プレスリリース】\n\n"
+                "[Press Release]\n\n"
                 "## {headline}\n\n"
                 "**{dateline}**\n\n"
                 "{lead}\n\n"
                 "{body}\n\n"
-                "### 会社概要\n{boilerplate}\n\n"
-                "### お問い合わせ\n{contact}"
+                "### Company Overview\n{boilerplate}\n\n"
+                "### Contact\n{contact}"
             ),
-            ContentType.FAQ: ("# よくある質問 (FAQ)\n\n{qa_pairs}"),
-            ContentType.TWEET_THREAD: "🧵 スレッド\n\n{tweets}",
+            ContentType.FAQ: ("# Frequently Asked Questions (FAQ)\n\n{qa_pairs}"),
+            ContentType.TWEET_THREAD: "🧵 Thread\n\n{tweets}",
         }
 
     async def repurpose(self, request: RepurposeRequest) -> list[RepurposeResult]:
@@ -330,7 +330,7 @@ class RepurposeEngine:
             tweets.append(tweet)
 
         last_num = len(tweets) + 1
-        tweets.append(f"{last_num}/ 以上です。参考になったらリツイートお願いします!")
+        tweets.append(f"{last_num}/ That's all. Please retweet if you found this helpful!")
 
         thread_text = "\n\n".join(tweets)
         return self._templates[ContentType.TWEET_THREAD].format(tweets=thread_text)
@@ -346,10 +346,10 @@ class RepurposeEngine:
 
         return self._templates[ContentType.EMAIL_NEWSLETTER].format(
             subject=f"[Newsletter] {title}",
-            greeting="いつもお読みいただきありがとうございます。",
+            greeting="Thank you for reading as always.",
             body=body,
-            cta="詳しくはこちらをご覧ください。",
-            footer="配信停止はこちら | お問い合わせ",
+            cta="Please see here for details.",
+            footer="Unsubscribe here | Contact us",
         )
 
     def _generate_slide_deck(self, source: str) -> str:
@@ -363,7 +363,7 @@ class RepurposeEngine:
 
         slides_text = ""
         for i, point in enumerate(key_points[1:], start=3):
-            slides_text += f"---\nスライド {i}: {point[:40]}\n{point}\n\n"
+            slides_text += f"---\nSlide {i}: {point[:40]}\n{point}\n\n"
 
         summary = self._build_conclusion(key_points)
 
@@ -383,12 +383,12 @@ class RepurposeEngine:
         qa_pairs: list[str] = []
 
         for point in key_points:
-            question = f"Q: {point.rstrip('。')}とは何ですか？"
+            question = f"Q: What is {point.rstrip(chr(12290))}?"
             answer = f"A: {point}"
             qa_pairs.append(f"{question}\n{answer}")
 
         if not qa_pairs:
-            qa_pairs.append(f"Q: この内容について教えてください。\nA: {source[:300]}")
+            qa_pairs.append(f"Q: Please tell me about this content.\nA: {source[:300]}")
 
         return self._templates[ContentType.FAQ].format(
             qa_pairs="\n\n".join(qa_pairs),
@@ -403,15 +403,15 @@ class RepurposeEngine:
         key_points = self._extract_key_points(source)
         lead = key_points[0] if key_points else source[:200]
         body = "\n\n".join(key_points[1:]) if len(key_points) > 1 else source[:500]
-        dateline = datetime.now(UTC).strftime("%Y年%m月%d日")
+        dateline = datetime.now(UTC).strftime("%Y-%m-%d")
 
         return self._templates[ContentType.PRESS_RELEASE].format(
             headline=title,
             dateline=dateline,
             lead=lead,
             body=body,
-            boilerplate="[会社名] は [事業内容] を提供する企業です。",
-            contact="広報担当: [連絡先]",
+            boilerplate="[Company Name] is a company that provides [business description].",
+            contact="PR Contact: [contact info]",
         )
 
     def _generate_generic(
@@ -457,15 +457,16 @@ class RepurposeEngine:
         """
         voice_lower = brand_voice.lower()
 
-        if voice_lower in ("formal", "フォーマル", "丁寧"):
+        if voice_lower in ("formal",):
+            # Japanese formal tone adjustments (kept for Japanese content processing)
             content = content.replace("だ。", "です。")
             content = content.replace("である。", "でございます。")
             content = content.replace("する。", "いたします。")
-        elif voice_lower in ("casual", "カジュアル", "親しみやすい"):
+        elif voice_lower in ("casual",):
             content = content.replace("です。", "だよ。")
             content = content.replace("ございます。", "だね。")
             content = content.replace("いたします。", "するよ。")
-        elif voice_lower in ("professional", "プロフェッショナル", "ビジネス"):
+        elif voice_lower in ("professional",):
             content = content.replace("だよ。", "です。")
             content = content.replace("だね。", "ですね。")
 
@@ -519,8 +520,8 @@ class RepurposeEngine:
         """Build an introduction."""
         if key_points:
             return (
-                f"この記事では、{key_points[0].rstrip('。')}について解説します。"
-                f" 全{len(key_points)}つのポイントに分けてお伝えします。"
+                f"This article explains {key_points[0].rstrip(chr(12290))}."
+                f" We will cover {len(key_points)} key points."
             )
         return source[:200]
 
@@ -530,15 +531,15 @@ class RepurposeEngine:
             return ""
         sections: list[str] = []
         for i, point in enumerate(key_points, start=1):
-            sections.append(f"### ポイント {i}\n\n{point}")
+            sections.append(f"### Point {i}\n\n{point}")
         return "\n\n".join(sections)
 
     def _build_conclusion(self, key_points: list[str]) -> str:
         """Build a conclusion."""
         if not key_points:
-            return "ご覧いただきありがとうございました。"
+            return "Thank you for reading."
         count = len(key_points)
-        return f"以上、{count}つのポイントをご紹介しました。ぜひ参考にしてください。"
+        return f"We covered {count} key points above. We hope you find them useful."
 
     def _assess_quality(self, content: str, target: ContentType) -> float:
         """Calculate quality score of generated content.
@@ -592,16 +593,16 @@ class RepurposeEngine:
         suggestions: list[str] = []
 
         if len(content) < 100:
-            suggestions.append("コンテンツが短すぎます。詳細を追加してください。")
+            suggestions.append("Content is too short. Please add more details.")
 
         if target == ContentType.BLOG_POST and "## " not in content:
-            suggestions.append("見出し（## ）を追加すると読みやすくなります。")
+            suggestions.append("Adding headings (## ) will improve readability.")
 
         if target == ContentType.SOCIAL_POST and "#" not in content:
-            suggestions.append("ハッシュタグを追加するとリーチが広がります。")
+            suggestions.append("Adding hashtags will increase reach.")
 
-        if target == ContentType.EMAIL_NEWSLETTER and "件名" not in content:
-            suggestions.append("魅力的な件名を設定してください。")
+        if target == ContentType.EMAIL_NEWSLETTER and "Subject" not in content:
+            suggestions.append("Please set an attractive subject line.")
 
         return suggestions
 

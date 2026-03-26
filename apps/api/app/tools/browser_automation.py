@@ -1,14 +1,14 @@
-"""ブラウザ自動操作 — Playwright ベースの Web 自動化.
+"""Browser automation — Playwright-based web automation.
 
-Playwright を使用してブラウザの自動操作を実行する。
-ナビゲーション・クリック・フォーム入力・スクリーンショット・データ抽出を
-スクリプト形式で定義・実行可能にする。
+Executes browser automation using Playwright.
+Allows defining and executing navigation, clicking, form input,
+screenshots, and data extraction in script format.
 
-安全性:
-- 承認ゲートによる実行前承認
-- 操作ステップ単位の承認オプション
-- 監査ログ記録
-- データ保護ポリシー適用
+Safety:
+- Pre-execution approval via approval gates
+- Per-step approval option
+- Audit log recording
+- Data protection policy applied
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 class BrowserAction(str, Enum):
-    """ブラウザ操作アクション."""
+    """Browser action."""
 
     NAVIGATE = "navigate"
     CLICK = "click"
@@ -39,7 +39,7 @@ class BrowserAction(str, Enum):
 
 @dataclass
 class AutomationStep:
-    """自動化スクリプトの 1 ステップ."""
+    """A single step of an automation script."""
 
     action: BrowserAction = BrowserAction.NAVIGATE
     selector: str = ""
@@ -51,7 +51,7 @@ class AutomationStep:
 
 @dataclass
 class AutomationScript:
-    """自動化スクリプト."""
+    """Automation script."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = ""
@@ -62,7 +62,7 @@ class AutomationScript:
 
 @dataclass
 class AutomationResult:
-    """自動化実行結果."""
+    """Automation execution result."""
 
     success: bool = False
     screenshots: list[bytes] = field(default_factory=list)
@@ -72,10 +72,10 @@ class AutomationResult:
 
 
 class BrowserAutomation:
-    """ブラウザ自動操作サービス.
+    """Browser automation service.
 
-    Playwright を使用したブラウザ自動操作を管理・実行する。
-    承認ゲートを経由し、全操作を監査ログに記録する。
+    Manages and executes browser automation using Playwright.
+    Goes through approval gates and records all operations in audit logs.
     """
 
     def __init__(self) -> None:
@@ -87,18 +87,18 @@ class BrowserAutomation:
         name: str,
         steps: list[AutomationStep],
     ) -> AutomationScript:
-        """自動化スクリプトを作成・登録する.
+        """Create and register an automation script.
 
         Args:
-            name: スクリプト名
-            steps: 実行ステップのリスト
+            name: Script name
+            steps: List of execution steps
 
         Returns:
-            作成された AutomationScript
+            Created AutomationScript
         """
         script = AutomationScript(name=name, steps=steps)
         self._scripts[script.id] = script
-        logger.info("スクリプト作成: %s (%s), ステップ数=%d", name, script.id, len(steps))
+        logger.info("Script created: %s (%s), steps=%d", name, script.id, len(steps))
         return script
 
     async def execute_script(
@@ -106,26 +106,26 @@ class BrowserAutomation:
         script_id: str,
         headless: bool = True,
     ) -> AutomationResult:
-        """スクリプトを実行する.
+        """Execute a script.
 
-        承認ゲートをチェックした後、Playwright でブラウザ操作を実行する。
-        Playwright が利用できない場合はシミュレーション結果を返す。
+        Checks the approval gate, then executes browser operations with Playwright.
+        Returns simulation results if Playwright is not available.
 
         Args:
-            script_id: 実行するスクリプト ID
-            headless: ヘッドレスモードで実行するか
+            script_id: Script ID to execute
+            headless: Whether to run in headless mode
 
         Returns:
-            実行結果
+            Execution result
         """
         script = self._scripts.get(script_id)
         if not script:
             return AutomationResult(
                 success=False,
-                errors=[f"スクリプトが見つかりません: {script_id}"],
+                errors=[f"Script not found: {script_id}"],
             )
 
-        # 承認チェック
+        # Approval check
         if self._approval_required:
             try:
                 from app.policies.approval_gate import check_approval_required
@@ -134,14 +134,14 @@ class BrowserAutomation:
                 if approval.requires_approval:
                     return AutomationResult(
                         success=False,
-                        errors=["承認が必要です。承認後に再実行してください。"],
+                        errors=["Approval required. Please re-execute after approval."],
                     )
             except ImportError:
-                logger.debug("承認ゲートが利用できないためスキップ")
+                logger.debug("Approval gate not available, skipping")
 
         start_time = time.monotonic()
 
-        # Playwright が利用可能か確認
+        # Check if Playwright is available
         try:
             from playwright.async_api import async_playwright
 
@@ -151,7 +151,7 @@ class BrowserAutomation:
                 async_playwright,
             )
         except ImportError:
-            logger.info("Playwright 未インストール — シミュレーションモードで実行")
+            logger.info("Playwright not installed — running in simulation mode")
             result = self._simulate_execution(script)
 
         duration = int((time.monotonic() - start_time) * 1000)
@@ -159,7 +159,7 @@ class BrowserAutomation:
         script.last_run = datetime.now(UTC)
 
         logger.info(
-            "スクリプト実行完了: %s, success=%s, duration=%dms",
+            "Script execution complete: %s, success=%s, duration=%dms",
             script.name,
             result.success,
             duration,
@@ -172,7 +172,7 @@ class BrowserAutomation:
         headless: bool,
         async_playwright: object,
     ) -> AutomationResult:
-        """Playwright を使用してスクリプトを実行する."""
+        """Execute a script using Playwright."""
         screenshots: list[bytes] = []
         extracted_data: dict = {}
         errors: list[str] = []
@@ -191,14 +191,14 @@ class BrowserAutomation:
                         elif step.action == BrowserAction.EXTRACT and step_result:
                             extracted_data[f"step_{i}"] = step_result
                     except Exception as exc:
-                        error_msg = f"ステップ {i} ({step.action.value}) 失敗: {exc}"
+                        error_msg = f"Step {i} ({step.action.value}) failed: {exc}"
                         errors.append(error_msg)
                         logger.warning(error_msg)
 
                 await browser.close()
 
         except Exception as exc:
-            errors.append(f"ブラウザ起動失敗: {exc}")
+            errors.append(f"Browser launch failed: {exc}")
 
         return AutomationResult(
             success=len(errors) == 0,
@@ -212,14 +212,14 @@ class BrowserAutomation:
         page: object,
         step: AutomationStep,
     ) -> bytes | str | None:
-        """単一ステップを実行する.
+        """Execute a single step.
 
         Args:
-            page: Playwright の Page オブジェクト
-            step: 実行するステップ
+            page: Playwright Page object
+            step: Step to execute
 
         Returns:
-            スクリーンショットのバイナリ、抽出テキスト、または None
+            Screenshot binary, extracted text, or None
         """
         timeout = step.timeout_ms
 
@@ -274,9 +274,9 @@ class BrowserAutomation:
         return None
 
     def _simulate_execution(self, script: AutomationScript) -> AutomationResult:
-        """Playwright なしでのシミュレーション実行.
+        """Simulation execution without Playwright.
 
-        各ステップを記録し、シミュレーション結果を返す。
+        Records each step and returns simulation results.
         """
         extracted: dict = {}
 
@@ -296,13 +296,13 @@ class BrowserAutomation:
         )
 
     async def take_screenshot(self, url: str) -> AutomationResult:
-        """指定 URL のスクリーンショットを取得する.
+        """Take a screenshot of the specified URL.
 
         Args:
-            url: スクリーンショットを取得する URL
+            url: URL to screenshot
 
         Returns:
-            スクリーンショットを含む AutomationResult
+            AutomationResult containing the screenshot
         """
         steps = [
             AutomationStep(
@@ -323,14 +323,14 @@ class BrowserAutomation:
         url: str,
         selectors: dict[str, str],
     ) -> AutomationResult:
-        """指定 URL からデータを抽出する.
+        """Extract data from the specified URL.
 
         Args:
-            url: データ抽出元の URL
-            selectors: 抽出名→CSS セレクタの辞書
+            url: URL to extract data from
+            selectors: Dictionary mapping extraction name to CSS selector
 
         Returns:
-            抽出データを含む AutomationResult
+            AutomationResult containing extracted data
         """
         steps: list[AutomationStep] = [
             AutomationStep(
@@ -357,15 +357,15 @@ class BrowserAutomation:
         form_data: dict[str, str],
         submit: bool = False,
     ) -> AutomationResult:
-        """指定 URL のフォームに値を入力する.
+        """Fill form values on the specified URL.
 
         Args:
-            url: フォームページの URL
-            form_data: セレクタ→入力値の辞書
-            submit: フォーム送信ボタンをクリックするか
+            url: Form page URL
+            form_data: Dictionary mapping selector to input value
+            submit: Whether to click the form submit button
 
         Returns:
-            実行結果
+            Execution result
         """
         steps: list[AutomationStep] = [
             AutomationStep(
@@ -400,26 +400,26 @@ class BrowserAutomation:
         return await self.execute_script(script.id, headless=True)
 
     def list_scripts(self) -> list[AutomationScript]:
-        """登録済みスクリプト一覧を返す."""
+        """Return a list of registered scripts."""
         return list(self._scripts.values())
 
     def get_script(self, script_id: str) -> AutomationScript | None:
-        """スクリプトを取得する."""
+        """Get a script."""
         return self._scripts.get(script_id)
 
     def delete_script(self, script_id: str) -> bool:
-        """スクリプトを削除する.
+        """Delete a script.
 
         Args:
-            script_id: 削除するスクリプト ID
+            script_id: Script ID to delete
 
         Returns:
-            削除に成功したかどうか
+            Whether the deletion was successful
         """
         if script_id in self._scripts:
             name = self._scripts[script_id].name
             del self._scripts[script_id]
-            logger.info("スクリプト削除: %s (%s)", name, script_id)
+            logger.info("Script deleted: %s (%s)", name, script_id)
             return True
         return False
 

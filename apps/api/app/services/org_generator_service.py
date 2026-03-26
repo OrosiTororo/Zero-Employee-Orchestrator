@@ -99,7 +99,7 @@ class OrgBlueprint:
 
 
 # ---------------------------------------------------------------------------
-# 部署テンプレート定義
+# Department template definitions
 # ---------------------------------------------------------------------------
 
 SECRETARY_DEPT = DepartmentTemplate(
@@ -267,7 +267,7 @@ CONTENT_DEPT = DepartmentTemplate(
 
 
 # ---------------------------------------------------------------------------
-# 課題→部署のマッピング
+# Pain point to department mapping
 # ---------------------------------------------------------------------------
 
 PAIN_POINT_TO_DEPTS: dict[str, list[DepartmentTemplate]] = {
@@ -426,7 +426,7 @@ async def apply_org_blueprint(
 
         created_departments.append(dept_info)
 
-    # 監査ログ
+    # Auditログ
     audit = AuditLog(
         id=generate_uuid(),
         company_id=cid,

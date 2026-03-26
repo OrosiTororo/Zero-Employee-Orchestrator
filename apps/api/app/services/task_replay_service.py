@@ -27,12 +27,12 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# データ構造
+# Data structures
 # ---------------------------------------------------------------------------
 
 
 class ReplayStatus(str, Enum):
-    """リプレイジョブのステータス."""
+    """Replay job status."""
 
     PENDING = "pending"
     RUNNING = "running"
@@ -42,7 +42,7 @@ class ReplayStatus(str, Enum):
 
 
 class ComparisonDimension(str, Enum):
-    """比較軸."""
+    """Comparison dimension."""
 
     QUALITY = "quality"
     SPEED = "speed"
@@ -53,7 +53,7 @@ class ComparisonDimension(str, Enum):
 
 @dataclass
 class ReplayConfig:
-    """リプレイ設定."""
+    """Replay configuration."""
 
     model_id: str = ""
     temperature: float = 0.7
@@ -64,7 +64,7 @@ class ReplayConfig:
 
 @dataclass
 class ReplayExecution:
-    """リプレイの各実行結果."""
+    """Replay execution result."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     config: ReplayConfig = field(default_factory=ReplayConfig)
@@ -82,7 +82,7 @@ class ReplayExecution:
 
 @dataclass
 class ComparisonResult:
-    """比較結果."""
+    """Comparison result."""
 
     dimension: ComparisonDimension = ComparisonDimension.OVERALL
     winner_execution_id: str = ""
@@ -93,7 +93,7 @@ class ComparisonResult:
 
 @dataclass
 class ReplayJob:
-    """リプレイジョブ全体."""
+    """Full replay job."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     original_task_id: str = ""
@@ -110,7 +110,7 @@ class ReplayJob:
 
 
 # ---------------------------------------------------------------------------
-# メインサービス
+# Main service
 # ---------------------------------------------------------------------------
 
 
@@ -133,7 +133,7 @@ class TaskReplayService:
         configs: list[dict],
         created_by: str = "",
     ) -> ReplayJob:
-        """リプレイジョブを作成する."""
+        """Create a replay job."""
         replay_configs = []
         for cfg in configs:
             replay_configs.append(
@@ -173,7 +173,7 @@ class TaskReplayService:
         output_metadata: dict | None = None,
         error: str | None = None,
     ) -> ReplayExecution:
-        """リプレイ実行結果を記録する."""
+        """Record replay execution results."""
         job = self._jobs.get(job_id)
         if not job:
             raise ValueError(f"Job not found: {job_id}")
@@ -193,21 +193,21 @@ class TaskReplayService:
             error=error,
         )
 
-        # 品質スコアは元の出力との類似度で簡易計算
+        # Quality score is a simple calculation based on similarity to the original output
         if output and job.original_output:
             execution.quality_score = _jaccard_similarity(job.original_output, output)
 
         job.executions.append(execution)
         job.status = ReplayStatus.RUNNING
 
-        # 全 config の実行が完了したら比較を実行
+        # Run comparisons when all configs have been executed
         if len(job.executions) >= len(job.configs):
             self._run_comparisons(job)
 
         return execution
 
     def _run_comparisons(self, job: ReplayJob) -> None:
-        """全実行結果を比較する."""
+        """Compare all execution results."""
         successful = [e for e in job.executions if e.error is None]
         if len(successful) < 2:
             job.status = ReplayStatus.COMPLETED
@@ -303,7 +303,7 @@ class TaskReplayService:
         job.summary = f"{len(successful)} モデルを比較。総合勝者: {best_overall.config.model_id}"
 
     def get_job(self, job_id: str) -> ReplayJob | None:
-        """リプレイジョブを取得する."""
+        """Get a replay job."""
         return self._jobs.get(job_id)
 
     def list_jobs(
@@ -312,7 +312,7 @@ class TaskReplayService:
         status: ReplayStatus | None = None,
         limit: int = 50,
     ) -> list[ReplayJob]:
-        """リプレイジョブを一覧取得する."""
+        """Get a list of replay jobs."""
         jobs = list(self._jobs.values())
         if task_id:
             jobs = [j for j in jobs if j.original_task_id == task_id]
@@ -323,7 +323,7 @@ class TaskReplayService:
 
 
 # ---------------------------------------------------------------------------
-# シングルトンインスタンス
+# Singleton instance
 # ---------------------------------------------------------------------------
 
 task_replay_service = TaskReplayService()

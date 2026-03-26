@@ -1,21 +1,21 @@
-"""ワークスペース隔離 — AI エージェントの環境分離.
+"""Workspace isolation -- AI agent environment separation.
 
-初期状態では AI エージェントは完全に隔離されたワークスペース内でのみ動作し、
-ローカルファイルシステムやクラウドストレージには一切アクセスできない。
+By default, AI agents operate only within a fully isolated workspace
+and cannot access the local file system or cloud storage at all.
 
-ユーザーは設定やチャットでの指示により、以下を段階的に許可できる:
-- ローカルフォルダへのアクセス（許可したフォルダのみ）
-- クラウドストレージへの接続（許可したプロバイダー・フォルダのみ）
-- 成果物の保存先の変更
+Users can gradually grant permissions through settings or chat instructions:
+- Local folder access (only permitted folders)
+- Cloud storage connections (only permitted providers/folders)
+- Changing artifact storage locations
 
-業務ごとにチャットで異なる環境・権限を指示された場合、
-AI は計画段階でユーザーに許可を求める。
+When different environments/permissions are instructed per task via chat,
+the AI requests user permission during the planning stage.
 
-セキュリティ原則:
-- デフォルト拒否: 明示的に許可されていないアクセスはすべて拒否
-- 最小権限: 必要最小限のアクセスのみ許可
-- 監査可能: すべてのアクセス許可変更を記録
-- ユーザー主権: AI が勝手にアクセス範囲を拡大しない
+Security principles:
+- Default deny: All access not explicitly permitted is denied
+- Least privilege: Only the minimum necessary access is granted
+- Auditable: All access permission changes are recorded
+- User sovereignty: AI does not expand access scope on its own
 """
 
 from __future__ import annotations
@@ -28,20 +28,20 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-# 内部ストレージのデフォルトパス
+# Default path for internal storage
 _DEFAULT_INTERNAL_STORAGE = os.path.join(os.path.expanduser("~"), ".zero_employee", "workspace")
 
 
 class StorageLocation(str, Enum):
-    """成果物の保存先."""
+    """Artifact storage location."""
 
-    INTERNAL = "internal"  # 隔離ワークスペース内（初期設定）
-    LOCAL = "local"  # ローカルファイルシステム
-    CLOUD = "cloud"  # クラウドストレージ
+    INTERNAL = "internal"  # Within isolated workspace (default)
+    LOCAL = "local"  # Local file system
+    CLOUD = "cloud"  # Cloud storage
 
 
 class CloudProvider(str, Enum):
-    """対応クラウドストレージプロバイダー."""
+    """Supported cloud storage providers."""
 
     GOOGLE_DRIVE = "google_drive"
     ONEDRIVE = "onedrive"
@@ -50,47 +50,47 @@ class CloudProvider(str, Enum):
 
 
 class AccessScope(str, Enum):
-    """アクセス範囲."""
+    """Access scope."""
 
-    INTERNAL_ONLY = "internal_only"  # 隔離環境のみ（初期設定）
-    LOCAL_ALLOWED = "local_allowed"  # ローカルフォルダも許可
-    CLOUD_ALLOWED = "cloud_allowed"  # クラウドも許可
-    FULL = "full"  # ローカル + クラウド許可
+    INTERNAL_ONLY = "internal_only"  # Isolated environment only (default)
+    LOCAL_ALLOWED = "local_allowed"  # Local folders also allowed
+    CLOUD_ALLOWED = "cloud_allowed"  # Cloud also allowed
+    FULL = "full"  # Local + cloud allowed
 
 
 @dataclass
 class WorkspaceConfig:
-    """ワークスペース隔離設定.
+    """Workspace isolation configuration.
 
-    初期設定では完全隔離状態。ユーザーが明示的に許可した場合のみ
-    ローカル・クラウドへのアクセスが可能になる。
+    Default is fully isolated. Local/cloud access becomes available
+    only when explicitly permitted by the user.
     """
 
-    # 内部ストレージパス
+    # Internal storage path
     internal_storage_path: str = field(default_factory=lambda: _DEFAULT_INTERNAL_STORAGE)
 
-    # ローカルアクセス設定
-    local_access_enabled: bool = False  # 初期: 無効
+    # Local access settings
+    local_access_enabled: bool = False  # Default: disabled
     allowed_local_paths: list[str] = field(default_factory=list)
 
-    # クラウドアクセス設定
-    cloud_access_enabled: bool = False  # 初期: 無効
+    # Cloud access settings
+    cloud_access_enabled: bool = False  # Default: disabled
     cloud_providers: list[str] = field(default_factory=list)
     allowed_cloud_paths: list[str] = field(default_factory=list)
 
-    # 成果物の保存先
+    # Artifact storage location
     storage_location: StorageLocation = StorageLocation.INTERNAL
 
-    # チャット指示によるオーバーライド時に承認を要求
+    # Require approval when overriding via chat instructions
     require_approval_for_override: bool = True
 
 
 @dataclass
 class TaskWorkspaceOverride:
-    """業務（タスク）単位のワークスペースオーバーライド.
+    """Per-task workspace override.
 
-    チャットでの指示やAPI経由で、特定のタスクに対して
-    システム設定とは異なるアクセス範囲を一時的に許可する。
+    Temporarily grants a different access scope for a specific task
+    via chat instructions or API, differing from system settings.
     """
 
     task_id: str
@@ -104,7 +104,7 @@ class TaskWorkspaceOverride:
 
 @dataclass
 class WorkspaceAccessResult:
-    """ワークスペースアクセスチェック結果."""
+    """Workspace access check result."""
 
     allowed: bool
     path: str
@@ -114,10 +114,10 @@ class WorkspaceAccessResult:
 
 
 class WorkspaceIsolation:
-    """ワークスペース隔離マネージャー.
+    """Workspace isolation manager.
 
-    AI エージェントのファイル・ナレッジアクセスを制御する。
-    初期状態では隔離ワークスペース内のみアクセス可能。
+    Controls AI agent file and knowledge access.
+    By default, only the isolated workspace is accessible.
     """
 
     def __init__(self, config: WorkspaceConfig | None = None) -> None:
@@ -130,7 +130,7 @@ class WorkspaceIsolation:
         return self._config
 
     def update_config(self, config: WorkspaceConfig) -> None:
-        """設定を更新する."""
+        """Update configuration."""
         self._config = config
         self._ensure_internal_storage()
         logger.info(
@@ -141,17 +141,17 @@ class WorkspaceIsolation:
         )
 
     def _ensure_internal_storage(self) -> None:
-        """内部ストレージディレクトリを作成する."""
+        """Create internal storage directories."""
         base = Path(self._config.internal_storage_path)
         for subdir in ["knowledge", "artifacts", "temp"]:
             (base / subdir).mkdir(parents=True, exist_ok=True)
 
     def get_internal_storage_path(self) -> str:
-        """内部ストレージのベースパスを返す."""
+        """Return the base path of internal storage."""
         return self._config.internal_storage_path
 
     def get_knowledge_path(self) -> str:
-        """ナレッジ格納パスを返す."""
+        """Return the knowledge storage path."""
         return str(Path(self._config.internal_storage_path) / "knowledge")
 
     def get_artifacts_path(self) -> str:

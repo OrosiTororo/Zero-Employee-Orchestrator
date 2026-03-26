@@ -1,7 +1,8 @@
-"""Failure Taxonomy — 障害分類＋学習.
+"""Failure Taxonomy — Failure classification + learning.
 
-障害をカテゴリ・サブカテゴリで分類し、予防策や回復成功率を管理する。
-Experience Memory と連携して障害パターンの学習と予防を行う。
+Classifies failures by category and subcategory, managing prevention strategies
+and recovery success rates. Works with Experience Memory for failure pattern
+learning and prevention.
 """
 
 from dataclasses import dataclass, field

@@ -25,7 +25,7 @@ from app.schemas.registry import (
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# システム必須スキル — 削除・無効化不可
+# System-required skills -- cannot be deleted or disabled
 # ---------------------------------------------------------------------------
 
 SYSTEM_PROTECTED_SLUGS: set[str] = frozenset(
@@ -40,49 +40,49 @@ SYSTEM_PROTECTED_SLUGS: set[str] = frozenset(
 )
 
 # ---------------------------------------------------------------------------
-# 安全性チェック用パターン
+# Safety check patterns
 # ---------------------------------------------------------------------------
 
 _DANGEROUS_PATTERNS: list[tuple[str, str, str]] = [
-    (r"\bos\.system\b", "os.system の呼び出し", "has_dangerous_code"),
-    (r"\bsubprocess\b", "subprocess モジュールの使用", "has_dangerous_code"),
-    (r"\b__import__\b", "動的インポート (__import__)", "has_dangerous_code"),
-    (r"\beval\s*\(", "eval() の使用", "has_dangerous_code"),
-    (r"\bexec\s*\(", "exec() の使用", "has_dangerous_code"),
-    (r"\bcompile\s*\(", "compile() の使用", "has_dangerous_code"),
-    (r"\bopen\s*\(.*(w|a)", "ファイル書き込み操作", "has_dangerous_code"),
+    (r"\bos\.system\b", "os.system call", "has_dangerous_code"),
+    (r"\bsubprocess\b", "subprocess module usage", "has_dangerous_code"),
+    (r"\b__import__\b", "dynamic import (__import__)", "has_dangerous_code"),
+    (r"\beval\s*\(", "eval() usage", "has_dangerous_code"),
+    (r"\bexec\s*\(", "exec() usage", "has_dangerous_code"),
+    (r"\bcompile\s*\(", "compile() usage", "has_dangerous_code"),
+    (r"\bopen\s*\(.*(w|a)", "file write operation", "has_dangerous_code"),
     (
         r"\brequests\.(post|put|delete|patch)\b",
-        "外部 HTTP 送信",
+        "external HTTP send",
         "has_external_communication",
     ),
     (
         r"\bhttpx\.(post|put|delete|patch)\b",
-        "外部 HTTP 送信",
+        "external HTTP send",
         "has_external_communication",
     ),
-    (r"\baiohttp\b", "外部 HTTP 通信ライブラリ", "has_external_communication"),
-    (r"\bsmtplib\b", "メール送信", "has_external_communication"),
-    (r"\bsocket\b", "ソケット通信", "has_external_communication"),
+    (r"\baiohttp\b", "external HTTP communication library", "has_external_communication"),
+    (r"\bsmtplib\b", "email sending", "has_external_communication"),
+    (r"\bsocket\b", "socket communication", "has_external_communication"),
     (
         r"(api_key|secret|password|token|credential)",
-        "認証情報へのアクセス",
+        "credential access",
         "has_credential_access",
     ),
-    (r"\bos\.environ\b", "環境変数アクセス", "has_credential_access"),
-    (r"\bshutil\.rmtree\b", "ディレクトリ削除", "has_destructive_operations"),
-    (r"\bos\.remove\b", "ファイル削除", "has_destructive_operations"),
-    (r"\bos\.unlink\b", "ファイル削除", "has_destructive_operations"),
+    (r"\bos\.environ\b", "environment variable access", "has_credential_access"),
+    (r"\bshutil\.rmtree\b", "directory deletion", "has_destructive_operations"),
+    (r"\bos\.remove\b", "file deletion", "has_destructive_operations"),
+    (r"\bos\.unlink\b", "file deletion", "has_destructive_operations"),
     (
         r"DROP\s+TABLE|DELETE\s+FROM|TRUNCATE",
-        "SQL 破壊操作",
+        "SQL destructive operation",
         "has_destructive_operations",
     ),
 ]
 
 
 def analyze_code_safety(code: str) -> RegistrySafetyReport:
-    """生成されたスキルコードの安全性を静的解析する."""
+    """Statically analyze the safety of generated skill code."""
     report = RegistrySafetyReport()
     issues: list[str] = []
     permissions: list[str] = []
@@ -110,14 +110,14 @@ def analyze_code_safety(code: str) -> RegistrySafetyReport:
         report.risk_level = "low"
 
     report.summary = (
-        f"検出された問題: {len(issues)} 件" if issues else "安全性の問題は検出されませんでした"
+        f"Issues detected: {len(issues)}" if issues else "No safety issues detected"
     )
 
     return report
 
 
 # ---------------------------------------------------------------------------
-# 自然言語 → Skill マニフェスト + コード生成
+# Natural language -> Skill manifest + code generation
 # ---------------------------------------------------------------------------
 
 _SKILL_GENERATE_SYSTEM_PROMPT = """\
@@ -159,10 +159,10 @@ async def generate_skill_from_description(
     request: SkillGenerateRequest,
     db: AsyncSession,
 ) -> SkillGenerateResponse:
-    """自然言語の説明からスキルを自動生成する.
+    """Auto-generate a skill from a natural language description.
 
-    LLM を使ってマニフェストと実行コードを生成し、安全性チェックを行う。
-    LLM が利用不可の場合はテンプレートベースのフォールバックを使用する。
+    Uses LLM to generate manifest and execution code, then performs safety checks.
+    Falls back to template-based generation when LLM is unavailable.
     """
     import json
 
@@ -186,20 +186,20 @@ async def generate_skill_from_description(
 
         content = llm_response.content
 
-        # JSON ブロックを抽出
+        # Extract JSON block
         json_match = re.search(r"```json\s*\n(.*?)\n```", content, re.DOTALL)
         if json_match:
             manifest = json.loads(json_match.group(1))
 
-        # Python ブロックを抽出
+        # Extract Python block
         py_match = re.search(r"```python\s*\n(.*?)\n```", content, re.DOTALL)
         if py_match:
             code = py_match.group(1)
 
     except Exception as exc:
-        logger.warning("LLM スキル生成に失敗、テンプレートフォールバック: %s", exc)
+        logger.warning("LLM skill generation failed, falling back to template: %s", exc)
 
-    # LLM が失敗した場合のフォールバック: テンプレートベース生成
+    # Fallback when LLM fails: template-based generation
     if not manifest or not code:
         slug = _generate_slug(request.description)
         manifest = {
@@ -220,21 +220,21 @@ async def generate_skill_from_description(
         }
         code = _generate_template_code(slug, request.description)
 
-    # 安全性チェック
+    # Safety check
     safety_report = analyze_code_safety(code)
     safety_passed = safety_report.risk_level in ("low", "medium")
     safety_issues: list[str] = []
     if safety_report.has_dangerous_code:
-        safety_issues.append("危険なコードパターンが検出されました")
+        safety_issues.append("Dangerous code patterns detected")
     if safety_report.has_external_communication:
-        safety_issues.append("外部通信が検出されました")
+        safety_issues.append("External communication detected")
     if safety_report.has_credential_access:
-        safety_issues.append("認証情報へのアクセスが検出されました")
+        safety_issues.append("credential accessが検出されました")
     if safety_report.has_destructive_operations:
-        safety_issues.append("破壊的操作が検出されました")
+        safety_issues.append("Destructive operations detected")
         safety_passed = False
 
-    # 自動登録
+    # Auto-register
     skill_id: str | None = None
     registered = False
     if request.auto_register and safety_passed:
@@ -267,8 +267,8 @@ async def generate_skill_from_description(
 
 
 def _generate_slug(description: str) -> str:
-    """説明文から slug を生成する."""
-    # 英数字とハイフン以外を除去し、kebab-case にする
+    """Generate a slug from the description."""
+    # Remove non-alphanumeric characters and convert to kebab-case
     slug = re.sub(r"[^a-zA-Z0-9\s]", "", description[:40])
     slug = re.sub(r"\s+", "-", slug.strip()).lower()
     if not slug:
@@ -277,7 +277,7 @@ def _generate_slug(description: str) -> str:
 
 
 def _generate_template_code(slug: str, description: str) -> str:
-    """テンプレートベースのスキルコードを生成する."""
+    """Generate template-based skill code."""
     safe_desc = description.replace('"', '\\"').replace("\n", "\\n")
     return f'''"""自動生成スキル: {slug}"""
 
@@ -327,7 +327,7 @@ async def execute(context: dict) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# CRUD 操作
+# CRUD operations
 # ---------------------------------------------------------------------------
 
 
@@ -338,7 +338,7 @@ async def list_skills(
     skill_type: str | None = None,
     include_disabled: bool = False,
 ) -> Sequence[Skill]:
-    """スキル一覧を取得する."""
+    """Get a list of skills."""
     query = select(Skill)
     if status:
         query = query.where(Skill.status == status)
@@ -351,13 +351,13 @@ async def list_skills(
 
 
 async def get_skill(db: AsyncSession, skill_id: uuid.UUID) -> Skill | None:
-    """ID でスキルを取得する."""
+    """Get a skill by ID."""
     result = await db.execute(select(Skill).where(Skill.id == skill_id))
     return result.scalar_one_or_none()
 
 
 async def get_skill_by_slug(db: AsyncSession, slug: str) -> Skill | None:
-    """slug でスキルを取得する."""
+    """Get a skill by slug."""
     result = await db.execute(select(Skill).where(Skill.slug == slug))
     return result.scalar_one_or_none()
 
@@ -369,7 +369,7 @@ async def create_skill(
     is_system_protected: bool = False,
     generated_code: str | None = None,
 ) -> Skill:
-    """新しいスキルを作成する."""
+    """Create a new skill."""
     skill = Skill(
         id=uuid.uuid4(),
         slug=data.slug,
@@ -387,7 +387,7 @@ async def create_skill(
     )
     db.add(skill)
     await db.flush()
-    logger.info("スキル作成: %s (%s)", skill.name, skill.slug)
+    logger.info("Skill created: %s (%s)", skill.name, skill.slug)
     return skill
 
 
@@ -396,44 +396,44 @@ async def update_skill(
     skill_id: uuid.UUID,
     data: SkillUpdate,
 ) -> Skill | None:
-    """スキルを更新する."""
+    """Update a skill."""
     skill = await get_skill(db, skill_id)
     if skill is None:
         return None
 
     updates = data.model_dump(exclude_unset=True)
 
-    # システム保護スキルは無効化不可
+    # System-protected skills cannot be disabled
     if skill.is_system_protected and updates.get("enabled") is False:
-        raise ValueError(f"システム必須スキル '{skill.slug}' は無効化できません")
+        raise ValueError(f"System-required skill '{skill.slug}' cannot be disabled")
 
     for key, value in updates.items():
         setattr(skill, key, value)
     await db.flush()
-    logger.info("スキル更新: %s", skill.slug)
+    logger.info("Skill updated: %s", skill.slug)
     return skill
 
 
 async def delete_skill(db: AsyncSession, skill_id: uuid.UUID) -> tuple[bool, str]:
-    """スキルを削除する. システム保護スキルは削除不可."""
+    """Delete a skill. System-protected skills cannot be deleted."""
     skill = await get_skill(db, skill_id)
     if skill is None:
-        return False, "スキルが見つかりません"
+        return False, "Skill not found"
 
     if skill.is_system_protected:
         return False, (
-            f"システム必須スキル '{skill.slug}' は削除できません。"
-            "このスキルはシステムの正常動作に必要です。"
+            f"System-required skill '{skill.slug}' cannot be deleted. "
+            "This skill is essential for proper system operation."
         )
 
     await db.delete(skill)
     await db.flush()
-    logger.info("スキル削除: %s", skill.slug)
-    return True, f"スキル '{skill.name}' を削除しました"
+    logger.info("Skill deleted: %s", skill.slug)
+    return True, f"Skill '{skill.name}' has been deleted"
 
 
 # ---------------------------------------------------------------------------
-# システム保護スキルの初期登録
+# Initial registration of system-protected skills
 # ---------------------------------------------------------------------------
 
 BUILTIN_SKILLS: list[dict] = [
@@ -441,51 +441,51 @@ BUILTIN_SKILLS: list[dict] = [
         "slug": "spec-writer",
         "name": "Spec Writer",
         "skill_type": "builtin",
-        "description": "Ticket から仕様書 (Spec) を生成する",
+        "description": "Generate specifications (Spec) from Tickets",
         "source_type": "local",
     },
     {
         "slug": "plan-writer",
         "name": "Plan Writer",
         "skill_type": "builtin",
-        "description": "仕様書から実行計画 (Plan) を生成する",
+        "description": "Generate execution plans (Plan) from specifications",
         "source_type": "local",
     },
     {
         "slug": "task-breakdown",
         "name": "Task Breakdown",
         "skill_type": "builtin",
-        "description": "実行計画をタスク DAG に分解する",
+        "description": "Decompose execution plans into task DAGs",
         "source_type": "local",
     },
     {
         "slug": "review-assistant",
         "name": "Review Assistant",
         "skill_type": "builtin",
-        "description": "タスク成果物の品質レビューを実施する",
+        "description": "Conduct quality reviews of task artifacts",
         "source_type": "local",
     },
     {
         "slug": "artifact-summarizer",
         "name": "Artifact Summarizer",
         "skill_type": "builtin",
-        "description": "成果物を要約する",
+        "description": "Summarize artifacts",
         "source_type": "local",
     },
     {
         "slug": "local-context",
         "name": "Local Context",
         "skill_type": "builtin",
-        "description": "ローカルファイル・システム情報にアクセスする",
+        "description": "Access local file and system information",
         "source_type": "local",
     },
 ]
 
 
 async def ensure_system_skills(db: AsyncSession) -> list[Skill]:
-    """システム必須スキルが DB に登録されていることを保証する.
+    """Ensure system-required skills are registered in the DB.
 
-    アプリケーション起動時に呼び出される。
+    Called at application startup.
     """
     created: list[Skill] = []
     for builtin in BUILTIN_SKILLS:
@@ -510,7 +510,7 @@ async def ensure_system_skills(db: AsyncSession) -> list[Skill]:
 
     if created:
         logger.info(
-            "システム必須スキルを %d 件登録しました: %s",
+            "Registered %d system-required skills: %s",
             len(created),
             ", ".join(s.slug for s in created),
         )
