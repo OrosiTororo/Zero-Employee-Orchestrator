@@ -1,7 +1,7 @@
 [package]
 name = "zero-employee-orchestrator"
 version = "0.1.0"
-description = "Zero-Employee Orchestrator - AI業務オーケストレーション基盤"
+description = "Zero-Employee Orchestrator - AI Business Orchestration Platform"
 authors = ["Zero-Employee Orchestrator Team"]
 edition = "2021"
 

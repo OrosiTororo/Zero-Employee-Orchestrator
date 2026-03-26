@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'リリースバージョン (例: 0.1.0)'
+        description: 'Release version (e.g., 0.1.0)'
         required: true
       prerelease:
-        description: 'プレリリースとしてマーク'
+        description: 'Mark as pre-release'
         required: false
         type: boolean
         default: false
@@ -62,25 +62,25 @@ jobs:
             ' "$file"
           }
 
-          JA=$(extract_section docs/CHANGELOG.md)
-          EN=$(extract_section docs/en/CHANGELOG.md)
+          EN=$(extract_section docs/CHANGELOG.md)
+          JA=$(extract_section docs/ja-JP/CHANGELOG.md)
           ZH=$(extract_section docs/zh/CHANGELOG.md)
 
           {
-            echo "## 日本語 | [English](#english) | [中文](#中文)"
+            echo "## English | [日本語](#日本語) | [中文](#中文)"
             echo ""
-            if [ -n "$JA" ]; then
-              echo "$JA"
+            if [ -n "$EN" ]; then
+              echo "$EN"
             else
               echo "Release v${VERSION}"
             fi
             echo ""
             echo "---"
             echo ""
-            echo "## English"
+            echo "## 日本語"
             echo ""
-            if [ -n "$EN" ]; then
-              echo "$EN"
+            if [ -n "$JA" ]; then
+              echo "$JA"
             else
               echo "Release v${VERSION}"
             fi
