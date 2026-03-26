@@ -20,15 +20,19 @@ class TestLanguageSwitchingViaConfig:
         assert get_language() == "ja"
 
         # Change via config manager (mock file I/O)
-        with patch("app.core.config_manager._load_config", return_value={}), \
-             patch("app.core.config_manager._save_config"):
+        with (
+            patch("app.core.config_manager._load_config", return_value={}),
+            patch("app.core.config_manager._save_config"),
+        ):
             set_config_value("LANGUAGE", "en")
 
         assert get_language() == "en"
 
         # Change to Chinese
-        with patch("app.core.config_manager._load_config", return_value={}), \
-             patch("app.core.config_manager._save_config"):
+        with (
+            patch("app.core.config_manager._load_config", return_value={}),
+            patch("app.core.config_manager._save_config"),
+        ):
             set_config_value("LANGUAGE", "zh")
 
         assert get_language() == "zh"
@@ -41,8 +45,10 @@ class TestLanguageSwitchingViaConfig:
         from app.core.config_manager import set_config_value
 
         with pytest.raises(ValueError, match="Invalid language"):
-            with patch("app.core.config_manager._load_config", return_value={}), \
-                 patch("app.core.config_manager._save_config"):
+            with (
+                patch("app.core.config_manager._load_config", return_value={}),
+                patch("app.core.config_manager._save_config"),
+            ):
                 set_config_value("LANGUAGE", "fr")
 
     def test_translation_changes_after_language_switch(self):
@@ -53,8 +59,10 @@ class TestLanguageSwitchingViaConfig:
         set_language("ja")
         ja_text = t("chat_welcome")
 
-        with patch("app.core.config_manager._load_config", return_value={}), \
-             patch("app.core.config_manager._save_config"):
+        with (
+            patch("app.core.config_manager._load_config", return_value={}),
+            patch("app.core.config_manager._save_config"),
+        ):
             set_config_value("LANGUAGE", "en")
 
         en_text = t("chat_welcome")
@@ -71,8 +79,10 @@ class TestLanguageSwitchingViaConfig:
 
         set_language("ja")
 
-        with patch("app.core.config_manager._load_config", return_value={"LANGUAGE": "en"}), \
-             patch("os.environ.get", return_value=None):
+        with (
+            patch("app.core.config_manager._load_config", return_value={"LANGUAGE": "en"}),
+            patch("os.environ.get", return_value=None),
+        ):
             apply_runtime_config()
 
         assert get_language() == "en"
