@@ -38,39 +38,39 @@ class ReproposalResult:
 FAILURE_CATEGORIES = {
     "quality_insufficient": ReworkReason(
         category="quality",
-        description="品質基準を満たしていない",
+        description="Quality criteria not met",
     ),
     "scope_mismatch": ReworkReason(
         category="scope",
-        description="要件との不一致",
+        description="Requirements mismatch",
     ),
     "cost_exceeded": ReworkReason(
         category="cost",
-        description="予算を超過した",
+        description="Budget exceeded",
     ),
     "policy_violation": ReworkReason(
         category="policy",
-        description="ポリシー違反が検出された",
+        description="Policy violation detected",
     ),
     "execution_error": ReworkReason(
         category="error",
-        description="実行時エラーが発生した",
+        description="Runtime error occurred",
     ),
     "timeout": ReworkReason(
         category="timeout",
-        description="実行時間の上限を超えた",
+        description="Execution time limit exceeded",
     ),
     "skill_gap": ReworkReason(
         category="error",
-        description="必要なSkillが不足している",
+        description="Required Skill is missing",
     ),
     "dependency_broken": ReworkReason(
         category="error",
-        description="依存関係が崩れた",
+        description="Dependency chain broken",
     ),
     "model_incompatible": ReworkReason(
         category="error",
-        description="モデル特性による不適合",
+        description="Incompatibility due to model characteristics",
     ),
 }
 
@@ -112,7 +112,7 @@ def generate_reproposal(
 
     return ReproposalResult(
         original_plan_id=original_plan.get("id", ""),
-        new_plan_summary=f"修正計画: {diff.reason}に対応",
+        new_plan_summary=f"Revised plan: addressing {diff.reason}",
         diff=diff,
         rework_reasons=rework_reasons,
         requires_approval=any(r.severity in ("high", "critical") for r in rework_reasons),

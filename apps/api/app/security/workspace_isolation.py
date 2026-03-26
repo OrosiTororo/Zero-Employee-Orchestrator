@@ -278,10 +278,10 @@ class WorkspaceIsolation:
                 reason="Cloud storage access is disabled. Enable cloud access via settings.",
                 requires_user_approval=True,
                 suggested_message=(
-                    "クラウドストレージへのアクセスは現在無効です。\n"
-                    f"プロバイダー: {provider}\n"
-                    "設定でクラウドアクセスを有効にしますか？\n"
-                    "[有効にする] [このタスクのみ許可] [キャンセル]"
+                    "Cloud storage access is currently disabled.\n"
+                    f"Provider: {provider}\n"
+                    "Enable cloud access in settings?\n"
+                    "[Enable] [Allow for this task only] [Cancel]"
                 ),
             )
 
@@ -293,9 +293,9 @@ class WorkspaceIsolation:
                 f"Configured: {self._config.cloud_providers}",
                 requires_user_approval=True,
                 suggested_message=(
-                    f"クラウドプロバイダー '{provider}' は設定されていません。\n"
-                    "接続を追加しますか？\n"
-                    "[接続する] [キャンセル]"
+                    f"Cloud provider '{provider}' is not configured.\n"
+                    "Add connection?\n"
+                    "[Connect] [Cancel]"
                 ),
             )
 
@@ -306,7 +306,7 @@ class WorkspaceIsolation:
         )
 
     def get_effective_storage_location(self, task_id: str | None = None) -> StorageLocation:
-        """有効な保存先を取得する（タスクオーバーライドを考慮）."""
+        """Get the effective storage location (considering task overrides)."""
         if task_id and task_id in self._task_overrides:
             override = self._task_overrides[task_id]
             if override.approved_by_user and override.storage_location:
@@ -314,7 +314,7 @@ class WorkspaceIsolation:
         return self._config.storage_location
 
     def set_task_override(self, override: TaskWorkspaceOverride) -> None:
-        """タスク単位のワークスペースオーバーライドを設定する."""
+        """Set a per-task workspace override."""
         self._task_overrides[override.task_id] = override
         logger.info(
             "Task workspace override set: task=%s, approved=%s, local_paths=%d, cloud_sources=%d",
@@ -325,7 +325,7 @@ class WorkspaceIsolation:
         )
 
     def approve_task_override(self, task_id: str) -> bool:
-        """タスクオーバーライドをユーザー承認する."""
+        """Approve a task override by user."""
         if task_id in self._task_overrides:
             self._task_overrides[task_id].approved_by_user = True
             logger.info("Task workspace override approved: task=%s", task_id)
@@ -333,18 +333,18 @@ class WorkspaceIsolation:
         return False
 
     def remove_task_override(self, task_id: str) -> None:
-        """タスクオーバーライドを削除する."""
+        """Remove a task override."""
         self._task_overrides.pop(task_id, None)
 
     def add_allowed_local_path(self, path: str) -> None:
-        """許可ローカルパスを追加する."""
+        """Add an allowed local path."""
         resolved = str(Path(path).resolve())
         if resolved not in self._config.allowed_local_paths:
             self._config.allowed_local_paths.append(resolved)
             logger.info("Workspace: local path allowed: %s", resolved)
 
     def remove_allowed_local_path(self, path: str) -> None:
-        """許可ローカルパスを削除する."""
+        """Remove an allowed local path."""
         resolved = str(Path(path).resolve())
         self._config.allowed_local_paths = [
             p for p in self._config.allowed_local_paths if p != resolved
@@ -352,13 +352,13 @@ class WorkspaceIsolation:
         logger.info("Workspace: local path removed: %s", resolved)
 
     def add_cloud_provider(self, provider: str) -> None:
-        """クラウドプロバイダーを追加する."""
+        """Add a cloud provider."""
         if provider not in self._config.cloud_providers:
             self._config.cloud_providers.append(provider)
             logger.info("Workspace: cloud provider added: %s", provider)
 
     def remove_cloud_provider(self, provider: str) -> None:
-        """クラウドプロバイダーを削除する."""
+        """Remove a cloud provider."""
         self._config.cloud_providers = [p for p in self._config.cloud_providers if p != provider]
         logger.info("Workspace: cloud provider removed: %s", provider)
 

@@ -10,17 +10,17 @@ from enum import Enum
 
 
 class StateMachineError(Exception):
-    """不正な状態遷移を試みた場合に発生する例外."""
+    """Exception raised when an invalid state transition is attempted."""
 
 
 class BaseStateMachine:
-    """汎用状態機械: 遷移テーブルに基づいて状態遷移を検証・実行する."""
+    """Generic state machine: validates and executes state transitions based on a transition table."""
 
     transitions: dict[str, list[str]] = {}
 
     def __init__(self, initial_state: str) -> None:
         if initial_state not in self.transitions:
-            raise StateMachineError(f"不明な初期状態: {initial_state}")
+            raise StateMachineError(f"Unknown initial state: {initial_state}")
         self._state = initial_state
         self._history: list[dict[str, str]] = []
 
@@ -38,8 +38,8 @@ class BaseStateMachine:
     def transition(self, target: str, reason: str = "") -> str:
         if not self.can_transition(target):
             raise StateMachineError(
-                f"遷移不可: {self._state} → {target} "
-                f"(許可: {self.transitions.get(self._state, [])})"
+                f"Transition not allowed: {self._state} -> {target} "
+                f"(allowed: {self.transitions.get(self._state, [])})"
             )
         old = self._state
         self._state = target
@@ -58,7 +58,7 @@ class BaseStateMachine:
 
 
 class TicketStateMachine(BaseStateMachine):
-    """Ticket の状態遷移を管理する."""
+    """Manage Ticket state transitions."""
 
     transitions: dict[str, list[str]] = {
         "draft": ["open", "cancelled"],
@@ -78,7 +78,7 @@ class TicketStateMachine(BaseStateMachine):
 
 
 class TaskStateMachine(BaseStateMachine):
-    """Task の状態遷移を管理する."""
+    """Manage Task state transitions."""
 
     transitions: dict[str, list[str]] = {
         "pending": ["ready", "cancelled"],
@@ -97,7 +97,7 @@ class TaskStateMachine(BaseStateMachine):
 
 
 class ApprovalStateMachine(BaseStateMachine):
-    """承認リクエストの状態遷移を管理する."""
+    """Manage approval request state transitions."""
 
     transitions: dict[str, list[str]] = {
         "requested": ["approved", "rejected", "expired", "cancelled"],
@@ -111,7 +111,7 @@ class ApprovalStateMachine(BaseStateMachine):
 
 
 class AgentStateMachine(BaseStateMachine):
-    """Agent の状態遷移を管理する."""
+    """Manage Agent state transitions."""
 
     transitions: dict[str, list[str]] = {
         "provisioning": ["idle", "error"],
