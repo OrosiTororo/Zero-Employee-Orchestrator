@@ -11,31 +11,31 @@ from enum import Enum
 
 
 class FailureCategory(str, Enum):
-    """障害の大分類."""
+    """Failure category (top-level classification)."""
 
-    LLM_ERROR = "llm_error"  # LLM プロバイダ障害
-    TOOL_ERROR = "tool_error"  # ツール実行障害
-    VALIDATION_ERROR = "validation_error"  # 入出力検証障害
-    BUDGET_ERROR = "budget_error"  # 予算超過
-    TIMEOUT_ERROR = "timeout_error"  # タイムアウト
-    PERMISSION_ERROR = "permission_error"  # 権限不足
-    DEPENDENCY_ERROR = "dependency_error"  # 依存タスク障害
-    HUMAN_REJECTION = "human_rejection"  # 人間による差し戻し
-    SYSTEM_ERROR = "system_error"  # システム内部エラー
+    LLM_ERROR = "llm_error"  # LLM provider failure
+    TOOL_ERROR = "tool_error"  # Tool execution failure
+    VALIDATION_ERROR = "validation_error"  # Input/output validation failure
+    BUDGET_ERROR = "budget_error"  # Budget exceeded
+    TIMEOUT_ERROR = "timeout_error"  # Timeout
+    PERMISSION_ERROR = "permission_error"  # Insufficient permissions
+    DEPENDENCY_ERROR = "dependency_error"  # Dependent task failure
+    HUMAN_REJECTION = "human_rejection"  # Rejected by human
+    SYSTEM_ERROR = "system_error"  # Internal system error
 
 
 class FailureSeverity(str, Enum):
-    """障害の重大度."""
+    """Failure severity."""
 
-    LOW = "low"  # 軽微 (自動リトライで回復可能)
-    MEDIUM = "medium"  # 中程度 (代替手段で回復可能)
-    HIGH = "high"  # 重大 (人間介入が必要)
-    CRITICAL = "critical"  # 致命的 (即座にエスカレーション)
+    LOW = "low"  # Minor (recoverable by automatic retry)
+    MEDIUM = "medium"  # Moderate (recoverable by alternative means)
+    HIGH = "high"  # Serious (requires human intervention)
+    CRITICAL = "critical"  # Fatal (immediate escalation required)
 
 
 @dataclass
 class FailureRecord:
-    """障害の記録."""
+    """Failure record."""
 
     category: FailureCategory
     subcategory: str
@@ -60,9 +60,9 @@ class FailureRecord:
 
 
 class FailureTaxonomy:
-    """障害分類体系の管理.
+    """Failure taxonomy management.
 
-    障害パターンを蓄積し、予防策の有効性を追跡する。
+    Accumulates failure patterns and tracks the effectiveness of prevention strategies.
     """
 
     def __init__(self) -> None:

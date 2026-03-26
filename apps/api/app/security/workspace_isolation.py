@@ -155,11 +155,11 @@ class WorkspaceIsolation:
         return str(Path(self._config.internal_storage_path) / "knowledge")
 
     def get_artifacts_path(self) -> str:
-        """成果物格納パスを返す."""
+        """Return the artifacts storage path."""
         return str(Path(self._config.internal_storage_path) / "artifacts")
 
     def get_temp_path(self) -> str:
-        """一時ファイルパスを返す."""
+        """Return the temporary file path."""
         return str(Path(self._config.internal_storage_path) / "temp")
 
     def check_access(
@@ -168,14 +168,14 @@ class WorkspaceIsolation:
         *,
         task_id: str | None = None,
     ) -> WorkspaceAccessResult:
-        """パスへのアクセスが許可されているかチェックする.
+        """Check whether access to a path is permitted.
 
         Args:
-            path: チェック対象のパス
-            task_id: タスクID（タスク単位のオーバーライドをチェック）
+            path: Path to check
+            task_id: Task ID (to check per-task overrides)
 
         Returns:
-            WorkspaceAccessResult: アクセス可否と理由
+            WorkspaceAccessResult: Access permission result and reason
         """
         try:
             resolved = str(Path(path).resolve())
@@ -186,7 +186,7 @@ class WorkspaceIsolation:
                 reason=f"Invalid path: {exc}",
             )
 
-        # 1. 内部ストレージへのアクセスは常に許可
+        # 1. Access to internal storage is always allowed
         internal_resolved = str(Path(self._config.internal_storage_path).resolve())
         if resolved.startswith(internal_resolved):
             return WorkspaceAccessResult(
@@ -195,7 +195,7 @@ class WorkspaceIsolation:
                 reason="Path is within internal workspace storage",
             )
 
-        # 2. タスク単位のオーバーライドをチェック
+        # 2. Check per-task overrides
         if task_id and task_id in self._task_overrides:
             override = self._task_overrides[task_id]
             if override.approved_by_user:
