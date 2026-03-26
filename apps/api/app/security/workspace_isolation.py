@@ -363,7 +363,7 @@ class WorkspaceIsolation:
         logger.info("Workspace: cloud provider removed: %s", provider)
 
     def get_access_scope(self) -> AccessScope:
-        """現在のアクセス範囲を返す."""
+        """Return the current access scope."""
         local = self._config.local_access_enabled
         cloud = self._config.cloud_access_enabled
         if local and cloud:
@@ -380,12 +380,13 @@ class WorkspaceIsolation:
         requested_cloud: list[str] | None = None,
         requested_storage: StorageLocation | None = None,
     ) -> WorkspaceAccessResult | None:
-        """チャット指示がシステム設定と異なる場合、承認が必要かチェックする.
+        """Check if approval is needed when chat instructions differ from system settings.
 
-        AI が計画段階で呼び出し、ユーザーに許可を求めるべきかを判定する。
+        Called by AI during the planning stage to determine whether user permission
+        should be requested.
 
         Returns:
-            承認が必要な場合は WorkspaceAccessResult、不要なら None
+            WorkspaceAccessResult if approval is needed, None if not
         """
         issues: list[str] = []
 
@@ -393,7 +394,7 @@ class WorkspaceIsolation:
             for p in requested_paths:
                 result = self.check_access(p)
                 if not result.allowed:
-                    issues.append(f"ローカルパス: {p}")
+                    issues.append(f"Local path: {p}")
 
         if requested_cloud:
             for c in requested_cloud:
@@ -402,15 +403,15 @@ class WorkspaceIsolation:
                 path = parts[1] if len(parts) > 1 else ""
                 result = self.check_cloud_access(provider, path)
                 if not result.allowed:
-                    issues.append(f"クラウド: {c}")
+                    issues.append(f"Cloud: {c}")
 
         if requested_storage and requested_storage != self._config.storage_location:
             if requested_storage == StorageLocation.LOCAL and not self._config.local_access_enabled:
-                issues.append(f"保存先: {requested_storage.value}（ローカルアクセス未許可）")
+                issues.append(f"Storage: {requested_storage.value} (local access not permitted)")
             elif (
                 requested_storage == StorageLocation.CLOUD and not self._config.cloud_access_enabled
             ):
-                issues.append(f"保存先: {requested_storage.value}（クラウドアクセス未許可）")
+                issues.append(f"Storage: {requested_storage.value} (cloud access not permitted)")
 
         if not issues:
             return None
@@ -422,13 +423,13 @@ class WorkspaceIsolation:
             reason="Chat instructions require access beyond current workspace settings",
             requires_user_approval=True,
             suggested_message=(
-                "この業務の指示には、現在のワークスペース設定を超えるアクセスが必要です。\n"
-                "以下のアクセスを許可しますか？\n"
+                "This task's instructions require access beyond current workspace settings.\n"
+                "Allow the following access?\n"
                 f"{items}\n"
-                "[このタスクのみ許可] [設定を恒久変更] [拒否]"
+                "[Allow for this task only] [Change settings permanently] [Deny]"
             ),
         )
 
 
-# グローバルインスタンス（初期設定: 完全隔離）
+# Global instance (default: fully isolated)
 workspace_isolation = WorkspaceIsolation()

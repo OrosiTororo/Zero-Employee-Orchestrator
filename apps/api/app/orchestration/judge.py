@@ -116,7 +116,7 @@ class PolicyPackJudge:
         if operations:
             dangerous = self.check_dangerous_operations(operations)
             if dangerous:
-                violations.extend([f"承認必須操作が含まれています: {op}" for op in dangerous])
+                violations.extend([f"Approval-required operation detected: {op}" for op in dangerous])
 
             # autonomy_boundary チェック
             try:
@@ -125,25 +125,25 @@ class PolicyPackJudge:
                 for op in operations:
                     autonomy = check_autonomy(op)
                     if autonomy.requires_approval and op not in dangerous:
-                        violations.append(f"自律実行境界: {autonomy.reason}")
+                        violations.append(f"Autonomy boundary: {autonomy.reason}")
             except ImportError:
                 pass
 
         # Check credential exposure
         content = str(output)
         if self.check_credential_exposure(content):
-            violations.append("認証情報が平文で含まれている可能性があります")
-            suggestions.append("機密情報をマスキングまたは参照ID化してください")
+            violations.append("Credentials may be included in plaintext")
+            suggestions.append("Please mask sensitive information or replace with reference IDs")
 
-        # PII チェック — 出力に個人情報が含まれていないか
+        # PII check — verify output does not contain personal information
         try:
             from app.security.pii_guard import detect_and_mask_pii
 
-            pii_result = detect_and_mask_pii(content[:5000])  # 先頭5000文字をスキャン
+            pii_result = detect_and_mask_pii(content[:5000])  # Scan first 5000 characters
             if pii_result.has_pii:
                 suggestions.append(
-                    f"PII 検出 ({pii_result.detected_count}件): "
-                    f"{', '.join(pii_result.detected_types)} — マスキングを推奨"
+                    f"PII detected ({pii_result.detected_count} items): "
+                    f"{', '.join(pii_result.detected_types)} — masking recommended"
                 )
         except ImportError:
             pass
@@ -163,14 +163,14 @@ class PolicyPackJudge:
 
 # ---------------------------------------------------------------------------
 # Utility functions for semantic comparison
-# セマンティック比較のためのユーティリティ関数群
+# Utility functions for semantic comparison
 # ---------------------------------------------------------------------------
 
 
 def _tokenize(text: str) -> set[str]:
     """Tokenize text into lowercase word tokens for Jaccard similarity.
 
-    テキストを小文字トークンに分割（Jaccard類似度計算用）。
+    Tokenize text into lowercase tokens (for Jaccard similarity calculation).
     """
     return set(re.findall(r"[a-zA-Z0-9\u3040-\u9fff]+", text.lower()))
 
@@ -178,7 +178,7 @@ def _tokenize(text: str) -> set[str]:
 def _jaccard_similarity(a: str, b: str) -> float:
     """Compute token-level Jaccard similarity between two strings.
 
-    2つの文字列間のトークンレベルJaccard類似度を計算する。
+    Compute token-level Jaccard similarity between two strings.
     """
     tokens_a = _tokenize(a)
     tokens_b = _tokenize(b)
@@ -194,7 +194,7 @@ def _jaccard_similarity(a: str, b: str) -> float:
 def _normalize_value(value: str) -> str:
     """Normalize a string value for comparison (strip, lowercase).
 
-    比較用に文字列を正規化（空白除去・小文字化）。
+    Normalize a string for comparison (strip whitespace, lowercase).
     """
     return value.strip().lower()
 
@@ -202,7 +202,7 @@ def _normalize_value(value: str) -> str:
 def _try_parse_number(value: str) -> float | None:
     """Try to parse a string as a number, return None on failure.
 
-    文字列を数値にパース。失敗時はNone。
+    Parse a string as a number. Returns None on failure.
     """
     cleaned = value.strip().replace(",", "").replace(" ", "")
     # Handle percentages
@@ -221,7 +221,7 @@ def _numeric_close(a_str: str, b_str: str, tolerance: float = 0.05) -> bool | No
     """Compare two values numerically within tolerance.
 
     Returns True if close, False if not close, None if not both numeric.
-    2つの値を数値的に比較。近ければTrue、遠ければFalse、数値でなければNone。
+    Compare two values numerically. True if close, False if not close, None if not both numeric.
     """
     a_num = _try_parse_number(a_str)
     b_num = _try_parse_number(b_str)
@@ -236,7 +236,7 @@ def _numeric_close(a_str: str, b_str: str, tolerance: float = 0.05) -> bool | No
 
 
 # Negation patterns for contradiction detection
-# 矛盾検出用の否定パターン
+# Negation patterns for contradiction detection
 _NEGATION_PAIRS: list[tuple[re.Pattern, re.Pattern]] = [
     (re.compile(r"\bis\b", re.I), re.compile(r"\bis\s+not\b", re.I)),
     (re.compile(r"\btrue\b", re.I), re.compile(r"\bfalse\b", re.I)),
@@ -257,7 +257,7 @@ _NEGATION_PAIRS: list[tuple[re.Pattern, re.Pattern]] = [
 ]
 
 # Known factual patterns for basic verification
-# 基本的な事実検証用の既知パターン
+# Known factual patterns for basic verification
 _FACTUAL_PATTERNS: list[dict] = [
     # Year range sanity checks
     {
@@ -281,10 +281,10 @@ _FACTUAL_PATTERNS: list[dict] = [
 
 
 class CrossModelJudge:
-    """Cross-Model Verification: 複数モデルの出力を比較して品質を検証.
+    """Cross-Model Verification: compare outputs from multiple models to verify quality.
 
-    HIGH / CRITICAL 品質モードで使用し、異なる LLM の出力の
-    一致度を評価して信頼性を担保する。
+    Used in HIGH / CRITICAL quality modes, evaluating the agreement
+    between different LLM outputs to ensure reliability.
 
     Enhanced with:
     - Semantic similarity (token-level Jaccard)
@@ -306,41 +306,41 @@ class CrossModelJudge:
 
     # ------------------------------------------------------------------
     # Semantic value comparison
-    # セマンティック値比較
+    # Semantic value comparison
     # ------------------------------------------------------------------
 
     def _values_match(self, a: str, b: str) -> bool:
         """Check if two string values match semantically.
 
-        2つの文字列値がセマンティックに一致するかを判定する。
+        Check if two string values match semantically.
         Checks in order: exact match -> normalized match -> numeric match -> Jaccard.
         """
         # Exact match
         if a == b:
             return True
 
-        # Normalized match（正規化一致）
+        # Normalized match
         na, nb = _normalize_value(a), _normalize_value(b)
         if na == nb:
             return True
 
-        # Numeric tolerance match（数値許容範囲一致）
+        # Numeric tolerance match
         num_result = _numeric_close(a, b, self.numeric_tolerance)
         if num_result is not None:
             return num_result
 
-        # Jaccard similarity（Jaccard類似度）
+        # Jaccard similarity
         return _jaccard_similarity(a, b) >= self.semantic_threshold
 
     # ------------------------------------------------------------------
     # Contradiction detection
-    # 矛盾検出
+    # Contradiction detection
     # ------------------------------------------------------------------
 
     def detect_contradictions(self, outputs: list[dict]) -> list[dict]:
         """Detect contradictions between multiple model outputs.
 
-        複数モデル出力間の矛盾を検出する。
+        Detect contradictions between multiple model outputs.
 
         Returns a list of contradiction detail dicts with keys:
             key, type, values, description
@@ -373,9 +373,9 @@ class CrossModelJudge:
     def _check_pair_contradiction(self, key: str, val_a: str, val_b: str) -> dict | None:
         """Check a single pair of values for contradiction.
 
-        値ペア間の矛盾をチェックする。
+        Check a pair of values for contradiction.
         """
-        # 1. Numeric discrepancy（数値不一致）
+        # 1. Numeric discrepancy
         num_result = _numeric_close(val_a, val_b, self.numeric_tolerance)
         if num_result is False:
             return {
@@ -386,7 +386,7 @@ class CrossModelJudge:
                 f"tolerance: '{val_a}' vs '{val_b}'",
             }
 
-        # 2. Negation pattern（否定パターン）
+        # 2. Negation pattern
         for pos_pat, neg_pat in _NEGATION_PAIRS:
             a_has_pos = bool(pos_pat.search(val_a)) and not bool(neg_pat.search(val_a))
             a_has_neg = bool(neg_pat.search(val_a))
@@ -403,7 +403,7 @@ class CrossModelJudge:
                 }
 
         # 3. Low semantic similarity with no numeric match means conflicting text
-        # 低セマンティック類似度（数値一致なし）= テキスト矛盾
+        # Low semantic similarity (no numeric match) = text contradiction
         if num_result is None:  # not numeric
             sim = _jaccard_similarity(val_a, val_b)
             if sim < 0.2 and len(val_a) > 3 and len(val_b) > 3:
@@ -419,13 +419,13 @@ class CrossModelJudge:
 
     # ------------------------------------------------------------------
     # Factual verification heuristics
-    # 事実検証ヒューリスティクス
+    # Factual verification heuristics
     # ------------------------------------------------------------------
 
     def _check_factual_patterns(self, outputs: list[dict]) -> list[dict]:
         """Run factual verification heuristics on output values.
 
-        出力値に対して事実検証ヒューリスティクスを実行する。
+        Run factual verification heuristics on output values.
         """
         issues: list[dict] = []
         for out in outputs:
@@ -460,13 +460,13 @@ class CrossModelJudge:
 
     # ------------------------------------------------------------------
     # Confidence-weighted majority scoring
-    # 信頼度重み付き多数決スコアリング
+    # Confidence-weighted majority scoring
     # ------------------------------------------------------------------
 
     def _majority_agreement_score(self, outputs: list[dict]) -> float:
         """Compute confidence-weighted agreement using majority vote.
 
-        多数決による信頼度重み付き一致度を計算する。
+        Compute confidence-weighted agreement using majority vote.
         For each common key, find the largest group of matching values.
         """
         all_keys: set[str] = set()
@@ -505,25 +505,25 @@ class CrossModelJudge:
 
     # ------------------------------------------------------------------
     # Main evaluate method
-    # メイン評価メソッド
+    # Main evaluate method
     # ------------------------------------------------------------------
 
     def evaluate(self, outputs: list[dict], context: dict | None = None) -> JudgeResult:
-        """複数モデル出力の一致度を評価する.
+        """Evaluate agreement across multiple model outputs.
 
         Enhanced evaluation with semantic comparison, contradiction detection,
         and factual verification heuristics.
 
         Args:
-            outputs: 各モデルの出力辞書リスト
-            context: 評価コンテキスト
+            outputs: List of output dicts from each model
+            context: Evaluation context
         """
         if len(outputs) < 2:
             return JudgeResult(
                 verdict=JudgeVerdict.WARN,
                 score=0.5,
-                reasons=["クロスモデル検証には2つ以上の出力が必要です"],
-                suggestions=["追加モデルでの検証を推奨します"],
+                reasons=["Cross-model verification requires 2 or more outputs"],
+                suggestions=["Verification with additional models is recommended"],
                 policy_violations=[],
                 requires_human_review=False,
             )
@@ -537,7 +537,7 @@ class CrossModelJudge:
             return JudgeResult(
                 verdict=JudgeVerdict.WARN,
                 score=0.5,
-                reasons=["出力が空です"],
+                reasons=["Output is empty"],
                 suggestions=[],
                 policy_violations=[],
             )
@@ -587,30 +587,30 @@ class CrossModelJudge:
 
         if structural_score < self.agreement_threshold:
             reasons.append(
-                f"構造一致度が低い: {structural_score:.0%} (閾値 {self.agreement_threshold:.0%})"
+                f"Low structural agreement: {structural_score:.0%} (threshold {self.agreement_threshold:.0%})"
             )
 
         if semantic_value_score < self.agreement_threshold:
             reasons.append(
-                f"セマンティック値一致度が低い: {semantic_value_score:.0%} "
-                f"(閾値 {self.agreement_threshold:.0%})"
+                f"Low semantic value agreement: {semantic_value_score:.0%} "
+                f"(threshold {self.agreement_threshold:.0%})"
             )
 
         if contradictions:
-            reasons.append(f"矛盾が {len(contradictions)} 件検出されました")
+            reasons.append(f"{len(contradictions)} contradiction(s) detected")
             for c in contradictions[:5]:  # Show first 5
                 reasons.append(f"  - [{c['type']}] {c['description']}")
-            suggestions.append("矛盾が検出されたキーを重点的にレビューしてください")
+            suggestions.append("Please focus review on keys where contradictions were detected")
 
         if factual_issues:
-            reasons.append(f"事実検証で {len(factual_issues)} 件の問題が検出されました")
+            reasons.append(f"{len(factual_issues)} factual verification issue(s) detected")
             for fi in factual_issues[:3]:
                 reasons.append(f"  - [{fi['type']}] {fi['description']}")
 
         # ---- Determine verdict ----
         if overall_score < self.agreement_threshold or len(contradictions) >= 3:
             verdict = JudgeVerdict.NEEDS_REVIEW
-            suggestions.append("人間レビューによる最終判断を推奨します")
+            suggestions.append("Human review for final judgment is recommended")
         elif contradictions or reasons:
             verdict = JudgeVerdict.WARN
         else:

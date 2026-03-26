@@ -1,8 +1,7 @@
-"""Quality SLA — 品質モード定義＋モデル選択.
+"""Quality SLA — Quality mode definition + model selection.
 
-品質モードに応じて使用するモデルやリトライ上限、
-Judge 閾値を切り替える。SLA ポリシーとして管理し、
-Ticket / Task レベルで適用する。
+Switches models, retry limits, and Judge thresholds based on quality mode.
+Managed as SLA policies and applied at the Ticket / Task level.
 """
 
 from dataclasses import dataclass
@@ -10,17 +9,17 @@ from enum import Enum
 
 
 class QualityMode(str, Enum):
-    """品質モード: タスクの重要度に応じたモデル選択指針."""
+    """Quality mode: model selection guideline based on task importance."""
 
-    DRAFT = "draft"  # 高速・低コスト (下書き向き)
-    STANDARD = "standard"  # 標準品質
-    HIGH = "high"  # 高品質 (複数モデル検証)
-    CRITICAL = "critical"  # 最高品質 (人間レビュー必須)
+    DRAFT = "draft"  # Fast and low-cost (for drafts)
+    STANDARD = "standard"  # Standard quality
+    HIGH = "high"  # High quality (multi-model verification)
+    CRITICAL = "critical"  # Highest quality (human review required)
 
 
 @dataclass
 class QualitySLAConfig:
-    """品質モード別の設定値."""
+    """Configuration values per quality mode."""
 
     mode: QualityMode
     preferred_models: list[str]
@@ -33,9 +32,9 @@ class QualitySLAConfig:
 
 
 # ---------------------------------------------------------------------------
-# デフォルト品質モード設定
-# ModelRegistry (model_catalog.json) からモデルリストを動的に読み込む。
-# カタログが利用できない場合はインラインのフォールバックを使用。
+# Default quality mode settings
+# Dynamically loads model lists from ModelRegistry (model_catalog.json).
+# Uses inline fallback when the catalog is unavailable.
 # ---------------------------------------------------------------------------
 
 _SLA_STATIC = {
@@ -91,7 +90,7 @@ _FALLBACK_SLA_MODELS = {
 
 
 def _load_sla_models(mode: QualityMode) -> dict[str, list[str]]:
-    """ModelRegistry から品質モード別のモデルリストを読み込む."""
+    """Load model lists per quality mode from ModelRegistry."""
     mode_key = mode.value  # "draft", "standard", etc.
     try:
         from app.providers.model_registry import get_model_registry
@@ -121,7 +120,7 @@ DEFAULT_SLA_CONFIGS: dict[QualityMode, QualitySLAConfig] = _build_sla_configs()
 
 
 def get_sla_config(mode: QualityMode | str) -> QualitySLAConfig:
-    """品質モードに対応する SLA 設定を取得."""
+    """Get SLA config for a quality mode."""
     if isinstance(mode, str):
         mode = QualityMode(mode)
     return DEFAULT_SLA_CONFIGS[mode]
@@ -131,7 +130,7 @@ def select_model(
     mode: QualityMode | str,
     available_models: list[str] | None = None,
 ) -> str:
-    """品質モードと利用可能モデル一覧から最適モデルを選択."""
+    """Select the optimal model from quality mode and available models."""
     config = get_sla_config(mode)
     candidates = config.preferred_models + config.fallback_models
 
@@ -142,7 +141,7 @@ def select_model(
         if model in available_models:
             return model
 
-    # どのモデルも利用不可の場合、利用可能な最初のモデルを返す
+    # If no model is available from candidates, return the first available model
     if available_models:
         return available_models[0]
 
@@ -150,10 +149,10 @@ def select_model(
 
 
 def should_cross_verify(mode: QualityMode | str) -> bool:
-    """クロスモデル検証が必要かどうかを判定."""
+    """Determine whether cross-model verification is required."""
     return get_sla_config(mode).cross_model_verification
 
 
 def should_human_review(mode: QualityMode | str) -> bool:
-    """人間レビューが必要かどうかを判定."""
+    """Determine whether human review is required."""
     return get_sla_config(mode).requires_human_review
