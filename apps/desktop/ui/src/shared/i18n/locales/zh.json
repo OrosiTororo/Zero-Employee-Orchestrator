@@ -88,6 +88,8 @@
       "welcome": "欢迎",
       "organization": "组织设置",
       "provider": "AI 连接",
+      "businessInterview": "业务访谈",
+      "orgPreview": "构建组织",
       "firstAgent": "首个智能体",
       "complete": "完成"
     },
@@ -278,8 +280,13 @@
     "secretaryOnlyTip": "如果想保持简单可选择此项。之后可以添加部门。",
     "preview": "预览",
     "generate": "生成组织",
+    "buildOrg": "按此配置构建组织",
     "generating": "正在构建组织...",
     "generated": "组织已创建！",
+    "previewStructure": "预览组织结构",
+    "trySecretary": "试用秘书功能",
+    "trySecretaryDesc": "在「秘书」菜单中，写下您的想法和创意。积累的数据越多，AI 的建议就越好。",
+    "generatedDesc": "部门、团队和智能体已创建。您可以在组织架构图中查看。",
     "deptCount": "部门",
     "teamCount": "团队",
     "agentCount": "智能体"

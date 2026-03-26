@@ -111,19 +111,22 @@ export function SetupPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isGenerated, setIsGenerated] = useState(false)
 
-  const handleLocaleChange = (newLocale: Locale) => {
+  const handleLocaleChange = async (newLocale: Locale) => {
     setLocale(newLocale)
+    try {
+      await api.put("/config", { key: "LANGUAGE", value: newLocale })
+    } catch {
+      // Backend may not be available during initial setup
+    }
   }
-
-  const isJa = locale === "ja"
 
   const stepLabels: Record<Step, string> = {
     language: t.setup.steps.language,
     welcome: t.setup.steps.welcome,
     organization: t.setup.steps.organization,
-    business_interview: isJa ? "\u30D2\u30A2\u30EA\u30F3\u30B0" : "Interview",
+    business_interview: t.setup.steps.businessInterview,
     provider: t.setup.steps.provider,
-    org_preview: isJa ? "\u7D44\u7E54\u69CB\u7BC9" : "Build Org",
+    org_preview: t.setup.steps.orgPreview,
     complete: t.setup.steps.complete,
   }
 
@@ -382,23 +385,21 @@ export function SetupPage() {
               <div className="flex items-center gap-3">
                 <ClipboardList size={24} className="text-[var(--accent)]" />
                 <h2 className="text-xl font-semibold text-[var(--text-primary)]">
-                  {isJa ? "\u4E8B\u696D\u30D2\u30A2\u30EA\u30F3\u30B0" : "Business Interview"}
+                  {t.orgSetup.interviewTitle}
                 </h2>
               </div>
               <p className="text-[13px] text-[var(--text-secondary)]">
-                {isJa
-                  ? "\u3042\u306A\u305F\u306E\u4E8B\u696D\u306B\u3064\u3044\u3066\u6559\u3048\u3066\u304F\u3060\u3055\u3044\u3002\u56DE\u7B54\u306B\u5FDC\u3058\u3066\u6700\u9069\u306A\u90E8\u7F72\u69CB\u6210\u3092\u63D0\u6848\u3057\u307E\u3059\u3002"
-                  : "Tell us about your business. We'll suggest the optimal department structure based on your answers."}
+                {t.orgSetup.businessDescPlaceholder}
               </p>
 
               <div>
                 <label className="text-[12px] text-[var(--text-secondary)] mb-1 block">
-                  {isJa ? "\u4E8B\u696D\u5185\u5BB9" : "Business description"}
+                  {t.orgSetup.businessDesc}
                 </label>
                 <textarea
                   value={businessDesc}
                   onChange={(e) => setBizDesc(e.target.value)}
-                  placeholder={isJa ? "\u3042\u306A\u305F\u306E\u4E8B\u696D\u5185\u5BB9\u3092\u6559\u3048\u3066\u304F\u3060\u3055\u3044" : "Describe your business"}
+                  placeholder={t.orgSetup.businessDescPlaceholder}
                   rows={3}
                   className="w-full px-3 py-2.5 rounded-md text-[13px] bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] outline-none resize-none"
                 />
@@ -406,7 +407,7 @@ export function SetupPage() {
 
               <div>
                 <label className="text-[12px] text-[var(--text-secondary)] mb-1 block">
-                  {isJa ? "\u4E8B\u696D\u30AB\u30C6\u30B4\u30EA" : "Business category"}
+                  {t.orgSetup.businessCategory}
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {BUSINESS_CATEGORIES.map((cat) => (
@@ -420,7 +421,7 @@ export function SetupPage() {
                         color: "var(--text-primary)",
                       }}
                     >
-                      {isJa ? cat.label_ja : cat.label_en}
+                      {locale === "en" ? cat.label_en : locale === "zh" ? cat.label_en : cat.label_ja}
                     </button>
                   ))}
                 </div>
@@ -428,7 +429,7 @@ export function SetupPage() {
 
               <div>
                 <label className="text-[12px] text-[var(--text-secondary)] mb-1 block">
-                  {isJa ? "\u56F0\u308A\u3054\u3068\uFF08\u8907\u6570\u9078\u629E\u53EF\uFF09" : "Pain points (select multiple)"}
+                  {t.orgSetup.painPoints}
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {PAIN_POINTS.map((pp) => (
@@ -442,7 +443,7 @@ export function SetupPage() {
                         color: "var(--text-primary)",
                       }}
                     >
-                      {isJa ? pp.label_ja : pp.label_en}
+                      {locale === "en" ? pp.label_en : locale === "zh" ? pp.label_en : pp.label_ja}
                     </button>
                   ))}
                 </div>
@@ -450,7 +451,7 @@ export function SetupPage() {
 
               <div>
                 <label className="text-[12px] text-[var(--text-secondary)] mb-1 block">
-                  {isJa ? "\u7D44\u7E54\u898F\u6A21" : "Organization size"}
+                  {t.orgSetup.teamSize}
                 </label>
                 <div className="flex flex-col gap-2">
                   {TEAM_SIZES.map((ts) => (
@@ -470,7 +471,7 @@ export function SetupPage() {
                         {teamSize === ts.value && <div className="w-2 h-2 rounded-full bg-[var(--accent)]" />}
                       </div>
                       <span className="text-[13px] text-[var(--text-primary)]">
-                        {isJa ? ts.label_ja : ts.label_en}
+                        {locale === "en" ? ts.label_en : locale === "zh" ? ts.label_en : ts.label_ja}
                       </span>
                     </button>
                   ))}
@@ -493,12 +494,10 @@ export function SetupPage() {
                 </div>
                 <div>
                   <p className="text-[13px] text-[var(--text-primary)] font-medium">
-                    {isJa ? "\u307E\u305A\u306F\u79D8\u66F8\u3060\u3051\u3067\u59CB\u3081\u308B" : "Start with secretary only"}
+                    {t.orgSetup.secretaryOnly}
                   </p>
                   <p className="text-[12px] text-[var(--text-secondary)] mt-1">
-                    {isJa
-                      ? "\u7BA1\u7406\u3092\u30B7\u30F3\u30D7\u30EB\u306B\u3057\u305F\u3044\u5834\u5408\u306F\u3053\u3061\u3089\u304C\u304A\u3059\u3059\u3081\u3002\u5F8C\u304B\u3089\u90E8\u7F72\u3092\u8FFD\u52A0\u3067\u304D\u307E\u3059\u3002"
-                      : "Recommended for simplicity. You can add departments later."}
+                    {t.orgSetup.secretaryOnlyTip}
                   </p>
                 </div>
               </div>
@@ -571,7 +570,7 @@ export function SetupPage() {
               <div className="flex items-center gap-3">
                 <Users size={24} className="text-[var(--accent)]" />
                 <h2 className="text-xl font-semibold text-[var(--text-primary)]">
-                  {isJa ? "\u7D44\u7E54\u69CB\u7BC9" : "Build Organization"}
+                  {t.orgSetup.generate}
                 </h2>
               </div>
 
@@ -584,7 +583,7 @@ export function SetupPage() {
                         className="px-6 py-2.5 rounded-md text-[13px] font-medium text-white"
                         style={{ background: "linear-gradient(135deg, #0078d4, #6d28d9)" }}
                       >
-                        {isJa ? "\u7D44\u7E54\u69CB\u6210\u3092\u30D7\u30EC\u30D3\u30E5\u30FC" : "Preview Organization Structure"}
+                        {t.orgSetup.previewStructure}
                       </button>
                     </div>
                   )}
@@ -594,15 +593,15 @@ export function SetupPage() {
                       <div className="flex gap-4 text-center">
                         <div className="flex-1 bg-[var(--bg-surface)] border border-[var(--border)] rounded-md p-3">
                           <div className="text-2xl font-bold text-[var(--accent)]">{orgPreview.total_departments}</div>
-                          <div className="text-[11px] text-[var(--text-secondary)]">{isJa ? "\u90E8\u7F72" : "Departments"}</div>
+                          <div className="text-[11px] text-[var(--text-secondary)]">{t.orgSetup.deptCount}</div>
                         </div>
                         <div className="flex-1 bg-[var(--bg-surface)] border border-[var(--border)] rounded-md p-3">
                           <div className="text-2xl font-bold text-[var(--accent)]">{orgPreview.total_teams}</div>
-                          <div className="text-[11px] text-[var(--text-secondary)]">{isJa ? "\u30C1\u30FC\u30E0" : "Teams"}</div>
+                          <div className="text-[11px] text-[var(--text-secondary)]">{t.orgSetup.teamCount}</div>
                         </div>
                         <div className="flex-1 bg-[var(--bg-surface)] border border-[var(--border)] rounded-md p-3">
                           <div className="text-2xl font-bold text-[var(--accent)]">{orgPreview.total_agents}</div>
-                          <div className="text-[11px] text-[var(--text-secondary)]">{isJa ? "\u30A8\u30FC\u30B8\u30A7\u30F3\u30C8" : "Agents"}</div>
+                          <div className="text-[11px] text-[var(--text-secondary)]">{t.orgSetup.agentCount}</div>
                         </div>
                       </div>
 
@@ -639,12 +638,12 @@ export function SetupPage() {
                         {isGenerating ? (
                           <>
                             <Loader2 size={16} className="animate-spin" />
-                            {isJa ? "\u7D44\u7E54\u3092\u69CB\u7BC9\u4E2D..." : "Building organization..."}
+                            {t.orgSetup.generating}
                           </>
                         ) : (
                           <>
                             <Sparkles size={16} />
-                            {isJa ? "\u3053\u306E\u69CB\u6210\u3067\u7D44\u7E54\u3092\u69CB\u7BC9" : "Build this organization"}
+                            {t.orgSetup.buildOrg}
                           </>
                         )}
                       </button>
@@ -657,12 +656,10 @@ export function SetupPage() {
                     <Check size={32} color="#fff" />
                   </div>
                   <h3 className="text-lg font-semibold text-[var(--text-primary)]">
-                    {isJa ? "\u7D44\u7E54\u304C\u69CB\u7BC9\u3055\u308C\u307E\u3057\u305F\uFF01" : "Organization created!"}
+                    {t.orgSetup.generated}
                   </h3>
                   <p className="text-[13px] text-[var(--text-secondary)] max-w-[400px]">
-                    {isJa
-                      ? "\u90E8\u7F72\u30FB\u30C1\u30FC\u30E0\u30FB\u30A8\u30FC\u30B8\u30A7\u30F3\u30C8\u304C\u4F5C\u6210\u3055\u308C\u307E\u3057\u305F\u3002\u7D44\u7E54\u56F3\u304B\u3089\u78BA\u8A8D\u3067\u304D\u307E\u3059\u3002"
-                      : "Departments, teams, and agents have been created. View them in the Org Chart."}
+                    {t.orgSetup.generatedDesc}
                   </p>
                 </div>
               )}
@@ -696,12 +693,10 @@ export function SetupPage() {
                 <Info size={18} className="mt-0.5 shrink-0" style={{ color: "var(--accent)" }} />
                 <div>
                   <p className="text-[13px] text-[var(--text-primary)] font-medium">
-                    {isJa ? "\u79D8\u66F8\u6A5F\u80FD\u3092\u4F7F\u3063\u3066\u307F\u307E\u3057\u3087\u3046" : "Try the Secretary feature"}
+                    {t.orgSetup.trySecretary}
                   </p>
                   <p className="text-[12px] text-[var(--text-secondary)] mt-1">
-                    {isJa
-                      ? "\u300C\u79D8\u66F8\u300D\u30E1\u30CB\u30E5\u30FC\u304B\u3089\u3001\u601D\u8003\u3084\u30A2\u30A4\u30C7\u30A2\u3092\u6295\u3052\u8FBC\u3093\u3067\u307F\u3066\u304F\u3060\u3055\u3044\u3002\u60C5\u5831\u304C\u84C4\u7A4D\u3055\u308C\u308B\u307B\u3069\u3001AI\u306E\u63D0\u6848\u304C\u6D3B\u7528\u3055\u308C\u307E\u3059\u3002"
-                      : "From the \"Secretary\" menu, dump your thoughts and ideas. The more data you accumulate, the better AI suggestions become."}
+                    {t.orgSetup.trySecretaryDesc}
                   </p>
                 </div>
               </div>

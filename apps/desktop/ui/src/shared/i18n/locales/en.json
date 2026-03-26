@@ -88,6 +88,8 @@
       "welcome": "Welcome",
       "organization": "Organization",
       "provider": "AI Provider",
+      "businessInterview": "Interview",
+      "orgPreview": "Build Org",
       "firstAgent": "First Agent",
       "complete": "Done"
     },
@@ -278,8 +280,13 @@
     "secretaryOnlyTip": "Recommended if you want to keep things simple. You can add departments later.",
     "preview": "Preview",
     "generate": "Generate Organization",
+    "buildOrg": "Build this organization",
     "generating": "Building your organization...",
     "generated": "Organization created!",
+    "previewStructure": "Preview Organization Structure",
+    "trySecretary": "Try the Secretary feature",
+    "trySecretaryDesc": "From the \"Secretary\" menu, dump your thoughts and ideas. The more data you accumulate, the better AI suggestions become.",
+    "generatedDesc": "Departments, teams, and agents have been created. View them in the Org Chart.",
     "deptCount": "Departments",
     "teamCount": "Teams",
     "agentCount": "Agents"

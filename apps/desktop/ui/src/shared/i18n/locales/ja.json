@@ -88,6 +88,8 @@
       "welcome": "ようこそ",
       "organization": "組織設定",
       "provider": "AI接続",
+      "businessInterview": "ヒアリング",
+      "orgPreview": "組織構築",
       "firstAgent": "最初のエージェント",
       "complete": "完了"
     },
@@ -278,8 +280,13 @@
     "secretaryOnlyTip": "管理をシンプルにしたい場合はこちらがおすすめ。後から部署を追加できます。",
     "preview": "プレビュー",
     "generate": "組織を生成",
+    "buildOrg": "この構成で組織を構築",
     "generating": "組織を構築中...",
     "generated": "組織が構築されました！",
+    "previewStructure": "組織構成をプレビュー",
+    "trySecretary": "秘書機能を使ってみましょう",
+    "trySecretaryDesc": "「秘書」メニューから、思考やアイデアを投げ込んでみてください。情報が蓄積されるほど、AIの提案が活用されます。",
+    "generatedDesc": "部署・チーム・エージェントが作成されました。組織図から確認できます。",
     "deptCount": "部署",
     "teamCount": "チーム",
     "agentCount": "エージェント"
