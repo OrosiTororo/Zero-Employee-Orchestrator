@@ -118,7 +118,7 @@ class PolicyPackJudge:
             if dangerous:
                 violations.extend([f"Approval-required operation detected: {op}" for op in dangerous])
 
-            # autonomy_boundary チェック
+            # autonomy_boundary check
             try:
                 from app.policies.autonomy_boundary import check_autonomy
 

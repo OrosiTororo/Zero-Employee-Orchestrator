@@ -1,13 +1,13 @@
-"""透明性・ファクトチェック・情報開示レイヤー.
+"""Transparency, fact-checking, and disclosure layer.
 
-AI がブラックボックスにならないために:
-1. AI が参考にしたソース・情報をユーザーに開示する
-2. ユーザーが正確な承認判断をするための情報を提示する
-3. AI とユーザー間のファクトチェックを双方向で行う
-4. 計画段階での対話・すり合わせを促進する
+To prevent AI from becoming a black box:
+1. Disclose sources and information referenced by AI to users
+2. Present information needed for accurate approval decisions
+3. Bidirectional fact-checking between AI and users
+4. Facilitate dialogue and alignment during planning
 
-このモジュールは全ての AI 出力に透明性メタデータを付与し、
-承認リクエスト時にユーザーが判断に必要な情報を確実に得られるようにする。
+This module attaches transparency metadata to all AI outputs,
+ensuring users can reliably obtain the information needed for approval decisions.
 """
 
 from __future__ import annotations
@@ -22,76 +22,76 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# データ型
+# Data types
 # ---------------------------------------------------------------------------
 
 
 class SourceType(str, Enum):
-    """AI が参照した情報のソース種別."""
+    """Source type of information referenced by AI."""
 
-    WEB_PAGE = "web_page"  # Web ページ
-    DOCUMENTATION = "documentation"  # 公式ドキュメント
-    API_RESPONSE = "api_response"  # API レスポンス
-    DATABASE = "database"  # 内部データベース
-    USER_INPUT = "user_input"  # ユーザー入力
-    LLM_KNOWLEDGE = "llm_knowledge"  # LLM の内部知識（カットオフ日付付き）
-    FILE_CONTENT = "file_content"  # ローカルファイル
-    PLUGIN_MANIFEST = "plugin_manifest"  # プラグインマニフェスト
-    COMMUNITY_REGISTRY = "community_registry"  # コミュニティレジストリ
+    WEB_PAGE = "web_page"  # Web page
+    DOCUMENTATION = "documentation"  # Official documentation
+    API_RESPONSE = "api_response"  # API response
+    DATABASE = "database"  # Internal database
+    USER_INPUT = "user_input"  # User input
+    LLM_KNOWLEDGE = "llm_knowledge"  # LLM internal knowledge (with cutoff date)
+    FILE_CONTENT = "file_content"  # Local file
+    PLUGIN_MANIFEST = "plugin_manifest"  # Plugin manifest
+    COMMUNITY_REGISTRY = "community_registry"  # Community registry
 
 
 class ConfidenceLevel(str, Enum):
-    """情報の確信度."""
+    """Information confidence level."""
 
-    VERIFIED = "verified"  # ファクトチェック済み
-    HIGH = "high"  # 高い確信度
-    MEDIUM = "medium"  # 中程度
-    LOW = "low"  # 低い（推測を含む）
-    UNVERIFIED = "unverified"  # 未検証
+    VERIFIED = "verified"  # Fact-checked
+    HIGH = "high"  # High confidence
+    MEDIUM = "medium"  # Medium
+    LOW = "low"  # Low (includes speculation)
+    UNVERIFIED = "unverified"  # Unverified
 
 
 class ApprovalInfoType(str, Enum):
-    """承認時にユーザーに提示する情報の種別."""
+    """Type of information presented to users during approval."""
 
-    COST = "cost"  # コスト・料金
-    RISK = "risk"  # リスク
-    PERMISSION = "permission"  # 必要な権限
-    EXTERNAL_ACCESS = "external_access"  # 外部アクセス
-    DATA_FLOW = "data_flow"  # データの流れ
-    REVERSIBILITY = "reversibility"  # 操作の取り消し可否
-    DEPENDENCY = "dependency"  # 依存関係
-    SOURCE_REFERENCE = "source_reference"  # 参考ソース
+    COST = "cost"  # Cost / fees
+    RISK = "risk"  # Risk
+    PERMISSION = "permission"  # Required permissions
+    EXTERNAL_ACCESS = "external_access"  # External access
+    DATA_FLOW = "data_flow"  # Data flow
+    REVERSIBILITY = "reversibility"  # Operation reversibility
+    DEPENDENCY = "dependency"  # Dependencies
+    SOURCE_REFERENCE = "source_reference"  # Source reference
 
 
 @dataclass
 class SourceReference:
-    """AI が参照した情報のソース参照."""
+    """Source reference for information referenced by AI."""
 
     source_type: SourceType
     title: str
-    uri: str = ""  # URL やファイルパス
-    snippet: str = ""  # 参照した部分の抜粋
+    uri: str = ""  # URL or file path
+    snippet: str = ""  # Excerpt of referenced section
     accessed_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     confidence: ConfidenceLevel = ConfidenceLevel.MEDIUM
-    note: str = ""  # 補足情報
+    note: str = ""  # Supplementary information
 
 
 @dataclass
 class FactCheckItem:
-    """ファクトチェック項目."""
+    """Fact-check item."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    claim: str = ""  # AI の主張
+    claim: str = ""  # AI claim
     sources: list[SourceReference] = field(default_factory=list)
     confidence: ConfidenceLevel = ConfidenceLevel.MEDIUM
     verified_by_user: bool = False
-    user_feedback: str = ""  # ユーザーからのフィードバック
-    needs_verification: bool = False  # ユーザーの確認が必要
+    user_feedback: str = ""  # Feedback from user
+    needs_verification: bool = False  # Needs user verification
 
 
 @dataclass
 class ApprovalInfo:
-    """承認判断に必要な情報."""
+    """Information needed for approval decisions."""
 
     info_type: ApprovalInfoType
     title: str
@@ -101,44 +101,44 @@ class ApprovalInfo:
 
 @dataclass
 class TransparencyReport:
-    """AI 出力に付与する透明性レポート.
+    """Transparency report attached to AI outputs.
 
-    AI のあらゆる出力（計画、提案、操作結果等）に付与し、
-    ユーザーが AI の判断根拠を確認できるようにする。
+    Attached to all AI outputs (plans, proposals, operation results, etc.)
+    to allow users to verify the basis for AI decisions.
     """
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
-    # AI が参照した情報源
+    # Information sources referenced by AI
     sources: list[SourceReference] = field(default_factory=list)
 
-    # ファクトチェック項目
+    # Fact-check items
     fact_checks: list[FactCheckItem] = field(default_factory=list)
 
-    # 承認に必要な情報
+    # Information needed for approval
     approval_info: list[ApprovalInfo] = field(default_factory=list)
 
-    # AI の推論プロセス概要
+    # AI reasoning process summary
     reasoning_summary: str = ""
 
-    # AI が判断に自信がない点
+    # Points where AI is uncertain
     uncertainties: list[str] = field(default_factory=list)
 
-    # ユーザーへの質問・確認事項
+    # Questions / confirmations for the user
     questions_for_user: list[str] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
-# 透明性ビルダー — 各モジュールがレポートを構築するためのヘルパー
+# Transparency builder — helper for modules to build reports
 # ---------------------------------------------------------------------------
 
 
 class TransparencyBuilder:
-    """透明性レポートを段階的に構築するビルダー.
+    """Builder for incrementally constructing transparency reports.
 
-    各サービス・オーケストレーションモジュールがこのビルダーを使って
-    AI の判断根拠を記録し、最終的にユーザーに提示する。
+    Each service / orchestration module uses this builder to record
+    the basis for AI decisions, ultimately presented to users.
     """
 
     def __init__(self) -> None:
@@ -153,7 +153,7 @@ class TransparencyBuilder:
         confidence: ConfidenceLevel = ConfidenceLevel.MEDIUM,
         note: str = "",
     ) -> TransparencyBuilder:
-        """参照ソースを追加する."""
+        """Add a source reference."""
         self._report.sources.append(
             SourceReference(
                 source_type=source_type,
@@ -173,7 +173,7 @@ class TransparencyBuilder:
         confidence: ConfidenceLevel = ConfidenceLevel.MEDIUM,
         needs_verification: bool = False,
     ) -> TransparencyBuilder:
-        """ファクトチェック項目を追加する."""
+        """Add a fact-check item."""
         self._report.fact_checks.append(
             FactCheckItem(
                 claim=claim,
@@ -191,7 +191,7 @@ class TransparencyBuilder:
         detail: str,
         severity: str = "info",
     ) -> TransparencyBuilder:
-        """承認判断に必要な情報を追加する."""
+        """Add information needed for approval decisions."""
         if isinstance(info_type, str):
             info_type = ApprovalInfoType(info_type)
         self._report.approval_info.append(
@@ -205,26 +205,26 @@ class TransparencyBuilder:
         return self
 
     def set_reasoning(self, summary: str) -> TransparencyBuilder:
-        """AI の推論概要を設定する."""
+        """Set the AI reasoning summary."""
         self._report.reasoning_summary = summary
         return self
 
     def add_uncertainty(self, uncertainty: str) -> TransparencyBuilder:
-        """AI が自信がない点を追加する."""
+        """Add a point where AI is uncertain."""
         self._report.uncertainties.append(uncertainty)
         return self
 
     def add_question(self, question: str) -> TransparencyBuilder:
-        """ユーザーへの確認事項を追加する."""
+        """Add a confirmation item for the user."""
         self._report.questions_for_user.append(question)
         return self
 
     def build(self) -> TransparencyReport:
-        """レポートを生成する."""
+        """Generate the report."""
         return self._report
 
     def to_dict(self) -> dict:
-        """レポートを辞書に変換する（API レスポンス用）."""
+        """Convert report to dict (for API responses)."""
         report = self._report
         return {
             "id": report.id,
@@ -270,7 +270,7 @@ class TransparencyBuilder:
 
 
 # ---------------------------------------------------------------------------
-# プラグインインストール用の透明性レポート生成
+# Transparency report generation for plugin installation
 # ---------------------------------------------------------------------------
 
 
@@ -278,33 +278,32 @@ def build_plugin_install_transparency(
     template: dict,
     env_report_dict: dict,
 ) -> dict:
-    """プラグインインストール時の透明性レポートを生成する.
+    """Generate a transparency report for plugin installation.
 
-    ユーザーがプラグインをインストールする前に:
-    - このプラグインが何をするか
-    - どんな外部アクセスが必要か
-    - どんなコストがかかるか
-    - 何が安全で何がリスクか
-    を明確に提示する。
+    Before users install a plugin, clearly present:
+    - What this plugin does
+    - What external access is required
+    - What costs are involved
+    - What is safe and what is risky
 
     Args:
-        template: プラグインテンプレート
-        env_report_dict: 環境チェック結果
+        template: Plugin template
+        env_report_dict: Environment check results
 
     Returns:
-        透明性レポート辞書
+        Transparency report dict
     """
     builder = TransparencyBuilder()
 
-    # ソース情報
+    # Source information
     source_uri = template.get("source_uri", "")
     if source_uri:
         builder.add_source(
             source_type=SourceType.WEB_PAGE,
-            title=f"{template['name']} の公式リポジトリ",
+            title=f"{template['name']} official repository",
             uri=source_uri,
             confidence=ConfidenceLevel.VERIFIED,
-            note="プラグイン情報の公式ソース",
+            note="Official source for plugin information",
         )
 
     pypi = template.get("pypi_package")
@@ -314,20 +313,20 @@ def build_plugin_install_transparency(
             title=f"PyPI: {pypi}",
             uri=f"https://pypi.org/project/{pypi}/",
             confidence=ConfidenceLevel.VERIFIED,
-            note="パッケージの公開情報",
+            note="Package public information",
         )
 
     builder.add_source(
         source_type=SourceType.PLUGIN_MANIFEST,
-        title="ZEO プラグインカタログ",
+        title="ZEO Plugin Catalog",
         uri="",
         confidence=ConfidenceLevel.HIGH,
-        note="ZEO 内部のプラグインカタログから取得",
+        note="Retrieved from ZEO internal plugin catalog",
     )
 
-    # ファクトチェック項目
+    # Fact-check items
     builder.add_fact_check(
-        claim=f"{template['name']} はオープンソースで、ライセンスは {template.get('license', '不明')}",
+        claim=f"{template['name']} is open source, license: {template.get('license', 'unknown')}",
         sources=[
             SourceReference(
                 source_type=SourceType.WEB_PAGE,
@@ -340,8 +339,8 @@ def build_plugin_install_transparency(
         needs_verification=not source_uri,
     )
 
-    # 承認に必要な情報
-    # コスト
+    # Information needed for approval
+    # Cost
     requirements = template.get("requirements", [])
     has_paid_api = any(
         r.get("type") == "api_key"
@@ -352,34 +351,34 @@ def build_plugin_install_transparency(
     if has_paid_api:
         builder.add_approval_info(
             info_type=ApprovalInfoType.COST,
-            title="API 利用料金が発生する可能性",
+            title="Potential API usage fees",
             detail=(
-                "このプラグインは外部 API キーが必要です。"
-                "利用量に応じた API 料金が発生する場合があります。"
-                "無料枠や代替手段がある場合はその情報も確認してください。"
+                "This plugin requires an external API key. "
+                "API fees may apply depending on usage. "
+                "If free tiers or alternatives exist, please review that information as well."
             ),
             severity="warning",
         )
     else:
         builder.add_approval_info(
             info_type=ApprovalInfoType.COST,
-            title="追加コストなし",
-            detail="このプラグインは無料で利用できます（ローカル実行 or 無料 API）。",
+            title="No additional cost",
+            detail="This plugin is free to use (local execution or free API).",
             severity="info",
         )
 
-    # 外部アクセス
+    # External access
     safety = template.get("safety", {})
     dangerous_ops = safety.get("dangerous_operations", [])
     if dangerous_ops:
         builder.add_approval_info(
             info_type=ApprovalInfoType.EXTERNAL_ACCESS,
-            title="外部アクセスを行う操作",
-            detail=f"以下の操作は承認が必要です: {', '.join(dangerous_ops)}",
+            title="Operations that perform external access",
+            detail=f"The following operations require approval: {', '.join(dangerous_ops)}",
             severity="warning",
         )
 
-    # データフロー
+    # Data flow
     has_internet = any(
         r.get("type") in ("api_key", "env_var")
         or r.get("name", "") in ("SUNO_COOKIE", "SLACK_BOT_TOKEN")
@@ -388,51 +387,51 @@ def build_plugin_install_transparency(
     if has_internet:
         builder.add_approval_info(
             info_type=ApprovalInfoType.DATA_FLOW,
-            title="外部サービスとの通信",
-            detail="このプラグインは外部サービスにデータを送信します。送信内容は監査ログに記録されます。",
+            title="Communication with external services",
+            detail="This plugin sends data to external services. Sent content is recorded in audit logs.",
             severity="warning",
         )
 
-    # 権限
+    # Permissions
     required_perms = template.get("required_permissions", [])
     if required_perms:
         builder.add_approval_info(
             info_type=ApprovalInfoType.PERMISSION,
-            title="必要な権限",
-            detail=f"必要な権限: {', '.join(required_perms)}",
+            title="Required permissions",
+            detail=f"Required permissions: {', '.join(required_perms)}",
             severity="info",
         )
 
-    # 可逆性
+    # Reversibility
     builder.add_approval_info(
         info_type=ApprovalInfoType.REVERSIBILITY,
-        title="アンインストール可能",
-        detail="このプラグインはいつでもアンインストールできます。pip パッケージは残りますが、ZEO からの登録は解除されます。",
+        title="Can be uninstalled",
+        detail="This plugin can be uninstalled at any time. The pip package will remain, but registration from ZEO will be removed.",
         severity="info",
     )
 
-    # 推論概要
+    # Reasoning summary
     builder.set_reasoning(
-        f"プラグイン '{template['name']}' のインストールを提案しました。"
-        f"カテゴリ: {template.get('category', '不明')}。"
-        f"ソース: {source_uri or '内部カタログ'}。"
+        f"Proposed installation of plugin '{template['name']}'."
+        f"Category: {template.get('category', 'unknown')}. "
+        f"Source: {source_uri or 'internal catalog'}."
     )
 
-    # 不確実性
+    # Uncertainties
     if not source_uri:
-        builder.add_uncertainty("プラグインのソース URI が不明です。安全性の検証が困難です。")
+        builder.add_uncertainty("Plugin source URI is unknown. Safety verification is difficult.")
 
     if template.get("adapter", {}).get("class") is None:
         builder.add_uncertainty(
-            "このプラグインのアダプタは未実装です。"
-            "コミュニティからの貢献を待つか、手動で実装が必要です。"
+            "This plugin's adapter is not yet implemented. "
+            "Either wait for community contributions or implement it manually."
         )
 
-    # ユーザーへの質問
+    # Questions for the user
     setup_instructions = env_report_dict.get("setup_instructions", [])
     if setup_instructions:
         builder.add_question(
-            "以下のセットアップ手順を確認してください:\n"
+            "Please review the following setup instructions:\n"
             + "\n".join(f"  - {s}" for s in setup_instructions)
         )
 

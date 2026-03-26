@@ -1,13 +1,13 @@
-"""Meta-Skills — AI エージェントの「学び方を学ぶ」能力.
+"""Meta-Skills — AI agent "learning to learn" capabilities.
 
-AI エージェントが自己改善するための 5 つのメタスキルを定義する:
-  - Feeling: ユーザーインタラクションから感情・文脈シグナルを分析
-  - Seeing: 過去の経験からパターンを認識
-  - Dreaming: 創造的な仮説的解決策を生成
-  - Making: 計画から具体的なアウトプットを生成
-  - Learning: 実行結果から教訓を抽出し全メタスキルを更新
+Defines 5 meta-skills for AI agent self-improvement:
+  - Feeling: Analyze emotional/contextual signals from user interactions
+  - Seeing: Recognize patterns from past experiences
+  - Dreaming: Generate creative hypothetical solutions
+  - Making: Generate concrete outputs from plans
+  - Learning: Extract lessons from execution results and update all meta-skills
 
-ROADMAP v0.3: Meta-Skills 基盤。
+ROADMAP v0.3: Meta-Skills foundation.
 """
 
 from __future__ import annotations
@@ -23,18 +23,18 @@ logger = logging.getLogger(__name__)
 
 
 class MetaSkillType(str, Enum):
-    """メタスキルの種類."""
+    """Meta-skill type."""
 
-    FEELING = "feeling"  # 直感・文脈感知
-    SEEING = "seeing"  # パターン認識
-    DREAMING = "dreaming"  # 創造的仮説生成
-    MAKING = "making"  # 実行・成果物生成
-    LEARNING = "learning"  # 教訓抽出・自己更新
+    FEELING = "feeling"  # Intuition / context sensing
+    SEEING = "seeing"  # Pattern recognition
+    DREAMING = "dreaming"  # Creative hypothesis generation
+    MAKING = "making"  # Execution / artifact generation
+    LEARNING = "learning"  # Lesson extraction / self-update
 
 
 @dataclass
 class Insight:
-    """メタスキル横断で生成される洞察."""
+    """Insight generated across meta-skills."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     source_skill: MetaSkillType = MetaSkillType.LEARNING
@@ -44,7 +44,7 @@ class Insight:
     applied_count: int = 0
 
     def to_dict(self) -> dict[str, Any]:
-        """辞書表現を返す."""
+        """Return a dictionary representation."""
         return {
             "id": self.id,
             "source_skill": self.source_skill.value,
@@ -57,7 +57,7 @@ class Insight:
 
 @dataclass
 class MetaSkillState:
-    """各メタスキルの現在状態."""
+    """Current state of each meta-skill."""
 
     skill_type: MetaSkillType
     confidence: float = 0.0
@@ -66,7 +66,7 @@ class MetaSkillState:
     insights: list[Insight] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
-        """辞書表現を返す."""
+        """Return a dictionary representation."""
         return {
             "skill_type": self.skill_type.value,
             "confidence": self.confidence,
@@ -82,11 +82,10 @@ class MetaSkillState:
 
 
 class MetaSkillEngine:
-    """メタスキルエンジン — 5 つのメタスキルを統合管理する.
+    """Meta-skill engine — Unified management of 5 meta-skills.
 
-    AI エージェントが自己の学習プロセス自体を改善できるよう、
-    Feeling / Seeing / Dreaming / Making / Learning の 5 要素を
-    相互に連携させる。
+    Coordinates the 5 elements (Feeling / Seeing / Dreaming / Making / Learning)
+    to enable AI agents to improve their own learning processes.
     """
 
     def __init__(self) -> None:
@@ -96,33 +95,33 @@ class MetaSkillEngine:
         self._global_insights: list[Insight] = []
 
     # ------------------------------------------------------------------
-    # Feeling — 直感・文脈シグナル分析
+    # Feeling — Intuition / contextual signal analysis
     # ------------------------------------------------------------------
 
     async def feel(self, context: dict[str, Any]) -> dict[str, Any]:
-        """ユーザーインタラクションから感情・文脈シグナルを分析し直感スコアを返す.
+        """Analyze emotional/contextual signals from user interaction and return intuition score.
 
         Args:
-            context: ユーザーの発話、トーン、緊急度などを含む辞書。
+            context: Dict containing user speech, tone, urgency, etc.
 
         Returns:
-            直感スコアとシグナル分析結果。
+            Intuition score and signal analysis results.
         """
         state = self._states[MetaSkillType.FEELING]
         state.experience_count += 1
         state.last_activated = datetime.now(UTC)
 
-        # シグナル抽出
+        # Signal extraction
         urgency = context.get("urgency", 0.5)
         sentiment = context.get("sentiment", "neutral")
         complexity = context.get("complexity", 0.5)
         user_text = context.get("text", "")
 
-        # 直感スコア計算: 緊急度・複雑度・テキスト長を総合
+        # Intuition score calculation: combining urgency, complexity, and text length
         text_density = min(len(user_text) / 500.0, 1.0)
         intuition_score = urgency * 0.4 + complexity * 0.3 + text_density * 0.3
 
-        # 感情マッピング
+        # Sentiment mapping
         sentiment_map = {
             "positive": 0.2,
             "neutral": 0.0,
@@ -132,7 +131,7 @@ class MetaSkillEngine:
         sentiment_modifier = sentiment_map.get(sentiment, 0.0)
         intuition_score = max(0.0, min(1.0, intuition_score + sentiment_modifier))
 
-        # 信頼度を経験に基づいて更新
+        # Update confidence based on experience
         state.confidence = min(1.0, state.confidence + 0.01 * (1.0 - state.confidence))
 
         result = {
@@ -150,18 +149,18 @@ class MetaSkillEngine:
         return result
 
     # ------------------------------------------------------------------
-    # Seeing — パターン認識
+    # Seeing — Pattern recognition
     # ------------------------------------------------------------------
 
     async def see(self, data: dict[str, Any]) -> dict[str, Any]:
-        """過去の経験データからパターンを認識する.
+        """Recognize patterns from past experience data.
 
         Args:
-            data: 分析対象のデータ。experiences (過去の経験リスト) や
-                  current_context (現在のコンテキスト) を含む。
+            data: Data to analyze. Contains experiences (list of past experiences)
+                  and current_context (current context).
 
         Returns:
-            発見されたパターンのリスト。
+            List of discovered patterns.
         """
         state = self._states[MetaSkillType.SEEING]
         state.experience_count += 1
@@ -171,14 +170,14 @@ class MetaSkillEngine:
         current_context = data.get("current_context", {})
         patterns_found: list[dict[str, Any]] = []
 
-        # 類似コンテキストの経験を集約
+        # Aggregate experiences with similar context
         context_domain = current_context.get("domain", "")
         matching_experiences = [
             exp for exp in experiences if exp.get("domain", "") == context_domain
         ]
 
         if matching_experiences:
-            # 成功率パターン
+            # Success rate pattern
             successes = sum(1 for exp in matching_experiences if exp.get("success", False))
             total = len(matching_experiences)
             success_rate = successes / total if total > 0 else 0.0
@@ -190,13 +189,13 @@ class MetaSkillEngine:
                     "value": round(success_rate, 4),
                     "sample_size": total,
                     "description": (
-                        f"ドメイン '{context_domain}' での成功率: "
+                        f"Success rate in domain '{context_domain}': "
                         f"{success_rate:.1%} ({successes}/{total})"
                     ),
                 }
             )
 
-        # 頻出アプローチの抽出
+        # Extract most frequent approaches
         approach_counts: dict[str, int] = {}
         for exp in matching_experiences:
             approach = exp.get("approach", "unknown")
@@ -211,12 +210,12 @@ class MetaSkillEngine:
                     "value": best_approach,
                     "frequency": approach_counts[best_approach],
                     "description": (
-                        f"最頻出アプローチ: '{best_approach}' ({approach_counts[best_approach]} 回)"
+                        f"Most frequent approach: '{best_approach}' ({approach_counts[best_approach]} times)"
                     ),
                 }
             )
 
-        # 信頼度更新
+        # Update confidence
         state.confidence = min(
             1.0,
             state.confidence + 0.005 * len(patterns_found),
@@ -231,17 +230,17 @@ class MetaSkillEngine:
         }
 
     # ------------------------------------------------------------------
-    # Dreaming — 創造的仮説生成
+    # Dreaming — Creative hypothesis generation
     # ------------------------------------------------------------------
 
     async def dream(self, problem_space: dict[str, Any]) -> dict[str, Any]:
-        """問題空間から創造的な仮説的解決策を生成する.
+        """Generate creative hypothetical solutions from the problem space.
 
         Args:
-            problem_space: 問題の定義、制約条件、既知のアプローチなどを含む辞書。
+            problem_space: Dict containing problem definition, constraints, known approaches, etc.
 
         Returns:
-            生成された仮説的解決策のリスト。
+            List of generated hypothetical solutions.
         """
         state = self._states[MetaSkillType.DREAMING]
         state.experience_count += 1
@@ -254,7 +253,7 @@ class MetaSkillEngine:
 
         hypotheses: list[dict[str, Any]] = []
 
-        # 既知アプローチの組み合わせによる新解法の生成
+        # Generate new solutions by combining known approaches
         if len(known_approaches) >= 2:
             for i, a1 in enumerate(known_approaches):
                 for a2 in known_approaches[i + 1 :]:
@@ -262,40 +261,40 @@ class MetaSkillEngine:
                         {
                             "hypothesis_id": str(uuid.uuid4()),
                             "type": "combination",
-                            "description": f"'{a1}' と '{a2}' を組み合わせたハイブリッドアプローチ",
+                            "description": f"Hybrid approach combining '{a1}' and '{a2}'",
                             "source_approaches": [a1, a2],
                             "novelty_score": 0.6,
                             "feasibility_score": 0.7,
                         }
                     )
 
-        # 制約緩和による解法の探索
+        # Explore solutions via constraint relaxation
         for constraint in constraints:
             hypotheses.append(
                 {
                     "hypothesis_id": str(uuid.uuid4()),
                     "type": "constraint_relaxation",
-                    "description": f"制約 '{constraint}' を緩和した場合の解法探索",
+                    "description": f"Solution exploration when relaxing constraint '{constraint}'",
                     "relaxed_constraint": constraint,
                     "novelty_score": 0.8,
                     "feasibility_score": 0.4,
                 }
             )
 
-        # ゴール分解による段階的解法
+        # Stepwise solution via goal decomposition
         if goals:
             hypotheses.append(
                 {
                     "hypothesis_id": str(uuid.uuid4()),
                     "type": "goal_decomposition",
-                    "description": f"目標を {len(goals)} 段階に分解した段階的アプローチ",
+                    "description": f"Stepwise approach decomposing goals into {len(goals)} stages",
                     "sub_goals": goals,
                     "novelty_score": 0.5,
                     "feasibility_score": 0.8,
                 }
             )
 
-        # 信頼度更新
+        # Update confidence
         state.confidence = min(
             1.0,
             state.confidence + 0.008 * (1.0 - state.confidence),
@@ -310,17 +309,17 @@ class MetaSkillEngine:
         }
 
     # ------------------------------------------------------------------
-    # Making — 計画実行・成果物生成
+    # Making — Plan execution / artifact generation
     # ------------------------------------------------------------------
 
     async def make(self, plan: dict[str, Any]) -> dict[str, Any]:
-        """計画から具体的なアウトプットを生成する.
+        """Generate concrete outputs from a plan.
 
         Args:
-            plan: 実行する計画。steps, resources, expected_output を含む。
+            plan: Plan to execute. Contains steps, resources, expected_output.
 
         Returns:
-            実行結果とステータス。
+            Execution results and status.
         """
         state = self._states[MetaSkillType.MAKING]
         state.experience_count += 1
@@ -339,7 +338,7 @@ class MetaSkillEngine:
             step_action = step.get("action", "")
             prerequisites = step.get("prerequisites", [])
 
-            # 前提条件チェック
+            # Prerequisite check
             prereqs_met = all(
                 any(r["step"] == p and r["success"] for r in execution_results)
                 for p in prerequisites
@@ -351,20 +350,20 @@ class MetaSkillEngine:
                         "step": step_name,
                         "action": step_action,
                         "success": False,
-                        "reason": "前提条件が未達成",
+                        "reason": "Prerequisites not met",
                         "order": i + 1,
                     }
                 )
                 failed += 1
                 continue
 
-            # ステップ実行（シミュレーション）
+            # Step execution (simulation)
             execution_results.append(
                 {
                     "step": step_name,
                     "action": step_action,
                     "success": True,
-                    "reason": "実行完了",
+                    "reason": "Execution completed",
                     "order": i + 1,
                 }
             )
@@ -373,7 +372,7 @@ class MetaSkillEngine:
         total = len(steps)
         completion_rate = completed / total if total > 0 else 0.0
 
-        # 信頼度更新
+        # Update confidence
         state.confidence = min(
             1.0,
             state.confidence + 0.01 * completion_rate,
@@ -392,17 +391,17 @@ class MetaSkillEngine:
         }
 
     # ------------------------------------------------------------------
-    # Learning — 教訓抽出・自己更新
+    # Learning — Lesson extraction / self-update
     # ------------------------------------------------------------------
 
     async def learn(self, outcome: dict[str, Any]) -> dict[str, Any]:
-        """実行結果から教訓を抽出し、全メタスキルの状態を更新する.
+        """Extract lessons from execution results and update all meta-skill states.
 
         Args:
-            outcome: 実行結果。success, domain, approach, details, feedback を含む。
+            outcome: Execution result. Contains success, domain, approach, details, feedback.
 
         Returns:
-            抽出された教訓と更新されたメタスキル状態。
+            Extracted lessons and updated meta-skill states.
         """
         state = self._states[MetaSkillType.LEARNING]
         state.experience_count += 1
@@ -416,14 +415,14 @@ class MetaSkillEngine:
 
         lessons: list[dict[str, Any]] = []
 
-        # 成功/失敗からの教訓抽出
+        # Extract lessons from success/failure
         if success:
             lesson = {
                 "type": "success_pattern",
                 "domain": domain,
                 "approach": approach,
-                "description": f"ドメイン '{domain}' で '{approach}' が成功",
-                "actionable": f"同様の状況では '{approach}' を優先的に検討",
+                "description": f"'{approach}' succeeded in domain '{domain}'",
+                "actionable": f"Consider '{approach}' as priority in similar situations",
             }
             lessons.append(lesson)
         else:
@@ -431,23 +430,23 @@ class MetaSkillEngine:
                 "type": "failure_pattern",
                 "domain": domain,
                 "approach": approach,
-                "description": f"ドメイン '{domain}' で '{approach}' が失敗: {details[:100]}",
-                "actionable": f"'{approach}' の適用条件を再検討",
+                "description": f"'{approach}' failed in domain '{domain}': {details[:100]}",
+                "actionable": f"Reconsider application conditions for '{approach}'",
             }
             lessons.append(lesson)
 
-        # フィードバックからの教訓
+        # Lessons from feedback
         if feedback:
             lessons.append(
                 {
                     "type": "feedback_insight",
                     "domain": domain,
-                    "description": f"ユーザーフィードバック: {feedback[:200]}",
-                    "actionable": "フィードバックに基づきアプローチを調整",
+                    "description": f"User feedback: {feedback[:200]}",
+                    "actionable": "Adjust approach based on feedback",
                 }
             )
 
-        # Insight の生成と保存
+        # Generate and store insights
         for lesson in lessons:
             insight = Insight(
                 source_skill=MetaSkillType.LEARNING,
@@ -457,7 +456,7 @@ class MetaSkillEngine:
             state.insights.append(insight)
             self._global_insights.append(insight)
 
-        # 全メタスキルの信頼度を微調整
+        # Fine-tune confidence of all meta-skills
         confidence_delta = 0.005 if success else -0.002
         for skill_state in self._states.values():
             skill_state.confidence = max(
@@ -478,36 +477,36 @@ class MetaSkillEngine:
         }
 
     # ------------------------------------------------------------------
-    # 状態取得
+    # State retrieval
     # ------------------------------------------------------------------
 
     def get_state(self, skill_type: MetaSkillType) -> MetaSkillState:
-        """指定メタスキルの現在状態を返す."""
+        """Return current state of the specified meta-skill."""
         return self._states[skill_type]
 
     def get_all_states(self) -> dict[MetaSkillType, MetaSkillState]:
-        """全メタスキルの状態を返す."""
+        """Return states of all meta-skills."""
         return dict(self._states)
 
     # ------------------------------------------------------------------
-    # 横断的インサイト
+    # Cross-cutting insights
     # ------------------------------------------------------------------
 
     async def generate_meta_insight(self) -> Insight | None:
-        """全メタスキルを横断した統合的インサイトを生成する.
+        """Generate an integrated insight across all meta-skills.
 
-        各スキルの経験・信頼度・直近のインサイトを総合し、
-        メタレベルの洞察を導出する。
+        Synthesizes each skill's experience, confidence, and recent insights
+        to derive a meta-level insight.
         """
         active_skills = [s for s in self._states.values() if s.experience_count > 0]
         if not active_skills:
             return None
 
-        # 最も経験豊富なスキルと最も弱いスキルを特定
+        # Identify most experienced skill and weakest skill
         most_experienced = max(active_skills, key=lambda s: s.experience_count)
         least_confident = min(active_skills, key=lambda s: s.confidence)
 
-        # 最近のインサイトからテーマを抽出
+        # Extract themes from recent insights
         recent_insights = sorted(
             self._global_insights,
             key=lambda i: i.created_at,
@@ -517,17 +516,17 @@ class MetaSkillEngine:
         insight_summary = (
             "; ".join(i.content[:50] for i in recent_insights)
             if recent_insights
-            else "インサイトなし"
+            else "No insights"
         )
 
         content = (
-            f"メタ分析: 最も活用されているスキルは "
+            f"Meta-analysis: Most utilized skill is "
             f"'{most_experienced.skill_type.value}' "
-            f"(経験数: {most_experienced.experience_count})。"
-            f"信頼度が最も低いスキルは "
+            f"(experience count: {most_experienced.experience_count}). "
+            f"Lowest confidence skill is "
             f"'{least_confident.skill_type.value}' "
-            f"(信頼度: {least_confident.confidence:.2f})。"
-            f"直近のインサイト: {insight_summary}"
+            f"(confidence: {least_confident.confidence:.2f}). "
+            f"Recent insights: {insight_summary}"
         )
 
         meta_insight = Insight(
@@ -541,16 +540,16 @@ class MetaSkillEngine:
         return meta_insight
 
     async def suggest_learning_path(self, weakness_area: str) -> dict[str, Any]:
-        """弱点領域に対する学習パスを提案する.
+        """Suggest a learning path for a weakness area.
 
         Args:
-            weakness_area: 改善したい領域（例: "pattern_recognition",
-                "creative_thinking"）。
+            weakness_area: Area to improve (e.g., "pattern_recognition",
+                "creative_thinking").
 
         Returns:
-            推奨される学習ステップとメタスキルの活用順序。
+            Recommended learning steps and meta-skill utilization order.
         """
-        # 弱点領域とメタスキルのマッピング
+        # Mapping weakness areas to meta-skills
         area_skill_map: dict[str, list[MetaSkillType]] = {
             "pattern_recognition": [
                 MetaSkillType.SEEING,
@@ -589,9 +588,9 @@ class MetaSkillEngine:
                     "current_confidence": round(skill_state.confidence, 4),
                     "experience_count": skill_state.experience_count,
                     "recommendation": (
-                        f"'{skill_type.value}' スキルを強化: "
-                        f"現在の信頼度 {skill_state.confidence:.2f}、"
-                        f"経験数 {skill_state.experience_count}"
+                        f"Strengthen '{skill_type.value}' skill: "
+                        f"current confidence {skill_state.confidence:.2f}, "
+                        f"experience count {skill_state.experience_count}"
                     ),
                     "exercises": self._suggest_exercises(skill_type),
                 }
@@ -605,31 +604,31 @@ class MetaSkillEngine:
         }
 
     def _suggest_exercises(self, skill_type: MetaSkillType) -> list[str]:
-        """メタスキルごとの練習課題を提案する."""
+        """Suggest practice exercises for each meta-skill."""
         exercises_map: dict[MetaSkillType, list[str]] = {
             MetaSkillType.FEELING: [
-                "ユーザー発話のトーン分析を 10 件実施",
-                "コンテキスト切替時の直感精度を計測",
+                "Perform tone analysis on 10 user utterances",
+                "Measure intuition accuracy during context switches",
             ],
             MetaSkillType.SEEING: [
-                "過去 50 件の実行ログからパターンを抽出",
-                "類似タスクの成功要因を比較分析",
+                "Extract patterns from 50 past execution logs",
+                "Compare and analyze success factors of similar tasks",
             ],
             MetaSkillType.DREAMING: [
-                "既知アプローチの組合せから新解法を 5 件生成",
-                "制約緩和シナリオを 3 パターン検討",
+                "Generate 5 new solutions from combinations of known approaches",
+                "Explore 3 constraint relaxation scenarios",
             ],
             MetaSkillType.MAKING: [
-                "小規模計画を 3 件実行し完了率を計測",
-                "前提条件チェーンの精度を検証",
+                "Execute 3 small-scale plans and measure completion rate",
+                "Verify accuracy of prerequisite chains",
             ],
             MetaSkillType.LEARNING: [
-                "直近 10 件の成功/失敗から教訓を抽出",
-                "フィードバックループの改善点を特定",
+                "Extract lessons from 10 recent successes/failures",
+                "Identify improvement points in the feedback loop",
             ],
         }
         return exercises_map.get(skill_type, [])
 
 
-# グローバルインスタンス
+# Global instance
 meta_skill_engine = MetaSkillEngine()
