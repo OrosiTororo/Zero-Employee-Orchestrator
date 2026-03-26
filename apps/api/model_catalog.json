@@ -1,10 +1,10 @@
 {
   "version": "2.0.0",
   "updated_at": "2026-03-18T00:00:00Z",
-  "description": "Zero-Employee Orchestrator モデルカタログ. モデルファミリー単位で管理し、バージョンは自動解決されます。モデルの追加・削除・コスト更新はこのファイルを編集してください。アプリ再起動またはAPI経由のリロードで反映されます。",
+  "description": "Zero-Employee Orchestrator model catalog. Models are managed by family name and versions are auto-resolved. Edit this file to add, remove, or update model costs. Changes take effect on app restart or API-triggered reload.",
   "version_policy": {
     "strategy": "latest",
-    "description": "モデルIDはファミリー名で管理し、実際のAPI呼び出し時にlatest_model_idへ自動解決されます。プロバイダーがモデルを更新した場合、latest_model_idのみを変更すればコード修正不要です。"
+    "description": "Model IDs are managed by family name and auto-resolved to latest_model_id at API call time. When a provider updates a model, only latest_model_id needs to change — no code modifications required."
   },
   "models": [
     {

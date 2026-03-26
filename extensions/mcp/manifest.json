@@ -1,7 +1,7 @@
 {
   "name": "mcp",
   "version": "0.1.0",
-  "description": "MCP接続拡張 - Model Context Protocol対応ツールとの接続を提供",
+  "description": "MCP connection extension — provides connectivity with Model Context Protocol-compatible tools",
   "type": "extension",
   "status": "experimental",
   "required_permissions": ["tool_connection"],

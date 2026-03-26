@@ -1,7 +1,7 @@
 {
   "slug": "line-bot",
   "name": "LINE Bot Plugin",
-  "description": "LINE からマルチエージェントに指示を送信し、結果を受け取る Plugin。LINE Messaging API を使い、トーク画面からチケット作成、進捗確認、承認操作が可能。",
+  "description": "A Plugin for sending instructions to multi-agents from LINE and receiving results. Uses the LINE Messaging API to enable ticket creation, progress checking, and approval operations from the chat screen.",
   "version": "0.1.0",
   "status": "experimental",
   "type": "plugin",
@@ -17,12 +17,12 @@
   "dangerous_operations": false,
   "approval_required_operations": ["send_message", "execute_task_from_line"],
   "use_cases": [
-    "LINE トークからチケット作成",
-    "LINE で進捗確認・ステータス照会",
-    "LINE 経由の承認フロー（Flex Message）",
-    "トークルームへの成果物・ブリーフィング通知",
-    "リッチメニューによるクイック操作"
+    "Create tickets from LINE chat",
+    "Check progress and query status via LINE",
+    "Approval workflow via LINE (Flex Message)",
+    "Deliver deliverables and briefing notifications to chat rooms",
+    "Quick operations via rich menu"
   ],
-  "note": "LINE Channel Access Token の設定が必要。本体には含まれず、Plugin として追加導入する。",
+  "note": "Requires LINE Channel Access Token configuration. Not included in the core — installed as a Plugin add-on.",
   "author": "Zero-Employee Orchestrator Team"
 }

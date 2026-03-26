@@ -1,8 +1,8 @@
 {
   "slug": "discord-bot",
   "name": "Discord Bot Plugin",
-  "description": "Discord からマルチエージェントに指示を送信し、結果を受け取る Plugin。Bot 経由でチケット作成、進捗確認、承認操作が可能。秘書AI・分身AI Plugin と連携して、Discord 上でブリーフィングの受信やユーザー代理応答も行える。",
-  "version": "0.2.0",
+  "description": "A Plugin for sending instructions to multi-agents from Discord and receiving results. Enables ticket creation, progress checking, and approval operations via Bot. Integrates with AI Secretary and AI Avatar Plugins for briefing delivery and user-proxy responses on Discord.",
+  "version": "0.1.0",
   "status": "experimental",
   "type": "plugin",
   "skills": [
@@ -19,27 +19,27 @@
   "dangerous_operations": false,
   "approval_required_operations": ["send_message", "execute_task_from_discord"],
   "use_cases": [
-    "Discord からチケット作成（自然言語メッセージ or スラッシュコマンド）",
-    "Discord で進捗確認・ステータス照会",
-    "Discord 経由の承認フロー（ボタン付きメッセージ）",
-    "チャンネルへの成果物通知",
-    "スレッド内での AI エージェントとの対話",
-    "秘書AI からの朝のブリーフィング配信",
-    "分身AI 経由でのユーザー代理レスポンス（承認済み範囲内）"
+    "Create tickets from Discord (natural language messages or slash commands)",
+    "Check progress and query status via Discord",
+    "Approval workflow via Discord (button-equipped messages)",
+    "Deliver deliverables to channels",
+    "Converse with AI agents in threads",
+    "Morning briefing delivery from AI Secretary",
+    "User-proxy responses via AI Avatar (within approved scope)"
   ],
   "integration": {
-    "ai_secretary": "秘書AI Plugin のブリーフィング・リマインドを Discord チャンネルに配信",
-    "ai_avatar": "分身AI Plugin の代理応答を Discord スレッドに投稿（承認済み範囲内）",
-    "notifications": "通知 Extension と連携して Discord をデフォルト通知先に設定可能"
+    "ai_secretary": "Deliver AI Secretary Plugin briefings and reminders to Discord channels",
+    "ai_avatar": "Post AI Avatar Plugin proxy responses in Discord threads (within approved scope)",
+    "notifications": "Can set Discord as the default notification destination via Notifications Extension"
   },
   "commands": {
-    "/zeo ticket <description>": "新しいチケットを作成",
-    "/zeo status [ticket_id]": "チケット・タスクの状態確認",
-    "/zeo approve <approval_id>": "承認操作",
-    "/zeo reject <approval_id>": "却下操作",
-    "/zeo briefing": "現在の業務サマリーを取得",
-    "/zeo ask <question>": "AI 組織に質問（Design Interview 的な対話）"
+    "/zeo ticket <description>": "Create a new ticket",
+    "/zeo status [ticket_id]": "Check ticket/task status",
+    "/zeo approve <approval_id>": "Approve operation",
+    "/zeo reject <approval_id>": "Reject operation",
+    "/zeo briefing": "Get current business summary",
+    "/zeo ask <question>": "Ask the AI organization (Design Interview-style dialogue)"
   },
-  "note": "Bot Token の設定が必要。本体には含まれず、Plugin として追加導入する。",
+  "note": "Requires Bot Token configuration. Not included in the core — installed as a Plugin add-on.",
   "author": "Zero-Employee Orchestrator Team"
 }

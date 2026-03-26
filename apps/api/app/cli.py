@@ -1,18 +1,18 @@
-"""Zero-Employee Orchestrator CLI エントリーポイント.
+"""Zero-Employee Orchestrator CLI entry point.
 
-コマンドラインから API サーバーの起動・管理・ローカルチャットモードを提供する。
+Provides API server startup, management, and local chat mode from the command line.
 
-使い方:
-    zero-employee serve          # API サーバーを起動
+Usage:
+    zero-employee serve          # Start the API server
     zero-employee serve --port 8000
-    zero-employee db upgrade     # DB マイグレーション実行
-    zero-employee health         # ヘルスチェック
-    zero-employee local          # ローカルチャットモード (Ollama)
+    zero-employee db upgrade     # Run DB migration
+    zero-employee health         # Health check
+    zero-employee local          # Local chat mode (Ollama)
     zero-employee local --model qwen3:8b
-    zero-employee models         # 利用可能モデル一覧
-    zero-employee pull <model>   # モデルダウンロード
-    zero-employee update         # 最新版にアップデート
-    zero-employee update --check # アップデート確認のみ
+    zero-employee models         # List available models
+    zero-employee pull <model>   # Download a model
+    zero-employee update         # Update to the latest version
+    zero-employee update --check # Check for updates only
 """
 
 import argparse
@@ -21,10 +21,10 @@ import sys
 
 
 def cmd_serve(args: argparse.Namespace) -> None:
-    """API サーバーを起動する."""
+    """Start the API server."""
     import uvicorn
 
-    # 起動時にバージョンチェック（バックグラウンド・ノンブロッキング）
+    # Version check at startup (background, non-blocking)
     if not args.skip_update_check:
         from app.core.version_check import check_and_notify
 
@@ -39,19 +39,19 @@ def cmd_serve(args: argparse.Namespace) -> None:
 
 
 def cmd_db_upgrade(args: argparse.Namespace) -> None:
-    """DB マイグレーションを実行する."""
+    """Run DB migration."""
     from app.core.database import Base, engine
 
     async def _create_tables() -> None:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-        print("データベーステーブルを作成しました")
+        print("Database tables created")
 
     asyncio.run(_create_tables())
 
 
 def cmd_health(args: argparse.Namespace) -> None:
-    """ヘルスチェックを実行する."""
+    """Run health check."""
     import httpx
 
     url = f"http://{args.host}:{args.port}/healthz"
@@ -68,7 +68,7 @@ def cmd_health(args: argparse.Namespace) -> None:
 
 
 def cmd_models(args: argparse.Namespace) -> None:
-    """利用可能なモデル一覧を表示する."""
+    """Display list of available models."""
     from app.core.i18n import t
 
     async def _list() -> None:
@@ -104,7 +104,7 @@ def cmd_models(args: argparse.Namespace) -> None:
 
 
 def cmd_pull(args: argparse.Namespace) -> None:
-    """Ollama モデルをダウンロードする."""
+    """Download an Ollama model."""
 
     async def _pull() -> None:
         from app.providers.ollama_provider import ollama_provider
@@ -122,7 +122,7 @@ def cmd_pull(args: argparse.Namespace) -> None:
 
 
 def cmd_security_status(args: argparse.Namespace) -> None:
-    """セキュリティ設定の概要を表示する."""
+    """Display security configuration summary."""
     from app.security.data_protection import data_protection_guard
     from app.security.sandbox import filesystem_sandbox
     from app.security.workspace_isolation import workspace_isolation
@@ -166,7 +166,7 @@ def cmd_security_status(args: argparse.Namespace) -> None:
 
 
 def cmd_config(args: argparse.Namespace) -> None:
-    """設定値の表示・変更を行う."""
+    """Display and modify configuration values."""
     from app.core.config_manager import (
         CONFIGURABLE_KEYS,
         delete_config_value,
@@ -217,7 +217,7 @@ def cmd_config(args: argparse.Namespace) -> None:
 
         value = args.value
         if not value:
-            # 機密値の場合は入力プロンプトを表示（エコーなし）
+            # Show input prompt for sensitive values (no echo)
             import getpass
 
             meta = CONFIGURABLE_KEYS[args.key]
@@ -254,7 +254,7 @@ def cmd_config(args: argparse.Namespace) -> None:
 
 
 def cmd_local(args: argparse.Namespace) -> None:
-    """ローカルチャットモード — Ollama で完全オフラインの対話型業務エージェント."""
+    """Local chat mode -- fully offline interactive business agent using Ollama."""
 
     async def _chat() -> None:
         from app.banner import print_local_banner
@@ -321,7 +321,7 @@ def cmd_local(args: argparse.Namespace) -> None:
                     break
                 continue
 
-            # 自然言語コマンドプロセッサで意図を判定
+            # Determine intent using natural language command processor
             try:
                 from app.services.nl_command_service import nl_command_processor
 
@@ -331,15 +331,15 @@ def cmd_local(args: argparse.Namespace) -> None:
                     if result.message:
                         print(f"\n  \033[38;5;78m[{parsed.category.value}]\033[0m {result.message}")
                     if result.suggestions:
-                        print("\n  \033[38;5;245mヒント:\033[0m")
+                        print("\n  \033[38;5;245mHints:\033[0m")
                         for s in result.suggestions:
                             print(f"    • {s}")
                     if not result.data.get("delegate_to_llm"):
                         print()
                         continue
-                    # delegate_to_llm の場合は LLM にも送信
+                    # If delegate_to_llm, also send to LLM
             except Exception:
-                pass  # NL プロセッサが利用不可の場合はそのまま LLM に送信
+                pass  # If NL processor is unavailable, send directly to LLM
 
             # Multi-line input (triple quotes)
             if user_input.startswith('"""') or user_input.startswith("'''"):
@@ -403,10 +403,10 @@ def cmd_local(args: argparse.Namespace) -> None:
 
 
 def cmd_chat(args: argparse.Namespace) -> None:
-    """チャットモード — 全プロバイダー対応の対話型業務エージェント.
+    """Chat mode -- interactive business agent supporting all providers.
 
-    Ollama だけでなく、全 LLM プロバイダーで利用可能。
-    自然言語で設定変更・チケット作成・モデル管理等あらゆる操作に対応。
+    Available with all LLM providers, not just Ollama.
+    Supports all operations via natural language: config changes, ticket creation, model management, etc.
     """
 
     async def _chat() -> None:
@@ -440,7 +440,7 @@ def cmd_chat(args: argparse.Namespace) -> None:
 
         print(f"  \033[38;5;245mMode: {mode.value} | Model: {model}\033[0m")
         print(
-            "  \033[38;5;245m自然言語であらゆる操作が可能です。「何ができる？」と聞いてください。\033[0m"
+            "  \033[38;5;245mAll operations available via natural language. Ask 'What can you do?' to get started.\033[0m"
         )
         print()
 
@@ -464,7 +464,7 @@ def cmd_chat(args: argparse.Namespace) -> None:
                     break
                 continue
 
-            # 自然言語コマンドプロセッサ
+            # Natural language command processor
             try:
                 from app.services.nl_command_service import nl_command_processor
 
@@ -482,7 +482,7 @@ def cmd_chat(args: argparse.Namespace) -> None:
             except Exception:
                 pass
 
-            # LLM に送信
+            # Send to LLM
             conversation.append({"role": "user", "content": user_input})
             messages = [{"role": "system", "content": system_prompt}] + conversation
 
@@ -502,7 +502,7 @@ def cmd_chat(args: argparse.Namespace) -> None:
             if response.content:
                 conversation.append({"role": "assistant", "content": response.content})
 
-            # コンテキスト圧縮
+            # Context compression
             ctx_tokens = sum(len(m["content"]) // 4 for m in messages)
             if ctx_tokens > 24000:
                 conversation = _compress_context(conversation)
@@ -651,7 +651,7 @@ def _compress_context(conversation: list[dict]) -> list[dict]:
 
 
 def cmd_update(args: argparse.Namespace) -> None:
-    """最新バージョンへのアップデートを実行する."""
+    """Update to the latest version."""
     import subprocess
 
     from app.core.version_check import (
@@ -680,7 +680,7 @@ def cmd_update(args: argparse.Namespace) -> None:
         print("\n  Run \033[38;5;51mzero-employee update\033[0m to install.")
         return
 
-    # pip install -U で更新
+    # Update via pip install -U
     print(f"\n  Updating {PACKAGE_NAME}...")
     result = subprocess.run(
         [sys.executable, "-m", "pip", "install", "-U", PACKAGE_NAME],
@@ -697,7 +697,7 @@ def cmd_update(args: argparse.Namespace) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """CLI パーサーを構築する."""
+    """Build the CLI parser."""
     parser = argparse.ArgumentParser(
         prog="zero-employee",
         description="Zero-Employee Orchestrator — AI オーケストレーション基盤",

@@ -1,7 +1,7 @@
 {
   "slug": "ai-avatar",
-  "name": "AI Avatar Plugin (分身AI)",
-  "description": "ユーザーの分身として振る舞う AI エージェントを作成する Plugin。ユーザーの価値観・判断基準・文体・専門知識をプロファイルとして学習し、ユーザーの代理として意思決定の補助、レビュー、コミュニケーションを行う。Judge Layer の判断基準としても活用される。",
+  "name": "AI Avatar Plugin",
+  "description": "A Plugin that creates an AI agent acting as the user's digital twin. It learns the user's values, decision criteria, writing style, and expertise as a profile, then assists with decision-making, reviews, and communication on the user's behalf. Also used as Judge Layer evaluation criteria.",
   "version": "0.1.0",
   "status": "experimental",
   "type": "plugin",
@@ -22,24 +22,24 @@
     "update_profile"
   ],
   "use_cases": [
-    "ユーザーの判断基準を学習し、Judge Layer の評価に反映",
-    "ユーザーの文体・トーンで下書きを作成",
-    "ユーザーの代理としてエージェントへの指示・フィードバックを提供",
-    "過去の承認パターンから自律実行の範囲を提案",
-    "ユーザー不在時のタスクレビュー・優先度判断"
+    "Learn user decision criteria and reflect them in Judge Layer evaluations",
+    "Draft content matching the user's writing style and tone",
+    "Provide instructions and feedback to agents on the user's behalf",
+    "Suggest autonomy scope based on past approval patterns",
+    "Task review and priority judgment when the user is unavailable"
   ],
   "capabilities": {
-    "profile_learning": "過去の承認・却下パターン、コメント履歴、文体を学習してプロファイルを構築",
-    "decision_criteria": "ユーザー固有の判断基準を構造化し、Judge Layer に提供",
-    "style_mimicry": "ユーザーの文体・語彙・トーンを再現した文章生成",
-    "delegation_rules": "ユーザーが明示的に委任した範囲内でのみ自律行動",
-    "transparency": "分身AI が行った判断はすべて監査ログに記録され、理由とともに追跡可能"
+    "profile_learning": "Build a profile by learning from past approval/rejection patterns, comment history, and writing style",
+    "decision_criteria": "Structure user-specific decision criteria and provide them to the Judge Layer",
+    "style_mimicry": "Generate text that reproduces the user's writing style, vocabulary, and tone",
+    "delegation_rules": "Act autonomously only within the scope explicitly delegated by the user",
+    "transparency": "All decisions made by the AI Avatar are recorded in audit logs with reasoning, fully traceable"
   },
   "integration": {
-    "judge_layer": "分身AI のプロファイルを Judge Layer のカスタムルールとして注入可能",
-    "approval_flow": "低リスク操作について、ユーザーの判断パターンに基づく自動承認提案",
-    "experience_memory": "ユーザーの経験知として Experience Memory に蓄積"
+    "judge_layer": "Inject the AI Avatar's profile as custom rules into the Judge Layer",
+    "approval_flow": "Propose auto-approval for low-risk operations based on the user's decision patterns",
+    "experience_memory": "Accumulate as user experience knowledge in Experience Memory"
   },
-  "note": "分身AI はユーザーの承認を代行することはできない（提案のみ）。最終承認権限は常にユーザー本人に残る。ユーザーのプロファイルは暗号化されてローカルに保存される。",
+  "note": "The AI Avatar cannot approve on behalf of the user (suggestions only). Final approval authority always remains with the user. User profiles are encrypted and stored locally.",
   "author": "Zero-Employee Orchestrator Team"
 }
