@@ -4,10 +4,10 @@ Handles requirement elicitation through natural language conversation.
 Generates structured specs from user intent.
 Supports file attachments (text, images) as context for spec generation.
 
-Experience Memory フィードバック:
-Design Interview の目的入力時に、Experience Memory と Failure Taxonomy から
-過去の類似失敗パターンを検索し、「この種の目的設定は過去に○○の理由で失敗
-している」というフィードバックを自動提供する。
+Experience Memory feedback:
+During objective input in Design Interview, automatically searches for similar
+past failure patterns from Experience Memory and Failure Taxonomy, providing
+feedback such as "this type of objective has failed in the past due to X reason".
 """
 
 from __future__ import annotations
@@ -26,14 +26,14 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class FileAttachment:
-    """Interview に添付されたファイル."""
+    """File attached to an interview."""
 
     filename: str
     content_type: str  # MIME type
-    extracted_text: str = ""  # テキスト抽出結果
-    file_path: str = ""  # サーバー上の保存パス
+    extracted_text: str = ""  # Extracted text result
+    file_path: str = ""  # Storage path on server
     size_bytes: int = 0
-    description: str = ""  # ユーザーによるファイルの説明
+    description: str = ""  # User-provided file description
 
 
 @dataclass
@@ -47,7 +47,7 @@ class InterviewQuestion:
 
 @dataclass
 class FailureWarning:
-    """Experience Memory / Failure Taxonomy から検出された過去の失敗警告."""
+    """Past failure warning detected from Experience Memory / Failure Taxonomy."""
 
     category: str
     subcategory: str
@@ -78,19 +78,19 @@ class InterviewSession:
             self.answers[self.questions[question_index].question] = answer
 
     def add_attachment(self, attachment: FileAttachment) -> None:
-        """ファイルを添付する."""
+        """Attach a file."""
         self.attachments.append(attachment)
 
     def get_attachments_context(self) -> str:
-        """添付ファイルのテキストをコンテキストとして結合する."""
+        """Combine attached file text as context."""
         if not self.attachments:
             return ""
         parts: list[str] = []
         for att in self.attachments:
-            header = f"[添付ファイル: {att.filename}]"
+            header = f"[Attachment: {att.filename}]"
             if att.description:
                 header += f" ({att.description})"
-            text = att.extracted_text or "(テキスト抽出不可)"
+            text = att.extracted_text or "(text extraction not available)"
             parts.append(f"{header}\n{text}")
         return "\n\n---\n\n".join(parts)
 
@@ -101,32 +101,32 @@ class InterviewSession:
 # Standard interview template for new business requests
 STANDARD_INTERVIEW_TEMPLATE = [
     InterviewQuestion(
-        question="この業務の最終的な目的は何ですか？",
+        question="What is the ultimate objective of this task?",
         category="objective",
     ),
     InterviewQuestion(
-        question="守るべき制約条件はありますか？（予算、期限、品質基準など）",
+        question="Are there any constraints to follow? (budget, deadlines, quality standards, etc.)",
         category="constraint",
     ),
     InterviewQuestion(
-        question="完了条件（受け入れ基準）は何ですか？",
+        question="What are the completion criteria (acceptance criteria)?",
         category="acceptance",
     ),
     InterviewQuestion(
-        question="想定されるリスクや注意点はありますか？",
+        question="Are there any expected risks or concerns?",
         category="risk",
         required=False,
     ),
     InterviewQuestion(
-        question="優先順位はどの程度ですか？（高/中/低）",
+        question="What is the priority level? (high/medium/low)",
         category="priority",
     ),
     InterviewQuestion(
-        question="外部サービスへの接続や送信は必要ですか？",
+        question="Is connection or sending to external services required?",
         category="constraint",
     ),
     InterviewQuestion(
-        question="人間の承認が必要な工程はありますか？",
+        question="Are there any steps that require human approval?",
         category="acceptance",
     ),
 ]
@@ -151,14 +151,14 @@ def gather_failure_feedback_from_taxonomy(
     objective: str,
     failure_taxonomy: FailureTaxonomy | None = None,
 ) -> list[FailureWarning]:
-    """Failure Taxonomy から目的に関連する頻発障害パターンを検索する.
+    """Search for frequent failure patterns related to the objective from Failure Taxonomy.
 
     Args:
-        objective: ユーザーが入力した業務目的テキスト
-        failure_taxonomy: Failure Taxonomy インスタンス（None の場合はグローバルを使用）
+        objective: Business objective text entered by the user
+        failure_taxonomy: Failure Taxonomy instance (uses global if None)
 
     Returns:
-        検出された失敗警告のリスト
+        List of detected failure warnings
     """
     if failure_taxonomy is None:
         from app.orchestration.failure_taxonomy import (
@@ -170,15 +170,15 @@ def gather_failure_feedback_from_taxonomy(
     warnings: list[FailureWarning] = []
     objective_lower = objective.lower()
 
-    # 頻発障害パターン（2回以上発生）を取得
+    # Get frequent failure patterns (occurred 2+ times)
     frequent_failures = failure_taxonomy.get_frequent_failures(min_count=2)
     for record in frequent_failures:
-        # 目的テキストとの関連性チェック（カテゴリ・説明のキーワードマッチ）
+        # Relevance check with objective text (keyword match on category/description)
         desc_lower = record.description.lower()
         subcat_lower = record.subcategory.lower()
         prevention_lower = record.prevention_strategy.lower()
 
-        # 目的テキストに障害の説明・サブカテゴリ・予防策のキーワードが含まれるか
+        # Check if objective text contains keywords from failure description/subcategory/prevention
         relevance = _compute_keyword_relevance(
             objective_lower, [desc_lower, subcat_lower, prevention_lower]
         )
@@ -205,22 +205,22 @@ async def gather_failure_feedback_from_memory(
     db: AsyncSession,
     company_id: str,
 ) -> list[FailureWarning]:
-    """Experience Memory (DB) から目的に関連する失敗パターンを検索する.
+    """Search for failure patterns related to the objective from Experience Memory (DB).
 
     Args:
-        objective: ユーザーが入力した業務目的テキスト
-        db: AsyncSession インスタンス
-        company_id: 会社 ID
+        objective: Business objective text entered by the user
+        db: AsyncSession instance
+        company_id: Company ID
 
     Returns:
-        検出された失敗警告のリスト
+        List of detected failure warnings
     """
     from app.orchestration.experience_memory import PersistentExperienceMemory
 
     memory = PersistentExperienceMemory(db, company_id)
     warnings: list[FailureWarning] = []
 
-    # 頻発する障害パターンを取得
+    # Get frequent failure patterns
     frequent = await memory.get_frequent_failures(min_count=2)
     for record in frequent:
         desc_lower = record.description.lower()
@@ -245,9 +245,9 @@ async def gather_failure_feedback_from_memory(
 
 
 def _compute_keyword_relevance(query: str, targets: list[str]) -> int:
-    """クエリとターゲットテキスト群のキーワード重複スコアを計算する."""
+    """Calculate keyword overlap score between query and target texts."""
     query_words = set(query.split())
-    # 短すぎる単語（助詞など）を除外
+    # Exclude words that are too short (particles, etc.)
     query_words = {w for w in query_words if len(w) >= 2}
     score = 0
     for target in targets:
@@ -261,25 +261,25 @@ def inject_failure_warnings(
     session: InterviewSession,
     warnings: list[FailureWarning],
 ) -> list[InterviewQuestion]:
-    """失敗警告に基づいて動的な追加質問を Interview セッションに注入する.
+    """Inject dynamic follow-up questions into the Interview session based on failure warnings.
 
     Args:
-        session: Interview セッション
-        warnings: 検出された失敗警告のリスト
+        session: Interview session
+        warnings: List of detected failure warnings
 
     Returns:
-        追加された質問のリスト
+        List of added questions
     """
     session.failure_warnings.extend(warnings)
     added_questions: list[InterviewQuestion] = []
 
     for warning in warnings:
         question_text = (
-            f"過去に類似の業務で「{warning.subcategory}」の問題が "
-            f"{warning.occurrence_count} 回発生しています"
-            f"（回復成功率: {warning.recovery_success_rate:.0%}）。"
-            f"予防策: {warning.prevention_strategy} — "
-            f"この点について対策は検討済みですか？"
+            f"In similar past tasks, the \"{warning.subcategory}\" issue occurred "
+            f"{warning.occurrence_count} time(s)"
+            f" (recovery success rate: {warning.recovery_success_rate:.0%})."
+            f" Prevention: {warning.prevention_strategy} — "
+            f"Have you considered countermeasures for this?"
         )
         new_q = InterviewQuestion(
             question=question_text,
@@ -291,27 +291,27 @@ def inject_failure_warnings(
 
     if warnings:
         logger.info(
-            "Interview %s に %d 件の失敗パターン警告を注入しました",
-            session.ticket_id,
+            "Injected %d failure pattern warning(s) into Interview %s",
             len(warnings),
+            session.ticket_id,
         )
 
     return added_questions
 
 
 def format_failure_feedback(warnings: list[FailureWarning]) -> str:
-    """失敗警告をユーザー向けフィードバックテキストとして整形する."""
+    """Format failure warnings as user-facing feedback text."""
     if not warnings:
         return ""
 
-    lines = ["⚠ 過去の失敗パターンに基づくフィードバック:"]
+    lines = ["⚠ Feedback based on past failure patterns:"]
     for i, w in enumerate(warnings, 1):
         lines.append(
             f"\n{i}. [{w.category}/{w.subcategory}] "
             f"{w.description}\n"
-            f"   発生回数: {w.occurrence_count} 回 / "
-            f"回復成功率: {w.recovery_success_rate:.0%}\n"
-            f"   予防策: {w.prevention_strategy}"
+            f"   Occurrences: {w.occurrence_count} / "
+            f"Recovery success rate: {w.recovery_success_rate:.0%}\n"
+            f"   Prevention: {w.prevention_strategy}"
         )
     return "\n".join(lines)
 
@@ -319,8 +319,8 @@ def format_failure_feedback(warnings: list[FailureWarning]) -> str:
 def generate_spec_from_interview(session: InterviewSession) -> dict:
     """Convert completed interview answers into a structured spec.
 
-    添付ファイルがある場合、テキスト内容を仕様のコンテキストとして統合する。
-    失敗警告がある場合、リスクノートとして統合する。
+    If attachments exist, integrates text content as specification context.
+    If failure warnings exist, integrates them as risk notes.
     """
     objective = ""
     constraints = []
@@ -338,12 +338,12 @@ def generate_spec_from_interview(session: InterviewSession) -> dict:
             elif q.category == "risk":
                 risks.append(q.answer)
 
-    # 失敗警告をリスクノートに統合
+    # Integrate failure warnings into risk notes
     failure_feedback = format_failure_feedback(session.failure_warnings)
     if failure_feedback:
         risks.append(failure_feedback)
 
-    # 添付ファイルからのコンテキストを統合
+    # Integrate context from attachments
     file_context = session.get_attachments_context()
     attachment_summaries = []
     if session.attachments:
@@ -369,7 +369,7 @@ def generate_spec_from_interview(session: InterviewSession) -> dict:
         result["file_context"] = file_context
         result["attachments"] = attachment_summaries
 
-    # 失敗警告のサマリーを追加
+    # Add failure warning summary
     if session.failure_warnings:
         result["failure_warnings"] = [
             {
