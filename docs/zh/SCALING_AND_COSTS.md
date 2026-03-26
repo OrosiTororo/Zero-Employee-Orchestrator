@@ -1,4 +1,4 @@
-> [日本語](../SCALING_AND_COSTS.md) | [English](../en/SCALING_AND_COSTS.md) | 中文
+> [日本語](../ja-JP/SCALING_AND_COSTS.md) | [English](../SCALING_AND_COSTS.md) | 中文
 
 # Zero-Employee Orchestrator — 成本、限制与大规模项目应用指南
 

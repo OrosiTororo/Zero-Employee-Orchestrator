@@ -1,273 +1,273 @@
-# Zero-Employee Orchestrator — コスト・制約・大規模プロジェクト活用ガイド
+> English | [日本語](ja-JP/SCALING_AND_COSTS.md) | [中文](zh/SCALING_AND_COSTS.md)
 
-> 日本語 | [English](en/SCALING_AND_COSTS.md) | [中文](zh/SCALING_AND_COSTS.md)
+# Zero-Employee Orchestrator — Cost, Constraints & Large-Scale Project Guide
 
-> v0.1 | 最終更新: 2026-03-12
-
----
-
-## 目次
-
-1. [コストが発生する機能](#1-コストが発生する機能)
-2. [無料で利用できる範囲](#2-無料で利用できる範囲)
-3. [ハードウェア・環境の制約](#3-ハードウェア環境の制約)
-4. [v0.1 で未実装の機能](#4-v01-で未実装の機能)
-5. [大規模プロジェクトでの活用例](#5-大規模プロジェクトでの活用例)
-6. [コスト最適化のヒント](#6-コスト最適化のヒント)
+> v0.1 | Last updated: 2026-03-12
 
 ---
 
-## 1. コストが発生する機能
+## Table of Contents
 
-### LLM API 利用料
-
-本システムの主要なコストは LLM API の利用料金です。
-
-| プロバイダー | 概算コスト（1,000 トークンあたり） | 備考 |
-|---|---|---|
-| Claude Opus 4.6 | 入力 $0.015 / 出力 $0.075 | 最高品質・高コスト |
-| Claude Sonnet 4.6 | 入力 $0.003 / 出力 $0.015 | 品質とコストのバランス |
-| Claude Haiku 4.5 | 入力 $0.001 / 出力 $0.005 | 高速・低コスト |
-| GPT-5.4 | 入力 $0.005 / 出力 $0.015 | OpenAI の高性能モデル |
-| GPT-5 Mini | 入力 $0.00015 / 出力 $0.0006 | OpenAI の軽量モデル |
-| Gemini 2.5 Pro | 入力 $0.00125 / 出力 $0.005 | Google の高性能モデル |
-| Gemini 2.5 Flash | 入力 $0.0001 / 出力 $0.0004 | 無料枠あり |
-| DeepSeek Chat | 入力 $0.00014 / 出力 $0.00028 | 低コスト |
-| Ollama (ローカル) | **無料** | 電気代のみ |
-| g4f (無料プロバイダー) | **無料** | 安定性・利用規約に注意 |
-
-> コスト情報は `model_catalog.json` で管理されており、プロバイダーの料金改定時は API またはファイル編集で更新可能です。
-
-### クラウドインフラ
-
-| サービス | 用途 | 想定コスト |
-|---|---|---|
-| Cloudflare Workers | エッジデプロイ（任意） | 無料枠あり（10万リクエスト/日） |
-| Cloudflare D1 | エッジDB（任意） | 無料枠あり（5GB） |
-| PostgreSQL | 本番データベース | 月額 $5〜$50（規模による） |
-| VPS / クラウドサーバー | バックエンド実行環境 | 月額 $5〜$100 |
-
-### 外部サービス連携
-
-| サービス | 用途 | 備考 |
-|---|---|---|
-| Google OAuth | ユーザー認証（任意） | 無料 |
-| Sentry | エラー監視（任意） | 無料枠あり |
-| GitHub Actions | CI/CD | 無料枠あり（2,000分/月） |
+1. [Features That Incur Costs](#1-features-that-incur-costs)
+2. [Free Usage Scope](#2-free-usage-scope)
+3. [Hardware & Environment Constraints](#3-hardware--environment-constraints)
+4. [Features Not Implemented in v0.1](#4-features-not-implemented-in-v01)
+5. [Large-Scale Project Use Cases](#5-large-scale-project-use-cases)
+6. [Cost Optimization Tips](#6-cost-optimization-tips)
 
 ---
 
-## 2. 無料で利用できる範囲
+## 1. Features That Incur Costs
 
-以下の方法で完全無料での運用が可能です。
+### LLM API Usage Fees
 
-### 方法 1: Ollama ローカルモード
+The primary cost of this system is LLM API usage fees.
 
-- **費用**: 電気代のみ
-- **必要機材**: RAM 8GB 以上の PC（16GB 推奨）
-- **推奨モデル**: `qwen3:8b`（8GB RAM）、`qwen3:32b`（32GB RAM）
-- **制限**: モデルの性能はクラウド API に劣る場合がある
+| Provider | Approximate Cost (per 1,000 tokens) | Notes |
+|---|---|---|
+| Claude Opus 4.6 | Input $0.015 / Output $0.075 | Highest quality, high cost |
+| Claude Sonnet 4.6 | Input $0.003 / Output $0.015 | Balance of quality and cost |
+| Claude Haiku 4.5 | Input $0.001 / Output $0.005 | Fast, low cost |
+| GPT-5.4 | Input $0.005 / Output $0.015 | OpenAI's high-performance model |
+| GPT-5 Mini | Input $0.00015 / Output $0.0006 | OpenAI's lightweight model |
+| Gemini 2.5 Pro | Input $0.00125 / Output $0.005 | Google's high-performance model |
+| Gemini 2.5 Flash | Input $0.0001 / Output $0.0004 | Free tier available |
+| DeepSeek Chat | Input $0.00014 / Output $0.00028 | Low cost |
+| Ollama (Local) | **Free** | Electricity cost only |
+| g4f (Free provider) | **Free** | Note stability and terms of service |
 
-### 方法 2: Gemini 無料 API キー
+> Cost information is managed in `model_catalog.json` and can be updated via the API or by editing the file when providers change their pricing.
 
-- **費用**: 無料（レート制限あり）
-- **取得先**: [Google AI Studio](https://aistudio.google.com/)
-- **制限**: 1分あたり 15 リクエスト、1日あたり 1,500 リクエスト
+### Cloud Infrastructure
 
-### 方法 3: サブスクリプションモード（g4f）
+| Service | Purpose | Estimated Cost |
+|---|---|---|
+| Cloudflare Workers | Edge deployment (optional) | Free tier available (100K requests/day) |
+| Cloudflare D1 | Edge DB (optional) | Free tier available (5GB) |
+| PostgreSQL | Production database | $5–$50/month (varies by scale) |
+| VPS / Cloud server | Backend runtime environment | $5–$100/month |
 
-- **費用**: 既存の ChatGPT Plus / Gemini Advanced 等のサブスクリプション
-- **制限**: 安定性が低い場合がある。利用規約上のリスクあり
+### External Service Integrations
 
-### 無料で含まれる機能
+| Service | Purpose | Notes |
+|---|---|---|
+| Google OAuth | User authentication (optional) | Free |
+| Sentry | Error monitoring (optional) | Free tier available |
+| GitHub Actions | CI/CD | Free tier available (2,000 min/month) |
 
-- 全 9 層アーキテクチャ
-- Design Interview、Spec / Plan / Tasks
+---
+
+## 2. Free Usage Scope
+
+Fully free operation is possible using the following methods.
+
+### Method 1: Ollama Local Mode
+
+- **Cost**: Electricity only
+- **Required hardware**: PC with 8GB+ RAM (16GB recommended)
+- **Recommended models**: `qwen3:8b` (8GB RAM), `qwen3:32b` (32GB RAM)
+- **Limitations**: Model performance may be inferior to cloud APIs
+
+### Method 2: Gemini Free API Key
+
+- **Cost**: Free (with rate limits)
+- **How to get**: [Google AI Studio](https://aistudio.google.com/)
+- **Limitations**: 15 requests/minute, 1,500 requests/day
+
+### Method 3: Subscription Mode (g4f)
+
+- **Cost**: Existing subscriptions such as ChatGPT Plus / Gemini Advanced
+- **Limitations**: May have lower stability. Terms of service risks exist
+
+### Features Included for Free
+
+- Full 9-layer architecture
+- Design Interview, Spec / Plan / Tasks
 - Self-Healing DAG
 - Judge Layer
-- 承認フロー
-- 監査ログ
+- Approval flow
+- Audit logs
 - Experience Memory
-- 全 23 画面の UI
-- Skill / Plugin / Extension 管理
-- SQLite データベース（開発・個人利用）
+- All 23 UI screens
+- Skill / Plugin / Extension management
+- SQLite database (for development and personal use)
 
 ---
 
-## 3. ハードウェア・環境の制約
+## 3. Hardware & Environment Constraints
 
-### ローカル LLM 使用時
+### When Using Local LLMs
 
-| モデルサイズ | 必要 RAM | 推奨 GPU | 応答速度 |
+| Model Size | Required RAM | Recommended GPU | Response Speed |
 |---|---|---|---|
-| 1B〜3B | 4 GB | 不要 | 高速 |
-| 7B〜8B | 8 GB | 不要（あれば高速化） | 中程度 |
-| 13B〜14B | 16 GB | VRAM 8GB 以上推奨 | やや遅い |
-| 30B〜34B | 32 GB | VRAM 16GB 以上推奨 | 遅い |
-| 70B+ | 64 GB+ | VRAM 24GB 以上必須 | 遅い |
+| 1B–3B | 4 GB | Not required | Fast |
+| 7B–8B | 8 GB | Not required (faster with one) | Moderate |
+| 13B–14B | 16 GB | VRAM 8GB+ recommended | Somewhat slow |
+| 30B–34B | 32 GB | VRAM 16GB+ recommended | Slow |
+| 70B+ | 64 GB+ | VRAM 24GB+ required | Slow |
 
-### データベース制約
+### Database Constraints
 
-| DB | 同時接続数 | データサイズ上限 | 推奨用途 |
+| DB | Concurrent Connections | Data Size Limit | Recommended Use |
 |---|---|---|---|
-| SQLite | 1（書き込み） | 実質無制限 | 個人利用・開発 |
-| PostgreSQL | 数百 | 実質無制限 | チーム・本番運用 |
+| SQLite | 1 (write) | Practically unlimited | Personal use, development |
+| PostgreSQL | Hundreds | Practically unlimited | Team, production |
 
-### ネットワーク
+### Network
 
-- クラウド LLM 使用時: インターネット接続が必要
-- Ollama ローカルモード: 完全オフライン動作可能
-- WebSocket: リアルタイム通知にはブラウザ接続が必要
+- When using cloud LLMs: Internet connection required
+- Ollama local mode: Fully offline operation possible
+- WebSocket: Browser connection required for real-time notifications
 
 ---
 
-## 4. v0.1 で未実装の機能
+## 4. Features Not Implemented in v0.1
 
-以下の機能は設計済みですが、v0.1 では未実装または部分実装です。
+The following features have been designed but are not implemented or only partially implemented in v0.1.
 
-### 将来のバージョンで対応予定
+### Planned for Future Versions
 
-| 機能 | 概要 | 制約理由 |
+| Feature | Overview | Reason for Constraint |
 |---|---|---|
-| マルチテナント本番運用 | 複数組織の完全分離 | インフラ構築・テストが必要 |
-| GPU クラスタ対応 | 分散 LLM 推論 | 専用ハードウェアが必要 |
-| エンドツーエンド暗号化 | 通信・保存データの完全暗号化 | 鍵管理インフラが必要 |
-| リアルタイム音声入力 | 音声→テキスト変換での指示 | 音声認識モデル統合が必要 |
-| モバイルアプリ | iOS / Android ネイティブアプリ | 開発リソースが必要 |
-| SSO (SAML / OIDC) | エンタープライズシングルサインオン | IdP 構築・テストが必要 |
-| Webhook 双方向連携 | 外部サービスからのイベント受信 | セキュリティ検証が必要 |
-| ファインチューニング統合 | 自社データでのモデル微調整 | GPUリソース・データが必要 |
+| Multi-tenant production operation | Complete isolation of multiple organizations | Requires infrastructure setup and testing |
+| GPU cluster support | Distributed LLM inference | Requires dedicated hardware |
+| End-to-end encryption | Full encryption of communications and stored data | Requires key management infrastructure |
+| Real-time voice input | Instructions via speech-to-text conversion | Requires speech recognition model integration |
+| Mobile app | iOS / Android native apps | Requires development resources |
+| SSO (SAML / OIDC) | Enterprise single sign-on | Requires IdP setup and testing |
+| Bidirectional Webhook integration | Receiving events from external services | Requires security verification |
+| Fine-tuning integration | Model fine-tuning with proprietary data | Requires GPU resources and data |
 
-### 部分実装（機能制限あり）
+### Partially Implemented (with limitations)
 
-| 機能 | 現状 | 制限 |
+| Feature | Current Status | Limitation |
 |---|---|---|
-| Judge Layer クロスモデル検証 | ロジック実装済み | 複数 API キー設定が必要 |
-| Cloudflare Workers デプロイ | wrangler.toml 準備済み | Cloudflare アカウントが必要 |
-| Docker デプロイ | Dockerfile / compose 準備済み | Docker 環境が必要 |
-| Tauri デスクトップビルド | ビルド設定済み | Rust ツールチェーンが必要 |
+| Judge Layer cross-model verification | Logic implemented | Requires multiple API keys configured |
+| Cloudflare Workers deployment | wrangler.toml prepared | Requires Cloudflare account |
+| Docker deployment | Dockerfile / compose prepared | Requires Docker environment |
+| Tauri desktop build | Build configured | Requires Rust toolchain |
 
 ---
 
-## 5. 大規模プロジェクトでの活用例
+## 5. Large-Scale Project Use Cases
 
-### 例 1: 企業のマーケティング部門
+### Example 1: Corporate Marketing Department
 
-**規模**: マーケティングチーム 10 名分の業務を AI チームに代替
+**Scale**: Replacing the work of a 10-person marketing team with an AI team
 
-**タスク例**:
-- 週次 SNS 投稿カレンダーの自動作成
-- 競合分析レポートの定期生成
-- プレスリリースの下書き作成と多言語翻訳
-- 広告コピーの A/B テスト案作成
+**Task examples**:
+- Automatic creation of weekly SNS posting calendars
+- Periodic generation of competitive analysis reports
+- Drafting press releases and multilingual translation
+- Creating A/B test proposals for ad copy
 
-**推定コスト**: 月額 $50〜$200（Sonnet + Flash の組み合わせ）
+**Estimated cost**: $50–$200/month (Sonnet + Flash combination)
 
-**必要環境**:
-- クラウドサーバー（2 vCPU / 4 GB RAM）
-- PostgreSQL データベース
-- LLM API キー（OpenRouter / OpenAI / Anthropic 等、任意のプロバイダー）
-
----
-
-### 例 2: ソフトウェア開発チーム
-
-**規模**: 中規模開発プロジェクト（5〜20 名相当）
-
-**タスク例**:
-- コードレビューの自動化（Judge Layer 活用）
-- バグレポートから修正タスクへの自動分解
-- テスト計画の自動生成
-- ドキュメントの自動更新
-- 障害調査の自動化（AI Investigator 活用）
-
-**推定コスト**: 月額 $100〜$500（品質モードに依存）
-
-**必要環境**:
-- クラウドサーバー（4 vCPU / 8 GB RAM）
-- PostgreSQL + GitHub 連携
-- Sentry 連携（任意）
+**Required environment**:
+- Cloud server (2 vCPU / 4 GB RAM)
+- PostgreSQL database
+- LLM API key (OpenRouter / OpenAI / Anthropic, etc. — any provider)
 
 ---
 
-### 例 3: カスタマーサポート部門
+### Example 2: Software Development Team
 
-**規模**: 月間 1,000 件以上の問い合わせ対応
+**Scale**: Medium-scale development project (equivalent of 5–20 people)
 
-**タスク例**:
-- 問い合わせの自動分類とルーティング
-- FAQ ベースの自動回答（承認後に送信）
-- エスカレーション判定
-- 対応品質レポートの自動生成
+**Task examples**:
+- Automated code review (using Judge Layer)
+- Automatic decomposition of bug reports into fix tasks
+- Automatic test plan generation
+- Automatic documentation updates
+- Automated incident investigation (using AI Investigator)
 
-**推定コスト**: 月額 $30〜$150（Flash / Haiku 中心）
+**Estimated cost**: $100–$500/month (depends on quality mode)
 
-**必要環境**:
-- クラウドサーバー（2 vCPU / 4 GB RAM）
-- メールサービス連携（Plugin）
-- CRM 連携（Plugin）
+**Required environment**:
+- Cloud server (4 vCPU / 8 GB RAM)
+- PostgreSQL + GitHub integration
+- Sentry integration (optional)
 
 ---
 
-### 例 4: 研究・分析チーム
+### Example 3: Customer Support Department
 
-**規模**: 大量ドキュメントの分析
+**Scale**: Handling 1,000+ inquiries per month
 
-**タスク例**:
-- 論文・特許の自動要約と分類
-- 市場調査データの分析とレポート生成
-- 仮説の並行検証（Hypothesis Engine 活用）
-- ナレッジベースの自動構築
+**Task examples**:
+- Automatic classification and routing of inquiries
+- FAQ-based automatic responses (sent after approval)
+- Escalation determination
+- Automatic generation of response quality reports
 
-**推定コスト**: 月額 $200〜$1,000（Opus / GPT-5.4 中心の高品質モード）
+**Estimated cost**: $30–$150/month (primarily Flash / Haiku)
 
-**必要環境**:
-- 大容量ストレージ
-- ローカル RAG によるドキュメント検索
+**Required environment**:
+- Cloud server (2 vCPU / 4 GB RAM)
+- Email service integration (Plugin)
+- CRM integration (Plugin)
+
+---
+
+### Example 4: Research & Analysis Team
+
+**Scale**: Analysis of large volumes of documents
+
+**Task examples**:
+- Automatic summarization and classification of papers and patents
+- Analysis of market research data and report generation
+- Parallel hypothesis verification (using Hypothesis Engine)
+- Automatic knowledge base construction
+
+**Estimated cost**: $200–$1,000/month (high-quality mode primarily using Opus / GPT-5.4)
+
+**Required environment**:
+- Large-capacity storage
+- Document search via local RAG
 - PostgreSQL
 
 ---
 
-### 例 5: 個人利用（フリーランス / 個人事業主）
+### Example 5: Personal Use (Freelancer / Sole Proprietor)
 
-**規模**: 1 名の業務効率化
+**Scale**: Productivity enhancement for one person
 
-**タスク例**:
-- 請求書作成の自動化
-- メール対応の下書き作成
-- スケジュール管理とリマインド
-- ブログ記事の構成・下書き
+**Task examples**:
+- Invoice creation automation
+- Drafting email responses
+- Schedule management and reminders
+- Blog post structure and drafts
 
-**推定コスト**: **無料**（Ollama ローカル or Gemini 無料枠）
+**Estimated cost**: **Free** (Ollama local or Gemini free tier)
 
-**必要環境**:
-- PC（RAM 8 GB 以上）
-- Ollama インストール
+**Required environment**:
+- PC (8 GB+ RAM)
+- Ollama installed
 
 ---
 
-## 6. コスト最適化のヒント
+## 6. Cost Optimization Tips
 
-### 実行モードの使い分け
+### Using Execution Modes Strategically
 
-| モード | 用途 | コスト目安 |
+| Mode | Use Case | Cost Estimate |
 |---|---|---|
-| `quality` | 重要な判断・外部送信前 | 高 |
-| `speed` | 内部的な処理・下書き | 中 |
-| `cost` | 大量処理・定型タスク | 低 |
-| `free` | 個人利用・テスト | 無料 |
+| `quality` | Important decisions, before external submissions | High |
+| `speed` | Internal processing, drafts | Medium |
+| `cost` | Bulk processing, routine tasks | Low |
+| `free` | Personal use, testing | Free |
 
-### 推奨戦略
+### Recommended Strategies
 
-1. **日常業務は `cost` モード**: Haiku / Flash / Mini で十分な品質
-2. **重要な成果物のみ `quality` モード**: Opus / GPT-5.4 で最終確認
-3. **Judge Layer は `speed` モード**: 検証は速度重視
-4. **予算ポリシーを設定**: 日次 / 月次の上限で予期しないコストを防止
-5. **ローカルモデルとクラウドの併用**: 下書きはローカル、仕上げはクラウド
+1. **Use `cost` mode for daily tasks**: Haiku / Flash / Mini provides sufficient quality
+2. **Use `quality` mode only for important deliverables**: Final review with Opus / GPT-5.4
+3. **Use `speed` mode for Judge Layer**: Prioritize speed for verification
+4. **Set budget policies**: Prevent unexpected costs with daily / monthly limits
+5. **Combine local models with cloud**: Drafts locally, finishing touches in the cloud
 
-### 予算管理機能
+### Budget Management Features
 
-- 日次 / 週次 / 月次の予算上限を設定可能
-- 使用率 80% で警告、100% で自動停止
-- コスト台帳でトランザクション単位の追跡
-- ダッシュボードでリアルタイムコスト可視化
+- Set daily / weekly / monthly budget limits
+- Warning at 80% usage, automatic stop at 100%
+- Transaction-level tracking with cost ledger
+- Real-time cost visualization on dashboard

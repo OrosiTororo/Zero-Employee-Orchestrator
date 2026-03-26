@@ -1,115 +1,115 @@
-# ☁️ Cloudflare Workers デプロイオプション
+# Cloudflare Workers Deploy Options
 
-Zero-Employee Orchestrator を Cloudflare Workers 上にデプロイするための2つの方式を提供しています。
+Two deployment methods for running Zero-Employee Orchestrator on Cloudflare Workers.
 
-## 方式比較
+## Method Comparison
 
-| | 方式 A: Proxy | 方式 B: Full Workers |
+| | Method A: Proxy | Method B: Full Workers |
 | --- | --- | --- |
-| **ディレクトリ** | `apps/edge/proxy/` | `apps/edge/full/` |
-| **概要** | 既存 FastAPI の前段にリバプロ配置 | 主要 API をエッジ上に完全再実装 |
-| **バックエンド** | 既存の FastAPI をそのまま利用 | D1 (SQLite互換) で完全独立 |
-| **フレームワーク** | Hono | Hono + jose |
-| **データベース** | 不要（既存 DB を利用） | D1 |
-| **認証** | バックエンドに委譲 | JWT (jose) |
-| **Rate Limiting** | KV ベース | — |
-| **キャッシュ** | Cache API (GET のみ) | — |
-| **外部サーバー** | 必要（FastAPI） | 不要 |
-| **セットアップ難易度** | 低 | 中 |
-| **レイテンシ** | バックエンド依存 | 非常に低い |
-| **コスト** | Workers 無料枠 + サーバー費用 | Workers + D1 無料枠のみ |
-| **対応 API** | 全 API (プロキシ) | Auth, Companies, Tickets, Agents, Tasks, Approvals, Specs, Plans, Audit, Budgets, Projects, Registry, Artifacts, Heartbeats, Reviews |
+| **Directory** | `apps/edge/proxy/` | `apps/edge/full/` |
+| **Overview** | Reverse proxy in front of existing FastAPI | Full re-implementation of major APIs on the edge |
+| **Backend** | Uses existing FastAPI as-is | Fully independent with D1 (SQLite-compatible) |
+| **Framework** | Hono | Hono + jose |
+| **Database** | Not needed (uses existing DB) | D1 |
+| **Authentication** | Delegated to backend | JWT (jose) |
+| **Rate Limiting** | KV-based | -- |
+| **Caching** | Cache API (GET only) | -- |
+| **External Server** | Required (FastAPI) | Not required |
+| **Setup Difficulty** | Low | Medium |
+| **Latency** | Backend-dependent | Very low |
+| **Cost** | Workers free tier + server costs | Workers + D1 free tier only |
+| **Supported APIs** | All APIs (proxy) | Auth, Companies, Tickets, Agents, Tasks, Approvals, Specs, Plans, Audit, Budgets, Projects, Registry, Artifacts, Heartbeats, Reviews |
 
-## 選び方ガイド
+## How to Choose
 
-- **VPS / 自前サーバーがある** → **方式 A (Proxy)** がおすすめ
-  - 既存の FastAPI バックエンドをそのまま活かせます
-  - Workers は CDN + Rate Limiter + Cache として動作します
+- **Have a VPS or your own server** -> **Method A (Proxy)** recommended
+  - Leverages your existing FastAPI backend
+  - Workers acts as CDN + Rate Limiter + Cache
 
-- **サーバーレスで完結したい** → **方式 B (Full Workers)** がおすすめ
-  - サーバー管理不要、Cloudflare の無料枠だけで運用可能
-  - D1 を使ったエッジ上の完全なデータベース
+- **Want to go fully serverless** -> **Method B (Full Workers)** recommended
+  - No server management; runs on Cloudflare's free tier alone
+  - Full edge database with D1
 
-- **両方試せる** → まず **方式 A** で始めて、本格運用時に **方式 B** へ移行
+- **Want to try both** -> Start with **Method A**, migrate to **Method B** for production
 
-## 共通の前提条件
+## Prerequisites
 
-1. [Cloudflare アカウント](https://dash.cloudflare.com/sign-up)
-2. [wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) のインストール
+1. [Cloudflare account](https://dash.cloudflare.com/sign-up)
+2. [wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) installed
 
 ```bash
 npm install -g wrangler
 wrangler login
 ```
 
-## 方式 A: Proxy セットアップ
+## Method A: Proxy Setup
 
 ```bash
 cd apps/edge/proxy
 npm install
 
-# wrangler.toml の BACKEND_ORIGIN を実際のバックエンド URL に変更
-# KV Namespace を作成し、id を置き換え
+# Change BACKEND_ORIGIN in wrangler.toml to your actual backend URL
+# Create a KV Namespace and replace the id
 wrangler kv:namespace create RATE_LIMIT
 
-# ローカル開発
+# Local development
 npm run dev
 
-# デプロイ
+# Deploy
 npm run deploy
 ```
 
-詳細: [apps/edge/proxy/README.md](proxy/README.md)
+Details: [apps/edge/proxy/README.md](proxy/README.md)
 
-## 方式 B: Full Workers セットアップ
+## Method B: Full Workers Setup
 
 ```bash
 cd apps/edge/full
 npm install
 
-# D1 データベースを作成
+# Create D1 database
 wrangler d1 create zeo-orchestrator
-# wrangler.toml の database_id を出力された ID に置き換え
+# Replace database_id in wrangler.toml with the output ID
 
-# スキーマ適用
+# Apply schema
 npm run db:init
 
-# wrangler.toml の JWT_SECRET を安全な値に変更
+# Change JWT_SECRET in wrangler.toml to a secure value
 
-# ローカル開発
+# Local development
 npm run dev
 
-# デプロイ
+# Deploy
 npm run deploy
 ```
 
-詳細: [apps/edge/full/README.md](full/README.md)
+Details: [apps/edge/full/README.md](full/README.md)
 
-## フロントエンド (Cloudflare Pages)
+## Frontend (Cloudflare Pages)
 
 ```bash
 cd apps/desktop/ui
 npm install
 npm run build
 
-# Pages にデプロイ
+# Deploy to Pages
 npx wrangler pages deploy dist --project-name=zeo-ui
 ```
 
-## GitHub Actions によるデプロイ
+## Deployment via GitHub Actions
 
-`.github/workflows/deploy-workers.yml` で手動デプロイが可能です。
+Manual deployment is available via `.github/workflows/deploy-workers.yml`.
 
-### 必要な Secrets
+### Required Secrets
 
-| Secret | 説明 |
+| Secret | Description |
 | --- | --- |
-| `CLOUDFLARE_API_TOKEN` | Cloudflare API トークン |
-| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare アカウント ID |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API token |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID |
 
-### 使い方
+### Usage
 
-1. GitHub リポジトリの Actions タブを開く
-2. "Deploy to Cloudflare Workers" ワークフローを選択
-3. "Run workflow" をクリック
-4. デプロイモード (`proxy` / `full` / `pages`) を選択して実行
+1. Open the Actions tab in the GitHub repository
+2. Select the "Deploy to Cloudflare Workers" workflow
+3. Click "Run workflow"
+4. Choose a deploy mode (`proxy` / `full` / `pages`) and run

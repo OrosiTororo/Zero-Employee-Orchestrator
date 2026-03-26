@@ -1,9 +1,9 @@
-# Zero-Employee Orchestrator — 承認・監査組込型マルチAI業務自律化基盤の開発
+# Zero-Employee Orchestrator — Development of a Multi-AI Autonomous Business Execution Platform with Built-in Approval and Audit
 
 <div align="center">
 
-**自然言語で業務を定義し、複数 AI を「組織」として運用する**
-**安全で透明な AI オーケストレーション基盤**
+**Define business workflows in natural language and operate multiple AI as an "organization"**
+**A safe, transparent AI orchestration platform**
 
 ---
 
@@ -14,411 +14,423 @@
 
 ---
 
-## 0. タイトル
+## 0. Title
 
-### **承認・監査組込型マルチAI業務自律化基盤の開発**
+### **Development of a Multi-AI Autonomous Business Execution Platform with Built-in Approval and Audit**
 
-自然言語で業務を定義し、複数のAIエージェントを計画・実行・検証・改善の役割に分担させ、人間の承認と監査可能性を前提に業務を自律的に実行するAIオーケストレーション基盤を開発する。9層のアーキテクチャにより、ユーザーの自然言語入力からDesign Interviewによる要件深掘り、DAGベースのタスク分解と並列実行、Judge Layerによる二段階品質検証（ルールベース判定＋クロスモデル検証）、Self-Healing DAGによる障害時の自動再計画、Experience Memoryによる経験学習までを一貫して処理する。危険操作（投稿・送信・削除・課金・権限変更）は承認フローで必ずブロックし、全操作を監査ログに記録することで、AIの暴走を防ぎながら業務の自律化を実現する。Skill / Plugin / Extensionの3層拡張体系により業務機能を柔軟に追加でき、Ollamaローカルモデルによる完全オフライン・完全無料での動作にも対応する。v0.1では9層アーキテクチャ基盤、23画面のUI、40以上のAPIエンドポイント、AI Self-Improvement Plugin（6 Skill実装）、ZEO-Benchベンチマーク、カオステスト等を個人で設計・実装済みである。
-
----
-
-## 1. 何を作るか
-
-### 1.1 背景 — なぜ今、AI オーケストレーションが必要か
-
-2025〜2026年にかけて、AI エージェント技術は急速に進化しています。ChatGPT、Claude、Gemini などの LLM は単発の質問応答から脱却し、コード生成・文書作成・データ分析を高品質に実行できるようになりました。
-
-しかし、現在の AI 活用には**構造的な限界**があります:
-
-```
-┌──────────────────────────────────────────────────────────┐
-│  現在の AI 活用の課題                                       │
-│                                                          │
-│  1. 毎回ゼロから始まる                                     │
-│     → ChatGPT に毎回同じ背景情報を入力している              │
-│                                                          │
-│  2. 手作業の橋渡し                                         │
-│     → AI の出力を手動でコピーして次のステップに貼る          │
-│                                                          │
-│  3. 品質が分からない                                       │
-│     → AI の回答が正しいか自分で全て確認しなければならない    │
-│                                                          │
-│  4. 進捗が見えない                                         │
-│     → 昨日 AI に頼んだタスクがどこまで進んだか分からない    │
-│                                                          │
-│  5. 暴走が怖い                                             │
-│     → AI がメールを誤送信したり、重要データを消さないか不安  │
-│                                                          │
-│  6. 経験が蓄積されない                                     │
-│     → 同じ種類の仕事でも毎回同じ失敗を繰り返す              │
-└──────────────────────────────────────────────────────────┘
-```
-
-これらの課題は、AI を「単発のツール」として使っていることに起因しています。本プロジェクトは、AI を**「組織」として運用する基盤**を構築することで、これらの課題をアーキテクチャレベルで解決します。
-
-### 1.2 目的 — 何を実現するか
-
-**Zero-Employee Orchestrator (ZEO)** は、以下を実現する AI オーケストレーション基盤です:
-
-| 機能 | 説明 |
-|------|------|
-| **自然言語入力** | 「競合分析レポートを作って」だけで業務が開始される |
-| **Design Interview** | AI が要件を深掘りし、曖昧な指示を具体化する |
-| **マルチエージェント協調** | 計画・実行・検証・改善を役割分担した AI チーム |
-| **品質検証（Judge Layer）** | AI の出力を別の AI がクロスモデル検証する |
-| **承認フロー** | 投稿・送信・課金・削除は必ず人間の承認を要求 |
-| **Self-Healing DAG** | 失敗時に AI が自動で再計画・再実行する |
-| **Experience Memory** | 成功・失敗パターンを蓄積し、繰り返すほど精度が向上 |
-| **監査ログ** | 誰が何をなぜ実行したかを全て追跡可能 |
-| **拡張体系** | Skill / Plugin / Extension の 3 層で業務機能を追加 |
-
-### 1.3 目標 — どこまで作るか
-
-本プロジェクトでは、以下の段階的な目標を設定します:
-
-**Phase 1（v0.2 — 3ヶ月目標）: 実用可能な最小製品**
-
-- Design Interview → Spec → Plan → Task 実行の E2E フロー完成
-- Tool Connector の本実装（REST API / MCP / CLI ツール接続）
-- フロントエンド全23画面のバックエンド接続完成
-- ai-self-improvement Plugin の6つの Skill 実装
-
-**Phase 2（v0.3 — 6ヶ月目標）: AI 組織の高度化**
-
-- メタスキル（学び方を学ぶ能力）の実装
-- A2A（AI-to-AI）双方向通信
-- Skill マーケットプレイスの基盤
-
-**最終目標: AI Self-Improvement**
-
-AI が自身の Skill・戦略・品質判定基準を自律的に改善し、その改善プロセス自体も最適化していく能力を、安全に・透明に・人間の意思決定を保ちながら実現する。
-
-### 1.4 アーキテクチャ — 9 層構造
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Layer 1: User Layer                                          │
-│   自然言語入力 → GUI / CLI / TUI / Discord / Slack / LINE    │
-├─────────────────────────────────────────────────────────────┤
-│ Layer 2: Design Interview                                    │
-│   要件の深掘り → 質問生成 → 回答蓄積 → Spec 化               │
-├─────────────────────────────────────────────────────────────┤
-│ Layer 3: Task Orchestrator                                   │
-│   Plan 生成 → DAG 化 → Skill 割当 → コスト見積り             │
-│   Self-Healing DAG → 障害時の動的再構築                      │
-├─────────────────────────────────────────────────────────────┤
-│ Layer 4: Skill Layer                                         │
-│   組み込み Skill → Plugin の Skill → Gap 検出                │
-│   Local Context Skill（ローカルファイル安全読込）             │
-├─────────────────────────────────────────────────────────────┤
-│ Layer 5: Judge Layer                                         │
-│   Stage 1: ルールベース高速チェック（危険操作・認証情報漏洩）  │
-│   Stage 2: Cross-Model Verification（別モデルによる検証）     │
-├─────────────────────────────────────────────────────────────┤
-│ Layer 6: Re-Propose Layer                                    │
-│   差し戻し → Plan Diff → 部分再実行 → 再提案                 │
-├─────────────────────────────────────────────────────────────┤
-│ Layer 7: State & Memory                                      │
-│   状態機械 → Experience Memory → Failure Taxonomy            │
-│   Artifact Bridge → Knowledge Refresh                        │
-├─────────────────────────────────────────────────────────────┤
-│ Layer 8: Provider Interface                                  │
-│   LiteLLM Gateway → Ollama 直接接続 → g4f（無料）            │
-│   動的モデルカタログ → 廃止モデル自動フォールバック           │
-├─────────────────────────────────────────────────────────────┤
-│ Layer 9: Skill Registry                                      │
-│   Skill / Plugin / Extension の公開・検索・インストール       │
-│   自然言語 Skill 生成 → 安全性チェック → 登録                 │
-└─────────────────────────────────────────────────────────────┘
-```
+An AI orchestration platform that defines business workflows in natural language, delegates planning, execution, verification, and improvement roles across multiple AI agents, and autonomously executes business tasks with human approval and auditability as prerequisites. Through a 9-layer architecture, it consistently handles everything from natural language input through requirements exploration via Design Interview, DAG-based task decomposition and parallel execution, two-stage quality verification via Judge Layer (rule-based checks + cross-model verification), automatic replanning during failures via Self-Healing DAG, to experience learning via Experience Memory. Dangerous operations (posting, sending, deleting, billing, permission changes) are always blocked by approval flows, and all operations are recorded in audit logs, achieving business automation while preventing AI from going rogue. The 3-tier extension system of Skill / Plugin / Extension allows flexible addition of business capabilities, and fully offline, completely free operation is supported via Ollama local models. In v0.1, the 9-layer architecture foundation, 23-screen UI, 40+ API endpoints, AI Self-Improvement Plugin (6 Skills implemented), ZEO-Bench benchmark, chaos tests, and more have been designed and implemented by a single developer.
 
 ---
 
-## 2. どんな出し方を考えているか
+## 1. What We Are Building
 
-### 2.1 オープンソースとして公開
+### 1.1 Background — Why AI Orchestration Is Needed Now
 
-ZEO は **MIT ライセンス**のオープンソースプロジェクトとして GitHub に公開済みです。
+Between 2025 and 2026, AI agent technology has evolved rapidly. LLMs such as ChatGPT, Claude, and Gemini have moved beyond simple Q&A to executing code generation, document creation, and data analysis at high quality.
 
-- リポジトリ: `github.com/OrosiTororo/Zero-Employee-Orchestrator`
-- ドキュメント: 日本語・英語・中国語の 3 か国語対応
-- コミュニティ: CONTRIBUTING.md / CODE_OF_CONDUCT.md 整備済み
+However, current AI utilization has **structural limitations**:
 
-### 2.2 リリース計画
+```
++----------------------------------------------------------+
+|  Current Challenges in AI Utilization                    |
+|                                                          |
+|  1. Starting from zero every time                        |
+|     -> Entering the same background info into ChatGPT    |
+|                                                          |
+|  2. Manual bridging                                      |
+|     -> Manually copying AI output to paste into the      |
+|        next step                                         |
+|                                                          |
+|  3. Unknown quality                                      |
+|     -> Having to personally verify whether AI answers    |
+|        are correct                                       |
+|                                                          |
+|  4. Invisible progress                                   |
+|     -> Not knowing how far yesterday's AI task           |
+|        has progressed                                    |
+|                                                          |
+|  5. Fear of runaway behavior                             |
+|     -> Worried AI might send wrong emails or             |
+|        delete important data                             |
+|                                                          |
+|  6. No experience accumulation                           |
+|     -> Repeating the same mistakes for the same          |
+|        types of work                                     |
++----------------------------------------------------------+
+```
 
-| 時期 | バージョン | 内容 |
-|------|-----------|------|
-| 現在 | v0.1 | 9層アーキテクチャ基盤、23画面UI、Plugin/Extension マニフェスト |
-| +3ヶ月 | v0.2 | E2E フロー完成、Tool Connector 本実装、ai-self-improvement Plugin |
-| +6ヶ月 | v0.3 | メタスキル、A2A 通信、コミュニティ基盤 |
-| +12ヶ月 | v0.4 | Skill マーケットプレイス、マルチユーザー対応 |
-| +18ヶ月 | v1.0 | プロダクション品質、ガバナンス・コンプライアンス |
+These challenges stem from using AI as a "one-shot tool." This project solves these challenges at the architecture level by building a platform that operates AI as an **"organization."**
 
-### 2.3 プロジェクト修了後のアクション
+### 1.2 Purpose — What We Aim to Achieve
 
-1. **コミュニティの拡大** — Skill / Plugin の共有エコシステム構築
-2. **学会発表** — マルチエージェント協調・AI 品質保証の研究成果を発表
-3. **企業連携** — マネージドサービス（SaaS 版）の検討
-4. **教育活用** — AI オーケストレーションの教材・チュートリアル公開
+**Zero-Employee Orchestrator (ZEO)** is an AI orchestration platform that achieves the following:
+
+| Feature | Description |
+|---------|-------------|
+| **Natural Language Input** | Business starts with just "Create a competitive analysis report" |
+| **Design Interview** | AI explores requirements and turns vague instructions into concrete specs |
+| **Multi-Agent Coordination** | AI team with role-based delegation for planning, execution, verification, and improvement |
+| **Quality Verification (Judge Layer)** | AI output is cross-model verified by a separate AI |
+| **Approval Flow** | Posting, sending, billing, and deletion always require human approval |
+| **Self-Healing DAG** | AI automatically replans and re-executes on failure |
+| **Experience Memory** | Accumulates success/failure patterns, improving accuracy with each iteration |
+| **Audit Logs** | Full traceability of who did what and why |
+| **Extension System** | Add business capabilities via 3-tier Skill / Plugin / Extension |
+
+### 1.3 Goals — How Far We Build
+
+This project sets the following phased goals:
+
+**Phase 1 (v0.2 — 3-month target): Minimum viable product**
+
+- Complete E2E flow from Design Interview -> Spec -> Plan -> Task execution
+- Full implementation of Tool Connector (REST API / MCP / CLI tool connections)
+- Complete backend connections for all 23 frontend screens
+- Implementation of 6 Skills for ai-self-improvement Plugin
+
+**Phase 2 (v0.3 — 6-month target): Advanced AI organization**
+
+- Implementation of meta-skills (ability to learn how to learn)
+- A2A (AI-to-AI) bidirectional communication
+- Skill marketplace foundation
+
+**Ultimate Goal: AI Self-Improvement**
+
+Safely, transparently, and while preserving human decision-making, achieve the ability for AI to autonomously improve its own Skills, strategies, and quality assessment criteria, and to optimize the improvement process itself.
+
+### 1.4 Architecture — 9-Layer Structure
+
+```
++-------------------------------------------------------------+
+| Layer 1: User Layer                                          |
+|   Natural language input -> GUI / CLI / TUI / Discord /      |
+|   Slack / LINE                                               |
++-------------------------------------------------------------+
+| Layer 2: Design Interview                                    |
+|   Requirements exploration -> Question generation ->         |
+|   Answer accumulation -> Spec creation                       |
++-------------------------------------------------------------+
+| Layer 3: Task Orchestrator                                   |
+|   Plan generation -> DAG creation -> Skill assignment ->     |
+|   Cost estimation                                            |
+|   Self-Healing DAG -> Dynamic reconstruction on failure      |
++-------------------------------------------------------------+
+| Layer 4: Skill Layer                                         |
+|   Built-in Skills -> Plugin Skills -> Gap detection          |
+|   Local Context Skill (safe local file reading)              |
++-------------------------------------------------------------+
+| Layer 5: Judge Layer                                         |
+|   Stage 1: Rule-based fast check (dangerous ops, credential |
+|   leaks)                                                     |
+|   Stage 2: Cross-Model Verification (verification by        |
+|   different model)                                           |
++-------------------------------------------------------------+
+| Layer 6: Re-Propose Layer                                    |
+|   Rejection -> Plan Diff -> Partial re-execution ->          |
+|   Re-proposal                                                |
++-------------------------------------------------------------+
+| Layer 7: State & Memory                                      |
+|   State machine -> Experience Memory -> Failure Taxonomy     |
+|   Artifact Bridge -> Knowledge Refresh                       |
++-------------------------------------------------------------+
+| Layer 8: Provider Interface                                  |
+|   LiteLLM Gateway -> Ollama direct -> g4f (free)             |
+|   Dynamic model catalog -> Deprecated model auto-fallback    |
++-------------------------------------------------------------+
+| Layer 9: Skill Registry                                      |
+|   Skill / Plugin / Extension publishing, search, install     |
+|   Natural language Skill generation -> Safety check ->       |
+|   Registration                                               |
++-------------------------------------------------------------+
+```
 
 ---
 
-## 3. 斬新さの主張、期待される効果
+## 2. How We Plan to Release
 
-### 3.1 既存技術との比較
+### 2.1 Open Source Release
+
+ZEO is already published on GitHub as an open source project under the **MIT License**.
+
+- Repository: `github.com/OrosiTororo/Zero-Employee-Orchestrator`
+- Documentation: 3-language support (Japanese, English, Chinese)
+- Community: CONTRIBUTING.md / CODE_OF_CONDUCT.md prepared
+
+### 2.2 Release Plan
+
+| Timeline | Version | Content |
+|----------|---------|---------|
+| Current | v0.1 | 9-layer architecture foundation, 23-screen UI, Plugin/Extension manifests |
+| +3 months | v0.2 | E2E flow complete, Tool Connector implementation, ai-self-improvement Plugin |
+| +6 months | v0.3 | Meta-skills, A2A communication, community foundation |
+| +12 months | v0.4 | Skill marketplace, multi-user support |
+| +18 months | v1.0 | Production quality, governance & compliance |
+
+### 2.3 Post-Project Actions
+
+1. **Community expansion** — Build a Skill / Plugin sharing ecosystem
+2. **Academic presentation** — Present research results on multi-agent coordination and AI quality assurance
+3. **Enterprise partnerships** — Explore managed service (SaaS version)
+4. **Educational use** — Publish AI orchestration teaching materials and tutorials
+
+---
+
+## 3. Innovation Claims and Expected Impact
+
+### 3.1 Comparison with Existing Technologies
 
 | | AutoGPT / CrewAI | n8n / Make / Zapier | **Zero-Employee Orchestrator** |
 |---|---|---|---|
-| **入力方法** | テキスト / コード | フロー設計 / ノード配置 | **自然言語のみ** |
-| **AI チーム** | 限定的（固定役割） | なし（API 呼出） | **役割分担 + 動的編成** |
-| **品質保証** | なし or 自己評価 | ルールベースのみ | **Judge Layer 二段階検証** |
-| **障害復旧** | 停止 or 単純リトライ | 停止 | **Self-Healing DAG 自動再計画** |
-| **承認フロー** | なし（全自動） | 手動設定 | **危険操作の自動検出・強制承認** |
-| **経験学習** | なし | なし | **Experience Memory + Failure Taxonomy** |
-| **拡張性** | コード変更必須 | プラグイン（限定的） | **Skill / Plugin / Extension 3層** |
-| **監査ログ** | なし or 限定的 | 限定的 | **全操作記録・完全追跡** |
-| **モデル選択** | 固定 | 固定 | **動的カタログ + 品質モード自動選択** |
-| **コスト** | API 従量制のみ | SaaS 月額制 | **完全無料（ローカル LLM 対応）** |
+| **Input Method** | Text / code | Flow design / node placement | **Natural language only** |
+| **AI Team** | Limited (fixed roles) | None (API calls) | **Role-based + dynamic composition** |
+| **Quality Assurance** | None or self-evaluation | Rule-based only | **Judge Layer two-stage verification** |
+| **Failure Recovery** | Stop or simple retry | Stop | **Self-Healing DAG auto-replanning** |
+| **Approval Flow** | None (fully automatic) | Manual setup | **Auto-detection of dangerous ops + mandatory approval** |
+| **Experience Learning** | None | None | **Experience Memory + Failure Taxonomy** |
+| **Extensibility** | Requires code changes | Plugins (limited) | **Skill / Plugin / Extension 3-tier** |
+| **Audit Logs** | None or limited | Limited | **Full operation recording + complete traceability** |
+| **Model Selection** | Fixed | Fixed | **Dynamic catalog + automatic quality mode selection** |
+| **Cost** | API pay-per-use only | SaaS monthly subscription | **Completely free (local LLM supported)** |
 
-### 3.2 斬新さ — 何が新しいのか
+### 3.2 Innovation — What Is New
 
-**1. AI を「組織」として設計するアーキテクチャ**
+**1. Architecture that designs AI as an "organization"**
 
-既存の AI エージェントは「1つの AI に全部やらせる」思想です。ZEO は**計画・実行・検証・改善を異なる AI が担当する組織構造**を採用し、品質と信頼性を構造的に保証します。
+Existing AI agents follow the philosophy of "have one AI do everything." ZEO adopts an **organizational structure where different AI handle planning, execution, verification, and improvement**, structurally guaranteeing quality and reliability.
 
-**2. Judge Layer — AI の出力を別の AI が検証する**
+**2. Judge Layer — AI output verified by a separate AI**
 
-AI が生成した出力を、別のモデルがクロス検証する仕組みは、人間のダブルチェックに相当します。ZEO-Bench（200問のベンチマーク）により、単一モデル自己評価と比較してクロスモデル検証の精度が高いことを検証済みです。
+The mechanism where AI-generated output is cross-verified by a different model is equivalent to human double-checking. ZEO-Bench (200-question benchmark) has verified that cross-model verification accuracy exceeds single-model self-evaluation.
 
-**3. Self-Healing DAG — 失敗しても自動で立ち直る**
+**3. Self-Healing DAG — Automatic recovery from failures**
 
-従来のワークフロー自動化ツールは、1つのステップが失敗すると全体が停止します。ZEO の Self-Healing DAG は、失敗時に代替戦略（リトライ・スキップ・再計画）を自動選択し、業務を継続します。カオステスト（20+ フォルト注入）で復旧率・復旧時間を定量検証済みです。
+Traditional workflow automation tools halt entirely when a single step fails. ZEO's Self-Healing DAG automatically selects alternative strategies (retry, skip, replan) on failure and continues business operations. Recovery rate and time have been quantitatively verified through chaos tests (20+ fault injections).
 
-**4. AI Self-Improvement — AI が自らを改善する**
+**4. AI Self-Improvement — AI improves itself**
 
-ZEO は最終目標として「AI が AI を改善する」循環の実現を目指しています。Experience Memory と Failure Taxonomy の基盤がすでに実装されており、ai-self-improvement Plugin の設計も完了しています。
+ZEO's ultimate goal is achieving the cycle of "AI improving AI." The foundations of Experience Memory and Failure Taxonomy are already implemented, and the ai-self-improvement Plugin design is complete.
 
-**5. 完全無料で動作可能**
+**5. Can operate completely free**
 
-Ollama（ローカル LLM）+ SQLite で完全オフライン動作が可能です。クラウド API の費用がゼロでも、全ての主要機能が利用できます。
+Fully offline operation is possible with Ollama (local LLM) + SQLite. All major features are available even with zero cloud API costs.
 
-### 3.3 期待される効果
+### 3.3 Expected Impact
 
-| 対象 | 効果 |
-|------|------|
-| **個人開発者・フリーランス** | AI チームを持てる。業務の自動化・品質向上・時間節約 |
-| **中小企業** | AI 導入の初期コストゼロ。段階的に自律化範囲を拡大 |
-| **AI 研究者** | マルチエージェント協調・品質保証・Self-Improvement の実験プラットフォーム |
-| **教育機関** | AI オーケストレーションの教材。実践的な AI 活用の学習 |
-| **オープンソースコミュニティ** | Skill / Plugin の共有エコシステムによるナレッジの蓄積 |
+| Target | Impact |
+|--------|--------|
+| **Individual developers / freelancers** | Have an AI team. Automate business, improve quality, save time |
+| **Small and medium businesses** | Zero initial cost for AI adoption. Gradually expand automation scope |
+| **AI researchers** | Experimental platform for multi-agent coordination, quality assurance, and Self-Improvement |
+| **Educational institutions** | Teaching material for AI orchestration. Practical AI utilization learning |
+| **Open source community** | Knowledge accumulation through Skill / Plugin sharing ecosystem |
 
 ---
 
-## 4. 具体的な進め方と予算
+## 4. Specific Approach and Budget
 
-### (1) 主に開発を行う場所
+### (1) Primary Development Location
 
-自宅（東京都内）。リモートワーク中心。
+Home (Tokyo). Primarily remote work.
 
-### (2) 使用する計算機環境
+### (2) Computing Environment
 
-| 項目 | 仕様 |
-|------|------|
-| **メイン開発機** | MacBook / Linux デスクトップ |
+| Item | Specifications |
+|------|---------------|
+| **Main development machine** | MacBook / Linux desktop |
 | **OS** | macOS / Ubuntu Linux |
-| **ローカル LLM** | Ollama（qwen3:8b, qwen3-coder:30b 等） |
-| **データベース** | SQLite（開発）/ PostgreSQL（本番） |
-| **エッジデプロイ** | Cloudflare Workers（無料枠） |
-| **CI/CD** | GitHub Actions（無料枠） |
+| **Local LLM** | Ollama (qwen3:8b, qwen3-coder:30b, etc.) |
+| **Database** | SQLite (development) / PostgreSQL (production) |
+| **Edge deployment** | Cloudflare Workers (free tier) |
+| **CI/CD** | GitHub Actions (free tier) |
 
-### (3) 使用する言語・ツール
+### (3) Languages and Tools
 
-| カテゴリ | 技術 |
-|---------|------|
-| **バックエンド** | Python 3.12+ / FastAPI / SQLAlchemy 2.x / Alembic |
-| **フロントエンド** | React 19 / TypeScript / Vite / Tailwind CSS / shadcn/ui |
-| **デスクトップ** | Tauri v2 (Rust) |
-| **LLM 接続** | LiteLLM / Ollama / g4f |
-| **エッジ** | Cloudflare Workers / Hono / D1 |
-| **パッケージ管理** | uv (Python) / pnpm (Node.js) |
-| **リント・フォーマット** | ruff (Python) / ESLint + Prettier (TypeScript) |
-| **テスト** | pytest / pytest-asyncio / Playwright (E2E) |
+| Category | Technology |
+|----------|-----------|
+| **Backend** | Python 3.12+ / FastAPI / SQLAlchemy 2.x / Alembic |
+| **Frontend** | React 19 / TypeScript / Vite / Tailwind CSS / shadcn/ui |
+| **Desktop** | Tauri v2 (Rust) |
+| **LLM Connection** | LiteLLM / Ollama / g4f |
+| **Edge** | Cloudflare Workers / Hono / D1 |
+| **Package Management** | uv (Python) / pnpm (Node.js) |
+| **Lint / Format** | ruff (Python) / ESLint + Prettier (TypeScript) |
+| **Testing** | pytest / pytest-asyncio / Playwright (E2E) |
 
-### (4) 作業の分担
+### (4) Work Distribution
 
-個人開発プロジェクト。AI エージェント（Claude Code 等）を活用して開発効率を最大化する。
+Individual development project. Maximizing development efficiency by leveraging AI agents (Claude Code, etc.).
 
-### (5) ソフトウェア開発に使う手法
+### (5) Software Development Methodology
 
-- **アジャイル開発** — 2 週間スプリントで機能を漸進的にリリース
-- **テスト駆動** — ユニットテスト・統合テスト・カオステストを併用
-- **ドキュメント駆動** — 設計文書（DESIGN.md）を先に書き、実装で検証
-- **AI 支援開発** — Claude Code を活用したペアプログラミング
+- **Agile development** — Progressive feature releases in 2-week sprints
+- **Test-driven** — Combining unit tests, integration tests, and chaos tests
+- **Document-driven** — Write design documents (DESIGN.md) first, validate through implementation
+- **AI-assisted development** — Pair programming with Claude Code
 
-### (6) 開発線表
+### (6) Development Timeline
 
 ```
-2026年
-┌────────┬────────┬────────┬────────┬────────┬────────┐
-│ 4月    │ 5月    │ 6月    │ 7月    │ 8月    │ 9月    │
-├────────┼────────┼────────┼────────┼────────┼────────┤
-│ v0.2 開発                │ v0.3 開発               │
-│                          │                         │
-│ ■ E2E フロー統合         │ ■ メタスキル実装         │
-│ ■ Tool Connector 本実装  │ ■ A2A 双方向通信         │
-│ ■ UI データ接続完成      │ ■ Skill マーケット基盤   │
-│ ■ ai-self-improvement    │ ■ RSS/ToS 自動更新       │
-│   Plugin 実装            │ ■ 分身 AI 共進化ループ    │
-│ ■ E2E テスト構築         │ ■ コミュニティ形成       │
-│ ■ Worker コアロジック    │                         │
-└────────┴────────┴────────┴────────┴────────┴────────┘
+2026
++--------+--------+--------+--------+--------+--------+
+| Apr    | May    | Jun    | Jul    | Aug    | Sep    |
++--------+--------+--------+--------+--------+--------+
+| v0.2 Development        | v0.3 Development          |
+|                          |                           |
+| * E2E flow integration   | * Meta-skill impl         |
+| * Tool Connector impl    | * A2A bidirectional comm   |
+| * UI data connection     | * Skill marketplace base   |
+| * ai-self-improvement    | * RSS/ToS auto-update      |
+|   Plugin implementation  | * Avatar co-evolution loop |
+| * E2E test construction  | * Community formation      |
+| * Worker core logic      |                           |
++--------+--------+--------+--------+--------+--------+
 
-┌────────┬────────┬────────┬────────┬────────┬────────┐
-│ 10月   │ 11月   │ 12月   │ 2027   │        │        │
-│        │        │        │ 1月    │ 2月    │ 3月    │
-├────────┼────────┼────────┼────────┼────────┼────────┤
-│ v0.4 開発                │ v1.0 準備               │
-│                          │                         │
-│ ■ Skill マーケットプレイス│ ■ ガバナンス・コンプライ │
-│ ■ マルチユーザー対応     │   アンス                 │
-│ ■ Web ブラウザ自動化     │ ■ 24/365 ロングラン実行  │
-│ ■ ファイルアップロード   │ ■ セキュリティ監査       │
-│ ■ Obsidian 連携          │ ■ ドキュメント完成       │
-│                          │ ■ v1.0 リリース         │
-└────────┴────────┴────────┴────────┴────────┴────────┘
++--------+--------+--------+--------+--------+--------+
+| Oct    | Nov    | Dec    | 2027   |        |        |
+|        |        |        | Jan    | Feb    | Mar    |
++--------+--------+--------+--------+--------+--------+
+| v0.4 Development        | v1.0 Preparation          |
+|                          |                           |
+| * Skill marketplace      | * Governance & compliance  |
+| * Multi-user support     |                           |
+| * Web browser automation | * 24/365 long-run exec    |
+| * File upload            | * Security audit           |
+| * Obsidian integration   | * Documentation complete   |
+|                          | * v1.0 release             |
++--------+--------+--------+--------+--------+--------+
 ```
 
-### (7) 開発にかかわる時間帯と時間数
+### (7) Development Hours and Schedule
 
-| 期間 | 時間帯 | 週あたり時間 |
-|------|--------|-------------|
-| 平日 | 夜間 (19:00〜24:00) | 約 25 時間 |
-| 休日 | 終日 (10:00〜22:00) | 約 20 時間 |
-| **合計** | | **週 40〜45 時間** |
+| Period | Hours | Weekly Hours |
+|--------|-------|-------------|
+| Weekdays | Evenings (19:00-24:00) | ~25 hours |
+| Weekends | All day (10:00-22:00) | ~20 hours |
+| **Total** | | **40-45 hours/week** |
 
-AI エージェント（Claude Code）を活用することで、従来の 2〜3 倍の生産性を実現しています。
+By leveraging AI agents (Claude Code), achieving 2-3x productivity compared to traditional development.
 
-### (8) プロジェクトに必要な経費の内訳
+### (8) Project Expense Breakdown
 
-| 費目 | 内訳 | 金額 (年間) |
-|------|------|------------|
-| **LLM API 利用料** | Claude API / OpenAI API（開発・テスト用） | 120,000 円 |
-| **クラウドインフラ** | Cloudflare Workers Pro / VPS | 36,000 円 |
-| **ドメイン・SSL** | ドキュメントサイト・デモサイト | 5,000 円 |
-| **開発ツール** | GitHub Pro（CI/CD 拡張）| 12,000 円 |
-| **GPU リソース** | ローカルモデル検証用（必要に応じて） | 50,000 円 |
-| **書籍・カンファレンス** | AI/LLM 関連の技術書・参加費 | 30,000 円 |
-| **ハードウェア** | GPU 搭載開発機（必要に応じて） | 150,000 円 |
-| **合計** | | **403,000 円** |
+| Expense | Details | Amount (Annual) |
+|---------|---------|----------------|
+| **LLM API usage** | Claude API / OpenAI API (for development/testing) | 120,000 JPY |
+| **Cloud infrastructure** | Cloudflare Workers Pro / VPS | 36,000 JPY |
+| **Domain / SSL** | Documentation site / demo site | 5,000 JPY |
+| **Development tools** | GitHub Pro (CI/CD extension) | 12,000 JPY |
+| **GPU resources** | For local model verification (as needed) | 50,000 JPY |
+| **Books / conferences** | AI/LLM technical books / attendance fees | 30,000 JPY |
+| **Hardware** | GPU-equipped development machine (as needed) | 150,000 JPY |
+| **Total** | | **403,000 JPY** |
 
-> **注**: Ollama（ローカル LLM）+ SQLite + GitHub 無料枠で基本開発は可能。
-> 上記は品質向上・大規模テスト・コミュニティ運営のための費用です。
+> **Note**: Basic development is possible with Ollama (local LLM) + SQLite + GitHub free tier.
+> The above expenses are for quality improvement, large-scale testing, and community operations.
 
 ---
 
-## 5. 提案者の腕前を証明できるもの
+## 5. Demonstrating the Proposer's Capabilities
 
-### 5.1 本プロジェクトの実績
+### 5.1 Project Achievements
 
-Zero-Employee Orchestrator v0.1 として、以下を個人で設計・実装済み:
+Designed and implemented individually as Zero-Employee Orchestrator v0.1:
 
-| 成果物 | 規模 |
-|--------|------|
-| **Python バックエンド** | FastAPI ベース、18+ モジュール、24 ルートモジュール・40+ API エンドポイント |
-| **React フロントエンド** | 23 画面、TypeScript + Tailwind CSS |
-| **Tauri デスクトップアプリ** | Windows / macOS / Linux 対応 |
-| **Cloudflare Workers** | エッジデプロイ（Proxy + Full 2方式） |
-| **テストスイート** | 13 テストモジュール、カオステスト 20+ ケース、ZEO-Bench 200問 |
-| **ドキュメント** | 日本語・英語・中国語 3 か国語、20+ ドキュメント |
-| **CI/CD** | GitHub Actions 6 ワークフロー |
+| Deliverable | Scale |
+|-------------|-------|
+| **Python backend** | FastAPI-based, 18+ modules, 24 route modules, 40+ API endpoints |
+| **React frontend** | 23 screens, TypeScript + Tailwind CSS |
+| **Tauri desktop app** | Windows / macOS / Linux compatible |
+| **Cloudflare Workers** | Edge deployment (Proxy + Full, 2 methods) |
+| **Test suite** | 13 test modules, 20+ chaos test cases, ZEO-Bench 200 questions |
+| **Documentation** | 3-language (Japanese, English, Chinese), 20+ documents |
+| **CI/CD** | 6 GitHub Actions workflows |
 
-### 5.2 利用可能な言語・ツール
+### 5.2 Available Languages and Tools
 
-| カテゴリ | スキル |
-|---------|--------|
-| **言語** | Python, TypeScript, JavaScript, Rust, SQL |
-| **バックエンド** | FastAPI, SQLAlchemy, Alembic, uvicorn |
-| **フロントエンド** | React, Next.js, Vite, Tailwind CSS, shadcn/ui |
-| **デスクトップ** | Tauri, Electron |
+| Category | Skills |
+|----------|--------|
+| **Languages** | Python, TypeScript, JavaScript, Rust, SQL |
+| **Backend** | FastAPI, SQLAlchemy, Alembic, uvicorn |
+| **Frontend** | React, Next.js, Vite, Tailwind CSS, shadcn/ui |
+| **Desktop** | Tauri, Electron |
 | **AI/LLM** | LiteLLM, Ollama, OpenAI API, Anthropic API, Gemini API |
-| **インフラ** | Cloudflare Workers, Docker, GitHub Actions |
-| **データベース** | PostgreSQL, SQLite, D1 |
-| **開発ツール** | Git, ruff, ESLint, pytest |
+| **Infrastructure** | Cloudflare Workers, Docker, GitHub Actions |
+| **Database** | PostgreSQL, SQLite, D1 |
+| **Development tools** | Git, ruff, ESLint, pytest |
 
-### 5.3 AI 支援開発の知見
+### 5.3 AI-Assisted Development Expertise
 
-Claude Code を活用した AI 支援開発で、大規模プロジェクトを個人で設計・実装する方法論を確立。9 層アーキテクチャの設計から実装まで、AI エージェントとのペアプログラミングで効率的に開発を進めています。
-
----
-
-## 6. プロジェクト遂行にあたっての特記事項
-
-- プロジェクト期間中の進学・就職・転職の予定はありません
-- プロジェクトに専念できる環境が整っています
-- オープンソースプロジェクトとしての継続的なメンテナンスを予定しています
+Established a methodology for designing and implementing large-scale projects as an individual using AI-assisted development with Claude Code. Efficiently progressing development through pair programming with AI agents, from 9-layer architecture design to implementation.
 
 ---
 
-## 7. IT 以外の勉強、特技、生活、趣味など
+## 6. Special Notes for Project Execution
 
-- **設計思想**: 「AI と人間の信頼関係」に強い関心があり、AI が暴走せず人間のパートナーとして機能するためのアーキテクチャ設計を追求しています
-- **多言語**: 日本語・英語のドキュメントを自ら執筆。国際的なコミュニティ形成を視野に入れています
-- **教育**: AI オーケストレーションの概念を分かりやすく伝えることに情熱があり、チュートリアル・デモ動画の制作を計画しています
-
----
-
-## 8. 将来の IT について思うこと・期すること
-
-### AI は「道具」から「組織」へ
-
-現在の AI は優秀な「道具」です。しかし、人間の組織が「個人の能力の総和」を超える成果を出せるように、AI も「チーム」として運用することで、単体の AI では到達できない品質と信頼性を実現できると考えています。
-
-ZEO が目指しているのは、その「AI 組織」の運用基盤です。
-
-### 安全性は後付けにできない
-
-多くの AI エージェントプロジェクトは「まず動くものを作り、安全性は後から考える」というアプローチを取っています。しかし、AI が業務の核心に組み込まれるほど、安全性の後付けは困難になります。
-
-ZEO は**承認フロー・監査ログ・Judge Layer をアーキテクチャの最初から組み込む**ことで、安全性と機能性を両立させています。これは「安全な AI」が技術的な制約ではなく、設計思想の問題であることを示しています。
-
-### AI Self-Improvement — 最大の可能性と最大の責任
-
-AI が自身を改善する能力は、技術の加速的な進歩をもたらす一方で、制御不能なリスクも孕んでいます。ZEO の AI Self-Improvement は、以下の原則を厳守します:
-
-1. **人間の承認が最終権限** — AI は提案し、人間が決定する
-2. **透明性** — AI が何をどう改善したか、すべて記録・追跡可能
-3. **可逆性** — すべての改善はロールバック可能
-4. **段階的委任** — ユーザーが明示的に委任範囲を拡大する
-
-この原則に基づく AI Self-Improvement は、「AI が暴走する未来」ではなく、「AI が人間のパートナーとして進化する未来」を実現すると確信しています。
-
-### ソフトウェアの民主化
-
-ZEO はオープンソースです。高価な SaaS サービスに依存せず、Ollama（ローカル LLM）を使えば完全無料で AI オーケストレーションを体験できます。
-
-AI の恩恵は、大企業だけでなく、個人開発者やフリーランス、中小企業、教育機関にも行き渡るべきです。ZEO はその橋渡しとなるプラットフォームを目指しています。
-
-**AI が、組織として働き、自らを進化させる。
-その循環を安全に、透明に、人間の意思決定を保ちながら実現する。**
-
-これが Zero-Employee Orchestrator の目指す未来です。
+- No plans for enrollment, employment, or job change during the project period
+- Environment is prepared for full project dedication
+- Ongoing maintenance as an open source project is planned
 
 ---
 
-## チェックリスト
+## 7. Studies, Skills, Life, and Hobbies Outside IT
 
-| # | 項目 | 状態 |
-|---|------|------|
-| 0 | タイトル — テクノロジーと課題が一目で分かる | OK |
-| 1 | 何を作るか — 背景・目的・目標・アーキテクチャ図 | OK |
-| 2 | どんな出し方を考えているか — OSS 公開・リリース計画・修了後アクション | OK |
-| 3 | 斬新さの主張 — 既存技術比較表・5つの新規性・期待効果 | OK |
-| 4 | 具体的な進め方と予算 — (1)〜(8) 全項目記載 | OK |
-| 5 | 提案者の腕前 — v0.1 実績・技術スキル・AI 支援開発の知見 | OK |
-| 6 | 特記事項 — プロジェクト遂行環境 | OK |
-| 7 | IT 以外 — 設計思想・多言語・教育への関心 | OK |
-| 8 | 将来の IT について — AI 組織化・安全性・Self-Improvement・民主化 | OK |
+- **Design philosophy**: Strong interest in "trust between AI and humans," pursuing architecture design that ensures AI functions as a human partner without going rogue
+- **Multilingual**: Personally writing documentation in Japanese and English. International community formation is in scope
+- **Education**: Passionate about communicating AI orchestration concepts in an accessible way; planning to create tutorials and demo videos
 
 ---
 
-*Zero-Employee Orchestrator — AI が、組織として働く。*
+## 8. Thoughts and Aspirations About the Future of IT
+
+### AI Evolves from "Tool" to "Organization"
+
+Current AI is an excellent "tool." However, just as human organizations can produce results that exceed the sum of individual capabilities, AI operated as a "team" can achieve quality and reliability that single AI cannot reach.
+
+What ZEO aims to build is the operational platform for that "AI organization."
+
+### Safety Cannot Be Added Later
+
+Many AI agent projects take the approach of "build something that works first, think about safety later." However, the more AI becomes embedded in core business operations, the harder it becomes to add safety after the fact.
+
+ZEO **incorporates approval flows, audit logs, and Judge Layer into the architecture from the very beginning**, achieving both safety and functionality. This demonstrates that "safe AI" is not a technical constraint but a matter of design philosophy.
+
+### AI Self-Improvement — Greatest Possibility and Greatest Responsibility
+
+The ability for AI to improve itself brings accelerated technological progress, but also carries risks of loss of control. ZEO's AI Self-Improvement strictly adheres to the following principles:
+
+1. **Human approval is the final authority** — AI proposes, humans decide
+2. **Transparency** — Everything about what and how AI improved is recorded and traceable
+3. **Reversibility** — All improvements can be rolled back
+4. **Gradual delegation** — Users explicitly expand the scope of delegation
+
+AI Self-Improvement based on these principles will realize not "a future where AI runs rogue" but "a future where AI evolves as a human partner."
+
+### Democratization of Software
+
+ZEO is open source. Without depending on expensive SaaS services, anyone can experience AI orchestration completely free using Ollama (local LLM).
+
+The benefits of AI should reach not only large corporations but also individual developers, freelancers, small and medium businesses, and educational institutions. ZEO aims to be the platform that bridges that gap.
+
+**AI works as an organization, evolving itself.
+Achieving that cycle safely, transparently, while preserving human decision-making.**
+
+This is the future that Zero-Employee Orchestrator aims for.
+
+---
+
+## Checklist
+
+| # | Item | Status |
+|---|------|--------|
+| 0 | Title — Technology and challenge identifiable at a glance | OK |
+| 1 | What we are building — Background, purpose, goals, architecture diagram | OK |
+| 2 | How we plan to release — OSS release, release plan, post-project actions | OK |
+| 3 | Innovation claims — Existing tech comparison table, 5 innovations, expected impact | OK |
+| 4 | Specific approach and budget — All items (1)-(8) documented | OK |
+| 5 | Proposer's capabilities — v0.1 achievements, technical skills, AI-assisted development expertise | OK |
+| 6 | Special notes — Project execution environment | OK |
+| 7 | Outside IT — Design philosophy, multilingual, interest in education | OK |
+| 8 | Future of IT — AI as organization, safety, Self-Improvement, democratization | OK |
+
+---
+
+*Zero-Employee Orchestrator — AI works as an organization.*

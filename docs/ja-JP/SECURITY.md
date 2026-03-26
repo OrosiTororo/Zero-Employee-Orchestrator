@@ -1,6 +1,6 @@
-> [日本語](../SECURITY.md) | English | [中文](../zh/SECURITY.md)
-
 # Security Policy
+
+> English | [中文](zh/SECURITY.md)
 
 ## Supported Versions
 

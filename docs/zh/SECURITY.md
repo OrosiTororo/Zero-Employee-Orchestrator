@@ -1,4 +1,4 @@
-> [日本語](../SECURITY.md) | [English](../en/SECURITY.md) | 中文
+> [日本語](../ja-JP/SECURITY.md) | [English](../SECURITY.md) | 中文
 
 # 安全策略
 

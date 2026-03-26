@@ -1,6 +1,6 @@
 # Changelog
 
-> 日本語 | [English](en/CHANGELOG.md) | [中文](zh/CHANGELOG.md)
+> English | [日本語](ja-JP/CHANGELOG.md) | [中文](zh/CHANGELOG.md)
 
 All notable changes to this project will be documented in this file.
 
@@ -11,339 +11,324 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- **Design Interview 過去失敗パターンフィードバック** — Experience Memory と Failure Taxonomy から類似失敗パターンを自動検索し、Interview 中に警告・追加質問を動的注入。Spec 生成時にリスクノートとして統合。
-- **FEATURES.md に 21 件の未記載機能を追加** — RSS/ToS 自動更新、Knowledge Refresh、A2A 双方向通信、Avatar AI 共進化、Longrun Scheduler、Agent Session、Artifact Bridge、メディア生成、AI ツールレジストリ、iPaaS 統合、アーティファクトエクスポート、リパーパスエンジン、Obsidian 統合、クラウドネイティブ統合、スマートデバイス統合、ガバナンス・コンプライアンス、マーケットプレイス、チーム管理、Red-team テスト、ワークスペース隔離
+- **Design Interview past-failure pattern feedback** — Automatically searches similar failure patterns from Experience Memory and Failure Taxonomy, dynamically injects warnings and additional questions during Interview. Integrated as risk notes during Spec generation.
+- **Added 21 undocumented features to FEATURES.md** — RSS/ToS auto-update, Knowledge Refresh, A2A bidirectional communication, Avatar AI co-evolution, Longrun Scheduler, Agent Session, Artifact Bridge, Media generation, AI Tools registry, iPaaS integration, Artifact export, Repurpose engine, Obsidian integration, Cloud-native integration, Smart device integration, Governance & compliance, Marketplace, Team management, Red-team testing, Workspace isolation
 
 ### Security
 
-- **Sandbox シンボリックリンク攻撃対策強化** — resolve() 後のパスが元パスと異なるディレクトリを指す場合を検出・ブロック
-- **Data Protection パスワードパターンマッチング修正** — 大文字小文字を区別しないパターンマッチングに修正
-- **CI: Dependabot PR でもテスト実行** — 従来スキップされていた lint-and-test ジョブを Dependabot PR でも実行するよう修正
+- **Sandbox symlink attack hardening** — Detects and blocks when resolved path points to a different directory than original
+- **Data Protection password pattern matching fix** — Fixed to use case-insensitive pattern matching
+- **CI: Run tests on Dependabot PRs** — Fixed lint-and-test job that was previously skipped for Dependabot PRs
 
 ### Changed
 
-- **Dependabot 設定の大幅強化** — メジャーバージョン更新の無視、グループ化、全エコシステム網羅（pip/npm/cargo/github-actions）、Cloudflare Workers 個別管理
-- **Dependabot 自動マージワークフロー追加** — patch/minor 更新を CI 通過後に自動承認・squash マージ
+- **Dependabot configuration overhaul** — Ignore major version updates, grouping, full ecosystem coverage (pip/npm/cargo/github-actions), Cloudflare Workers separate management
+- **Dependabot auto-merge workflow added** — Auto-approve and squash-merge patch/minor updates after CI passes
 
 ## [0.1.0] - 2026-03-12 — Platform v0.1 (Consolidated Release)
 
-### Added — AI Self-Improvement (Level 2: 自己改善の芽)
+### Added — AI Self-Improvement (Level 2: Seeds of Self-Improvement)
 
-- **AI Self-Improvement Plugin 実装** (`services/self_improvement_service.py`, `api/routes/self_improvement.py`)
-  - 6 Skill の完全実装: skill-analyzer, skill-improver, judge-tuner, failure-to-skill, skill-ab-test, auto-test-generator
-  - **Skill Analyzer** — 既存 Skill のコード品質を AI が分析（静的分析 16 パターン + LLM 深層分析）
-  - **Skill Improver** — 分析結果に基づく改善版 Skill の自動生成（安全性チェック付き・バージョン管理）
-  - **Judge Tuner** — Experience Memory の承認/却下パターンから Judge Layer ルールを自動提案
-  - **Failure-to-Skill** — Failure Taxonomy の頻発パターンから予防 Skill を自動生成
-  - **Skill A/B Test** — 2つの Skill を同じ入力で実行し品質・速度を定量比較
-  - **Auto Test Generator** — Skill コードから正常系・エッジケース・異常系テストを自動生成
-  - Self-Improvement API: 10 エンドポイント（`/api/v1/self-improvement/*`）
-  - ダッシュボード API: 分析数・改善提案数・適用数・テスト生成数の統計
-  - 全操作に承認フロー統合（改善適用・Judge 調整・Skill 登録は承認必須）
-  - Skill バージョン管理（manifest_json に version_history を保持・ロールバック可能）
-- **Self-Improvement スキーマ** (`schemas/self_improvement.py`)
-  - 14 の Pydantic DTO: 分析・改善・Judge調整・失敗学習・A/Bテスト・テスト生成の入出力
-- ルーター登録 (`api/routes/__init__.py`): self-improvement ルーター追加
+- **AI Self-Improvement Plugin Implementation** (`services/self_improvement_service.py`, `api/routes/self_improvement.py`)
+  - Full implementation of 6 Skills: skill-analyzer, skill-improver, judge-tuner, failure-to-skill, skill-ab-test, auto-test-generator
+  - **Skill Analyzer** — AI-powered code quality analysis (16-pattern static analysis + LLM deep analysis)
+  - **Skill Improver** — Automatic improved version generation based on analysis (with safety checks & versioning)
+  - **Judge Tuner** — Auto-propose Judge Layer rules from Experience Memory approval/rejection patterns
+  - **Failure-to-Skill** — Auto-generate prevention Skills from frequent failure patterns in Failure Taxonomy
+  - **Skill A/B Test** — Run two Skills with same input, compare quality and speed quantitatively
+  - **Auto Test Generator** — Auto-generate normal/edge/error test cases from Skill code
+  - Self-Improvement API: 10 endpoints (`/api/v1/self-improvement/*`)
+  - All operations require user approval (improvement apply, Judge tuning, Skill registration)
+  - Skill version management (version_history in manifest_json, rollback supported)
 
 ### Security
 
-- **bcrypt を必須依存に昇格** — SHA-256 フォールバックを廃止し、パスワードハッシュに bcrypt を強制
-- **レート制限追加** (`slowapi`) — 認証エンドポイントにレート制限を実装（登録: 5/min, ログイン: 10/min）
-- **RAG ファイル権限修正** — `index.json` / `idf.json` を `0o600`（所有者のみ）に制限
-- **RAG 入力バリデーション** — コンテンツサイズ上限 (10 MB) とメタデータキー数制限を追加
-- **認証エンドポイント保護** — 承認 / 設定 / レジストリ API に認証を追加
-- **CORS 制限強化** — ワイルドカードを明示的メソッド・ヘッダーリストに変更
-- **UUID 入力バリデーション** — 不正 UUID で 400 を返すように修正
+- **bcrypt promoted to required dependency** — Removed SHA-256 fallback, enforcing bcrypt for password hashing
+- **Rate limiting added** (`slowapi`) — Implemented rate limits on authentication endpoints (registration: 5/min, login: 10/min)
+- **RAG file permissions fixed** — Restricted `index.json` / `idf.json` to `0o600` (owner only)
+- **RAG input validation** — Added content size limit (10 MB) and metadata key count restriction
+- **Authentication endpoint protection** — Added authentication to approval / config / registry APIs
+- **CORS restriction hardening** — Changed wildcard to explicit method and header lists
+- **UUID input validation** — Fixed to return 400 for invalid UUIDs
 
 ### Added
 
-- **ファイル添付による計画作成** — Design Interview にファイルを添付し、仕様書生成のコンテキストに統合
-  - `POST /api/v1/tickets/{ticket_id}/interview/attach` — ファイルアップロード
-  - `GET /api/v1/tickets/{ticket_id}/interview/attachments` — 添付ファイル一覧
-  - テキスト・コード・画像・PDF に対応（テキスト自動抽出 + 複数エンコーディング対応）
-  - 抽出テキストを Spec の「参照資料」セクションに自動統合
-- **Local Context Skill 画像対応** — 画像ファイル読み取り（Base64 エンコード + PNG/JPEG サイズ検出）
-  - `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.bmp`, `.svg` に対応
-  - SVG はテキストとしても解析
-  - 10 MB サイズ上限
-- **ファイルタイプ拡張** — Local Context Skill の対応形式を大幅拡充
-  - コード: `.tsx`, `.jsx`, `.java`, `.go`, `.rs`, `.c`, `.cpp`, `.h`, `.html`, `.xml`, `.css`, `.sql`, `.sh`
-  - 複数エンコーディング自動検出（UTF-8, Shift_JIS, EUC-JP, CP932）
-- **壁打ち（ブレインストーミング）機能** (`services/multi_model_service.py`, `api/routes/multi_model.py`, `pages/BrainstormPage.tsx`)
-  - AI相談役との壁打ちセッション管理（作成・メッセージ追加・検索・アーカイブ）
-  - 複数モデル壁打ち対応（GPT / Gemini / Claude を同時に使用可能）
-  - セッションタイプ: brainstorm / debate / review / ideation / strategy
-  - 壁打ち / Brainstorm / 头脑风暴 — Brainstorm with AI advisors
-- **マルチモデル比較機能** (`services/multi_model_service.py`)
-  - 同一入力を複数モデルに送信し、回答を並べて比較
-  - モデルごとの文字数・トークン数・レイテンシ計測
-  - 比較結果の永続保存と一覧表示
-  - Multi-Model Compare — Send same input to GPT / Gemini / Claude and compare responses side-by-side
-- **会話記憶（Conversation Memory）** (`services/multi_model_service.py`)
-  - ユーザーとAI組織の全会話を永続保管
-  - 過去の会話をキーワード検索（ユーザーが過去の発言について聞いた場合に対応）
-  - 会話統計（総メッセージ数・総文字数・役割別・種類別）
-  - Conversation Memory — Permanently store all conversations, search past discussions
-- **正確な文字数カウント（TextAnalyzer）** (`services/multi_model_service.py`)
-  - Python の len() による Unicode 対応の正確な文字数カウント
-  - ひらがな・カタカナ・漢字・ASCII・数字の内訳
-  - 文字数バリデーション（最小・最大文字数チェック）
-  - ユーザーが文字数を指定した場合に正確に対応
+- **File Attachment-based Plan Creation** — Attach files to Design Interview and integrate into spec generation context
+  - `POST /api/v1/tickets/{ticket_id}/interview/attach` — File upload
+  - `GET /api/v1/tickets/{ticket_id}/interview/attachments` — List attachments
+  - Supports text, code, images, and PDF (auto text extraction + multi-encoding support)
+  - Extracted text automatically integrated into the "Reference Materials" section of Specs
+- **Local Context Skill Image Support** — Image file reading (Base64 encoding + PNG/JPEG size detection)
+  - Supports `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.bmp`, `.svg`
+  - SVG also parsed as text
+  - 10 MB size limit
+- **Extended File Type Support** — Significantly expanded supported formats for Local Context Skill
+  - Code: `.tsx`, `.jsx`, `.java`, `.go`, `.rs`, `.c`, `.cpp`, `.h`, `.html`, `.xml`, `.css`, `.sql`, `.sh`
+  - Multi-encoding auto-detection (UTF-8, Shift_JIS, EUC-JP, CP932)
+
+- **Brainstorming (Sparring Partner) Feature** (`services/multi_model_service.py`, `api/routes/multi_model.py`, `pages/BrainstormPage.tsx`)
+  - Brainstorm session management with AI advisors (create, message, search, archive)
+  - Multi-model brainstorming support (use GPT / Gemini / Claude simultaneously)
+  - Session types: brainstorm / debate / review / ideation / strategy
+- **Multi-Model Comparison** (`services/multi_model_service.py`)
+  - Send same input to multiple models and compare responses side-by-side
+  - Per-model character count, token count, and latency measurement
+  - Persistent storage and listing of comparison results
+- **Conversation Memory** (`services/multi_model_service.py`)
+  - Permanently store all conversations between users and AI organization
+  - Keyword search across past conversations (supports user queries about past discussions)
+  - Conversation statistics (total messages, characters, by role, by type)
+- **Accurate Character Counting (TextAnalyzer)** (`services/multi_model_service.py`)
+  - Unicode-aware character counting using Python's len()
+  - Breakdown by hiragana, katakana, kanji, ASCII, digits
+  - Character count validation (min/max length checks)
   - Text Analysis API: POST /text/analyze
-- **役割別モデル設定** (`services/multi_model_service.py`)
-  - エージェントの役割ごとに使用するAIモデルをユーザーが自由に設定
-  - エージェント個別設定と全体設定のフォールバック
-  - フォールバックモデル・max_tokens・temperature・システムプロンプトの設定
-  - Per-Role Model Settings — Users can assign AI models per agent role
-- **動的エージェント組織管理** (`services/agent_org_service.py`)
-  - プリセット役割（秘書・相談役・PM・リサーチャー・エンジニア等）でのエージェント追加
-  - カスタム役割の作成・一覧・削除
-  - エージェントの役割更新（名前・説明・モデル・自律度・システムプロンプト）
-  - エージェントの削除（廃止状態への遷移）
-  - Dynamic Agent Management — Add, remove, modify agents with preset or custom roles
-- **秘書・相談役の役割定義** (`services/agent_org_service.py`)
-  - 秘書: AI組織とユーザーの繋ぎ役、情報の保管庫、ナレッジ蓄積
-  - 相談役: ユーザーの壁打ち相手、多角的アドバイス、秘書とユーザーの橋渡し
-  - 各役割にシステムプロンプト定義済み
-  - Secretary & Advisor roles with predefined system prompts
-- **自然言語組織管理** (`services/agent_org_service.py`)
-  - 「相談役を追加して」等の自然言語でAI組織にリクエスト
-  - キーワードベースのアクション・役割自動推定
-  - 自動実行モード対応（信頼度が高い場合は自動実行）
-  - 機能リクエストの永続保存と一覧表示
-  - Natural Language Org Management — Manage AI org with natural language
-- **フロントエンド BrainstormPage** (`pages/BrainstormPage.tsx`)
-  - 壁打ちセッション管理UI（作成・メッセージ送受信・検索）
-  - マルチモデル比較UI（モデル選択・入力・結果比較表示）
-  - 役割別モデル設定UI（一覧表示・利用可能な役割表示）
-  - AI組織管理UI（自然言語リクエスト送信・役割一覧・エージェント追加）
-  - リアルタイム文字数カウント表示
-- **秘書AI ダッシュボード** (`pages/SecretaryPage.tsx`)
-  - ブレインダンプ（思考を整理してカテゴリ分類・アクションアイテム抽出）
-  - 日次サマリー生成・閲覧
-  - 優先度提案・タスクの整理
+- **Per-Role Model Settings** (`services/multi_model_service.py`)
+  - Users can assign AI models to each agent role freely
+  - Agent-specific settings with global fallback
+  - Configurable fallback model, max_tokens, temperature, system prompt
+- **Dynamic Agent Organization Management** (`services/agent_org_service.py`)
+  - Add agents by preset roles (Secretary, Advisor, PM, Researcher, Engineer, etc.)
+  - Create, list, and delete custom roles
+  - Update agent roles (name, description, model, autonomy level, system prompt)
+  - Remove agents (transition to decommissioned status)
+- **Secretary & Advisor Role Definitions** (`services/agent_org_service.py`)
+  - Secretary: Bridge between AI organization and user, knowledge repository, information management
+  - Advisor: Sparring partner for brainstorming, multi-perspective advice, bridge between secretary and user
+  - Each role has predefined system prompts
+- **Natural Language Organization Management** (`services/agent_org_service.py`)
+  - Submit requests to AI organization in natural language (e.g., "Add an advisor agent")
+  - Keyword-based action and role auto-detection
+  - Auto-execute mode (executes automatically when confidence is high)
+  - Persistent storage and listing of feature requests
+- **Frontend BrainstormPage** (`pages/BrainstormPage.tsx`)
+  - Brainstorm session management UI (create, send/receive messages, search)
+  - Multi-model comparison UI (model selection, input, side-by-side result display)
+  - Per-role model settings UI (list configs, available roles)
+  - AI organization management UI (natural language requests, role list, agent addition)
+  - Real-time character count display
+- **Secretary AI Dashboard** (`pages/SecretaryPage.tsx`)
+  - Brain dump (organize thoughts into categories and extract action items)
+  - Daily summary generation and viewing
+  - Priority suggestions and task organization
 - **AI Self-Improvement Plugin** (`plugins/ai-self-improvement/`)
-  - 6 Skill のマニフェスト定義: skill-analyzer, skill-improver, judge-tuner, failure-to-skill, skill-ab-test, auto-test-generator
-  - Judge Layer / Experience Memory / Failure Taxonomy / Skill Registry / DAG との統合ポイント定義
-  - 安全性ポリシー（サンドボックス実行・承認必須・ロールバック・品質閾値・変更量制限・Kill Switch）
-- **ZEO-Bench — Judge Layer 定量評価ベンチマーク** (`tests/zeo_bench.py`)
-  - 200 問のテストセットで Cross-Model Verification の精度を定量評価
-  - 4 カテゴリ: 事実正確性 (50問)・矛盾検出 (70問)・偽陽性 (40問)・修正品質 (40問)
-  - 単一モデル自己評価との検出率比較を数値で出力
-  - `BenchmarkReport` による per-category 分析とサマリー
-- **Cross-Model Verification の改善** (`orchestration/judge.py`)
-  - セマンティック類似度検証（トークンレベル Jaccard 類似度）
-  - 数値許容範囲比較（5% 以内は一致とみなす）
-  - 矛盾検出エンジン: 否定パターン・数値不整合・結論矛盾・時系列不整合を検出
-  - 信頼度加重スコアリング（合意モデル数による重み付け）
-  - 詳細な矛盾レポート（contradiction_details）の出力
-- **汎用ドメイン Skill テンプレート** (`skills/builtin/domain_skills.py`)
-  - ContentCreatorSkill — 任意プラットフォーム向けコンテンツ生成（ブログ・SNS・メール・動画台本・プレゼン）
-  - CompetitorAnalysisSkill — 任意ドメインの競合分析（市場分析・SWOT・価格比較・機能比較）
-  - TrendAnalysisSkill — 任意ドメインのトレンド分析（市場・技術・SNS・業界動向）
-  - PerformanceAnalysisSkill — 任意ビジネスのパフォーマンス分析（KPI・ROI・コンバージョン・エンゲージメント）
-  - StrategyAdvisorSkill — ドメイン横断の戦略アドバイザー（次アクション・リソース配分・リスク評価）
-  - 全 Skill が i18n 対応（ja/en/zh）・Artifact Bridge 互換
-- **Artifact Bridge 強化** (`orchestration/artifact_bridge.py`)
-  - auto_link_outputs_to_inputs: DAG 内の成果物を自動連携
-  - cross-domain 変換: trend_report → market_context 等の自動型変換
-  - 互換性マトリクス: 成果物タイプ間の自動変換ルール
-  - find_compatible_artifacts: 互換成果物の検索
-  - build_artifact_pipeline: Skill チェーンの成果物フロー設計
-- **Self-Healing DAG カオステスト** (`tests/test_chaos_dag.py`)
-  - 20+ のフォルト注入テストケース
-  - 単一ノード障害・カスケード障害・並列ブランチ障害・全ブランチ障害
-  - 復旧成功率・復旧時間の計測ベンチマーク
-  - 戦略別効果比較（retry / skip / replan）
-  - DAG 整合性検証（孤立ノード・依存関係解決・完了ノード保持）
+  - Manifest definition for 6 Skills: skill-analyzer, skill-improver, judge-tuner, failure-to-skill, skill-ab-test, auto-test-generator
+  - Integration points with Judge Layer / Experience Memory / Failure Taxonomy / Skill Registry / DAG
+  - Safety policies (sandbox execution, approval required, rollback, quality thresholds, change limits, Kill Switch)
+- **ZEO-Bench — Judge Layer Quantitative Evaluation Benchmark** (`tests/zeo_bench.py`)
+  - 200-question test set for quantitative evaluation of Cross-Model Verification accuracy
+  - 4 categories: Factual Accuracy (50), Contradiction Detection (70), False Positive (40), Correction Quality (40)
+  - Numerical comparison of detection rate improvement vs single-model self-evaluation
+  - `BenchmarkReport` with per-category breakdowns and summary
+- **Cross-Model Verification Improvements** (`orchestration/judge.py`)
+  - Semantic similarity checking (token-level Jaccard similarity)
+  - Numeric tolerance comparison (within 5% considered matching)
+  - Contradiction detection engine: negation patterns, numeric discrepancies, conclusion conflicts, temporal inconsistencies
+  - Confidence-weighted scoring (weighted by number of agreeing models)
+  - Detailed contradiction reporting (contradiction_details)
+- **Generalized Domain Skill Templates** (`skills/builtin/domain_skills.py`)
+  - ContentCreatorSkill — Content generation for any platform (blog, social media, email, video scripts, presentations)
+  - CompetitorAnalysisSkill — Competitor analysis for any domain (market analysis, SWOT, pricing, feature comparison)
+  - TrendAnalysisSkill — Trend analysis for any domain (market, technology, social media, industry trends)
+  - PerformanceAnalysisSkill — Performance analysis for any business (KPI, ROI, conversion, engagement)
+  - StrategyAdvisorSkill — Cross-domain strategic advisor (next actions, resource allocation, risk assessment)
+  - All Skills support i18n (ja/en/zh) and Artifact Bridge compatibility
+- **Enhanced Artifact Bridge** (`orchestration/artifact_bridge.py`)
+  - auto_link_outputs_to_inputs: Automatic artifact linking within DAGs
+  - Cross-domain transformation: e.g., trend_report → market_context automatic type conversion
+  - Compatibility matrix: Auto-conversion rules between artifact types
+  - find_compatible_artifacts: Search for compatible artifacts
+  - build_artifact_pipeline: Design artifact flow through Skill chains
+- **Self-Healing DAG Chaos Tests** (`tests/test_chaos_dag.py`)
+  - 20+ fault injection test cases
+  - Single node failures, cascade failures, parallel branch failures, full branch failures
+  - Recovery success rate and recovery time benchmarks
+  - Strategy effectiveness comparison (retry / skip / replan)
+  - DAG integrity validation (orphan nodes, dependency resolution, completed node preservation)
 
 ### Fixed (post-release)
 
-- **GUI版ログイン全機能の "Failed to fetch" エラーを修正**
-  - Tauri デスクトップアプリのオリジン（`tauri://localhost`, `https://tauri.localhost`）を CORS 許可リストに追加
-  - API クライアントにネットワークエラーハンドリングを追加（`NetworkError` / `ApiError` クラス）
-  - Vite dev server に API プロキシ設定を追加し、開発時の CORS 問題を解消
-  - Tauri 環境と Vite 開発環境で API ベース URL と WebSocket URL を自動切り替え
-  - LoginPage の全ボタン（Google認証・メールログイン・アカウント登録・匿名セッション）のエラーハンドリングを改善
-  - 接続エラー時にユーザーフレンドリーなメッセージを表示（日本語/英語対応）
-  - Google OAuth スタブに対して「準備中」の適切なメッセージを表示
-- **CLI/TUI版 pip install の修正**
-  - パッケージ名を `zero-employee-orchestrator-api` → `zero-employee-orchestrator` に統一
-  - リポジトリルートに `pyproject.toml` を追加し、`pip install .` でインストール可能に
-  - README・BUILD_GUIDE のインストール手順をソースインストールに更新
-- CI ワークフロー `claude-code-review.yml`: bot PR（Dependabot等）のレビュースキップ処理を修正
-- CI ワークフロー `create-release.yml`: CHANGELOG パスを `docs/CHANGELOG.md` に修正
-- リリースワークフロー `release.yml`: Tauri v2 ビルドアクション・アセットテーブルを最新化
-- フロントエンド `ReleasesPage.tsx`: GitHub Releases 未公開時のフォールバック表示を追加
-- ドキュメント整理: md ファイルを `docs/`（利用者向け）と `docs/dev/`（開発者向け）に再構成
-- セキュリティ: Dependabot 設定・セキュリティチェックスクリプト・公開前チェックリスト追加
+- **Fixed "Failed to fetch" error on all GUI login buttons**
+  - Added Tauri desktop app origins (`tauri://localhost`, `https://tauri.localhost`) to CORS allowlist
+  - Added network error handling to API client (`NetworkError` / `ApiError` classes)
+  - Added API proxy configuration to Vite dev server to resolve CORS issues during development
+  - Auto-detect API base URL and WebSocket URL based on Tauri vs Vite dev environment
+  - Improved error handling for all LoginPage buttons (Google auth, email login, registration, anonymous session)
+  - Display user-friendly messages on connection errors (Japanese/English)
+  - Show appropriate "not ready" message for Google OAuth stub
+- **Fixed CLI/TUI pip install**
+  - Unified package name from `zero-employee-orchestrator-api` to `zero-employee-orchestrator`
+  - Added root-level `pyproject.toml` to enable `pip install .` from repository root
+  - Updated install instructions in README and BUILD_GUIDE to source-based installation
+- CI workflow `claude-code-review.yml`: Fixed review skip handling for bot PRs (Dependabot, etc.)
+- CI workflow `create-release.yml`: Fixed CHANGELOG path to `docs/CHANGELOG.md`
+- Release workflow `release.yml`: Updated Tauri v2 build action and asset table to latest
+- Frontend `ReleasesPage.tsx`: Added fallback display when GitHub Releases are not yet published
+- Documentation reorganization: Restructured md files into `docs/` (user-facing) and `docs/dev/` (developer-facing)
+- Security: Added Dependabot configuration, security check script, and pre-publish checklist
 
 ### Added
 
-- **ランタイム設定管理 — .env 不要の API キー設定** (`core/config_manager.py`, `api/routes/config.py`)
-  - CLI コマンド `zero-employee config set/get/list/delete/keys` で API キーや実行モードを設定
-  - Web API `GET/PUT /api/v1/config` でアプリ内から設定変更
-  - 設定画面（SettingsPage）に LLM API キー入力 UI を追加
-  - 設定は `~/.zero-employee/config.json` に保存（ファイル権限 600 で保護）
-  - 優先順位: 環境変数 > config.json > .env > デフォルト値
-  - 機密値のマスク表示、プロバイダー接続状態 API
-- **ナレッジストア — ユーザー設定・ファイル権限の永続記憶** (`orchestration/knowledge_store.py`)
-  - ファイル/フォルダの操作権限記憶（計画時に再度聞かない）
-  - 業務資料フォルダの場所記憶
-  - ユーザー設定・好みの永続化
-  - 変更検知（前回の情報との差分検出・通知）
-  - Knowledge API（`/knowledge/*`）— 記憶・検索・変更確認
-- **ログイン不要の匿名セッション**
-  - `POST /auth/anonymous-session` で即座に利用開始
-  - 後からアカウント紐付け（`POST /auth/link-account`）
-  - ログインすると複数デバイスでの状態共有が可能
-  - フロントエンド: 「ログインせずに始める」ボタン追加
-- **Webダッシュボード — エージェント監視** (`pages/AgentMonitorPage.tsx`)
-  - ブラウザからリアルタイムでエージェント状態を監視
-  - 実行中タスク・セッション・仮説検証・エラー監視の4タブ
-  - 5秒自動リフレッシュ
-  - Sentry連携のエラー統計表示
-- **権限管理ダッシュボード** (`pages/PermissionsPage.tsx`)
-  - ファイル/フォルダ権限の設定UI
-  - 業務フォルダ位置の登録UI
-  - 変更検知の確認UI
-- **サンドボックス環境** (`worker/app/sandbox/cloud_sandbox.py`)
-  - ローカル実行・Docker実行・Cloudflare Workers実行のマルチモード
-  - ローカルコードの直接編集（権限チェック付き）
-  - Workers上でのJavaScript/TypeScript実行
-  - Cloudflare Workersへのワンクリックデプロイ
-- **Rootlessコンテナ対応** (`Dockerfile`, `docker-compose.yml`)
-  - root権限なしでコンテナ上で動作
-  - non-root ユーザー (UID 1000) で実行
-  - Docker Compose で全サービス一括起動
-- **外部スキルインポート** (`integrations/external_skills.py`)
-  - GitHub Agent Skills リポジトリからの検索・インポート
-  - skills.sh プラットフォームからの検索・インポート
-  - OpenClaw / Claude Code 形式のスキル変換
-  - 任意のGitリポジトリからのマニフェスト取得
+- **Runtime Configuration Management — API Key Setup Without .env** (`core/config_manager.py`, `api/routes/config.py`)
+  - CLI commands `zero-employee config set/get/list/delete/keys` to configure API keys and execution modes
+  - Web API `GET/PUT /api/v1/config` for in-app configuration changes
+  - Added LLM API key input UI to the Settings page (SettingsPage)
+  - Settings saved to `~/.zero-employee/config.json` (protected with file permission 600)
+  - Priority order: Environment variables > config.json > .env > Default values
+  - Sensitive value masking, provider connection status API
+- **Knowledge Store — Persistent Memory for User Settings and File Permissions** (`orchestration/knowledge_store.py`)
+  - File/folder operation permission memory (no need to re-ask during planning)
+  - Business document folder location memory
+  - User settings and preferences persistence
+  - Change detection (diff detection and notification against previous information)
+  - Knowledge API (`/knowledge/*`) — Store, search, and check for changes
+- **Login-Free Anonymous Sessions**
+  - Instantly start using the app with `POST /auth/anonymous-session`
+  - Link account later (`POST /auth/link-account`)
+  - Login enables state sharing across multiple devices
+  - Frontend: Added "Start without logging in" button
+- **Web Dashboard — Agent Monitoring** (`pages/AgentMonitorPage.tsx`)
+  - Monitor agent status in real-time from the browser
+  - 4 tabs: Running tasks, Sessions, Hypothesis verification, Error monitoring
+  - 5-second auto-refresh
+  - Sentry-integrated error statistics display
+- **Permissions Management Dashboard** (`pages/PermissionsPage.tsx`)
+  - File/folder permissions configuration UI
+  - Business folder location registration UI
+  - Change detection review UI
+- **Sandbox Environment** (`worker/app/sandbox/cloud_sandbox.py`)
+  - Multi-mode support: Local execution, Docker execution, Cloudflare Workers execution
+  - Direct editing of local code (with permission checks)
+  - JavaScript/TypeScript execution on Workers
+  - One-click deploy to Cloudflare Workers
+- **Rootless Container Support** (`Dockerfile`, `docker-compose.yml`)
+  - Runs in containers without root privileges
+  - Executes as non-root user (UID 1000)
+  - All services launched together with Docker Compose
+- **External Skill Import** (`integrations/external_skills.py`)
+  - Search and import from GitHub Agent Skills repositories
+  - Search and import from the skills.sh platform
+  - Skill conversion from OpenClaw / Claude Code formats
+  - Manifest retrieval from arbitrary Git repositories
   - `POST /skills/external/search` / `POST /skills/external/import`
-- **MCP サーバー** (`integrations/mcp_server.py`)
-  - Model Context Protocol 準拠のサーバー実装
-  - 8つの組み込みツール（チケット・タスク・スキル・ナレッジ・監査・監視・仮説検証）
-  - 4つのリソース（ダッシュボード・エージェント・スキル・ナレッジ）
-  - 2つのプロンプトテンプレート
-  - MCP API（`/mcp/*`）
-- **Cloudflareデプロイ対応**
-  - 既存の `apps/edge/full/` Workers アプリ
-  - `deploy_to_workers()` メソッドでワンクリックデプロイ
-  - wrangler.toml 自動生成
-- **AI調査ツール** (`integrations/ai_investigator.py`)
-  - AIがログ・DBを参照して調査を完結
-  - 安全なSELECTのみのDB読み取りクエリ
-  - 監査ログ検索・エラーパターン分析・タスク実行履歴
-  - システムメトリクス取得
-  - SQLインジェクション防止（禁止キーワード・SELECT文のみ）
-  - Investigation API（`/investigate/*`）
-- **Sentry連携** (`integrations/sentry_integration.py`)
-  - Sentry SDKとの連携（SDKがない場合はビルトインイベントストア）
-  - 例外キャプチャ・メッセージキャプチャ・パフォーマンストランザクション
-  - エラー統計・イベント一覧
-  - アラートコールバック機能
-  - Sentry API（`/sentry/*`）
-- **人間/AIアカウント分離（IAM）** (`security/iam.py`)
-  - AIエージェント専用サービスアカウント
-  - 人間用・AI用で異なるスコープの権限管理
-  - AIに禁止された権限（シークレット読取・管理者・承認）の自動除外
-  - 認証情報ファイルの保護（owner read only パーミッション）
-  - IAM API（`/iam/*`）
-- **仮説の並行検証エンジン** (`orchestration/hypothesis_engine.py`)
-  - マルチエージェントによる仮説検証とレビューのループ
-  - エビデンスの支持/反証スコア計算
-  - クロスレビューによるコンセンサス判定
-  - 仮説の状態管理（提案→調査→エビデンス→レビュー→確認/反証）
-  - Hypothesis API（`/hypotheses/*`）
-- **エージェントセッション管理** (`orchestration/agent_session.py`)
-  - コンテキストを保持したまま複数ラウンドのやり取り
-  - idle状態での待機（コンテキスト保持）と復帰
-  - ワーキングメモリ（セッション内の一時記憶）
-  - DB永続化とインメモリのハイブリッド
-  - Session API（`/sessions/*`）
+- **MCP Server** (`integrations/mcp_server.py`)
+  - Model Context Protocol compliant server implementation
+  - 8 built-in tools (Tickets, Tasks, Skills, Knowledge, Audit, Monitoring, Hypothesis verification)
+  - 4 resources (Dashboard, Agents, Skills, Knowledge)
+  - 2 prompt templates
+  - MCP API (`/mcp/*`)
+- **Cloudflare Deployment Support**
+  - Existing `apps/edge/full/` Workers app
+  - One-click deploy with `deploy_to_workers()` method
+  - Automatic wrangler.toml generation
+- **AI Investigation Tool** (`integrations/ai_investigator.py`)
+  - AI completes investigations by referencing logs and DB
+  - Safe SELECT-only DB read queries
+  - Audit log search, error pattern analysis, task execution history
+  - System metrics retrieval
+  - SQL injection prevention (prohibited keywords, SELECT statements only)
+  - Investigation API (`/investigate/*`)
+- **Sentry Integration** (`integrations/sentry_integration.py`)
+  - Integration with Sentry SDK (built-in event store when SDK is unavailable)
+  - Exception capture, message capture, performance transactions
+  - Error statistics and event listing
+  - Alert callback functionality
+  - Sentry API (`/sentry/*`)
+- **Human/AI Account Separation (IAM)** (`security/iam.py`)
+  - Dedicated service accounts for AI agents
+  - Separate permission scopes for human and AI accounts
+  - Automatic exclusion of permissions prohibited for AI (secret reading, admin, approval)
+  - Credential file protection (owner read-only permissions)
+  - IAM API (`/iam/*`)
+- **Parallel Hypothesis Verification Engine** (`orchestration/hypothesis_engine.py`)
+  - Multi-agent hypothesis verification and review loop
+  - Evidence support/refutation score calculation
+  - Cross-review consensus determination
+  - Hypothesis state management (Proposed -> Investigating -> Evidence -> Review -> Confirmed/Refuted)
+  - Hypothesis API (`/hypotheses/*`)
+- **Agent Session Management** (`orchestration/agent_session.py`)
+  - Multi-round interactions with context preservation
+  - Idle state waiting (with context retention) and resumption
+  - Working memory (temporary in-session memory)
+  - Hybrid DB persistence and in-memory storage
+  - Session API (`/sessions/*`)
 
 ### Changed
 
-- `core/config.py`: SENTRY_DSN, SANDBOX_MODE, CLOUDFLARE_ACCOUNT_ID, CREDENTIAL_DIR 設定追加
-- `main.py`: 新モデル（knowledge_store, agent_session, iam）のインポート追加、Sentry/MCP初期化追加
-- `api/routes/__init__.py`: knowledge, platform ルーター追加
-- `api/routes/auth.py`: 匿名セッション・アカウント紐付け・オプション認証追加
-- `shared/hooks/use-auth.ts`: isAnonymous状態・startAnonymous/linkAccount メソッド追加
-- `app/router.tsx`: PermissionsPage, AgentMonitorPage ルート追加
-- `shared/ui/Layout.tsx`: サイドバーにエージェント監視・権限管理ナビ追加
-- `pages/LoginPage.tsx`: 「ログインせずに始める」ボタン追加
+- `core/config.py`: Added SENTRY_DSN, SANDBOX_MODE, CLOUDFLARE_ACCOUNT_ID, CREDENTIAL_DIR settings
+- `main.py`: Added imports for new models (knowledge_store, agent_session, iam), added Sentry/MCP initialization
+- `api/routes/__init__.py`: Added knowledge, platform routers
+- `api/routes/auth.py`: Added anonymous session, account linking, optional authentication
+- `shared/hooks/use-auth.ts`: Added isAnonymous state, startAnonymous/linkAccount methods
+- `app/router.tsx`: Added PermissionsPage, AgentMonitorPage routes
+- `shared/ui/Layout.tsx`: Added Agent Monitoring and Permissions Management navigation to sidebar
+- `pages/LoginPage.tsx`: Added "Start without logging in" button
 
-- **外部ツール連携強化** (`tools/connector.py`)
-  - CLI ツール接続タイプ追加（gws / gh / aws / gcloud / az 等の CLI ツールに対応）
-  - gRPC・GraphQL 接続タイプ追加
-  - サービスアカウント認証タイプ追加
-- **Plugin の GitHub インポート機能** (`integrations/external_skills.py`)
-  - GitHub リポジトリからプラグインを直接検索・インポート（`topic:zeo-plugin`）
-  - コミュニティプラグインレジストリからの検索・インポート
-  - `POST /api/v1/registry/plugins/search-external` — 外部プラグイン検索
-  - `POST /api/v1/registry/plugins/import` — GitHub からプラグインインポート
-  - ユーザーがプラグインを共有・公開し、開発者の追加作業なしで外部サービス連携が可能
-- **ドキュメント多言語化** (USER_GUIDE.md, README.md)
-  - USER_GUIDE.md: 日本語・英語・中国語の3言語対応
-  - README.md: Releases セクションを非エンジニア向けに3言語で解説
-  - ダウンロードファイルの選び方ガイドを追加
-- **レガシーファイル移行 & ロードマップ策定**
-  - `ZPCOS_FEATURES_AND_IMPROVEMENTS.md` の有用なアイデアを既存ドキュメントに統合
-  - メタスキル概念・セキュリティ自己テスト・iPaaS 連携・AI 共創リパーパス等のアイデアを `ROADMAP.md` に反映
-  - レガシーファイル削除
-- **コミュニティ文書の追加**
-  - `CONTRIBUTING.md` — 3 か国語（日本語・英語・中国語）のコントリビューションガイド
-  - `CODE_OF_CONDUCT.md` — 3 か国語の行動規範（Contributor Covenant 2.1 ベース）
-  - `ROADMAP.md` — v0.2〜v1.0 のロードマップ（ZPCOS の有用なアイデアを整理・統合）
+- **External Tool Integration Enhancements** (`tools/connector.py`)
+  - Added CLI tool connection type (supports gws / gh / aws / gcloud / az and other CLI tools)
+  - Added gRPC and GraphQL connection types
+  - Added service account authentication type
+- **Plugin GitHub Import Feature** (`integrations/external_skills.py`)
+  - Direct search and import of plugins from GitHub repositories (`topic:zeo-plugin`)
+  - Search and import from community plugin registry
+  - `POST /api/v1/registry/plugins/search-external` — External plugin search
+  - `POST /api/v1/registry/plugins/import` — Import plugins from GitHub
+  - Users can share and publish plugins, enabling external service integration without additional developer work
+- **Document Multilingualization** (USER_GUIDE.md, README.md)
+  - USER_GUIDE.md: Support for 3 languages (Japanese, English, Chinese)
+  - README.md: Releases section explained in 3 languages for non-engineers
+  - Added download file selection guide
+- **Legacy File Migration**
+  - Integrated useful ideas from `ZPCOS_FEATURES_AND_IMPROVEMENTS.md` into existing documentation
+  - Reflected meta-skill concepts, security self-testing, iPaaS integration ideas into DESIGN.md / FEATURES.md
+  - Deleted legacy files
 
-- 全ドキュメントのバージョン表記を v0.1 に統一
-- `CHANGELOG.md`: 全リリースを v0.1 として統合
-- `docs/FEATURES.md`: 外部ツール連携・コミュニティプラグインセクション追加、機能肥大化レビュー結果追加
-- `docs/FEATURE_BOUNDARY.md`: コミュニティプラグイン共有の方針追加、v0.1 機能境界見直し追加
-- `ABOUT.md`: v0.1 表記統一、比較対象を AI エージェントに変更
-- `docs/OVERVIEW.md`: v0.1 表記統一、画面数 21 に更新、機能肥大化レビュー追加
-- `USER_GUIDE.md`: 方法C（サブスクリプションモード）のプロバイダー情報を正確に修正、比較対象を AI エージェントに変更
-- `README.md`: ディレクトリ構成を三か国語（日本語・英語・中国語）で各セクションに追加、最新構造に更新
-- `DESIGN.md`: 画面数 21 に更新、ディレクトリ構成に integrations/ と security/IAM を追加
-- `CLAUDE.md`: integrations/ モジュールの拡張機能分類を追記
+- Unified version notation to v0.1 across all documentation
+- `CHANGELOG.md`: Consolidated all releases as v0.1
+- `docs/FEATURES.md`: Added external tool integration and community plugin sections, added feature bloat review results
+- `docs/FEATURE_BOUNDARY.md`: Added community plugin sharing policy, added v0.1 feature boundary review
+- `ABOUT.md`: Unified to v0.1 notation, changed comparison targets to AI agents
+- `docs/OVERVIEW.md`: Unified to v0.1 notation, updated screen count to 21, added feature bloat review
+- `USER_GUIDE.md`: Corrected provider information for Method C (subscription mode), changed comparison targets to AI agents
+- `README.md`: Added directory structure in three languages (Japanese, English, Chinese) to each section, updated to latest structure
+- `DESIGN.md`: Updated screen count to 21, added integrations/ and security/IAM to directory structure
+- `CLAUDE.md`: Added extension feature classification notes for integrations/ modules
 
-### Changed — v0.1 機能境界レビュー
+### Changed — v0.1 Feature Boundary Review
 
-以下の機能をコア機能から拡張機能に再分類（コードベースには同梱、将来分離予定）:
-- `integrations/sentry_integration.py` → Extension
-- `integrations/ai_investigator.py` → Skill
-- `orchestration/hypothesis_engine.py` → Plugin
-- `integrations/mcp_server.py` → Extension
-- `integrations/external_skills.py` → Extension
+The following features were reclassified from core features to extension features (bundled in the codebase, planned for future separation):
+- `integrations/sentry_integration.py` -> Extension
+- `integrations/ai_investigator.py` -> Skill
+- `orchestration/hypothesis_engine.py` -> Plugin
+- `integrations/mcp_server.py` -> Extension
+- `integrations/external_skills.py` -> Extension
 
 ### Initial Implementation (Pre-release — 2026-03-09)
 
-- 9 層アーキテクチャの初期実装
+- Initial implementation of the 9-layer architecture
   - User Layer / Design Interview / Task Orchestrator / Skill Layer / Judge Layer / Re-Propose Layer / State & Memory / Provider Interface / Skill Registry
-- FastAPI バックエンド (`apps/api`)
-  - 認証 (OAuth PKCE)・会社・エージェント・チケット・タスク・承認・Heartbeat・予算管理の各 REST API
-  - SQLAlchemy 2.x (async) + Alembic マイグレーション
-  - LiteLLM Router によるマルチ LLM ゲートウェイ
-- React 19 + TypeScript フロントエンド (`apps/desktop/ui`)
-  - ダッシュボード・チケット・エージェント・設定画面
-  - shadcn/ui + Tailwind CSS によるデザインシステム
-  - TanStack Query + Zustand による状態管理
-- Tauri v2 デスクトップアプリ (`apps/desktop`)
-  - Windows (.msi / .exe)・macOS (.dmg)・Linux (.AppImage / .deb) 対応
-- オーケストレーションエンジン
-  - Self-Healing DAG による動的タスク再構築
+- FastAPI backend (`apps/api`)
+  - REST APIs for authentication (OAuth PKCE), companies, agents, tickets, tasks, approvals, Heartbeat, and budget management
+  - SQLAlchemy 2.x (async) + Alembic migrations
+  - Multi-LLM gateway via LiteLLM Router
+- React 19 + TypeScript frontend (`apps/desktop/ui`)
+  - Dashboard, tickets, agents, and settings screens
+  - Design system with shadcn/ui + Tailwind CSS
+  - State management with TanStack Query + Zustand
+- Tauri v2 desktop app (`apps/desktop`)
+  - Windows (.msi / .exe), macOS (.dmg), Linux (.AppImage / .deb) support
+- Orchestration engine
+  - Dynamic task reconstruction via Self-Healing DAG
   - Two-stage Detection + Cross-Model Verification (Judge Layer)
   - Experience Memory + Failure Taxonomy
-  - 状態機械ベースの実行管理
-- CI/CD パイプライン
-  - GitHub Actions による自動リント・テスト・ビルド
-  - マルチプラットフォーム Tauri ビルド & リリース
-  - Cloudflare Workers デプロイ
-- ドキュメント
-  - README・DESIGN.md・MASTER_GUIDE.md
-  - 各セクション実装ガイド (instructions_section2〜7)
+  - State machine-based execution management
+- CI/CD pipeline
+  - Automated linting, testing, and building via GitHub Actions
+  - Multi-platform Tauri build & release
+  - Cloudflare Workers deployment
+- Documentation
+  - README, DESIGN.md, MASTER_GUIDE.md
+  - Implementation guides for each section (instructions_section2-7)
 
 ## Development History (Pre-release milestones, consolidated into v0.1.0)
 
@@ -351,156 +336,156 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- **自然言語スキル生成エンジン** (`services/skill_service.py`)
-  - 自然言語でスキルの機能を説明するだけで、マニフェスト (skill.json) と実行コード (executor.py) を自動生成
-  - LLM ベース生成 + テンプレートベースフォールバック（LLM 不可時でも動作保証）
-  - 生成コードの自動安全性チェック（16 種類の危険パターン検出）
-  - 安全性レポート生成（risk_level: low/medium/high、権限要件、外部接続検出）
-  - `POST /api/v1/registry/skills/generate` エンドポイント
-- **Skill / Plugin / Extension 完全 CRUD API**
-  - 全エンティティで GET (一覧・個別) / POST (作成) / PATCH (更新) / DELETE (削除) 対応
-  - slug ベースの重複チェック
-  - 有効/無効の切り替え（`enabled` フラグ）
-  - フィルタリング: status, skill_type, include_disabled
-- **システム保護スキル機能** (`is_system_protected`)
-  - システム動作に必須な 6 つのビルトインスキルを保護
+- **Natural Language Skill Generation Engine** (`services/skill_service.py`)
+  - Auto-generates manifest (skill.json) and execution code (executor.py) simply by describing skill functionality in natural language
+  - LLM-based generation + template-based fallback (guaranteed operation even when LLM is unavailable)
+  - Automatic safety check of generated code (16 types of dangerous pattern detection)
+  - Safety report generation (risk_level: low/medium/high, permission requirements, external connection detection)
+  - `POST /api/v1/registry/skills/generate` endpoint
+- **Skill / Plugin / Extension Full CRUD API**
+  - GET (list/individual) / POST (create) / PATCH (update) / DELETE (delete) support for all entities
+  - Slug-based duplicate checking
+  - Enable/disable toggle (`enabled` flag)
+  - Filtering: status, skill_type, include_disabled
+- **System Protected Skills Feature** (`is_system_protected`)
+  - Protects 6 built-in skills essential for system operation
     - spec-writer, plan-writer, task-breakdown, review-assistant, artifact-summarizer, local-context
-  - 保護スキルの削除を API レベルで拒否（HTTP 403）
-  - 保護スキルの無効化を API レベルで拒否（HTTP 403）
-  - アプリケーション起動時にシステムスキルの自動登録・保護フラグ設定
-- **Plugin / Extension 管理サービス** (`services/registry_service.py`)
-  - Plugin: 完全 CRUD + システム保護 + 有効/無効切替
-  - Extension: 完全 CRUD + システム保護 + 有効/無効切替
-  - 保護 Plugin/Extension の削除・無効化拒否
-- **フロントエンド スキル管理 UI** (`SkillsPage.tsx`)
-  - API 連携によるスキル一覧表示（リアルタイム取得）
-  - スキルの有効/無効切替トグル
-  - スキルの削除（システム保護スキルは UI レベルでもロック表示）
-  - システム保護バッジ表示
-  - 検索フィルタ（名前・説明・slug）
-- **フロントエンド スキル生成 UI** (`SkillCreatePage.tsx`)
-  - 自然言語入力エリア（10-5000 文字、文字数カウンター）
-  - 安全性チェック結果の視覚表示（合格/不合格、リスクレベル表示）
-  - 生成されたマニフェスト (JSON) とコード (Python) のプレビュー
-  - 安全性チェック合格後の「スキル登録」ボタン
-  - 安全性レポート詳細表示
-- **フロントエンド プラグイン管理 UI** (`PluginsPage.tsx`)
-  - API 連携による一覧表示
-  - 新規プラグイン追加フォーム
-  - 有効/無効切替・削除（保護プラグインはロック表示）
-  - 検索フィルタ
+  - API-level rejection of protected skill deletion (HTTP 403)
+  - API-level rejection of protected skill disabling (HTTP 403)
+  - Automatic registration and protection flag setting of system skills at application startup
+- **Plugin / Extension Management Service** (`services/registry_service.py`)
+  - Plugin: Full CRUD + system protection + enable/disable toggle
+  - Extension: Full CRUD + system protection + enable/disable toggle
+  - Rejection of protected Plugin/Extension deletion and disabling
+- **Frontend Skill Management UI** (`SkillsPage.tsx`)
+  - Skill list display via API integration (real-time retrieval)
+  - Skill enable/disable toggle
+  - Skill deletion (system-protected skills shown as locked in UI)
+  - System protection badge display
+  - Search filter (name, description, slug)
+- **Frontend Skill Generation UI** (`SkillCreatePage.tsx`)
+  - Natural language input area (10-5000 characters, character counter)
+  - Visual display of safety check results (pass/fail, risk level display)
+  - Preview of generated manifest (JSON) and code (Python)
+  - "Register Skill" button available after passing safety check
+  - Detailed safety report display
+- **Frontend Plugin Management UI** (`PluginsPage.tsx`)
+  - List display via API integration
+  - New plugin addition form
+  - Enable/disable toggle and deletion (protected plugins shown as locked)
+  - Search filter
 
 ### Changed
 
-- **Skill / Plugin / Extension モデル** (`models/skill.py`)
-  - `is_system_protected` カラム追加（Boolean, default=False）
-  - `enabled` カラム追加（Boolean, default=True）
-  - `generated_code` カラム追加（Skill のみ、Text）
-  - slug に `unique=True` 制約追加
-- **レジストリ API** (`api/routes/registry.py`)
-  - 基本的な list/install のみ → 完全 CRUD + 自然言語生成に全面書き換え
-  - サービス層経由に変更（直接 SQLAlchemy → services.skill_service / registry_service）
-  - 適切な HTTP ステータスコード（201 Created, 403 Forbidden, 404 Not Found, 409 Conflict）
-- **レジストリスキーマ** (`schemas/registry.py`)
-  - `SkillUpdate`, `PluginUpdate`, `ExtensionUpdate` 追加
-  - `SkillGenerateRequest`, `SkillGenerateResponse` 追加
-  - `RegistryDeleteResponse` 追加
-  - 全 Read スキーマに `is_system_protected`, `enabled` フィールド追加
-- **アプリケーション起動** (`main.py`)
-  - 起動時にシステム必須スキルの自動登録処理を追加
+- **Skill / Plugin / Extension Models** (`models/skill.py`)
+  - Added `is_system_protected` column (Boolean, default=False)
+  - Added `enabled` column (Boolean, default=True)
+  - Added `generated_code` column (Skill only, Text)
+  - Added `unique=True` constraint on slug
+- **Registry API** (`api/routes/registry.py`)
+  - Complete rewrite from basic list/install to full CRUD + natural language generation
+  - Changed to service layer routing (direct SQLAlchemy -> services.skill_service / registry_service)
+  - Proper HTTP status codes (201 Created, 403 Forbidden, 404 Not Found, 409 Conflict)
+- **Registry Schemas** (`schemas/registry.py`)
+  - Added `SkillUpdate`, `PluginUpdate`, `ExtensionUpdate`
+  - Added `SkillGenerateRequest`, `SkillGenerateResponse`
+  - Added `RegistryDeleteResponse`
+  - Added `is_system_protected`, `enabled` fields to all Read schemas
+- **Application Startup** (`main.py`)
+  - Added automatic registration of system-required skills at startup
 
 ### Added
 
-- **AI Avatar Plugin（分身AI）** (`plugins/ai-avatar/`)
-  - ユーザーの判断基準・文体・価値観を学習してプロファイル構築
-  - Judge Layer との連携（ユーザーの判断パターンをカスタムルールとして提供）
-  - 代理レビュー・文体再現・承認パターン学習
-  - ユーザーのプロファイルは暗号化してローカル保存
-- **AI Secretary Plugin（秘書AI）** (`plugins/ai-secretary/`)
-  - 朝のブリーフィング（承認待ち・進行中タスク・今日の予定）
-  - 次のアクション提案（緊急度・重要度に基づく推奨順序）
-  - 進捗サマリー・リマインド・委任ルーティング
-  - Discord / Slack / LINE Bot Plugin と連携したブリーフィング配信
+- **AI Avatar Plugin (Digital Twin AI)** (`plugins/ai-avatar/`)
+  - Learns user's decision criteria, writing style, and values to build a profile
+  - Integration with Judge Layer (provides user's judgment patterns as custom rules)
+  - Proxy review, writing style reproduction, approval pattern learning
+  - User profiles encrypted and stored locally
+- **AI Secretary Plugin** (`plugins/ai-secretary/`)
+  - Morning briefing (pending approvals, in-progress tasks, today's schedule)
+  - Next action suggestions (recommended order based on urgency and importance)
+  - Progress summaries, reminders, delegation routing
+  - Briefing delivery via Discord / Slack / LINE Bot Plugin integration
 - **LINE Bot Plugin** (`plugins/line-bot/`)
-  - LINE Messaging API 経由でチケット作成・進捗確認・承認操作
-  - Flex Message による承認ダイアログ
-  - リッチメニューによるクイック操作
+  - Ticket creation, progress checking, and approval operations via LINE Messaging API
+  - Approval dialogs using Flex Messages
+  - Quick operations via Rich Menu
 
 ### Changed
 
-- **Discord Bot Plugin** を v0.2.0 に更新
-  - スレッド内対話・ブリーフィング配信・インタラクティブボタン追加
-  - 秘書AI / 分身AI Plugin との連携機能追加
-  - `/zeo` スラッシュコマンド体系を定義
-- **Slack Bot Plugin** を v0.2.0 に更新
-  - スレッド内対話・ブリーフィング配信・Block Kit インタラクション追加
-  - 秘書AI / 分身AI Plugin との連携機能追加
-  - `/zeo` Slash Command 体系を定義
-- **ドキュメント全面更新**
-  - `USER_GUIDE.md`: LLM 接続方法の推奨順位を修正（Gemini 無料 API / Ollama を優先推奨）、分身AI・秘書AI・チャット連携の説明追加、FAQ 更新
-  - `README.md`: 新機能（分身AI・秘書AI・チャット連携）を日本語・英語・中文セクションに追加、ディレクトリ構成更新
-  - `ABOUT.md`: 分身AI・秘書AI・チャット連携のセクション追加、LLM 推奨を最新化
-  - `docs/FEATURES.md`: Plugin / Extension 一覧を詳細テーブルに更新、追加機能セクション新設
-  - `docs/OVERVIEW.md`: 外部ツール連携セクション更新、分身AI・秘書AI の説明追加
-  - `docs/FEATURE_BOUNDARY.md`: AI エージェント拡張 Plugin・チャットツール連携 Plugin セクション追加
-  - `DESIGN.md`: Plugin 例に分身AI・秘書AI・チャット Bot を追加
+- **Discord Bot Plugin** updated to v0.2.0
+  - Added in-thread conversations, briefing delivery, interactive buttons
+  - Added integration with AI Secretary / AI Avatar Plugins
+  - Defined `/zeo` slash command system
+- **Slack Bot Plugin** updated to v0.2.0
+  - Added in-thread conversations, briefing delivery, Block Kit interactions
+  - Added integration with AI Secretary / AI Avatar Plugins
+  - Defined `/zeo` Slash Command system
+- **Full Documentation Update**
+  - `USER_GUIDE.md`: Corrected LLM connection method priority recommendations (prioritizing Gemini free API / Ollama), added descriptions for AI Avatar, AI Secretary, and chat integrations, updated FAQ
+  - `README.md`: Added new features (AI Avatar, AI Secretary, chat integrations) to Japanese, English, and Chinese sections, updated directory structure
+  - `ABOUT.md`: Added AI Avatar, AI Secretary, and chat integration sections, updated LLM recommendations to latest
+  - `docs/FEATURES.md`: Updated Plugin / Extension list to detailed tables, added additional features section
+  - `docs/OVERVIEW.md`: Updated external tool integration section, added AI Avatar and AI Secretary descriptions
+  - `docs/FEATURE_BOUNDARY.md`: Added AI agent extension Plugin and chat tool integration Plugin sections
+  - `DESIGN.md`: Added AI Avatar, AI Secretary, and chat Bots to Plugin examples
 
 ### Added
 
 - **Dynamic Model Registry** (`providers/model_registry.py`)
-  - `model_catalog.json` による LLM モデルの外部設定ファイル管理
-  - モデルの追加・削除・廃止・後継指定がコード変更なしで可能
-  - 廃止モデルの自動フォールバック（successor 指定で後継モデルに自動切替）
-  - プロバイダーヘルスチェック（API 可用性の定期確認）
-  - コスト情報の動的更新
+  - External configuration file management of LLM models via `model_catalog.json`
+  - Add, remove, deprecate, and specify successors for models without code changes
+  - Automatic fallback for deprecated models (automatic switch to successor model via successor specification)
+  - Provider health checks (periodic API availability verification)
+  - Dynamic cost information updates
 - **Model Registry API** (`/api/v1/models/*`)
-  - モデル一覧・モード別カタログ・プロバイダーヘルスチェック
-  - モデル廃止マーク・コスト更新・カタログ再読み込み
-- `model_catalog.json` — モデルカタログ定義ファイル（全モデル・モード・品質SLA）
-- **Observability — 推論トレース・通信ログ・実行監視**
-  - `orchestration/reasoning_trace.py` — エージェントの推論過程を段階的に記録（19種類のステップ・4段階の確信度）
-  - `orchestration/agent_communication.py` — マルチエージェント間の全通信を記録（18種類のメッセージ・スレッド管理）
-  - `orchestration/execution_monitor.py` — リアルタイム実行監視・WebSocket配信
-  - `api/routes/observability.py` — Observability API（推論トレース・通信ログ・監視ダッシュボード）
-  - フロントエンド TypeScript 型定義（ReasoningTrace, AgentMessage, ActiveExecution 等）
+  - Model listing, mode-specific catalog, provider health check
+  - Model deprecation marking, cost updates, catalog reload
+- `model_catalog.json` — Model catalog definition file (all models, modes, quality SLAs)
+- **Observability — Reasoning Traces, Communication Logs, Execution Monitoring**
+  - `orchestration/reasoning_trace.py` — Step-by-step recording of agent reasoning processes (19 step types, 4 confidence levels)
+  - `orchestration/agent_communication.py` — Recording of all inter-agent communications (18 message types, thread management)
+  - `orchestration/execution_monitor.py` — Real-time execution monitoring and WebSocket delivery
+  - `api/routes/observability.py` — Observability API (reasoning traces, communication logs, monitoring dashboard)
+  - Frontend TypeScript type definitions (ReasoningTrace, AgentMessage, ActiveExecution, etc.)
 
 ### Changed
 
-- `gateway.py`: ハードコードされたモデルカタログを ModelRegistry からの動的読み込みに変更
-- `cost_guard.py`: コストテーブルを ModelRegistry から動的生成するように変更
-- `quality_sla.py`: 品質モード別モデルリストを ModelRegistry から動的読み込みに変更
-- `docs/FEATURES.md`: 旧モデル名修正、動的管理の説明追加、Observabilityセクション追加
-- `CLAUDE.md`: ハードコードモデルリスト → 動的管理、設計原則にエージェント透明性を追加
+- `gateway.py`: Changed from hard-coded model catalog to dynamic loading from ModelRegistry
+- `cost_guard.py`: Changed cost table to dynamic generation from ModelRegistry
+- `quality_sla.py`: Changed quality mode model lists to dynamic loading from ModelRegistry
+- `docs/FEATURES.md`: Corrected old model names, added dynamic management description, added Observability section
+- `CLAUDE.md`: Hard-coded model list -> dynamic management, added agent transparency to design principles
 
 ### Changed
 
-- 古い LLM モデル参照をすべて最新版に更新
-  - g4f_provider.py: gpt-4o → gpt-5.4, gpt-4o-mini → gpt-5-mini, claude-haiku-4-5 → claude-haiku-4-5-20251001
-  - cost_guard.py: claude-haiku-4-5 → claude-haiku-4-5-20251001
-  - quality_sla.py: claude-haiku-4-5 → claude-haiku-4-5-20251001
-  - docs/BUILD_GUIDE.md: 全コスト表・品質モード設定を最新モデルに更新
-- DESIGN.md: 状態遷移を実装済みの定義に更新、ディレクトリ構成を実際のコードベースに同期
+- Updated all old LLM model references to latest versions
+  - g4f_provider.py: gpt-4o -> gpt-5.4, gpt-4o-mini -> gpt-5-mini, claude-haiku-4-5 -> claude-haiku-4-5-20251001
+  - cost_guard.py: claude-haiku-4-5 -> claude-haiku-4-5-20251001
+  - quality_sla.py: claude-haiku-4-5 -> claude-haiku-4-5-20251001
+  - docs/BUILD_GUIDE.md: Updated all cost tables and quality mode settings to latest models
+- DESIGN.md: Updated state transitions to implemented definitions, synced directory structure with actual codebase
 
 ### Added
 
-- リポジトリ層 (`repositories/`)
-  - `base.py` — 汎用 CRUD リポジトリ基盤 (BaseRepository)
-  - `ticket_repository.py` — チケット・スレッド DB 操作
-  - `audit_repository.py` — 監査ログ専用リポジトリ (append-only)
-- Heartbeat モジュール (`heartbeat/`)
-  - `scheduler.py` — Heartbeat 発火契機 (9 種類)・実行管理・アクション記録
-- ポリシーモジュール (`policies/`)
-  - `approval_gate.py` — 危険操作の自動検出と承認要求 (12 カテゴリ)
-  - `autonomy_boundary.py` — 自律実行可能/承認必須の境界判定
-- セキュリティモジュール (`security/`)
-  - `secret_manager.py` — 認証情報の安全な保管・マスキング・ローテーション支援
-  - `sanitizer.py` — 保存/共有時のシークレット値・個人情報の自動マスキング
-- ツール接続モジュール (`tools/`)
-  - `connector.py` — MCP/Webhook/REST API 等の外部ツール接続管理
-- オーケストレーション拡張 (`orchestration/`)
-  - `knowledge_refresh.py` — Knowledge Pipeline (7 段階)・知識の分離保存 (5 種類)
-  - `artifact_bridge.py` — 工程間の成果物受け渡し・バージョン管理
-- フロントエンド型定義 (`shared/types/index.ts`)
-  - バックエンドスキーマ §38 に対応する全エンティティの TypeScript 型
+- Repository layer (`repositories/`)
+  - `base.py` — Generic CRUD repository base (BaseRepository)
+  - `ticket_repository.py` — Ticket and thread DB operations
+  - `audit_repository.py` — Audit log dedicated repository (append-only)
+- Heartbeat module (`heartbeat/`)
+  - `scheduler.py` — Heartbeat trigger types (9 types), execution management, action recording
+- Policy module (`policies/`)
+  - `approval_gate.py` — Automatic detection of dangerous operations and approval requests (12 categories)
+  - `autonomy_boundary.py` — Boundary determination for autonomous execution vs. approval required
+- Security module (`security/`)
+  - `secret_manager.py` — Secure storage, masking, and rotation support for credentials
+  - `sanitizer.py` — Automatic masking of secret values and personal information during storage/sharing
+- Tool connection module (`tools/`)
+  - `connector.py` — External tool connection management for MCP/Webhook/REST API, etc.
+- Orchestration extensions (`orchestration/`)
+  - `knowledge_refresh.py` — Knowledge Pipeline (7 stages), separated knowledge storage (5 types)
+  - `artifact_bridge.py` — Cross-stage artifact handoff and version management
+- Frontend type definitions (`shared/types/index.ts`)
+  - TypeScript types for all entities corresponding to backend schema section 38
 
 [0.1.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.1.0

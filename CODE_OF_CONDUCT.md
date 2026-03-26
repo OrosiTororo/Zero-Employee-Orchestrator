@@ -1,39 +1,37 @@
 # Contributor Covenant Code of Conduct
 
-> 日本語 | [English](docs/en/CODE_OF_CONDUCT.md) | [中文](docs/zh/CODE_OF_CONDUCT.md)
+## Our Pledge
 
-## 私たちの誓い
+As members, contributors, and leaders, we pledge to make participation in our community a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, religion, or sexual identity and orientation.
 
-メンバー、コントリビューター、リーダーとして、年齢、体型、障がい、民族性、性的特徴、性自認と性表現、経験レベル、教育、社会経済的地位、国籍、容姿、人種、宗教、性的指向に関わらず、全ての人にとってハラスメントのないコミュニティ参加体験を提供することを誓います。
+## Our Standards
 
-## 私たちの基準
+**Positive behavior:**
+- Demonstrating empathy and kindness toward others
+- Being respectful of differing opinions, viewpoints, and experiences
+- Giving and gracefully accepting constructive feedback
+- Accepting responsibility for mistakes and learning from them
+- Focusing on what is best for the overall community
 
-**良い環境づくりに貢献する行動:**
-- 他者への共感と思いやりを示す
-- 異なる意見、視点、経験を尊重する
-- 建設的なフィードバックを与え、受け入れる
-- 間違いを認め、それから学ぶ
-- コミュニティ全体にとって最善のことに焦点を当てる
+**Unacceptable behavior:**
+- Use of sexualized language or imagery, or other inappropriate conduct
+- Trolling, insulting or derogatory comments, and personal or political attacks
+- Public or private harassment
+- Publishing others' private information without explicit permission
+- Other conduct that could reasonably be considered inappropriate in a professional setting
 
-**許容されない行動:**
-- 性的な言葉や画像の使用、その他不適切な行為
-- トロール行為、侮辱的なコメント、個人的または政治的な攻撃
-- 公的または私的なハラスメント
-- 明示的な許可なく他者の個人情報を公開する
-- その他、専門的な場面で不適切と考えられる行為
+## Enforcement
 
-## 執行責任
+Community leaders are responsible for clarifying and enforcing standards of acceptable behavior. Appropriate and fair corrective action will be taken in response to any behavior deemed inappropriate, threatening, offensive, or harmful.
 
-コミュニティリーダーは、この行動規範に沿った行動基準を明確にし、執行する責任があります。不適切、脅迫的、攻撃的、または有害と判断される行動に対して、適切かつ公正な是正措置を講じます。
+## Scope
 
-## 適用範囲
+This Code of Conduct applies within all community spaces and when an individual is officially representing the community.
 
-この行動規範はすべてのコミュニティスペースに適用されます。また、個人がコミュニティを公式に代表している場合にも適用されます。
+## Reporting
 
-## 報告
+If you witness or experience harassment, please report it via [Issues](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/issues). All reports will be handled promptly and fairly.
 
-ハラスメントや不適切な行動を目撃した場合は、[Issues](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/issues) を通じて報告してください。すべての報告は迅速かつ公正に対処されます。
+## Attribution
 
-## 帰属
-
-この行動規範は [Contributor Covenant](https://www.contributor-covenant.org/) バージョン 2.1 を基にしています。
+This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org/), version 2.1.

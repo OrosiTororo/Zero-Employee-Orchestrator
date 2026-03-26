@@ -1,6 +1,6 @@
 # 用户设置指南
 
-> [日本語](../../USER_SETUP.md) | [English](../en/USER_SETUP.md) | 中文
+> [日本語](../ja-JP/../USER_SETUP.md) | [English](../USER_SETUP.md) | 中文
 
 > ZEO 以最小化的初始状态运行，用户可根据需要逐步扩展功能。
 > 以下所有设置均为可选，请根据所需功能自行配置。

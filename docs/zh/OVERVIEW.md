@@ -1,4 +1,4 @@
-> [日本語](../OVERVIEW.md) | [English](../en/OVERVIEW.md) | 中文
+> [日本語](../ja-JP/OVERVIEW.md) | [English](../OVERVIEW.md) | 中文
 
 # Zero-Employee Orchestrator — 综合指南
 

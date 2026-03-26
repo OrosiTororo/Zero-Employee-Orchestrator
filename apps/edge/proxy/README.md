@@ -1,42 +1,42 @@
-# ZEO Proxy — Workers Reverse Proxy (方式 A)
+# ZEO Proxy -- Workers Reverse Proxy (Method A)
 
-既存の FastAPI バックエンドの前段に Cloudflare Workers を配置するリバースプロキシ方式。
+Reverse proxy that places Cloudflare Workers in front of the existing FastAPI backend.
 
-## 機能
+## Features
 
-- `/api/*` → FastAPI バックエンドへプロキシ
-- CORS ヘッダー付与
-- IP ベースの Rate Limiting（KV 使用）
-- GET レスポンスの Cache API キャッシング
-- バックエンド接続不可時の fallback レスポンス
-- `/health` ヘルスチェックエンドポイント
+- `/api/*` -> Proxy to FastAPI backend
+- CORS headers
+- IP-based Rate Limiting (using KV)
+- Cache API caching for GET responses
+- Fallback response when backend is unreachable
+- `/health` health check endpoint
 
-## セットアップ
+## Setup
 
 ```bash
 cd apps/edge/proxy
 npm install
 ```
 
-## ローカル開発
+## Local Development
 
 ```bash
 npm run dev
 ```
 
-## デプロイ
+## Deploy
 
 ```bash
 npm run deploy
 ```
 
-## 環境変数
+## Environment Variables
 
-| 変数 | 説明 | デフォルト |
+| Variable | Description | Default |
 | --- | --- | --- |
-| `BACKEND_ORIGIN` | FastAPI バックエンドの URL | `http://localhost:18234` |
+| `BACKEND_ORIGIN` | FastAPI backend URL | `http://localhost:18234` |
 
 ## KV Namespace
 
-Rate Limiting 用に `RATE_LIMIT` KV Namespace が必要です。
-`wrangler.toml` の `id` を実際の KV Namespace ID に置き換えてください。
+A `RATE_LIMIT` KV Namespace is required for rate limiting.
+Replace the `id` in `wrangler.toml` with your actual KV Namespace ID.

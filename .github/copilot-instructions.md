@@ -1,34 +1,34 @@
 # Copilot Instructions
 
-## 必須確認事項（すべての回答・作業の前に実行すること）
+## Required Checks (Before All Responses and Work)
 
-### 1. リポジトリの最新状態を確認する
-- 関連するファイル（`pyproject.toml`、ワークフロー、設定ファイル等）を**必ず実際に読み取り**、内容を確認してから回答・作業する
-- 推測やキャッシュされた知識に頼らず、常にリポジトリの最新状態を参照する
-- エラー調査時は、ログ・ワークフローファイル・依存関係ファイル（`pyproject.toml`、`requirements*.txt`、ロックファイル等）をすべて確認してから原因を特定する
+### 1. Check the Latest Repository State
+- **Always read** relevant files (`pyproject.toml`, workflows, config files, etc.) before responding or working
+- Do not rely on cached knowledge; always refer to the current repository state
+- When investigating errors, check logs, workflow files, and dependency files (`pyproject.toml`, `requirements*.txt`, lock files, etc.) before identifying the cause
 
-### 2. 外部情報は必ず検索して確認する
-- バージョン番号、パッケージの存在有無、GitHub Actions のバージョン等、外部サービスに依存する情報は**必ず Web 検索で最新情報を確認**してから回答する
-- 「存在しない」「最新は〜」などの断言は、検索で確認した上でのみ行う
-- 知識カットオフに依存した回答をしない
+### 2. Always Verify External Information
+- For version numbers, package existence, GitHub Actions versions, and other information dependent on external services, **always verify via web search** before responding
+- Only state "does not exist" or "latest is..." after confirming through search
+- Do not rely on knowledge cutoff for answers
 
-### 3. 作業開始時の標準確認手順
+### 3. Standard Pre-Work Checks
 
-参照すべきドキュメント（優先順）:
-- `README.md` — 機能一覧・設定方法・セキュリティ設定
-- `CLAUDE.md` — アーキテクチャ・ディレクトリ構成
-- `docs/dev/DESIGN.md` — 実装設計書
-- `ROADMAP.md` — ロードマップ
+Reference documents (priority order):
+- `README.md` -- Feature list, configuration, security settings
+- `CLAUDE.md` -- Architecture, directory structure
+- `docs/dev/DESIGN.md` -- Implementation design document
+- `ROADMAP.md` -- Roadmap
 
-## pyproject.toml の管理（重要）
+## pyproject.toml Management (Important)
 
-`pyproject.toml` が2つ存在する（ルートと `apps/api/`）。バージョン・依存関係を変更する際は**必ず両方を同期**すること。
-- ルート: `pyproject.toml`
+Two `pyproject.toml` files exist (root and `apps/api/`). When changing versions or dependencies, **always sync both**.
+- Root: `pyproject.toml`
 - API: `apps/api/pyproject.toml`
 
-同期確認スクリプト: `./scripts/bump-version.sh`
+Sync check script: `./scripts/bump-version.sh`
 
-## セキュリティ注意事項
+## Security Notes
 
-- `litellm 1.82.7` / `1.82.8` はサプライチェーン攻撃（マルウェア混入）により PyPI から削除済み。これらのバージョンを指定しないこと
-- 依存関係の指定例: `litellm>=1.60,!=1.82.7,!=1.82.8`
+- `litellm 1.82.7` / `1.82.8` were removed from PyPI due to a supply chain attack (malware). Do not specify these versions
+- Dependency specification example: `litellm>=1.60,!=1.82.7,!=1.82.8`

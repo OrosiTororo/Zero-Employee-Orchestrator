@@ -1,167 +1,167 @@
-# Zero-Employee Orchestrator 設計書
+# Zero-Employee Orchestrator Design Document
 
-> 作成日: 2026-03-08  
-> 基準文書: `Zero-Employee Orchestrator.md`  
-> 本書の役割: 実装判断に必要な構造を、AI コーディングエージェントが着手できる粒度まで整理した設計書
-
----
-
-## 0. 本書の位置づけ
-
-本書は、`Zero-Employee Orchestrator.md` を実装設計へ落とし込むための中核設計書である。  
-思想・背景・改善要望の網羅は基準文書側に持たせ、本書では次を明確化する。
-
-1. 何を本体に含めるか
-2. 何を Skill / Plugin / Extension として切り出すか
-3. MVP でどこまで作るか
-4. どの順序で実装するか
-5. AI エージェントがそのままコードに落とせる構造は何か
-
-本書は README ではなく、実装・レビュー・分担・差し戻しの基準として使う。
+> Created: 2026-03-08
+> Reference document: `docs/ja-JP/Zero-Employee Orchestrator.md`
+> Role of this document: A design document that organizes the structure needed for implementation decisions to a granularity that AI coding agents can begin working with
 
 ---
 
-## 1. システム定義
+## 0. Position of This Document
 
-### 1.1 一文定義
+This document is the core design document for translating `docs/ja-JP/Zero-Employee Orchestrator.md` into implementation design.
+The reference document retains the comprehensive coverage of philosophy, background, and improvement requests; this document clarifies:
 
-Zero-Employee Orchestrator は、自然言語で業務を定義し、複数 AI を役割分担させ、人間の承認と監査可能性を前提に業務を実行・再計画・改善できる AI オーケストレーション基盤である。
+1. What to include in the core system
+2. What to extract as Skill / Plugin / Extension
+3. How far to build for MVP
+4. In what order to implement
+5. What structures AI agents can directly translate into code
 
-### 1.2 目指す状態
-
-- AI を単発チャットではなく、役割を持ったチームとして扱える
-- spec / plan / tasks を中間成果物として保存できる
-- 人間の最終承認を外さずに、実行部分の大半を自律化できる
-- ローカル文脈、外部 API、認証情報、監査ログを一つの基盤で扱える
-- 新しいモデルや業務機能を本体更新ではなく拡張で取り込める
-
-### 1.3 利用者層
-
-- 非エンジニアの実務者・経営者
-- エンジニア・研究開発者
-- 監査、承認、権限管理を必要とする組織利用者
+This document is not a README; it serves as the standard for implementation, review, task allocation, and rejection decisions.
 
 ---
 
-## 2. 設計原則
+## 1. System Definition
 
-1. **AI を組織として扱う**  
-   単一エージェントではなく、計画・実行・検証・改善を役割分担したチーム構造を基本とする。
+### 1.1 One-line Definition
 
-2. **人間の最終承認を外さない**  
-   投稿、送信、課金、削除、権限変更などは必ず承認可能な構造にする。
+Zero-Employee Orchestrator is an AI orchestration platform that defines business workflows in natural language, delegates roles across multiple AI, and executes, replans, and improves business operations with human approval and auditability as prerequisites.
 
-3. **ブラックボックスを減らす**  
-   誰が、何を、なぜ、どのモデル・Skill・権限で実行したかを可視化する。
+### 1.2 Target State
 
-4. **最新性は拡張で担保する**  
-   本体は安定性重視、業務差分は Skill / Plugin / Extension で吸収する。
+- Treat AI not as one-shot chat but as a team with defined roles
+- Save spec / plan / tasks as intermediate artifacts
+- Automate most execution while maintaining human final approval
+- Handle local context, external APIs, credentials, and audit logs in a single platform
+- Incorporate new models and business capabilities through extensions rather than core updates
 
-5. **ローカル文脈を重要資産として扱う**  
-   ローカルファイル、業務データ、作業履歴を安全に扱えることを差別化の中心に置く。
+### 1.3 User Segments
 
-6. **失敗時は停止だけでなく再計画できる**  
-   Self-Healing、Re-Propose、Plan Diff を前提とする。
-
-7. **汎用業務基盤として設計する**  
-   YouTube は代表検証テーマの一つであり、本質は会社業務全体の実行基盤である。
+- Non-engineer practitioners and executives
+- Engineers and R&D personnel
+- Organizations requiring audit, approval, and permission management
 
 ---
 
-## 3. 用語整理
+## 2. Design Principles
+
+1. **Treat AI as an organization**
+   Use a team structure with role-based delegation for planning, execution, verification, and improvement rather than a single agent.
+
+2. **Never remove human final approval**
+   Ensure posting, sending, billing, deletion, and permission changes always have an approvable structure.
+
+3. **Reduce black boxes**
+   Visualize who did what, why, and with which model/Skill/permissions.
+
+4. **Ensure currency through extensions**
+   Core prioritizes stability; business differences are absorbed by Skill / Plugin / Extension.
+
+5. **Treat local context as a key asset**
+   Place the ability to safely handle local files, business data, and work history at the center of differentiation.
+
+6. **Enable replanning, not just stopping, on failure**
+   Design with Self-Healing, Re-Propose, and Plan Diff as prerequisites.
+
+7. **Design as a general-purpose business platform**
+   YouTube is one representative validation theme; the essence is an execution platform for overall company business.
+
+---
+
+## 3. Terminology
 
 ### 3.1 Skill
 
-単一タスクを実行する最小能力単位。  
-プロンプト、手順、スクリプト、制約、利用ツールを含む。
+The minimum capability unit for executing a single task.
+Includes prompts, procedures, scripts, constraints, and tools used.
 
-例:
-- 競合分析
-- 台本生成
-- ファイル整理
-- ローカル文脈読解
+Examples:
+- Competitive analysis
+- Script generation
+- File organization
+- Local context reading
 
 ### 3.2 Plugin
 
-複数 Skill と補助機能をまとめた業務機能パッケージ。  
-特定業務を成立させるためのまとまりとして配布・導入する。
+A business capability package bundling multiple Skills and auxiliary functions.
+Distributed and installed as a cohesive set for enabling specific business operations.
 
-例:
-- 分身AI Plugin（ユーザーの判断基準を学習し代理行動）
-- 秘書AI Plugin（ブリーフィング・AI組織との橋渡し）
-- Discord / Slack / LINE Bot Plugin（チャットからの操作）
-- YouTube 運用 Plugin
-- リサーチ Plugin
+Examples:
+- Avatar AI Plugin (learns user's decision criteria and acts as proxy)
+- Secretary AI Plugin (briefing, bridge between user and AI organization)
+- Discord / Slack / LINE Bot Plugin (operations via chat)
+- YouTube Operations Plugin
+- Research Plugin
 
 ### 3.3 Extension
 
-本体の動作環境、UI、接続先、開発体験を拡張する仕組み。
+A mechanism for extending the core system's runtime environment, UI, connections, and developer experience.
 
-例:
-- MCP 接続
-- OAuth 連携
-- 通知機能
-- VS Code 風 UI
+Examples:
+- MCP connection
+- OAuth integration
+- Notification features
+- VS Code-style UI
 
-### 3.4 実装境界
+### 3.4 Implementation Boundaries
 
-- 本体: 認証、権限、監査、実行制御、状態管理、可観測性
-- Skill / Plugin: 業務特化ロジック
-- Extension: 接続・UI・開発体験の拡張
-
----
-
-## 4. 想定アーキテクチャ
-
-Zero-Employee Orchestrator は 9 層構造を基本とする。
-
-1. **User Layer**  
-   GUI / CLI / TUI / チャット入力 / ダッシュボード
-
-2. **Design Interview Layer**  
-   目的整理、制約整理、Spec 化
-
-3. **Task Orchestrator Layer**  
-   計画生成、DAG 化、承認待ち、コスト推定、再計画
-
-4. **Skill Layer**  
-   Skill 実行、Skill Gap 検出、Skill 生成、業務別プラグイン実行
-
-5. **Judge Layer**  
-   Two-stage Detection、Cross-Model Judge、Policy Pack
-
-6. **Re-Propose Layer**  
-   差し戻し、Plan Diff、部分再実行、Self-Healing
-
-7. **State & Memory Layer**  
-   状態機械、履歴、成果物、失敗分類、経験知保存
-
-8. **Provider Interface Layer**  
-   LiteLLM Gateway、モデルカタログ、外部 API、OAuth、Webhook
-
-9. **Registry Layer**  
-   Skill / Plugin / Extension の公開、検索、導入、検証状態表示
+- Core: Authentication, permissions, audit, execution control, state management, observability
+- Skill / Plugin: Business-specific logic
+- Extension: Connection, UI, and developer experience expansion
 
 ---
 
-## 5. 実行フロー
+## 4. Architecture
 
-### 5.1 基本フロー
+Zero-Employee Orchestrator is based on a 9-layer structure.
 
-1. ユーザーが自然言語で目的を入力
-2. Design Interview が不足情報を補完
-3. Spec を生成し、制約・受け入れ条件を確定
-4. Plan を生成し、工程・担当 AI・費用・権限を提示
-5. ユーザーが承認または差し戻し
-6. 承認後のみ Tasks に分解して実行
-7. 実行中は進捗、ログ、成果物、失敗、再試行履歴を表示
-8. Judge が品質・根拠・禁止事項を検査
-9. 必要に応じて Re-Propose / Self-Healing
-10. 完了後、成果物・判断理由・履歴を保存
+1. **User Layer**
+   GUI / CLI / TUI / Chat input / Dashboard
 
-### 5.2 中間成果物
+2. **Design Interview Layer**
+   Purpose clarification, constraint organization, Spec creation
 
-すべての案件は原則として以下の単位で保存する。
+3. **Task Orchestrator Layer**
+   Plan generation, DAG creation, approval waiting, cost estimation, replanning
+
+4. **Skill Layer**
+   Skill execution, Skill Gap detection, Skill generation, business-specific plugin execution
+
+5. **Judge Layer**
+   Two-stage Detection, Cross-Model Judge, Policy Pack
+
+6. **Re-Propose Layer**
+   Rejection, Plan Diff, partial re-execution, Self-Healing
+
+7. **State & Memory Layer**
+   State machine, history, artifacts, failure classification, experience knowledge storage
+
+8. **Provider Interface Layer**
+   LiteLLM Gateway, model catalog, external APIs, OAuth, Webhook
+
+9. **Registry Layer**
+   Skill / Plugin / Extension publishing, search, installation, verification status display
+
+---
+
+## 5. Execution Flow
+
+### 5.1 Basic Flow
+
+1. User inputs objective in natural language
+2. Design Interview supplements missing information
+3. Generate Spec, finalize constraints and acceptance criteria
+4. Generate Plan, present workflow, assigned AI, costs, and permissions
+5. User approves or rejects
+6. Only after approval, decompose into Tasks and execute
+7. During execution, display progress, logs, artifacts, failures, and retry history
+8. Judge inspects quality, evidence, and prohibited items
+9. Re-Propose / Self-Healing as needed
+10. After completion, save artifacts, decision rationale, and history
+
+### 5.2 Intermediate Artifacts
+
+All projects are stored in the following units as a rule.
 
 ```text
 project/
@@ -173,174 +173,172 @@ project/
 └─ logs/
 ```
 
-### 5.3 イベント駆動実行
+### 5.3 Event-Driven Execution
 
-Webhook、定期実行、外部イベント起動にも対応する。  
-ただし、起動条件・自動実行範囲・承認必須工程・失敗時停止条件は明示する。
+Supports Webhook, scheduled execution, and external event triggers.
+However, trigger conditions, auto-execution scope, approval-required steps, and failure-stop conditions must be explicitly specified.
 
 ---
 
-## 6. MVP スコープ
+## 6. MVP Scope
 
-### 6.1 MVP の目的
+### 6.1 MVP Purpose
 
-Zero-Employee Orchestrator の核である、
+Establish the core of Zero-Employee Orchestrator as a complete flow:
 
-- 自然言語入力
+- Natural language input
 - Design Interview
-- spec / plan / tasks 保存
-- 承認付き実行
+- spec / plan / tasks storage
+- Execution with approval
 - Judge
-- 再提案
-- ローカル文脈活用
-- 監査ログ
+- Re-proposal
+- Local context utilization
+- Audit logs
 
-を一連で成立させる。
+### 6.2 MVP Required Features
 
-### 6.2 MVP 必須機能
-
-- 認証とローカルセッション管理
+- Authentication and local session management
 - Design Interview
 - Spec Writer
 - Task Orchestrator
 - Cost Guard
 - Quality SLA
-- Skill 実行基盤
-- Judge 基盤
+- Skill execution foundation
+- Judge foundation
 - Re-Propose / Plan Diff
 - State Machine
 - Experience Memory
 - Failure Taxonomy
 - Local Context Skill
-- 基本ダッシュボード
-- 主要 API と監査ログ
+- Basic dashboard
+- Core APIs and audit logs
 
-### 6.3 MVP で対象外にしてよいもの
+### 6.3 Items Excluded from MVP
 
-- Marketplace のフル機能
-- 外部公開向け大規模 Registry 運営機能
-- 複雑なマルチテナント課金
-- 高度な組織ガバナンスの完全実装
-- ロボット連携や大規模外部操作の全面対応
-
----
-
-## 7. 権限モデル
-
-最低限、以下のロールを持つ。
-
-- **Owner**: 全権限、予算・承認・公開設定
-- **Admin**: 運用管理、接続管理、監査閲覧
-- **User**: 実行依頼、成果物確認、限定承認
-- **Auditor**: 閲覧中心、監査ログ・履歴確認
-- **Developer**: Skill / Plugin / Extension 開発と検証
-
-承認が必要な操作はロールと操作種別の組み合わせで定義する。
+- Full Marketplace features
+- Large-scale Registry operations for external publishing
+- Complex multi-tenant billing
+- Complete advanced organizational governance
+- Full robot integration or large-scale external operations
 
 ---
 
-## 8. データとメモリ方針
+## 7. Permission Model
 
-### 8.1 保存対象
+At minimum, the following roles exist:
 
-- 会話と意思決定履歴
+- **Owner**: Full permissions, budget/approval/publishing settings
+- **Admin**: Operations management, connection management, audit viewing
+- **User**: Execution requests, artifact review, limited approvals
+- **Auditor**: Primarily read-only, audit log and history viewing
+- **Developer**: Skill / Plugin / Extension development and verification
+
+Operations requiring approval are defined by combinations of role and operation type.
+
+---
+
+## 8. Data and Memory Policy
+
+### 8.1 Items to Store
+
+- Conversation and decision history
 - spec / plan / tasks
-- 成果物メタデータ
-- 監査ログ
-- 失敗分類と再試行履歴
-- 改善知識と成功要因
-- 接続設定メタデータ
+- Artifact metadata
+- Audit logs
+- Failure classification and retry history
+- Improvement knowledge and success factors
+- Connection settings metadata
 
-### 8.2 厳格管理対象
+### 8.2 Items Under Strict Control
 
-- 生の認証情報
-- 機微な個人情報
-- 不要な全文保存
-- 公開共有に向かない内部文書
+- Raw credentials
+- Sensitive personal information
+- Unnecessary full-text storage
+- Internal documents not suitable for public sharing
 
-### 8.3 方針
+### 8.3 Policy
 
-- 保存前にサニタイズする
-- 共有可能な改善知識と機密情報を分離保存する
-- 実行根拠と成果物の対応関係を追跡可能にする
+- Sanitize before storage
+- Separately store shareable improvement knowledge and confidential information
+- Ensure traceability between execution rationale and artifacts
 
 ---
 
-## 9. 実行環境
+## 9. Execution Environment
 
-### 9.1 基本方針
+### 9.1 Basic Policy
 
-- ローカルアプリを中心にする
-- 必要に応じてクラウド API を併用する
-- 本体は Tauri + フロントエンド + ローカルバックエンド構成を基本候補とする
+- Center on local applications
+- Use cloud APIs as needed
+- Base candidate is Tauri + frontend + local backend configuration
 
-### 9.2 役割分担
+### 9.2 Role Distribution
 
-**ローカル側**
-- ファイルアクセス
-- セッションとキャッシュ
+**Local Side**
+- File access
+- Session and cache
 - UI
-- 状態管理
-- 一部実行制御
+- State management
+- Partial execution control
 
-**クラウド側 / 外部側**
-- LLM API
-- 外部 SaaS
-- OAuth 接続先
-- 通知・配信・投稿対象
+**Cloud / External Side**
+- LLM APIs
+- External SaaS
+- OAuth connection targets
+- Notification, distribution, and posting targets
 
-### 9.3 技術スタック初期案
+### 9.3 Initial Technology Stack
 
 - Desktop: Tauri
-- Frontend: React / Next.js 系
+- Frontend: React / Next.js family
 - Backend: Python FastAPI
 - Local DB: SQLite
-- Queue / Worker: Python ベース軽量実装から開始
-- LLM Gateway: LiteLLM 互換層
-- 認証: OAuth + ローカルセッション
+- Queue / Worker: Start with lightweight Python-based implementation
+- LLM Gateway: LiteLLM-compatible layer
+- Authentication: OAuth + local session
 
-### 9.4 Cloudflare Workers デプロイ
+### 9.4 Cloudflare Workers Deployment
 
-ローカル実行に加え、Cloudflare Workers 上での実行にも対応する。  
-Workers デプロイは以下の2方式を提供する。
+In addition to local execution, supports execution on Cloudflare Workers.
+Two deployment methods are provided:
 
-| | 方式 A: Proxy | 方式 B: Full Workers |
+| | Method A: Proxy | Method B: Full Workers |
 |---|---|---|
-| ディレクトリ | `apps/edge/proxy/` | `apps/edge/full/` |
-| 概要 | 既存 FastAPI の前段にリバースプロキシ配置 | 主要 API を Hono + D1 でエッジ上に完全再実装 |
-| データベース | 不要（既存 DB を利用） | D1 (SQLite 互換) |
-| 認証 | バックエンドに委譲 | JWT (jose) |
-| フレームワーク | Hono | Hono + jose |
-| 外部サーバー | 必要 | 不要 |
+| Directory | `apps/edge/proxy/` | `apps/edge/full/` |
+| Overview | Reverse proxy in front of existing FastAPI | Full re-implementation of major APIs with Hono + D1 on edge |
+| Database | Not needed (uses existing DB) | D1 (SQLite compatible) |
+| Authentication | Delegated to backend | JWT (jose) |
+| Framework | Hono | Hono + jose |
+| External server | Required | Not required |
 
-方式 B (Full Workers) では以下の API をエッジ上で提供する。
+Method B (Full Workers) provides the following APIs on the edge:
 
-- 認証 (register / login / me)
-- 会社管理 (CRUD / dashboard)
-- チケット管理 (一覧 / 作成 / 詳細)
-- エージェント管理 (一覧 / 作成 / 一時停止 / 再開)
-- タスク管理 (作成 / 開始 / 完了)
-- 承認管理 (一覧 / 承認 / 却下)
-- Spec / Plan 管理 (作成 / 詳細 / 承認)
-- 監査ログ (一覧 / フィルタ)
-- 予算管理 (ポリシー作成 / コスト一覧)
-- プロジェクト管理 (CRUD)
-- レジストリ (Skills / Plugins / Extensions 検索)
-- 成果物管理 (一覧 / 作成 / 詳細)
-- Heartbeat (ポリシー作成 / 実行履歴)
-- レビュー (作成 / 一覧 / 詳細)
-- ヘルスチェック
+- Authentication (register / login / me)
+- Company management (CRUD / dashboard)
+- Ticket management (list / create / detail)
+- Agent management (list / create / pause / resume)
+- Task management (create / start / complete)
+- Approval management (list / approve / reject)
+- Spec / Plan management (create / detail / approve)
+- Audit logs (list / filter)
+- Budget management (policy creation / cost list)
+- Project management (CRUD)
+- Registry (Skills / Plugins / Extensions search)
+- Artifact management (list / create / detail)
+- Heartbeat (policy creation / execution history)
+- Review (create / list / detail)
+- Health check
 
-フロントエンドは Cloudflare Pages にデプロイ可能。  
-GitHub Actions による手動デプロイ (`.github/workflows/deploy-workers.yml`) にも対応する。
+Frontend can be deployed to Cloudflare Pages.
+Manual deployment via GitHub Actions (`.github/workflows/deploy-workers.yml`) is also supported.
 
 ---
 
-## 10. AI エージェントが着手できる実装前提仕様
+## 10. Implementation Specifications for AI Agent Consumption
 
-### 10.1 DB スキーマ初期案
+### 10.1 Initial DB Schema
 
-主要テーブルは以下を起点にする。
+Core tables start from the following:
 
 - companies
 - workspaces
@@ -355,7 +353,7 @@ GitHub Actions による手動デプロイ (`.github/workflows/deploy-workers.ym
 - tickets
 - specs
 - plans
-- tasks (provider_override_json: JSON nullable — タスク単位の LLM プロバイダー指定)
+- tasks (provider_override_json: JSON nullable -- per-task LLM provider specification)
 - task_dependencies
 - executions
 - outputs
@@ -372,9 +370,9 @@ GitHub Actions による手動デプロイ (`.github/workflows/deploy-workers.ym
 - registry_versions
 - installs
 
-### 10.2 API エンドポイント初期群
+### 10.2 Initial API Endpoint Groups
 
-#### 認証・セッション
+#### Authentication & Session
 - `POST /api/auth/login`
 - `GET /api/auth/status`
 - `POST /api/auth/logout`
@@ -382,7 +380,7 @@ GitHub Actions による手動デプロイ (`.github/workflows/deploy-workers.ym
 - `GET /api/auth/connections`
 - `DELETE /api/auth/disconnect/{service}`
 
-#### 組織・会社
+#### Organization & Company
 - `GET /api/companies`
 - `POST /api/companies`
 - `GET /api/org-chart`
@@ -402,9 +400,9 @@ GitHub Actions による手動デプロイ (`.github/workflows/deploy-workers.ym
 - `POST /api/tasks`
 - `GET /api/tasks/{id}`
 - `POST /api/tasks/{id}/transition`
-- `PATCH /api/v1/tasks/{id}/provider` — タスク単位プロバイダー指定の更新
+- `PATCH /api/v1/tasks/{id}/provider` -- Update per-task provider specification
 
-#### 実行・レビュー
+#### Execution & Review
 - `POST /api/orchestrate`
 - `GET /api/orchestrate/{id}`
 - `GET /api/orchestrate/{id}/cost`
@@ -413,26 +411,26 @@ GitHub Actions による手動デプロイ (`.github/workflows/deploy-workers.ym
 - `POST /api/reviews`
 - `POST /api/approvals`
 
-#### Skills / Plugins / Extensions (v0.1 実装済み)
-- `GET /api/v1/registry/skills` — Skill 一覧（status, skill_type, include_disabled フィルタ）
-- `GET /api/v1/registry/skills/{id}` — Skill 個別取得
-- `POST /api/v1/registry/skills` — Skill 作成
-- `POST /api/v1/registry/skills/install` — Skill インストール
-- `PATCH /api/v1/registry/skills/{id}` — Skill 更新（保護スキル無効化拒否）
-- `DELETE /api/v1/registry/skills/{id}` — Skill 削除（保護スキル削除拒否）
-- `POST /api/v1/registry/skills/generate` — 自然言語スキル生成（安全性チェック付き）
-- `POST /api/skills/execute` — Skill 実行
-- `GET /api/skills/gaps` — Skill ギャップ検出
-- `GET /api/v1/registry/plugins` — Plugin 一覧
-- `GET /api/v1/registry/plugins/{id}` — Plugin 個別取得
-- `POST /api/v1/registry/plugins` — Plugin 作成
-- `PATCH /api/v1/registry/plugins/{id}` — Plugin 更新
-- `DELETE /api/v1/registry/plugins/{id}` — Plugin 削除（保護プラグイン削除拒否）
-- `GET /api/v1/registry/extensions` — Extension 一覧
-- `GET /api/v1/registry/extensions/{id}` — Extension 個別取得
-- `POST /api/v1/registry/extensions` — Extension 作成
-- `PATCH /api/v1/registry/extensions/{id}` — Extension 更新
-- `DELETE /api/v1/registry/extensions/{id}` — Extension 削除（保護拡張削除拒否）
+#### Skills / Plugins / Extensions (Implemented in v0.1)
+- `GET /api/v1/registry/skills` -- Skill list (status, skill_type, include_disabled filters)
+- `GET /api/v1/registry/skills/{id}` -- Individual Skill retrieval
+- `POST /api/v1/registry/skills` -- Skill creation
+- `POST /api/v1/registry/skills/install` -- Skill installation
+- `PATCH /api/v1/registry/skills/{id}` -- Skill update (protected skill disable rejected)
+- `DELETE /api/v1/registry/skills/{id}` -- Skill deletion (protected skill deletion rejected)
+- `POST /api/v1/registry/skills/generate` -- Natural language skill generation (with safety check)
+- `POST /api/skills/execute` -- Skill execution
+- `GET /api/skills/gaps` -- Skill gap detection
+- `GET /api/v1/registry/plugins` -- Plugin list
+- `GET /api/v1/registry/plugins/{id}` -- Individual Plugin retrieval
+- `POST /api/v1/registry/plugins` -- Plugin creation
+- `PATCH /api/v1/registry/plugins/{id}` -- Plugin update
+- `DELETE /api/v1/registry/plugins/{id}` -- Plugin deletion (protected plugin deletion rejected)
+- `GET /api/v1/registry/extensions` -- Extension list
+- `GET /api/v1/registry/extensions/{id}` -- Individual Extension retrieval
+- `POST /api/v1/registry/extensions` -- Extension creation
+- `PATCH /api/v1/registry/extensions/{id}` -- Extension update
+- `DELETE /api/v1/registry/extensions/{id}` -- Extension deletion (protected extension deletion rejected)
 
 #### Registry / Audit / Settings
 - `GET /api/registry/search`
@@ -444,46 +442,46 @@ GitHub Actions による手動デプロイ (`.github/workflows/deploy-workers.ym
 - `PUT /api/settings`
 - `GET /api/health`
 
-#### メディア生成・プロバイダーレジストリ (v0.1 実装済み)
-- `GET /api/v1/media/providers` — メディア生成プロバイダー一覧（ビルトイン＋ユーザー登録）
-- `GET /api/v1/media/providers/{media_type}` — メディアタイプ別プロバイダー一覧
-- `POST /api/v1/media/providers` — 新規プロバイダー登録（3D 等）
-- `DELETE /api/v1/media/providers/{id}` — ユーザー登録プロバイダーの削除
-- `POST /api/v1/media/generate` — メディア生成（任意のプロバイダー ID を指定可能）
+#### Media Generation & Provider Registry (Implemented in v0.1)
+- `GET /api/v1/media/providers` -- Media generation provider list (built-in + user-registered)
+- `GET /api/v1/media/providers/{media_type}` -- Providers by media type
+- `POST /api/v1/media/providers` -- New provider registration (3D, etc.)
+- `DELETE /api/v1/media/providers/{id}` -- User-registered provider deletion
+- `POST /api/v1/media/generate` -- Media generation (arbitrary provider ID can be specified)
 
-#### ランタイム設定管理 (v0.1 実装済み)
-- `GET /api/v1/config` — 全設定値（機密値はマスク済み）
-- `GET /api/v1/config/providers` — プロバイダー接続状態
-- `PUT /api/v1/config` — 設定値の更新（API キー・実行モード等）
-- `PUT /api/v1/config/batch` — 一括更新
-- `DELETE /api/v1/config/{key}` — 設定値の削除（デフォルトに戻す）
-- `GET /api/v1/config/keys` — 設定可能なキーの一覧
+#### Runtime Configuration Management (Implemented in v0.1)
+- `GET /api/v1/config` -- All configuration values (sensitive values masked)
+- `GET /api/v1/config/providers` -- Provider connection status
+- `PUT /api/v1/config` -- Update configuration values (API keys, execution mode, etc.)
+- `PUT /api/v1/config/batch` -- Batch update
+- `DELETE /api/v1/config/{key}` -- Delete configuration value (revert to default)
+- `GET /api/v1/config/keys` -- List of configurable keys
 
-### 10.3 状態遷移（実装済み）
+### 10.3 State Transitions (Implemented)
 
 #### Ticket
-- draft → open → interviewing → planning → ready → in_progress → review → done → closed
-- rework, blocked, cancelled は各状態から遷移可能
-- reopened: done / closed / cancelled から再開可能
+- draft -> open -> interviewing -> planning -> ready -> in_progress -> review -> done -> closed
+- rework, blocked, cancelled can transition from each state
+- reopened: can reopen from done / closed / cancelled
 
 #### Task
-- pending → ready → running → succeeded → verified → archived
-- running → failed → retrying → running
-- running → awaiting_approval → running
-- running → blocked → ready
-- rework_requested → ready / running
+- pending -> ready -> running -> succeeded -> verified -> archived
+- running -> failed -> retrying -> running
+- running -> awaiting_approval -> running
+- running -> blocked -> ready
+- rework_requested -> ready / running
 
 #### Approval
-- requested → approved / rejected / expired / cancelled
-- approved → executed
-- rejected → superseded
+- requested -> approved / rejected / expired / cancelled
+- approved -> executed
+- rejected -> superseded
 
 #### Agent
-- provisioning → active → busy → paused → archived
-- active → budget_blocked / policy_blocked / error
-- error → active / paused
+- provisioning -> active -> busy -> paused -> archived
+- active -> budget_blocked / policy_blocked / error
+- error -> active / paused
 
-### 10.4 画面一覧初期案
+### 10.4 Initial Screen List
 
 - Sign In
 - Workspace Selector
@@ -497,87 +495,87 @@ GitHub Actions による手動デプロイ (`.github/workflows/deploy-workers.ym
 - Audit Log Viewer
 - Settings / Connections / Policies
 
-### 10.5 ディレクトリ構成（実装済み）
+### 10.5 Directory Structure (Implemented)
 
 ```text
 Zero-Employee-Orchestrator/
 ├─ apps/
-│  ├─ api/                    # FastAPI バックエンド
+│  ├─ api/                    # FastAPI backend
 │  │  ├─ app/
-│  │  │  ├─ core/             # 設定・DB・セキュリティ
-│  │  │  ├─ api/routes/       # REST API エンドポイント
+│  │  │  ├─ core/             # Config, DB, security
+│  │  │  ├─ api/routes/       # REST API endpoints
 │  │  │  ├─ api/ws/           # WebSocket
-│  │  │  ├─ api/deps/         # 依存性注入
-│  │  │  ├─ models/           # SQLAlchemy ORM モデル
+│  │  │  ├─ api/deps/         # Dependency injection
+│  │  │  ├─ models/           # SQLAlchemy ORM models
 │  │  │  ├─ schemas/          # Pydantic DTO
-│  │  │  ├─ services/         # ビジネスロジック
-│  │  │  ├─ repositories/     # DB 入出力抽象化
-│  │  │  ├─ orchestration/    # DAG・Judge・状態機械・Knowledge・Memory
-│  │  │  ├─ heartbeat/        # Heartbeat スケジューラ
-│  │  │  ├─ providers/        # LLM ゲートウェイ・Ollama・g4f・RAG
-│  │  │  ├─ tools/            # 外部ツール接続（MCP/Webhook/API/CLI）
-│  │  │  ├─ policies/         # 承認ゲート・自律実行境界
-│  │  │  ├─ security/         # シークレット管理・サニタイズ・IAM
-│  │  │  ├─ integrations/     # Sentry・MCP Server・外部スキル（※拡張機能）
-│  │  │  ├─ audit/            # 監査ログ
-│  │  │  └─ tests/            # テスト
-│  │  └─ alembic/             # DB マイグレーション
+│  │  │  ├─ services/         # Business logic
+│  │  │  ├─ repositories/     # DB I/O abstraction
+│  │  │  ├─ orchestration/    # DAG, Judge, state machine, Knowledge, Memory
+│  │  │  ├─ heartbeat/        # Heartbeat scheduler
+│  │  │  ├─ providers/        # LLM gateway, Ollama, g4f, RAG
+│  │  │  ├─ tools/            # External tool connectors (MCP/Webhook/API/CLI)
+│  │  │  ├─ policies/         # Approval gates, autonomy boundaries
+│  │  │  ├─ security/         # Secret management, sanitization, IAM
+│  │  │  ├─ integrations/     # Sentry, MCP Server, external skills (extensions)
+│  │  │  ├─ audit/            # Audit logging
+│  │  │  └─ tests/            # Tests
+│  │  └─ alembic/             # DB migrations
 │  ├─ desktop/                # Tauri + React UI
 │  │  ├─ src-tauri/           # Rust (Tauri v2)
 │  │  └─ ui/src/
-│  │     ├─ pages/            # 23 画面コンポーネント
-│  │     ├─ features/         # 機能別モジュール
-│  │     ├─ shared/           # 共通 API・型・hooks・UI
-│  │     └─ app/              # ルーティング・エントリ
+│  │     ├─ pages/            # 23 screen components
+│  │     ├─ features/         # Feature-based modules
+│  │     ├─ shared/           # Common API, types, hooks, UI
+│  │     └─ app/              # Routing, entry point
 │  ├─ edge/                   # Cloudflare Workers
-│  └─ worker/                 # バックグラウンドワーカー
-│     ├─ runners/             # タスク・Heartbeat 実行
-│     ├─ executors/           # LLM・サンドボックス実行
-│     ├─ dispatchers/         # イベント配信
-│     └─ sandbox/             # 隔離実行環境
-├─ skills/builtin/            # 組み込み Skill
-├─ plugins/                   # Plugin 定義
-├─ extensions/                # Extension 定義
-├─ packages/                  # 共有パッケージ
-├─ docs/                      # ドキュメント
-├─ scripts/                   # 開発・デプロイスクリプト
-└─ docker/                    # Docker 設定
+│  └─ worker/                 # Background workers
+│     ├─ runners/             # Task, Heartbeat execution
+│     ├─ executors/           # LLM, sandbox execution
+│     ├─ dispatchers/         # Event dispatch
+│     └─ sandbox/             # Isolated execution environment
+├─ skills/builtin/            # Built-in Skills
+├─ plugins/                   # Plugin definitions
+├─ extensions/                # Extension definitions
+├─ packages/                  # Shared packages
+├─ docs/                      # Documentation
+├─ scripts/                   # Development and deployment scripts
+└─ docker/                    # Docker configuration
 ```
 
 ---
 
-## 11. 実装順序
+## 11. Implementation Order
 
-### Phase 0: 開発基盤
-- モノレポ構成
-- Python / Node / Tauri 開発基盤
+### Phase 0: Development Foundation
+- Monorepo structure
+- Python / Node / Tauri development foundation
 - Lint / Format / Test / CI
-- 環境変数とシークレット運用
+- Environment variables and secret management
 
-### Phase 1: 認証と会社スコープ
-- ローカル認証
-- OAuth 接続基盤
-- workspace / company スコープ
+### Phase 1: Authentication and Company Scope
+- Local authentication
+- OAuth connection foundation
+- workspace / company scope
 
-### Phase 2: Design Interview と spec
-- Interview セッション
+### Phase 2: Design Interview and Spec
+- Interview sessions
 - Spec Writer
-- Spec 保存と編集
+- Spec storage and editing
 
-### Phase 3: Plan と承認
-- Plan 生成
+### Phase 3: Plan and Approval
+- Plan generation
 - Cost Guard
 - Quality SLA
-- 承認フロー
+- Approval flow
 - Plan Diff
 
-### Phase 4: Task 実行基盤
-- Task 分解
-- 状態機械
-- 実行履歴
-- 進捗可視化
+### Phase 4: Task Execution Foundation
+- Task decomposition
+- State machine
+- Execution history
+- Progress visualization
 
-### Phase 5: Judge と再計画
+### Phase 5: Judge and Replanning
 - Two-stage Detection
 - Cross-Model Judge
 - Re-Propose
@@ -585,82 +583,82 @@ Zero-Employee-Orchestrator/
 - Failure Taxonomy
 
 ### Phase 6: Skill / Local Context
-- Skill 実行基盤
-- Skill Gap 検出
+- Skill execution foundation
+- Skill Gap detection
 - Local Context Skill
 - Experience Memory
 
-### Phase 7: UI 強化
-- ダッシュボード
-- 実行タイムライン
-- 監査画面
+### Phase 7: UI Enhancement
+- Dashboard
+- Execution timeline
+- Audit screen
 - Registry UI
 
-### Phase 8: Registry / 共有
-- パッケージ化
-- インストール
-- バージョン管理
-- 検証状態表示
+### Phase 8: Registry / Sharing
+- Packaging
+- Installation
+- Version management
+- Verification status display
 
-### Phase 9: 高度化
+### Phase 9: Advanced Features
 - Heartbeat
 - Goal Alignment
-- Ticket / Org Chart 中心運用
-- Multi-company 対応
-- BYOA/BYOAgent 的な接続性強化
+- Ticket / Org Chart-centered operations
+- Multi-company support
+- BYOA/BYOAgent-style connectivity enhancement
 
 ---
 
-## 12. テスト観点
+## 12. Test Strategy
 
-### 12.1 単体テスト
-- Interview ロジック
+### 12.1 Unit Tests
+- Interview logic
 - Spec Writer
 - Cost Guard
 - Policy Pack
 - Failure Taxonomy
 - Plan Diff
-- Skill Gap 検出
+- Skill Gap detection
 
-### 12.2 結合テスト
-- interview → spec → plan → approval → execute
-- Skill 実行 → Judge → Re-Propose
-- Local Context 読み込み → 成果物生成
+### 12.2 Integration Tests
+- interview -> spec -> plan -> approval -> execute
+- Skill execution -> Judge -> Re-Propose
+- Local Context reading -> artifact generation
 
-### 12.3 E2E テスト
-- GUI から自然言語入力して最終成果物承認まで通す
-- 失敗時に Self-Healing が発火するか
-- 監査ログが一貫して保存されるか
+### 12.3 E2E Tests
+- Natural language input from GUI through to final artifact approval
+- Whether Self-Healing triggers on failure
+- Whether audit logs are consistently saved
 
-### 12.4 セキュリティテスト
-- 権限逸脱
-- 不正接続
-- シークレット露出
-- 禁止操作の事前検知
+### 12.4 Security Tests
+- Permission escalation
+- Unauthorized connections
+- Secret exposure
+- Pre-detection of prohibited operations
 
-### 12.5 LLM 特有テスト
-- ハルシネーション抑制
-- 根拠の弱い回答の検出
-- 差し戻し時の再計画品質
-- モデル変更時の劣化検知
-
----
-
-## 13. 実装上の重要判断
-
-1. YouTube は検証テーマであって本体定義ではない  
-2. 本体は業務 OS、個別業務は Skill / Plugin で表現する  
-3. 高速開発のために MVP では SQLite 中心でよい  
-4. ただし状態機械、監査ログ、承認フローは最初から入れる  
-5. 自律実行の境界は厳格にし、危険操作は明示承認を必須にする  
-6. Section 2〜7 の実装指示群は、本書の構造に従って再利用できる状態で維持する
+### 12.5 LLM-Specific Tests
+- Hallucination suppression
+- Detection of weakly grounded responses
+- Replanning quality on rejection
+- Degradation detection on model changes
 
 ---
 
-## 14. 本書と基準文書の関係
+## 13. Critical Implementation Decisions
 
-- `docs/Zero-Employee Orchestrator.md`: 思想、要望、背景、改善案、全体構想の基準
-- `docs/dev/DESIGN.md`: 実装設計の基準
-- `docs/dev/MASTER_GUIDE.md`: AI エージェントへの実行順序・参照関係・分担の基準
+1. YouTube is a validation theme, not part of the core definition
+2. The core is a business OS; individual business operations are expressed as Skill / Plugin
+3. SQLite-centered approach is acceptable for MVP for rapid development
+4. However, state machine, audit logs, and approval flows are included from the start
+5. Autonomous execution boundaries are strict; dangerous operations require explicit approval
+6. Implementation instruction groups from Sections 2-7 are maintained in a reusable state following this document's structure
 
-本書は基準文書を要約するものではなく、実装に必要な構造を明文化した派生設計書である。
+---
+
+## 14. Relationship Between This Document and Reference Documents
+
+- `docs/ja-JP/Zero-Employee Orchestrator.md`: Reference for philosophy, requests, background, improvement proposals, and overall vision
+- `docs/dev/DESIGN.md`: Reference for implementation design
+- `docs/dev/MASTER_GUIDE.md`: Reference for execution order, reference relationships, and task allocation for AI agents
+
+This document is not a summary of the reference document but a derived design document that codifies the structures needed for implementation.

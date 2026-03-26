@@ -1,129 +1,87 @@
 # Roadmap
 
-> 日本語 | [English](docs/en/ROADMAP.md) | [中文](docs/zh/ROADMAP.md)
-
-> 最終更新: 2026-03-25
-> 現在のバージョン: v0.1
+> Last updated: 2026-03-26
+> Current version: v0.1
 
 ---
 
-## 現在の状態 (v0.1)
+## Current State (v0.1)
 
-v0.1 では、9層アーキテクチャの完全実装に加え、当初 v0.2〜v1.0 で計画していた主要機能をすべて前倒しで実装しました。
+v0.1 includes all features originally planned for v0.2 through v1.0, implemented ahead of schedule.
 
-### v0.1 実装済み機能一覧
+### Implemented in v0.1
 
-#### 基盤 (旧 v0.1)
-- 9層アーキテクチャの完全実装
-- ZEO-Bench による Judge Layer の定量評価
-- 汎用ドメイン Skill テンプレート
-- Self-Healing DAG のカオステスト
-- ランタイム設定管理・ナレッジストア
-- ai-self-improvement Plugin（6 Skill 全実装）
+**Foundation:**
+- Full 9-layer architecture, ZEO-Bench, Self-Healing DAG, Experience Memory, AI Self-Improvement Plugin
 
-#### 接続性と実用性 (旧 v0.2)
-- **Tool Connector 本実装** — REST API / MCP / GraphQL / CLI / Webhook 対応
-- **タスク実行中のユーザー入力要求** — テキスト / ファイル / 選択 / 確認
-- **ユーザーリソースインポート** — ファイル / フォルダ / URL からの取り込み
-- **iPaaS 連携** — n8n / Zapier / Make との Webhook 連携
-- **成果物エクスポート** — PDF / Markdown / HTML / JSON / CSV / DOCX
-- **E2E テストフレームワーク** — pytest + httpx ベース
-- **LLM レスポンスモック** — テスト用モック基盤
-- **ファイルアップロード API** — 単一・複数ファイル対応
+**Connectivity (formerly v0.2):**
+- Tool Connector (REST/MCP/GraphQL/CLI/Webhook), iPaaS (n8n/Zapier/Make), Artifact Export, User Input Requests, Resource Import, File Upload API, E2E Test Framework, LLM Response Mocking
 
-#### AI 組織の高度化 (旧 v0.3)
-- **メタスキル (Meta-Skills)** — Feeling / Seeing / Dreaming / Making / Learning の 5 要素
-- **AI 共創リパーパスエンジン** — 10 種のコンテンツ形式への自動変換
-- **RSS / ToS 自動更新パイプライン** — 6 社の AI プロバイダー監視
-- **レッドチーム セキュリティ Plugin** — 8 カテゴリ・20+ セキュリティテスト
-- **A2A (AI-to-AI) 双方向通信** — エージェント間メッセージ・チャンネル・交渉
-- **分身 AI 共進化ループ** — ユーザー嗜好学習・意思決定予測
+**Advanced AI Organization (formerly v0.3):**
+- Meta-Skills (Feeling/Seeing/Dreaming/Making/Learning), AI Repurpose Engine, RSS/ToS Monitor, Red-team Security, A2A Communication, Avatar Co-evolution
 
-#### エコシステムとスケーラビリティ (旧 v0.4)
-- **Skill マーケットプレイス** — 公開・検索・レビュー・インストール
-- **マルチユーザー / チーム対応** — ロール・招待・権限管理
-- **Web ブラウザ操作** — Playwright ベースの自動操作（承認フロー付き）
-- **Obsidian 連携** — Vault 管理・ノート検索・リンクグラフ・ナレッジ同期
-- **LSP (Language Server Protocol) 統合** — 6 言語対応の基盤
+**Ecosystem (formerly v0.4):**
+- Skill Marketplace, Multi-user/Team, Browser Automation, Obsidian Integration, LSP Integration
 
-#### 汎用アプリケーション連携 (App Connector Hub)
-- **汎用アプリ連携ハブ** — 35+ アプリケーションとの統合を統一管理
-- **ナレッジベース連携** — Obsidian / Notion / Logseq / Joplin / Anytype / Roam Research
-- **生産性ツール連携** — Google Workspace / Microsoft 365
-- **プロジェクト管理連携** — Jira / Linear / Asana / Trello / ClickUp
-- **CRM 連携** — HubSpot / Salesforce
-- **クラウドストレージ連携** — Google Drive / Dropbox / OneDrive
-- **カレンダー・メール連携** — Google Calendar / Outlook / Gmail
-- **カスタムアプリ登録** — ユーザーが任意のアプリを定義・接続可能
-- **パーミッション制御** — 接続ごとに read / write / delete / sync / export + パス制限
-- **Extension マニフェスト** — Notion / Logseq / Joplin / Google Workspace / Microsoft 365
+**App Connector Hub:**
+- 35+ app integrations (Obsidian, Notion, Logseq, Joplin, Anytype, Roam Research, Google Workspace, Microsoft 365, Jira, Linear, Asana, Trello, ClickUp, HubSpot, Salesforce, etc.)
+- Per-connection permission control (read/write/delete/sync/export + path restrictions)
+- Custom app registration
 
-#### プロダクション品質 (旧 v1.0)
-- **ガバナンスとコンプライアンス** — GDPR / HIPAA / SOC2 / ISO27001 / CCPA / APPI
-- **24/365 ロングラン実行** — スケジューラ・ジョブ管理基盤
-- **クラウドサービスネイティブ連携** — AWS / GCP / Azure / Cloudflare 抽象化層
-- **スマートデバイス / VR / AR 統合** — デバイスハブ・プロトコル抽象化
+**Production Quality (formerly v1.0):**
+- Governance & Compliance (GDPR/HIPAA/SOC2/ISO27001/CCPA/APPI), 24/365 Scheduler, Cloud Native Integration (AWS/GCP/Azure), Smart Device & VR/AR Hub
 
-#### 品質・洞察機能
-- **前提変化の汎用監視** — RSS/ToSパイプラインの拡張で外部情報源を登録・定期チェック
-- **Spec間矛盾検出** — CrossModelJudgeの応用で複数Specの矛盾を検証
-- **タスク実行のリプレイ・比較** — 異なるモデル/パラメータでの再実行・結果比較
-- **ユーザー判断の振り返りレポート** — 承認・却下パターンの可視化と自己認識支援
-- **目的→Plan分解の品質検証** — MECE（漏れなく・重複なく）のJudge検証ステージ
+**Quality & Insights:**
+- Prerequisite change monitoring, Spec contradiction detection, Task replay & comparison, Judgment review reports, Plan quality verification (MECE)
 
-#### ワークスペース隔離とプライバシー保護
-- **隔離ワークスペース** — 初期状態でローカル・クラウドに接続しない独立環境
-- **内部ストレージ** — AI エージェントがアクセスできるのはユーザーがアップロードしたファイルのみ
-- **段階的アクセス許可** — ユーザーが設定でローカルフォルダ・クラウドストレージへのアクセスを許可可能
-- **業務単位の環境カスタマイズ** — チケット・タスクごとに異なる環境・権限・ナレッジ範囲を指定可能
-- **チャット指示と設定の整合性チェック** — チャットでの指示がシステム設定と異なる場合、AI が計画段階でユーザーに許可を求める
-- **保存先の柔軟な選択** — 成果物の保存先を内部ストレージ・ローカル・クラウドから選択可能
+**Workspace Isolation & Privacy:**
+- Isolated workspace (no local/cloud access by default), internal storage only, gradual access permission, per-task environment customization, chat instruction vs. settings consistency check, flexible storage location selection
 
 ---
 
-## 今後のロードマップ
+## Future Roadmap
 
-以下は、コミュニティの成長やリソースの確保が必要な項目です。
+The following items require community growth and resource allocation.
 
-### コミュニティ・資金・大規模インフラが必要な機能
+### Features Requiring Community, Funding, or Large-Scale Infrastructure
 
-以下の機能は v0.1 でコード基盤は実装済みですが、実運用にはユーザー母数・ハードウェア・法務コストが必要です:
+The following features have code foundations implemented in v0.1, but require user base, hardware, or legal costs for production operation:
 
-| 機能 | 必要なリソース | 現状 |
-|------|-------------|------|
-| **マーケットプレイスの実運用** | レビューやインストール数にユーザー母数が必要 | API・UIは実装済み、コミュニティ形成待ち |
-| **VR/AR・IoT 統合** | ハードウェア依存、デバイスの多様性 | プロトコル抽象化層は実装済み |
-| **エンタープライズガバナンス** | HIPAA/SOC2 等の認証取得にコストと法務が必要 | ポリシーフレームワークは実装済み |
-| **大規模マルチテナント運用** | インフラスケーリング、運用体制 | チーム・権限モデルは実装済み |
+| Feature | Required Resources | Current State |
+|---------|-------------------|---------------|
+| **Marketplace production operation** | User base needed for reviews/install counts | API & UI implemented, awaiting community |
+| **VR/AR & IoT integration** | Hardware dependent, device diversity | Protocol abstraction layer implemented |
+| **Enterprise governance** | HIPAA/SOC2 certification costs and legal | Policy framework implemented |
+| **Large-scale multi-tenant operation** | Infrastructure scaling, operations team | Team & permission models implemented |
 
-### v0.2 — フロントエンド完成とコミュニティ形成
+### v0.2 — Frontend Completion & Community
 
-| 優先度 | 機能 | 説明 |
-|:------:|------|------|
-| 高 | **フロントエンド データ接続完成** | 12画面のバックエンド接続を完成 |
-| 高 | **features/ モジュール分離** | pages 内ロジックの features/ への分離 |
-| 高 | **packages/ 共有ライブラリ** | 共有コードの抽出・パッケージ化 |
-| 高 | **Plugin ローダー本実装** | マニフェストベースの動的ロード・実行機構 |
-| 中 | **Design Interview → 成果物 E2E フロー** | 自然言語入力から成果物生成まで一気通貫 |
-| 中 | **Playwright フロントエンド E2E テスト** | ブラウザ UI の自動テスト |
-| 中 | **Worker コアロジック強化** | TaskRunner / HeartbeatRunner の補強 |
+| Priority | Feature | Description |
+|:--------:|---------|-------------|
+| High | **Frontend Data Connection** | Complete 12 screens' backend connections |
+| High | **features/ Module Separation** | Extract logic from pages to features/ |
+| High | **packages/ Shared Libraries** | Extract and package shared code |
+| High | **Plugin Loader Implementation** | Manifest-based dynamic loading |
+| Medium | **E2E Flow Integration** | Natural language input to artifact generation |
+| Medium | **Playwright Frontend E2E Tests** | Browser UI automated testing |
+| Medium | **Worker Core Logic Enhancement** | Strengthen TaskRunner / HeartbeatRunner |
 
-### v0.3 — AI Self-Improvement の加速
+### v0.3 — Accelerating AI Self-Improvement
 
-| 優先度 | 機能 | 説明 |
-|:------:|------|------|
-| 高 | **コミュニティ Skill エコシステム** | 大量の Skill・Plugin 共有による進化 |
-| 高 | **匿名フィードバック集約** | プライバシー保護つき Experience Memory 共有 |
-| 中 | **Cross-Model 大規模検証** | 大量検証データの蓄積と精度向上 |
-| 中 | **多言語 Experience Memory** | 日本語・英語・中国語等の多言語知識蓄積 |
-| 中 | **コントリビューター向けガイド** | CONTRIBUTING.md・Skill 開発チュートリアル |
+| Priority | Feature | Description |
+|:--------:|---------|-------------|
+| High | **Community Skill Ecosystem** | Large-scale Skill/Plugin sharing |
+| High | **Anonymous Feedback Aggregation** | Privacy-preserving Experience Memory sharing |
+| Medium | **Cross-Model Large-scale Verification** | Massive verification data accumulation |
+| Medium | **Multilingual Experience Memory** | Knowledge accumulation in Japanese, English, Chinese, etc. |
+| Medium | **Contributor Guide** | CONTRIBUTING.md and Skill development tutorials |
 
-### v1.0 — 真の AI Self-Improvement
+### v1.0 — True AI Self-Improvement
 
-| 優先度 | 機能 | 説明 |
-|:------:|------|------|
-| 高 | **Self-Improvement Loop** | 改善提案 → テスト → 検証 → 適用の自動サイクル |
-| 高 | **Cross-Orchestrator Learning** | 複数 ZEO インスタンス間の知識共有 |
-| 中 | **ファインチューニング基盤** | 特定業務に特化した専門モデルの自動作成 |
-| 中 | **AI アーキテクチャ自己改善** | AI がシステム設計レベルの改善を提案 |
-| 低 | **メタ学習** | 「どう改善すれば効率的か」自体を学習 |
+| Priority | Feature | Description |
+|:--------:|---------|-------------|
+| High | **Self-Improvement Loop** | Auto-cycle: propose -> test -> verify -> apply |
+| High | **Cross-Orchestrator Learning** | Knowledge sharing between ZEO instances |
+| Medium | **Fine-tuning Infrastructure** | Auto-create specialized domain models |
+| Medium | **AI Architecture Self-Improvement** | AI proposes system-design-level improvements |
+| Low | **Meta-Learning** | Learning "how to improve efficiently" itself |

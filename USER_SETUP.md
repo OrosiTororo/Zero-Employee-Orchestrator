@@ -1,52 +1,50 @@
-# ユーザーセットアップガイド
+# User Setup Guide
 
-> 日本語 | [English](docs/en/USER_SETUP.md) | [中文](docs/zh/USER_SETUP.md)
-
-> ZEO はミニマルな初期状態で動作し、ユーザーが必要に応じて機能を拡張していく設計です。
-> 以下の設定はすべて任意で、使いたい機能に応じて各自で行ってください。
+> ZEO is designed to work in a minimal initial state, allowing users to expand functionality as needed.
+> All settings below are optional; configure them according to the features you want to use.
 >
-> ZEO 本体の開発・品質管理に関する設定（Sentry・セキュリティテスト等）については `docs/dev/DEVELOPER_SETUP.md` を参照してください。
+> For settings related to ZEO development and quality assurance (Sentry, security testing, etc.), see `docs/dev/DEVELOPER_SETUP.md`.
 >
-> 最終更新: 2026-03-23
+> Last updated: 2026-03-26
 
 ---
 
-## 1. LLM プロバイダーの接続
+## 1. Connecting an LLM Provider
 
-ZEO は API キー不要で利用を開始できます。以下の 3 通りの方法があります:
+ZEO can be used without an API key. There are three ways to get started:
 
 ```bash
-# 方法 1: サブスクリプションモード（キー不要）
+# Method 1: Subscription mode (no key required)
 zero-employee config set DEFAULT_EXECUTION_MODE subscription
 
-# 方法 2: Ollama ローカル LLM（完全オフライン・キー不要）
+# Method 2: Ollama local LLM (fully offline, no key required)
 zero-employee config set DEFAULT_EXECUTION_MODE free
 zero-employee pull qwen3:8b
 
-# 方法 3: マルチ LLM プラットフォーム（1 つのキーで複数モデル利用可能）
+# Method 3: Multi-LLM platform (access multiple models with a single key)
 zero-employee config set OPENROUTER_API_KEY <your-key>
 ```
 
-> **ZEO 自体は利用料金を徴収しません。** LLM の API 費用はユーザーが各プロバイダーに直接支払います。
-> 特定のプロバイダーへの依存はありません。新しいプラットフォームやサービスが登場した場合も、設定の追加だけで対応可能です。
+> **ZEO itself does not charge any fees.** LLM API costs are paid directly by users to each provider.
+> There is no dependency on any specific provider. When new platforms or services become available, they can be supported simply by adding configuration.
 
-### 外部 API キーの設定（任意）
+### External API Key Configuration (Optional)
 
-より高品質なモデルや特定のプロバイダーを使用したい場合、API キーを設定してください。すべて任意です。
+If you want to use higher-quality models or specific providers, configure their API keys. All are optional.
 
-#### LLM プロバイダー
+#### LLM Providers
 
 ```bash
-# OpenRouter（マルチ LLM プラットフォーム — 1 つのキーで複数モデル利用可能）
+# OpenRouter (multi-LLM platform -- access multiple models with a single key)
 zero-employee config set OPENROUTER_API_KEY <your-key>
 
-# OpenAI (GPT 系)
+# OpenAI (GPT series)
 zero-employee config set OPENAI_API_KEY <your-key>
 
-# Anthropic (Claude 系)
+# Anthropic (Claude series)
 zero-employee config set ANTHROPIC_API_KEY <your-key>
 
-# Google (Gemini 系) — 無料枠あり
+# Google (Gemini series) -- free tier available
 zero-employee config set GEMINI_API_KEY <your-key>
 
 # Mistral
@@ -59,32 +57,32 @@ zero-employee config set COHERE_API_KEY <your-key>
 zero-employee config set DEEPSEEK_API_KEY <your-key>
 ```
 
-### メディア生成
+### Media Generation
 
 ```bash
-# DALL-E (画像生成) — OpenAI API キーと共通
+# DALL-E (image generation) -- uses the same OpenAI API key
 # Stability AI (Stable Diffusion)
 zero-employee config set STABILITY_API_KEY <your-key>
 
-# Replicate (Flux, SVD 等)
+# Replicate (Flux, SVD, etc.)
 zero-employee config set REPLICATE_API_TOKEN <your-key>
 
-# ElevenLabs (音声生成)
+# ElevenLabs (voice generation)
 zero-employee config set ELEVENLABS_API_KEY <your-key>
 
-# Suno (音楽生成)
+# Suno (music generation)
 zero-employee config set SUNO_API_KEY <your-key>
 
-# Runway ML (動画生成)
+# Runway ML (video generation)
 zero-employee config set RUNWAY_API_KEY <your-key>
 ```
 
-### カスタムメディアプロバイダーの登録
+### Custom Media Provider Registration
 
-ビルトインプロバイダー以外の 3D ツールや新しい生成サービスを API から動的に追加できます。
+You can dynamically register 3D tools or new generation services not included by default via the API.
 
 ```bash
-# 例: 3D モデル生成ツール (Meshy) を登録
+# Example: Register a 3D model generation tool (Meshy)
 curl -X POST http://localhost:18234/api/v1/media/providers \
   -H "Content-Type: application/json" \
   -d '{
@@ -97,14 +95,14 @@ curl -X POST http://localhost:18234/api/v1/media/providers \
     "cost_per_generation": 0.30
   }'
 
-# 登録済みプロバイダーの確認
+# List registered providers
 curl http://localhost:18234/api/v1/media/providers
 
-# ユーザー登録プロバイダーの削除
+# Delete a user-registered provider
 curl -X DELETE http://localhost:18234/api/v1/media/providers/meshy_3d
 ```
 
-### 外部ツール統合
+### External Tool Integration
 
 ```bash
 # GitHub
@@ -124,7 +122,7 @@ zero-employee config set NOTION_API_KEY <your-key>
 zero-employee config set JIRA_URL <your-url>
 zero-employee config set JIRA_API_TOKEN <your-token>
 
-# Figma (MCP 経由)
+# Figma (via MCP)
 zero-employee config set FIGMA_ACCESS_TOKEN <your-token>
 
 # LINE Bot
@@ -134,18 +132,18 @@ zero-employee config set LINE_CHANNEL_ACCESS_TOKEN <your-token>
 
 ---
 
-## 2. iPaaS 連携の Webhook 設定
+## 2. iPaaS Integration Webhook Configuration
 
-外部の iPaaS サービスと ZEO を接続する場合に設定してください。
+Configure these settings when connecting ZEO to external iPaaS services.
 
 ### n8n
 
-1. n8n インスタンスを起動（セルフホスト or n8n.cloud）
-2. Webhook ノードを作成し、URL をコピー
-3. ZEO に登録:
+1. Start an n8n instance (self-hosted or n8n.cloud)
+2. Create a Webhook node and copy the URL
+3. Register it in ZEO:
 
 ```bash
-# API 経由
+# Via API
 POST /api/v1/ipaas/workflows
 {
   "name": "n8n-workflow-1",
@@ -157,26 +155,26 @@ POST /api/v1/ipaas/workflows
 
 ### Zapier
 
-1. Zapier で新しい Zap を作成
-2. Trigger として「Webhooks by Zapier → Catch Hook」を選択
-3. 発行された Webhook URL を ZEO に登録
+1. Create a new Zap in Zapier
+2. Select "Webhooks by Zapier -> Catch Hook" as the trigger
+3. Register the issued Webhook URL in ZEO
 
 ### Make (Integromat)
 
-1. Make でシナリオを作成
-2. Webhook モジュールを追加し、URL をコピー
-3. ZEO に登録
+1. Create a scenario in Make
+2. Add a Webhook module and copy the URL
+3. Register it in ZEO
 
 ---
 
-## 3. Google Workspace 連携（OAuth2）
+## 3. Google Workspace Integration (OAuth2)
 
-Google ドキュメント・スプレッドシート等と連携する場合:
+To integrate with Google Docs, Sheets, etc.:
 
-1. [Google Cloud Console](https://console.cloud.google.com) でプロジェクトを作成
-2. 「API とサービス」→「認証情報」→ OAuth 2.0 クライアント ID を作成
-3. リダイレクト URI に `http://localhost:18234/api/v1/auth/google/callback` を追加
-4. 設定:
+1. Create a project in [Google Cloud Console](https://console.cloud.google.com)
+2. Go to "APIs & Services" -> "Credentials" -> Create an OAuth 2.0 Client ID
+3. Add `http://localhost:18234/api/v1/auth/google/callback` as a redirect URI
+4. Configure:
 
 ```bash
 zero-employee config set GOOGLE_CLIENT_ID <client-id>
@@ -185,79 +183,79 @@ zero-employee config set GOOGLE_CLIENT_SECRET <client-secret>
 
 ---
 
-## 4. セキュリティ設定（本番環境必須）
+## 4. Security Configuration (Required for Production)
 
-本番環境で ZEO を運用する場合、以下を必ず設定してください。
+When running ZEO in a production environment, be sure to configure the following.
 
-### 秘密鍵の生成
+### Generating a Secret Key
 
 ```bash
-# SECRET_KEY を生成（必ず本番環境では変更すること）
+# Generate a SECRET_KEY (must be changed for production)
 python -c "import secrets; print(secrets.token_urlsafe(32))"
 zero-employee config set SECRET_KEY <generated-key>
 ```
 
-### CORS 設定
+### CORS Configuration
 
 ```bash
-# 本番ドメインのみ許可
+# Allow only production domains
 zero-employee config set CORS_ORIGINS '["https://your-domain.com"]'
 
-# 開発環境（デフォルト）
+# Development environment (default)
 zero-employee config set CORS_ORIGINS '["http://localhost:5173","http://localhost:18234"]'
 ```
 
-### 認証ミドルウェア（重要）
+### Authentication Middleware (Important)
 
-ZEO は JWT ベースの認証を実装しており、保護エンドポイントには `get_current_user` 依存関数による認証が必要です。
+ZEO implements JWT-based authentication, and protected endpoints require authentication via the `get_current_user` dependency function.
 
-**本番環境では以下を必ず確認してください:**
+**Be sure to verify the following for production environments:**
 
-1. **SECRET_KEY が本番用に設定されていること** — デフォルトのエフェメラルキーではサーバー再起動時にすべてのトークンが無効化されます
-2. **すべての業務 API ルートで認証が有効であること** — `scripts/security-check.sh` を実行して認証なしのルートがないか確認してください
-3. **SecurityHeadersMiddleware が有効であること** — CSP、HSTS、X-Frame-Options 等のセキュリティヘッダーが付与されます
+1. **SECRET_KEY is set for production** -- With the default ephemeral key, all tokens are invalidated on server restart
+2. **Authentication is enabled on all business API routes** -- Run `scripts/security-check.sh` to check for unauthenticated routes
+3. **SecurityHeadersMiddleware is enabled** -- Ensures security headers such as CSP, HSTS, and X-Frame-Options are applied
 
 ```bash
-# デプロイ前のセキュリティチェック
+# Pre-deployment security check
 ./scripts/security-check.sh
 
-# レッドチームテストで認証バイパスが検出されないことを確認
+# Verify that red team tests detect no authentication bypasses
 curl -X POST http://localhost:18234/api/v1/security/redteam/run \
   -H 'Content-Type: application/json' -d '{}'
 ```
 
-> **警告**: 認証なしで公開されたエンドポイントは、不正なデータ操作やデータ漏洩のリスクがあります。新しいルートを追加する際は、必ず `Depends(get_current_user)` を含めてください。
+> **Warning**: Endpoints exposed without authentication risk unauthorized data manipulation and data leakage. When adding new routes, always include `Depends(get_current_user)`.
 
 ---
 
-## 5. データベース設定
+## 5. Database Configuration
 
-### 開発・個人利用（SQLite、設定不要）
+### Development / Personal Use (SQLite, No Configuration Required)
 
-デフォルトで SQLite を使用します。追加設定は不要です。
+SQLite is used by default. No additional configuration is needed.
 
-### 本番・チーム利用（PostgreSQL 推奨）
+### Production / Team Use (PostgreSQL Recommended)
 
 ```bash
-# PostgreSQL 接続文字列
+# PostgreSQL connection string
 zero-employee config set DATABASE_URL "postgresql+asyncpg://user:password@localhost:5432/zeo"
 
-# マイグレーション実行
+# Run migrations
 zero-employee db upgrade
 ```
 
 ---
 
-## 6. デプロイ設定
+## 6. Deployment Configuration
 
-### Docker Compose（推奨）
+### Docker Compose (Recommended)
 
 ```bash
-# 環境変数ファイルを作成
+# Create an environment variable file
 cp .env.example .env
-# .env ファイルを編集して API キーを設定
+# Edit the .env file to set API keys
 
-# 起動
+# Start
 docker compose up -d
 ```
 
@@ -266,15 +264,15 @@ docker compose up -d
 ```bash
 cd apps/edge/full
 cp wrangler.toml.example wrangler.toml
-# wrangler.toml を編集
+# Edit wrangler.toml
 
 npm install
 npm run deploy
 ```
 
-### クラウドプロバイダー
+### Cloud Providers
 
-利用するクラウドサービスに応じて CLI をインストール:
+Install the CLI for your cloud service of choice:
 
 ```bash
 # AWS
@@ -282,93 +280,93 @@ pip install awscli
 aws configure
 
 # Google Cloud
-# gcloud CLI をインストール後:
+# After installing the gcloud CLI:
 gcloud auth application-default login
 
 # Azure
-# az CLI をインストール後:
+# After installing the az CLI:
 az login
 ```
 
 ---
 
-## 7. ワークスペース環境（初期設定）
+## 7. Workspace Environment (Initial Configuration)
 
-ZEO は**セキュリティファースト**で設計されています。初期状態では、AI エージェントは**完全に隔離されたワークスペース**で動作し、ローカルファイルやクラウドストレージには一切アクセスできません。
+ZEO is designed with a **security-first** approach. In its initial state, AI agents operate in a **fully isolated workspace** with no access to local files or cloud storage.
 
-### 初期状態（デフォルト）
-
-```
-ワークスペース:           隔離環境（内部ストレージのみ）
-ローカルファイルアクセス:  無効
-クラウドストレージ接続:    無効
-ナレッジソース:            ユーザーがアップロードしたファイルのみ
-```
-
-AI エージェントが使用するナレッジ・ファイルは、ユーザーがこの隔離環境にアップロードしたものだけです。ローカルのフォルダやクラウド（Google ドライブ等）のデータには触れません。
-
-### ワークスペースの仕組み
+### Initial State (Default)
 
 ```
-┌─────────────────────────────────────────┐
-│  隔離ワークスペース（内部ストレージ）       │
-│                                         │
-│  ┌─────────┐  ┌─────────┐  ┌────────┐  │
-│  │ ナレッジ  │  │ 成果物   │  │ 一時   │  │
-│  │ (参照用)  │  │ (出力)   │  │ ファイル│  │
-│  └─────────┘  └─────────┘  └────────┘  │
-│                                         │
-│  ※ ユーザーがアップロードしたファイルのみ    │
-│  ※ AI はここからのみ読み書き可能           │
-└─────────────────────────────────────────┘
-          ↑ アップロード    ↓ エクスポート
-      ────────────────────────────────
-          ↕ ユーザーが許可した場合のみ
-┌─────────────────┐  ┌─────────────────┐
-│ ローカルフォルダ   │  │ クラウドストレージ  │
-│ (デフォルト: 無効) │  │ (デフォルト: 無効)  │
-└─────────────────┘  └─────────────────┘
+Workspace:              Isolated environment (internal storage only)
+Local file access:      Disabled
+Cloud storage access:   Disabled
+Knowledge sources:      Only files uploaded by the user
+```
+
+The knowledge and files used by AI agents are limited to what users upload to this isolated environment. Local folders and cloud data (Google Drive, etc.) are not accessible.
+
+### How the Workspace Works
+
+```
++-------------------------------------------+
+|  Isolated Workspace (Internal Storage)    |
+|                                           |
+|  +---------+  +---------+  +--------+    |
+|  |Knowledge|  |Artifacts|  |  Temp  |    |
+|  |(Reference)| | (Output)|  | Files  |    |
+|  +---------+  +---------+  +--------+    |
+|                                           |
+|  * Only files uploaded by the user        |
+|  * AI can only read/write here            |
++-------------------------------------------+
+          ^ Upload        v Export
+      ------------------------------------
+          | Only when permitted by user
++-----------------+  +-----------------+
+|  Local Folders  |  | Cloud Storage   |
+| (Default: Off)  |  | (Default: Off)  |
++-----------------+  +-----------------+
 ```
 
 ---
 
-## 8. ローカルフォルダ・クラウドストレージへのアクセス許可
+## 8. Granting Access to Local Folders and Cloud Storage
 
-ユーザーが必要に応じてアクセス範囲を拡張できます。
+Users can expand the access scope as needed.
 
-### GUI で設定
+### Configuring via GUI
 
-設定画面 > セキュリティ > ワークスペース環境 で以下を設定:
+Go to Settings > Security > Workspace Environment and configure the following:
 
-- **ローカルフォルダの追加**: ファイルピッカーで許可フォルダを選択
-- **クラウドストレージの接続**: Google ドライブ / OneDrive / Dropbox 等を接続
-- **保存先の指定**: 成果物の保存先を「内部ストレージ」「ローカル」「クラウド」から選択
+- **Add local folders**: Select permitted folders using the file picker
+- **Connect cloud storage**: Connect Google Drive / OneDrive / Dropbox, etc.
+- **Specify save location**: Choose where to save artifacts from "Internal Storage", "Local", or "Cloud"
 
-### CLI / TUI で設定
+### Configuring via CLI / TUI
 
 ```bash
-# ローカルフォルダへのアクセスを許可
+# Enable access to local folders
 zero-employee config set WORKSPACE_LOCAL_ACCESS_ENABLED true
 zero-employee config set SANDBOX_ALLOWED_PATHS "/home/user/documents,/home/user/projects"
 
-# クラウドストレージへのアクセスを許可
+# Enable access to cloud storage
 zero-employee config set WORKSPACE_CLOUD_ACCESS_ENABLED true
 zero-employee config set WORKSPACE_CLOUD_PROVIDERS '["google_drive"]'
 
-# 成果物の保存先を設定
+# Set artifact save location
 zero-employee config set WORKSPACE_STORAGE_LOCATION internal  # internal / local / cloud
 
-# データ転送ポリシーを変更（ローカル・クラウドアクセスを許可する場合）
+# Change data transfer policy (when enabling local/cloud access)
 zero-employee config set SECURITY_TRANSFER_POLICY restricted
 ```
 
-### API 経由
+### Via API
 
 ```bash
-# ワークスペース設定の確認
+# Check workspace settings
 GET /api/v1/security/workspace
 
-# ワークスペース設定の更新
+# Update workspace settings
 PUT /api/v1/security/workspace
 {
   "local_access_enabled": true,
@@ -378,40 +376,40 @@ PUT /api/v1/security/workspace
   "storage_location": "internal"
 }
 
-# サンドボックスの許可パスを追加
+# Add an allowed path to the sandbox
 POST /api/v1/security/sandbox/allowed-paths
 { "path": "/home/user/documents" }
 ```
 
 ---
 
-## 9. 業務ごとの環境・権限カスタマイズ
+## 9. Per-Task Environment and Permission Customization
 
-システム全体の設定とは別に、**業務（チケット）ごとに環境・権限・ナレッジの使用範囲を個別に指定**できます。
+Separately from system-wide settings, you can **specify the environment, permissions, and knowledge scope individually for each task (ticket)**.
 
-### チャットで指示する場合
+### Instructing via Chat
 
-AI にチャットで業務ごとの環境を指示できます:
+You can instruct the AI via chat to set per-task environments:
 
 ```
-「このタスクではローカルの /home/user/project-x フォルダも参照して」
-「Google ドライブの共有フォルダにある資料も使ってほしい」
-「この業務の成果物はローカルの /home/user/output に保存して」
+"For this task, also reference the local /home/user/project-x folder"
+"I'd like you to also use the materials in the shared Google Drive folder"
+"Save the artifacts for this task to the local /home/user/output directory"
 ```
 
-**重要**: チャットでの指示がシステム設定と異なる場合、AI は計画段階でユーザーに許可を求めます。
+**Important**: If chat instructions differ from the system settings, the AI will ask the user for permission during the planning phase.
 
-例:
+Example:
 ```
-AI: 「この業務では /home/user/project-x へのアクセスが必要ですが、
-     現在のワークスペース設定ではローカルアクセスが無効です。
-     このタスクに限り、以下のアクセスを許可しますか？
-     - 読み取り: /home/user/project-x
-     - 書き込み: /home/user/output
-     [許可] [拒否] [設定を恒久変更]」
+AI: "This task requires access to /home/user/project-x, but local access
+     is currently disabled in the workspace settings.
+     Would you like to allow the following access for this task only?
+     - Read: /home/user/project-x
+     - Write: /home/user/output
+     [Allow] [Deny] [Change settings permanently]"
 ```
 
-### API 経由でタスク単位の権限を設定
+### Setting Per-Task Permissions via API
 
 ```bash
 POST /api/v1/security/workspace/tasks/{task_id}/override
@@ -425,82 +423,82 @@ POST /api/v1/security/workspace/tasks/{task_id}/override
 
 ---
 
-## 10. ファイルサンドボックス
+## 10. File Sandbox
 
-AI がアクセスできるフォルダを制限する追加設定です。
+Additional settings to restrict which folders the AI can access.
 
-### レベル
+### Levels
 
-| レベル | 説明 | 初期設定 |
-|--------|------|---------|
-| **STRICT** | 許可リストのフォルダのみアクセス可能 | **初期設定** |
-| MODERATE | 許可リスト + 一般的なファイル拡張子の読み取り | - |
-| PERMISSIVE | 禁止リスト以外すべて（非推奨） | - |
+| Level | Description | Default |
+|-------|-------------|---------|
+| **STRICT** | Only folders on the allow list are accessible | **Default** |
+| MODERATE | Allow list + read access for common file extensions | - |
+| PERMISSIVE | Everything except the deny list (not recommended) | - |
 
 ```bash
-# サンドボックスレベルを設定
+# Set sandbox level
 zero-employee config set SANDBOX_LEVEL strict
 
-# 許可フォルダを追加
+# Add allowed folders
 zero-employee config set SANDBOX_ALLOWED_PATHS "/home/user/projects,/tmp/work"
 ```
 
 ---
 
-## 11. データ保護（アップロード・ダウンロード制御）
+## 11. Data Protection (Upload/Download Control)
 
-| ポリシー | 説明 | 初期設定 |
-|---------|------|---------|
-| **LOCKDOWN** | 外部転送を全面禁止 | **初期設定** |
-| RESTRICTED | ユーザーが許可した宛先のみ | - |
-| PERMISSIVE | 禁止リスト以外すべて（非推奨） | - |
+| Policy | Description | Default |
+|--------|-------------|---------|
+| **LOCKDOWN** | Block all external transfers | **Default** |
+| RESTRICTED | Only user-approved destinations | - |
+| PERMISSIVE | Everything except the deny list (not recommended) | - |
 
 ```bash
-# 転送ポリシーを設定
+# Set transfer policy
 zero-employee config set SECURITY_TRANSFER_POLICY lockdown
 
-# アップロードを有効化（承認必須のまま）
+# Enable uploads (approval still required)
 zero-employee config set SECURITY_UPLOAD_ENABLED true
 zero-employee config set SECURITY_UPLOAD_REQUIRE_APPROVAL true
 ```
 
 ---
 
-## 12. Ollama ローカル LLM セットアップ
+## 12. Ollama Local LLM Setup
 
-API キー不要で完全ローカル動作させる場合:
+To run completely locally without an API key:
 
 ```bash
-# 1. Ollama をインストール
+# 1. Install Ollama
 curl -fsSL https://ollama.com/install.sh | sh
 
-# 2. 推奨モデルをダウンロード
-zero-employee pull qwen3:8b        # 軽量 (推奨)
-zero-employee pull qwen3:32b       # 高品質
-zero-employee pull deepseek-coder-v2  # コーディング特化
+# 2. Download recommended models
+zero-employee pull qwen3:8b        # Lightweight (recommended)
+zero-employee pull qwen3:32b       # High quality
+zero-employee pull deepseek-coder-v2  # Coding-focused
 
-# 3. 実行モードを free に設定
+# 3. Set execution mode to free
 zero-employee config set DEFAULT_EXECUTION_MODE free
 ```
 
 ---
 
-## 13. Chrome 拡張機能のインストール
+## 13. Installing the Chrome Extension
 
 ```
-1. Chrome で chrome://extensions を開く
-2. 右上の「デベロッパーモード」を ON
-3. 「パッケージ化されていない拡張機能を読み込む」をクリック
-4. extensions/browser-assist/chrome-extension/ フォルダを選択
-5. ZEO サーバーが起動していることを確認（http://localhost:18234）
+1. Open chrome://extensions in Chrome
+2. Enable "Developer mode" in the top right
+3. Click "Load unpacked"
+4. Select the extensions/browser-assist/chrome-extension/ folder
+5. Confirm that the ZEO server is running (http://localhost:18234)
 ```
 
 ---
 
-## 14. Obsidian 連携
+## 14. Obsidian Integration
 
 ```bash
-# Vault パスの登録（API 経由）
+# Register vault path (via API)
 POST /api/v1/knowledge/remember
 {
   "category": "obsidian",
@@ -509,30 +507,30 @@ POST /api/v1/knowledge/remember
 }
 ```
 
-Obsidian プラグイン「Local REST API」のインストールも推奨します。
+Installing the Obsidian plugin "Local REST API" is also recommended.
 
 ---
 
-## 15. 汎用アプリケーション連携 (App Connector Hub)
+## 15. App Connector Hub
 
-ZEO は 35 以上の外部アプリケーションとの統合に対応しています。
-すべての接続はユーザーが明示的に許可した範囲でのみ動作します。
+ZEO supports integration with 35+ external applications.
+All connections operate only within the scope explicitly permitted by the user.
 
-### 対応アプリケーション一覧の確認
+### List Supported Applications
 
 ```bash
-# 全対応アプリの一覧
+# All supported apps
 GET /api/v1/app-integrations/apps
 
-# カテゴリ別フィルタ
+# Filter by category
 GET /api/v1/app-integrations/apps?category=knowledge_base
 GET /api/v1/app-integrations/apps?category=project_management
 
-# カテゴリ一覧
+# List categories
 GET /api/v1/app-integrations/categories
 ```
 
-### ナレッジベースの接続
+### Connecting Knowledge Bases
 
 ```bash
 # Notion
@@ -543,27 +541,19 @@ POST /api/v1/app-integrations/connections
   "permissions": { "read": true, "write": false, "sync": true }
 }
 
-# Logseq（ローカルグラフ）
+# Logseq (local graph)
 POST /api/v1/app-integrations/connections
 {
   "app_id": "logseq",
   "config": { "path": "/path/to/your/logseq/graph" },
   "permissions": { "read": true, "sync": true }
 }
-
-# Joplin（REST API 経由）
-zero-employee config set JOPLIN_TOKEN <your-token>
-POST /api/v1/app-integrations/connections
-{
-  "app_id": "joplin",
-  "permissions": { "read": true, "sync": true }
-}
 ```
 
-### 生産性ツールの接続
+### Connecting Productivity Tools
 
 ```bash
-# Google Workspace（OAuth 設定後）
+# Google Workspace (after OAuth setup)
 POST /api/v1/app-integrations/connections
 { "app_id": "google_docs", "permissions": { "read": true, "write": true } }
 
@@ -573,44 +563,16 @@ POST /api/v1/app-integrations/connections
 { "app_id": "microsoft_365", "permissions": { "read": true } }
 ```
 
-### プロジェクト管理ツールの接続
+### Registering Custom Apps
 
-```bash
-# Asana
-zero-employee config set ASANA_ACCESS_TOKEN <your-token>
-POST /api/v1/app-integrations/connections
-{ "app_id": "asana", "permissions": { "read": true, "write": true } }
-
-# ClickUp
-zero-employee config set CLICKUP_API_KEY <your-key>
-POST /api/v1/app-integrations/connections
-{ "app_id": "clickup", "permissions": { "read": true, "write": true } }
-```
-
-### CRM の接続
-
-```bash
-# HubSpot
-zero-employee config set HUBSPOT_API_KEY <your-key>
-POST /api/v1/app-integrations/connections
-{ "app_id": "hubspot", "permissions": { "read": true } }
-
-# Salesforce
-zero-employee config set SALESFORCE_CLIENT_ID <your-client-id>
-POST /api/v1/app-integrations/connections
-{ "app_id": "salesforce", "permissions": { "read": true } }
-```
-
-### カスタムアプリの登録
-
-ZEO が標準対応していないアプリでも登録可能です。
+You can register apps not natively supported by ZEO.
 
 ```bash
 POST /api/v1/app-integrations/apps/custom
 {
   "name": "My Custom App",
   "category": "custom",
-  "description": "社内ツールとの連携",
+  "description": "Integration with internal tools",
   "auth_method": "api_key",
   "env_key": "CUSTOM_APP_KEY",
   "base_url": "https://api.example.com",
@@ -618,29 +580,14 @@ POST /api/v1/app-integrations/apps/custom
 }
 ```
 
-### データ同期・ナレッジインポート
-
-```bash
-# 接続先とデータ同期
-POST /api/v1/app-integrations/connections/{connection_id}/sync
-{ "direction": "read_only" }
-
-# ナレッジストアへのインポート
-POST /api/v1/app-integrations/connections/{connection_id}/import-knowledge
-{ "query": "プロジェクト計画", "tags": ["planning"], "limit": 50 }
-
-# 同期履歴の確認
-GET /api/v1/app-integrations/connections/{connection_id}/sync-history
-```
-
 ---
 
-## 16. Heartbeat スケジューラ設定
+## 16. Heartbeat Scheduler Configuration
 
-定期実行タスクを設定する場合:
+To set up scheduled recurring tasks:
 
 ```bash
-# API 経由でスケジュール登録
+# Register a schedule via API
 POST /api/v1/companies/{company_id}/heartbeat-policies
 {
   "name": "daily-report",
@@ -649,77 +596,77 @@ POST /api/v1/companies/{company_id}/heartbeat-policies
   "enabled": true
 }
 
-# ポリシー一覧
+# List policies
 GET /api/v1/companies/{company_id}/heartbeat-policies
 
-# 実行履歴
+# Execution history
 GET /api/v1/companies/{company_id}/heartbeat-runs
 ```
 
 ---
 
-## 設定の確認
+## Verifying Your Configuration
 
-すべての設定が正しいか確認:
+Confirm that all settings are correct:
 
 ```bash
-# 全設定値を表示
+# Display all configuration values
 zero-employee config list
 
-# ヘルスチェック
+# Health check
 zero-employee health
 
-# セキュリティ状態
+# Security status
 zero-employee security status
 ```
 
 ---
 
-## 設定不要で動作する機能
+## Features That Work Without Configuration
 
-以下の機能は追加設定なしで利用可能です:
+The following features are available without any additional configuration:
 
-- Design Interview（壁打ち・要件深掘り）
-- Task Orchestrator（DAG 分解・進行管理）
-- Judge Layer（品質検証）
-- Self-Healing DAG（自動再計画）
-- Experience Memory（経験記憶）
-- Skill Registry（スキル管理）
-- 承認フロー・監査ログ
-- PII 自動検出・マスキング
-- プロンプトインジェクション防御
-- ファイルサンドボックス
-- メタスキル（AI の学習能力）
-- A2A 双方向通信
-- マーケットプレイス基盤
-- チーム管理基盤
-- ガバナンス・コンプライアンス基盤
-- リパーパスエンジン
-- ユーザー入力要求
-- 成果物エクスポート（ローカル）
-- E2E テストフレームワーク
-- LLM レスポンスモック（テスト用）
-
----
-
-## セキュリティ初期設定一覧
-
-```
-ワークスペース:           隔離環境（内部ストレージのみ）
-ローカルアクセス:         無効
-クラウドアクセス:         無効
-サンドボックス:           STRICT（許可リストのみ）
-データ転送ポリシー:       LOCKDOWN（外部転送禁止）
-AI アップロード:          無効
-AI ダウンロード:          無効
-外部 API 呼び出し:        無効
-PII 自動検出:             有効（全カテゴリ）
-PII アップロードブロック: 有効
-パスワード類の転送:       常にブロック
-アップロード承認:         必須
-ダウンロード承認:         必須
-```
+- Design Interview (brainstorming and requirements exploration)
+- Task Orchestrator (DAG decomposition and progress management)
+- Judge Layer (quality verification)
+- Self-Healing DAG (automatic replanning)
+- Experience Memory
+- Skill Registry (skill management)
+- Approval flows and audit logs
+- Automatic PII detection and masking
+- Prompt injection defense
+- File sandbox
+- Meta-skills (AI learning capabilities)
+- A2A bidirectional communication
+- Marketplace foundation
+- Team management foundation
+- Governance and compliance foundation
+- Repurpose engine
+- User input requests
+- Artifact export (local)
+- E2E testing framework
+- LLM response mocking (for testing)
 
 ---
 
-*Zero-Employee Orchestrator — ユーザーセットアップガイド*
+## Security Default Settings Summary
+
+```
+Workspace:              Isolated environment (internal storage only)
+Local access:           Disabled
+Cloud access:           Disabled
+Sandbox:                STRICT (allow list only)
+Data transfer policy:   LOCKDOWN (external transfers blocked)
+AI upload:              Disabled
+AI download:            Disabled
+External API calls:     Disabled
+Automatic PII detection: Enabled (all categories)
+PII upload blocking:    Enabled
+Password transfer:      Always blocked
+Upload approval:        Required
+Download approval:      Required
+```
+
+---
+
+*Zero-Employee Orchestrator -- User Setup Guide*

@@ -1,11 +1,12 @@
-# Zero-Employee Orchestrator — Claude Code 開発ガイド
+# Zero-Employee Orchestrator -- Claude Code Development Guide
 
-> 自然言語で業務を定義し、複数 AI を役割分担させ、人間の承認と監査可能性を前提に
-> 業務を実行・再計画・改善できる AI オーケストレーション基盤。
+> An AI orchestration platform that defines business workflows in natural language,
+> delegates tasks across multiple AI agents with role-based assignment, and executes
+> with human approval gates and full auditability.
 
-## 作業開始時の確認
+## Before Starting Work
 
-作業開始時に以下を実行し、最新状態を把握すること。
+Run the following at the start of each session to check the latest state:
 
 ```bash
 git log --oneline -10
@@ -13,258 +14,257 @@ ls apps/api/app/
 ls apps/api/app/tests/
 ```
 
-参照すべきドキュメント:
-- `README.md` — **必ず最初に確認すること。機能一覧・設定方法・セキュリティ設定が記載**
-- `docs/Zero-Employee Orchestrator.md` — 最上位基準文書
-- `docs/dev/DESIGN.md` — 実装設計書
-- `docs/dev/MASTER_GUIDE.md` — 実装運用ガイド
-- `docs/dev/BUILD_GUIDE.md` — ゼロから構築する手順（フェーズ別）
-- `docs/dev/FEATURE_BOUNDARY.md` — コア vs Skill/Plugin/Extension 境界定義
-- `ROADMAP.md` — ロードマップ（v0.2 以降の残課題）
-- `docs/dev/DEVELOPER_SETUP.md` — 開発者セットアップガイド（Sentry・レッドチームテスト等）
-- `USER_SETUP.md` — 利用ユーザーセットアップガイド（API キー・セキュリティ・DB・デプロイ等）
+Reference documents:
+- `README.md` -- **Always check first. Contains feature list, configuration, and security settings**
+- `docs/ja-JP/Zero-Employee Orchestrator.md` -- Top-level requirements document (Japanese)
+- `docs/dev/DESIGN.md` -- Implementation design document
+- `docs/dev/MASTER_GUIDE.md` -- Implementation operations guide
+- `docs/ja-JP/BUILD_GUIDE.md` -- Build-from-scratch guide (by phase, Japanese)
+- `docs/dev/FEATURE_BOUNDARY.md` -- Core vs Skill/Plugin/Extension boundary definition
+- `ROADMAP.md` -- Roadmap (remaining tasks from v0.2 onward)
+- `docs/dev/DEVELOPER_SETUP.md` -- Developer setup guide (Sentry, red-team testing, etc.)
+- `USER_SETUP.md` -- User setup guide (API keys, security, DB, deployment, etc.)
 
-**IMPORTANT: このファイルの情報が古い場合は、実際のコードと README.md を読んで更新すること。必ず、リポジトリ構造と全mdファイルを確認すること。リポジトリの確認をするときは、全ファイルを確認すること。更新内容をmdファイルに記載すること。**
+**IMPORTANT: If this file contains outdated information, read the actual code and README.md and update it. Always check the repository structure and all md files. When reviewing the repository, check all files. Record updates in md files.**
 
-## アーキテクチャ (9 層)
+## Architecture (9 Layers)
 
-1. User Layer — GUI / CLI / TUI
-2. Design Interview — 壁打ち・要件深掘り
-3. Task Orchestrator — DAG 分解・コスト見積・進行管理
-4. Skill Layer — 専門 Skill + Local Context
-5. Judge Layer — Two-stage Detection + Cross-Model Verification
-6. Re-Propose — 差し戻し・動的 DAG 再構築
-7. State & Memory — Experience Memory・Failure Taxonomy
-8. Provider Interface — LLM ゲートウェイ (LiteLLM)
-9. Skill Registry — Skill/Plugin/Extension の公開・検索・Import
+1. User Layer -- GUI / CLI / TUI
+2. Design Interview -- Brainstorming and requirements exploration
+3. Task Orchestrator -- DAG decomposition, cost estimation, progress management
+4. Skill Layer -- Specialized Skills + Local Context
+5. Judge Layer -- Two-stage Detection + Cross-Model Verification
+6. Re-Propose -- Rejection and dynamic DAG reconstruction
+7. State & Memory -- Experience Memory, Failure Taxonomy
+8. Provider Interface -- LLM Gateway (LiteLLM)
+9. Skill Registry -- Skill/Plugin/Extension publishing, search, and import
 
-## ディレクトリ構成
+## Directory Structure
 
 ```
 apps/
-├── api/              # FastAPI バックエンド (Python 3.12+)
+├── api/              # FastAPI backend (Python 3.12+)
 │   ├── app/
-│   │   ├── core/           # 設定・DB・レート制限・i18n
-│   │   ├── api/routes/     # REST API エンドポイント (40 ルートモジュール・350+ エンドポイント)
+│   │   ├── core/           # Config, DB, rate limiting, i18n
+│   │   ├── api/routes/     # REST API endpoints (40 route modules, 350+ endpoints)
 │   │   ├── api/ws/         # WebSocket (events, browser_assist_ws)
-│   │   ├── api/deps/       # 依存性注入
+│   │   ├── api/deps/       # Dependency injection
 │   │   ├── models/         # SQLAlchemy ORM
 │   │   ├── schemas/        # Pydantic DTO
-│   │   ├── services/       # ビジネスロジック (25 サービス)
-│   │   ├── repositories/   # DB 入出力抽象化
-│   │   ├── orchestration/  # DAG・Judge・状態機械・Knowledge・Memory・MetaSkill・A2A・Transparency (22 モジュール)
-│   │   ├── heartbeat/      # Heartbeat スケジューラ
-│   │   ├── providers/      # LLM ゲートウェイ・Ollama・g4f・RAG・ModelRegistry・WebSession
-│   │   ├── tools/          # 外部ツール接続 (MCP/Webhook/API/CLI/GraphQL/ブラウザ自動操作/BrowserAdapter/LSP)
-│   │   ├── policies/       # 承認ゲート・自律実行境界
-│   │   ├── security/       # IAM・シークレット・サニタイズ・プロンプト防御・PII・サンドボックス・データ保護・レッドチーム
-│   │   ├── integrations/   # Sentry・MCP・外部スキル・ブラウザアシスト・AI調査・メディア生成・AIツール・iPaaS・エクスポート・リパーパス・RSS/ToS・Obsidian・クラウド・スマートデバイス・汎用アプリ連携ハブ
-│   │   ├── audit/          # 監査ログ
-│   │   └── tests/          # テスト
-│   ├── alembic/            # DB マイグレーション
-│   └── model_catalog.json  # LLM モデルカタログ (ファミリー単位・自動バージョン解決)
+│   │   ├── services/       # Business logic (25 services)
+│   │   ├── repositories/   # DB I/O abstraction
+│   │   ├── orchestration/  # DAG, Judge, state machine, Knowledge, Memory, MetaSkill, A2A, Transparency (22 modules)
+│   │   ├── heartbeat/      # Heartbeat scheduler
+│   │   ├── providers/      # LLM gateway, Ollama, g4f, RAG, ModelRegistry, WebSession
+│   │   ├── tools/          # External tool connectors (MCP/Webhook/API/CLI/GraphQL/Browser/BrowserAdapter/LSP)
+│   │   ├── policies/       # Approval gates, autonomy boundaries
+│   │   ├── security/       # IAM, secrets, sanitize, prompt defense, PII, sandbox, data protection, red-team
+│   │   ├── integrations/   # Sentry, MCP, external skills, browser assist, AI research, media generation, AI tools, iPaaS, export, repurpose, RSS/ToS, Obsidian, cloud, smart devices, app connector hub
+│   │   ├── audit/          # Audit logging
+│   │   └── tests/          # Tests
+│   ├── alembic/            # DB migrations
+│   └── model_catalog.json  # LLM model catalog (family-based, auto version resolution)
 ├── desktop/          # Tauri v2 + React UI
 ├── edge/             # Cloudflare Workers (proxy / full)
-└── worker/           # バックグラウンドワーカー
-skills/builtin/       # 組み込み Skill (8 個: 7 Python モジュール + browser-assist マニフェスト)
-plugins/              # Plugin マニフェスト (10 Plugin)
-extensions/           # Extension マニフェスト (10 Extension + Chrome 拡張機能)
+└── worker/           # Background workers
+skills/builtin/       # Built-in Skills (8: 7 Python modules + browser-assist manifest)
+plugins/              # Plugin manifests (10 Plugins)
+extensions/           # Extension manifests (10 Extensions + Chrome extension)
 ```
 
-## コマンド
+## Commands
 
 ```bash
-# サーバー起動
-zero-employee serve --reload        # ホットリロード (ポート 18234)
+# Start server
+zero-employee serve --reload        # Hot reload (port 18234)
 
-# チャットモード（全プロバイダー対応・自然言語で全操作可能）
-zero-employee chat                  # デフォルト設定で開始
-zero-employee chat --mode free      # Ollama / g4f モード
-zero-employee chat --lang en        # 英語モード
+# Chat mode (all providers, natural language for all operations)
+zero-employee chat                  # Default settings
+zero-employee chat --mode free      # Ollama / g4f mode
+zero-employee chat --lang en        # English mode
 
-# テスト
-pytest apps/api/app/tests/          # 全テスト
-pytest apps/api/app/tests/test_cost_guard.py -v  # 個別テスト
+# Tests
+pytest apps/api/app/tests/          # All tests
+pytest apps/api/app/tests/test_cost_guard.py -v  # Individual test
 
-# リント・フォーマット
+# Lint and format
 ruff check apps/api/app/
 ruff format apps/api/app/
 
-# DB マイグレーション
+# DB migration
 zero-employee db upgrade
 
-# アップデート
-zero-employee update                # 最新版にアップデート
-zero-employee update --check        # アップデート確認のみ
+# Update
+zero-employee update                # Update to latest
+zero-employee update --check        # Check only
 
-# その他
+# Other
 zero-employee health
 zero-employee models
 zero-employee config list
 ```
 
-## pyproject.toml の管理 (重要)
+## pyproject.toml Management (Important)
 
-**IMPORTANT: `pyproject.toml` が 2 つ存在する。バージョン更新時は必ず `bump-version` スクリプトを使うこと。**
+**IMPORTANT: Two `pyproject.toml` files exist. Always use the `bump-version` script when updating versions.**
 
-| ファイル | 用途 | パッケージパス |
-|---------|------|--------------|
-| `pyproject.toml` (root) | PyPI 公開・ビルド用 | `packages = ["apps/api/app"]` |
-| `apps/api/pyproject.toml` | 開発用 (`working-directory: apps/api`) | `packages = ["app"]` |
+| File | Purpose | Package Path |
+|------|---------|-------------|
+| `pyproject.toml` (root) | PyPI publishing and build | `packages = ["apps/api/app"]` |
+| `apps/api/pyproject.toml` | Development (`working-directory: apps/api`) | `packages = ["app"]` |
 
-- バージョン更新: `./scripts/bump-version.sh 0.2.0`
-- `name`, `version`, `description`, `requires-python`, `license`, `dependencies`, `dev dependencies` は両ファイルで一致させること
-- CI (`check-metadata-sync` ジョブ) が不一致を検出した場合はビルドが失敗する
-- メタデータを変更する場合は両方のファイルを同時に更新すること
+- Version update: `./scripts/bump-version.sh 0.2.0`
+- `name`, `version`, `description`, `requires-python`, `license`, `dependencies`, `dev dependencies` must match in both files
+- CI (`check-metadata-sync` job) will fail if they are out of sync
+- When changing metadata, always update both files simultaneously
 
-## コーディング規約
+## Coding Conventions
 
-- **Python**: ruff (line-length=100)、型ヒント必須、FastAPI エンドポイントは全て `async def`
-- **TypeScript**: strict モード、関数コンポーネントのみ、Tailwind CSS
-- テストは pytest + pytest-asyncio
-- コードスタイルの詳細は ruff に委譲。リンターエラーが出たら修正すること
+- **Python**: ruff (line-length=100), type hints required, all FastAPI endpoints use `async def`
+- **TypeScript**: strict mode, functional components only, Tailwind CSS
+- Tests use pytest + pytest-asyncio
+- Defer code style details to ruff. Fix any linter errors
 
-## 設計方針
+## Design Principles
 
-### Skill / Plugin / Extension の有効状態
+### Skill / Plugin / Extension Enabled States
 
-- **ビルトインのシステム保護スキル** → 常時有効、削除・無効化不可
-- **ユーザーが追加した Skill / Plugin / Extension / Heartbeat** → デフォルト有効（ユーザーが手動で無効化可能）
-- 「ミニマルな初期状態」とは「余計なものが入っていない」状態であり、ユーザーがわざわざ追加した機能はデフォルト有効が正しい
+- **Built-in system protection skills** -> Always enabled, cannot be deleted or disabled
+- **User-added Skill / Plugin / Extension / Heartbeat** -> Enabled by default (users can manually disable)
+- "Minimal initial state" means "nothing unnecessary is included" -- features that users explicitly add should be enabled by default
 
-### LLM 利用の設計方針
+### LLM Usage Design Principles
 
-- API キー入力は必須ではない。キー不要の選択肢を複数用意する:
-  - g4f（サブスクリプションモード）: キー不要で利用可能
-  - Ollama: ローカルモデルで完全オフライン利用
-  - マルチ LLM プラットフォーム連携（OpenRouter 等）: 1 つのアカウントで複数 LLM を利用可能
-- ZEO 自体は利用料金を徴収しない。LLM の API 費用はユーザーが各プロバイダーに直接支払う
-- 特定のプロバイダーを「推奨」として優遇しない。ドキュメント・UI では選択肢を並列に提示する
-- 新しいマルチ LLM プラットフォームやキー不要サービスが出た場合にも対応できる拡張性を維持する
+- API key input is not required. Multiple key-free options are provided:
+  - g4f (subscription mode): No key needed
+  - Ollama: Fully offline with local models
+  - Multi-LLM platforms (OpenRouter, etc.): One account for multiple LLMs
+- ZEO does not charge usage fees. LLM API costs are paid directly by users to each provider
+- No specific provider is promoted as "recommended". Docs and UI present options equally
+- Maintain extensibility for new multi-LLM platforms or key-free services
 
-## モデルカタログ (`apps/api/model_catalog.json`)
+## Model Catalog (`apps/api/model_catalog.json`)
 
-**IMPORTANT: モデル ID はファミリー名で管理する（バージョン番号を含めない）。**
+**IMPORTANT: Model IDs are managed by family name (do not include version numbers).**
 
 ```
-ファミリー ID:     "anthropic/claude-opus"
-latest_model_id:  "claude-opus-4-6"  ← 実際の API 呼び出しに使用
+Family ID:         "anthropic/claude-opus"
+latest_model_id:   "claude-opus-4-6"  <- Used for actual API calls
 ```
 
-- モデル更新時は `latest_model_id` のみを変更する（コード修正不要）
-- `ModelRegistry.resolve_api_id()` がファミリー → 最新バージョンを自動解決
-- 実行モード: quality / speed / cost / free / subscription
-- RSS/ToS 自動更新パイプライン実装済み (`integrations/rss_tos_monitor.py`)
+- When updating models, only change `latest_model_id` (no code changes needed)
+- `ModelRegistry.resolve_api_id()` auto-resolves family -> latest version
+- Execution modes: quality / speed / cost / free / subscription
+- RSS/ToS auto-update pipeline implemented (`integrations/rss_tos_monitor.py`)
 
-## セキュリティ (最重要)
+## Security (Critical)
 
-**IMPORTANT: 以下のルールは必ず遵守すること。**
+**IMPORTANT: The following rules must always be followed.**
 
-1. **外部データを LLM に渡す時**: 必ず `wrap_external_data()` で境界マーカーを付与
-2. **プロンプトインジェクション検査**: ユーザー入力を LLM に渡す前に検査
-3. **危険操作の追加時**: `approval_gate.py` と `autonomy_boundary.py` に登録
-4. **シークレット**: `sanitizer.py` でサニタイズ後にログ出力
-5. **新 API エンドポイント**: セキュリティヘッダーが適用されることを確認
-6. **PII 保護**: ユーザー入力を AI に渡す前に `pii_guard.py` で検出・マスキング
-7. **ファイルアクセス**: `sandbox.py` のサンドボックスを経由してアクセスチェック
-8. **データ転送**: `data_protection.py` でアップロード・ダウンロードの可否をチェック
-9. **許可していないフォルダ・ファイルを AI が確認することは厳禁**
-10. **パスワード類のアップロードは常にブロック**
+1. **When passing external data to LLMs**: Always wrap with `wrap_external_data()` boundary markers
+2. **Prompt injection checks**: Inspect user input before passing to LLMs
+3. **When adding dangerous operations**: Register in `approval_gate.py` and `autonomy_boundary.py`
+4. **Secrets**: Sanitize via `sanitizer.py` before logging
+5. **New API endpoints**: Verify that security headers are applied
+6. **PII protection**: Detect and mask via `pii_guard.py` before passing user input to AI
+7. **File access**: Check access through the `sandbox.py` sandbox
+8. **Data transfer**: Check upload/download permissions via `data_protection.py`
+9. **AI must never access unauthorized folders or files**
+10. **Password uploads are always blocked**
+11. **Workspace isolation**: Check isolation via `workspace_isolation.py`. AI can only access internal storage (default)
+12. **Per-task environment overrides**: If chat instructions differ from system settings, use `should_request_approval()` to ask the user for permission
 
-11. **ワークスペース隔離**: `workspace_isolation.py` で隔離環境チェック。AI は内部ストレージのみアクセス可能（初期設定）
-12. **業務単位の環境オーバーライド**: チャット指示がシステム設定と異なる場合、`should_request_approval()` でユーザーに許可を求める
+Defense layers:
+- Workspace isolation (`security/workspace_isolation.py`) -- No local/cloud connections by default
+- Prompt injection defense (`security/prompt_guard.py`) -- 5 categories, 40+ patterns
+- Approval gates (`policies/approval_gate.py`) -- 12 categories of dangerous operations
+- Autonomy boundaries (`policies/autonomy_boundary.py`)
+- IAM (`security/iam.py`) -- AI denied secret and admin access
+- PII guard (`security/pii_guard.py`) -- 13 categories of personal info detection and masking
+- File sandbox (`security/sandbox.py`) -- Whitelist-based folder access control
+- Data protection (`security/data_protection.py`) -- Upload/download policy control
+- Security headers and request validation (`security/security_headers.py`)
+- Secret management (`security/secret_manager.py`) -- Fernet encryption
+- Sanitization (`security/sanitizer.py`)
+- Rate limiting (`core/rate_limit.py`)
 
-防御レイヤー:
-- ワークスペース隔離 (`security/workspace_isolation.py`) — 初期状態でローカル・クラウド接続なし
-- プロンプトインジェクション防御 (`security/prompt_guard.py`) — 5 カテゴリ・40+ パターン
-- 承認ゲート (`policies/approval_gate.py`) — 12 カテゴリの危険操作
-- 自律実行境界 (`policies/autonomy_boundary.py`)
-- IAM (`security/iam.py`) — AI に対するシークレット・管理権限の拒否
-- PII ガード (`security/pii_guard.py`) — 13 カテゴリの個人情報検出・マスキング
-- ファイルサンドボックス (`security/sandbox.py`) — ホワイトリスト方式のフォルダアクセス制限
-- データ保護 (`security/data_protection.py`) — アップロード・ダウンロードのポリシー制御
-- セキュリティヘッダー・リクエスト検証 (`security/security_headers.py`)
-- シークレット管理 (`security/secret_manager.py`) — Fernet 暗号化
-- サニタイズ (`security/sanitizer.py`)
-- レート制限 (`core/rate_limit.py`)
+## Browser Assist
 
-## ブラウザアシスト
+Two usage modes:
+1. **Chrome Extension**: Overlay chat + real-time screen sharing (`extensions/browser-assist/chrome-extension/`)
+2. **REST API**: Analysis via screenshot submission (`apps/api/app/api/routes/browser_assist.py`)
 
-2 つの利用モード:
-1. **Chrome 拡張機能**: オーバーレイチャット + リアルタイム画面共有（`extensions/browser-assist/chrome-extension/`）
-2. **REST API**: スクリーンショット送信による分析（`apps/api/app/api/routes/browser_assist.py`）
+WebSocket endpoint: `ws://localhost:18234/ws/browser-assist`
 
-WebSocket エンドポイント: `ws://localhost:18234/ws/browser-assist`
+Supports file and image attachments (both Chrome extension and REST API).
 
-ファイル・画像の添付に対応（Chrome 拡張機能、REST API 両方）。
+## Plugin-based Browser Automation (Browser Adapter)
 
-## プラグイン方式ブラウザ自動操作 (Browser Adapter)
+Like VS Code extensions, browser automation tools can be added/switched as plugins.
+By default, only a minimal Playwright adapter is included. browser-use etc. are installed via Plugin.
 
-VSCode のエクステンションのように、ブラウザ自動操作ツールをプラグインとして追加・切替可能。
-初期状態では最小限の Playwright アダプタのみ同梱。browser-use 等は Plugin でインストール。
-
-- アダプタレジストリ: `apps/api/app/tools/browser_adapter.py`
+- Adapter registry: `apps/api/app/tools/browser_adapter.py`
 - browser-use Plugin: `plugins/browser-use/manifest.json`
 - API: `/api/v1/browser-automation/adapters`, `/api/v1/browser-automation/tasks`
 
-## プラグインローダー (Plugin Loader)
+## Plugin Loader
 
-VSCode 的なプラグイン動的管理。自然言語で「browser-use を追加して」「画像生成ツールを追加」と言うだけでインストール。
+VS Code-style dynamic plugin management. Install by saying "add browser-use" or "add image generation tool" in natural language.
 
 - Plugin Loader: `apps/api/app/services/plugin_loader.py`
-- 汎用ツールレジストリ: ToolRegistry（AI エージェントがタスクに最適なツールを動的選択）
-- 対応カテゴリ: browser-automation, image-generation, music-generation, audio-generation, video-generation, search, data-analysis, three-d, communication, code-generation, custom
-- 環境自動チェック: pip パッケージ・API キー・ブラウザ・LLM プロバイダーの有無を自動検査
+- Generic Tool Registry: ToolRegistry (AI agents dynamically select optimal tools per task)
+- Supported categories: browser-automation, image-generation, music-generation, audio-generation, video-generation, search, data-analysis, three-d, communication, code-generation, custom
+- Auto environment checks: pip packages, API keys, browser, LLM providers
 - API: `/api/v1/browser-automation/plugins/*`, `/api/v1/browser-automation/tools/*`
 
-## 透明性・ファクトチェック (Transparency Layer)
+## Transparency / Fact-checking (Transparency Layer)
 
-AI がブラックボックスにならないための透明性レイヤー。
+Transparency layer to prevent AI from being a black box.
 
-- 透明性レポート: `apps/api/app/orchestration/transparency.py`
-- AI が参照したソース・情報をユーザーに開示
-- 承認時に判断に必要な情報（コスト・リスク・権限・データフロー・可逆性）を提示
-- ファクトチェック項目のユーザー確認フロー
-- AI の推論概要・不確実性・質問事項を明示
+- Transparency report: `apps/api/app/orchestration/transparency.py`
+- Disclose sources/information referenced by AI to users
+- Present information needed for approval decisions (cost, risk, permissions, data flow, reversibility)
+- Fact-check item user confirmation flow
+- Display AI reasoning summary, uncertainties, and questions
 
-## Web AI セッション (API 料金なしで AI を利用)
+## Web AI Sessions (Use AI without API fees)
 
-API 料金なしで GPT・Gemini・Claude 等を利用する方式。
+Method to use GPT, Gemini, Claude, etc. without API fees.
 
 - Web Session Provider: `apps/api/app/providers/web_session_provider.py`
-- 利用方式: g4f 経由（推奨）、Ollama（ローカル）、ブラウザセッション
+- Methods: g4f (recommended), Ollama (local), browser session
 - API: `/api/v1/browser-automation/web-ai/*`
 
-## 汎用アプリケーション連携ハブ (App Connector Hub)
+## App Connector Hub
 
-外部アプリケーションとの統合を統一的に管理する連携ハブ。
-ユーザーが許可した範囲でのみ動作する。
+Hub for managing integrations with external applications in a unified way.
+Operates only within the scope permitted by the user.
 
-- 連携ハブ: `apps/api/app/integrations/app_connector.py`
-- 対応カテゴリ (16): knowledge_base, note_taking, document, productivity, project_management, communication, crm, calendar, email, cloud_storage, design, code_hosting, database, analytics, automation, custom
-- 対応アプリ (35+): Obsidian, Notion, Logseq, Joplin, Anytype, Roam Research, Google Docs/Sheets/Drive/Calendar/Gmail, Microsoft 365/Teams/OneDrive/Outlook, Confluence, Jira, Linear, Asana, Trello, ClickUp, Slack, Discord, HubSpot, Salesforce, Figma, Canva, Airtable, Dropbox, GitHub, GitLab, n8n, Zapier, Make
-- カスタムアプリ登録対応（ユーザーが任意のアプリを追加可能）
+- Connector hub: `apps/api/app/integrations/app_connector.py`
+- Supported categories (16): knowledge_base, note_taking, document, productivity, project_management, communication, crm, calendar, email, cloud_storage, design, code_hosting, database, analytics, automation, custom
+- Supported apps (35+): Obsidian, Notion, Logseq, Joplin, Anytype, Roam Research, Google Docs/Sheets/Drive/Calendar/Gmail, Microsoft 365/Teams/OneDrive/Outlook, Confluence, Jira, Linear, Asana, Trello, ClickUp, Slack, Discord, HubSpot, Salesforce, Figma, Canva, Airtable, Dropbox, GitHub, GitLab, n8n, Zapier, Make
+- Custom app registration supported (users can add arbitrary apps)
 - API: `/api/v1/app-integrations/*`
 
-セキュリティ:
-- 接続はユーザーが明示的に許可するまで確立されない
-- パーミッション制御（read/write/delete/sync/export + パス制限）
-- ワークスペース隔離・承認ゲート・PII ガード・監査ログ適用
+Security:
+- Connections are not established until explicitly permitted by the user
+- Permission control (read/write/delete/sync/export + path restrictions)
+- Workspace isolation, approval gates, PII guard, and audit logging applied
 
-## メディア生成・AI ツール統合
+## Media Generation / AI Tool Integration
 
-- メディア生成: `apps/api/app/integrations/media_generation.py`（画像・動画・音声・音楽・3D、動的プロバイダー登録対応）
-- AI ツールレジストリ: `apps/api/app/integrations/ai_tools.py`（45+ 外部ツール、19 カテゴリ）
-- **ツールは固定せずユーザーが自由に選択・切替可能** — Plugin Loader の ToolRegistry で管理
+- Media generation: `apps/api/app/integrations/media_generation.py` (image, video, audio, music, 3D; dynamic provider registration)
+- AI tool registry: `apps/api/app/integrations/ai_tools.py` (45+ external tools, 19 categories)
+- **Tools are not fixed; users freely choose and switch** -- managed by Plugin Loader's ToolRegistry
 - API: `/api/v1/media/*`, `/api/v1/ai-tools/*`
 
-## API エンドポイント
+## API Endpoints
 
-プレフィックス: `/api/v1`
+Prefix: `/api/v1`
 
-最新のエンドポイント一覧は `apps/api/app/api/routes/__init__.py` を確認すること。
+For the latest endpoint list, check `apps/api/app/api/routes/__init__.py`.
 
-主要グループ: auth, companies, agents, tickets, specs-plans, tasks, approvals,
+Major groups: auth, companies, agents, tickets, specs-plans, tasks, approvals,
 budgets, audit, registry, models, observability (traces/communications/monitor),
 ollama, knowledge, config, self-improvement, browser-assist, **browser-automation**,
 secretary, brainstorm, conversation-memory, hypotheses, sessions, org-setup,
@@ -274,39 +274,39 @@ resources, ipaas, export, marketplace, teams, governance, quality-insights**
 
 ## Skill / Plugin / Extension
 
-| 種別 | 役割 | 例 |
-|------|------|-----|
-| Skill | 単一目的の専門処理 | spec-writer, review-assistant, browser-assist |
-| Plugin | 複数 Skill をバンドル | ai-secretary, ai-avatar, research |
-| Extension | システム連携・インフラ | mcp, oauth, notifications, obsidian, notion, logseq, joplin, google-workspace, microsoft-365, browser-assist (Chrome 拡張機能) |
+| Type | Role | Examples |
+|------|------|---------|
+| Skill | Single-purpose specialized processing | spec-writer, review-assistant, browser-assist |
+| Plugin | Bundles multiple Skills | ai-secretary, ai-avatar, research |
+| Extension | System integration and infrastructure | mcp, oauth, notifications, obsidian, notion, logseq, joplin, google-workspace, microsoft-365, browser-assist (Chrome extension) |
 
-- ビルトイン Skill (8 個): spec-writer, plan-writer, task-breakdown, review-assistant, artifact-summarizer, local-context, domain-skills, browser-assist
-- システム保護 Skill は削除・無効化不可
-- 自然言語スキル生成: `POST /api/v1/registry/skills/generate` (16 種類の危険パターン検出)
+- Built-in Skills (8): spec-writer, plan-writer, task-breakdown, review-assistant, artifact-summarizer, local-context, domain-skills, browser-assist
+- System protection Skills cannot be deleted or disabled
+- Natural language skill generation: `POST /api/v1/registry/skills/generate` (16 dangerous pattern detections)
 
-## ポート
+## Ports
 
 - FastAPI: 18234
 - Vite dev server: 5173
 
-## 禁止事項
+## Prohibited
 
-- Skill / Plugin / Extension の境界を曖昧にすること
-- 承認必須操作を黙って実行すること
-- 監査ログなしで外部送信や権限変更を行うこと
-- 外部データを `wrap_external_data()` なしで LLM に渡すこと
-- セキュリティヘッダーを無効化すること
-- モデルカタログにバージョン番号付き ID を直接使うこと（`latest_model_id` を使用）
-- **許可されていないフォルダ・ファイルに AI がアクセスすること**
-- **パスワード・認証情報を含むデータのアップロード**
-- **PII 検出なしでユーザー入力を AI に渡すこと**
+- Blurring Skill / Plugin / Extension boundaries
+- Silently executing approval-required operations
+- External transmissions or permission changes without audit logging
+- Passing external data to LLMs without `wrap_external_data()`
+- Disabling security headers
+- Using version-numbered IDs directly in model catalog (use `latest_model_id`)
+- **AI accessing unauthorized folders or files**
+- **Uploading data containing passwords or credentials**
+- **Passing user input to AI without PII detection**
 
-## ロードマップ
+## Roadmap
 
-v0.1 で旧 v0.2〜v1.0 の全機能を実装済み。残る課題:
+All formerly planned v0.2-v1.0 features are implemented in v0.1. Remaining tasks:
 
-- **v0.2**: フロントエンド データ接続完成、features/ 分離、Plugin ローダー本実装
-- **v0.3**: コミュニティ Skill エコシステム、匿名フィードバック集約
-- **v1.0**: Self-Improvement Loop 自動化、Cross-Orchestrator Learning
+- **v0.2**: Complete frontend data connections, features/ separation, Plugin Loader implementation
+- **v0.3**: Community Skill ecosystem, anonymous feedback aggregation
+- **v1.0**: Self-Improvement Loop automation, Cross-Orchestrator Learning
 
-詳細は `ROADMAP.md` を参照。
+See `ROADMAP.md` for details.
