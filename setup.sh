@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
-# Zero-Employee Orchestrator — セットアップスクリプト
-# ダウンロード後に一度だけ実行してください
+# Zero-Employee Orchestrator — Setup Script
+# Run this once after downloading
 # =============================================================================
 
 set -e
@@ -21,16 +21,16 @@ error() { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 
 echo ""
 echo "=============================================="
-echo "  Zero-Employee Orchestrator  セットアップ"
+echo "  Zero-Employee Orchestrator  Setup"
 echo "=============================================="
 echo ""
 
 # ---------------------------------------------------------------------------
-# 1. 前提条件の確認と自動インストール
+# 1. Check prerequisites and auto-install
 # ---------------------------------------------------------------------------
-info "前提条件を確認しています..."
+info "Checking prerequisites..."
 
-# パッケージマネージャーの検出
+# Detect package manager
 detect_pkg_manager() {
     if command -v brew &> /dev/null; then
         echo "brew"
@@ -51,10 +51,10 @@ install_with_pkg_manager() {
     local name="$1"
     shift
     case "$PKG_MANAGER" in
-        brew)   info "$name をインストールしています (brew)..."; brew install "$@" ;;
-        apt)    info "$name をインストールしています (apt)..."; sudo apt-get update -qq && sudo apt-get install -y "$@" ;;
-        dnf)    info "$name をインストールしています (dnf)..."; sudo dnf install -y "$@" ;;
-        pacman) info "$name をインストールしています (pacman)..."; sudo pacman -S --noconfirm "$@" ;;
+        brew)   info "Installing $name (brew)..."; brew install "$@" ;;
+        apt)    info "Installing $name (apt)..."; sudo apt-get update -qq && sudo apt-get install -y "$@" ;;
+        dnf)    info "Installing $name (dnf)..."; sudo dnf install -y "$@" ;;
+        pacman) info "Installing $name (pacman)..."; sudo pacman -S --noconfirm "$@" ;;
         *)      return 1 ;;
     esac
 }
@@ -62,7 +62,7 @@ install_with_pkg_manager() {
 FAILED=()
 
 # --- Python 3.12+ ---
-# Python >= 3.12 のバイナリを探す (python3.13, python3.12, python3 の順)
+# Find Python >= 3.12 binary (tries python3.13, python3.12, python3 in order)
 find_python312() {
     for cmd in python3.13 python3.12 python3; do
         if command -v "$cmd" &> /dev/null; then
@@ -86,8 +86,8 @@ if [ -n "$PYTHON_CMD" ]; then
     ok "Python $PY_VER ($PYTHON_CMD)"
 elif command -v python3 &> /dev/null; then
     PY_VER=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
-    warn "Python $PY_VER が見つかりましたが 3.12 以上が必要です"
-    info "Python 3.12 のインストールを試みます..."
+    warn "Found Python $PY_VER but 3.12 or higher is required"
+    info "Attempting to install Python 3.12..."
     case "$PKG_MANAGER" in
         brew)   install_with_pkg_manager "Python 3.12" python@3.12 ;;
         apt)    install_with_pkg_manager "Python 3.12" python3.12 python3.12-venv ;;
@@ -97,12 +97,12 @@ elif command -v python3 &> /dev/null; then
     esac
     PYTHON_CMD=$(find_python312 || true)
     if [ -n "$PYTHON_CMD" ]; then
-        ok "Python 3.12+ をインストールしました ($PYTHON_CMD)"
+        ok "Installed Python 3.12+ ($PYTHON_CMD)"
     else
-        FAILED+=("python3.12+ (現在 $PY_VER — 3.12 以上が必要です)")
+        FAILED+=("python3.12+ (currently $PY_VER -- 3.12 or higher required)")
     fi
 else
-    info "Python が見つかりません。インストールを試みます..."
+    info "Python not found. Attempting to install..."
     case "$PKG_MANAGER" in
         brew)   install_with_pkg_manager "Python" python@3.12 ;;
         apt)    install_with_pkg_manager "Python" python3.12 python3.12-venv ;;
@@ -112,9 +112,9 @@ else
     esac
     PYTHON_CMD=$(find_python312 || true)
     if [ -n "$PYTHON_CMD" ]; then
-        ok "Python をインストールしました ($PYTHON_CMD)"
+        ok "Installed Python ($PYTHON_CMD)"
     else
-        FAILED+=("python3 (3.12+) -- パッケージマネージャーが見つかりません")
+        FAILED+=("python3 (3.12+) -- no package manager found")
     fi
 fi
 
@@ -125,16 +125,16 @@ if command -v node &> /dev/null; then
     if [ "$NODE_MAJOR" -ge 20 ]; then
         ok "Node.js v$NODE_VER"
     else
-        warn "Node.js v$NODE_VER が見つかりましたが v20 以上が推奨です"
+        warn "Found Node.js v$NODE_VER but v20 or higher is recommended"
     fi
 else
-    info "Node.js が見つかりません。インストールを試みます..."
+    info "Node.js not found. Attempting to install..."
     case "$PKG_MANAGER" in
-        brew)   install_with_pkg_manager "Node.js" node && ok "Node.js をインストールしました" ;;
-        apt)    install_with_pkg_manager "Node.js" nodejs npm && ok "Node.js をインストールしました" ;;
-        dnf)    install_with_pkg_manager "Node.js" nodejs && ok "Node.js をインストールしました" ;;
-        pacman) install_with_pkg_manager "Node.js" nodejs npm && ok "Node.js をインストールしました" ;;
-        *)      FAILED+=("node (v20+) -- パッケージマネージャーが見つかりません") ;;
+        brew)   install_with_pkg_manager "Node.js" node && ok "Installed Node.js" ;;
+        apt)    install_with_pkg_manager "Node.js" nodejs npm && ok "Installed Node.js" ;;
+        dnf)    install_with_pkg_manager "Node.js" nodejs && ok "Installed Node.js" ;;
+        pacman) install_with_pkg_manager "Node.js" nodejs npm && ok "Installed Node.js" ;;
+        *)      FAILED+=("node (v20+) -- no package manager found") ;;
     esac
     if ! command -v node &> /dev/null; then
         FAILED+=("node (v20+)")
@@ -145,13 +145,13 @@ fi
 if command -v pnpm &> /dev/null; then
     ok "pnpm $(pnpm -v)"
 else
-    info "pnpm が見つかりません。インストールを試みます..."
+    info "pnpm not found. Attempting to install..."
     if command -v npm &> /dev/null; then
-        npm install -g pnpm && ok "pnpm をインストールしました (npm)"
+        npm install -g pnpm && ok "Installed pnpm (npm)"
     elif command -v corepack &> /dev/null; then
-        corepack enable && corepack prepare pnpm@latest --activate && ok "pnpm をインストールしました (corepack)"
+        corepack enable && corepack prepare pnpm@latest --activate && ok "Installed pnpm (corepack)"
     elif [ "$PKG_MANAGER" = "brew" ]; then
-        install_with_pkg_manager "pnpm" pnpm && ok "pnpm をインストールしました (brew)"
+        install_with_pkg_manager "pnpm" pnpm && ok "Installed pnpm (brew)"
     else
         FAILED+=("pnpm (9+)")
     fi
@@ -161,13 +161,13 @@ fi
 HAS_UV=false
 HAS_PIP=false
 if command -v uv &> /dev/null; then
-    ok "uv が見つかりました"
+    ok "uv found"
     HAS_UV=true
 elif command -v pip3 &> /dev/null || command -v pip &> /dev/null; then
-    ok "pip が見つかりました"
+    ok "pip found"
     HAS_PIP=true
 else
-    FAILED+=("pip または uv (Python パッケージマネージャー)")
+    FAILED+=("pip or uv (Python package manager)")
 fi
 
 if [ ${#FAILED[@]} -gt 0 ]; then

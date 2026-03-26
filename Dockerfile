@@ -1,54 +1,54 @@
 # Zero-Employee Orchestrator — Rootless Container
-# root権限なしでコンテナ上で動作可能
+# Runs in a container without root privileges
 #
-# ビルド: docker build -t zero-employee-orchestrator .
-# 実行:   docker run --user 1000:1000 -p 18234:18234 zero-employee-orchestrator
+# Build: docker build -t zero-employee-orchestrator .
+# Run:   docker run --user 1000:1000 -p 18234:18234 zero-employee-orchestrator
 
 FROM python:3.12-slim AS base
 
-# セキュリティ: non-root ユーザーを作成
+# Security: create non-root user
 RUN groupadd -r zeapp -g 1000 && \
     useradd -r -u 1000 -g zeapp -m -d /home/zeapp -s /bin/bash zeapp
 
-# システム依存パッケージ
+# System dependency packages
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         curl \
         git \
     && rm -rf /var/lib/apt/lists/*
 
-# uv のインストール
+# Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 WORKDIR /app
 
-# 依存関係ファイルをコピー
+# Copy dependency files
 COPY apps/api/pyproject.toml apps/api/uv.lock* ./apps/api/
 
-# Python依存関係のインストール
+# Install Python dependencies
 WORKDIR /app/apps/api
 RUN uv sync --frozen 2>/dev/null || uv pip install --system -r pyproject.toml 2>/dev/null || \
     pip install fastapi uvicorn sqlalchemy[asyncio] aiosqlite pydantic-settings python-jose httpx aiohttp || true
 
 WORKDIR /app
 
-# アプリケーションコードをコピー
+# Copy application code
 COPY apps/api/ ./apps/api/
 COPY skills/ ./skills/
 
-# データディレクトリの作成（non-rootユーザーが書き込み可能に）
+# Create data directories (writable by non-root user)
 RUN mkdir -p /app/data /app/.zero_employee /home/zeapp/.zero_employee && \
     chown -R zeapp:zeapp /app /home/zeapp
 
-# 認証情報ストア（AIエージェントからアクセス不可）
+# Credential store (not accessible by AI agents)
 RUN mkdir -p /etc/zero-employee/credentials && \
     chmod 700 /etc/zero-employee/credentials && \
     chown root:root /etc/zero-employee/credentials
 
-# non-root ユーザーに切り替え
+# Switch to non-root user
 USER zeapp
 
-# 環境変数
+# Environment variables
 ENV PYTHONPATH=/app/apps/api \
     DATABASE_URL=sqlite+aiosqlite:///./data/zero_employee_orchestrator.db \
     DEBUG=${DEBUG:-false} \

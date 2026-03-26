@@ -1,7 +1,7 @@
 #!/bin/bash
 # scripts/security-check.sh
-# 公開前セキュリティチェックスクリプト
-# 使い方: ./scripts/security-check.sh
+# Pre-release security check script
+# Usage: ./scripts/security-check.sh
 
 PASS=0
 WARN=0
@@ -14,64 +14,64 @@ warn() { echo "⚠️  $1"; WARN=$((WARN + 1)); }
 fail() { echo "❌ $1"; FAIL=$((FAIL + 1)); }
 
 echo "=========================================="
-echo " Zero-Employee Orchestrator 公開前チェック"
+echo " Zero-Employee Orchestrator Pre-Release Check"
 echo "=========================================="
 echo ""
 
 # ──────────────────────────────────────────────
-# 1. .env ファイルが .gitignore に含まれているか
+# 1. Check that .env is in .gitignore
 # ──────────────────────────────────────────────
 GITIGNORE="$REPO_ROOT/.gitignore"
 if grep -qE '^\.env$|^\.env(\s|$)' "$GITIGNORE" 2>/dev/null; then
-  pass ".env が .gitignore に登録されています"
+  pass ".env is listed in .gitignore"
 else
-  fail ".env が .gitignore に登録されていません（シークレットが漏洩するリスクがあります）"
+  fail ".env is NOT in .gitignore (risk of leaking secrets)"
 fi
 
 # ──────────────────────────────────────────────
-# 2. SECRET_KEY がデフォルト値のままでないか
+# 2. Check that SECRET_KEY is not the default value
 # ──────────────────────────────────────────────
 DEFAULT_SECRET="change-this-to-a-random-secret-key"
-# .env ファイルと .env.example を除くすべての設定ファイルで検索
-# (config.py はバリデーション用比較値を含むため除外)
+# Search all config files except .env.example
+# (config.py is excluded because it contains the default for validation)
 if grep -rq "SECRET_KEY=${DEFAULT_SECRET}" "$REPO_ROOT/apps/api/" 2>/dev/null; then
-  fail "SECRET_KEY がデフォルト値のままです（apps/api/.env に設定されています）"
+  fail "SECRET_KEY is still the default value (set in apps/api/.env)"
 elif [ -f "$REPO_ROOT/apps/api/.env" ] && grep -q "^SECRET_KEY=${DEFAULT_SECRET}" "$REPO_ROOT/apps/api/.env" 2>/dev/null; then
-  fail "apps/api/.env の SECRET_KEY がデフォルト値のままです"
+  fail "SECRET_KEY in apps/api/.env is still the default value"
 else
-  pass "SECRET_KEY のデフォルト値は設定ファイルに存在しません"
+  pass "SECRET_KEY default value is not present in config files"
 fi
 
 # ──────────────────────────────────────────────
-# 3. apps/edge/proxy/wrangler.toml の KV namespace id
+# 3. Check KV namespace id in apps/edge/proxy/wrangler.toml
 # ──────────────────────────────────────────────
 PROXY_WRANGLER="$REPO_ROOT/apps/edge/proxy/wrangler.toml"
 if [ -f "$PROXY_WRANGLER" ]; then
   if grep -q 'id = "placeholder-id"' "$PROXY_WRANGLER"; then
-    fail "apps/edge/proxy/wrangler.toml の KV namespace id が placeholder-id のままです"
+    fail "KV namespace id in apps/edge/proxy/wrangler.toml is still placeholder-id"
   else
-    pass "apps/edge/proxy/wrangler.toml の KV namespace id が設定されています"
+    pass "KV namespace id in apps/edge/proxy/wrangler.toml is configured"
   fi
 else
-  warn "apps/edge/proxy/wrangler.toml が見つかりません（Cloudflare Proxy を使わない場合は無視してください）"
+  warn "apps/edge/proxy/wrangler.toml not found (ignore if not using Cloudflare Proxy)"
 fi
 
 # ──────────────────────────────────────────────
-# 4. apps/edge/full/wrangler.toml の D1 database_id
+# 4. Check D1 database_id in apps/edge/full/wrangler.toml
 # ──────────────────────────────────────────────
 FULL_WRANGLER="$REPO_ROOT/apps/edge/full/wrangler.toml"
 if [ -f "$FULL_WRANGLER" ]; then
   if grep -q 'database_id = "placeholder-id"' "$FULL_WRANGLER"; then
-    fail "apps/edge/full/wrangler.toml の D1 database_id が placeholder-id のままです"
+    fail "D1 database_id in apps/edge/full/wrangler.toml is still placeholder-id"
   else
-    pass "apps/edge/full/wrangler.toml の D1 database_id が設定されています"
+    pass "D1 database_id in apps/edge/full/wrangler.toml is configured"
   fi
 else
-  warn "apps/edge/full/wrangler.toml が見つかりません（Cloudflare Full を使わない場合は無視してください）"
+  warn "apps/edge/full/wrangler.toml not found (ignore if not using Cloudflare Full)"
 fi
 
 # ──────────────────────────────────────────────
-# 5. Tauri 署名鍵（pubkey）が空でないか
+# 5. Check Tauri signing key (pubkey) is not empty
 # ──────────────────────────────────────────────
 TAURI_CONF="$REPO_ROOT/apps/desktop/src-tauri/tauri.conf.json"
 if [ -f "$TAURI_CONF" ]; then
@@ -89,66 +89,66 @@ PYEOF
 )
   fi
   if [ -z "$PUBKEY" ]; then
-    warn "Tauri の自動更新 pubkey が空です（デスクトップアプリを配布しない場合は無視してください）"
+    warn "Tauri auto-update pubkey is empty (ignore if not distributing desktop app)"
   else
-    pass "Tauri の自動更新 pubkey が設定されています"
+    pass "Tauri auto-update pubkey is configured"
   fi
 else
-  warn "apps/desktop/src-tauri/tauri.conf.json が見つかりません（デスクトップアプリを使わない場合は無視してください）"
+  warn "apps/desktop/src-tauri/tauri.conf.json not found (ignore if not using desktop app)"
 fi
 
 # ──────────────────────────────────────────────
-# 6. CORS_ORIGINS がデフォルト（localhost）のまま
+# 6. Check CORS_ORIGINS is not still localhost
 # ──────────────────────────────────────────────
 ENV_FILE="$REPO_ROOT/apps/api/.env"
 if [ -f "$ENV_FILE" ]; then
   CORS_VALUE=$(grep '^CORS_ORIGINS=' "$ENV_FILE" | head -1 | cut -d= -f2-)
   if echo "$CORS_VALUE" | grep -qi "localhost"; then
-    warn "CORS_ORIGINS が localhost のままです（本番公開前に実際のドメインに変更してください）"
+    warn "CORS_ORIGINS is still set to localhost (change to your production domain before deploying)"
   else
-    pass "CORS_ORIGINS が localhost 以外に設定されています"
+    pass "CORS_ORIGINS is set to a non-localhost value"
   fi
 else
-  warn "apps/api/.env が見つかりません（CORS_ORIGINS の確認をスキップします）"
+  warn "apps/api/.env not found (skipping CORS_ORIGINS check)"
 fi
 
 # ──────────────────────────────────────────────
-# 7. 認証ミドルウェアが有効であること
+# 7. Check authentication middleware is enabled
 # ──────────────────────────────────────────────
-# get_current_user 認証依存関数がルートで使用されているか確認
+# Verify get_current_user auth dependency is defined
 AUTH_DEP_FILE="$REPO_ROOT/apps/api/app/api/routes/auth.py"
 if [ -f "$AUTH_DEP_FILE" ]; then
   if grep -q "async def get_current_user" "$AUTH_DEP_FILE"; then
-    pass "認証依存関数 get_current_user が定義されています"
+    pass "Auth dependency get_current_user is defined"
   else
-    fail "認証依存関数 get_current_user が auth.py に定義されていません"
+    fail "Auth dependency get_current_user is NOT defined in auth.py"
   fi
 else
-  fail "apps/api/app/api/routes/auth.py が見つかりません"
+  fail "apps/api/app/api/routes/auth.py not found"
 fi
 
-# 保護すべきルートファイルで get_current_user が使われているか確認
+# Check that route files use get_current_user
 ROUTE_DIR="$REPO_ROOT/apps/api/app/api/routes"
 AUTH_ROUTES=0
 UNPROTECTED_ROUTES=0
 UNPROTECTED_LIST=""
 
-# ホワイトリスト: 認証不要のファイル（理由付き）
-# __init__.py     — ルーター登録のみ（エンドポイントなし）
-# auth.py         — 認証エンドポイント自体（login/register/anonymous-session）
-# models.py       — モデルカタログ（公開情報・読み取り専用）
-# health.py       — ヘルスチェック（インフラ監視用）
+# Whitelist: files that don't need authentication (with reasons)
+# __init__.py     — Router registration only (no endpoints)
+# auth.py         — Auth endpoints themselves (login/register/anonymous-session)
+# models.py       — Model catalog (public info, read-only)
+# health.py       — Health check (for infra monitoring)
 #
-# MIXED ファイル（一部公開・一部認証済み — ファイル内に get_current_user あり）:
-# ai_tools.py       — GET: 公開ツール一覧 / POST: 認証必須
-# marketplace.py    — GET: 公開閲覧 / POST: 認証必須
-# media_generation.py — GET: 公開プロバイダー一覧 / POST: 認証必須
-# org_setup.py      — GET /interview/questions: 公開 / POST: 認証必須
+# MIXED files (some public, some authenticated — have get_current_user inside):
+# ai_tools.py       — GET: public tool list / POST: auth required
+# marketplace.py    — GET: public browse / POST: auth required
+# media_generation.py — GET: public provider list / POST: auth required
+# org_setup.py      — GET /interview/questions: public / POST: auth required
 AUTH_WHITELIST="__init__.py auth.py models.py health.py"
 
 for route_file in "$ROUTE_DIR"/*.py; do
   basename=$(basename "$route_file")
-  # ホワイトリストのファイルはスキップ
+  # Skip whitelisted files
   skip=false
   for wl in $AUTH_WHITELIST; do
     if [ "$basename" = "$wl" ]; then
@@ -158,7 +158,7 @@ for route_file in "$ROUTE_DIR"/*.py; do
   done
   if $skip; then continue; fi
 
-  # ルート定義があるか確認
+  # Check if file has route definitions
   if grep -q '@router\.' "$route_file" 2>/dev/null; then
     if grep -q 'get_current_user\|get_optional_user' "$route_file" 2>/dev/null; then
       AUTH_ROUTES=$((AUTH_ROUTES + 1))
@@ -170,64 +170,64 @@ for route_file in "$ROUTE_DIR"/*.py; do
 done
 
 if [ "$UNPROTECTED_ROUTES" -eq 0 ] && [ "$AUTH_ROUTES" -gt 0 ]; then
-  pass "全ルートファイル ($AUTH_ROUTES 個) で認証が有効です"
+  pass "All route files ($AUTH_ROUTES files) have authentication enabled"
 elif [ "$UNPROTECTED_ROUTES" -gt 0 ]; then
-  fail "認証なしのルートファイルがあります ($UNPROTECTED_ROUTES 個):$UNPROTECTED_LIST"
+  fail "Route files without authentication found ($UNPROTECTED_ROUTES files):$UNPROTECTED_LIST"
 else
-  warn "ルートファイルが見つかりません（認証チェックをスキップします）"
+  warn "No route files found (skipping authentication check)"
 fi
 
-# SecurityHeadersMiddleware が main.py で登録されているか確認
+# Check SecurityHeadersMiddleware is registered in main.py
 MAIN_PY="$REPO_ROOT/apps/api/app/main.py"
 if [ -f "$MAIN_PY" ]; then
   if grep -q 'SecurityHeadersMiddleware' "$MAIN_PY"; then
-    pass "SecurityHeadersMiddleware が main.py に登録されています"
+    pass "SecurityHeadersMiddleware is registered in main.py"
   else
-    fail "SecurityHeadersMiddleware が main.py に登録されていません（セキュリティヘッダーが無効です）"
+    fail "SecurityHeadersMiddleware is NOT registered in main.py (security headers disabled)"
   fi
 fi
 
 # ──────────────────────────────────────────────
-# 8. git log でシークレットっぽい文字列の簡易チェック
+# 8. Quick scan of git log for potential secrets
 # ──────────────────────────────────────────────
-# パターン説明:
-#   sk-...       : OpenAI API キー
-#   AIza...      : Google API キー
-#   AKIA...      : AWS アクセスキー ID
+# Patterns:
+#   sk-...       : OpenAI API key
+#   AIza...      : Google API key
+#   AKIA...      : AWS access key ID
 #   ghp_...      : GitHub Personal Access Token
-#   xox[baprs]-. : Slack トークン
+#   xox[baprs]-. : Slack token
 SECRET_PATTERNS='(sk-[a-zA-Z0-9]{20,}|AIza[0-9A-Za-z\-_]{35}|AKIA[0-9A-Z]{16}|ghp_[0-9a-zA-Z]{36}|xox[baprs]-[0-9a-zA-Z\-]{10,})'
 if command -v git &>/dev/null && git -C "$REPO_ROOT" rev-parse --git-dir &>/dev/null; then
   MATCHES=$(git -C "$REPO_ROOT" log --all -p --no-merges 2>/dev/null | grep -oE "$SECRET_PATTERNS" | head -5)
   if [ -n "$MATCHES" ]; then
-    fail "git log にシークレットっぽい文字列が検出されました（要確認）:"
+    fail "Potential secrets found in git log (please review):"
     echo "   $MATCHES" | head -3
   else
-    pass "git log にシークレットっぽい文字列は検出されませんでした"
+    pass "No potential secrets found in git log"
   fi
 else
-  warn "git コマンドが利用できないか、git リポジトリではありません（git log チェックをスキップします）"
+  warn "git not available or not a git repository (skipping git log check)"
 fi
 
 # ──────────────────────────────────────────────
-# サマリー
+# Summary
 # ──────────────────────────────────────────────
 echo ""
 echo "=========================================="
-echo " チェック結果サマリー"
+echo " Check Results Summary"
 echo "=========================================="
-echo "  ✅ パス  : $PASS 件"
-echo "  ⚠️  警告  : $WARN 件"
-echo "  ❌ 失敗  : $FAIL 件"
+echo "  ✅ Passed  : $PASS"
+echo "  ⚠️  Warnings: $WARN"
+echo "  ❌ Failed  : $FAIL"
 echo ""
 
 if [ "$FAIL" -gt 0 ]; then
-  echo "❌ の項目を修正してから公開してください。"
+  echo "Please fix the failed items before publishing."
   exit 1
 elif [ "$WARN" -gt 0 ]; then
-  echo "⚠️  警告項目があります。内容を確認してください。"
+  echo "There are warnings. Please review them."
   exit 0
 else
-  echo "🎉 すべてのチェックをパスしました！"
+  echo "All checks passed!"
   exit 0
 fi

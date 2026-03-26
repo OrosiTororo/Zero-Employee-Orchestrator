@@ -25,9 +25,114 @@ ZEO itself is free and open source. LLM API costs are paid directly by users to 
 
 ---
 
-## The Guides
+## Getting Started
 
-This repo is the platform itself. The guides explain the architecture and philosophy.
+**Choose your path:**
+
+| Method | Best for | Time | API key needed? |
+|--------|----------|------|-----------------|
+| **[Desktop App](#-download-desktop-app)** | Non-technical users | 2 min | No (subscription mode) |
+| **[CLI (pip install)](#-quick-start-cli)** | Developers | 2 min | No (subscription or Ollama) |
+| **[Docker](#-quick-start-cli)** | Self-hosting / production | 5 min | No (subscription or Ollama) |
+
+**System Requirements:** Python 3.12+ (CLI), Node.js 22+ (frontend dev), 4 GB RAM minimum. Ollama local models need 8 GB+ RAM.
+
+---
+
+## 🖥️ Download Desktop App
+
+Pre-built desktop installers are available on the [Releases](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases) page.
+
+| OS | File | Description |
+|---|---|---|
+| **Windows** | `.msi` / `-setup.exe` | Windows installer |
+| **macOS** | `.dmg` | macOS (Intel / Apple Silicon) |
+| **Linux** | `.AppImage` | Portable (no install needed) |
+| **Linux** | `.deb` / `.rpm` | Debian/Ubuntu / Fedora/RHEL |
+
+After installation, a **setup wizard** will guide you through:
+1. **Language** — Choose English, 日本語, or 中文 (changeable later in Settings)
+2. **LLM provider** — Pick how the AI runs (no API key needed for subscription mode)
+3. **First task** — Start using the platform immediately
+
+---
+
+## 🚀 Quick Start (CLI)
+
+### Step 1: Install
+
+```bash
+# PyPI (recommended)
+pip install zero-employee-orchestrator
+
+# or from source
+git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
+cd Zero-Employee-Orchestrator && pip install .
+
+# or Docker
+docker compose up -d
+```
+
+### Step 2: Configure
+
+Pick **one** of these options:
+
+```bash
+# Option A: No API key needed — uses free web AI services via g4f
+zero-employee config set DEFAULT_EXECUTION_MODE subscription
+
+# Option B: Fully offline — local models via Ollama (no internet needed)
+zero-employee config set DEFAULT_EXECUTION_MODE free
+zero-employee pull qwen3:8b
+
+# Option C: API key — best quality, pay-per-use to provider
+zero-employee config set OPENROUTER_API_KEY <your-key>  # or GEMINI_API_KEY, etc.
+```
+
+> **ZEO itself is free.** LLM costs (if any) are paid directly to each provider. See [USER_SETUP.md](USER_SETUP.md) for all options.
+
+### Step 3: Start
+
+```bash
+# Start the Web UI + API server
+zero-employee serve
+# → Open http://localhost:18234
+
+# Or use local chat mode (Ollama)
+zero-employee local --model qwen3:8b
+```
+
+### Step 4: Verify
+
+```bash
+zero-employee health              # Check server status
+zero-employee models              # List available models
+zero-employee config list         # Review your settings
+```
+
+### Changing Language
+
+The default language is English. Change it system-wide (CLI, AI responses, and Web UI all switch together):
+
+```bash
+# At startup
+zero-employee chat --lang ja      # Japanese
+zero-employee chat --lang zh      # Chinese
+
+# Persistently (saved to ~/.zero-employee/config.json)
+zero-employee config set LANGUAGE ja
+
+# At runtime (inside chat mode)
+/lang en                          # Switch to English
+/lang ja                          # Switch to Japanese
+/lang zh                          # Switch to Chinese
+```
+
+In the desktop app, change language anytime via **Settings**.
+
+---
+
+## The Guides
 
 <table>
 <tr>
@@ -48,135 +153,11 @@ This repo is the platform itself. The guides explain the architecture and philos
 </td>
 </tr>
 <tr>
-<td align="center"><b>Quickstart Guide</b><br/>Installation, first workflow, CLI basics. <b>Read this first.</b></td>
-<td align="center"><b>Architecture Deep Dive</b><br/>9-layer architecture, DAG orchestration, Judge Layer, Experience Memory.</td>
-<td align="center"><b>Security Guide</b><br/>Prompt injection defense, approval gates, IAM, sandbox, PII protection.</td>
+<td align="center"><b>Quickstart Guide</b><br/>First workflow, CLI basics.</td>
+<td align="center"><b>Architecture Deep Dive</b><br/>9-layer architecture, DAG, Judge Layer.</td>
+<td align="center"><b>Security Guide</b><br/>Prompt defense, approval gates, sandbox.</td>
 </tr>
 </table>
-
-| Topic | What You'll Learn |
-|-------|-------------------|
-| 9-Layer Architecture | User → Design Interview → Task Orchestrator → Skill → Judge → Re-Propose → Memory → Provider → Registry |
-| Self-Healing DAG | Automatic re-planning and re-proposal on task failure |
-| Judge Layer | Two-stage + Cross-Model quality verification |
-| Skill / Plugin / Extension | 3-tier extensibility with natural language skill generation |
-| Human-in-the-Loop | 12 categories of dangerous operations require human approval |
-| Security-First Design | Prompt injection defense (40+ patterns), PII masking, file sandbox |
-
----
-
-## What's New
-
-### v0.1.0 — Initial Release (Mar 2026)
-
-- **9-layer architecture** — User Layer → Design Interview → Task Orchestrator → Skill Layer → Judge Layer → Re-Propose → State & Memory → Provider → Skill Registry
-- **Self-Healing DAG** — Automatic re-planning on task failure with dynamic DAG reconstruction
-- **Judge Layer** — Rule-based first-pass + Cross-Model high-accuracy verification
-- **Experience Memory** — Learns from past executions to improve future performance
-- **Skill / Plugin / Extension** — 3-tier extensibility: 8 built-in skills, 10 plugins, 10 extensions
-- **Natural language skill generation** — Describe a skill in plain language and AI auto-generates it (with safety checks)
-- **Browser Assist** — Chrome extension overlay chat with real-time screen sharing and error diagnosis
-- **Media generation** — Image (DALL-E, SD), video (Runway ML, Pika), audio (TTS, ElevenLabs), music (Suno), 3D (dynamic provider registration)
-- **App Connector Hub** — 35+ external apps (Obsidian, Notion, Logseq, Google Workspace, Microsoft 365, Jira, HubSpot, etc.) with unified integration management
-- **AI tool integration** — 45+ external tools across 19 categories operable by AI
-- **Security-first** — Prompt injection defense (5 categories, 40+ patterns), approval gates, IAM, PII protection, file sandbox
-- **Multi-model support** — Dynamic model catalog via `model_catalog.json`, auto-fallback for deprecated models
-- **i18n** — Japanese / English / Chinese — UI, AI responses, and CLI all switch seamlessly
-- **Autonomous operation** — Docker / Cloudflare Workers for 24/365 background execution
-- **Self-Improvement** — AI analyzes and improves its own skills (with approval)
-- **A2A communication** — Peer-to-peer agent messaging, channels, and negotiation
-
----
-
-## 🖥️ Download Desktop App
-
-Pre-built desktop installers are available on the [Releases](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases) page.
-
-| OS | File | Description |
-|---|---|---|
-| **Windows** | `.msi` / `-setup.exe` | Windows installer |
-| **macOS** | `.dmg` | macOS (Intel / Apple Silicon) |
-| **Linux** | `.AppImage` | Portable (no install needed) |
-| **Linux** | `.deb` / `.rpm` | Debian/Ubuntu / Fedora/RHEL |
-
-All installers include a **setup wizard** where you choose your language (English / 日本語 / 中文). Language can be changed at any time in **Settings**.
-
----
-
-## 🚀 Quick Start (CLI)
-
-Get up and running in under 2 minutes:
-
-### Step 1: Install
-
-```bash
-# PyPI
-pip install zero-employee-orchestrator
-
-# or from source
-git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
-cd Zero-Employee-Orchestrator && pip install .
-
-# or Docker
-docker compose up -d
-```
-
-### Step 2: Configure (No API Key Required)
-
-```bash
-# Option A: Subscription mode (no key needed)
-zero-employee config set DEFAULT_EXECUTION_MODE subscription
-
-# Option B: Ollama local LLM (fully offline)
-zero-employee config set DEFAULT_EXECUTION_MODE free
-zero-employee pull qwen3:8b
-
-# Option C: Multi-LLM platform (one key, many models)
-zero-employee config set OPENROUTER_API_KEY <your-key>
-
-# Option D: Individual provider keys
-zero-employee config set GEMINI_API_KEY <your-key>
-```
-
-> **ZEO itself is free.** LLM API costs are paid directly to each provider. See [USER_SETUP.md](USER_SETUP.md) for details.
-
-### Step 3: Start
-
-```bash
-# Web UI
-zero-employee serve
-# → http://localhost:18234
-
-# Local chat (Ollama)
-zero-employee local --model qwen3:8b --lang en
-```
-
-✨ **That's it!** You now have a full AI orchestration platform with human approval gates and auditability.
-
-### Changing Language (CLI)
-
-The default language is English. You can change it in several ways:
-
-```bash
-# At startup
-zero-employee chat --lang ja    # Japanese
-zero-employee chat --lang zh    # Chinese
-
-# Persistently (saved to ~/.zero-employee/config.json)
-zero-employee config set LANGUAGE ja
-
-# At runtime (in chat mode)
-/lang en                         # Switch to English
-/lang ja                         # Switch to Japanese
-/lang zh                         # Switch to Chinese
-
-# Via API
-curl -X PUT http://localhost:18234/api/v1/config \
-  -H "Content-Type: application/json" \
-  -d '{"key": "LANGUAGE", "value": "ja"}'
-```
-
-The language setting applies system-wide: CLI output, AI responses, and the Web UI all switch together.
 
 ---
 

@@ -1,10 +1,10 @@
 # Zero-Employee Orchestrator — Docker Compose
-# root権限なしで全サービスを起動
+# Start all services without root privileges
 #
-# 使い方:
-#   docker compose up -d          # 全サービス起動
-#   docker compose up api         # APIのみ起動
-#   docker compose logs -f api    # ログ確認
+# Usage:
+#   docker compose up -d          # Start all services
+#   docker compose up api         # Start API only
+#   docker compose logs -f api    # View logs
 
 services:
   api:
