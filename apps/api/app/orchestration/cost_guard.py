@@ -1,8 +1,8 @@
-"""Cost Guard — 実行前コスト見積もり＋予算チェック.
+"""Cost Guard — Pre-execution cost estimation + budget check.
 
-タスク実行前にコストを見積もり、予算ポリシーと照合して
-実行可否を判定する。予算超過時はタスクをブロックし、
-警告閾値到達時は通知を返す。
+Estimates costs before task execution and checks against budget policies
+to determine execution eligibility. Blocks tasks when budget is exceeded
+and returns notifications when warning thresholds are reached.
 """
 
 from dataclasses import dataclass
@@ -31,7 +31,7 @@ _FALLBACK_COST_TABLE: dict[str, dict[str, float]] = {
 
 
 def _load_cost_table() -> dict[str, dict[str, float]]:
-    """ModelRegistry からコストテーブルを読み込む."""
+    """Load cost table from ModelRegistry."""
     try:
         from app.providers.model_registry import get_model_registry
 
@@ -49,7 +49,7 @@ DEFAULT_COST_TABLE: dict[str, dict[str, float]] = _load_cost_table()
 
 @dataclass
 class CostEstimate:
-    """タスク実行の推定コスト."""
+    """Estimated cost for task execution."""
 
     model_name: str
     estimated_input_tokens: int
@@ -60,7 +60,7 @@ class CostEstimate:
 
 @dataclass
 class CostGuardResult:
-    """コストガード判定結果."""
+    """Cost guard decision result."""
 
     decision: CostDecision
     estimate: CostEstimate | None
@@ -77,7 +77,7 @@ def estimate_cost(
     estimated_output_tokens: int = 500,
     cost_table: dict[str, dict[str, float]] | None = None,
 ) -> CostEstimate:
-    """モデルとトークン数からコストを見積もる."""
+    """Estimate cost from model and token count."""
     table = cost_table or DEFAULT_COST_TABLE
 
     # Find matching model in cost table (longest prefix match)
@@ -113,7 +113,7 @@ def check_budget(
     warn_threshold_pct: float = 80.0,
     stop_threshold_pct: float = 100.0,
 ) -> CostGuardResult:
-    """予算チェックを実行し、実行可否を判定する."""
+    """Execute budget check and determine execution eligibility."""
     if budget_limit_usd <= 0:
         return CostGuardResult(
             decision=CostDecision.ALLOW,

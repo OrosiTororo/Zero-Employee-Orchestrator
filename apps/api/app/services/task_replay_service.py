@@ -1,13 +1,13 @@
-"""タスク実行のリプレイ・比較サービス — Task Replay & Comparison.
+"""Task execution replay and comparison service -- Task Replay & Comparison.
 
-同一タスクを異なるモデルやパラメータで再実行し、結果を比較する。
-A/B テストの延長で、Skill 単位ではなくタスク単位の比較を実現。
+Re-executes the same task with different models or parameters and compares results.
+An extension of A/B testing, enabling comparison at the task level rather than Skill level.
 
-用途:
-- モデル間の出力品質比較
-- パラメータチューニングの効果検証
-- コスト対品質のトレードオフ分析
-- 同一タスクの再現性検証
+Use cases:
+- Output quality comparison across models
+- Parameter tuning effect verification
+- Cost vs. quality tradeoff analysis
+- Reproducibility verification of the same task
 """
 
 from __future__ import annotations

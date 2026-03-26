@@ -1,8 +1,8 @@
-"""ユーザーリソースインポートサービス.
+"""User resource import service.
 
-業務マニュアル、ルール、ドキュメントフォルダなどを
-AIが学習・参照できるようにインポート・管理する。
-テキスト抽出やサマリー生成の機能を提供する。
+Imports and manages business manuals, rules, document folders, etc.
+so that AI can learn from and reference them.
+Provides text extraction and summary generation capabilities.
 """
 
 from __future__ import annotations

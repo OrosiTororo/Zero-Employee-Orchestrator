@@ -1,7 +1,7 @@
-"""マルチモデル比較・壁打ち・会話記憶サービス.
+"""Multi-model comparison, brainstorming, and conversation memory service.
 
-複数の LLM モデルに同一入力を送信し、回答を比較する機能と、
-ユーザーとの壁打ち（ブレインストーミング）セッションを管理する。
+Sends the same input to multiple LLM models and compares responses,
+and manages brainstorming sessions with users.
 """
 
 from __future__ import annotations

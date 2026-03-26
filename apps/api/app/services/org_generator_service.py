@@ -1,7 +1,7 @@
-"""組織自動生成サービス.
+"""Organization auto-generation service.
 
-ヒアリング回答（事業内容・目標・課題）に基づいて、
-最適な部署・チーム・エージェント構成を自動生成する。
+Automatically generates optimal department, team, and agent configurations
+based on interview answers (business description, goals, challenges).
 """
 
 from __future__ import annotations

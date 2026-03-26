@@ -1,14 +1,15 @@
-"""Spec 間矛盾検出サービス — Spec Contradiction Detector.
+"""Cross-spec contradiction detection service -- Spec Contradiction Detector.
 
-複数チケットの Spec が互いに矛盾していないかを CrossModelJudge の応用で検証する。
-既存の Judge 基盤（否定パターン検出・数値不整合・セマンティック比較）を流用して、
-Spec レベルの矛盾を検出する。
+Verifies that Specs across multiple tickets are not contradicting each other
+using an application of CrossModelJudge.
+Leverages the existing Judge infrastructure (negation pattern detection,
+numeric discrepancy, semantic comparison) to detect contradictions at the Spec level.
 
-検証対象:
-- 同一プロジェクト内の複数 Spec の目的・制約条件・受け入れ基準
-- リソース割り当ての競合
-- スケジュール・期限の矛盾
-- 技術的前提条件の不整合
+Verification targets:
+- Objectives, constraints, and acceptance criteria of multiple Specs within the same project
+- Resource allocation conflicts
+- Schedule and deadline contradictions
+- Technical prerequisite inconsistencies
 """
 
 from __future__ import annotations

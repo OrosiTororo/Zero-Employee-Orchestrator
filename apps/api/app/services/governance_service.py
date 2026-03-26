@@ -1,23 +1,23 @@
-"""ガバナンス・コンプライアンスサービス — ポリシー管理・コンプライアンス監査・データ保持.
+"""Governance and compliance service -- Policy management, compliance auditing, and data retention.
 
-エンタープライズ向けの監査・権限管理・データポリシーを提供する。
+Provides enterprise-grade auditing, permission management, and data policies.
 
-対応フレームワーク:
-- GDPR (EU 一般データ保護規則)
-- HIPAA (米国医療情報保護法)
+Supported frameworks:
+- GDPR (EU General Data Protection Regulation)
+- HIPAA (US Health Insurance Portability and Accountability Act)
 - SOC2 (Service Organization Control 2)
-- ISO27001 (情報セキュリティマネジメント)
-- CCPA (カリフォルニア州消費者プライバシー法)
-- APPI (日本 個人情報保護法)
+- ISO27001 (Information Security Management)
+- CCPA (California Consumer Privacy Act)
+- APPI (Japan Act on the Protection of Personal Information)
 
-ポリシータイプ:
-- DATA_RETENTION: データ保持期間・自動削除
-- ACCESS_CONTROL: アクセス制御ルール
-- AUDIT_REQUIREMENT: 監査要件
-- EXPORT_RESTRICTION: データエクスポート制限
-- AI_USAGE_LIMIT: AI 使用量制限
-- PII_HANDLING: 個人情報取り扱い
-- ENCRYPTION_REQUIREMENT: 暗号化要件
+Policy types:
+- DATA_RETENTION: Data retention period and auto-deletion
+- ACCESS_CONTROL: Access control rules
+- AUDIT_REQUIREMENT: Audit requirements
+- EXPORT_RESTRICTION: Data export restrictions
+- AI_USAGE_LIMIT: AI usage limits
+- PII_HANDLING: Personal information handling
+- ENCRYPTION_REQUIREMENT: Encryption requirements
 """
 
 from __future__ import annotations

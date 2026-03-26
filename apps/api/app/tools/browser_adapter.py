@@ -1,20 +1,19 @@
-"""ブラウザ自動操作アダプタ — プラグイン方式の拡張可能ブラウザ操作基盤.
+"""Browser automation adapter — plugin-style extensible browser automation framework.
 
-VSCode のエクステンションのように、サードパーティのブラウザ自動操作ライブラリを
-アダプタとして追加・切替できる仕組み。初期状態ではビルトインの Playwright
-アダプタのみを含み、browser-use / Selenium / Puppeteer 等は Plugin として
-後から追加する設計。
+Like VS Code extensions, allows third-party browser automation libraries to be
+added and switched as adapters. Initially includes only the built-in Playwright
+adapter; browser-use / Selenium / Puppeteer etc. are added later as Plugins.
 
-対応アダプタ:
-- builtin (Playwright) — デフォルト、ZEO 同梱
-- browser-use — LLM 駆動の自律ブラウザ操作（Plugin でインストール）
-- selenium — 従来型 Web 自動化（Plugin でインストール）
-- custom — ユーザー定義アダプタ（Plugin API で登録）
+Supported adapters:
+- builtin (Playwright) — default, bundled with ZEO
+- browser-use — LLM-driven autonomous browser automation (installed via Plugin)
+- selenium — Traditional web automation (installed via Plugin)
+- custom — User-defined adapter (registered via Plugin API)
 
-安全性:
-- 全アダプタは承認ゲートを経由
-- 操作ログは監査システムに記録
-- サンドボックス内で実行
+Safety:
+- All adapters go through approval gates
+- Operation logs are recorded in the audit system
+- Executed within the sandbox
 """
 
 from __future__ import annotations
@@ -36,9 +35,9 @@ logger = logging.getLogger(__name__)
 
 
 class AdapterType(str, Enum):
-    """対応するブラウザ自動操作バックエンド."""
+    """Supported browser automation backends."""
 
-    BUILTIN = "builtin"  # Playwright (ZEO 同梱)
+    BUILTIN = "builtin"  # Playwright (bundled with ZEO)
     BROWSER_USE = "browser-use"  # browser-use ライブラリ
     SELENIUM = "selenium"
     CUSTOM = "custom"
@@ -49,13 +48,13 @@ class TaskStatus(str, Enum):
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
-    STUCK = "stuck"  # ループ検出時
-    REPLANNING = "replanning"  # 自動リプランニング中
+    STUCK = "stuck"  # Loop detected
+    REPLANNING = "replanning"  # Auto-replanning in progress
 
 
 @dataclass
 class BrowserTask:
-    """LLM に渡す自然言語タスク記述."""
+    """Natural language task description passed to LLM."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     instruction: str = ""
@@ -68,7 +67,7 @@ class BrowserTask:
 
 @dataclass
 class BrowserTaskResult:
-    """タスク実行結果."""
+    """Task execution result."""
 
     task_id: str = ""
     status: TaskStatus = TaskStatus.PENDING
@@ -84,22 +83,22 @@ class BrowserTaskResult:
 
 @dataclass
 class AdapterCapabilities:
-    """アダプタが提供する機能."""
+    """Capabilities provided by the adapter."""
 
-    natural_language_control: bool = False  # 自然言語指示での操作
-    loop_detection: bool = False  # ループ検出
-    auto_replanning: bool = False  # 自動リプランニング
-    screenshot_analysis: bool = False  # スクリーンショット解析
-    dom_inspection: bool = False  # DOM 構造解析
-    form_filling: bool = True  # フォーム入力
-    navigation: bool = True  # ページ遷移
-    data_extraction: bool = True  # データ抽出
-    headless: bool = True  # ヘッドレスモード
+    natural_language_control: bool = False  # Operation via natural language instructions
+    loop_detection: bool = False  # Loop detection
+    auto_replanning: bool = False  # Auto-replanning
+    screenshot_analysis: bool = False  # Screenshot analysis
+    dom_inspection: bool = False  # DOM structure analysis
+    form_filling: bool = True  # Form filling
+    navigation: bool = True  # Page navigation
+    data_extraction: bool = True  # Data extraction
+    headless: bool = True  # Headless mode
 
 
 @dataclass
 class AdapterInfo:
-    """登録済みアダプタの情報."""
+    """Registered adapter information."""
 
     adapter_type: AdapterType
     name: str
@@ -107,7 +106,7 @@ class AdapterInfo:
     description: str
     capabilities: AdapterCapabilities
     installed: bool = False
-    install_package: str = ""  # pip install コマンド
+    install_package: str = ""  # pip install command
 
 
 # ---------------------------------------------------------------------------
@@ -116,46 +115,46 @@ class AdapterInfo:
 
 
 class BrowserAdapter(ABC):
-    """ブラウザ自動操作アダプタの抽象基底クラス.
+    """Abstract base class for browser automation adapters.
 
-    新しいブラウザ自動操作ライブラリを統合する場合、このクラスを継承して
-    各メソッドを実装する。Plugin として登録すれば ZEO から利用可能になる。
+    To integrate a new browser automation library, inherit from this class
+    and implement each method. Register as a Plugin to make it available in ZEO.
     """
 
     @abstractmethod
     def info(self) -> AdapterInfo:
-        """アダプタ情報を返す."""
+        """Return adapter information."""
 
     @abstractmethod
     async def execute_task(self, task: BrowserTask) -> BrowserTaskResult:
-        """自然言語タスクを実行する.
+        """Execute a natural language task.
 
         Args:
-            task: 実行するタスク
+            task: Task to execute
 
         Returns:
-            実行結果
+            Execution result
         """
 
     @abstractmethod
     async def health_check(self) -> bool:
-        """アダプタが利用可能か確認する."""
+        """Check if the adapter is available."""
 
     async def cleanup(self) -> None:  # noqa: B027
-        """リソース解放（オプション）."""
+        """Release resources (optional)."""
 
 
 # ---------------------------------------------------------------------------
-# ビルトインアダプタ (Playwright) — 最小限の同梱アダプタ
+# Built-in adapter (Playwright) — minimal bundled adapter
 # ---------------------------------------------------------------------------
 
 
 class BuiltinPlaywrightAdapter(BrowserAdapter):
-    """Playwright ベースのビルトインアダプタ.
+    """Playwright-based built-in adapter.
 
-    ZEO に同梱される最小限のブラウザ自動操作。ステップベースの操作のみ対応し、
-    自然言語制御やループ検出は提供しない。高度な機能が必要な場合は
-    browser-use 等のアダプタを Plugin でインストールする。
+    Minimal browser automation bundled with ZEO. Only supports step-based
+    operations; does not provide natural language control or loop detection.
+    Install adapters like browser-use as Plugins for advanced features.
     """
 
     def info(self) -> AdapterInfo:
@@ -163,7 +162,7 @@ class BuiltinPlaywrightAdapter(BrowserAdapter):
             adapter_type=AdapterType.BUILTIN,
             name="Builtin Playwright Adapter",
             version="0.1.0",
-            description="ZEO 同梱の最小限ブラウザ操作。Playwright ベース。",
+            description="Minimal browser automation bundled with ZEO. Playwright-based.",
             capabilities=AdapterCapabilities(
                 natural_language_control=False,
                 loop_detection=False,
@@ -180,11 +179,11 @@ class BuiltinPlaywrightAdapter(BrowserAdapter):
         )
 
     async def execute_task(self, task: BrowserTask) -> BrowserTaskResult:
-        """Playwright でタスクを実行する.
+        """Execute a task with Playwright.
 
-        ビルトインアダプタは自然言語制御をサポートしないため、
-        URL へのナビゲーション + スクリーンショットのみ実行する。
-        フルスクリプト実行は BrowserAutomation クラスを使用する。
+        The built-in adapter does not support natural language control,
+        so only URL navigation + screenshot are executed.
+        Use the BrowserAutomation class for full script execution.
         """
         start = time.monotonic()
         screenshots: list[bytes] = []
@@ -209,14 +208,14 @@ class BuiltinPlaywrightAdapter(BrowserAdapter):
             return BrowserTaskResult(
                 task_id=task.id,
                 status=TaskStatus.COMPLETED,
-                output=f"ページ取得完了: {title}",
+                output=f"Page fetched: {title}",
                 screenshots=screenshots,
                 steps_executed=1,
                 duration_ms=int((time.monotonic() - start) * 1000),
                 adapter_used="builtin",
             )
         except ImportError:
-            errors.append("Playwright 未インストール (pip install playwright)")
+            errors.append("Playwright not installed (pip install playwright)")
             return BrowserTaskResult(
                 task_id=task.id,
                 status=TaskStatus.FAILED,
@@ -246,20 +245,20 @@ class BuiltinPlaywrightAdapter(BrowserAdapter):
 
 
 # ---------------------------------------------------------------------------
-# browser-use アダプタ (Plugin でインストール)
+# browser-use adapter (installed via Plugin)
 # ---------------------------------------------------------------------------
 
 
 class BrowserUseAdapter(BrowserAdapter):
-    """browser-use ライブラリを使った LLM 駆動ブラウザ操作アダプタ.
+    """LLM-driven browser automation adapter using the browser-use library.
 
-    自然言語の指示だけで Web ブラウザを自律的に操作する。
-    LLM がスクリーンショットと DOM 構造を「見て」判断し、
-    クリック・入力・スクロールを実行する。
+    Autonomously operates web browsers using only natural language instructions.
+    The LLM "sees" screenshots and DOM structure to make decisions and
+    executes clicks, input, and scrolling.
 
-    ループ検出・自動リプランニング機能により行き詰まりにも対応。
+    Handles dead ends with loop detection and auto-replanning.
 
-    要件: pip install browser-use
+    Requirement: pip install browser-use
     """
 
     def __init__(self, llm_provider: str = "auto") -> None:
@@ -281,8 +280,8 @@ class BrowserUseAdapter(BrowserAdapter):
             name="browser-use Adapter",
             version="0.1.0",
             description=(
-                "LLM 駆動の自律ブラウザ操作。自然言語の指示だけで Web を操作。"
-                "ループ検出・自動リプランニング対応。"
+                "LLM-driven autonomous browser automation. Operates the web using only "
+                "natural language instructions. Loop detection and auto-replanning supported."
             ),
             capabilities=AdapterCapabilities(
                 natural_language_control=True,
@@ -300,12 +299,12 @@ class BrowserUseAdapter(BrowserAdapter):
         )
 
     async def execute_task(self, task: BrowserTask) -> BrowserTaskResult:
-        """browser-use で自然言語タスクを実行する."""
+        """Execute a natural language task with browser-use."""
         if not self._available:
             return BrowserTaskResult(
                 task_id=task.id,
                 status=TaskStatus.FAILED,
-                output="[browser-use 未インストール — pip install browser-use]",
+                output="[browser-use not installed — pip install browser-use]",
                 errors=["browser-use not installed"],
                 adapter_used="browser-use",
             )
@@ -316,7 +315,7 @@ class BrowserUseAdapter(BrowserAdapter):
         try:
             from browser_use import Agent as BrowserUseAgent
 
-            # LLM は ZEO の LLM Gateway から取得
+            # LLM is obtained from ZEO LLM Gateway
             llm = await self._resolve_llm()
 
             agent = BrowserUseAgent(
@@ -358,10 +357,10 @@ class BrowserUseAdapter(BrowserAdapter):
             )
 
     async def _resolve_llm(self) -> object:
-        """ZEO の LLM Gateway から LLM インスタンスを取得する.
+        """Get an LLM instance from ZEO LLM Gateway.
 
-        browser-use は langchain 互換の LLM オブジェクトを期待する。
-        ZEO のゲートウェイ設定に基づいて適切な LLM を返す。
+        browser-use expects a langchain-compatible LLM object.
+        Returns the appropriate LLM based on ZEO gateway configuration.
         """
         if self._llm_provider == "auto":
             try:
@@ -369,12 +368,12 @@ class BrowserUseAdapter(BrowserAdapter):
 
                 from langchain_openai import ChatOpenAI
 
-                # OpenAI 互換のプロバイダーを優先
+                # Prioritize OpenAI-compatible providers
                 api_key = os.environ.get("OPENAI_API_KEY", "")
                 if api_key:
                     return ChatOpenAI(model="gpt-4o", api_key=api_key)
 
-                # OpenRouter 経由
+                # Via OpenRouter
                 openrouter_key = os.environ.get("OPENROUTER_API_KEY", "")
                 if openrouter_key:
                     return ChatOpenAI(
@@ -385,10 +384,10 @@ class BrowserUseAdapter(BrowserAdapter):
             except ImportError:
                 pass
 
-        # フォールバック: ダミー LLM（実際にはエラーになる）
+        # Fallback: dummy LLM (will actually error)
         raise RuntimeError(
-            "browser-use に必要な LLM プロバイダーが設定されていません。"
-            "OPENAI_API_KEY または OPENROUTER_API_KEY を設定してください。"
+            "LLM provider required for browser-use is not configured. "
+            "Please set OPENAI_API_KEY or OPENROUTER_API_KEY."
         )
 
     async def health_check(self) -> bool:
@@ -396,57 +395,57 @@ class BrowserUseAdapter(BrowserAdapter):
 
 
 # ---------------------------------------------------------------------------
-# アダプタレジストリ — アダプタの登録・検索・切替
+# Adapter registry — registration, search, and switching
 # ---------------------------------------------------------------------------
 
 
 class BrowserAdapterRegistry:
-    """ブラウザ自動操作アダプタのレジストリ.
+    """Browser automation adapter registry.
 
-    VSCode のエクステンションマーケットプレイスのように、
-    アダプタを登録・検索・切替できる。
+    Like VS Code's extension marketplace, allows registering,
+    searching, and switching adapters.
     """
 
     def __init__(self) -> None:
         self._adapters: dict[str, BrowserAdapter] = {}
         self._active_adapter: str = "builtin"
-        # ビルトインアダプタのみ初期登録
+        # Initially register only the built-in adapter
         self.register("builtin", BuiltinPlaywrightAdapter())
 
     def register(self, name: str, adapter: BrowserAdapter) -> None:
-        """アダプタを登録する.
+        """Register an adapter.
 
         Args:
-            name: アダプタの識別名
-            adapter: アダプタインスタンス
+            name: Adapter identifier name
+            adapter: Adapter instance
         """
         self._adapters[name] = adapter
-        logger.info("ブラウザアダプタ登録: %s", name)
+        logger.info("Browser adapter registered: %s", name)
 
     def unregister(self, name: str) -> bool:
-        """アダプタを登録解除する（ビルトインは解除不可）."""
+        """Unregister an adapter (built-in cannot be unregistered)."""
         if name == "builtin":
-            logger.warning("ビルトインアダプタは登録解除できません")
+            logger.warning("Built-in adapter cannot be unregistered")
             return False
         if name in self._adapters:
             del self._adapters[name]
             if self._active_adapter == name:
                 self._active_adapter = "builtin"
-            logger.info("ブラウザアダプタ登録解除: %s", name)
+            logger.info("Browser adapter unregistered: %s", name)
             return True
         return False
 
     def set_active(self, name: str) -> bool:
-        """アクティブアダプタを切り替える."""
+        """Switch the active adapter."""
         if name not in self._adapters:
-            logger.warning("アダプタが見つかりません: %s", name)
+            logger.warning("Adapter not found: %s", name)
             return False
         self._active_adapter = name
-        logger.info("アクティブアダプタ変更: %s", name)
+        logger.info("Active adapter changed: %s", name)
         return True
 
     def get_active(self) -> BrowserAdapter:
-        """現在のアクティブアダプタを返す."""
+        """Return the current active adapter."""
         return self._adapters[self._active_adapter]
 
     def get_active_name(self) -> str:
@@ -456,7 +455,7 @@ class BrowserAdapterRegistry:
         return self._adapters.get(name)
 
     def list_adapters(self) -> list[AdapterInfo]:
-        """登録済みアダプタ一覧を返す."""
+        """Return a list of registered adapters."""
         infos = []
         for _name, adapter in self._adapters.items():
             info = adapter.info()
@@ -464,10 +463,10 @@ class BrowserAdapterRegistry:
         return infos
 
     def list_installable(self) -> list[AdapterInfo]:
-        """インストール可能な未登録アダプタ一覧を返す.
+        """Return a list of installable unregistered adapters.
 
-        マーケットプレイスに登録されているが、まだローカルに
-        インストールされていないアダプタを返す。
+        Returns adapters that are registered in the marketplace but
+        not yet installed locally.
         """
         known: list[AdapterInfo] = [
             AdapterInfo(
@@ -475,8 +474,8 @@ class BrowserAdapterRegistry:
                 name="browser-use",
                 version="0.4.x",
                 description=(
-                    "LLM 駆動の自律ブラウザ操作。自然言語の指示だけで Web を操作。"
-                    "ループ検出・自動リプランニング対応。"
+                    "LLM-driven autonomous browser automation. Operates the web using only "
+                    "natural language instructions. Loop detection and auto-replanning supported."
                 ),
                 capabilities=AdapterCapabilities(
                     natural_language_control=True,
@@ -492,7 +491,7 @@ class BrowserAdapterRegistry:
                 adapter_type=AdapterType.SELENIUM,
                 name="selenium",
                 version="4.x",
-                description="Selenium WebDriver ベースのブラウザ自動操作。",
+                description="Selenium WebDriver-based browser automation.",
                 capabilities=AdapterCapabilities(
                     natural_language_control=False,
                     loop_detection=False,
@@ -507,13 +506,13 @@ class BrowserAdapterRegistry:
         return [a for a in known if a.adapter_type not in registered_types]
 
     async def execute_task(self, task: BrowserTask) -> BrowserTaskResult:
-        """アクティブアダプタでタスクを実行する.
+        """Execute a task with the active adapter.
 
-        承認ゲートを経由し、監査ログに記録する。
+        Goes through approval gates and records in audit logs.
         """
         adapter = self.get_active()
 
-        # 承認チェック
+        # Approval check
         if task.require_approval:
             try:
                 from app.policies.approval_gate import check_approval_required
@@ -523,18 +522,18 @@ class BrowserAdapterRegistry:
                     return BrowserTaskResult(
                         task_id=task.id,
                         status=TaskStatus.FAILED,
-                        output="承認が必要です。承認後に再実行してください。",
+                        output="Approval required. Please re-execute after approval.",
                         errors=["approval_required"],
                         adapter_used=self._active_adapter,
                     )
             except ImportError:
-                logger.debug("承認ゲートが利用できないためスキップ")
+                logger.debug("Approval gate not available, skipping")
 
         result = await adapter.execute_task(task)
 
-        # 監査ログ
+        # Audit log
         logger.info(
-            "ブラウザタスク実行: adapter=%s, task=%s, status=%s, duration=%dms",
+            "Browser task executed: adapter=%s, task=%s, status=%s, duration=%dms",
             self._active_adapter,
             task.id,
             result.status.value,
@@ -544,26 +543,26 @@ class BrowserAdapterRegistry:
         return result
 
     async def auto_install_adapter(self, adapter_type: AdapterType) -> bool:
-        """アダプタをインストールして登録する.
+        """Install and register an adapter.
 
-        Plugin システムと連携し、必要な pip パッケージをインストールした上で
-        アダプタを登録する。
+        Works with the Plugin system to install required pip packages
+        and then register the adapter.
 
         Args:
-            adapter_type: インストールするアダプタタイプ
+            adapter_type: Adapter type to install
 
         Returns:
-            インストール成功したかどうか
+            Whether installation was successful
         """
         if adapter_type == AdapterType.BROWSER_USE:
             adapter = BrowserUseAdapter()
             if not adapter._available:
-                logger.info("browser-use をインストールしてください: pip install browser-use")
+                logger.info("Please install browser-use: pip install browser-use")
                 return False
             self.register("browser-use", adapter)
             return True
 
-        logger.warning("未対応のアダプタタイプ: %s", adapter_type)
+        logger.warning("Unsupported adapter type: %s", adapter_type)
         return False
 
 

@@ -1,6 +1,6 @@
-"""Skill 管理サービス — CRUD・自然言語生成・システム保護.
+"""Skill management service -- CRUD, natural language generation, and system protection.
 
-自然言語によるスキル作成、安全性チェック、システム必須スキルの保護を提供する。
+Provides skill creation from natural language, safety checks, and protection of system-required skills.
 """
 
 from __future__ import annotations

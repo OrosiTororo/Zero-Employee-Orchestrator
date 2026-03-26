@@ -1,7 +1,7 @@
-"""AI 組織管理サービス — エージェントの動的追加・削除・役割カスタマイズ.
+"""AI organization management service -- Dynamic agent addition, removal, and role customization.
 
-ユーザーが自然言語で AI 組織に要望を出し、
-秘書・相談役などの役割を定義・変更できる。
+Allows users to make requests to the AI organization in natural language,
+defining and modifying roles such as secretary and advisor.
 """
 
 from __future__ import annotations

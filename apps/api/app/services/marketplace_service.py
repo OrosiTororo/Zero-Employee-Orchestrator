@@ -1,13 +1,13 @@
-"""Skill マーケットプレイスサービス — コミュニティ Skill/Plugin の公開・検索・レビュー・インストール.
+"""Skill marketplace service -- Community Skill/Plugin publishing, search, review, and installation.
 
-Skill / Plugin / Extension をマーケットプレイスに公開し、
-検索・レビュー・インストールを可能にする。
+Publishes Skill / Plugin / Extension to the marketplace,
+enabling search, review, and installation.
 
-公開フロー:
-1. 開発者が Listing を DRAFT として作成
-2. publish() でレビュー待ち (PENDING_REVIEW) に遷移
-3. 管理者が approve() または reject() で承認/却下
-4. PUBLISHED になった Listing は検索・インストール可能
+Publishing flow:
+1. Developer creates a Listing as DRAFT
+2. publish() transitions to review pending (PENDING_REVIEW)
+3. Admin approves or rejects with approve() or reject()
+4. PUBLISHED Listings become searchable and installable
 """
 
 from __future__ import annotations

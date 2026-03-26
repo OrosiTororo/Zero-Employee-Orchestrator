@@ -1,13 +1,12 @@
-"""マルチユーザー・チームサービス — チーム作成・招待・権限管理.
+"""Multi-user team service -- Team creation, invitations, and permission management.
 
-チームベースの認証・権限管理を提供する。
-各チームはオーナー・管理者・メンバー・閲覧者・AI オペレーターの
-5 つのロールで構成される。
+Provides team-based authentication and permission management.
+Each team consists of 5 roles: owner, admin, member, viewer, and AI operator.
 
-権限チェック:
-- resource_type + action の組み合わせで許可ロールを判定
-- AI_OPERATOR は AI 関連リソースのみ操作可能
-- VIEWER は読み取り専用
+Permission checks:
+- Allowed roles determined by resource_type + action combination
+- AI_OPERATOR can only operate on AI-related resources
+- VIEWER is read-only
 """
 
 from __future__ import annotations

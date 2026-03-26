@@ -1,15 +1,16 @@
-"""ユーザー判断の振り返りレポートサービス — Judgment Review.
+"""User judgment review report service -- Judgment Review.
 
-承認・却下の履歴から「あなたはこの期間にこういう判断傾向があった」と
-可視化する。ユーザー自身の意思決定の自己認識を支える方向。
+Visualizes judgment trends from approval/rejection history, such as
+"you had this kind of decision-making tendency during this period."
+Supports user self-awareness of their own decision-making.
 
-分析対象:
-- 承認/却下の比率・傾向
-- 判断に要した時間の傾向
-- リスクレベル別の判断パターン
-- カテゴリ別の判断分布
-- 時間帯・曜日別の判断パターン
-- 差し戻し後の再提案承認率
+Analysis targets:
+- Approval/rejection ratios and trends
+- Time-to-decision trends
+- Judgment patterns by risk level
+- Judgment distribution by category
+- Judgment patterns by time of day and day of week
+- Re-proposal approval rate after rework requests
 """
 
 from __future__ import annotations
