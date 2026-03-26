@@ -78,13 +78,13 @@ class FailureTaxonomy:
         recovery_strategy: str = "",
         task_id: str | None = None,
     ) -> FailureRecord:
-        """障害を記録する. 同一カテゴリ・サブカテゴリは更新."""
+        """Record a failure. Updates existing entries with the same category/subcategory."""
         if isinstance(category, str):
             category = FailureCategory(category)
         if isinstance(severity, str):
             severity = FailureSeverity(severity)
 
-        # 既存レコード検索
+        # Search for existing record
         for record in self.records:
             if record.category == category and record.subcategory == subcategory:
                 record.occurrence_count += 1
@@ -110,7 +110,7 @@ class FailureTaxonomy:
         category: FailureCategory | str,
         subcategory: str,
     ) -> FailureRecord | None:
-        """回復成功を記録する."""
+        """Record a successful recovery."""
         if isinstance(category, str):
             category = FailureCategory(category)
         for record in self.records:
@@ -120,11 +120,11 @@ class FailureTaxonomy:
         return None
 
     def get_frequent_failures(self, min_count: int = 2) -> list[FailureRecord]:
-        """頻発する障害を取得."""
+        """Get frequently occurring failures."""
         return [r for r in self.records if r.occurrence_count >= min_count]
 
     def get_by_severity(self, severity: FailureSeverity | str) -> list[FailureRecord]:
-        """重大度別に障害を取得."""
+        """Get failures by severity."""
         if isinstance(severity, str):
             severity = FailureSeverity(severity)
         return [r for r in self.records if r.severity == severity]
@@ -133,7 +133,7 @@ class FailureTaxonomy:
         self,
         category: FailureCategory | str | None = None,
     ) -> list[dict[str, str]]:
-        """予防策一覧を取得."""
+        """Get list of prevention strategies."""
         if isinstance(category, str):
             category = FailureCategory(category)
         results = []
@@ -151,5 +151,5 @@ class FailureTaxonomy:
         return results
 
 
-# グローバルインスタンス
+# Global instance
 failure_taxonomy = FailureTaxonomy()

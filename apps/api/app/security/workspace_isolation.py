@@ -208,7 +208,7 @@ class WorkspaceIsolation:
                             reason=f"Task override: path allowed for task {task_id}",
                         )
 
-        # 3. ローカルアクセスが有効かチェック
+        # 3. Check if local access is enabled
         if not self._config.local_access_enabled:
             return WorkspaceAccessResult(
                 allowed=False,
@@ -218,15 +218,15 @@ class WorkspaceIsolation:
                 "Enable local access via settings or upload files to the workspace.",
                 requires_user_approval=True,
                 suggested_message=(
-                    "このパスへのアクセスにはローカルファイルアクセスの許可が必要です。\n"
-                    f"対象: {resolved}\n"
-                    "設定でローカルアクセスを有効にするか、"
-                    "ファイルをワークスペースにアップロードしてください。\n"
-                    "[ローカルアクセスを有効にする] [このタスクのみ許可] [キャンセル]"
+                    "Local file access permission is required to access this path.\n"
+                    f"Target: {resolved}\n"
+                    "Enable local access in settings or "
+                    "upload files to the workspace.\n"
+                    "[Enable local access] [Allow for this task only] [Cancel]"
                 ),
             )
 
-        # 4. 許可されたローカルパスに含まれるかチェック
+        # 4. Check if path is within allowed local paths
         for allowed in self._config.allowed_local_paths:
             allowed_resolved = str(Path(allowed).resolve())
             if resolved.startswith(allowed_resolved):
@@ -243,10 +243,10 @@ class WorkspaceIsolation:
             f"Allowed: {self._config.allowed_local_paths}",
             requires_user_approval=True,
             suggested_message=(
-                "このフォルダへのアクセスは現在許可されていません。\n"
-                f"対象: {resolved}\n"
-                "このフォルダへのアクセスを許可しますか？\n"
-                "[このタスクのみ許可] [恒久的に許可] [拒否]"
+                "Access to this folder is not currently permitted.\n"
+                f"Target: {resolved}\n"
+                "Allow access to this folder?\n"
+                "[Allow for this task only] [Allow permanently] [Deny]"
             ),
         )
 
@@ -257,8 +257,8 @@ class WorkspaceIsolation:
         *,
         task_id: str | None = None,
     ) -> WorkspaceAccessResult:
-        """クラウドストレージへのアクセスが許可されているかチェックする."""
-        # タスクオーバーライドをチェック
+        """Check whether access to cloud storage is permitted."""
+        # Check task overrides
         if task_id and task_id in self._task_overrides:
             override = self._task_overrides[task_id]
             if override.approved_by_user:
