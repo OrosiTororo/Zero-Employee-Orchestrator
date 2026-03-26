@@ -67,6 +67,16 @@ jobs:
             echo "✅ dev dependencies: match"
           fi
 
+          # Check that ruff lint select rules match
+          root_select=$(grep -A1 '^\[tool.ruff.lint\]' "$ROOT" | grep '^select' | sed 's/select = //')
+          api_select=$(grep -A1 '^\[tool.ruff.lint\]' "$API" | grep '^select' | sed 's/select = //')
+          if [ "$root_select" != "$api_select" ]; then
+            echo "::error::ruff lint select mismatch — root: '$root_select' vs apps/api: '$api_select'"
+            FAIL=1
+          else
+            echo "✅ ruff lint select: match"
+          fi
+
           if [ "$FAIL" -ne 0 ]; then
             echo ""
             echo "❌ pyproject.toml の同期が崩れています。"
