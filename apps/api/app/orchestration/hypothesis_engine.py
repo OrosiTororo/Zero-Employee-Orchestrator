@@ -1,7 +1,7 @@
-"""Hypothesis Engine — 仮説の並行検証とレビュー.
+"""Hypothesis Engine — Parallel hypothesis verification and review.
 
-マルチエージェントが仮説検証とレビューのループを回す機能。
-複数の仮説を並行して検証し、クロスレビューで精度を高める。
+A capability for multi-agent hypothesis verification and review loops.
+Verifies multiple hypotheses in parallel and improves accuracy through cross-review.
 """
 
 from __future__ import annotations
@@ -35,7 +35,7 @@ class ReviewVerdict(str, Enum):
 
 @dataclass
 class Evidence:
-    """仮説を支持または反証するエビデンス."""
+    """Evidence supporting or refuting a hypothesis."""
 
     evidence_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     hypothesis_id: str = ""
@@ -50,7 +50,7 @@ class Evidence:
 
 @dataclass
 class Review:
-    """仮説に対するレビュー."""
+    """Review of a hypothesis."""
 
     review_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     hypothesis_id: str = ""
@@ -64,7 +64,7 @@ class Review:
 
 @dataclass
 class Hypothesis:
-    """検証対象の仮説."""
+    """Hypothesis to be verified."""
 
     hypothesis_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     task_id: str | None = None
@@ -84,7 +84,7 @@ class Hypothesis:
 
     @property
     def support_score(self) -> float:
-        """エビデンスに基づく支持スコア（-1.0〜1.0）."""
+        """Support score based on evidence (-1.0 to 1.0)."""
         if not self.evidence:
             return 0.0
         total_weight = sum(e.confidence for e in self.evidence)
@@ -95,7 +95,7 @@ class Hypothesis:
 
     @property
     def review_consensus(self) -> str:
-        """レビューのコンセンサス."""
+        """Review consensus."""
         if not self.reviews:
             return "no_reviews"
         agrees = sum(1 for r in self.reviews if r.verdict == ReviewVerdict.AGREE)
@@ -132,7 +132,7 @@ class Hypothesis:
 
 
 class HypothesisEngine:
-    """仮説の並行検証を管理するエンジン."""
+    """Engine managing parallel hypothesis verification."""
 
     def __init__(self, max_hypotheses: int = 1000) -> None:
         self._hypotheses: dict[str, Hypothesis] = {}
@@ -149,7 +149,7 @@ class HypothesisEngine:
         priority: int = 0,
         parent_hypothesis_id: str | None = None,
     ) -> Hypothesis:
-        """新しい仮説を提案."""
+        """Propose a new hypothesis."""
         h = Hypothesis(
             task_id=task_id,
             company_id=company_id,
@@ -173,7 +173,7 @@ class HypothesisEngine:
         return h
 
     def assign_investigator(self, hypothesis_id: str, agent_id: str) -> bool:
-        """仮説の調査担当エージェントを割り当て."""
+        """Assign an investigator agent to a hypothesis."""
         h = self._hypotheses.get(hypothesis_id)
         if not h:
             return False
@@ -194,7 +194,7 @@ class HypothesisEngine:
         confidence: float = 0.5,
         data: dict[str, Any] | None = None,
     ) -> Evidence | None:
-        """エビデンスを追加."""
+        """Add evidence."""
         h = self._hypotheses.get(hypothesis_id)
         if not h:
             return None
@@ -223,7 +223,7 @@ class HypothesisEngine:
         confidence: float = 0.5,
         suggested_actions: list[str] | None = None,
     ) -> Review | None:
-        """レビューを提出."""
+        """Submit a review."""
         h = self._hypotheses.get(hypothesis_id)
         if not h:
             return None
@@ -242,7 +242,7 @@ class HypothesisEngine:
         return review
 
     def resolve(self, hypothesis_id: str, confirmed: bool) -> bool:
-        """仮説を解決（確認/反証）."""
+        """Resolve a hypothesis (confirm/refute)."""
         h = self._hypotheses.get(hypothesis_id)
         if not h:
             return False

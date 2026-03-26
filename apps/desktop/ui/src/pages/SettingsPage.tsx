@@ -136,9 +136,13 @@ export function SettingsPage() {
   const handleSave = async () => {
     setSaving(true)
     try {
-      // TODO: PUT /settings (company settings)
-      await new Promise((r) => setTimeout(r, 500))
+      await api.put("/config", { key: "COMPANY_NAME", value: companyName })
+      await api.put("/config", { key: "COMPANY_MISSION", value: mission })
+      await api.put("/config", { key: "AUTO_APPROVE", value: String(autoApprove) })
       setSaveMessage(t.settings.saved)
+      setTimeout(() => setSaveMessage(""), 3000)
+    } catch {
+      setSaveMessage(t.settings.saveFailed)
       setTimeout(() => setSaveMessage(""), 3000)
     } finally {
       setSaving(false)

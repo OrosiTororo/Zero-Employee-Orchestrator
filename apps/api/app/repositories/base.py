@@ -1,7 +1,8 @@
-"""汎用リポジトリ基盤 — DB 入出力の抽象化.
+"""Generic repository base -- DB I/O abstraction.
 
-DESIGN.md §42.1 に基づき、routes → services → repositories → models の
-責務分離を実現する。各エンティティ固有のリポジトリはこの基底クラスを継承する。
+Based on DESIGN.md section 42.1, implements separation of concerns across
+routes -> services -> repositories -> models. Entity-specific repositories
+inherit from this base class.
 """
 
 from __future__ import annotations
@@ -17,7 +18,7 @@ T = TypeVar("T")
 
 
 class BaseRepository(Generic[T]):
-    """SQLAlchemy async リポジトリの共通操作."""
+    """Common operations for SQLAlchemy async repositories."""
 
     model_class: type[T]
 

@@ -1,8 +1,8 @@
-"""タスク実行中のユーザー入力リクエスト管理サービス.
+"""User input request management service during task execution.
 
-AIタスクが実行中に追加情報をユーザーに要求する場合に使用する。
-テキスト入力、ファイル添付、選択肢、確認ダイアログなど
-複数の入力タイプをサポートし、タイムアウトとキャンセルを管理する。
+Used when AI tasks require additional information from the user during execution.
+Supports multiple input types including text input, file attachments, choices,
+and confirmation dialogs, with timeout and cancellation management.
 """
 
 from __future__ import annotations
@@ -60,7 +60,7 @@ class UserInputService:
     """
 
     def __init__(self) -> None:
-        """サービスを初期化する."""
+        """Initialize the service."""
         self._requests: dict[str, InputRequest] = {}
 
     async def request_input(
@@ -258,6 +258,6 @@ class UserInputService:
 
 
 # ---------------------------------------------------------------------------
-# グローバルインスタンス
+# Global instance
 # ---------------------------------------------------------------------------
 user_input_service = UserInputService()

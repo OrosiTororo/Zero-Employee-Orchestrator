@@ -1,6 +1,6 @@
-"""組織自動構築 API エンドポイント.
+"""Organization auto-builder API endpoints.
 
-ヒアリングに基づいて部署・チーム・エージェントを自動生成する。
+Auto-generates departments, teams, and agents based on interview responses.
 """
 
 from fastapi import APIRouter, Depends
@@ -27,7 +27,7 @@ router = APIRouter()
 
 
 class OrgInterviewRequest(BaseModel):
-    """組織構築ヒアリングリクエスト."""
+    """Organization setup interview request."""
 
     business_description: str
     business_category: str = "other"
@@ -38,7 +38,7 @@ class OrgInterviewRequest(BaseModel):
 
 
 class OrgPreviewResponse(BaseModel):
-    """組織設計プレビュー."""
+    """Organization design preview."""
 
     departments: list[dict]
     secretary_agent: dict | None = None
@@ -48,7 +48,7 @@ class OrgPreviewResponse(BaseModel):
 
 
 class OrgGenerateRequest(BaseModel):
-    """組織生成実行リクエスト."""
+    """Organization generation execution request."""
 
     company_id: str
     interview: OrgInterviewRequest
@@ -56,7 +56,7 @@ class OrgGenerateRequest(BaseModel):
 
 
 class OrgGenerateResponse(BaseModel):
-    """組織生成結果."""
+    """Organization generation result."""
 
     departments: list[dict]
     teams: list[dict]
@@ -71,10 +71,10 @@ class OrgGenerateResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-# 認証不要: オンボーディング質問は公開
+# No auth required: onboarding questions are public
 @router.get("/interview/questions")
 async def get_interview_questions():
-    """組織構築ヒアリングの質問一覧を取得."""
+    """Get list of organization setup interview questions."""
     return {
         "questions": [
             {
@@ -190,7 +190,7 @@ async def get_interview_questions():
 
 @router.post("/preview", response_model=OrgPreviewResponse)
 async def preview_org_structure(req: OrgInterviewRequest, user: User = Depends(get_current_user)):
-    """ヒアリング回答から組織構成をプレビューする（DB保存なし）."""
+    """Preview organization structure from interview answers (no DB save)."""
     answers = OrgInterviewAnswer(
         business_description=req.business_description,
         business_category=req.business_category,
@@ -252,7 +252,7 @@ async def generate_org_structure(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """ヒアリング回答から組織構造を自動生成して DB に保存する."""
+    """Auto-generate organization structure from interview answers and save to DB."""
     answers = OrgInterviewAnswer(
         business_description=req.interview.business_description,
         business_category=req.interview.business_category,

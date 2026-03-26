@@ -1,13 +1,13 @@
-"""A2A Bidirectional Communication — エージェント間双方向通信ハブ.
+"""A2A Bidirectional Communication — Inter-agent bidirectional communication hub.
 
-親→子のサブエージェント指示だけでなく、ピア間の対等な通信・交渉・
-チャネルベースのブロードキャストを実現する。
+Supports not only parent-to-child sub-agent instructions, but also peer-to-peer
+communication, negotiation, and channel-based broadcasting.
 
-主な機能:
-  - ダイレクトメッセージ送受信
-  - 名前付きチャネルによるグループ通信
-  - メッセージスレッドの追跡
-  - エージェント間交渉プロトコル
+Key features:
+  - Direct message send/receive
+  - Group communication via named channels
+  - Message thread tracking
+  - Inter-agent negotiation protocol
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class MessagePriority(str, Enum):
-    """メッセージの優先度."""
+    """Message priority."""
 
     LOW = "low"
     NORMAL = "normal"
@@ -32,17 +32,17 @@ class MessagePriority(str, Enum):
 
 
 class MessageType(str, Enum):
-    """メッセージの種類."""
+    """Message type."""
 
-    REQUEST = "request"  # 要求
-    RESPONSE = "response"  # 応答
-    BROADCAST = "broadcast"  # 一斉送信
-    NOTIFICATION = "notification"  # 通知
-    NEGOTIATION = "negotiation"  # 交渉
+    REQUEST = "request"  # Request
+    RESPONSE = "response"  # Response
+    BROADCAST = "broadcast"  # Broadcast
+    NOTIFICATION = "notification"  # Notification
+    NEGOTIATION = "negotiation"  # Negotiation
 
 
 class NegotiationStatus(str, Enum):
-    """交渉の状態."""
+    """Negotiation status."""
 
     PROPOSED = "proposed"
     COUNTER_PROPOSED = "counter_proposed"
@@ -53,21 +53,21 @@ class NegotiationStatus(str, Enum):
 
 @dataclass
 class AgentMessage:
-    """エージェント間の 1 メッセージ."""
+    """A single message between agents."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     sender_id: str = ""
-    receiver_id: str = ""  # 空文字列はブロードキャスト
+    receiver_id: str = ""  # Empty string means broadcast
     message_type: MessageType = MessageType.NOTIFICATION
     priority: MessagePriority = MessagePriority.NORMAL
     content: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     read_at: datetime | None = None
-    reply_to: str | None = None  # 返信先メッセージ ID
+    reply_to: str | None = None  # Reply-to message ID
 
     def to_dict(self) -> dict[str, Any]:
-        """辞書表現を返す."""
+        """Return a dictionary representation."""
         return {
             "id": self.id,
             "sender_id": self.sender_id,
@@ -84,7 +84,7 @@ class AgentMessage:
 
 @dataclass
 class AgentMailbox:
-    """エージェントのメールボックス."""
+    """Agent mailbox."""
 
     agent_id: str = ""
     inbox: list[AgentMessage] = field(default_factory=list)
@@ -92,7 +92,7 @@ class AgentMailbox:
     unread_count: int = 0
 
     def to_dict(self) -> dict[str, Any]:
-        """辞書表現を返す."""
+        """Return a dictionary representation."""
         return {
             "agent_id": self.agent_id,
             "inbox_count": len(self.inbox),
@@ -103,7 +103,7 @@ class AgentMailbox:
 
 @dataclass
 class Negotiation:
-    """エージェント間交渉セッション."""
+    """Inter-agent negotiation session."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     topic: str = ""
@@ -115,7 +115,7 @@ class Negotiation:
     resolved_at: datetime | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        """辞書表現を返す."""
+        """Return a dictionary representation."""
         return {
             "id": self.id,
             "topic": self.topic,
@@ -136,10 +136,10 @@ _MAX_MAILBOX_SIZE = 2000
 
 
 class A2ACommunicationHub:
-    """エージェント間双方向通信ハブ.
+    """Inter-agent bidirectional communication hub.
 
-    各エージェントにメールボックスを割り当て、ダイレクトメッセージ・
-    チャネルブロードキャスト・交渉プロトコルを提供する。
+    Assigns a mailbox to each agent and provides direct messaging,
+    channel broadcasting, and negotiation protocol.
     """
 
     def __init__(self) -> None:
@@ -149,11 +149,11 @@ class A2ACommunicationHub:
         self._all_messages: list[AgentMessage] = []
 
     # ------------------------------------------------------------------
-    # エージェント登録
+    # Agent registration
     # ------------------------------------------------------------------
 
     def register_agent(self, agent_id: str) -> AgentMailbox:
-        """エージェントを登録しメールボックスを作成する."""
+        """Register an agent and create a mailbox."""
         if agent_id in self._mailboxes:
             logger.debug("Agent '%s' already registered", agent_id)
             return self._mailboxes[agent_id]
@@ -164,13 +164,13 @@ class A2ACommunicationHub:
         return mailbox
 
     def unregister_agent(self, agent_id: str) -> bool:
-        """エージェントを登録解除する."""
+        """Unregister an agent."""
         if agent_id not in self._mailboxes:
             return False
 
         del self._mailboxes[agent_id]
 
-        # チャネルからも除外
+        # Remove from channels as well
         for subscribers in self._channels.values():
             if agent_id in subscribers:
                 subscribers.remove(agent_id)
@@ -179,7 +179,7 @@ class A2ACommunicationHub:
         return True
 
     # ------------------------------------------------------------------
-    # メッセージ送受信
+    # Message send/receive
     # ------------------------------------------------------------------
 
     def send_message(
@@ -192,20 +192,20 @@ class A2ACommunicationHub:
         *,
         metadata: dict[str, Any] | None = None,
     ) -> AgentMessage:
-        """ダイレクトメッセージを送信する.
+        """Send a direct message.
 
         Args:
-            sender_id: 送信元エージェント ID。
-            receiver_id: 送信先エージェント ID。
-            content: メッセージ本文。
-            msg_type: メッセージ種別。
-            priority: 優先度。
-            metadata: 追加メタデータ。
+            sender_id: Sender agent ID.
+            receiver_id: Receiver agent ID.
+            content: Message body.
+            msg_type: Message type.
+            priority: Priority level.
+            metadata: Additional metadata.
 
         Returns:
-            送信されたメッセージ。
+            The sent message.
         """
-        # 未登録エージェントは自動登録
+        # Auto-register unregistered agents
         if sender_id not in self._mailboxes:
             self.register_agent(sender_id)
         if receiver_id not in self._mailboxes:
@@ -220,7 +220,7 @@ class A2ACommunicationHub:
             metadata=metadata or {},
         )
 
-        # メールボックスに配信
+        # Deliver to mailboxes
         sender_mb = self._mailboxes[sender_id]
         receiver_mb = self._mailboxes[receiver_id]
 
@@ -228,7 +228,7 @@ class A2ACommunicationHub:
         receiver_mb.inbox.append(msg)
         receiver_mb.unread_count += 1
 
-        # 容量制限
+        # Capacity limit
         self._trim_mailbox(sender_mb)
         self._trim_mailbox(receiver_mb)
 
@@ -251,16 +251,16 @@ class A2ACommunicationHub:
         *,
         metadata: dict[str, Any] | None = None,
     ) -> list[AgentMessage]:
-        """チャネルの全登録エージェントにブロードキャストする.
+        """Broadcast to all subscribed agents in a channel.
 
         Args:
-            sender_id: 送信元エージェント ID。
-            channel: チャネル名。
-            content: メッセージ本文。
-            metadata: 追加メタデータ。
+            sender_id: Sender agent ID.
+            channel: Channel name.
+            content: Message body.
+            metadata: Additional metadata.
 
         Returns:
-            送信されたメッセージのリスト。
+            List of sent messages.
         """
         subscribers = self._channels.get(channel, [])
         if not subscribers:
@@ -270,7 +270,7 @@ class A2ACommunicationHub:
         messages: list[AgentMessage] = []
         for subscriber_id in subscribers:
             if subscriber_id == sender_id:
-                continue  # 自分自身には送らない
+                continue  # Don't send to self
             msg = self.send_message(
                 sender_id=sender_id,
                 receiver_id=subscriber_id,
@@ -294,14 +294,14 @@ class A2ACommunicationHub:
         agent_id: str,
         unread_only: bool = False,
     ) -> list[AgentMessage]:
-        """エージェントの受信メッセージを取得する.
+        """Retrieve received messages for an agent.
 
         Args:
-            agent_id: エージェント ID。
-            unread_only: True の場合、未読メッセージのみ返す。
+            agent_id: Agent ID.
+            unread_only: If True, return only unread messages.
 
         Returns:
-            メッセージのリスト。
+            List of messages.
         """
         mailbox = self._mailboxes.get(agent_id)
         if not mailbox:
@@ -312,7 +312,7 @@ class A2ACommunicationHub:
         else:
             messages = list(mailbox.inbox)
 
-        # 既読にマーク
+        # Mark as read
         now = datetime.now(UTC)
         for msg in messages:
             if msg.read_at is None:
@@ -330,17 +330,17 @@ class A2ACommunicationHub:
         original_msg_id: str,
         content: str,
     ) -> AgentMessage | None:
-        """メッセージに返信する.
+        """Reply to a message.
 
         Args:
-            agent_id: 返信者のエージェント ID。
-            original_msg_id: 返信先メッセージ ID。
-            content: 返信内容。
+            agent_id: Replier's agent ID.
+            original_msg_id: Original message ID to reply to.
+            content: Reply content.
 
         Returns:
-            返信メッセージ。元メッセージが見つからない場合は None。
+            The reply message. None if the original message is not found.
         """
-        # 元メッセージを検索
+        # Search for the original message
         original: AgentMessage | None = None
         for msg in self._all_messages:
             if msg.id == original_msg_id:
@@ -363,18 +363,18 @@ class A2ACommunicationHub:
         return reply_msg
 
     # ------------------------------------------------------------------
-    # チャネル管理
+    # Channel management
     # ------------------------------------------------------------------
 
     def create_channel(self, name: str, creator_id: str) -> bool:
-        """名前付きチャネルを作成する.
+        """Create a named channel.
 
         Args:
-            name: チャネル名。
-            creator_id: 作成者エージェント ID（自動購読される）。
+            name: Channel name.
+            creator_id: Creator agent ID (auto-subscribed).
 
         Returns:
-            作成成功なら True、既に存在する場合は False。
+            True if created successfully, False if already exists.
         """
         if name in self._channels:
             logger.debug("A2A: channel '%s' already exists", name)
@@ -388,14 +388,14 @@ class A2ACommunicationHub:
         return True
 
     def join_channel(self, channel: str, agent_id: str) -> bool:
-        """チャネルに参加する."""
+        """Join a channel."""
         if channel not in self._channels:
             logger.warning("A2A: channel '%s' does not exist", channel)
             return False
 
         subscribers = self._channels[channel]
         if agent_id in subscribers:
-            return True  # 既に参加済み
+            return True  # Already joined
 
         subscribers.append(agent_id)
         if agent_id not in self._mailboxes:
@@ -405,7 +405,7 @@ class A2ACommunicationHub:
         return True
 
     def leave_channel(self, channel: str, agent_id: str) -> bool:
-        """チャネルから離脱する."""
+        """Leave a channel."""
         if channel not in self._channels:
             return False
 
@@ -418,7 +418,7 @@ class A2ACommunicationHub:
         return True
 
     # ------------------------------------------------------------------
-    # 交渉プロトコル
+    # Negotiation protocol
     # ------------------------------------------------------------------
 
     def negotiate(
@@ -427,15 +427,15 @@ class A2ACommunicationHub:
         topic: str,
         initial_proposal: str,
     ) -> Negotiation:
-        """エージェント間の交渉セッションを開始する.
+        """Start a negotiation session between agents.
 
         Args:
-            agent_ids: 交渉参加エージェント ID のリスト。
-            topic: 交渉テーマ。
-            initial_proposal: 初期提案。
+            agent_ids: List of participating agent IDs.
+            topic: Negotiation topic.
+            initial_proposal: Initial proposal.
 
         Returns:
-            作成された交渉セッション。
+            The created negotiation session.
         """
         negotiation = Negotiation(
             topic=topic,
@@ -451,7 +451,7 @@ class A2ACommunicationHub:
         )
         self._negotiations[negotiation.id] = negotiation
 
-        # 参加者全員に交渉開始を通知
+        # Notify all participants of negotiation start
         initiator = agent_ids[0] if agent_ids else "system"
         for agent_id in agent_ids:
             if agent_id not in self._mailboxes:
@@ -460,7 +460,7 @@ class A2ACommunicationHub:
                 self.send_message(
                     sender_id=initiator,
                     receiver_id=agent_id,
-                    content=f"交渉開始: {topic} — 提案: {initial_proposal}",
+                    content=f"Negotiation started: {topic} — Proposal: {initial_proposal}",
                     msg_type=MessageType.NEGOTIATION,
                     priority=MessagePriority.HIGH,
                     metadata={
@@ -482,7 +482,7 @@ class A2ACommunicationHub:
         agent_id: str,
         proposal: str,
     ) -> bool:
-        """交渉に対案を提出する."""
+        """Submit a counter-proposal for a negotiation."""
         neg = self._negotiations.get(negotiation_id)
         if not neg or agent_id not in neg.participants:
             return False
@@ -496,13 +496,13 @@ class A2ACommunicationHub:
         )
         neg.status = NegotiationStatus.COUNTER_PROPOSED
 
-        # 他の参加者に通知
+        # Notify other participants
         for pid in neg.participants:
             if pid != agent_id:
                 self.send_message(
                     sender_id=agent_id,
                     receiver_id=pid,
-                    content=f"対案: {proposal}",
+                    content=f"Counter-proposal: {proposal}",
                     msg_type=MessageType.NEGOTIATION,
                     priority=MessagePriority.HIGH,
                     metadata={
@@ -517,7 +517,7 @@ class A2ACommunicationHub:
         negotiation_id: str,
         accepted: bool,
     ) -> bool:
-        """交渉を解決する."""
+        """Resolve a negotiation."""
         neg = self._negotiations.get(negotiation_id)
         if not neg:
             return False
@@ -527,15 +527,15 @@ class A2ACommunicationHub:
         return True
 
     # ------------------------------------------------------------------
-    # スレッド追跡
+    # Thread tracking
     # ------------------------------------------------------------------
 
     def get_conversation_thread(self, message_id: str) -> list[AgentMessage]:
-        """メッセージ ID を起点とした会話スレッドを取得する.
+        """Retrieve a conversation thread starting from a message ID.
 
-        指定メッセージとそのすべての返信チェーンを時系列で返す。
+        Returns the specified message and all its reply chains in chronological order.
         """
-        # ルートメッセージを探索
+        # Find root message
         root_id = message_id
         visited: set[str] = set()
         while True:
@@ -551,7 +551,7 @@ class A2ACommunicationHub:
                 break
             root_id = parent
 
-        # ルートから全子孫を収集
+        # Collect all descendants from root
         thread: list[AgentMessage] = []
         queue = [root_id]
         seen: set[str] = set()
@@ -568,43 +568,43 @@ class A2ACommunicationHub:
                 if msg.reply_to == current_id and msg.id not in seen:
                     queue.append(msg.id)
 
-        # 時系列ソート
+        # Sort chronologically
         thread.sort(key=lambda m: m.created_at)
         return thread
 
     # ------------------------------------------------------------------
-    # ユーティリティ
+    # Utilities
     # ------------------------------------------------------------------
 
     def _trim_mailbox(self, mailbox: AgentMailbox) -> None:
-        """メールボックスの容量制限を適用する."""
+        """Apply mailbox capacity limits."""
         if len(mailbox.inbox) > _MAX_MAILBOX_SIZE:
             mailbox.inbox = mailbox.inbox[-_MAX_MAILBOX_SIZE:]
         if len(mailbox.outbox) > _MAX_MAILBOX_SIZE:
             mailbox.outbox = mailbox.outbox[-_MAX_MAILBOX_SIZE:]
 
     def get_mailbox(self, agent_id: str) -> AgentMailbox | None:
-        """エージェントのメールボックスを取得する."""
+        """Get an agent's mailbox."""
         return self._mailboxes.get(agent_id)
 
     def list_channels(self) -> dict[str, int]:
-        """全チャネルと購読者数を返す."""
+        """Return all channels and their subscriber counts."""
         return {name: len(subs) for name, subs in self._channels.items()}
 
     def get_negotiation(self, negotiation_id: str) -> Negotiation | None:
-        """交渉セッションを取得する."""
+        """Get a negotiation session."""
         return self._negotiations.get(negotiation_id)
 
     @property
     def total_agents(self) -> int:
-        """登録エージェント数."""
+        """Number of registered agents."""
         return len(self._mailboxes)
 
     @property
     def total_messages(self) -> int:
-        """総メッセージ数."""
+        """Total number of messages."""
         return len(self._all_messages)
 
 
-# グローバルインスタンス
+# Global instance
 a2a_hub = A2ACommunicationHub()

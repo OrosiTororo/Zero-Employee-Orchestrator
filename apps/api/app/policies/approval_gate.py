@@ -1,18 +1,18 @@
-"""承認ゲート — 危険操作の自動検出と承認要求.
+"""Approval gate -- Auto-detection of dangerous operations and approval requests.
 
-Zero-Employee Orchestrator.md §12.3, §36.6 に基づき、以下の操作は
-人間承認を必須とする:
-- 外部送信 / 投稿 / 公開
-- 削除 / 課金
+Based on Zero-Employee Orchestrator.md sections 12.3 and 36.6,
+the following operations require human approval:
+- External sends / posts / publishing
+- Deletion / billing
 - Git push / release
-- 重要ファイルの上書き
-- 権限変更
-- API キー関連処理
-- 外部認証情報の更新反映
-- 新規 Agent / Team の作成
-- 予算上限変更
-- Policy Pack の変更
-- 自律実行範囲の拡張
+- Overwriting important files
+- Permission changes
+- API key-related operations
+- External credential update propagation
+- Creating new Agents / Teams
+- Budget limit changes
+- Policy Pack changes
+- Expanding autonomy boundaries
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ from enum import Enum
 
 
 class ApprovalCategory(str, Enum):
-    """承認が必要な操作のカテゴリ."""
+    """Category of operations requiring approval."""
 
     EXTERNAL_SEND = "external_send"
     PUBLISH = "publish"
@@ -47,7 +47,7 @@ class RiskLevel(str, Enum):
 
 @dataclass
 class ApprovalGateResult:
-    """承認ゲート判定結果."""
+    """Approval gate check result."""
 
     requires_approval: bool
     category: ApprovalCategory | None = None
@@ -56,7 +56,7 @@ class ApprovalGateResult:
     suggested_approver: str | None = None  # user_id or role
 
 
-# 操作名 → カテゴリ + リスクレベル のマッピング
+# Operation name -> category + risk level mapping
 _DANGEROUS_OPERATIONS: dict[str, tuple[ApprovalCategory, RiskLevel]] = {
     "send_email": (ApprovalCategory.EXTERNAL_SEND, RiskLevel.HIGH),
     "post_sns": (ApprovalCategory.PUBLISH, RiskLevel.HIGH),
@@ -79,7 +79,7 @@ _DANGEROUS_OPERATIONS: dict[str, tuple[ApprovalCategory, RiskLevel]] = {
 
 
 def check_approval_required(operation: str) -> ApprovalGateResult:
-    """操作が人間承認を必要とするか判定する."""
+    """Determine whether an operation requires human approval."""
     entry = _DANGEROUS_OPERATIONS.get(operation)
     if entry is None:
         return ApprovalGateResult(requires_approval=False)
@@ -89,17 +89,17 @@ def check_approval_required(operation: str) -> ApprovalGateResult:
         requires_approval=True,
         category=category,
         risk_level=risk_level,
-        reason=f"操作 '{operation}' は {category.value} カテゴリに該当し、人間承認が必要です",
+        reason=f"Operation '{operation}' falls under the {category.value} category and requires human approval",
     )
 
 
 def check_operations_batch(operations: list[str]) -> list[ApprovalGateResult]:
-    """複数操作の承認要否を一括判定する."""
+    """Batch check whether multiple operations require approval."""
     return [check_approval_required(op) for op in operations]
 
 
 def get_highest_risk(results: list[ApprovalGateResult]) -> RiskLevel:
-    """複数の判定結果から最も高いリスクレベルを返す."""
+    """Return the highest risk level from multiple check results."""
     risk_order = [RiskLevel.LOW, RiskLevel.MEDIUM, RiskLevel.HIGH, RiskLevel.CRITICAL]
     max_idx = 0
     for r in results:

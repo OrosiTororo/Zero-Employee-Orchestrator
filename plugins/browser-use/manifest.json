@@ -3,9 +3,7 @@
   "slug": "browser-use",
   "version": "0.1.0",
   "display_name": "Browser Use - LLM Autonomous Browser Control",
-  "display_name_ja": "Browser Use - LLM自律ブラウザ操作",
   "description": "Integrates the browser-use library for LLM-driven autonomous web browsing. The AI agent sees screenshots and DOM structure, then decides and executes clicks, typing, scrolling — just like a human. Includes loop detection and automatic replanning.",
-  "description_ja": "browser-use ライブラリを統合し、LLM 駆動の自律的ウェブブラウジングを実現。AI エージェントがスクリーンショットと DOM 構造を「見て」判断し、クリック・入力・スクロールを実行。ループ検出・自動リプランニング機能付き。",
   "type": "plugin",
   "category": "browser-automation",
   "status": "experimental",
@@ -52,10 +50,10 @@
     "screenshot_interval_ms": 1000
   },
   "use_cases": [
-    "自然言語でのウェブ操作自動化",
-    "ウェブリサーチの自動化",
-    "フォーム入力・申請の自動化",
-    "データ収集・スクレイピング",
-    "ウェブアプリのテスト自動化"
+    "Natural language web operation automation",
+    "Automated web research",
+    "Form filling and application automation",
+    "Data collection and scraping",
+    "Web application test automation"
   ]
 }

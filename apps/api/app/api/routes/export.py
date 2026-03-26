@@ -1,7 +1,7 @@
-"""アーティファクトエクスポート API エンドポイント.
+"""Artifact export API endpoints.
 
-成果物を PDF / Markdown / HTML / JSON / CSV / DOCX 形式でエクスポートし、
-ローカルまたは外部サービスへ送信する API。
+API for exporting artifacts in PDF / Markdown / HTML / JSON / CSV / DOCX format
+and sending them to local or external services.
 """
 
 from __future__ import annotations
@@ -27,12 +27,12 @@ router = APIRouter(prefix="/export", tags=["export"])
 
 
 # ------------------------------------------------------------------ #
-#  リクエスト / レスポンス スキーマ
+#  Request / Response schemas
 # ------------------------------------------------------------------ #
 
 
 class ArtifactExportRequest(BaseModel):
-    """アーティファクトエクスポートリクエスト."""
+    """Artifact export request."""
 
     content: str | list[dict[str, Any]]
     format: str
@@ -42,7 +42,7 @@ class ArtifactExportRequest(BaseModel):
 
 
 # ------------------------------------------------------------------ #
-#  エンドポイント
+#  Endpoints
 # ------------------------------------------------------------------ #
 
 
@@ -50,7 +50,7 @@ class ArtifactExportRequest(BaseModel):
 async def export_artifact(
     req: ArtifactExportRequest, user: User = Depends(get_current_user)
 ) -> dict:
-    """アーティファクトをエクスポートする."""
+    """Export an artifact."""
     try:
         export_format = ExportFormat(req.format)
     except ValueError:
@@ -92,11 +92,11 @@ async def export_artifact(
 
 @router.get("/formats")
 async def list_formats(user: User = Depends(get_current_user)) -> dict:
-    """サポートするエクスポートフォーマット一覧を返す."""
+    """Return list of supported export formats."""
     return {"formats": artifact_exporter.get_supported_formats()}
 
 
 @router.get("/targets")
 async def list_targets(user: User = Depends(get_current_user)) -> dict:
-    """サポートするエクスポート先一覧を返す."""
+    """Return list of supported export targets."""
     return {"targets": artifact_exporter.get_supported_targets()}

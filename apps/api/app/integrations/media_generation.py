@@ -1,23 +1,23 @@
-"""メディア生成統合 — 画像・動画・音声・3D の生成ツール連携.
+"""Media generation integration — image, video, audio, and 3D generation tool orchestration.
 
-外部 API を利用した画像生成、動画生成、音声生成、3Dモデル生成を統合する。
-すべての生成はデータ保護ポリシーと承認ゲートを経由する。
+Integrates image, video, audio, and 3D model generation using external APIs.
+All generation goes through data protection policies and approval gates.
 
-ビルトイン対応サービス:
-- 画像生成: OpenAI DALL-E, Stability AI (Stable Diffusion), Replicate
-- 動画生成: Runway ML, Replicate (SVD/AnimateDiff), Pika
-- 音声生成: OpenAI TTS, ElevenLabs
-- 音楽生成: Suno, Udio
+Built-in services:
+- Image generation: OpenAI DALL-E, Stability AI (Stable Diffusion), Replicate
+- Video generation: Runway ML, Replicate (SVD/AnimateDiff), Pika
+- Audio generation: OpenAI TTS, ElevenLabs
+- Music generation: Suno, Udio
 
-動的プロバイダー登録:
-- ユーザーが API 経由で新規プロバイダーを追加可能（3D ツール等）
-- ビルトインプロバイダーは削除・無効化不可
+Dynamic provider registration:
+- Users can add new providers via API (3D tools, etc.)
+- Built-in providers cannot be deleted or disabled
 
-安全性:
-- プロンプトインジェクション検査（生成プロンプトにも適用）
-- 承認ゲート: 外部 API 呼び出しは承認必須
-- データ保護ポリシーに従った転送制御
-- 生成結果の監査ログ記録
+Safety:
+- Prompt injection inspection (applied to generation prompts too)
+- Approval gate: external API calls require approval
+- Transfer control following data protection policies
+- Generation results recorded in audit logs
 """
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class MediaType(str, Enum):
-    """メディアタイプ."""
+    """Media type."""
 
     IMAGE = "image"
     VIDEO = "video"
@@ -42,29 +42,29 @@ class MediaType(str, Enum):
 
 
 class GenerationProvider(str, Enum):
-    """ビルトイン生成プロバイダー（後方互換用）."""
+    """Built-in generation provider (for backward compatibility)."""
 
-    # 画像
+    # Image
     OPENAI_DALLE = "openai_dalle"
     STABILITY_AI = "stability_ai"
     REPLICATE_IMAGE = "replicate_image"
 
-    # 動画
+    # Video
     RUNWAY_ML = "runway_ml"
     REPLICATE_VIDEO = "replicate_video"
     PIKA = "pika"
 
-    # 音声
+    # Audio
     OPENAI_TTS = "openai_tts"
     ELEVENLABS = "elevenlabs"
 
-    # 音楽
+    # Music
     SUNO = "suno"
     UDIO = "udio"
 
 
 class GenerationStatus(str, Enum):
-    """生成ステータス."""
+    """Generation status."""
 
     PENDING = "pending"
     PROCESSING = "processing"
@@ -76,7 +76,7 @@ class GenerationStatus(str, Enum):
 
 @dataclass
 class MediaProviderEntry:
-    """メディアプロバイダー登録エントリ."""
+    """Media provider registry entry."""
 
     id: str
     media_type: str  # MediaType value (image, video, audio, music, 3d)
@@ -105,10 +105,10 @@ class MediaProviderEntry:
 
 
 class MediaProviderRegistry:
-    """メディアプロバイダーの動的レジストリ.
+    """Dynamic media provider registry.
 
-    ビルトインプロバイダーは初期化時に登録され、削除不可。
-    ユーザーは API 経由で新規プロバイダーを追加・削除できる。
+    Built-in providers are registered at initialization and cannot be deleted.
+    Users can add and remove new providers via API.
     """
 
     def __init__(self) -> None:
@@ -116,7 +116,7 @@ class MediaProviderRegistry:
         self._init_builtin_providers()
 
     def _init_builtin_providers(self) -> None:
-        """ビルトインプロバイダーを登録."""
+        """Register built-in providers."""
         builtins = [
             MediaProviderEntry(
                 id="openai_dalle",
@@ -239,7 +239,7 @@ class MediaProviderRegistry:
             self._providers[entry.id] = entry
 
     def register(self, entry: MediaProviderEntry) -> None:
-        """プロバイダーを登録（既存のユーザー定義プロバイダーは上書き）."""
+        """Register a provider (overwrites existing user-defined providers)."""
         existing = self._providers.get(entry.id)
         if existing and existing.builtin:
             raise ValueError(f"Cannot overwrite builtin provider: {entry.id}")
@@ -247,7 +247,7 @@ class MediaProviderRegistry:
         logger.info("Media provider registered: %s (type=%s)", entry.id, entry.media_type)
 
     def unregister(self, provider_id: str) -> bool:
-        """プロバイダーを削除（ビルトインは削除不可）."""
+        """Remove a provider (built-in providers cannot be removed)."""
         entry = self._providers.get(provider_id)
         if not entry:
             return False
@@ -258,18 +258,18 @@ class MediaProviderRegistry:
         return True
 
     def get(self, provider_id: str) -> MediaProviderEntry | None:
-        """プロバイダーを取得."""
+        """Get a provider."""
         return self._providers.get(provider_id)
 
     def list_all(self, media_type: str | None = None) -> list[MediaProviderEntry]:
-        """全プロバイダーを返す（オプションでメディアタイプでフィルタ）."""
+        """Return all providers (optionally filtered by media type)."""
         entries = list(self._providers.values())
         if media_type:
             entries = [e for e in entries if e.media_type == media_type]
         return entries
 
     def get_available(self, media_type: str | None = None) -> list[dict]:
-        """利用可能なプロバイダー一覧（API キー設定済みかどうかを含む）."""
+        """List of available providers (including whether API key is configured)."""
         import os
 
         result = []
@@ -289,13 +289,13 @@ class MediaProviderRegistry:
         return result
 
 
-# グローバルレジストリインスタンス
+# Global registry instance
 media_provider_registry = MediaProviderRegistry()
 
 
 @dataclass
 class GenerationRequest:
-    """メディア生成リクエスト."""
+    """Media generation request."""
 
     prompt: str
     media_type: str  # MediaType value (string)
@@ -308,7 +308,7 @@ class GenerationRequest:
 
 @dataclass
 class GenerationResult:
-    """メディア生成結果."""
+    """Media generation result."""
 
     request_id: str
     status: GenerationStatus
@@ -323,10 +323,10 @@ class GenerationResult:
 
 
 class MediaGenerationService:
-    """メディア生成サービス.
+    """Media generation service.
 
-    画像・動画・音声・3D の生成を統合管理する。
-    動的プロバイダーレジストリを使用して、ユーザー登録プロバイダーにも対応。
+    Manages image, video, audio, and 3D generation in a unified way.
+    Uses dynamic provider registry to also support user-registered providers.
     """
 
     def __init__(self, registry: MediaProviderRegistry | None = None) -> None:
@@ -334,25 +334,25 @@ class MediaGenerationService:
         self._results: dict[str, GenerationResult] = {}
 
     def get_available_providers(self) -> list[dict]:
-        """利用可能なプロバイダー一覧を返す."""
+        """Return a list of available providers."""
         return self._registry.get_available()
 
     def get_providers_by_type(self, media_type: str) -> list[dict]:
-        """メディアタイプ別のプロバイダーを返す."""
+        """Return providers by media type."""
         return self._registry.get_available(media_type)
 
     async def generate(self, request: GenerationRequest) -> GenerationResult:
-        """メディアを生成する.
+        """Generate media.
 
-        安全性チェック:
-        1. プロンプトインジェクション検査
-        2. データ保護ポリシーチェック
-        3. 承認ゲートチェック
-        4. コスト見積もり確認
+        Safety checks:
+        1. Prompt injection inspection
+        2. Data protection policy check
+        3. Approval gate check
+        4. Cost estimate verification
         """
         request_id = str(uuid.uuid4())
 
-        # プロバイダー解決
+        # Resolve provider
         entry = self._registry.get(request.provider)
         if not entry:
             return GenerationResult(
@@ -364,7 +364,7 @@ class MediaGenerationService:
                 created_at=datetime.now(UTC).isoformat(),
             )
 
-        # プロンプトインジェクション検査
+        # Prompt injection inspection
         from app.security.prompt_guard import scan_prompt_injection
 
         guard_result = scan_prompt_injection(request.prompt)
@@ -378,7 +378,7 @@ class MediaGenerationService:
                 created_at=datetime.now(UTC).isoformat(),
             )
 
-        # データ保護チェック
+        # Data protection check
         from app.security.data_protection import data_protection_guard
 
         api_base = entry.api_base
@@ -397,7 +397,7 @@ class MediaGenerationService:
                     created_at=datetime.now(UTC).isoformat(),
                 )
 
-        # 承認チェック
+        # Approval check
         from app.policies.approval_gate import check_approval_required
 
         approval = check_approval_required("external_api_write")
@@ -417,7 +417,7 @@ class MediaGenerationService:
             self._results[request_id] = result
             return result
 
-        # 実際の生成（外部 API 呼び出し）
+        # Actual generation (external API call)
         try:
             result = await self._execute_generation(request_id, request, entry)
             self._results[request_id] = result
@@ -441,7 +441,7 @@ class MediaGenerationService:
         request: GenerationRequest,
         entry: MediaProviderEntry,
     ) -> GenerationResult:
-        """外部 API を呼び出してメディアを生成する."""
+        """Call external API to generate media."""
         import os
 
         api_key = os.environ.get(entry.env_key)
@@ -471,7 +471,7 @@ class MediaGenerationService:
         api_base = entry.api_base
         model = request.parameters.get("model", entry.default_model)
 
-        # プロバイダー別のリクエスト構築
+        # Build request per provider
         headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
         body: dict = {}
 
@@ -500,7 +500,7 @@ class MediaGenerationService:
                 },
             }
         else:
-            # Generic request — ビルトイン以外のプロバイダーもこのパスを通る
+            # Generic request — non-builtin providers also go through this path
             body = {
                 "model": model,
                 "prompt": request.prompt,
@@ -512,7 +512,7 @@ class MediaGenerationService:
             response.raise_for_status()
             data = response.json()
 
-        # レスポンス解析
+        # Response parsing
         output_url = ""
         output_base64 = ""
 
@@ -551,9 +551,9 @@ class MediaGenerationService:
         )
 
     def get_result(self, request_id: str) -> GenerationResult | None:
-        """生成結果を取得する."""
+        """Get generation result."""
         return self._results.get(request_id)
 
 
-# グローバルインスタンス
+# Global instance
 media_generation_service = MediaGenerationService()

@@ -9,9 +9,9 @@ from app.core.database import Base, TimestampMixin
 
 
 class Skill(Base, TimestampMixin):
-    """Skill — 単一目的の AI 実行能力ユニット.
+    """Skill -- A single-purpose AI execution capability unit.
 
-    is_system_protected=True の Skill はシステム動作に必須であり削除不可。
+    Skills with is_system_protected=True are essential for system operation and cannot be deleted.
     """
 
     __tablename__ = "skills"
@@ -36,7 +36,7 @@ class Skill(Base, TimestampMixin):
 
 
 class Plugin(Base, TimestampMixin):
-    """Plugin — 複数 Skill をまとめたビジネス機能パッケージ."""
+    """Plugin -- A business feature package that bundles multiple Skills."""
 
     __tablename__ = "plugins"
 
@@ -55,7 +55,7 @@ class Plugin(Base, TimestampMixin):
 
 
 class Extension(Base, TimestampMixin):
-    """Extension — アプリ環境・UI・接続の拡張."""
+    """Extension -- App environment, UI, and connectivity extensions."""
 
     __tablename__ = "extensions"
 

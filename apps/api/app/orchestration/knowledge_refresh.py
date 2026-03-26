@@ -1,16 +1,16 @@
-"""Knowledge Refresh — コンテキストウィンドウ制限への対応.
+"""Knowledge Refresh — Addressing context window limitations.
 
-Zero-Employee Orchestrator.md §5, §11.4.2 に基づき、コンテキストウィンドウの
-制限に対応するため、履歴管理機構と必要情報の再取得機構を設ける。
+Based on Zero-Employee Orchestrator.md sections 5 and 11.4.2, provides history
+management and information re-retrieval mechanisms to handle context window limits.
 
-Knowledge Pipeline の段階:
-1. 取得
-2. 抽出
-3. 分割
-4. インデックス化
-5. 検索
-6. 引用・要約
-7. 検証済み知識への昇格または却下
+Knowledge Pipeline stages:
+1. Retrieval
+2. Extraction
+3. Splitting
+4. Indexing
+5. Search
+6. Citation / Summarization
+7. Promotion to verified knowledge or rejection
 """
 
 from __future__ import annotations
@@ -21,33 +21,33 @@ from enum import Enum
 
 
 class KnowledgeStatus(str, Enum):
-    """知識のステータス."""
+    """Knowledge status."""
 
-    RAW = "raw"  # 未処理
-    EXTRACTED = "extracted"  # 抽出済み
-    INDEXED = "indexed"  # インデックス済み
-    VERIFIED = "verified"  # 検証済み
-    EXPERIMENTAL = "experimental"  # 実験的
-    REJECTED = "rejected"  # 却下
+    RAW = "raw"  # Unprocessed
+    EXTRACTED = "extracted"  # Extracted
+    INDEXED = "indexed"  # Indexed
+    VERIFIED = "verified"  # Verified
+    EXPERIMENTAL = "experimental"  # Experimental
+    REJECTED = "rejected"  # Rejected
 
 
 class KnowledgeType(str, Enum):
-    """知識の種類（§8.0.1, §8.5）."""
+    """Knowledge type (sections 8.0.1, 8.5)."""
 
-    CONVERSATION_LOG = "conversation_log"  # 会話履歴
-    REUSABLE_IMPROVEMENT = "reusable_improvement"  # 再利用可能な改善知識
-    EXPERIMENTAL = "experimental_knowledge"  # 実験的知識
-    VERIFIED = "verified_knowledge"  # 検証済み知識
-    EXPERIENCE_MEMORY = "experience_memory"  # 成功パターン
-    FAILURE_TAXONOMY = "failure_taxonomy"  # 失敗分類
-    POLICY_MEMORY = "policy_memory"  # 承認条件・禁止事項
-    SKILL_IMPROVEMENT = "skill_improvement"  # Skill 改善知識
-    PLUGIN_OPERATION = "plugin_operation"  # Plugin 運用ノウハウ
+    CONVERSATION_LOG = "conversation_log"  # Conversation history
+    REUSABLE_IMPROVEMENT = "reusable_improvement"  # Reusable improvement knowledge
+    EXPERIMENTAL = "experimental_knowledge"  # Experimental knowledge
+    VERIFIED = "verified_knowledge"  # Verified knowledge
+    EXPERIENCE_MEMORY = "experience_memory"  # Success patterns
+    FAILURE_TAXONOMY = "failure_taxonomy"  # Failure classification
+    POLICY_MEMORY = "policy_memory"  # Approval conditions / prohibitions
+    SKILL_IMPROVEMENT = "skill_improvement"  # Skill improvement knowledge
+    PLUGIN_OPERATION = "plugin_operation"  # Plugin operational know-how
 
 
 @dataclass
 class KnowledgeEntry:
-    """知識エントリ."""
+    """Knowledge entry."""
 
     id: str
     title: str
@@ -64,7 +64,7 @@ class KnowledgeEntry:
 
 @dataclass
 class KnowledgeRefreshResult:
-    """Knowledge Refresh の結果."""
+    """Knowledge Refresh result."""
 
     context_entries: list[KnowledgeEntry]
     total_tokens_estimated: int
@@ -73,14 +73,14 @@ class KnowledgeRefreshResult:
 
 
 class KnowledgeStore:
-    """知識の保存と検索.
+    """Knowledge storage and search.
 
-    改善知識を用途ごとに分離して保存する（§8.5）:
-    - Experience Memory: 成功した実行パターン
-    - Failure Taxonomy: 失敗分類、再発防止策
-    - Policy Memory: 承認条件、禁止事項
-    - Skill Improvement Memory: Skill 改善知識
-    - Plugin Operation Memory: 業務運用ノウハウ
+    Stores improvement knowledge separated by purpose (section 8.5):
+    - Experience Memory: Successful execution patterns
+    - Failure Taxonomy: Failure classification, recurrence prevention
+    - Policy Memory: Approval conditions, prohibitions
+    - Skill Improvement Memory: Skill improvement knowledge
+    - Plugin Operation Memory: Operational know-how
     """
 
     def __init__(self) -> None:
@@ -97,7 +97,7 @@ class KnowledgeStore:
         status: KnowledgeStatus | None = None,
         limit: int = 10,
     ) -> list[KnowledgeEntry]:
-        """知識を検索する."""
+        """Search knowledge."""
         results = []
         query_lower = query.lower()
         for entry in self._entries:
@@ -112,7 +112,7 @@ class KnowledgeStore:
         return results
 
     def promote_to_verified(self, entry_id: str, approved_by: str) -> bool:
-        """知識を検証済みに昇格する."""
+        """Promote knowledge to verified status."""
         for entry in self._entries:
             if entry.id == entry_id:
                 entry.status = KnowledgeStatus.VERIFIED
@@ -122,7 +122,7 @@ class KnowledgeStore:
         return False
 
     def reject(self, entry_id: str, reason: str = "") -> bool:
-        """知識を却下する."""
+        """Reject knowledge."""
         for entry in self._entries:
             if entry.id == entry_id:
                 entry.status = KnowledgeStatus.REJECTED
@@ -139,9 +139,9 @@ def refresh_context(
     task_context: str,
     max_tokens: int = 8000,
 ) -> KnowledgeRefreshResult:
-    """タスク実行に必要な知識をリフレッシュする.
+    """Refresh knowledge needed for task execution.
 
-    コンテキストウィンドウの制限に対応し、関連する知識のみを取得する。
+    Handles context window limitations by retrieving only relevant knowledge.
     """
     relevant = store.search(task_context, status=KnowledgeStatus.VERIFIED, limit=20)
 
@@ -150,7 +150,7 @@ def refresh_context(
     truncated = False
 
     for entry in relevant:
-        estimated = len(entry.content) // 4  # 簡易トークン推定
+        estimated = len(entry.content) // 4  # Simple token estimation
         if total_tokens + estimated > max_tokens:
             truncated = True
             break
@@ -161,9 +161,9 @@ def refresh_context(
         context_entries=selected,
         total_tokens_estimated=total_tokens,
         truncated=truncated,
-        summary=f"{len(selected)} 件の関連知識を取得 (推定 {total_tokens} トークン)",
+        summary=f"Retrieved {len(selected)} relevant knowledge entries (estimated {total_tokens} tokens)",
     )
 
 
-# グローバルインスタンス
+# Global instance
 knowledge_store = KnowledgeStore()

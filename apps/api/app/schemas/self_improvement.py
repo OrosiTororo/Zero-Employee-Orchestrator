@@ -1,6 +1,6 @@
-"""AI Self-Improvement API スキーマ — Level 2: 自己改善の芽.
+"""AI Self-Improvement API schemas -- Level 2: Seeds of self-improvement.
 
-Skill 分析・改善・Judge 調整・失敗学習・A/Bテスト・テスト自動生成の DTO。
+DTOs for Skill analysis, improvement, Judge tuning, failure learning, A/B testing, and auto test generation.
 """
 
 from __future__ import annotations
@@ -15,13 +15,13 @@ from pydantic import BaseModel, Field
 
 
 class SkillAnalysisRequest(BaseModel):
-    """Skill 分析リクエスト."""
+    """Skill analysis request."""
 
-    skill_id: str = Field(..., description="分析対象のスキルID")
+    skill_id: str = Field(..., description="ID of the skill to analyze")
 
 
 class AnalysisFindingResponse(BaseModel):
-    """分析結果の個別項目."""
+    """Individual analysis finding."""
 
     category: str
     priority: str
@@ -31,7 +31,7 @@ class AnalysisFindingResponse(BaseModel):
 
 
 class SkillAnalysisResponse(BaseModel):
-    """Skill 分析結果."""
+    """Skill analysis result."""
 
     skill_id: str
     skill_slug: str
@@ -47,13 +47,13 @@ class SkillAnalysisResponse(BaseModel):
 
 
 class SkillImproveRequest(BaseModel):
-    """Skill 改善リクエスト."""
+    """Skill improvement request."""
 
-    skill_id: str = Field(..., description="改善対象のスキルID")
+    skill_id: str = Field(..., description="ID of the skill to improve")
 
 
 class SkillImprovementResponse(BaseModel):
-    """Skill 改善提案."""
+    """Skill improvement proposal."""
 
     original_skill_id: str
     original_version: str
@@ -67,7 +67,7 @@ class SkillImprovementResponse(BaseModel):
 
 
 class SkillImprovementApplyRequest(BaseModel):
-    """Skill 改善適用リクエスト（承認後）."""
+    """Skill improvement apply request (after approval)."""
 
     skill_id: str
     improved_code: str
@@ -80,13 +80,13 @@ class SkillImprovementApplyRequest(BaseModel):
 
 
 class JudgeTuneRequest(BaseModel):
-    """Judge 調整リクエスト."""
+    """Judge tuning request."""
 
-    company_id: str = Field(..., description="対象の会社ID")
+    company_id: str = Field(..., description="Target company ID")
 
 
 class JudgeTuningRuleResponse(BaseModel):
-    """Judge 調整ルール."""
+    """Judge tuning rule."""
 
     rule_name: str
     rule_type: str
@@ -98,7 +98,7 @@ class JudgeTuningRuleResponse(BaseModel):
 
 
 class JudgeTuningResponse(BaseModel):
-    """Judge 調整結果."""
+    """Judge tuning result."""
 
     company_id: str
     proposed_rules: list[JudgeTuningRuleResponse]
@@ -110,17 +110,17 @@ class JudgeTuningResponse(BaseModel):
 
 
 class JudgeTuningApplyRequest(BaseModel):
-    """Judge 調整適用リクエスト（承認後）."""
+    """Judge tuning apply request (after approval)."""
 
     company_id: str
     rule_names: list[str] = Field(
         default_factory=list,
-        description="適用するルール名リスト（空なら全ルール）",
+        description="List of rule names to apply (empty means all rules)",
     )
 
 
 class JudgeTuningApplyResponse(BaseModel):
-    """Judge 調整適用結果."""
+    """Judge tuning apply result."""
 
     applied_count: int
     message: str
@@ -132,14 +132,14 @@ class JudgeTuningApplyResponse(BaseModel):
 
 
 class FailureToSkillRequest(BaseModel):
-    """失敗パターンから Skill 生成リクエスト."""
+    """Request to generate a Skill from failure patterns."""
 
     company_id: str
-    min_occurrences: int = Field(default=2, ge=1, description="最小発生回数")
+    min_occurrences: int = Field(default=2, ge=1, description="Minimum number of occurrences")
 
 
 class FailureToSkillProposalResponse(BaseModel):
-    """失敗パターンから生成された Skill 提案."""
+    """Skill proposal generated from failure patterns."""
 
     failure_category: str
     failure_subcategory: str
@@ -153,14 +153,14 @@ class FailureToSkillProposalResponse(BaseModel):
 
 
 class FailureToSkillResponse(BaseModel):
-    """失敗パターンから生成された Skill 提案リスト."""
+    """List of Skill proposals generated from failure patterns."""
 
     proposals: list[FailureToSkillProposalResponse]
     total_failures_analyzed: int
 
 
 class FailureToSkillRegisterRequest(BaseModel):
-    """失敗防止 Skill 登録リクエスト（承認後）."""
+    """Failure prevention Skill registration request (after approval)."""
 
     company_id: str
     slug: str
@@ -175,16 +175,16 @@ class FailureToSkillRegisterRequest(BaseModel):
 
 
 class SkillABTestRequest(BaseModel):
-    """Skill A/B テストリクエスト."""
+    """Skill A/B test request."""
 
-    skill_a_id: str = Field(..., description="比較対象 Skill A の ID")
-    skill_b_id: str = Field(..., description="比較対象 Skill B の ID")
-    test_input: dict[str, Any] = Field(default_factory=dict, description="テスト入力データ")
-    iterations: int = Field(default=3, ge=1, le=10, description="実行回数")
+    skill_a_id: str = Field(..., description="ID of Skill A to compare")
+    skill_b_id: str = Field(..., description="ID of Skill B to compare")
+    test_input: dict[str, Any] = Field(default_factory=dict, description="Test input data")
+    iterations: int = Field(default=3, ge=1, le=10, description="Number of iterations")
 
 
 class SkillABTestResponse(BaseModel):
-    """Skill A/B テスト結果."""
+    """Skill A/B test result."""
 
     test_id: str
     skill_a_id: str
@@ -205,13 +205,13 @@ class SkillABTestResponse(BaseModel):
 
 
 class AutoTestRequest(BaseModel):
-    """テスト自動生成リクエスト."""
+    """Auto test generation request."""
 
-    skill_id: str = Field(..., description="テスト対象のスキルID")
+    skill_id: str = Field(..., description="ID of the skill to generate tests for")
 
 
 class GeneratedTestCaseResponse(BaseModel):
-    """自動生成テストケース."""
+    """Auto-generated test case."""
 
     test_name: str
     test_type: str
@@ -221,7 +221,7 @@ class GeneratedTestCaseResponse(BaseModel):
 
 
 class AutoTestResponse(BaseModel):
-    """テスト自動生成結果."""
+    """Auto test generation result."""
 
     skill_id: str
     skill_slug: str
@@ -234,12 +234,12 @@ class AutoTestResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Self-Improvement ダッシュボード
+# Self-Improvement Dashboard
 # ---------------------------------------------------------------------------
 
 
 class SelfImprovementStatusResponse(BaseModel):
-    """Self-Improvement 全体ステータス."""
+    """Self-Improvement overall status."""
 
     plugin_version: str
     skills_analyzed: int

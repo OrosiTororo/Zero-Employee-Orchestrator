@@ -1,14 +1,14 @@
-"""AI Investigator — AIによるログ・DB参照で調査を完結させる.
+"""AI Investigator — complete investigations with AI-driven log and DB access.
 
-AIがログやデータベースを参照できることで、最初から最後まで
-試行錯誤のループが完結し、調査が瞬時に終わる。
+By allowing AI to access logs and databases, the investigation trial-and-error
+loop is completed end-to-end, finishing investigations instantly.
 
-提供機能:
-  - 監査ログの検索と分析
-  - DB直接クエリ（読み取り専用・安全なサブセット）
-  - エラーログの集約と分析
-  - パフォーマンスメトリクスの取得
-  - 実行トレースの横断検索
+Capabilities:
+  - Audit log search and analysis
+  - Direct DB queries (read-only, safe subset)
+  - Error log aggregation and analysis
+  - Performance metrics retrieval
+  - Cross-execution trace search
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
-# AIがアクセス可能なテーブル（読み取り専用）
+# Tables accessible by AI (read-only)
 ALLOWED_TABLES = frozenset(
     {
         "tickets",
@@ -46,7 +46,7 @@ ALLOWED_TABLES = frozenset(
     }
 )
 
-# SQLインジェクション防止: 禁止キーワード
+# SQL injection prevention: forbidden keywords
 FORBIDDEN_SQL_KEYWORDS = frozenset(
     {
         "DROP",
@@ -69,7 +69,7 @@ FORBIDDEN_SQL_KEYWORDS = frozenset(
 
 @dataclass
 class InvestigationResult:
-    """調査結果."""
+    """Investigation result."""
 
     query: str
     success: bool
@@ -83,7 +83,7 @@ class InvestigationResult:
         return {
             "query": self.query,
             "success": self.success,
-            "data": self.data[:100],  # 最大100行
+            "data": self.data[:100],  # Up to 100 rows
             "row_count": self.row_count,
             "error": self.error,
             "duration_ms": self.duration_ms,
@@ -93,7 +93,7 @@ class InvestigationResult:
 
 @dataclass
 class LogEntry:
-    """ログエントリ."""
+    """Log entry."""
 
     timestamp: float
     level: str
@@ -103,27 +103,27 @@ class LogEntry:
 
 
 class AIInvestigator:
-    """AIエージェント用のDB/ログ調査ツール."""
+    """DB/log investigation tool for AI agents."""
 
     def __init__(self, max_rows: int = 500) -> None:
         self._max_rows = max_rows
         self._investigation_log: list[dict[str, Any]] = []
 
     def _validate_query(self, query: str) -> tuple[bool, str]:
-        """クエリの安全性を検証."""
+        """Validate query safety."""
         upper = query.upper().strip()
 
-        # SELECT文のみ許可
+        # Only SELECT statements allowed
         if not upper.startswith("SELECT"):
-            return False, "SELECT文のみ実行可能です"
+            return False, "Only SELECT statements are allowed"
 
-        # 禁止キーワードチェック
+        # Check for forbidden keywords
         for kw in FORBIDDEN_SQL_KEYWORDS:
             if kw in upper:
-                return False, f"禁止されたキーワード '{kw}' が含まれています"
+                return False, f"Forbidden keyword '{kw}' detected"
 
-        # テーブル名検証（FROM句から抽出）
-        # 簡易的なチェック — 本番ではSQLパーサーを使用
+        # Table name validation (extracted from FROM clause)
+        # Simple check — use SQL parser in production
         return True, ""
 
     async def query_db(
@@ -132,7 +132,7 @@ class AIInvestigator:
         query: str,
         params: dict[str, Any] | None = None,
     ) -> InvestigationResult:
-        """安全なDB読み取りクエリを実行."""
+        """Execute a safe read-only DB query."""
         valid, err = self._validate_query(query)
         if not valid:
             return InvestigationResult(
@@ -148,7 +148,7 @@ class AIInvestigator:
             duration_ms = int((time.time() - start) * 1000)
 
             data = [dict(row) for row in rows[: self._max_rows]]
-            # datetime等をシリアライズ可能にする
+            # Make datetime values serializable
             for row in data:
                 for k, v in row.items():
                     if hasattr(v, "isoformat"):
@@ -186,7 +186,7 @@ class AIInvestigator:
         since_hours: int = 24,
         limit: int = 100,
     ) -> InvestigationResult:
-        """監査ログを検索."""
+        """Search audit logs."""
         conditions = []
         params: dict[str, Any] = {"limit": min(limit, self._max_rows)}
 
@@ -211,7 +211,7 @@ class AIInvestigator:
         since_hours: int = 24,
         limit: int = 50,
     ) -> InvestigationResult:
-        """エラーパターンを分析."""
+        """Analyze error patterns."""
         query = """
             SELECT
                 category,
@@ -232,7 +232,7 @@ class AIInvestigator:
         task_id: str | None = None,
         limit: int = 50,
     ) -> InvestigationResult:
-        """タスク実行履歴を取得."""
+        """Get task execution history."""
         if task_id:
             query = """
                 SELECT * FROM task_runs
@@ -257,7 +257,7 @@ class AIInvestigator:
         category: str | None = None,
         limit: int = 50,
     ) -> InvestigationResult:
-        """ナレッジストアを検索."""
+        """Search the knowledge store."""
         conditions = ["is_active = 1"]
         params: dict[str, Any] = {"limit": limit, "query": f"%{search_query}%"}
 
@@ -272,10 +272,10 @@ class AIInvestigator:
         return await self.query_db(db, query, params)
 
     async def get_system_metrics(self, db: AsyncSession) -> dict[str, Any]:
-        """システムメトリクスを取得."""
+        """Get system metrics."""
         metrics: dict[str, Any] = {}
 
-        # テーブル行数カウント (allowed tables whitelist - no dynamic SQL)
+        # Table row count (allowed tables whitelist - no dynamic SQL)
         _ALLOWED_TABLES = frozenset(
             ["tickets", "tasks", "agents", "skills", "audit_logs"],
         )
@@ -293,7 +293,7 @@ class AIInvestigator:
         return metrics
 
     def _log_investigation(self, inv_type: str, query: str, result: InvestigationResult) -> None:
-        """調査の記録."""
+        """Record an investigation."""
         self._investigation_log.append(
             {
                 "type": inv_type,
@@ -304,12 +304,12 @@ class AIInvestigator:
                 "timestamp": time.time(),
             }
         )
-        # 古いログを削除
+        # Remove old logs
         if len(self._investigation_log) > 1000:
             self._investigation_log = self._investigation_log[-500:]
 
     def get_investigation_history(self, limit: int = 50) -> list[dict[str, Any]]:
-        """調査履歴を取得."""
+        """Get investigation history."""
         return self._investigation_log[-limit:]
 
 

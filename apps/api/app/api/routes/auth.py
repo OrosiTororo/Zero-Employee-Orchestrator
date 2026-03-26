@@ -36,25 +36,25 @@ async def get_current_user(
 ) -> User:
     """Extract current user from Authorization header."""
     if not authorization:
-        raise HTTPException(status_code=401, detail="認証が必要です")
+        raise HTTPException(status_code=401, detail="Authentication required")
     token = authorization.replace("Bearer ", "")
     user_id = decode_access_token(token)
     if not user_id:
-        raise HTTPException(status_code=401, detail="無効なトークンです")
+        raise HTTPException(status_code=401, detail="Invalid token")
     user = await get_user_by_id(db, user_id)
     if not user:
-        raise HTTPException(status_code=401, detail="ユーザーが見つかりません")
+        raise HTTPException(status_code=401, detail="User not found")
     return user
 
 
 @router.post("/register", response_model=LoginResponse)
 @limiter.limit("5/minute")
 async def register(request: Request, req: RegisterRequest, db: AsyncSession = Depends(get_db)):
-    """新規アカウント登録 - メールとパスワードで登録し、デフォルト組織を自動作成"""
+    """Register a new account - register with email and password, auto-create default organization."""
     # Check if email already exists
     result = await db.execute(select(User).where(User.email == req.email))
     if result.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="このメールアドレスは既に登録されています")
+        raise HTTPException(status_code=400, detail="This email address is already registered")
 
     user = await register_user(db, req.email, req.password, req.display_name)
     token = create_access_token(str(user.id))
@@ -69,12 +69,10 @@ async def register(request: Request, req: RegisterRequest, db: AsyncSession = De
 @router.post("/login", response_model=LoginResponse)
 @limiter.limit("10/minute")
 async def login(request: Request, req: LoginRequest, db: AsyncSession = Depends(get_db)):
-    """メール/パスワードでログイン"""
+    """Login with email/password."""
     user = await authenticate_user(db, req.email, req.password)
     if not user:
-        raise HTTPException(
-            status_code=401, detail="メールアドレスまたはパスワードが正しくありません"
-        )
+        raise HTTPException(status_code=401, detail="Incorrect email address or password")
 
     token = create_access_token(str(user.id))
     return LoginResponse(
@@ -86,34 +84,34 @@ async def login(request: Request, req: LoginRequest, db: AsyncSession = Depends(
 
 @router.get("/google/authorize")
 async def google_authorize():
-    """Google OAuth 認可URL取得 (未実装スタブ)"""
+    """Get Google OAuth authorization URL (unimplemented stub)."""
     raise HTTPException(
         status_code=501,
-        detail="Google OAuth は準備中です。メール登録をご利用ください。",
+        detail="Google OAuth is not yet available. Please use email registration.",
     )
 
 
 @router.post("/oauth/login", response_model=LoginResponse)
 async def oauth_login(req: OAuthLoginRequest, db: AsyncSession = Depends(get_db)):
-    """OAuth プロバイダー経由のログイン (Google, GitHub等)"""
+    """Login via OAuth provider (Google, GitHub, etc.)."""
     # In production, validate the OAuth code with the provider
     # For now, create/find user by provider info
     # This would be expanded with actual OAuth flow
     raise HTTPException(
         status_code=501,
-        detail=f"OAuth provider '{req.provider}' は準備中です。メール登録をご利用ください。",
+        detail=f"OAuth provider '{req.provider}' is not yet available. Please use email registration.",
     )
 
 
 @router.post("/logout")
 async def logout():
-    """ログアウト"""
-    return {"status": "ok", "message": "ログアウトしました"}
+    """Logout."""
+    return {"status": "ok", "message": "Logged out successfully"}
 
 
 @router.get("/me", response_model=UserRead)
 async def get_me(user: User = Depends(get_current_user)):
-    """現在のユーザー情報を取得"""
+    """Get current user information."""
     return UserRead(
         id=str(user.id),
         email=user.email,
@@ -128,7 +126,7 @@ async def get_me(user: User = Depends(get_current_user)):
 
 @router.post("/refresh")
 async def refresh_token(user: User = Depends(get_current_user)):
-    """トークンの更新"""
+    """Refresh token."""
     token = create_access_token(str(user.id))
     return {"access_token": token, "token_type": "bearer"}
 
@@ -136,11 +134,11 @@ async def refresh_token(user: User = Depends(get_current_user)):
 @router.post("/anonymous-session")
 @limiter.limit("10/minute")
 async def create_anonymous_session(request: Request, db: AsyncSession = Depends(get_db)):
-    """ログイン不要の匿名セッション.
+    """Create an anonymous session without login.
 
-    ログインしなくても基本機能が使える。
-    ログインすると、複数デバイスでの状態共有が可能になる。
-    匿名セッションのデータは後からアカウントに紐付け可能。
+    Basic features are available without logging in.
+    Logging in enables state sharing across multiple devices.
+    Anonymous session data can be linked to an account later.
     """
     anon_id = generate_uuid()
     user = User(
@@ -182,7 +180,7 @@ async def create_anonymous_session(request: Request, db: AsyncSession = Depends(
         "company_id": str(company.id),
         "display_name": user.display_name,
         "is_anonymous": True,
-        "message": "ログインすると複数デバイスでの状態共有が可能になります",
+        "message": "Login to enable state sharing across multiple devices",
     }
 
 
@@ -198,18 +196,18 @@ async def link_anonymous_to_account(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """匿名セッションを正式アカウントに紐付け.
+    """Link an anonymous session to a formal account.
 
-    ログイン不要で使い始めた後、アカウントを作成して
-    既存のデータを引き継ぐ。
+    After starting without login, create an account and
+    carry over existing data.
     """
     if user.role != "anonymous":
-        raise HTTPException(status_code=400, detail="既にアカウントに紐付けられています")
+        raise HTTPException(status_code=400, detail="Already linked to an account")
 
-    # メールの重複チェック
+    # Check for duplicate email
     result = await db.execute(select(User).where(User.email == req.email))
     if result.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="このメールアドレスは既に登録されています")
+        raise HTTPException(status_code=400, detail="This email address is already registered")
 
     user.email = req.email
     user.display_name = req.display_name
@@ -225,7 +223,7 @@ async def link_anonymous_to_account(
         "user_id": str(user.id),
         "display_name": req.display_name,
         "linked": True,
-        "message": "アカウントが作成されました。複数デバイスでの共有が有効です",
+        "message": "Account created. Multi-device sharing is now enabled",
     }
 
 
@@ -233,7 +231,7 @@ async def get_optional_user(
     db: AsyncSession = Depends(get_db),
     authorization: str | None = Header(None),
 ) -> User | None:
-    """認証は任意 — トークンがあればユーザーを返し、なければNone."""
+    """Authentication is optional — returns user if token is present, otherwise None."""
     if not authorization:
         return None
     token = authorization.replace("Bearer ", "")

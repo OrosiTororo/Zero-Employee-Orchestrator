@@ -1,18 +1,18 @@
-"""Zero-Employee Orchestrator CLI エントリーポイント.
+"""Zero-Employee Orchestrator CLI entry point.
 
-コマンドラインから API サーバーの起動・管理・ローカルチャットモードを提供する。
+Provides API server startup, management, and local chat mode from the command line.
 
-使い方:
-    zero-employee serve          # API サーバーを起動
+Usage:
+    zero-employee serve          # Start the API server
     zero-employee serve --port 8000
-    zero-employee db upgrade     # DB マイグレーション実行
-    zero-employee health         # ヘルスチェック
-    zero-employee local          # ローカルチャットモード (Ollama)
+    zero-employee db upgrade     # Run DB migration
+    zero-employee health         # Health check
+    zero-employee local          # Local chat mode (Ollama)
     zero-employee local --model qwen3:8b
-    zero-employee models         # 利用可能モデル一覧
-    zero-employee pull <model>   # モデルダウンロード
-    zero-employee update         # 最新版にアップデート
-    zero-employee update --check # アップデート確認のみ
+    zero-employee models         # List available models
+    zero-employee pull <model>   # Download a model
+    zero-employee update         # Update to the latest version
+    zero-employee update --check # Check for updates only
 """
 
 import argparse
@@ -21,10 +21,10 @@ import sys
 
 
 def cmd_serve(args: argparse.Namespace) -> None:
-    """API サーバーを起動する."""
+    """Start the API server."""
     import uvicorn
 
-    # 起動時にバージョンチェック（バックグラウンド・ノンブロッキング）
+    # Version check at startup (background, non-blocking)
     if not args.skip_update_check:
         from app.core.version_check import check_and_notify
 
@@ -39,19 +39,19 @@ def cmd_serve(args: argparse.Namespace) -> None:
 
 
 def cmd_db_upgrade(args: argparse.Namespace) -> None:
-    """DB マイグレーションを実行する."""
+    """Run DB migration."""
     from app.core.database import Base, engine
 
     async def _create_tables() -> None:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-        print("データベーステーブルを作成しました")
+        print("Database tables created")
 
     asyncio.run(_create_tables())
 
 
 def cmd_health(args: argparse.Namespace) -> None:
-    """ヘルスチェックを実行する."""
+    """Run health check."""
     import httpx
 
     url = f"http://{args.host}:{args.port}/healthz"
@@ -68,7 +68,7 @@ def cmd_health(args: argparse.Namespace) -> None:
 
 
 def cmd_models(args: argparse.Namespace) -> None:
-    """利用可能なモデル一覧を表示する."""
+    """Display list of available models."""
     from app.core.i18n import t
 
     async def _list() -> None:
@@ -104,7 +104,7 @@ def cmd_models(args: argparse.Namespace) -> None:
 
 
 def cmd_pull(args: argparse.Namespace) -> None:
-    """Ollama モデルをダウンロードする."""
+    """Download an Ollama model."""
 
     async def _pull() -> None:
         from app.providers.ollama_provider import ollama_provider
@@ -122,7 +122,7 @@ def cmd_pull(args: argparse.Namespace) -> None:
 
 
 def cmd_security_status(args: argparse.Namespace) -> None:
-    """セキュリティ設定の概要を表示する."""
+    """Display security configuration summary."""
     from app.security.data_protection import data_protection_guard
     from app.security.sandbox import filesystem_sandbox
     from app.security.workspace_isolation import workspace_isolation
@@ -166,7 +166,7 @@ def cmd_security_status(args: argparse.Namespace) -> None:
 
 
 def cmd_config(args: argparse.Namespace) -> None:
-    """設定値の表示・変更を行う."""
+    """Display and modify configuration values."""
     from app.core.config_manager import (
         CONFIGURABLE_KEYS,
         delete_config_value,
@@ -217,7 +217,7 @@ def cmd_config(args: argparse.Namespace) -> None:
 
         value = args.value
         if not value:
-            # 機密値の場合は入力プロンプトを表示（エコーなし）
+            # Show input prompt for sensitive values (no echo)
             import getpass
 
             meta = CONFIGURABLE_KEYS[args.key]
@@ -254,7 +254,7 @@ def cmd_config(args: argparse.Namespace) -> None:
 
 
 def cmd_local(args: argparse.Namespace) -> None:
-    """ローカルチャットモード — Ollama で完全オフラインの対話型業務エージェント."""
+    """Local chat mode -- fully offline interactive business agent using Ollama."""
 
     async def _chat() -> None:
         from app.banner import print_local_banner
@@ -321,7 +321,7 @@ def cmd_local(args: argparse.Namespace) -> None:
                     break
                 continue
 
-            # 自然言語コマンドプロセッサで意図を判定
+            # Determine intent using natural language command processor
             try:
                 from app.services.nl_command_service import nl_command_processor
 
@@ -331,15 +331,15 @@ def cmd_local(args: argparse.Namespace) -> None:
                     if result.message:
                         print(f"\n  \033[38;5;78m[{parsed.category.value}]\033[0m {result.message}")
                     if result.suggestions:
-                        print("\n  \033[38;5;245mヒント:\033[0m")
+                        print("\n  \033[38;5;245mHints:\033[0m")
                         for s in result.suggestions:
                             print(f"    • {s}")
                     if not result.data.get("delegate_to_llm"):
                         print()
                         continue
-                    # delegate_to_llm の場合は LLM にも送信
+                    # If delegate_to_llm, also send to LLM
             except Exception:
-                pass  # NL プロセッサが利用不可の場合はそのまま LLM に送信
+                pass  # If NL processor is unavailable, send directly to LLM
 
             # Multi-line input (triple quotes)
             if user_input.startswith('"""') or user_input.startswith("'''"):
@@ -403,10 +403,10 @@ def cmd_local(args: argparse.Namespace) -> None:
 
 
 def cmd_chat(args: argparse.Namespace) -> None:
-    """チャットモード — 全プロバイダー対応の対話型業務エージェント.
+    """Chat mode -- interactive business agent supporting all providers.
 
-    Ollama だけでなく、全 LLM プロバイダーで利用可能。
-    自然言語で設定変更・チケット作成・モデル管理等あらゆる操作に対応。
+    Available with all LLM providers, not just Ollama.
+    Supports all operations via natural language: config changes, ticket creation, model management, etc.
     """
 
     async def _chat() -> None:
@@ -440,7 +440,7 @@ def cmd_chat(args: argparse.Namespace) -> None:
 
         print(f"  \033[38;5;245mMode: {mode.value} | Model: {model}\033[0m")
         print(
-            "  \033[38;5;245m自然言語であらゆる操作が可能です。「何ができる？」と聞いてください。\033[0m"
+            "  \033[38;5;245mAll operations available via natural language. Ask 'What can you do?' to get started.\033[0m"
         )
         print()
 
@@ -464,7 +464,7 @@ def cmd_chat(args: argparse.Namespace) -> None:
                     break
                 continue
 
-            # 自然言語コマンドプロセッサ
+            # Natural language command processor
             try:
                 from app.services.nl_command_service import nl_command_processor
 
@@ -482,7 +482,7 @@ def cmd_chat(args: argparse.Namespace) -> None:
             except Exception:
                 pass
 
-            # LLM に送信
+            # Send to LLM
             conversation.append({"role": "user", "content": user_input})
             messages = [{"role": "system", "content": system_prompt}] + conversation
 
@@ -502,7 +502,7 @@ def cmd_chat(args: argparse.Namespace) -> None:
             if response.content:
                 conversation.append({"role": "assistant", "content": response.content})
 
-            # コンテキスト圧縮
+            # Context compression
             ctx_tokens = sum(len(m["content"]) // 4 for m in messages)
             if ctx_tokens > 24000:
                 conversation = _compress_context(conversation)
@@ -651,7 +651,7 @@ def _compress_context(conversation: list[dict]) -> list[dict]:
 
 
 def cmd_update(args: argparse.Namespace) -> None:
-    """最新バージョンへのアップデートを実行する."""
+    """Update to the latest version."""
     import subprocess
 
     from app.core.version_check import (
@@ -680,7 +680,7 @@ def cmd_update(args: argparse.Namespace) -> None:
         print("\n  Run \033[38;5;51mzero-employee update\033[0m to install.")
         return
 
-    # pip install -U で更新
+    # Update via pip install -U
     print(f"\n  Updating {PACKAGE_NAME}...")
     result = subprocess.run(
         [sys.executable, "-m", "pip", "install", "-U", PACKAGE_NAME],
@@ -697,41 +697,41 @@ def cmd_update(args: argparse.Namespace) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """CLI パーサーを構築する."""
+    """Build the CLI parser."""
     parser = argparse.ArgumentParser(
         prog="zero-employee",
-        description="Zero-Employee Orchestrator — AI オーケストレーション基盤",
+        description="Zero-Employee Orchestrator -- AI orchestration platform",
     )
-    subparsers = parser.add_subparsers(dest="command", help="コマンド一覧")
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # serve
-    serve_parser = subparsers.add_parser("serve", help="API サーバーを起動")
-    serve_parser.add_argument("--host", default="0.0.0.0", help="ホスト (default: 0.0.0.0)")
-    serve_parser.add_argument("--port", type=int, default=18234, help="ポート (default: 18234)")
-    serve_parser.add_argument("--reload", action="store_true", help="ホットリロードを有効化")
+    serve_parser = subparsers.add_parser("serve", help="Start the API server")
+    serve_parser.add_argument("--host", default="0.0.0.0", help="Host (default: 0.0.0.0)")
+    serve_parser.add_argument("--port", type=int, default=18234, help="Port (default: 18234)")
+    serve_parser.add_argument("--reload", action="store_true", help="Enable hot reload")
     serve_parser.add_argument(
         "--skip-update-check",
         action="store_true",
-        help="起動時のバージョンチェックをスキップ",
+        help="Skip version check at startup",
     )
     serve_parser.set_defaults(func=cmd_serve)
 
     # db
-    db_parser = subparsers.add_parser("db", help="データベース操作")
+    db_parser = subparsers.add_parser("db", help="Database operations")
     db_sub = db_parser.add_subparsers(dest="db_command")
-    upgrade_parser = db_sub.add_parser("upgrade", help="マイグレーション実行")
+    upgrade_parser = db_sub.add_parser("upgrade", help="Run migration")
     upgrade_parser.set_defaults(func=cmd_db_upgrade)
 
     # health
-    health_parser = subparsers.add_parser("health", help="ヘルスチェック")
-    health_parser.add_argument("--host", default="127.0.0.1", help="ホスト")
-    health_parser.add_argument("--port", type=int, default=18234, help="ポート")
+    health_parser = subparsers.add_parser("health", help="Health check")
+    health_parser.add_argument("--host", default="127.0.0.1", help="Host")
+    health_parser.add_argument("--port", type=int, default=18234, help="Port")
     health_parser.set_defaults(func=cmd_health)
 
-    # config — 設定管理
+    # config -- configuration management
     config_parser = subparsers.add_parser(
         "config",
-        help="設定管理 (API キー・実行モード等)",
+        help="Configuration management (API keys, execution mode, etc.)",
     )
     config_parser.add_argument(
         "config_action",
@@ -744,10 +744,10 @@ def build_parser() -> argparse.ArgumentParser:
     config_parser.add_argument("value", nargs="?", default="", help="Config value (for set)")
     config_parser.set_defaults(func=cmd_config)
 
-    # local — ローカルチャットモード
+    # local -- local chat mode
     local_parser = subparsers.add_parser(
         "local",
-        help="ローカルチャットモード (Ollama / オフライン)",
+        help="Local chat mode (Ollama / offline)",
     )
     local_parser.add_argument(
         "--model",
@@ -774,16 +774,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     local_parser.set_defaults(func=cmd_local)
 
-    # chat — 全プロバイダー対応チャットモード
+    # chat -- multi-provider chat mode
     chat_parser = subparsers.add_parser(
         "chat",
-        help="チャットモード (全プロバイダー対応・自然言語で全操作可能)",
+        help="Chat mode (all providers, all operations via natural language)",
     )
     chat_parser.add_argument(
         "--mode",
         default="",
         choices=["quality", "speed", "cost", "free", "subscription", ""],
-        help="実行モード (default: auto)",
+        help="Execution mode (default: auto)",
     )
     chat_parser.add_argument(
         "--lang",
@@ -805,44 +805,46 @@ def build_parser() -> argparse.ArgumentParser:
     )
     chat_parser.set_defaults(func=cmd_chat)
 
-    # models — モデル一覧
-    models_parser = subparsers.add_parser("models", help="利用可能モデル一覧")
+    # models -- model listing
+    models_parser = subparsers.add_parser("models", help="List available models")
     models_parser.set_defaults(func=cmd_models)
 
-    # pull — モデルダウンロード
-    pull_parser = subparsers.add_parser("pull", help="Ollama モデルをダウンロード")
+    # pull -- model download
+    pull_parser = subparsers.add_parser("pull", help="Download an Ollama model")
     pull_parser.add_argument("model_name", help="Model name (e.g. qwen3:8b)")
     pull_parser.set_defaults(func=cmd_pull)
 
-    # update — アップデート管理
+    # update -- update management
     update_parser = subparsers.add_parser(
         "update",
-        help="最新バージョンにアップデート",
+        help="Update to the latest version",
     )
     update_parser.add_argument(
         "--check",
         dest="check_only",
         action="store_true",
-        help="アップデート確認のみ（インストールしない）",
+        help="Check for updates only (do not install)",
     )
     update_parser.add_argument(
         "--verbose",
         action="store_true",
-        help="pip の出力を表示",
+        help="Show pip output",
     )
     update_parser.set_defaults(func=cmd_update)
 
-    # security — セキュリティ管理
-    security_parser = subparsers.add_parser("security", help="セキュリティ設定管理")
+    # security -- security management
+    security_parser = subparsers.add_parser("security", help="Security configuration management")
     security_sub = security_parser.add_subparsers(dest="security_command")
-    sec_status_parser = security_sub.add_parser("status", help="セキュリティ設定の概要を表示")
+    sec_status_parser = security_sub.add_parser(
+        "status", help="Display security configuration summary"
+    )
     sec_status_parser.set_defaults(func=cmd_security_status)
 
     return parser
 
 
 def main() -> None:
-    """CLI メインエントリーポイント."""
+    """CLI main entry point."""
     from app.banner import print_banner
 
     parser = build_parser()

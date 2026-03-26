@@ -28,7 +28,7 @@ router = APIRouter()
 # In-memory interview sessions (production: persist in DB)
 _interview_sessions: dict[str, InterviewSession] = {}
 
-# 対応ファイルタイプ
+# Supported file types
 _TEXT_EXTENSIONS = {
     ".txt",
     ".md",
@@ -60,10 +60,10 @@ _MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 MB
 
 
 def _extract_text_from_file(content: bytes, filename: str, content_type: str) -> str:
-    """ファイルからテキストを抽出する."""
+    """Extract text from a file."""
     ext = Path(filename).suffix.lower()
 
-    # テキスト系ファイル
+    # Text-based files
     if ext in _TEXT_EXTENSIONS | _CODE_EXTENSIONS:
         for encoding in ("utf-8", "shift_jis", "euc-jp", "cp932", "latin-1"):
             try:
@@ -72,25 +72,25 @@ def _extract_text_from_file(content: bytes, filename: str, content_type: str) ->
                 continue
         return content.decode("utf-8", errors="replace")
 
-    # 画像ファイル — OCR 不可の場合はメタ情報のみ
+    # Image file — only metadata if OCR is not available
     if ext in _IMAGE_EXTENSIONS:
         import base64
 
         size_kb = len(content) / 1024
         b64 = base64.b64encode(content).decode("ascii")
         return (
-            f"[画像ファイル: {filename}]\n"
-            f"形式: {content_type}\n"
-            f"サイズ: {size_kb:.1f} KB\n"
-            f"Base64 データ: data:{content_type};base64,{b64[:200]}...\n"
-            f"(画像全体は LLM に直接渡して解析可能)"
+            f"[Image file: {filename}]\n"
+            f"Format: {content_type}\n"
+            f"Size: {size_kb:.1f} KB\n"
+            f"Base64 data: data:{content_type};base64,{b64[:200]}...\n"
+            f"(Full image can be passed directly to LLM for analysis)"
         )
 
-    # PDF — テキスト抽出試行
+    # PDF — attempt text extraction
     if ext == ".pdf":
-        return f"[PDF ファイル: {filename}] サイズ: {len(content) / 1024:.1f} KB"
+        return f"[PDF file: {filename}] Size: {len(content) / 1024:.1f} KB"
 
-    return f"[未対応ファイル: {filename}] サイズ: {len(content)} bytes"
+    return f"[Unsupported file: {filename}] Size: {len(content)} bytes"
 
 
 class TicketCreate(BaseModel):
@@ -127,7 +127,7 @@ async def list_tickets(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """チケット一覧"""
+    """List tickets."""
     cid = parse_uuid(company_id, "company_id")
     query = select(Ticket).where(Ticket.company_id == cid)
     if status:
@@ -159,7 +159,7 @@ async def create_ticket(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """新規チケット作成 + Design Interview セッション初期化"""
+    """Create a new ticket + initialize Design Interview session."""
     cid = parse_uuid(company_id, "company_id")
     max_no = await db.execute(
         select(func.coalesce(func.max(Ticket.ticket_no), 0)).where(Ticket.company_id == cid)
@@ -209,7 +209,7 @@ async def create_ticket(
 
 @router.get("/tickets/{ticket_id}/interview")
 async def get_interview(ticket_id: str, user: User = Depends(get_current_user)):
-    """Design Interview のセッション取得"""
+    """Get Design Interview session."""
     session = _interview_sessions.get(ticket_id)
     if not session:
         session = create_interview_session(ticket_id)
@@ -255,7 +255,7 @@ async def answer_interview(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Design Interview の質問に回答"""
+    """Answer a Design Interview question."""
     session = _interview_sessions.get(ticket_id)
     if not session:
         session = create_interview_session(ticket_id)
@@ -280,33 +280,33 @@ async def attach_file_to_interview(
     description: str = Form(""),
     user: User = Depends(get_current_user),
 ):
-    """Interview にファイルを添付する.
+    """Attach a file to the interview.
 
-    テキスト・コード・画像・PDF ファイルに対応。
-    ファイル内容を読み取り、テキストとして仕様書生成のコンテキストに統合する。
+    Supports text, code, image, and PDF files.
+    Reads file content and integrates it as text context for spec generation.
     """
     session = _interview_sessions.get(ticket_id)
     if not session:
         session = create_interview_session(ticket_id)
         _interview_sessions[ticket_id] = session
 
-    # ファイル拡張子チェック
+    # File extension check
     ext = Path(file.filename or "unknown").suffix.lower()
     if ext not in _ALL_ALLOWED:
         raise HTTPException(
             status_code=400,
-            detail=f"ファイル形式 '{ext}' は非対応です。対応形式: {sorted(_ALL_ALLOWED)}",
+            detail=f"File format '{ext}' is not supported. Supported formats: {sorted(_ALL_ALLOWED)}",
         )
 
-    # サイズチェック
+    # Size check
     content = await file.read()
     if len(content) > _MAX_FILE_SIZE:
         raise HTTPException(
             status_code=400,
-            detail=f"ファイルサイズが上限 ({_MAX_FILE_SIZE // (1024 * 1024)} MB) を超えています",
+            detail=f"File size exceeds the limit ({_MAX_FILE_SIZE // (1024 * 1024)} MB)",
         )
 
-    # テキスト抽出
+    # Text extraction
     extracted = _extract_text_from_file(
         content,
         file.filename or "unknown",
@@ -333,7 +333,7 @@ async def attach_file_to_interview(
 
 @router.get("/tickets/{ticket_id}/interview/attachments")
 async def list_interview_attachments(ticket_id: str, user: User = Depends(get_current_user)):
-    """Interview の添付ファイル一覧を取得."""
+    """Get list of interview attachments."""
     session = _interview_sessions.get(ticket_id)
     if not session:
         return {"attachments": []}
@@ -358,7 +358,7 @@ async def generate_spec_from_interview_endpoint(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Interview 回答と添付ファイルから Spec を自動生成"""
+    """Auto-generate Spec from interview answers and attachments."""
     from app.models.spec import Spec
 
     session = _interview_sessions.get(ticket_id)
@@ -399,7 +399,7 @@ async def generate_spec_from_interview_endpoint(
 async def get_ticket(
     ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """チケット詳細"""
+    """Get ticket details."""
     result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()
     if not ticket:
@@ -424,7 +424,7 @@ async def update_ticket(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """チケット更新"""
+    """Update ticket."""
     result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()
     if not ticket:
@@ -444,7 +444,7 @@ async def add_comment(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """チケットにコメント追加"""
+    """Add comment to ticket."""
     result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()
     if not ticket:
@@ -466,7 +466,7 @@ async def add_comment(
 async def get_thread(
     ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """チケットのスレッドを取得"""
+    """Get ticket thread."""
     tid = parse_uuid(ticket_id, "ticket_id")
     result = await db.execute(
         select(TicketThread).where(TicketThread.ticket_id == tid).order_by(TicketThread.created_at)
@@ -488,7 +488,7 @@ async def get_thread(
 async def close_ticket(
     ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """チケットを閉じる"""
+    """Close ticket."""
     result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()
     if not ticket:
@@ -503,7 +503,7 @@ async def close_ticket(
 async def reopen_ticket(
     ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """チケットを再開"""
+    """Reopen ticket."""
     result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()
     if not ticket:

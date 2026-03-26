@@ -1,7 +1,7 @@
-"""ユーザー入力リクエスト API エンドポイント.
+"""User input request API endpoints.
 
-AIタスクが実行中にユーザーへ追加情報を要求するための
-リクエスト作成・回答・一覧・キャンセル機能を提供する。
+Provides functionality for AI tasks to request additional information from users
+during execution: create, answer, list, and cancel requests.
 """
 
 from __future__ import annotations
@@ -26,28 +26,28 @@ router = APIRouter(prefix="/user-input", tags=["user-input"])
 
 
 # ---------------------------------------------------------------------------
-# Pydantic スキーマ
+# Pydantic schemas
 # ---------------------------------------------------------------------------
 class CreateInputRequestBody(BaseModel):
-    """入力リクエスト作成リクエスト."""
+    """Create input request body."""
 
-    task_id: str = Field(..., description="対象タスクのID")
-    request_type: InputRequestType = Field(..., description="入力タイプ")
+    task_id: str = Field(..., description="Target task ID")
+    request_type: InputRequestType = Field(..., description="Input type")
     prompt_text: str = Field(
-        ..., min_length=1, max_length=2000, description="ユーザーに表示するプロンプト"
+        ..., min_length=1, max_length=2000, description="Prompt displayed to the user"
     )
-    options: list[str] | None = Field(default=None, description="CHOICE タイプの場合の選択肢")
-    timeout_seconds: int = Field(default=300, ge=10, le=86400, description="タイムアウト秒数")
+    options: list[str] | None = Field(default=None, description="Options for CHOICE type")
+    timeout_seconds: int = Field(default=300, ge=10, le=86400, description="Timeout in seconds")
 
 
 class AnswerInputBody(BaseModel):
-    """入力回答リクエスト."""
+    """Input answer body."""
 
-    response: str | list[str] | bool = Field(..., description="ユーザーの回答")
+    response: str | list[str] | bool = Field(..., description="User response")
 
 
 class InputRequestResponse(BaseModel):
-    """入力リクエストレスポンス."""
+    """Input request response."""
 
     id: str
     task_id: str
@@ -62,17 +62,17 @@ class InputRequestResponse(BaseModel):
 
 
 class PendingRequestsResponse(BaseModel):
-    """未回答リクエスト一覧レスポンス."""
+    """Pending requests list response."""
 
     requests: list[InputRequestResponse]
     total: int
 
 
 # ---------------------------------------------------------------------------
-# ヘルパー
+# Helpers
 # ---------------------------------------------------------------------------
 def _to_response(req: InputRequest) -> InputRequestResponse:
-    """InputRequest を InputRequestResponse に変換する."""
+    """Convert InputRequest to InputRequestResponse."""
     return InputRequestResponse(
         id=req.id,
         task_id=req.task_id,
@@ -88,15 +88,15 @@ def _to_response(req: InputRequest) -> InputRequestResponse:
 
 
 # ---------------------------------------------------------------------------
-# エンドポイント
+# Endpoints
 # ---------------------------------------------------------------------------
 @router.post("/request", response_model=InputRequestResponse)
 async def create_input_request(
     body: CreateInputRequestBody, user: User = Depends(get_current_user)
 ) -> InputRequestResponse:
-    """入力リクエストを作成する.
+    """Create an input request.
 
-    AIタスクがユーザーに追加情報を要求する際に使用する。
+    Used when an AI task requires additional information from the user.
     """
     try:
         request_id = await user_input_service.request_input(
@@ -111,7 +111,7 @@ async def create_input_request(
 
     req = user_input_service.get_request(request_id)
     if req is None:
-        raise HTTPException(status_code=500, detail="リクエストの作成に失敗しました")
+        raise HTTPException(status_code=500, detail="Failed to create request")
     return _to_response(req)
 
 
@@ -119,8 +119,8 @@ async def create_input_request(
 async def list_all_pending_requests(
     user: User = Depends(get_current_user),
 ) -> PendingRequestsResponse:
-    """全タスクの未回答リクエスト一覧を取得する."""
-    # 期限切れチェックを先に実行
+    """Get all pending requests across all tasks."""
+    # Run expiration check first
     await user_input_service.expire_stale_requests()
 
     all_pending: list[InputRequest] = [
@@ -136,7 +136,7 @@ async def list_all_pending_requests(
 async def list_pending_for_task(
     task_id: str, user: User = Depends(get_current_user)
 ) -> PendingRequestsResponse:
-    """指定タスクの未回答リクエスト一覧を取得する."""
+    """Get pending requests for a specific task."""
     await user_input_service.expire_stale_requests()
     pending = await user_input_service.get_pending_requests(task_id)
     return PendingRequestsResponse(
@@ -151,7 +151,7 @@ async def answer_request(
     body: AnswerInputBody,
     user: User = Depends(get_current_user),
 ) -> InputRequestResponse:
-    """入力リクエストに回答する."""
+    """Answer an input request."""
     try:
         req = await user_input_service.answer_input(request_id, body.response)
     except KeyError as exc:
@@ -165,7 +165,7 @@ async def answer_request(
 async def cancel_request(
     request_id: str, user: User = Depends(get_current_user)
 ) -> InputRequestResponse:
-    """入力リクエストをキャンセルする."""
+    """Cancel an input request."""
     try:
         req = await user_input_service.cancel_request(request_id)
     except KeyError as exc:

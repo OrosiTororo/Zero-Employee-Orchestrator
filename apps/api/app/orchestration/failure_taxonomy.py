@@ -1,7 +1,8 @@
-"""Failure Taxonomy — 障害分類＋学習.
+"""Failure Taxonomy — Failure classification + learning.
 
-障害をカテゴリ・サブカテゴリで分類し、予防策や回復成功率を管理する。
-Experience Memory と連携して障害パターンの学習と予防を行う。
+Classifies failures by category and subcategory, managing prevention strategies
+and recovery success rates. Works with Experience Memory for failure pattern
+learning and prevention.
 """
 
 from dataclasses import dataclass, field
@@ -10,31 +11,31 @@ from enum import Enum
 
 
 class FailureCategory(str, Enum):
-    """障害の大分類."""
+    """Failure category (top-level classification)."""
 
-    LLM_ERROR = "llm_error"  # LLM プロバイダ障害
-    TOOL_ERROR = "tool_error"  # ツール実行障害
-    VALIDATION_ERROR = "validation_error"  # 入出力検証障害
-    BUDGET_ERROR = "budget_error"  # 予算超過
-    TIMEOUT_ERROR = "timeout_error"  # タイムアウト
-    PERMISSION_ERROR = "permission_error"  # 権限不足
-    DEPENDENCY_ERROR = "dependency_error"  # 依存タスク障害
-    HUMAN_REJECTION = "human_rejection"  # 人間による差し戻し
-    SYSTEM_ERROR = "system_error"  # システム内部エラー
+    LLM_ERROR = "llm_error"  # LLM provider failure
+    TOOL_ERROR = "tool_error"  # Tool execution failure
+    VALIDATION_ERROR = "validation_error"  # Input/output validation failure
+    BUDGET_ERROR = "budget_error"  # Budget exceeded
+    TIMEOUT_ERROR = "timeout_error"  # Timeout
+    PERMISSION_ERROR = "permission_error"  # Insufficient permissions
+    DEPENDENCY_ERROR = "dependency_error"  # Dependent task failure
+    HUMAN_REJECTION = "human_rejection"  # Rejected by human
+    SYSTEM_ERROR = "system_error"  # Internal system error
 
 
 class FailureSeverity(str, Enum):
-    """障害の重大度."""
+    """Failure severity."""
 
-    LOW = "low"  # 軽微 (自動リトライで回復可能)
-    MEDIUM = "medium"  # 中程度 (代替手段で回復可能)
-    HIGH = "high"  # 重大 (人間介入が必要)
-    CRITICAL = "critical"  # 致命的 (即座にエスカレーション)
+    LOW = "low"  # Minor (recoverable by automatic retry)
+    MEDIUM = "medium"  # Moderate (recoverable by alternative means)
+    HIGH = "high"  # Serious (requires human intervention)
+    CRITICAL = "critical"  # Fatal (immediate escalation required)
 
 
 @dataclass
 class FailureRecord:
-    """障害の記録."""
+    """Failure record."""
 
     category: FailureCategory
     subcategory: str
@@ -59,9 +60,9 @@ class FailureRecord:
 
 
 class FailureTaxonomy:
-    """障害分類体系の管理.
+    """Failure taxonomy management.
 
-    障害パターンを蓄積し、予防策の有効性を追跡する。
+    Accumulates failure patterns and tracks the effectiveness of prevention strategies.
     """
 
     def __init__(self) -> None:
@@ -77,13 +78,13 @@ class FailureTaxonomy:
         recovery_strategy: str = "",
         task_id: str | None = None,
     ) -> FailureRecord:
-        """障害を記録する. 同一カテゴリ・サブカテゴリは更新."""
+        """Record a failure. Updates existing entries with the same category/subcategory."""
         if isinstance(category, str):
             category = FailureCategory(category)
         if isinstance(severity, str):
             severity = FailureSeverity(severity)
 
-        # 既存レコード検索
+        # Search for existing record
         for record in self.records:
             if record.category == category and record.subcategory == subcategory:
                 record.occurrence_count += 1
@@ -109,7 +110,7 @@ class FailureTaxonomy:
         category: FailureCategory | str,
         subcategory: str,
     ) -> FailureRecord | None:
-        """回復成功を記録する."""
+        """Record a successful recovery."""
         if isinstance(category, str):
             category = FailureCategory(category)
         for record in self.records:
@@ -119,11 +120,11 @@ class FailureTaxonomy:
         return None
 
     def get_frequent_failures(self, min_count: int = 2) -> list[FailureRecord]:
-        """頻発する障害を取得."""
+        """Get frequently occurring failures."""
         return [r for r in self.records if r.occurrence_count >= min_count]
 
     def get_by_severity(self, severity: FailureSeverity | str) -> list[FailureRecord]:
-        """重大度別に障害を取得."""
+        """Get failures by severity."""
         if isinstance(severity, str):
             severity = FailureSeverity(severity)
         return [r for r in self.records if r.severity == severity]
@@ -132,7 +133,7 @@ class FailureTaxonomy:
         self,
         category: FailureCategory | str | None = None,
     ) -> list[dict[str, str]]:
-        """予防策一覧を取得."""
+        """Get list of prevention strategies."""
         if isinstance(category, str):
             category = FailureCategory(category)
         results = []
@@ -150,5 +151,5 @@ class FailureTaxonomy:
         return results
 
 
-# グローバルインスタンス
+# Global instance
 failure_taxonomy = FailureTaxonomy()

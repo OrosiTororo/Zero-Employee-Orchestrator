@@ -1,7 +1,7 @@
-"""Configuration management API — API キーや実行モードをアプリ内から設定.
+"""Configuration management API — configure API keys and execution modes from within the app.
 
-.env ファイルを直接編集する代わりに、Web UI や API 経由で設定を変更できる。
-設定の変更は認証済みユーザーのみ実行可能。
+Instead of directly editing the .env file, settings can be changed via Web UI or API.
+Configuration changes can only be made by authenticated users.
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ class ConfigBatchUpdateRequest(BaseModel):
 
 @router.get("/config")
 async def list_config(user: User = Depends(get_current_user)):
-    """全設定値を取得する（機密値はマスク済み）.
+    """Get all configuration values (sensitive values are masked).
 
     Returns a dict of all configurable keys with their current values,
     source (environment, config_file, default, unset), and metadata.
@@ -47,7 +47,7 @@ async def list_config(user: User = Depends(get_current_user)):
 
 @router.get("/config/providers")
 async def list_providers(user: User = Depends(get_current_user)):
-    """各 LLM プロバイダーの接続状態を取得する."""
+    """Get connection status for each LLM provider."""
     return {
         "providers": get_provider_status(),
         "execution_mode": get_config_value("DEFAULT_EXECUTION_MODE"),
@@ -59,10 +59,10 @@ async def update_config(
     req: ConfigUpdateRequest,
     user: User = Depends(get_current_user),
 ):
-    """設定値を更新する.
+    """Update a configuration value.
 
-    値は ~/.zero-employee/config.json に保存され、
-    実行中のアプリケーションにも即座に反映される。
+    Values are saved to ~/.zero-employee/config.json and
+    immediately applied to the running application.
     """
     if req.key not in CONFIGURABLE_KEYS:
         raise HTTPException(
@@ -79,7 +79,7 @@ async def update_config_batch(
     req: ConfigBatchUpdateRequest,
     user: User = Depends(get_current_user),
 ):
-    """複数の設定値を一括更新する."""
+    """Batch update multiple configuration values."""
     updated = []
     errors = []
     for key, value in req.values.items():
@@ -96,7 +96,7 @@ async def update_config_batch(
 
 @router.delete("/config/{key}")
 async def remove_config(key: str, user: User = Depends(get_current_user)):
-    """ランタイム設定値を削除する（デフォルト値に戻す）."""
+    """Remove a runtime configuration value (revert to default)."""
     if key not in CONFIGURABLE_KEYS:
         raise HTTPException(status_code=400, detail=f"Unknown config key: {key}")
     removed = delete_config_value(key)
@@ -105,5 +105,5 @@ async def remove_config(key: str, user: User = Depends(get_current_user)):
 
 @router.get("/config/keys")
 async def list_configurable_keys(user: User = Depends(get_current_user)):
-    """設定可能なキーの一覧とメタデータを返す."""
+    """Return the list of configurable keys and their metadata."""
     return {"keys": CONFIGURABLE_KEYS}

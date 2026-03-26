@@ -32,7 +32,7 @@ class GoalCreate(BaseModel):
 async def list_projects(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """プロジェクト一覧"""
+    """List projects."""
     cid = uuid.UUID(company_id)
     result = await db.execute(select(Project).where(Project.company_id == cid))
     projects = result.scalars().all()
@@ -55,7 +55,7 @@ async def create_project(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """プロジェクト作成"""
+    """Create a project."""
     project = Project(
         id=uuid.uuid4(),
         company_id=uuid.UUID(company_id),
@@ -74,7 +74,7 @@ async def create_project(
 async def list_goals(
     project_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """プロジェクトの目標一覧"""
+    """List project goals."""
     pid = uuid.UUID(project_id)
     result = await db.execute(select(Goal).where(Goal.project_id == pid))
     goals = result.scalars().all()
@@ -96,7 +96,7 @@ async def create_goal(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """目標作成"""
+    """Create a goal."""
     goal = Goal(
         id=uuid.uuid4(),
         project_id=uuid.UUID(project_id),

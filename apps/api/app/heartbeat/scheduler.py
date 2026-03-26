@@ -1,19 +1,20 @@
-"""Heartbeat スケジューラ — 定期巡回の実行管理.
+"""Heartbeat scheduler -- Periodic patrol execution management.
 
-Zero-Employee Orchestrator.md §36.3 に基づき、Heartbeat を単なる定期実行
-ではなく、AI 組織が定期巡回して仕事の状態を確認し、必要に応じて進行・
-委譲・再計画・報告を行う運用原理として実装する。
+Based on Zero-Employee Orchestrator.md section 36.3, implements Heartbeat not as
+mere periodic execution, but as an operational principle where the AI organization
+conducts periodic patrols to check work status and performs progression,
+delegation, replanning, and reporting as needed.
 
-発火契機:
-- 定期スケジュール (cron)
-- チケット新規作成
-- タスク割当
-- 差し戻し
-- 外部イベント受信
-- 予算残量閾値到達
-- 承認待ち解除
-- 上位者からの再指示
-- 依存タスク完了
+Trigger events:
+- Scheduled (cron)
+- Ticket created
+- Task assigned
+- Rework requested
+- External event received
+- Budget threshold reached
+- Approval resolved
+- Manager directive
+- Dependency completed
 """
 
 from __future__ import annotations
@@ -28,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 class HeartbeatTrigger(str, Enum):
-    """Heartbeat の発火契機."""
+    """Heartbeat trigger events."""
 
     SCHEDULED = "scheduled"
     TICKET_CREATED = "ticket_created"
@@ -52,7 +53,7 @@ class HeartbeatRunStatus(str, Enum):
 
 @dataclass
 class HeartbeatAction:
-    """Heartbeat 実行時に Agent が行うアクション."""
+    """Action performed by an Agent during heartbeat execution."""
 
     action_type: str  # check_tasks, delegate, escalate, approve_request, update_state
     target_id: str | None = None
@@ -62,7 +63,7 @@ class HeartbeatAction:
 
 @dataclass
 class HeartbeatExecution:
-    """Heartbeat 1 回の実行記録."""
+    """Record of a single heartbeat execution."""
 
     run_id: str
     policy_id: str
@@ -97,16 +98,16 @@ async def execute_heartbeat(
     team_id: str | None = None,
     trigger: HeartbeatTrigger = HeartbeatTrigger.SCHEDULED,
 ) -> HeartbeatExecution:
-    """Heartbeat を実行する.
+    """Execute a heartbeat.
 
-    実行時に Agent が行うこと:
-    1. 自分の未完了タスク確認
-    2. 依存関係の確認
-    3. 予算・権限・期限の確認
-    4. 必要であれば下位への委譲
-    5. 必要であれば上位へのエスカレーション
-    6. 必要であればユーザー承認要求
-    7. 実行ログ・状態更新
+    What the Agent does during execution:
+    1. Check own incomplete tasks
+    2. Check dependencies
+    3. Check budget, permissions, and deadlines
+    4. Delegate to subordinates if needed
+    5. Escalate to superiors if needed
+    6. Request user approval if needed
+    7. Update execution log and state
     """
     execution = HeartbeatExecution(
         run_id=str(uuid.uuid4()),
@@ -118,34 +119,34 @@ async def execute_heartbeat(
     execution.start()
 
     try:
-        # 1. 未完了タスク確認
+        # 1. Check incomplete tasks
         execution.add_action(
             HeartbeatAction(
                 action_type="check_tasks",
-                description="未完了タスクの確認",
+                description="Check incomplete tasks",
             )
         )
 
-        # 2. 依存関係確認
+        # 2. Check dependencies
         execution.add_action(
             HeartbeatAction(
                 action_type="check_dependencies",
-                description="依存関係の確認",
+                description="Check dependencies",
             )
         )
 
-        # 3. 予算・権限・期限確認
+        # 3. Check budget, permissions, and deadlines
         execution.add_action(
             HeartbeatAction(
                 action_type="check_constraints",
-                description="予算・権限・期限の確認",
+                description="Check budget, permissions, and deadlines",
             )
         )
 
-        execution.finish(success=True, summary="Heartbeat 完了: 全チェック正常")
+        execution.finish(success=True, summary="Heartbeat completed: all checks passed")
 
     except Exception as exc:
         logger.error("Heartbeat execution failed: %s", exc)
-        execution.finish(success=False, summary=f"Heartbeat 失敗: {exc}")
+        execution.finish(success=False, summary=f"Heartbeat failed: {exc}")
 
     return execution

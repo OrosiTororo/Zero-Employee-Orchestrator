@@ -1,10 +1,10 @@
-"""Model Registry API routes — モデルカタログの動的管理.
+"""Model Registry API routes — dynamic model catalog management.
 
-モデルの一覧・ヘルスチェック・廃止管理・カタログ更新を提供する。
-model_catalog.json を編集せずに API 経由でモデル管理が可能。
+Provides model listing, health checks, deprecation management, and catalog updates.
+Models can be managed via API without editing model_catalog.json.
 
-認証不要: モデルカタログはプロバイダー選択のための公開情報。
-ユーザー固有データを含まず、読み取り専用の発見用エンドポイント。
+No authentication required: model catalog is public information for provider selection.
+Contains no user-specific data; read-only discovery endpoints.
 """
 
 from __future__ import annotations
@@ -66,8 +66,8 @@ class AllProvidersHealthResponse(BaseModel):
 
 
 class DeprecateRequest(BaseModel):
-    model_id: str = Field(..., description="廃止するモデルID")
-    successor: str | None = Field(None, description="後継モデルID")
+    model_id: str = Field(..., description="Model ID to deprecate")
+    successor: str | None = Field(None, description="Successor model ID")
 
 
 class UpdateCostRequest(BaseModel):
@@ -98,9 +98,9 @@ async def list_models(
     provider: str | None = None,
     include_deprecated: bool = False,
 ):
-    """全登録モデルの一覧を取得.
+    """Get a list of all registered models.
 
-    provider パラメータで特定プロバイダーのモデルのみにフィルタ可能。
+    Filterable to specific provider models via the provider parameter.
     """
     from app.providers.model_registry import get_model_registry
 
@@ -133,7 +133,7 @@ async def list_models(
 
 @router.get("/models/modes", response_model=ModeCatalogResponse)
 async def get_mode_catalog():
-    """実行モード別のモデルカタログを取得."""
+    """Get model catalog by execution mode."""
     from app.providers.model_registry import get_model_registry
 
     registry = get_model_registry()
@@ -148,7 +148,7 @@ async def get_mode_catalog():
 
 @router.get("/models/health", response_model=AllProvidersHealthResponse)
 async def check_all_providers_health():
-    """全プロバイダーの可用性を一括チェック."""
+    """Batch check availability of all providers."""
     from app.providers.model_registry import get_model_registry
 
     registry = get_model_registry()
@@ -169,7 +169,7 @@ async def check_all_providers_health():
 
 @router.get("/models/health/{provider}", response_model=ProviderHealthResponse)
 async def check_provider_health(provider: str):
-    """特定プロバイダーの可用性をチェック."""
+    """Check availability of a specific provider."""
     from app.providers.model_registry import get_model_registry
 
     registry = get_model_registry()
@@ -185,7 +185,7 @@ async def check_provider_health(provider: str):
 
 @router.get("/models/deprecated", response_model=DeprecatedModelsResponse)
 async def list_deprecated_models():
-    """廃止済みモデルの一覧."""
+    """List deprecated models."""
     from app.providers.model_registry import get_model_registry
 
     registry = get_model_registry()
@@ -215,7 +215,7 @@ async def list_deprecated_models():
 
 @router.post("/models/deprecate")
 async def deprecate_model(req: DeprecateRequest):
-    """モデルを廃止としてマーク（後継モデルを指定可能）."""
+    """Mark a model as deprecated (optionally specify successor)."""
     from app.providers.model_registry import get_model_registry
 
     registry = get_model_registry()
@@ -223,7 +223,7 @@ async def deprecate_model(req: DeprecateRequest):
     if not ok:
         raise HTTPException(status_code=404, detail=f"Model not found: {req.model_id}")
 
-    # カタログファイルに永続化
+    # Persist to catalog file
     registry.save_catalog()
 
     return {
@@ -236,7 +236,7 @@ async def deprecate_model(req: DeprecateRequest):
 
 @router.post("/models/update-cost")
 async def update_model_cost(req: UpdateCostRequest):
-    """モデルのコスト情報を更新."""
+    """Update model cost information."""
     from app.providers.model_registry import get_model_registry
 
     registry = get_model_registry()
@@ -256,7 +256,7 @@ async def update_model_cost(req: UpdateCostRequest):
 
 @router.post("/models/reload", response_model=ReloadResponse)
 async def reload_catalog():
-    """model_catalog.json を再読み込みしてレジストリをリフレッシュ."""
+    """Reload model_catalog.json and refresh the registry."""
     from app.providers.model_registry import reload_model_registry
 
     registry = reload_model_registry()
@@ -271,21 +271,21 @@ async def reload_catalog():
 
 @router.post("/models/auto-update")
 async def auto_update_models():
-    """RSS/ToS パイプラインからモデル更新を検出し、カタログを自動更新する.
+    """Detect model updates from RSS/ToS pipeline and auto-update the catalog.
 
-    ユーザーがファイルを一切触ることなく AI モデル更新を自動で行う。
-    プロバイダーの RSS フィードをチェックし、新モデル・廃止・価格変更を検出。
-    Ollama のローカルモデルも自動検出してカタログに追加する。
+    Automatically updates AI models without users touching any files.
+    Checks provider RSS feeds and detects new models, deprecations, and price changes.
+    Also auto-detects Ollama local models and adds them to the catalog.
     """
     from app.integrations.rss_tos_monitor import rss_tos_monitor
     from app.providers.model_registry import get_model_registry
 
     registry = get_model_registry()
 
-    # 1. プロバイダー API からモデル可用性を自動チェック・更新
+    # 1. Auto-check and update model availability from provider APIs
     refreshed = await registry.refresh_catalog()
 
-    # 2. RSS/ToS パイプラインで外部変更を検出・自動適用
+    # 2. Detect and auto-apply external changes via RSS/ToS pipeline
     pipeline_result = await rss_tos_monitor.check_and_auto_update()
 
     return {
@@ -303,9 +303,9 @@ async def update_model_version(
     family_id: str,
     new_model_id: str,
 ):
-    """特定モデルの latest_model_id を更新する（API 経由でファイル編集不要）.
+    """Update latest_model_id for a specific model (no file editing needed via API).
 
-    例: anthropic/claude-opus の latest_model_id を claude-opus-4-7 に更新
+    Example: Update latest_model_id of anthropic/claude-opus to claude-opus-4-7
     """
     from app.providers.model_registry import get_model_registry
 

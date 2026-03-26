@@ -1,7 +1,7 @@
-"""マルチモデル比較・壁打ち・会話記憶・エージェント組織管理 API.
+"""Multi-model comparison, brainstorming, conversation memory, and agent organization management API.
 
-複数 LLM モデルへの同一入力比較、壁打ちセッション、
-会話記憶、エージェント役割別モデル設定、動的組織管理を提供する。
+Provides same-input comparison across multiple LLM models, brainstorming sessions,
+conversation memory, per-role model configuration for agents, and dynamic organization management.
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ router = APIRouter()
 
 
 class MultiModelCompareRequest(BaseModel):
-    """マルチモデル比較リクエスト."""
+    """Multi-model comparison request."""
 
     input_text: str
     model_ids: list[str] = Field(min_length=1)
@@ -42,7 +42,7 @@ class MultiModelCompareResponse(BaseModel):
 
 
 class ModelResponseRecord(BaseModel):
-    """個別モデルの回答記録."""
+    """Individual model response record."""
 
     model_id: str
     response_text: str
@@ -52,7 +52,7 @@ class ModelResponseRecord(BaseModel):
 
 
 class BrainstormCreateRequest(BaseModel):
-    """壁打ちセッション作成."""
+    """Create brainstorming session."""
 
     title: str = ""
     topic: str | None = None
@@ -62,7 +62,7 @@ class BrainstormCreateRequest(BaseModel):
 
 
 class BrainstormMessageRequest(BaseModel):
-    """壁打ちメッセージ追加."""
+    """Add brainstorming message."""
 
     role: str = "user"
     content: str
@@ -84,7 +84,7 @@ class BrainstormSessionResponse(BaseModel):
 
 
 class ConversationStoreRequest(BaseModel):
-    """会話メッセージ保存."""
+    """Store conversation message."""
 
     role: str
     content: str
@@ -106,7 +106,7 @@ class ConversationMemoryResponse(BaseModel):
 
 
 class TextAnalysisRequest(BaseModel):
-    """テキスト分析リクエスト."""
+    """Text analysis request."""
 
     text: str
     min_chars: int | None = None
@@ -114,7 +114,7 @@ class TextAnalysisRequest(BaseModel):
 
 
 class RoleModelConfigRequest(BaseModel):
-    """役割別モデル設定."""
+    """Per-role model configuration."""
 
     role_name: str
     model_id: str
@@ -137,7 +137,7 @@ class RoleModelConfigResponse(BaseModel):
 
 
 class AgentAddByRoleRequest(BaseModel):
-    """役割指定でのエージェント追加."""
+    """Add agent by role."""
 
     role: str
     name: str | None = None
@@ -149,13 +149,13 @@ class AgentAddByRoleRequest(BaseModel):
 
 
 class AgentRemoveRequest(BaseModel):
-    """エージェント削除."""
+    """Remove agent."""
 
     reason: str = ""
 
 
 class AgentUpdateRoleRequest(BaseModel):
-    """エージェント役割更新."""
+    """Update agent role."""
 
     name: str | None = None
     title: str | None = None
@@ -167,7 +167,7 @@ class AgentUpdateRoleRequest(BaseModel):
 
 
 class CustomRoleCreateRequest(BaseModel):
-    """カスタム役割作成."""
+    """Create custom role."""
 
     role_key: str
     name: str
@@ -179,14 +179,14 @@ class CustomRoleCreateRequest(BaseModel):
 
 
 class NaturalLanguageRequest(BaseModel):
-    """自然言語リクエスト."""
+    """Natural language request."""
 
     request_text: str
     auto_execute: bool = False
 
 
 # ===================================================================
-# マルチモデル比較
+# Multi-model comparison
 # ===================================================================
 
 
@@ -200,7 +200,7 @@ async def create_multi_model_comparison(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """複数モデルに同一入力を送り、回答を比較するリクエストを作成."""
+    """Create a request to send the same input to multiple models and compare responses."""
     from app.services.multi_model_service import MultiModelService
 
     svc = MultiModelService(db)
@@ -231,7 +231,7 @@ async def record_model_response(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """個別モデルの回答を記録."""
+    """Record an individual model response."""
     from app.services.multi_model_service import MultiModelService
 
     svc = MultiModelService(db)
@@ -260,7 +260,7 @@ async def get_comparison(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """比較結果を取得."""
+    """Get comparison result."""
     from app.services.multi_model_service import MultiModelService
 
     svc = MultiModelService(db)
@@ -286,7 +286,7 @@ async def list_comparisons(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """比較一覧を取得."""
+    """List comparisons."""
     from app.services.multi_model_service import MultiModelService
 
     svc = MultiModelService(db)
@@ -305,7 +305,7 @@ async def list_comparisons(
 
 
 # ===================================================================
-# 壁打ち（ブレインストーミング）
+# Brainstorming
 # ===================================================================
 
 
@@ -319,7 +319,7 @@ async def create_brainstorm_session(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """壁打ちセッションを作成."""
+    """Create a brainstorming session."""
     from app.services.multi_model_service import BrainstormService
 
     svc = BrainstormService(db)
@@ -354,7 +354,7 @@ async def add_brainstorm_message(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """壁打ちセッションにメッセージを追加."""
+    """Add a message to a brainstorming session."""
     from app.services.multi_model_service import BrainstormService
 
     svc = BrainstormService(db)
@@ -383,7 +383,7 @@ async def get_brainstorm_session(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """壁打ちセッションを取得."""
+    """Get a brainstorming session."""
     from app.services.multi_model_service import BrainstormService
 
     svc = BrainstormService(db)
@@ -415,7 +415,7 @@ async def list_brainstorm_sessions(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """壁打ちセッション一覧を取得."""
+    """List brainstorming sessions."""
     from app.services.multi_model_service import BrainstormService
 
     svc = BrainstormService(db)
@@ -446,7 +446,7 @@ async def update_brainstorm_status(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """壁打ちセッションのステータスを更新."""
+    """Update brainstorming session status."""
     from app.services.multi_model_service import BrainstormService
 
     svc = BrainstormService(db)
@@ -465,7 +465,7 @@ async def search_brainstorm_sessions(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """壁打ちセッションを検索."""
+    """Search brainstorming sessions."""
     if not q:
         raise HTTPException(status_code=400, detail="Query parameter 'q' is required")
     from app.services.multi_model_service import BrainstormService
@@ -485,7 +485,7 @@ async def search_brainstorm_sessions(
 
 
 # ===================================================================
-# 会話記憶
+# Conversation memory
 # ===================================================================
 
 
@@ -496,7 +496,7 @@ async def store_conversation_message(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """会話メッセージを保存."""
+    """Store a conversation message."""
     from app.services.multi_model_service import ConversationMemoryService
 
     svc = ConversationMemoryService(db)
@@ -535,7 +535,7 @@ async def get_conversation_history(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """会話履歴を取得."""
+    """Get conversation history."""
     from app.services.multi_model_service import ConversationMemoryService
 
     svc = ConversationMemoryService(db)
@@ -571,7 +571,7 @@ async def search_conversation_memory(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """会話記憶を検索."""
+    """Search conversation memory."""
     if not q:
         raise HTTPException(status_code=400, detail="Query parameter 'q' is required")
     from app.services.multi_model_service import ConversationMemoryService
@@ -598,7 +598,7 @@ async def get_conversation_stats(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """会話記憶の統計を取得."""
+    """Get conversation memory statistics."""
     from app.services.multi_model_service import ConversationMemoryService
 
     svc = ConversationMemoryService(db)
@@ -606,13 +606,13 @@ async def get_conversation_stats(
 
 
 # ===================================================================
-# テキスト分析（文字数カウント）
+# Text analysis (character counting)
 # ===================================================================
 
 
 @router.post("/text/analyze")
 async def analyze_text(req: TextAnalysisRequest, user: User = Depends(get_current_user)):
-    """テキストを分析（正確な文字数カウント）."""
+    """Analyze text (accurate character counting)."""
     from app.services.multi_model_service import TextAnalyzer
 
     analysis = TextAnalyzer.count_characters(req.text)
@@ -630,7 +630,7 @@ async def analyze_text(req: TextAnalysisRequest, user: User = Depends(get_curren
 
 
 # ===================================================================
-# 役割別モデル設定
+# Per-role model configuration
 # ===================================================================
 
 
@@ -641,7 +641,7 @@ async def set_role_model(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """役割に対するモデル設定を追加または更新."""
+    """Add or update model configuration for a role."""
     from app.services.multi_model_service import AgentRoleModelService
 
     svc = AgentRoleModelService(db)
@@ -675,7 +675,7 @@ async def list_role_models(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """全役割モデル設定を取得."""
+    """Get all role model configurations."""
     from app.services.multi_model_service import AgentRoleModelService
 
     svc = AgentRoleModelService(db)
@@ -703,7 +703,7 @@ async def get_role_model(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """特定役割のモデル設定を取得."""
+    """Get model configuration for a specific role."""
     from app.services.multi_model_service import AgentRoleModelService
 
     svc = AgentRoleModelService(db)
@@ -728,7 +728,7 @@ async def delete_role_model(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """役割モデル設定を削除."""
+    """Delete a role model configuration."""
     from app.services.multi_model_service import AgentRoleModelService
 
     svc = AgentRoleModelService(db)
@@ -740,7 +740,7 @@ async def delete_role_model(
 
 
 # ===================================================================
-# エージェント組織管理（動的追加・削除・役割カスタマイズ）
+# Agent organization management (dynamic add/remove/role customization)
 # ===================================================================
 
 
@@ -751,7 +751,7 @@ async def add_agent_by_role(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """役割を指定してエージェントを追加."""
+    """Add an agent by specifying a role."""
     from app.services.agent_org_service import AgentOrgService
 
     svc = AgentOrgService(db)
@@ -783,7 +783,7 @@ async def remove_agent(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """エージェントを組織から削除."""
+    """Remove an agent from the organization."""
     from app.services.agent_org_service import AgentOrgService
 
     svc = AgentOrgService(db)
@@ -801,7 +801,7 @@ async def update_agent_role(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """エージェントの役割設定を更新."""
+    """Update agent role settings."""
     from app.services.agent_org_service import AgentOrgService
 
     svc = AgentOrgService(db)
@@ -828,7 +828,7 @@ async def update_agent_role(
 
 
 # ===================================================================
-# カスタム役割管理
+# Custom role management
 # ===================================================================
 
 
@@ -839,7 +839,7 @@ async def create_custom_role(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """カスタムエージェント役割を作成."""
+    """Create a custom agent role."""
     from app.services.agent_org_service import AgentOrgService
 
     svc = AgentOrgService(db)
@@ -870,7 +870,7 @@ async def list_custom_roles(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """カスタム役割一覧を取得."""
+    """List custom roles."""
     from app.services.agent_org_service import AgentOrgService
 
     svc = AgentOrgService(db)
@@ -895,7 +895,7 @@ async def delete_custom_role(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """カスタム役割を削除."""
+    """Delete a custom role."""
     from app.services.agent_org_service import AgentOrgService
 
     svc = AgentOrgService(db)
@@ -912,7 +912,7 @@ async def get_available_roles(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """利用可能な全役割を取得（プリセット + カスタム）."""
+    """Get all available roles (preset + custom)."""
     from app.services.agent_org_service import AgentOrgService
 
     svc = AgentOrgService(db)
@@ -920,7 +920,7 @@ async def get_available_roles(
 
 
 # ===================================================================
-# 自然言語機能リクエスト
+# Natural language feature requests
 # ===================================================================
 
 
@@ -931,7 +931,7 @@ async def submit_natural_language_request(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """自然言語で AI 組織への要望を送信."""
+    """Submit a request to the AI organization in natural language."""
     from app.services.agent_org_service import AgentOrgService
 
     svc = AgentOrgService(db)
@@ -960,7 +960,7 @@ async def list_feature_requests(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """機能リクエスト一覧を取得."""
+    """List feature requests."""
     from app.services.agent_org_service import AgentOrgService
 
     svc = AgentOrgService(db)

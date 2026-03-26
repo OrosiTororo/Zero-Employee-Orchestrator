@@ -52,7 +52,7 @@ class SkillRead(BaseModel):
 
 
 class SkillGenerateRequest(BaseModel):
-    """自然言語でスキルの機能を説明してスキルを自動生成するリクエスト."""
+    """Request to auto-generate a skill by describing its functionality in natural language."""
 
     description: str = Field(..., min_length=10, max_length=5000)
     language: str = "ja"
@@ -60,7 +60,7 @@ class SkillGenerateRequest(BaseModel):
 
 
 class SkillGenerateResponse(BaseModel):
-    """自然言語スキル生成の結果."""
+    """Result of natural language skill generation."""
 
     skill_json: dict
     code: str
@@ -85,21 +85,21 @@ class PluginCreate(BaseModel):
 
 
 class PluginImportRequest(BaseModel):
-    """GitHub リポジトリや外部ソースからプラグインをインポートするリクエスト."""
+    """Request to import a plugin from a GitHub repository or external source."""
 
-    source_uri: str = Field(..., description="GitHub リポジトリ URL or plugin registry URI")
+    source_uri: str = Field(..., description="GitHub repository URL or plugin registry URI")
     auto_install: bool = False
 
 
 class PluginSearchRequest(BaseModel):
-    """外部プラグインの検索リクエスト."""
+    """External plugin search request."""
 
     query: str = Field(..., min_length=1, max_length=200)
     limit: int = Field(default=20, ge=1, le=100)
 
 
 class PluginSearchResult(BaseModel):
-    """外部プラグイン検索結果."""
+    """External plugin search result."""
 
     name: str
     slug: str

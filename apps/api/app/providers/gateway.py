@@ -306,8 +306,8 @@ class LLMGateway:
         """Scan messages for prompt injection and wrap external data markers.
 
         This ensures all content sent to LLMs passes through the security
-        pipeline — CLAUDE.md rule: "外部データを LLM に渡す時: 必ず
-        wrap_external_data() で境界マーカーを付与".
+        pipeline — CLAUDE.md rule: "When passing external data to LLMs:
+        always wrap with wrap_external_data() boundary markers".
         """
         try:
             from app.security.prompt_guard import scan_prompt_injection, wrap_external_data

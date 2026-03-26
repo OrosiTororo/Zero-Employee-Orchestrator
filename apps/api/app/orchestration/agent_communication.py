@@ -1,23 +1,23 @@
-"""Agent Communication Log — マルチエージェント間通信の記録と可視化.
+"""Agent Communication Log — Multi-agent communication recording and visualization.
 
-マルチエージェント協調時のメッセージ交換・委譲・フィードバックを
-すべて記録し、ブラックボックス化を防ぐ。
+Records all message exchanges, delegations, and feedback during multi-agent
+collaboration, preventing black-box behavior.
 
-記録されるイベント:
-  - タスク委譲（delegation）
-  - 成果物の受け渡し（artifact_handoff）
-  - フィードバック・質問（feedback）
-  - 承認要求・結果（approval_exchange）
-  - エスカレーション（escalation）
-  - ブロードキャスト（broadcast）
+Recorded events:
+  - Task delegation (delegation)
+  - Artifact handoff (artifact_handoff)
+  - Feedback / questions (feedback)
+  - Approval request / result (approval_exchange)
+  - Escalation (escalation)
+  - Broadcast (broadcast)
 
-使い方:
+Usage:
   log = comm_log.record(
       msg_type=MessageType.DELEGATION,
       sender_agent_id="agent-A",
       receiver_agent_id="agent-B",
-      content="タスク #42 のコード生成を委譲",
-      context={"task_id": "42", "reason": "Skill不足"},
+      content="Delegate code generation for task #42",
+      context={"task_id": "42", "reason": "Skill shortage"},
   )
 """
 
@@ -34,37 +34,37 @@ logger = logging.getLogger(__name__)
 
 
 class MessageType(str, Enum):
-    """エージェント間メッセージの種類."""
+    """Types of inter-agent messages."""
 
-    # タスク関連
-    DELEGATION = "delegation"  # タスクの委譲
-    DELEGATION_ACCEPT = "delegation_accept"  # 委譲の受諾
-    DELEGATION_REJECT = "delegation_reject"  # 委譲の拒否
-    TASK_UPDATE = "task_update"  # タスク進捗報告
+    # Task-related
+    DELEGATION = "delegation"  # Task delegation
+    DELEGATION_ACCEPT = "delegation_accept"  # Delegation accepted
+    DELEGATION_REJECT = "delegation_reject"  # Delegation rejected
+    TASK_UPDATE = "task_update"  # Task progress report
 
-    # 成果物関連
-    ARTIFACT_HANDOFF = "artifact_handoff"  # 成果物の受け渡し
-    ARTIFACT_REQUEST = "artifact_request"  # 成果物の要求
+    # Artifact-related
+    ARTIFACT_HANDOFF = "artifact_handoff"  # Artifact handoff
+    ARTIFACT_REQUEST = "artifact_request"  # Artifact request
 
-    # コミュニケーション
-    FEEDBACK = "feedback"  # フィードバック・改善提案
-    QUESTION = "question"  # 質問
-    ANSWER = "answer"  # 回答
-    INSTRUCTION = "instruction"  # 指示
+    # Communication
+    FEEDBACK = "feedback"  # Feedback / improvement suggestion
+    QUESTION = "question"  # Question
+    ANSWER = "answer"  # Answer
+    INSTRUCTION = "instruction"  # Instruction
 
-    # 品質・ガバナンス
-    QUALITY_REVIEW = "quality_review"  # 品質レビュー結果
-    APPROVAL_REQUEST = "approval_request"  # 承認要求
-    APPROVAL_RESPONSE = "approval_response"  # 承認結果
+    # Quality / Governance
+    QUALITY_REVIEW = "quality_review"  # Quality review result
+    APPROVAL_REQUEST = "approval_request"  # Approval request
+    APPROVAL_RESPONSE = "approval_response"  # Approval result
 
-    # 異常系
-    ESCALATION = "escalation"  # エスカレーション
-    ERROR_REPORT = "error_report"  # エラー報告
-    HELP_REQUEST = "help_request"  # 支援要求
+    # Exception handling
+    ESCALATION = "escalation"  # Escalation
+    ERROR_REPORT = "error_report"  # Error report
+    HELP_REQUEST = "help_request"  # Help request
 
-    # システム
-    BROADCAST = "broadcast"  # 全体通知
-    HEARTBEAT_PING = "heartbeat_ping"  # 死活確認
+    # System
+    BROADCAST = "broadcast"  # Broadcast notification
+    HEARTBEAT_PING = "heartbeat_ping"  # Heartbeat check
 
 
 class MessagePriority(str, Enum):
@@ -76,25 +76,25 @@ class MessagePriority(str, Enum):
 
 @dataclass
 class AgentMessage:
-    """エージェント間の1メッセージ."""
+    """A single inter-agent message."""
 
     message_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     msg_type: MessageType = MessageType.TASK_UPDATE
-    sender_agent_id: str | None = None  # None = system
-    receiver_agent_id: str | None = None  # None = broadcast
+    sender_agent_id: str | None = None  # None = system message
+    receiver_agent_id: str | None = None  # None = broadcast message
     company_id: str | None = None
     task_id: str | None = None
     ticket_id: str | None = None
 
-    content: str = ""  # 人間が読めるメッセージ本文
+    content: str = ""  # Human-readable message body
     structured_data: dict[str, Any] = field(default_factory=dict)
 
     priority: MessagePriority = MessagePriority.NORMAL
-    in_reply_to: str | None = None  # 返信先メッセージID
-    thread_id: str | None = None  # スレッドID（会話のグループ化）
+    in_reply_to: str | None = None  # Reply-to message ID
+    thread_id: str | None = None  # Thread ID (conversation grouping)
 
     timestamp: float = field(default_factory=time.time)
-    acknowledged: bool = False  # 受信確認済み
+    acknowledged: bool = False  # Acknowledged by receiver
     acknowledged_at: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -119,7 +119,7 @@ class AgentMessage:
 
 @dataclass
 class ConversationThread:
-    """エージェント間の会話スレッド."""
+    """Conversation thread between agents."""
 
     thread_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     task_id: str | None = None
@@ -132,7 +132,7 @@ class ConversationThread:
     def add_message(self, msg: AgentMessage) -> None:
         msg.thread_id = self.thread_id
         self.messages.append(msg)
-        # 参加者を自動追加
+        # Auto-add participants
         for agent_id in (msg.sender_agent_id, msg.receiver_agent_id):
             if agent_id and agent_id not in self.participants:
                 self.participants.append(agent_id)
@@ -151,7 +151,7 @@ class ConversationThread:
 
 
 class AgentCommunicationLog:
-    """エージェント間通信の記録・検索."""
+    """Inter-agent communication recording and search."""
 
     def __init__(self, max_messages: int = 5000) -> None:
         self._messages: list[AgentMessage] = []
@@ -173,7 +173,7 @@ class AgentCommunicationLog:
         in_reply_to: str | None = None,
         thread_id: str | None = None,
     ) -> AgentMessage:
-        """メッセージを記録."""
+        """Record a message."""
         msg = AgentMessage(
             msg_type=msg_type,
             sender_agent_id=sender_agent_id,
@@ -188,13 +188,13 @@ class AgentCommunicationLog:
             thread_id=thread_id,
         )
 
-        # 容量制限
+        # Capacity limit
         if len(self._messages) >= self._max_messages:
             self._messages = self._messages[-(self._max_messages // 2) :]
 
         self._messages.append(msg)
 
-        # スレッドに追加
+        # Add to thread
         if thread_id and thread_id in self._threads:
             self._threads[thread_id].add_message(msg)
 
@@ -215,10 +215,10 @@ class AgentCommunicationLog:
         reason: str,
         **kwargs: Any,
     ) -> AgentMessage:
-        """タスク委譲を記録（ショートカット）."""
+        """Record a task delegation (shortcut)."""
         return self.record(
             msg_type=MessageType.DELEGATION,
-            content=f"タスク委譲: {reason}",
+            content=f"Task delegation: {reason}",
             sender_agent_id=sender_agent_id,
             receiver_agent_id=receiver_agent_id,
             task_id=task_id,
@@ -234,10 +234,10 @@ class AgentCommunicationLog:
         task_id: str | None = None,
         **kwargs: Any,
     ) -> AgentMessage:
-        """エスカレーションを記録（ショートカット）."""
+        """Record an escalation (shortcut)."""
         return self.record(
             msg_type=MessageType.ESCALATION,
-            content=f"エスカレーション [{severity}]: {reason}",
+            content=f"Escalation [{severity}]: {reason}",
             sender_agent_id=sender_agent_id,
             task_id=task_id,
             structured_data={"reason": reason, "severity": severity, **kwargs},
@@ -250,7 +250,7 @@ class AgentCommunicationLog:
         task_id: str | None = None,
         participants: list[str] | None = None,
     ) -> ConversationThread:
-        """新しい会話スレッドを作成."""
+        """Create a new conversation thread."""
         thread = ConversationThread(
             task_id=task_id,
             participants=participants or [],
@@ -260,7 +260,7 @@ class AgentCommunicationLog:
         return thread
 
     def acknowledge(self, message_id: str) -> bool:
-        """メッセージの受信を確認."""
+        """Acknowledge message receipt."""
         for msg in reversed(self._messages):
             if msg.message_id == message_id:
                 msg.acknowledged = True
@@ -269,7 +269,7 @@ class AgentCommunicationLog:
         return False
 
     # ------------------------------------------------------------------
-    # 検索
+    # Search
     # ------------------------------------------------------------------
 
     def get_messages(
@@ -280,7 +280,7 @@ class AgentCommunicationLog:
         company_id: str | None = None,
         limit: int = 50,
     ) -> list[AgentMessage]:
-        """条件に合うメッセージを取得."""
+        """Retrieve messages matching the given conditions."""
         result = self._messages
         if company_id:
             result = [m for m in result if m.company_id == company_id]
@@ -303,7 +303,7 @@ class AgentCommunicationLog:
         return [t for t in self._threads.values() if t.task_id == task_id]
 
     def get_agent_interactions(self, agent_id: str) -> dict[str, int]:
-        """特定エージェントの通信相手別メッセージ数を取得."""
+        """Get per-counterpart message counts for a specific agent."""
         interactions: dict[str, int] = {}
         for msg in self._messages:
             if msg.sender_agent_id == agent_id and msg.receiver_agent_id:
@@ -313,7 +313,7 @@ class AgentCommunicationLog:
         return interactions
 
     def get_unacknowledged(self, receiver_agent_id: str) -> list[AgentMessage]:
-        """未確認メッセージを取得."""
+        """Get unacknowledged messages."""
         return [
             m
             for m in self._messages
@@ -321,14 +321,14 @@ class AgentCommunicationLog:
         ]
 
     def get_escalations(self, company_id: str | None = None, limit: int = 20) -> list[AgentMessage]:
-        """エスカレーション一覧を取得."""
+        """Get list of escalations."""
         result = [m for m in self._messages if m.msg_type == MessageType.ESCALATION]
         if company_id:
             result = [m for m in result if m.company_id == company_id]
         return result[-limit:]
 
     def get_recent(self, company_id: str | None = None, limit: int = 100) -> list[AgentMessage]:
-        """最近のメッセージを取得."""
+        """Get recent messages."""
         result = self._messages
         if company_id:
             result = [m for m in result if m.company_id == company_id]

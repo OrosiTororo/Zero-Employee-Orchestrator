@@ -1,6 +1,6 @@
-"""Knowledge & Preferences API — ナレッジストア・変更検知.
+"""Knowledge & Preferences API — knowledge store and change detection.
 
-ユーザー設定やファイル権限、フォルダ位置などの記憶と検索。
+Storage and retrieval of user settings, file permissions, folder locations, etc.
 """
 
 from __future__ import annotations
@@ -64,7 +64,7 @@ async def remember_knowledge(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """ナレッジを記憶する."""
+    """Store knowledge."""
     store = KnowledgeStore(db)
     record = await store.remember(
         req.category,
@@ -90,7 +90,7 @@ async def recall_knowledge(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """ナレッジを検索する."""
+    """Search knowledge."""
     store = KnowledgeStore(db)
     records = await store.recall(
         req.category,
@@ -121,7 +121,7 @@ async def remember_file_permission(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """ファイル/フォルダの操作権限を記憶."""
+    """Store file/folder operation permissions."""
     store = KnowledgeStore(db)
     record = await store.remember_file_permission(
         req.path,
@@ -144,7 +144,7 @@ async def remember_folder_location(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """業務資料フォルダの場所を記憶."""
+    """Store business document folder location."""
     store = KnowledgeStore(db)
     record = await store.remember_folder_location(
         req.name,
@@ -162,7 +162,7 @@ async def list_permissions(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """全ファイル権限を取得."""
+    """Get all file permissions."""
     store = KnowledgeStore(db)
     records = await store.get_all_permissions(company_id)
     await db.commit()
@@ -177,7 +177,7 @@ async def list_folder_locations(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """全フォルダ位置を取得."""
+    """Get all folder locations."""
     store = KnowledgeStore(db)
     records = await store.get_all_folder_locations(company_id)
     await db.commit()
@@ -194,7 +194,7 @@ async def list_changes(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """変更検知の一覧."""
+    """List detected changes."""
     store = KnowledgeStore(db)
     changes = await store.get_changes(company_id, unacknowledged_only, limit)
     await db.commit()
@@ -220,12 +220,12 @@ async def acknowledge_change(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """変更を確認済みにする."""
+    """Mark a change as acknowledged."""
     store = KnowledgeStore(db)
     ok = await store.acknowledge_change(change_id)
     await db.commit()
     if not ok:
-        raise HTTPException(status_code=404, detail="変更が見つかりません")
+        raise HTTPException(status_code=404, detail="Change not found")
     return {"acknowledged": True}
 
 
@@ -235,10 +235,10 @@ async def forget_knowledge(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """ナレッジを無効化."""
+    """Deactivate knowledge."""
     store = KnowledgeStore(db)
     ok = await store.forget(record_id)
     await db.commit()
     if not ok:
-        raise HTTPException(status_code=404, detail="ナレッジが見つかりません")
+        raise HTTPException(status_code=404, detail="Knowledge not found")
     return {"forgotten": True}

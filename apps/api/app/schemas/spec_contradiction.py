@@ -1,4 +1,4 @@
-"""Spec 間矛盾検出 API スキーマ."""
+"""Cross-spec contradiction detection API schemas."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class SpecForContradiction(BaseModel):
-    """矛盾検出に使用する Spec データ."""
+    """Spec data used for contradiction detection."""
 
     spec_id: str
     ticket_id: str = ""
@@ -21,14 +21,14 @@ class SpecForContradiction(BaseModel):
 
 
 class ContradictionCheckRequest(BaseModel):
-    """矛盾検出リクエスト."""
+    """Contradiction detection request."""
 
     specs: list[SpecForContradiction] = Field(..., min_length=2)
     project_id: str | None = None
 
 
 class ContradictionDetailResponse(BaseModel):
-    """矛盾詳細のレスポンス."""
+    """Contradiction detail response."""
 
     id: str
     type: str
@@ -46,7 +46,7 @@ class ContradictionDetailResponse(BaseModel):
 
 
 class SpecContradictionReportResponse(BaseModel):
-    """矛盾検出レポートのレスポンス."""
+    """Contradiction detection report response."""
 
     id: str
     company_id: str

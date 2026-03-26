@@ -1,16 +1,16 @@
-"""AI Self-Improvement API ルート — Level 2: 自己改善の芽.
+"""AI Self-Improvement API routes — Level 2: seeds of self-improvement.
 
-6つの自己改善スキルの API エンドポイントを提供する:
-1. POST /self-improvement/analyze          — Skill 分析
-2. POST /self-improvement/improve          — Skill 改善提案生成
-3. POST /self-improvement/improve/apply    — 改善適用（承認後）
-4. POST /self-improvement/judge/tune       — Judge 基準自動調整
-5. POST /self-improvement/judge/tune/apply — Judge 調整適用（承認後）
-6. POST /self-improvement/failure-to-skill — 失敗から Skill 生成
-7. POST /self-improvement/failure-to-skill/register — 失敗防止 Skill 登録
-8. POST /self-improvement/ab-test          — A/B テスト実行
-9. POST /self-improvement/generate-tests   — テスト自動生成
-10. GET  /self-improvement/status          — ダッシュボード
+Provides API endpoints for 6 self-improvement skills:
+1. POST /self-improvement/analyze          — Skill analysis
+2. POST /self-improvement/improve          — Skill improvement proposal generation
+3. POST /self-improvement/improve/apply    — Apply improvement (after approval)
+4. POST /self-improvement/judge/tune       — Judge criteria auto-tuning
+5. POST /self-improvement/judge/tune/apply — Apply Judge tuning (after approval)
+6. POST /self-improvement/failure-to-skill — Generate skill from failures
+7. POST /self-improvement/failure-to-skill/register — Register failure prevention skill
+8. POST /self-improvement/ab-test          — A/B test execution
+9. POST /self-improvement/generate-tests   — Auto test generation
+10. GET  /self-improvement/status          — Dashboard
 """
 
 from __future__ import annotations
@@ -53,7 +53,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/self-improvement")
 
 # ---------------------------------------------------------------------------
-# 内部カウンター（v0.1 ではインメモリ、将来 DB 永続化）
+# Internal counters (in-memory for v0.1, to be persisted to DB in the future)
 # ---------------------------------------------------------------------------
 
 _stats = {
@@ -67,7 +67,7 @@ _stats = {
     "tests_generated": 0,
 }
 
-# 最新の結果をキャッシュ（承認フロー用）
+# Cache latest results (for approval flow)
 _latest_tuning: dict = {}
 _latest_improvement: dict = {}
 
@@ -83,13 +83,13 @@ async def analyze_skill_endpoint(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> SkillAnalysisResponse:
-    """既存 Skill を AI が分析し、改善提案を生成する."""
+    """AI analyzes an existing skill and generates improvement proposals."""
     from app.services.self_improvement_service import analyze_skill
 
     try:
         skill_id = uuid.UUID(request.skill_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="無効なスキルIDです")
+        raise HTTPException(status_code=400, detail="Invalid skill ID")
 
     try:
         result = await analyze_skill(db, skill_id)
@@ -128,13 +128,13 @@ async def improve_skill_endpoint(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> SkillImprovementResponse:
-    """Skill を分析し、改善版を生成する（適用には承認が必要）."""
+    """Analyze a skill and generate an improved version (approval required to apply)."""
     from app.services.self_improvement_service import improve_skill
 
     try:
         skill_id = uuid.UUID(request.skill_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="無効なスキルIDです")
+        raise HTTPException(status_code=400, detail="Invalid skill ID")
 
     try:
         proposal = await improve_skill(db, skill_id)
@@ -143,7 +143,7 @@ async def improve_skill_endpoint(
 
     _stats["improvements_proposed"] += 1
 
-    # 承認フロー用にキャッシュ
+    # Cache for approval flow
     _latest_improvement[request.skill_id] = proposal
 
     return SkillImprovementResponse(
@@ -165,7 +165,7 @@ async def apply_improvement_endpoint(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> dict:
-    """改善提案を適用する（承認後に呼び出し）."""
+    """Apply an improvement proposal (called after approval)."""
     from app.services.self_improvement_service import (
         SkillImprovementProposal,
         apply_improvement,
@@ -174,7 +174,7 @@ async def apply_improvement_endpoint(
     try:
         skill_id = uuid.UUID(request.skill_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="無効なスキルIDです")
+        raise HTTPException(status_code=400, detail="Invalid skill ID")
 
     proposal = SkillImprovementProposal(
         original_skill_id=request.skill_id,
@@ -182,7 +182,7 @@ async def apply_improvement_endpoint(
         proposed_version=request.proposed_version,
         original_code="",
         improved_code=request.improved_code,
-        changes_summary=["承認に基づく改善適用"],
+        changes_summary=["Improvement applied based on approval"],
         expected_improvements=[],
     )
 
@@ -198,7 +198,7 @@ async def apply_improvement_endpoint(
         "status": "applied",
         "skill_id": str(skill.id),
         "new_version": skill.version,
-        "message": f"Skill '{skill.slug}' を v{skill.version} に更新しました",
+        "message": f"Skill '{skill.slug}' updated to v{skill.version}",
     }
 
 
@@ -213,18 +213,18 @@ async def tune_judge_endpoint(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> JudgeTuningResponse:
-    """Experience Memory から Judge 判定基準の調整を提案する."""
+    """Propose Judge criteria adjustments from Experience Memory."""
     from app.services.self_improvement_service import tune_judge_from_experience
 
     try:
         company_id = uuid.UUID(request.company_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="無効な会社IDです")
+        raise HTTPException(status_code=400, detail="Invalid company ID")
 
     result = await tune_judge_from_experience(db, company_id)
     _stats["judge_rules_proposed"] += len(result.proposed_rules)
 
-    # 承認フロー用にキャッシュ
+    # Cache for approval flow
     _latest_tuning[request.company_id] = result
 
     return JudgeTuningResponse(
@@ -254,7 +254,7 @@ async def apply_judge_tuning_endpoint(
     request: JudgeTuningApplyRequest,
     user: User = Depends(get_current_user),
 ) -> JudgeTuningApplyResponse:
-    """提案された Judge ルールを適用する（承認後）."""
+    """Apply proposed Judge rules (after approval)."""
     from app.services.self_improvement_service import (
         apply_judge_tuning,
     )
@@ -263,10 +263,10 @@ async def apply_judge_tuning_endpoint(
     if cached is None:
         raise HTTPException(
             status_code=404,
-            detail="先に /judge/tune で調整提案を生成してください",
+            detail="Please generate tuning proposals first via /judge/tune",
         )
 
-    # 特定ルールのみ適用する場合
+    # Apply only specific rules if specified
     if request.rule_names:
         cached.proposed_rules = [
             r for r in cached.proposed_rules if r.rule_name in request.rule_names
@@ -277,7 +277,7 @@ async def apply_judge_tuning_endpoint(
 
     return JudgeTuningApplyResponse(
         applied_count=applied,
-        message=f"Judge ルール {applied} 件を適用しました",
+        message=f"Applied {applied} Judge rules",
     )
 
 
@@ -292,13 +292,13 @@ async def failure_to_skill_endpoint(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> FailureToSkillResponse:
-    """失敗パターンから予防 Skill を自動生成する."""
+    """Auto-generate prevention skills from failure patterns."""
     from app.services.self_improvement_service import generate_skills_from_failures
 
     try:
         company_id = uuid.UUID(request.company_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="無効な会社IDです")
+        raise HTTPException(status_code=400, detail="Invalid company ID")
 
     proposals = await generate_skills_from_failures(
         db, company_id, min_occurrences=request.min_occurrences
@@ -330,19 +330,19 @@ async def register_failure_skill_endpoint(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> dict:
-    """失敗防止 Skill を登録する（承認後）."""
+    """Register a failure prevention skill (after approval)."""
     from app.services.skill_service import (
         SkillCreate,
         analyze_code_safety,
         create_skill,
     )
 
-    # 安全性チェック
+    # Safety check
     safety = analyze_code_safety(request.code)
     if safety.risk_level == "high":
         raise HTTPException(
             status_code=400,
-            detail=f"安全性チェック不合格: {safety.summary}",
+            detail=f"Safety check failed: {safety.summary}",
         )
 
     skill = await create_skill(
@@ -363,7 +363,7 @@ async def register_failure_skill_endpoint(
         "status": "registered",
         "skill_id": str(skill.id),
         "slug": skill.slug,
-        "message": f"失敗防止スキル '{skill.name}' を登録しました",
+        "message": f"Failure prevention skill '{skill.name}' registered",
     }
 
 
@@ -378,14 +378,14 @@ async def skill_ab_test_endpoint(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> SkillABTestResponse:
-    """2つの Skill を A/B テストで比較する."""
+    """Compare two skills via A/B testing."""
     from app.services.self_improvement_service import run_skill_ab_test
 
     try:
         skill_a = uuid.UUID(request.skill_a_id)
         skill_b = uuid.UUID(request.skill_b_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="無効なスキルIDです")
+        raise HTTPException(status_code=400, detail="Invalid skill ID")
 
     try:
         result = await run_skill_ab_test(
@@ -422,13 +422,13 @@ async def generate_tests_endpoint(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> AutoTestResponse:
-    """Skill のテストコードを自動生成する."""
+    """Auto-generate test code for a skill."""
     from app.services.self_improvement_service import generate_tests_for_skill
 
     try:
         skill_id = uuid.UUID(request.skill_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="無効なスキルIDです")
+        raise HTTPException(status_code=400, detail="Invalid skill ID")
 
     try:
         result = await generate_tests_for_skill(db, skill_id)
@@ -459,7 +459,7 @@ async def generate_tests_endpoint(
 
 
 # ---------------------------------------------------------------------------
-# ダッシュボード
+# Dashboard
 # ---------------------------------------------------------------------------
 
 
@@ -467,7 +467,7 @@ async def generate_tests_endpoint(
 async def self_improvement_status(
     user: User = Depends(get_current_user),
 ) -> SelfImprovementStatusResponse:
-    """AI Self-Improvement の全体ステータスを返す."""
+    """Return the overall status of AI Self-Improvement."""
     return SelfImprovementStatusResponse(
         plugin_version="0.1.0",
         **_stats,

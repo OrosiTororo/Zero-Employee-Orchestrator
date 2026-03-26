@@ -1,7 +1,7 @@
-"""Skill マーケットプレイス API エンドポイント.
+"""Skill marketplace API endpoints.
 
-コミュニティ Skill / Plugin / Extension の公開・検索・レビュー・
-インストールを提供する。
+Provides publishing, searching, reviewing, and installing
+community Skills / Plugins / Extensions.
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ router = APIRouter(prefix="/marketplace", tags=["marketplace"])
 
 
 class PublishRequest(BaseModel):
-    """Listing 公開リクエスト."""
+    """Listing publish request."""
 
     name: str = Field(..., min_length=1, max_length=100)
     description: str = Field(..., min_length=1, max_length=2000)
@@ -42,7 +42,7 @@ class PublishRequest(BaseModel):
 
 
 class ReviewRequest(BaseModel):
-    """レビュー投稿リクエスト."""
+    """Review submission request."""
 
     user_id: str = Field(..., min_length=1)
     rating: int = Field(..., ge=1, le=5)
@@ -50,7 +50,7 @@ class ReviewRequest(BaseModel):
 
 
 class InstallRequest(BaseModel):
-    """インストールリクエスト."""
+    """Install request."""
 
     company_id: str = Field(..., min_length=1)
 
@@ -58,7 +58,7 @@ class InstallRequest(BaseModel):
 # ---------- Endpoints ----------
 
 
-# 認証不要: マーケットプレイス閲覧は公開
+# No auth required: marketplace browsing is public
 @router.get("/search")
 async def search_listings(
     query: str = "",
@@ -67,7 +67,7 @@ async def search_listings(
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
 ) -> list[dict]:
-    """マーケットプレイスの Listing を検索する."""
+    """Search marketplace listings."""
     cat = None
     if category:
         try:
@@ -75,8 +75,8 @@ async def search_listings(
         except ValueError:
             raise HTTPException(
                 status_code=400,
-                detail=f"無効なカテゴリ: {category}。"
-                f"有効値: {[c.value for c in MarketplaceCategory]}",
+                detail=f"Invalid category: {category}. "
+                f"Valid values: {[c.value for c in MarketplaceCategory]}",
             )
 
     results = await marketplace_service.search(
@@ -85,35 +85,35 @@ async def search_listings(
     return [_listing_to_dict(r) for r in results]
 
 
-# 認証不要: マーケットプレイス閲覧は公開
+# No auth required: marketplace browsing is public
 @router.get("/trending")
 async def get_trending(
     limit: int = Query(default=10, ge=1, le=50),
 ) -> list[dict]:
-    """トレンドの Listing を取得する."""
+    """Get trending listings."""
     results = await marketplace_service.get_trending(limit=limit)
     return [_listing_to_dict(r) for r in results]
 
 
-# 認証不要: マーケットプレイス閲覧は公開
+# No auth required: marketplace browsing is public
 @router.get("/{listing_id}")
 async def get_listing(listing_id: str) -> dict:
-    """Listing を ID で取得する."""
+    """Get a listing by ID."""
     listing = await marketplace_service.get_listing(listing_id)
     if listing is None:
-        raise HTTPException(status_code=404, detail="Listing が見つかりません")
+        raise HTTPException(status_code=404, detail="Listing not found")
     return _listing_to_dict(listing)
 
 
 @router.post("/publish", status_code=201)
 async def publish_listing(req: PublishRequest, user: User = Depends(get_current_user)) -> dict:
-    """Listing をレビュー待ちとして公開する."""
+    """Publish a listing as pending review."""
     try:
         cat = MarketplaceCategory(req.category)
     except ValueError:
         raise HTTPException(
             status_code=400,
-            detail=f"無効なカテゴリ: {req.category}",
+            detail=f"Invalid category: {req.category}",
         )
 
     listing = MarketplaceListing(
@@ -136,7 +136,7 @@ async def publish_listing(req: PublishRequest, user: User = Depends(get_current_
 async def install_listing(
     listing_id: str, req: InstallRequest, user: User = Depends(get_current_user)
 ) -> dict:
-    """Listing を企業にインストールする."""
+    """Install a listing to a company."""
     try:
         listing = await marketplace_service.install(listing_id, req.company_id)
     except ValueError as e:
@@ -152,7 +152,7 @@ async def install_listing(
 async def add_review(
     listing_id: str, req: ReviewRequest, user: User = Depends(get_current_user)
 ) -> dict:
-    """Listing にレビューを追加する."""
+    """Add a review to a listing."""
     try:
         review = await marketplace_service.add_review(
             listing_id=listing_id,
@@ -172,11 +172,11 @@ async def add_review(
     }
 
 
-# ---------- ヘルパー ----------
+# ---------- Helpers ----------
 
 
 def _listing_to_dict(listing: MarketplaceListing) -> dict:
-    """MarketplaceListing を dict に変換する."""
+    """Convert MarketplaceListing to dict."""
     return {
         "id": listing.id,
         "name": listing.name,

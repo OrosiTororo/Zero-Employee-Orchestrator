@@ -1,21 +1,21 @@
-"""ワークスペース隔離 — AI エージェントの環境分離.
+"""Workspace isolation -- AI agent environment separation.
 
-初期状態では AI エージェントは完全に隔離されたワークスペース内でのみ動作し、
-ローカルファイルシステムやクラウドストレージには一切アクセスできない。
+By default, AI agents operate only within a fully isolated workspace
+and cannot access the local file system or cloud storage at all.
 
-ユーザーは設定やチャットでの指示により、以下を段階的に許可できる:
-- ローカルフォルダへのアクセス（許可したフォルダのみ）
-- クラウドストレージへの接続（許可したプロバイダー・フォルダのみ）
-- 成果物の保存先の変更
+Users can gradually grant permissions through settings or chat instructions:
+- Local folder access (only permitted folders)
+- Cloud storage connections (only permitted providers/folders)
+- Changing artifact storage locations
 
-業務ごとにチャットで異なる環境・権限を指示された場合、
-AI は計画段階でユーザーに許可を求める。
+When different environments/permissions are instructed per task via chat,
+the AI requests user permission during the planning stage.
 
-セキュリティ原則:
-- デフォルト拒否: 明示的に許可されていないアクセスはすべて拒否
-- 最小権限: 必要最小限のアクセスのみ許可
-- 監査可能: すべてのアクセス許可変更を記録
-- ユーザー主権: AI が勝手にアクセス範囲を拡大しない
+Security principles:
+- Default deny: All access not explicitly permitted is denied
+- Least privilege: Only the minimum necessary access is granted
+- Auditable: All access permission changes are recorded
+- User sovereignty: AI does not expand access scope on its own
 """
 
 from __future__ import annotations
@@ -28,20 +28,20 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-# 内部ストレージのデフォルトパス
+# Default path for internal storage
 _DEFAULT_INTERNAL_STORAGE = os.path.join(os.path.expanduser("~"), ".zero_employee", "workspace")
 
 
 class StorageLocation(str, Enum):
-    """成果物の保存先."""
+    """Artifact storage location."""
 
-    INTERNAL = "internal"  # 隔離ワークスペース内（初期設定）
-    LOCAL = "local"  # ローカルファイルシステム
-    CLOUD = "cloud"  # クラウドストレージ
+    INTERNAL = "internal"  # Within isolated workspace (default)
+    LOCAL = "local"  # Local file system
+    CLOUD = "cloud"  # Cloud storage
 
 
 class CloudProvider(str, Enum):
-    """対応クラウドストレージプロバイダー."""
+    """Supported cloud storage providers."""
 
     GOOGLE_DRIVE = "google_drive"
     ONEDRIVE = "onedrive"
@@ -50,47 +50,47 @@ class CloudProvider(str, Enum):
 
 
 class AccessScope(str, Enum):
-    """アクセス範囲."""
+    """Access scope."""
 
-    INTERNAL_ONLY = "internal_only"  # 隔離環境のみ（初期設定）
-    LOCAL_ALLOWED = "local_allowed"  # ローカルフォルダも許可
-    CLOUD_ALLOWED = "cloud_allowed"  # クラウドも許可
-    FULL = "full"  # ローカル + クラウド許可
+    INTERNAL_ONLY = "internal_only"  # Isolated environment only (default)
+    LOCAL_ALLOWED = "local_allowed"  # Local folders also allowed
+    CLOUD_ALLOWED = "cloud_allowed"  # Cloud also allowed
+    FULL = "full"  # Local + cloud allowed
 
 
 @dataclass
 class WorkspaceConfig:
-    """ワークスペース隔離設定.
+    """Workspace isolation configuration.
 
-    初期設定では完全隔離状態。ユーザーが明示的に許可した場合のみ
-    ローカル・クラウドへのアクセスが可能になる。
+    Default is fully isolated. Local/cloud access becomes available
+    only when explicitly permitted by the user.
     """
 
-    # 内部ストレージパス
+    # Internal storage path
     internal_storage_path: str = field(default_factory=lambda: _DEFAULT_INTERNAL_STORAGE)
 
-    # ローカルアクセス設定
-    local_access_enabled: bool = False  # 初期: 無効
+    # Local access settings
+    local_access_enabled: bool = False  # Default: disabled
     allowed_local_paths: list[str] = field(default_factory=list)
 
-    # クラウドアクセス設定
-    cloud_access_enabled: bool = False  # 初期: 無効
+    # Cloud access settings
+    cloud_access_enabled: bool = False  # Default: disabled
     cloud_providers: list[str] = field(default_factory=list)
     allowed_cloud_paths: list[str] = field(default_factory=list)
 
-    # 成果物の保存先
+    # Artifact storage location
     storage_location: StorageLocation = StorageLocation.INTERNAL
 
-    # チャット指示によるオーバーライド時に承認を要求
+    # Require approval when overriding via chat instructions
     require_approval_for_override: bool = True
 
 
 @dataclass
 class TaskWorkspaceOverride:
-    """業務（タスク）単位のワークスペースオーバーライド.
+    """Per-task workspace override.
 
-    チャットでの指示やAPI経由で、特定のタスクに対して
-    システム設定とは異なるアクセス範囲を一時的に許可する。
+    Temporarily grants a different access scope for a specific task
+    via chat instructions or API, differing from system settings.
     """
 
     task_id: str
@@ -104,7 +104,7 @@ class TaskWorkspaceOverride:
 
 @dataclass
 class WorkspaceAccessResult:
-    """ワークスペースアクセスチェック結果."""
+    """Workspace access check result."""
 
     allowed: bool
     path: str
@@ -114,10 +114,10 @@ class WorkspaceAccessResult:
 
 
 class WorkspaceIsolation:
-    """ワークスペース隔離マネージャー.
+    """Workspace isolation manager.
 
-    AI エージェントのファイル・ナレッジアクセスを制御する。
-    初期状態では隔離ワークスペース内のみアクセス可能。
+    Controls AI agent file and knowledge access.
+    By default, only the isolated workspace is accessible.
     """
 
     def __init__(self, config: WorkspaceConfig | None = None) -> None:
@@ -130,7 +130,7 @@ class WorkspaceIsolation:
         return self._config
 
     def update_config(self, config: WorkspaceConfig) -> None:
-        """設定を更新する."""
+        """Update configuration."""
         self._config = config
         self._ensure_internal_storage()
         logger.info(
@@ -141,25 +141,25 @@ class WorkspaceIsolation:
         )
 
     def _ensure_internal_storage(self) -> None:
-        """内部ストレージディレクトリを作成する."""
+        """Create internal storage directories."""
         base = Path(self._config.internal_storage_path)
         for subdir in ["knowledge", "artifacts", "temp"]:
             (base / subdir).mkdir(parents=True, exist_ok=True)
 
     def get_internal_storage_path(self) -> str:
-        """内部ストレージのベースパスを返す."""
+        """Return the base path of internal storage."""
         return self._config.internal_storage_path
 
     def get_knowledge_path(self) -> str:
-        """ナレッジ格納パスを返す."""
+        """Return the knowledge storage path."""
         return str(Path(self._config.internal_storage_path) / "knowledge")
 
     def get_artifacts_path(self) -> str:
-        """成果物格納パスを返す."""
+        """Return the artifacts storage path."""
         return str(Path(self._config.internal_storage_path) / "artifacts")
 
     def get_temp_path(self) -> str:
-        """一時ファイルパスを返す."""
+        """Return the temporary file path."""
         return str(Path(self._config.internal_storage_path) / "temp")
 
     def check_access(
@@ -168,14 +168,14 @@ class WorkspaceIsolation:
         *,
         task_id: str | None = None,
     ) -> WorkspaceAccessResult:
-        """パスへのアクセスが許可されているかチェックする.
+        """Check whether access to a path is permitted.
 
         Args:
-            path: チェック対象のパス
-            task_id: タスクID（タスク単位のオーバーライドをチェック）
+            path: Path to check
+            task_id: Task ID (to check per-task overrides)
 
         Returns:
-            WorkspaceAccessResult: アクセス可否と理由
+            WorkspaceAccessResult: Access permission result and reason
         """
         try:
             resolved = str(Path(path).resolve())
@@ -186,7 +186,7 @@ class WorkspaceIsolation:
                 reason=f"Invalid path: {exc}",
             )
 
-        # 1. 内部ストレージへのアクセスは常に許可
+        # 1. Access to internal storage is always allowed
         internal_resolved = str(Path(self._config.internal_storage_path).resolve())
         if resolved.startswith(internal_resolved):
             return WorkspaceAccessResult(
@@ -195,7 +195,7 @@ class WorkspaceIsolation:
                 reason="Path is within internal workspace storage",
             )
 
-        # 2. タスク単位のオーバーライドをチェック
+        # 2. Check per-task overrides
         if task_id and task_id in self._task_overrides:
             override = self._task_overrides[task_id]
             if override.approved_by_user:
@@ -208,7 +208,7 @@ class WorkspaceIsolation:
                             reason=f"Task override: path allowed for task {task_id}",
                         )
 
-        # 3. ローカルアクセスが有効かチェック
+        # 3. Check if local access is enabled
         if not self._config.local_access_enabled:
             return WorkspaceAccessResult(
                 allowed=False,
@@ -218,15 +218,15 @@ class WorkspaceIsolation:
                 "Enable local access via settings or upload files to the workspace.",
                 requires_user_approval=True,
                 suggested_message=(
-                    "このパスへのアクセスにはローカルファイルアクセスの許可が必要です。\n"
-                    f"対象: {resolved}\n"
-                    "設定でローカルアクセスを有効にするか、"
-                    "ファイルをワークスペースにアップロードしてください。\n"
-                    "[ローカルアクセスを有効にする] [このタスクのみ許可] [キャンセル]"
+                    "Local file access permission is required to access this path.\n"
+                    f"Target: {resolved}\n"
+                    "Enable local access in settings or "
+                    "upload files to the workspace.\n"
+                    "[Enable local access] [Allow for this task only] [Cancel]"
                 ),
             )
 
-        # 4. 許可されたローカルパスに含まれるかチェック
+        # 4. Check if path is within allowed local paths
         for allowed in self._config.allowed_local_paths:
             allowed_resolved = str(Path(allowed).resolve())
             if resolved.startswith(allowed_resolved):
@@ -243,10 +243,10 @@ class WorkspaceIsolation:
             f"Allowed: {self._config.allowed_local_paths}",
             requires_user_approval=True,
             suggested_message=(
-                "このフォルダへのアクセスは現在許可されていません。\n"
-                f"対象: {resolved}\n"
-                "このフォルダへのアクセスを許可しますか？\n"
-                "[このタスクのみ許可] [恒久的に許可] [拒否]"
+                "Access to this folder is not currently permitted.\n"
+                f"Target: {resolved}\n"
+                "Allow access to this folder?\n"
+                "[Allow for this task only] [Allow permanently] [Deny]"
             ),
         )
 
@@ -257,8 +257,8 @@ class WorkspaceIsolation:
         *,
         task_id: str | None = None,
     ) -> WorkspaceAccessResult:
-        """クラウドストレージへのアクセスが許可されているかチェックする."""
-        # タスクオーバーライドをチェック
+        """Check whether access to cloud storage is permitted."""
+        # Check task overrides
         if task_id and task_id in self._task_overrides:
             override = self._task_overrides[task_id]
             if override.approved_by_user:
@@ -278,10 +278,10 @@ class WorkspaceIsolation:
                 reason="Cloud storage access is disabled. Enable cloud access via settings.",
                 requires_user_approval=True,
                 suggested_message=(
-                    "クラウドストレージへのアクセスは現在無効です。\n"
-                    f"プロバイダー: {provider}\n"
-                    "設定でクラウドアクセスを有効にしますか？\n"
-                    "[有効にする] [このタスクのみ許可] [キャンセル]"
+                    "Cloud storage access is currently disabled.\n"
+                    f"Provider: {provider}\n"
+                    "Enable cloud access in settings?\n"
+                    "[Enable] [Allow for this task only] [Cancel]"
                 ),
             )
 
@@ -293,9 +293,9 @@ class WorkspaceIsolation:
                 f"Configured: {self._config.cloud_providers}",
                 requires_user_approval=True,
                 suggested_message=(
-                    f"クラウドプロバイダー '{provider}' は設定されていません。\n"
-                    "接続を追加しますか？\n"
-                    "[接続する] [キャンセル]"
+                    f"Cloud provider '{provider}' is not configured.\n"
+                    "Add connection?\n"
+                    "[Connect] [Cancel]"
                 ),
             )
 
@@ -306,7 +306,7 @@ class WorkspaceIsolation:
         )
 
     def get_effective_storage_location(self, task_id: str | None = None) -> StorageLocation:
-        """有効な保存先を取得する（タスクオーバーライドを考慮）."""
+        """Get the effective storage location (considering task overrides)."""
         if task_id and task_id in self._task_overrides:
             override = self._task_overrides[task_id]
             if override.approved_by_user and override.storage_location:
@@ -314,7 +314,7 @@ class WorkspaceIsolation:
         return self._config.storage_location
 
     def set_task_override(self, override: TaskWorkspaceOverride) -> None:
-        """タスク単位のワークスペースオーバーライドを設定する."""
+        """Set a per-task workspace override."""
         self._task_overrides[override.task_id] = override
         logger.info(
             "Task workspace override set: task=%s, approved=%s, local_paths=%d, cloud_sources=%d",
@@ -325,7 +325,7 @@ class WorkspaceIsolation:
         )
 
     def approve_task_override(self, task_id: str) -> bool:
-        """タスクオーバーライドをユーザー承認する."""
+        """Approve a task override by user."""
         if task_id in self._task_overrides:
             self._task_overrides[task_id].approved_by_user = True
             logger.info("Task workspace override approved: task=%s", task_id)
@@ -333,18 +333,18 @@ class WorkspaceIsolation:
         return False
 
     def remove_task_override(self, task_id: str) -> None:
-        """タスクオーバーライドを削除する."""
+        """Remove a task override."""
         self._task_overrides.pop(task_id, None)
 
     def add_allowed_local_path(self, path: str) -> None:
-        """許可ローカルパスを追加する."""
+        """Add an allowed local path."""
         resolved = str(Path(path).resolve())
         if resolved not in self._config.allowed_local_paths:
             self._config.allowed_local_paths.append(resolved)
             logger.info("Workspace: local path allowed: %s", resolved)
 
     def remove_allowed_local_path(self, path: str) -> None:
-        """許可ローカルパスを削除する."""
+        """Remove an allowed local path."""
         resolved = str(Path(path).resolve())
         self._config.allowed_local_paths = [
             p for p in self._config.allowed_local_paths if p != resolved
@@ -352,18 +352,18 @@ class WorkspaceIsolation:
         logger.info("Workspace: local path removed: %s", resolved)
 
     def add_cloud_provider(self, provider: str) -> None:
-        """クラウドプロバイダーを追加する."""
+        """Add a cloud provider."""
         if provider not in self._config.cloud_providers:
             self._config.cloud_providers.append(provider)
             logger.info("Workspace: cloud provider added: %s", provider)
 
     def remove_cloud_provider(self, provider: str) -> None:
-        """クラウドプロバイダーを削除する."""
+        """Remove a cloud provider."""
         self._config.cloud_providers = [p for p in self._config.cloud_providers if p != provider]
         logger.info("Workspace: cloud provider removed: %s", provider)
 
     def get_access_scope(self) -> AccessScope:
-        """現在のアクセス範囲を返す."""
+        """Return the current access scope."""
         local = self._config.local_access_enabled
         cloud = self._config.cloud_access_enabled
         if local and cloud:
@@ -380,12 +380,13 @@ class WorkspaceIsolation:
         requested_cloud: list[str] | None = None,
         requested_storage: StorageLocation | None = None,
     ) -> WorkspaceAccessResult | None:
-        """チャット指示がシステム設定と異なる場合、承認が必要かチェックする.
+        """Check if approval is needed when chat instructions differ from system settings.
 
-        AI が計画段階で呼び出し、ユーザーに許可を求めるべきかを判定する。
+        Called by AI during the planning stage to determine whether user permission
+        should be requested.
 
         Returns:
-            承認が必要な場合は WorkspaceAccessResult、不要なら None
+            WorkspaceAccessResult if approval is needed, None if not
         """
         issues: list[str] = []
 
@@ -393,7 +394,7 @@ class WorkspaceIsolation:
             for p in requested_paths:
                 result = self.check_access(p)
                 if not result.allowed:
-                    issues.append(f"ローカルパス: {p}")
+                    issues.append(f"Local path: {p}")
 
         if requested_cloud:
             for c in requested_cloud:
@@ -402,15 +403,15 @@ class WorkspaceIsolation:
                 path = parts[1] if len(parts) > 1 else ""
                 result = self.check_cloud_access(provider, path)
                 if not result.allowed:
-                    issues.append(f"クラウド: {c}")
+                    issues.append(f"Cloud: {c}")
 
         if requested_storage and requested_storage != self._config.storage_location:
             if requested_storage == StorageLocation.LOCAL and not self._config.local_access_enabled:
-                issues.append(f"保存先: {requested_storage.value}（ローカルアクセス未許可）")
+                issues.append(f"Storage: {requested_storage.value} (local access not permitted)")
             elif (
                 requested_storage == StorageLocation.CLOUD and not self._config.cloud_access_enabled
             ):
-                issues.append(f"保存先: {requested_storage.value}（クラウドアクセス未許可）")
+                issues.append(f"Storage: {requested_storage.value} (cloud access not permitted)")
 
         if not issues:
             return None
@@ -422,13 +423,13 @@ class WorkspaceIsolation:
             reason="Chat instructions require access beyond current workspace settings",
             requires_user_approval=True,
             suggested_message=(
-                "この業務の指示には、現在のワークスペース設定を超えるアクセスが必要です。\n"
-                "以下のアクセスを許可しますか？\n"
+                "This task's instructions require access beyond current workspace settings.\n"
+                "Allow the following access?\n"
                 f"{items}\n"
-                "[このタスクのみ許可] [設定を恒久変更] [拒否]"
+                "[Allow for this task only] [Change settings permanently] [Deny]"
             ),
         )
 
 
-# グローバルインスタンス（初期設定: 完全隔離）
+# Global instance (default: fully isolated)
 workspace_isolation = WorkspaceIsolation()

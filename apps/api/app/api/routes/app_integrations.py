@@ -1,7 +1,7 @@
-"""汎用アプリケーション連携 API エンドポイント.
+"""General application integration API endpoints.
 
-外部アプリケーションの一覧取得・接続確立・データ同期・
-ナレッジストアインポートを行う API。
+API for listing external applications, establishing connections, data synchronization,
+and knowledge store import.
 """
 
 from __future__ import annotations
@@ -28,12 +28,12 @@ router = APIRouter(prefix="/app-integrations", tags=["app-integrations"])
 
 
 # ------------------------------------------------------------------ #
-#  リクエスト / レスポンス スキーマ
+#  Request / Response schemas
 # ------------------------------------------------------------------ #
 
 
 class AppPermissionSchema(BaseModel):
-    """パーミッション設定."""
+    """Permission settings."""
 
     read: bool = True
     write: bool = False
@@ -45,7 +45,7 @@ class AppPermissionSchema(BaseModel):
 
 
 class ConnectRequest(BaseModel):
-    """アプリ接続リクエスト."""
+    """App connection request."""
 
     app_id: str
     config: dict[str, Any] = Field(default_factory=dict)
@@ -53,14 +53,14 @@ class ConnectRequest(BaseModel):
 
 
 class SyncRequest(BaseModel):
-    """同期リクエスト."""
+    """Sync request."""
 
     direction: str | None = None
     options: dict[str, Any] = Field(default_factory=dict)
 
 
 class ImportRequest(BaseModel):
-    """ナレッジストアインポートリクエスト."""
+    """Knowledge store import request."""
 
     query: str = ""
     tags: list[str] = Field(default_factory=list)
@@ -68,13 +68,13 @@ class ImportRequest(BaseModel):
 
 
 class UpdatePermissionsRequest(BaseModel):
-    """パーミッション更新リクエスト."""
+    """Permission update request."""
 
     permissions: AppPermissionSchema
 
 
 class CustomAppRequest(BaseModel):
-    """カスタムアプリ登録リクエスト."""
+    """Custom app registration request."""
 
     name: str
     category: str = "custom"
@@ -87,13 +87,13 @@ class CustomAppRequest(BaseModel):
 
 
 # ------------------------------------------------------------------ #
-#  エンドポイント
+#  Endpoints
 # ------------------------------------------------------------------ #
 
 
 @router.get("/apps")
 async def list_apps(category: str | None = None) -> dict:
-    """対応アプリケーション一覧を返す."""
+    """Return list of supported applications."""
     filter_category: AppCategory | None = None
     if category:
         try:
@@ -126,7 +126,7 @@ async def list_apps(category: str | None = None) -> dict:
 
 @router.get("/apps/{app_id}")
 async def get_app(app_id: str) -> dict:
-    """アプリ定義の詳細を返す."""
+    """Return app definition details."""
     app_def = app_connector_hub.get_app(app_id)
     if app_def is None:
         raise HTTPException(status_code=404, detail=f"App not found: {app_id}")
@@ -146,7 +146,7 @@ async def get_app(app_id: str) -> dict:
 
 @router.get("/categories")
 async def list_categories() -> dict:
-    """カテゴリ一覧を返す."""
+    """Return category list."""
     return {"categories": app_connector_hub.list_categories()}
 
 
@@ -154,7 +154,7 @@ async def list_categories() -> dict:
 async def register_custom_app(
     req: CustomAppRequest, user: User = Depends(get_current_user)
 ) -> dict:
-    """カスタムアプリを登録する."""
+    """Register a custom app."""
     from app.integrations.app_connector import AppAuthMethod, AppDefinition
 
     try:
@@ -185,7 +185,7 @@ async def register_custom_app(
 
 @router.post("/connections")
 async def connect_app(req: ConnectRequest, user: User = Depends(get_current_user)) -> dict:
-    """アプリケーション接続を確立する."""
+    """Establish an application connection."""
     permissions = None
     if req.permissions:
         permissions = AppPermission(
@@ -222,7 +222,7 @@ async def list_connections(
     status: str | None = None,
     user: User = Depends(get_current_user),
 ) -> dict:
-    """接続一覧を返す."""
+    """Return connection list."""
     filter_status: AppConnectionStatus | None = None
     if status:
         try:
@@ -259,7 +259,7 @@ async def list_connections(
 
 @router.get("/connections/{connection_id}")
 async def get_connection(connection_id: str, user: User = Depends(get_current_user)) -> dict:
-    """接続詳細を返す."""
+    """Return connection details."""
     conn = app_connector_hub.get_connection(connection_id)
     if conn is None:
         raise HTTPException(status_code=404, detail=f"Connection not found: {connection_id}")
@@ -289,7 +289,7 @@ async def update_permissions(
     req: UpdatePermissionsRequest,
     user: User = Depends(get_current_user),
 ) -> dict:
-    """接続のパーミッションを更新する."""
+    """Update connection permissions."""
     permissions = AppPermission(
         read=req.permissions.read,
         write=req.permissions.write,
@@ -309,7 +309,7 @@ async def update_permissions(
 
 @router.post("/connections/{connection_id}/disconnect")
 async def disconnect_app(connection_id: str, user: User = Depends(get_current_user)) -> dict:
-    """接続を切断する."""
+    """Disconnect a connection."""
     success = app_connector_hub.disconnect(connection_id)
     if not success:
         raise HTTPException(status_code=404, detail=f"Connection not found: {connection_id}")
@@ -318,7 +318,7 @@ async def disconnect_app(connection_id: str, user: User = Depends(get_current_us
 
 @router.delete("/connections/{connection_id}")
 async def remove_connection(connection_id: str, user: User = Depends(get_current_user)) -> dict:
-    """接続を完全に削除する."""
+    """Completely remove a connection."""
     removed = app_connector_hub.remove_connection(connection_id)
     if not removed:
         raise HTTPException(status_code=404, detail=f"Connection not found: {connection_id}")
@@ -331,7 +331,7 @@ async def sync_connection(
     req: SyncRequest,
     user: User = Depends(get_current_user),
 ) -> dict:
-    """接続先とデータを同期する."""
+    """Synchronize data with connected app."""
     direction = None
     if req.direction:
         try:
@@ -370,7 +370,7 @@ async def import_to_knowledge(
     req: ImportRequest,
     user: User = Depends(get_current_user),
 ) -> dict:
-    """接続先からナレッジストアにインポートする."""
+    """Import from connected app to knowledge store."""
     result = await app_connector_hub.import_to_knowledge_store(
         connection_id=connection_id,
         query=req.query,
@@ -390,7 +390,7 @@ async def get_sync_history(
     limit: int = 50,
     user: User = Depends(get_current_user),
 ) -> dict:
-    """同期履歴を返す."""
+    """Return sync history."""
     history = app_connector_hub.get_sync_history(
         connection_id=connection_id,
         limit=limit,
@@ -416,5 +416,5 @@ async def get_sync_history(
 
 @router.get("/summary")
 async def get_summary() -> dict:
-    """連携ハブの概要を返す."""
+    """Return integration hub summary."""
     return app_connector_hub.get_summary()

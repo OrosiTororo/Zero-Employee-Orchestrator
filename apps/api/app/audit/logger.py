@@ -1,7 +1,7 @@
-"""Audit Logger — 監査イベント記録ヘルパー.
+"""Audit Logger -- Audit event recording helper.
 
-重要操作の監査ログを一貫した形式で記録するためのユーティリティ。
-AuditLog モデルへの書き込みを簡素化し、全層から利用可能にする。
+Utility for recording audit logs of important operations in a consistent format.
+Simplifies writing to the AuditLog model and is available from all layers.
 """
 
 import uuid
@@ -28,22 +28,22 @@ async def record_audit_event(
     trace_id: str | None = None,
     auto_commit: bool = True,
 ) -> AuditLog:
-    """監査イベントを記録する.
+    """Record an audit event.
 
     Args:
-        db: データベースセッション
-        company_id: 会社ID
-        event_type: イベント種別 (例: "task.started", "approval.requested")
-        target_type: 対象種別 (例: "task", "ticket", "agent")
-        actor_type: アクター種別 ("user", "agent", "system")
-        actor_user_id: 操作ユーザーID (actor_type="user" の場合)
-        actor_agent_id: 操作エージェントID (actor_type="agent" の場合)
-        target_id: 対象リソースID
-        ticket_id: 関連チケットID
-        task_id: 関連タスクID
-        details: 追加詳細 (JSON)
-        trace_id: トレースID (分散トレーシング用)
-        auto_commit: 自動コミットするか
+        db: Database session
+        company_id: Company ID
+        event_type: Event type (e.g., "task.started", "approval.requested")
+        target_type: Target type (e.g., "task", "ticket", "agent")
+        actor_type: Actor type ("user", "agent", "system")
+        actor_user_id: Acting user ID (when actor_type="user")
+        actor_agent_id: Acting agent ID (when actor_type="agent")
+        target_id: Target resource ID
+        ticket_id: Related ticket ID
+        task_id: Related task ID
+        details: Additional details (JSON)
+        trace_id: Trace ID (for distributed tracing)
+        auto_commit: Whether to auto-commit
     """
 
     def _to_uuid(v: str | uuid.UUID | None) -> uuid.UUID | None:
@@ -88,7 +88,7 @@ async def record_state_change(
     reason: str | None = None,
     auto_commit: bool = True,
 ) -> AuditLog:
-    """状態遷移を監査ログに記録する."""
+    """Record a state transition in the audit log."""
     return await record_audit_event(
         db=db,
         company_id=company_id,
@@ -119,7 +119,7 @@ async def record_dangerous_operation(
     details: dict | None = None,
     auto_commit: bool = True,
 ) -> AuditLog:
-    """危険操作の実行を監査ログに記録する."""
+    """Record the execution of a dangerous operation in the audit log."""
     return await record_audit_event(
         db=db,
         company_id=company_id,

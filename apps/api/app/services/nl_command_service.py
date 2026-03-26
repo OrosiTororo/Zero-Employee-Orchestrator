@@ -1,22 +1,22 @@
-"""自然言語コマンドプロセッサ — GUI / CLI / TUI 共通の自然言語制御エンジン.
+"""Natural Language Command Processor — Shared NL control engine for GUI / CLI / TUI.
 
-ユーザーの自然言語による指示を解析し、適切なサービス呼び出しに変換する。
-これにより、ユーザーは GUI / CLI / TUI のどのインターフェースからでも
-自然言語だけであらゆる操作を実行できる。
+Parses natural language instructions from users and converts them into
+appropriate service calls. This allows users to perform any operation
+using only natural language from any interface (GUI / CLI / TUI).
 
-対応カテゴリ:
-- 設定変更 (config): API キー・実行モード・言語・セキュリティ設定
-- チケット管理 (ticket): 業務依頼の作成・一覧・更新
-- モデル管理 (model): モデル一覧・更新・切替・ダウンロード
-- スキル管理 (skill): スキル・プラグイン・拡張の追加・削除・一覧
-- エージェント管理 (agent): AI エージェントの作成・設定・一覧
-- セキュリティ (security): サンドボックス・PII・データ保護の設定変更
-- 監査 (audit): ログ参照・操作履歴
-- 承認 (approval): 承認待ち一覧・承認・却下
-- ナレッジ (knowledge): 知識の検索・追加
-- メディア生成 (media): 画像・動画・音声の生成
-- ブラウザ操作 (browser): Web 自動操作
-- システム (system): ヘルスチェック・アップデート・再起動
+Supported categories:
+- Config (config): API keys, execution mode, language, security settings
+- Ticket management (ticket): Create, list, update work requests
+- Model management (model): List, update, switch, download models
+- Skill management (skill): Add, remove, list skills/plugins/extensions
+- Agent management (agent): Create, configure, list AI agents
+- Security (security): Sandbox, PII, data protection settings
+- Audit (audit): Log viewing, operation history
+- Approval (approval): Pending approvals list, approve, reject
+- Knowledge (knowledge): Search, add knowledge
+- Media generation (media): Image, video, audio generation
+- Browser automation (browser): Web automation
+- System (system): Health check, update, restart
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 class CommandCategory(str, Enum):
-    """コマンドカテゴリ."""
+    """Command category."""
 
     CONFIG = "config"
     TICKET = "ticket"
@@ -44,11 +44,11 @@ class CommandCategory(str, Enum):
     MEDIA = "media"
     BROWSER = "browser"
     SYSTEM = "system"
-    CONVERSATION = "conversation"  # 通常の会話（コマンドではない）
+    CONVERSATION = "conversation"  # Normal conversation (not a command)
 
 
 class CommandAction(str, Enum):
-    """コマンドアクション."""
+    """Command action."""
 
     LIST = "list"
     CREATE = "create"
@@ -72,7 +72,7 @@ class CommandAction(str, Enum):
 
 @dataclass
 class ParsedCommand:
-    """解析されたコマンド."""
+    """Parsed command."""
 
     category: CommandCategory
     action: CommandAction
@@ -84,7 +84,7 @@ class ParsedCommand:
 
 @dataclass
 class CommandResult:
-    """コマンド実行結果."""
+    """Command execution result."""
 
     success: bool
     message: str
@@ -93,7 +93,7 @@ class CommandResult:
 
 
 # ---------------------------------------------------------------------------
-# インテント分類ルール（キーワードベース + パターンマッチ）
+# Intent classification rules (keyword-based + pattern matching)
 # ---------------------------------------------------------------------------
 
 _INTENT_PATTERNS: list[tuple[CommandCategory, CommandAction, list[str]]] = [
@@ -335,10 +335,10 @@ _INTENT_PATTERNS: list[tuple[CommandCategory, CommandAction, list[str]]] = [
 
 
 class NLCommandProcessor:
-    """自然言語コマンドプロセッサ.
+    """Natural language command processor.
 
-    GUI / CLI / TUI の全インターフェースから呼び出し可能。
-    自然言語の入力を解析し、適切なアクションを実行する。
+    Can be called from all interfaces (GUI / CLI / TUI).
+    Parses natural language input and executes appropriate actions.
     """
 
     def __init__(self) -> None:
@@ -346,19 +346,19 @@ class NLCommandProcessor:
         self._compile_patterns()
 
     def _compile_patterns(self) -> None:
-        """インテントパターンをコンパイルする."""
+        """Compile intent patterns."""
         for category, action, patterns in _INTENT_PATTERNS:
             compiled = [re.compile(p, re.IGNORECASE) for p in patterns]
             self._compiled_patterns.append((category, action, compiled))
 
     def parse(self, text: str) -> ParsedCommand:
-        """自然言語テキストからコマンドを解析する.
+        """Parse a command from natural language text.
 
         Args:
-            text: ユーザーの自然言語入力
+            text: Natural language input from the user
 
         Returns:
-            解析されたコマンド（confidence が低い場合は CONVERSATION）
+            Parsed command (CONVERSATION if confidence is low)
         """
         text = text.strip()
         if not text:
@@ -392,7 +392,7 @@ class NLCommandProcessor:
         if best_match and best_match.confidence >= 0.2:
             return best_match
 
-        # マッチしない場合は通常の会話として扱う
+        # If no match, treat as normal conversation
         return ParsedCommand(
             category=CommandCategory.CONVERSATION,
             action=CommandAction.EXECUTE,
@@ -403,10 +403,10 @@ class NLCommandProcessor:
     def _extract_parameters(
         self, text: str, category: CommandCategory, action: CommandAction
     ) -> dict:
-        """テキストからパラメータを抽出する."""
+        """Extract parameters from text."""
         params: dict = {}
 
-        # モデル名の抽出
+        # Extract model name
         model_match = re.search(
             r"(?:gemini|gpt|claude|llama|mistral|qwen|phi|deepseek)"
             r"(?:[-/:][\w.]+)?",
@@ -416,7 +416,7 @@ class NLCommandProcessor:
         if model_match:
             params["model"] = model_match.group(0)
 
-        # プロバイダー名
+        # Provider name
         provider_match = re.search(
             r"(?:OpenAI|Anthropic|Google|Gemini|Ollama|OpenRouter|g4f)",
             text,
@@ -425,7 +425,7 @@ class NLCommandProcessor:
         if provider_match:
             params["provider"] = provider_match.group(0).lower()
 
-        # 言語設定
+        # Language setting
         lang_match = re.search(r"(?:日本語|英語|中国語|Japanese|English|Chinese|ja|en|zh)", text)
         if lang_match:
             lang_map = {
@@ -438,7 +438,7 @@ class NLCommandProcessor:
             }
             params["language"] = lang_map.get(lang_match.group(0).lower(), lang_match.group(0))
 
-        # 実行モード
+        # Execution mode
         mode_match = re.search(
             r"(?:quality|speed|cost|free|subscription|品質|高速|低コスト|無料|サブスクリプション)",
             text,
@@ -454,14 +454,14 @@ class NLCommandProcessor:
             }
             params["mode"] = mode_map.get(mode_match.group(0), mode_match.group(0).lower())
 
-        # サンドボックスレベル
+        # Sandbox level
         sandbox_match = re.search(r"(?:strict|moderate|permissive)", text, re.IGNORECASE)
         if sandbox_match:
             params["sandbox_level"] = sandbox_match.group(0).lower()
 
-        # スキル/プラグイン名
+        # Skill/plugin name
         if category == CommandCategory.SKILL:
-            # 「〜を追加」パターンから名前を抽出
+            # Extract name from "add ~" pattern
             name_match = re.search(
                 r"[「『]([^」』]+)[」』]|(\S+)(?:を|の)(?:追加|インストール|削除)",
                 text,
@@ -472,13 +472,13 @@ class NLCommandProcessor:
         return params
 
     async def execute(self, command: ParsedCommand) -> CommandResult:
-        """解析済みコマンドを実行する.
+        """Execute a parsed command.
 
         Args:
-            command: 解析済みコマンド
+            command: Parsed command
 
         Returns:
-            実行結果
+            Execution result
         """
         handler_map = {
             CommandCategory.CONFIG: self._handle_config,
@@ -502,10 +502,10 @@ class NLCommandProcessor:
                 logger.error("Command execution failed: %s", exc)
                 return CommandResult(
                     success=False,
-                    message=f"コマンド実行中にエラーが発生しました: {exc}",
+                    message=f"Error occurred during command execution: {exc}",
                 )
 
-        # CONVERSATION or BROWSER — LLM に委譲
+        # CONVERSATION or BROWSER — delegate to LLM
         return CommandResult(
             success=True,
             message="",
@@ -517,7 +517,7 @@ class NLCommandProcessor:
     # ------------------------------------------------------------------
 
     async def _handle_config(self, cmd: ParsedCommand) -> CommandResult:
-        """設定変更ハンドラ."""
+        """Configuration change handler."""
         from app.core.config_manager import (
             get_all_config,
             set_config_value,
@@ -531,7 +531,9 @@ class NLCommandProcessor:
                     lines.append(f"  {key} = {info['value']}")
             return CommandResult(
                 success=True,
-                message="現在の設定:\n" + "\n".join(lines) if lines else "設定値はありません",
+                message="Current settings:\n" + "\n".join(lines)
+                if lines
+                else "No settings configured",
                 data={"config": config},
             )
 
@@ -539,17 +541,17 @@ class NLCommandProcessor:
             params = cmd.parameters
             changes = []
 
-            # 実行モード変更
+            # Execution mode change
             if "mode" in params:
                 set_config_value("DEFAULT_EXECUTION_MODE", params["mode"])
-                changes.append(f"実行モード → {params['mode']}")
+                changes.append(f"Execution mode -> {params['mode']}")
 
-            # 言語変更
+            # Language change
             if "language" in params:
                 set_config_value("LANGUAGE", params["language"])
-                changes.append(f"言語 → {params['language']}")
+                changes.append(f"Language -> {params['language']}")
 
-            # プロバイダー/モデル関連
+            # Provider/model related
             if "provider" in params:
                 provider = params["provider"]
                 provider_key_map = {
@@ -560,55 +562,55 @@ class NLCommandProcessor:
                 }
                 if provider == "ollama":
                     set_config_value("DEFAULT_EXECUTION_MODE", "free")
-                    changes.append("実行モード → free (Ollama)")
+                    changes.append("Execution mode -> free (Ollama)")
                 elif provider == "g4f":
                     set_config_value("DEFAULT_EXECUTION_MODE", "subscription")
                     set_config_value("USE_G4F", "true")
-                    changes.append("実行モード → subscription (g4f)")
+                    changes.append("Execution mode -> subscription (g4f)")
                 elif provider in provider_key_map:
                     key_name = provider_key_map[provider]
                     if key_name not in [k for k, v in get_all_config().items() if v["is_set"]]:
                         return CommandResult(
                             success=False,
                             message=(
-                                f"{provider} を使用するには API キーが必要です。\n"
-                                f"設定コマンド: `zero-employee config set {key_name} <your-key>`"
+                                f"An API key is required to use {provider}.\n"
+                                f"Setup command: `zero-employee config set {key_name} <your-key>`"
                             ),
                             suggestions=[
                                 f"zero-employee config set {key_name} <your-key>",
-                                "Ollama を使えば API キー不要です",
+                                "Ollama does not require an API key",
                             ],
                         )
                     set_config_value("DEFAULT_EXECUTION_MODE", "quality")
-                    changes.append(f"プロバイダー → {provider}")
+                    changes.append(f"Provider -> {provider}")
 
-            # サンドボックスレベル
+            # Sandbox level
             if "sandbox_level" in params:
-                changes.append(f"サンドボックス → {params['sandbox_level']}")
+                changes.append(f"Sandbox -> {params['sandbox_level']}")
 
             if changes:
                 return CommandResult(
                     success=True,
-                    message="設定を変更しました:\n" + "\n".join(f"  ✓ {c}" for c in changes),
+                    message="Settings changed:\n" + "\n".join(f"  ✓ {c}" for c in changes),
                     data={"changes": changes},
                 )
 
-            # 何を変更すべきか不明
+            # Unable to determine what to change
             return CommandResult(
                 success=False,
-                message="設定の変更内容を特定できませんでした。",
+                message="Could not determine what settings to change.",
                 suggestions=[
-                    "「実行モードをfreeに変更して」",
-                    "「Geminiを使うように設定して」",
-                    "「言語を英語に変更して」",
-                    "「設定を見せて」",
+                    '"Change execution mode to free"',
+                    '"Configure to use Gemini"',
+                    '"Change language to English"',
+                    '"Show me the settings"',
                 ],
             )
 
-        return CommandResult(success=False, message="設定コマンドを認識できませんでした")
+        return CommandResult(success=False, message="Could not recognize the config command")
 
     async def _handle_ticket(self, cmd: ParsedCommand) -> CommandResult:
-        """チケット管理ハンドラ."""
+        """Ticket management handler."""
         if cmd.action == CommandAction.CREATE:
             return CommandResult(
                 success=True,
@@ -637,7 +639,7 @@ class NLCommandProcessor:
         )
 
     async def _handle_model(self, cmd: ParsedCommand) -> CommandResult:
-        """モデル管理ハンドラ."""
+        """Model management handler."""
         if cmd.action == CommandAction.LIST:
             from app.providers.model_registry import get_model_registry
 
@@ -650,7 +652,7 @@ class NLCommandProcessor:
                 lines.append(f"  {status} {m.display_name} ({api_id})")
             return CommandResult(
                 success=True,
-                message=f"登録済みモデル ({len(models)}件):\n" + "\n".join(lines),
+                message=f"Registered models ({len(models)} items):\n" + "\n".join(lines),
                 data={"models": [{"id": m.id, "name": m.display_name} for m in models]},
             )
 
@@ -662,13 +664,13 @@ class NLCommandProcessor:
             if updated:
                 return CommandResult(
                     success=True,
-                    message=f"モデルカタログを更新しました ({len(updated)}件):\n"
+                    message=f"Model catalog updated ({len(updated)} items):\n"
                     + "\n".join(f"  ✓ {k}: {v}" for k, v in updated.items()),
                     data={"updated": updated},
                 )
             return CommandResult(
                 success=True,
-                message="モデルカタログは最新の状態です。",
+                message="Model catalog is up to date.",
             )
 
         if cmd.action == CommandAction.DOWNLOAD:
@@ -676,12 +678,12 @@ class NLCommandProcessor:
             if not model_name:
                 return CommandResult(
                     success=False,
-                    message="ダウンロードするモデル名を指定してください。",
-                    suggestions=["「qwen3:8bをダウンロードして」", "「llama3をpullして」"],
+                    message="Please specify the model name to download.",
+                    suggestions=['"Download qwen3:8b"', '"Pull llama3"'],
                 )
             return CommandResult(
                 success=True,
-                message=f"モデル '{model_name}' のダウンロードを開始します...",
+                message=f"Starting download of model '{model_name}'...",
                 data={
                     "api_call": {
                         "method": "POST",
@@ -694,7 +696,7 @@ class NLCommandProcessor:
         return CommandResult(success=True, message="", data={"delegate_to_llm": True})
 
     async def _handle_skill(self, cmd: ParsedCommand) -> CommandResult:
-        """スキル管理ハンドラ."""
+        """Skill management handler."""
         if cmd.action == CommandAction.LIST:
             return CommandResult(
                 success=True,
@@ -709,7 +711,7 @@ class NLCommandProcessor:
             if target:
                 return CommandResult(
                     success=True,
-                    message=f"スキル '{target}' をインストールします...",
+                    message=f"Installing skill '{target}'...",
                     data={
                         "api_call": {
                             "method": "POST",
@@ -719,10 +721,10 @@ class NLCommandProcessor:
                 )
             return CommandResult(
                 success=False,
-                message="インストールするスキル/プラグイン名を指定してください。",
+                message="Please specify the skill/plugin name to install.",
                 suggestions=[
-                    "「browser-useプラグインを追加して」",
-                    "「AIセクレタリーを有効化して」",
+                    '"Add the browser-use plugin"',
+                    '"Enable AI Secretary"',
                 ],
             )
 
@@ -741,7 +743,7 @@ class NLCommandProcessor:
         return CommandResult(success=True, message="", data={"delegate_to_llm": True})
 
     async def _handle_security(self, cmd: ParsedCommand) -> CommandResult:
-        """セキュリティ設定ハンドラ."""
+        """Security settings handler."""
         if cmd.action == CommandAction.STATUS:
             from app.security.data_protection import data_protection_guard
             from app.security.sandbox import filesystem_sandbox
@@ -753,12 +755,12 @@ class NLCommandProcessor:
             return CommandResult(
                 success=True,
                 message=(
-                    "セキュリティ設定:\n"
-                    f"  [ワークスペース] アクセス範囲: {workspace_isolation.get_access_scope().value}\n"
-                    f"  [サンドボックス] レベル: {sb.level.value}\n"
-                    f"  [データ保護] ポリシー: {dp.transfer_policy.value}\n"
-                    f"  [PII検出] 自動検出: {'有効' if dp.pii_auto_detect else '無効'}\n"
-                    f"  [パスワード] アップロード: {'ブロック' if dp.password_upload_blocked else '許可'}"
+                    "Security settings:\n"
+                    f"  [Workspace] Access scope: {workspace_isolation.get_access_scope().value}\n"
+                    f"  [Sandbox] Level: {sb.level.value}\n"
+                    f"  [Data Protection] Policy: {dp.transfer_policy.value}\n"
+                    f"  [PII Detection] Auto-detect: {'enabled' if dp.pii_auto_detect else 'disabled'}\n"
+                    f"  [Password] Upload: {'blocked' if dp.password_upload_blocked else 'allowed'}"
                 ),
                 data={
                     "workspace": {"scope": workspace_isolation.get_access_scope().value},
@@ -781,7 +783,7 @@ class NLCommandProcessor:
         return CommandResult(success=True, message="", data={"delegate_to_llm": True})
 
     async def _handle_approval(self, cmd: ParsedCommand) -> CommandResult:
-        """承認管理ハンドラ."""
+        """Approval management handler."""
         if cmd.action == CommandAction.LIST:
             return CommandResult(
                 success=True,
@@ -797,7 +799,7 @@ class NLCommandProcessor:
         )
 
     async def _handle_audit(self, cmd: ParsedCommand) -> CommandResult:
-        """監査ログハンドラ."""
+        """Audit log handler."""
         return CommandResult(
             success=True,
             message="",
@@ -807,7 +809,7 @@ class NLCommandProcessor:
         )
 
     async def _handle_system(self, cmd: ParsedCommand) -> CommandResult:
-        """システム管理ハンドラ."""
+        """System management handler."""
         if cmd.action == CommandAction.STATUS:
             return CommandResult(
                 success=True,
@@ -821,34 +823,34 @@ class NLCommandProcessor:
             return CommandResult(
                 success=True,
                 message=(
-                    "Zero-Employee Orchestrator で対応可能な操作:\n\n"
-                    "  【設定】\n"
-                    "    「Geminiを使うように設定して」「実行モードをfreeに変更して」\n"
-                    "    「言語を英語に変更して」「設定を見せて」\n\n"
-                    "  【チケット・業務】\n"
-                    "    「競合分析レポートを作成して」「チケット一覧を見せて」\n\n"
-                    "  【モデル管理】\n"
-                    "    「利用可能なモデルを見せて」「モデルを更新して」\n"
-                    "    「qwen3:8bをダウンロードして」\n\n"
-                    "  【スキル・プラグイン】\n"
-                    "    「スキル一覧を見せて」「browser-useを追加して」\n"
-                    "    「Webスクレイピングスキルを生成して」\n\n"
-                    "  【セキュリティ】\n"
-                    "    「セキュリティ設定を確認して」「サンドボックスをmoderateに変更して」\n\n"
-                    "  【承認】\n"
-                    "    「承認待ちを見せて」\n\n"
-                    "  【メディア生成】\n"
-                    "    「オフィスの画像を生成して」\n\n"
-                    "  【システム】\n"
-                    "    「ヘルスチェックして」「アップデートして」\n\n"
-                    "  その他、自然言語であらゆる業務依頼が可能です。"
+                    "Available operations in Zero-Employee Orchestrator:\n\n"
+                    "  [Settings]\n"
+                    '    "Configure to use Gemini" "Change execution mode to free"\n'
+                    '    "Change language to English" "Show me the settings"\n\n'
+                    "  [Tickets / Work]\n"
+                    '    "Create a competitive analysis report" "Show me the ticket list"\n\n'
+                    "  [Model Management]\n"
+                    '    "Show available models" "Update models"\n'
+                    '    "Download qwen3:8b"\n\n'
+                    "  [Skills / Plugins]\n"
+                    '    "Show skill list" "Add browser-use"\n'
+                    '    "Generate a web scraping skill"\n\n'
+                    "  [Security]\n"
+                    '    "Check security settings" "Change sandbox to moderate"\n\n'
+                    "  [Approvals]\n"
+                    '    "Show pending approvals"\n\n'
+                    "  [Media Generation]\n"
+                    '    "Generate an office image"\n\n'
+                    "  [System]\n"
+                    '    "Run health check" "Run update"\n\n'
+                    "  Any other work request can also be made in natural language."
                 ),
             )
 
         if cmd.action == CommandAction.UPDATE:
             return CommandResult(
                 success=True,
-                message="システムアップデートを確認します...",
+                message="Checking for system updates...",
                 data={
                     "api_call": {"method": "POST", "path": "/api/v1/models/auto-update"},
                 },
@@ -857,7 +859,7 @@ class NLCommandProcessor:
         return CommandResult(success=True, message="", data={"delegate_to_llm": True})
 
     async def _handle_knowledge(self, cmd: ParsedCommand) -> CommandResult:
-        """ナレッジ管理ハンドラ."""
+        """Knowledge management handler."""
         return CommandResult(
             success=True,
             message="",
@@ -869,7 +871,7 @@ class NLCommandProcessor:
         )
 
     async def _handle_media(self, cmd: ParsedCommand) -> CommandResult:
-        """メディア生成ハンドラ."""
+        """Media generation handler."""
         return CommandResult(
             success=True,
             message="",
@@ -882,7 +884,7 @@ class NLCommandProcessor:
         )
 
     async def _handle_agent(self, cmd: ParsedCommand) -> CommandResult:
-        """エージェント管理ハンドラ."""
+        """Agent management handler."""
         if cmd.action == CommandAction.LIST:
             return CommandResult(
                 success=True,
@@ -898,5 +900,5 @@ class NLCommandProcessor:
         )
 
 
-# グローバルインスタンス
+# Global instance
 nl_command_processor = NLCommandProcessor()

@@ -51,8 +51,8 @@ class Settings(BaseSettings):
     # Security — auto-generated for local dev if not explicitly set
     SECRET_KEY: str = _auto_secret_key()
 
-    # CORS — 本番環境では許可するオリジンを実際のドメインに制限すること
-    # 例: ["https://your-app.example.com"]
+    # CORS — In production, restrict allowed origins to actual domains
+    # e.g.: ["https://your-app.example.com"]
     CORS_ORIGINS: list[str] = [
         "http://localhost:3000",
         "http://localhost:5173",

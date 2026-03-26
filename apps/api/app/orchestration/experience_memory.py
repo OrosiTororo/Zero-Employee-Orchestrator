@@ -1,7 +1,7 @@
-"""Experience Memory — DB永続化層.
+"""Experience Memory — Database persistence layer.
 
-ExperienceMemory のインメモリ実装を拡張し、
-SQLAlchemy async セッションを通じた永続化インターフェースを提供する。
+Extends the in-memory ExperienceMemory implementation and provides
+a persistence interface through SQLAlchemy async sessions.
 """
 
 import uuid
@@ -23,7 +23,7 @@ from app.orchestration.state_machine import (
 
 
 class ExperienceMemoryRecord(Base):
-    """DB永続化された Experience Memory エントリ."""
+    """Database-persisted Experience Memory entry."""
 
     __tablename__ = "experience_memory"
 
@@ -42,7 +42,7 @@ class ExperienceMemoryRecord(Base):
 
 
 class FailureTaxonomyRecord(Base):
-    """DB永続化された Failure Taxonomy エントリ."""
+    """Database-persisted Failure Taxonomy entry."""
 
     __tablename__ = "failure_taxonomy"
 
@@ -64,10 +64,10 @@ class FailureTaxonomyRecord(Base):
 
 
 class PersistentExperienceMemory:
-    """DB 永続化対応の Experience Memory.
+    """Database-backed Experience Memory.
 
-    インメモリの ExperienceMemory と互換性のあるインターフェースを持ちつつ、
-    AsyncSession を通じて永続化する。
+    Provides an interface compatible with the in-memory ExperienceMemory
+    while persisting through AsyncSession.
     """
 
     def __init__(self, db: AsyncSession, company_id: str | uuid.UUID) -> None:
@@ -84,7 +84,7 @@ class PersistentExperienceMemory:
         source_ticket_id: str | None = None,
         source_task_id: str | None = None,
     ) -> ExperienceMemoryRecord:
-        """成功パターンをDBに記録."""
+        """Record a success pattern in the database."""
         record = ExperienceMemoryRecord(
             id=generate_uuid(),
             company_id=self._company_id,
@@ -107,7 +107,7 @@ class PersistentExperienceMemory:
         description: str,
         prevention_strategy: str,
     ) -> FailureTaxonomyRecord:
-        """障害パターンをDBに記録 (同一カテゴリ・サブカテゴリは更新)."""
+        """Record a failure pattern in the database (updates existing category/subcategory)."""
         result = await self._db.execute(
             select(FailureTaxonomyRecord).where(
                 FailureTaxonomyRecord.company_id == self._company_id,
@@ -144,7 +144,7 @@ class PersistentExperienceMemory:
         category: str | None = None,
         limit: int = 20,
     ) -> list[ExperienceMemoryRecord]:
-        """キーワードで Experience Memory を検索."""
+        """Search Experience Memory by keyword."""
         stmt = select(ExperienceMemoryRecord).where(
             ExperienceMemoryRecord.company_id == self._company_id,
         )
@@ -166,7 +166,7 @@ class PersistentExperienceMemory:
         self,
         min_count: int = 2,
     ) -> list[FailureTaxonomyRecord]:
-        """頻発する障害パターンを取得."""
+        """Get frequently occurring failure patterns."""
         result = await self._db.execute(
             select(FailureTaxonomyRecord).where(
                 FailureTaxonomyRecord.company_id == self._company_id,

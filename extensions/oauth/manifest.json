@@ -1,7 +1,7 @@
 {
   "name": "oauth",
   "version": "0.1.0",
-  "description": "OAuth認証拡張 - Google, GitHub等のOAuth PKCE認証を提供",
+  "description": "OAuth authentication extension — provides OAuth PKCE authentication for Google, GitHub, and other providers",
   "type": "extension",
   "status": "experimental",
   "required_permissions": ["credential_access"],

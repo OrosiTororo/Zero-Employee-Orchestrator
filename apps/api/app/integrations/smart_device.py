@@ -1,20 +1,20 @@
-"""スマートデバイス・VR/AR 統合 — IoT/スマートデバイスおよび VR/AR インターフェース抽象化.
+"""Smart device / VR/AR integration — IoT/smart device and VR/AR interface abstraction.
 
-IoT センサー・スマートディスプレイ・VR/AR ヘッドセット・ロボット・
-ドローンなどのスマートデバイスを統一的に管理する。
+Manages IoT sensors, smart displays, VR/AR headsets, robots, drones,
+and other smart devices in a unified way.
 
-対応プロトコル:
-- MQTT: IoT センサー・アクチュエータ
-- HTTP: REST API 対応デバイス
-- WebSocket: リアルタイムストリーミング
-- Bluetooth: 近距離通信デバイス
-- Zigbee: スマートホームデバイス
-- Matter: 次世代スマートホーム標準
+Supported protocols:
+- MQTT: IoT sensors and actuators
+- HTTP: REST API compatible devices
+- WebSocket: Real-time streaming
+- Bluetooth: Short-range communication devices
+- Zigbee: Smart home devices
+- Matter: Next-generation smart home standard
 
-すべてのデバイス操作は:
-- 承認ゲート経由
-- 監査ログ記録
-- データ保護ポリシー適用
+All device operations:
+- Go through approval gates
+- Are recorded in audit logs
+- Follow data protection policies
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 class DeviceType(str, Enum):
-    """デバイスタイプ."""
+    """Device type."""
 
     IOT_SENSOR = "iot_sensor"
     SMART_DISPLAY = "smart_display"
@@ -44,7 +44,7 @@ class DeviceType(str, Enum):
 
 
 class DeviceProtocol(str, Enum):
-    """デバイス通信プロトコル."""
+    """Device communication protocol."""
 
     MQTT = "mqtt"
     HTTP = "http"
@@ -55,7 +55,7 @@ class DeviceProtocol(str, Enum):
 
 
 class DeviceStatus(str, Enum):
-    """デバイスステータス."""
+    """Device status."""
 
     ONLINE = "online"
     OFFLINE = "offline"
@@ -66,7 +66,7 @@ class DeviceStatus(str, Enum):
 
 @dataclass
 class SmartDevice:
-    """スマートデバイス."""
+    """Smart device."""
 
     id: str
     name: str
@@ -82,7 +82,7 @@ class SmartDevice:
 
 @dataclass
 class DeviceCommand:
-    """デバイスコマンド."""
+    """Device command."""
 
     device_id: str
     command: str
@@ -93,7 +93,7 @@ class DeviceCommand:
 
 @dataclass
 class DeviceEvent:
-    """デバイスイベント."""
+    """Device event."""
 
     device_id: str
     event_type: str
@@ -103,7 +103,7 @@ class DeviceEvent:
 
 @dataclass
 class DeviceAutomation:
-    """デバイスオートメーションルール."""
+    """Device automation rule."""
 
     id: str
     trigger_device: str
@@ -117,7 +117,7 @@ class DeviceAutomation:
 
 @dataclass
 class EventSubscription:
-    """イベント購読."""
+    """Event subscription."""
 
     id: str
     device_id: str
@@ -128,7 +128,7 @@ class EventSubscription:
 
 @dataclass
 class VRSession:
-    """VR/AR セッション."""
+    """VR/AR session."""
 
     id: str
     device_id: str
@@ -139,9 +139,9 @@ class VRSession:
 
 
 class SmartDeviceHub:
-    """スマートデバイスハブ.
+    """Smart device hub.
 
-    IoT / スマートデバイス / VR・AR デバイスの統合管理を行う。
+    Provides unified management of IoT, smart devices, and VR/AR devices.
     """
 
     def __init__(self) -> None:
@@ -152,25 +152,25 @@ class SmartDeviceHub:
         self._vr_sessions: dict[str, VRSession] = {}
 
     # ------------------------------------------------------------------
-    # ヘルパー
+    # Helpers
     # ------------------------------------------------------------------
 
     def _now(self) -> str:
         return datetime.now(UTC).isoformat()
 
     def _require_device(self, device_id: str) -> SmartDevice:
-        """デバイスの存在を確認する."""
+        """Verify that the device exists."""
         device = self._devices.get(device_id)
         if device is None:
-            raise ValueError(f"デバイスが見つかりません: {device_id}")
+            raise ValueError(f"Device not found: {device_id}")
         return device
 
     # ------------------------------------------------------------------
-    # デバイス登録・解除
+    # Device registration / unregistration
     # ------------------------------------------------------------------
 
     async def register_device(self, device: SmartDevice) -> SmartDevice:
-        """デバイスを登録する."""
+        """Register a device."""
         if not device.id:
             device.id = str(uuid.uuid4())
         device.last_seen = self._now()
@@ -186,7 +186,7 @@ class SmartDeviceHub:
             )
         )
         logger.info(
-            "デバイス登録: id=%s name=%s type=%s protocol=%s",
+            "Device registered: id=%s name=%s type=%s protocol=%s",
             device.id,
             device.name,
             device.device_type.value,
@@ -195,12 +195,12 @@ class SmartDeviceHub:
         return device
 
     async def unregister_device(self, device_id: str) -> bool:
-        """デバイスを登録解除する."""
+        """Unregister a device."""
         device = self._require_device(device_id)
         del self._devices[device_id]
         self._subscriptions.pop(device_id, None)
 
-        # アクティブな VR セッションを終了
+        # End active VR session
         session = self._vr_sessions.pop(device_id, None)
         if session:
             session.status = "ended"
@@ -213,27 +213,27 @@ class SmartDeviceHub:
                 timestamp=self._now(),
             )
         )
-        logger.info("デバイス登録解除: id=%s name=%s", device_id, device.name)
+        logger.info("Device unregistered: id=%s name=%s", device_id, device.name)
         return True
 
     # ------------------------------------------------------------------
-    # デバイス検出
+    # Device discovery
     # ------------------------------------------------------------------
 
     async def discover_devices(self, protocol: DeviceProtocol | None = None) -> list[dict]:
-        """ネットワーク上のデバイスをスキャンする."""
-        # 実際にはプロトコル別のスキャンを実行
-        # MQTT: ブローカーに接続してトピックを探索
-        # HTTP: mDNS / SSDP で検出
-        # Bluetooth: BLE スキャン
-        # Zigbee: Zigbee コーディネーターに問い合わせ
-        # Matter: Matter コミッショニング
+        """Scan for devices on the network."""
+        # In production, execute protocol-specific scans
+        # MQTT: Connect to broker and explore topics
+        # HTTP: Discover via mDNS / SSDP
+        # Bluetooth: BLE scan
+        # Zigbee: Query Zigbee coordinator
+        # Matter: Matter commissioning
         logger.info(
-            "デバイス検出開始: protocol=%s",
+            "Device discovery started: protocol=%s",
             protocol.value if protocol else "all",
         )
         discovered: list[dict] = []
-        # シミュレーション: 登録済みデバイスから検出結果を生成
+        # Simulation: generate discovery results from registered devices
         for device in self._devices.values():
             if protocol and device.protocol != protocol:
                 continue
@@ -251,14 +251,14 @@ class SmartDeviceHub:
         return discovered
 
     # ------------------------------------------------------------------
-    # コマンド送信
+    # Command sending
     # ------------------------------------------------------------------
 
     async def send_command(self, device_id: str, command: str, params: dict | None = None) -> dict:
-        """デバイスにコマンドを送信する."""
+        """Send a command to a device."""
         device = self._require_device(device_id)
         if device.status == DeviceStatus.OFFLINE:
-            raise ValueError(f"デバイス '{device.name}' はオフラインです")
+            raise ValueError(f"Device '{device.name}' is offline")
 
         cmd = DeviceCommand(
             device_id=device_id,
@@ -277,7 +277,7 @@ class SmartDeviceHub:
             )
         )
         logger.info(
-            "コマンド送信: device=%s command=%s",
+            "Command sent: device=%s command=%s",
             device_id,
             command,
         )
@@ -290,11 +290,11 @@ class SmartDeviceHub:
         }
 
     # ------------------------------------------------------------------
-    # ステータス・一覧
+    # Status / listing
     # ------------------------------------------------------------------
 
     async def get_device_status(self, device_id: str) -> dict:
-        """デバイスのステータスを取得する."""
+        """Get device status."""
         device = self._require_device(device_id)
         return {
             "id": device.id,
@@ -313,7 +313,7 @@ class SmartDeviceHub:
         device_type: DeviceType | None = None,
         status: DeviceStatus | None = None,
     ) -> list[SmartDevice]:
-        """デバイス一覧を取得する."""
+        """Get device list."""
         devices = list(self._devices.values())
         if device_type:
             devices = [d for d in devices if d.device_type == device_type]
@@ -322,7 +322,7 @@ class SmartDeviceHub:
         return devices
 
     # ------------------------------------------------------------------
-    # イベント購読
+    # Event subscription
     # ------------------------------------------------------------------
 
     async def subscribe_events(
@@ -331,7 +331,7 @@ class SmartDeviceHub:
         event_types: list[str],
         callback: Callable,
     ) -> EventSubscription:
-        """デバイスイベントを購読する."""
+        """Subscribe to device events."""
         self._require_device(device_id)
         subscription = EventSubscription(
             id=str(uuid.uuid4()),
@@ -342,7 +342,7 @@ class SmartDeviceHub:
         )
         self._subscriptions.setdefault(device_id, []).append(subscription)
         logger.info(
-            "イベント購読: device=%s types=%s",
+            "Event subscription: device=%s types=%s",
             device_id,
             event_types,
         )
@@ -351,14 +351,14 @@ class SmartDeviceHub:
     async def get_event_log(
         self, device_id: str | None = None, limit: int = 100
     ) -> list[DeviceEvent]:
-        """イベントログを取得する."""
+        """Get event log."""
         events = self._event_log
         if device_id:
             events = [e for e in events if e.device_id == device_id]
         return sorted(events, key=lambda e: e.timestamp, reverse=True)[:limit]
 
     # ------------------------------------------------------------------
-    # オートメーション
+    # Automation
     # ------------------------------------------------------------------
 
     async def create_automation(
@@ -369,7 +369,7 @@ class SmartDeviceHub:
         action_command: str,
         action_params: dict | None = None,
     ) -> DeviceAutomation:
-        """デバイスオートメーションルールを作成する."""
+        """Create a device automation rule."""
         self._require_device(trigger_device)
         self._require_device(action_device)
 
@@ -385,7 +385,7 @@ class SmartDeviceHub:
         )
         self._automations[automation.id] = automation
         logger.info(
-            "オートメーション作成: trigger=%s:%s -> action=%s:%s",
+            "Automation created: trigger=%s:%s -> action=%s:%s",
             trigger_device,
             trigger_event,
             action_device,
@@ -394,18 +394,18 @@ class SmartDeviceHub:
         return automation
 
     # ------------------------------------------------------------------
-    # VR/AR セッション
+    # VR/AR session
     # ------------------------------------------------------------------
 
     async def get_vr_session(self, device_id: str) -> VRSession:
-        """VR/AR セッションを取得または開始する."""
+        """Get or start a VR/AR session."""
         device = self._require_device(device_id)
         if device.device_type not in (
             DeviceType.VR_HEADSET,
             DeviceType.AR_DEVICE,
             DeviceType.SMART_GLASSES,
         ):
-            raise ValueError(f"デバイス '{device.name}' は VR/AR デバイスではありません")
+            raise ValueError(f"Device '{device.name}' is not a VR/AR device")
 
         session = self._vr_sessions.get(device_id)
         if session and session.status == "active":
@@ -427,14 +427,14 @@ class SmartDeviceHub:
         )
         self._vr_sessions[device_id] = session
         logger.info(
-            "VR/AR セッション開始: device=%s type=%s",
+            "VR/AR session started: device=%s type=%s",
             device_id,
             session_type,
         )
         return session
 
     # ------------------------------------------------------------------
-    # ストリーミング
+    # Streaming
     # ------------------------------------------------------------------
 
     async def stream_to_device(
@@ -443,10 +443,10 @@ class SmartDeviceHub:
         content_type: str,
         data: bytes,
     ) -> dict:
-        """デバイスにデータをストリーミングする."""
+        """Stream data to a device."""
         device = self._require_device(device_id)
         if device.status == DeviceStatus.OFFLINE:
-            raise ValueError(f"デバイス '{device.name}' はオフラインです")
+            raise ValueError(f"Device '{device.name}' is offline")
 
         self._event_log.append(
             DeviceEvent(
@@ -457,7 +457,7 @@ class SmartDeviceHub:
             )
         )
         logger.info(
-            "デバイスストリーミング: device=%s content_type=%s size=%d",
+            "Device streaming: device=%s content_type=%s size=%d",
             device_id,
             content_type,
             len(data),
@@ -471,5 +471,5 @@ class SmartDeviceHub:
         }
 
 
-# グローバルインスタンス
+# Global instance
 smart_device_hub = SmartDeviceHub()

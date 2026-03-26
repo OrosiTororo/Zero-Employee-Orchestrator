@@ -1,16 +1,16 @@
-"""Obsidian 統合 — Markdown ベースのナレッジ管理.
+"""Obsidian integration — Markdown-based knowledge management.
 
-Obsidian Vault との双方向同期を提供する。
-ノートの読み書き・リンクグラフの構築・全文検索・バックリンク解析を行い、
-ZEO ナレッジストアとの統合を実現する。
+Provides bidirectional sync with Obsidian Vault.
+Performs note read/write, link graph construction, full-text search,
+and backlink analysis, integrating with the ZEO knowledge store.
 
-Vault 内のファイルアクセスはサンドボックスを経由し、
-許可されたディレクトリのみに制限される。
+File access within the Vault goes through the sandbox and is
+restricted to permitted directories only.
 
-安全性:
-- ファイルサンドボックス経由のアクセス制御
-- PII ガード適用（ナレッジストア連携時）
-- 監査ログ記録
+Safety:
+- Access control via file sandbox
+- PII guard applied (during knowledge store integration)
+- Audit log recording
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ObsidianNote:
-    """Obsidian ノート."""
+    """Obsidian note."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     title: str = ""
@@ -51,55 +51,55 @@ class ObsidianVault:
 
 
 class ObsidianIntegration:
-    """Obsidian 統合サービス.
+    """Obsidian integration service.
 
-    Obsidian Vault を登録し、ノートの CRUD・検索・リンクグラフ構築・
-    ZEO ナレッジストアとの同期を提供する。
+    Registers Obsidian Vaults and provides note CRUD, search,
+    link graph construction, and sync with ZEO knowledge store.
     """
 
     def __init__(self) -> None:
         self._vaults: dict[str, ObsidianVault] = {}
 
     def register_vault(self, name: str, path: str) -> ObsidianVault:
-        """Vault ディレクトリを登録する.
+        """Register a Vault directory.
 
         Args:
-            name: Vault の表示名
-            path: Vault ディレクトリのパス
+            name: Display name of the Vault
+            path: Path to the Vault directory
 
         Returns:
-            登録された ObsidianVault
+            Registered ObsidianVault
 
         Raises:
-            FileNotFoundError: Vault パスが存在しない場合
+            FileNotFoundError: If the Vault path does not exist
         """
         vault_path = Path(path).resolve()
         if not vault_path.is_dir():
-            raise FileNotFoundError(f"Vault ディレクトリが見つかりません: {path}")
+            raise FileNotFoundError(f"Vault directory not found: {path}")
 
         vault = ObsidianVault(name=name, path=str(vault_path))
         self._vaults[vault.id] = vault
-        logger.info("Vault 登録: %s (%s) -> %s", name, vault.id, vault_path)
+        logger.info("Vault registered: %s (%s) -> %s", name, vault.id, vault_path)
         return vault
 
     async def scan_vault(self, vault_id: str) -> dict[str, dict]:
-        """Vault 内の全 .md ファイルをスキャンしてインデックスを構築する.
+        """Scan all .md files in the Vault and build an index.
 
-        各ファイルのメタデータ（タイトル・タグ・リンク・更新日時）を収集し、
-        Vault のインデックスに格納する。
+        Collects metadata (title, tags, links, modified date) for each file
+        and stores it in the Vault index.
 
         Args:
             vault_id: Vault ID
 
         Returns:
-            ファイル名→メタデータの辞書
+            Dictionary mapping filename to metadata
 
         Raises:
-            KeyError: Vault ID が存在しない場合
+            KeyError: If Vault ID does not exist
         """
         vault = self._vaults.get(vault_id)
         if not vault:
-            raise KeyError(f"Vault が見つかりません: {vault_id}")
+            raise KeyError(f"Vault not found: {vault_id}")
 
         vault_path = Path(vault.path)
         index: dict[str, dict] = {}
@@ -111,7 +111,7 @@ class ObsidianIntegration:
             try:
                 content = md_file.read_text(encoding="utf-8")
             except (OSError, UnicodeDecodeError) as exc:
-                logger.warning("ファイル読み取りエラー: %s — %s", md_file, exc)
+                logger.warning("File read error: %s — %s", md_file, exc)
                 continue
 
             tags = self._extract_tags(content)
@@ -128,18 +128,18 @@ class ObsidianIntegration:
             }
 
         vault.index = index
-        logger.info("Vault スキャン完了: %s, ファイル数=%d", vault.name, len(index))
+        logger.info("Vault scan complete: %s, file_count=%d", vault.name, len(index))
         return index
 
     async def get_note(self, vault_id: str, title: str) -> ObsidianNote | None:
-        """ノートを読み込む.
+        """Read a note.
 
         Args:
             vault_id: Vault ID
-            title: ノートのタイトル（拡張子なし）
+            title: Note title (without extension)
 
         Returns:
-            ObsidianNote。見つからない場合は None。
+            ObsidianNote, or None if not found.
         """
         vault = self._vaults.get(vault_id)
         if not vault:
@@ -152,7 +152,7 @@ class ObsidianIntegration:
         try:
             content = file_path.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError) as exc:
-            logger.error("ノート読み取りエラー: %s — %s", file_path, exc)
+            logger.error("Note read error: %s — %s", file_path, exc)
             return None
 
         stat = file_path.stat()
@@ -178,30 +178,30 @@ class ObsidianIntegration:
         content: str,
         tags: list[str] | None = None,
     ) -> ObsidianNote:
-        """ノートを新規作成する.
+        """Create a new note.
 
         Args:
             vault_id: Vault ID
-            title: ノートタイトル
-            content: ノート本文
-            tags: 付与するタグ
+            title: Note title
+            content: Note body
+            tags: Tags to assign
 
         Returns:
-            作成された ObsidianNote
+            Created ObsidianNote
 
         Raises:
-            KeyError: Vault ID が存在しない場合
-            FileExistsError: 同名のノートが既に存在する場合
+            KeyError: If Vault ID does not exist
+            FileExistsError: If a note with the same name already exists
         """
         vault = self._vaults.get(vault_id)
         if not vault:
-            raise KeyError(f"Vault が見つかりません: {vault_id}")
+            raise KeyError(f"Vault not found: {vault_id}")
 
         file_path = Path(vault.path) / f"{title}.md"
         if file_path.exists():
-            raise FileExistsError(f"ノートが既に存在します: {title}")
+            raise FileExistsError(f"Note already exists: {title}")
 
-        # タグをフロントマターに追加
+        # Add tags to frontmatter
         if tags:
             frontmatter = "---\ntags:\n"
             for tag in tags:
@@ -212,9 +212,9 @@ class ObsidianIntegration:
             full_content = content
 
         file_path.write_text(full_content, encoding="utf-8")
-        logger.info("ノート作成: %s in vault %s", title, vault.name)
+        logger.info("Note created: %s in vault %s", title, vault.name)
 
-        # インデックスを更新
+        # Update index
         relative = file_path.relative_to(Path(vault.path))
         vault.index[str(relative)] = {
             "title": title,
@@ -239,15 +239,15 @@ class ObsidianIntegration:
         title: str,
         content: str,
     ) -> ObsidianNote | None:
-        """既存ノートを更新する.
+        """Update an existing note.
 
         Args:
             vault_id: Vault ID
-            title: ノートタイトル
-            content: 新しいノート本文
+            title: Note title
+            content: New note body
 
         Returns:
-            更新された ObsidianNote。ノートが見つからない場合は None。
+            Updated ObsidianNote, or None if note not found.
         """
         vault = self._vaults.get(vault_id)
         if not vault:
@@ -258,9 +258,9 @@ class ObsidianIntegration:
             return None
 
         file_path.write_text(content, encoding="utf-8")
-        logger.info("ノート更新: %s in vault %s", title, vault.name)
+        logger.info("Note updated: %s in vault %s", title, vault.name)
 
-        # インデックスを更新
+        # Update index
         relative = file_path.relative_to(Path(vault.path))
         if str(relative) in vault.index:
             vault.index[str(relative)].update(
@@ -287,17 +287,17 @@ class ObsidianIntegration:
         query: str = "",
         tags: list[str] | None = None,
     ) -> list[ObsidianNote]:
-        """ノートを全文検索する.
+        """Full-text search for notes.
 
-        クエリ文字列とタグでフィルタリングする。
+        Filter by query string and tags.
 
         Args:
             vault_id: Vault ID
-            query: 検索クエリ（部分一致）
-            tags: フィルタするタグ
+            query: Search query (partial match)
+            tags: Tags to filter by
 
         Returns:
-            マッチしたノートのリスト
+            List of matched notes
         """
         vault = self._vaults.get(vault_id)
         if not vault:
@@ -308,7 +308,7 @@ class ObsidianIntegration:
         query_lower = query.lower()
 
         for relative, meta in vault.index.items():
-            # タグフィルタ
+            # Tag filter
             if tags:
                 note_tags = set(meta.get("tags", []))
                 if not set(tags).intersection(note_tags):
@@ -318,7 +318,7 @@ class ObsidianIntegration:
             if not file_path.is_file():
                 continue
 
-            # クエリフィルタ
+            # Query filter
             if query:
                 try:
                     content = file_path.read_text(encoding="utf-8")
@@ -346,14 +346,14 @@ class ObsidianIntegration:
         return results
 
     async def get_backlinks(self, vault_id: str, title: str) -> list[str]:
-        """指定ノートへのバックリンク（被リンク）を取得する.
+        """Get backlinks (incoming links) to a specified note.
 
         Args:
             vault_id: Vault ID
-            title: ノートタイトル
+            title: Note title
 
         Returns:
-            このノートにリンクしているノートのタイトルリスト
+            List of note titles that link to this note
         """
         vault = self._vaults.get(vault_id)
         if not vault:
@@ -361,13 +361,13 @@ class ObsidianIntegration:
         return await self._find_backlinks(vault, title)
 
     async def get_graph(self, vault_id: str) -> dict[str, list[str]]:
-        """Vault 全体のリンクグラフを隣接リスト形式で返す.
+        """Return the link graph of the entire Vault as an adjacency list.
 
         Args:
             vault_id: Vault ID
 
         Returns:
-            ノートタイトル→リンク先タイトルリストの隣接リスト
+            Adjacency list mapping note title to list of linked note titles
         """
         vault = self._vaults.get(vault_id)
         if not vault:
@@ -383,19 +383,19 @@ class ObsidianIntegration:
         return graph
 
     async def sync_knowledge_store(self, vault_id: str) -> dict:
-        """Vault の内容を ZEO ナレッジストアに同期する.
+        """Sync Vault contents to the ZEO knowledge store.
 
-        Vault 内のノートを読み取り、ナレッジストアに登録・更新する。
+        Reads notes from the Vault and registers/updates them in the knowledge store.
 
         Args:
             vault_id: Vault ID
 
         Returns:
-            同期結果の概要辞書
+            Summary dictionary of sync results
         """
         vault = self._vaults.get(vault_id)
         if not vault:
-            return {"error": f"Vault が見つかりません: {vault_id}"}
+            return {"error": f"Vault not found: {vault_id}"}
 
         synced = 0
         errors = 0
@@ -410,7 +410,7 @@ class ObsidianIntegration:
                 title = meta.get("title", file_path.stem)
                 tags = meta.get("tags", [])
 
-                # ナレッジストアへの登録を試行
+                # Attempt to register in knowledge store
                 try:
                     from app.orchestration.knowledge import knowledge_store
 
@@ -422,12 +422,12 @@ class ObsidianIntegration:
                             tags=tags,
                         )
                 except ImportError:
-                    logger.debug("ナレッジストアが利用できないためスキップ")
+                    logger.debug("Knowledge store not available, skipping")
                     pass
 
                 synced += 1
             except Exception as exc:
-                logger.warning("同期エラー: %s — %s", relative, exc)
+                logger.warning("Sync error: %s — %s", relative, exc)
                 errors += 1
 
         result = {
@@ -437,7 +437,7 @@ class ObsidianIntegration:
             "errors": errors,
             "total": len(vault.index),
         }
-        logger.info("ナレッジストア同期完了: %s", result)
+        logger.info("Knowledge store sync complete: %s", result)
         return result
 
     async def export_to_vault(
@@ -447,21 +447,21 @@ class ObsidianIntegration:
         title: str,
         tags: list[str] | None = None,
     ) -> ObsidianNote:
-        """ZEO コンテンツを Vault にエクスポートする.
+        """Export ZEO content to a Vault.
 
         Args:
             vault_id: Vault ID
-            content: エクスポートするコンテンツ
-            title: ノートタイトル
-            tags: 付与するタグ
+            content: Content to export
+            title: Note title
+            tags: Tags to assign
 
         Returns:
-            作成された ObsidianNote
+            Created ObsidianNote
         """
-        # 既存ノートがある場合は更新
+        # Update if an existing note exists
         vault = self._vaults.get(vault_id)
         if not vault:
-            raise KeyError(f"Vault が見つかりません: {vault_id}")
+            raise KeyError(f"Vault not found: {vault_id}")
 
         file_path = Path(vault.path) / f"{title}.md"
         if file_path.exists():
@@ -472,29 +472,29 @@ class ObsidianIntegration:
         return await self.create_note(vault_id, title, content, tags)
 
     def _resolve_note_path(self, vault: ObsidianVault, title: str) -> Path | None:
-        """ノートタイトルからファイルパスを解決する."""
+        """Resolve file path from a note title."""
         vault_path = Path(vault.path)
 
-        # 直下のファイルを検索
+        # Search for file directly
         direct = vault_path / f"{title}.md"
         if direct.is_file():
             return direct
 
-        # インデックスからの検索
+        # Search from index
         for relative, meta in vault.index.items():
             if meta.get("title") == title:
                 candidate = vault_path / relative
                 if candidate.is_file():
                     return candidate
 
-        # サブフォルダも検索
+        # Also search subfolders
         for md_file in vault_path.rglob(f"{title}.md"):
             return md_file
 
         return None
 
     async def _find_backlinks(self, vault: ObsidianVault, title: str) -> list[str]:
-        """指定タイトルへのバックリンクを検索する."""
+        """Search for backlinks to the specified title."""
         backlinks: list[str] = []
         for _relative, meta in vault.index.items():
             links = meta.get("links", [])
@@ -506,13 +506,13 @@ class ObsidianIntegration:
 
     @staticmethod
     def _extract_tags(content: str) -> list[str]:
-        """ノート本文からタグを抽出する.
+        """Extract tags from note body.
 
-        フロントマターの tags: セクションとインラインの #tag を検出する。
+        Detects the tags: section in frontmatter and inline #tag patterns.
         """
         tags: list[str] = []
 
-        # フロントマターからの抽出
+        # Extract from frontmatter
         fm_match = re.search(
             r"^---\s*\n(.*?)\n---",
             content,
@@ -520,7 +520,7 @@ class ObsidianIntegration:
         )
         if fm_match:
             fm = fm_match.group(1)
-            # tags: セクション内のみ
+            # Only within tags: section
             in_tags = False
             for line in fm.split("\n"):
                 stripped = line.strip()
@@ -532,7 +532,7 @@ class ObsidianIntegration:
                 elif in_tags and not stripped.startswith("-"):
                     in_tags = False
 
-        # インラインタグの抽出 (#tag)
+        # Extract inline tags (#tag)
         inline_tags = re.findall(r"(?<!\w)#([A-Za-z\u3040-\u9fff][\w\u3040-\u9fff]*)", content)
         for t in inline_tags:
             if t not in tags:
@@ -542,11 +542,11 @@ class ObsidianIntegration:
 
     @staticmethod
     def _extract_links(content: str) -> list[str]:
-        """ノート本文から Obsidian 内部リンク ([[link]]) を抽出する."""
+        """Extract Obsidian internal links ([[link]]) from note body."""
         # [[title]] or [[title|display]]
         matches = re.findall(r"\[\[([^\]|]+)(?:\|[^\]]+)?\]\]", content)
-        return list(dict.fromkeys(matches))  # 重複除去しつつ順序保持
+        return list(dict.fromkeys(matches))  # Deduplicate while preserving order
 
 
-# グローバルインスタンス
+# Global instance
 obsidian_integration = ObsidianIntegration()

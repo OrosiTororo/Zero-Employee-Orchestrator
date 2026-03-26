@@ -1,10 +1,10 @@
-"""LLM レスポンスモッキング — テスト用の LLM 応答シミュレーション.
+"""LLM response mocking — LLM response simulation for testing.
 
-テスト・開発環境で LLM 呼び出しをモックし、固定レスポンスを返す。
-パターンマッチによるルールベースの応答生成と、呼び出し履歴の
-記録・アサーションをサポートする。
+Mocks LLM calls in test/development environments and returns fixed responses.
+Supports rule-based response generation via pattern matching, and
+call history recording and assertions.
 
-本番環境では無効化すること。
+Must be disabled in production environments.
 """
 
 from __future__ import annotations
@@ -22,14 +22,14 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class MockRule:
-    """モックルール — プロンプトパターンに対する固定レスポンス.
+    """Mock rule — fixed response for a prompt pattern.
 
     Attributes
     ----------
-    pattern: プロンプトにマッチする正規表現パターン
-    response: マッチ時に返す固定レスポンス文字列
-    latency_ms: 応答遅延（ミリ秒）。リアルなレイテンシをシミュレーション
-    model_filter: 特定モデルにのみ適用するフィルター（None は全モデル対象）
+    pattern: Regex pattern to match against prompts
+    response: Fixed response string to return on match
+    latency_ms: Response delay (milliseconds). Simulates realistic latency
+    model_filter: Filter to apply only to specific models (None targets all models)
     """
 
     pattern: str
@@ -40,7 +40,7 @@ class MockRule:
 
 @dataclass
 class MockCallRecord:
-    """モック呼び出し記録."""
+    """Mock call record."""
 
     prompt: str
     model: str
@@ -51,10 +51,10 @@ class MockCallRecord:
 
 
 class LLMMockProvider:
-    """LLM レスポンスモックプロバイダー.
+    """LLM response mock provider.
 
-    テスト時に LLM 呼び出しをインターセプトし、ルールベースの
-    固定レスポンスを返す。呼び出し履歴を記録し、アサーションに利用できる。
+    Intercepts LLM calls during testing and returns rule-based
+    fixed responses. Records call history for use in assertions.
     """
 
     def __init__(self) -> None:
@@ -63,12 +63,12 @@ class LLMMockProvider:
         self._call_history: list[MockCallRecord] = []
 
     def add_rule(self, rule: MockRule) -> int:
-        """モックルールを追加する.
+        """Add a mock rule.
 
         Returns
         -------
         int
-            追加されたルールのインデックス
+            Index of the added rule
         """
         self._rules.append(rule)
         logger.info(
@@ -79,7 +79,7 @@ class LLMMockProvider:
         return len(self._rules) - 1
 
     def remove_rule(self, index: int) -> bool:
-        """指定インデックスのモックルールを削除する."""
+        """Remove the mock rule at the specified index."""
         if 0 <= index < len(self._rules):
             removed = self._rules.pop(index)
             logger.info("Mock rule removed: pattern=%r", removed.pattern)
@@ -87,37 +87,37 @@ class LLMMockProvider:
         return False
 
     def clear_rules(self) -> None:
-        """全モックルールをクリアする."""
+        """Clear all mock rules."""
         count = len(self._rules)
         self._rules.clear()
         logger.info("All mock rules cleared (%d rules)", count)
 
     def enable(self) -> None:
-        """モックプロバイダーを有効化する."""
+        """Enable the mock provider."""
         self._enabled = True
         logger.info("LLM mock provider enabled")
 
     def disable(self) -> None:
-        """モックプロバイダーを無効化する."""
+        """Disable the mock provider."""
         self._enabled = False
         logger.info("LLM mock provider disabled")
 
     def is_enabled(self) -> bool:
-        """モックプロバイダーが有効かどうかを返す."""
+        """Return whether the mock provider is enabled."""
         return self._enabled
 
     def match(self, prompt: str, model: str = "") -> MockRule | None:
-        """プロンプトとモデルに一致するルールを検索する.
+        """Search for a rule matching the prompt and model.
 
-        ルールは登録順に評価され、最初にマッチしたものを返す。
+        Rules are evaluated in registration order; the first match is returned.
         """
         for rule in self._rules:
-            # モデルフィルターのチェック
+            # Check model filter
             if rule.model_filter and model:
                 if rule.model_filter not in model:
                     continue
 
-            # パターンマッチ
+            # Pattern match
             try:
                 if re.search(rule.pattern, prompt, re.IGNORECASE | re.DOTALL):
                     return rule
@@ -132,17 +132,17 @@ class LLMMockProvider:
         return None
 
     async def generate_mock_response(self, prompt: str, model: str = "") -> dict[str, Any]:
-        """モック LLM レスポンスを生成する.
+        """Generate a mock LLM response.
 
-        マッチするルールがあればそのレスポンスを、なければデフォルトのモックを返す。
-        返却形式は LiteLLM 互換の標準フォーマット。
+        Returns the matching rule response if found, otherwise a default mock.
+        Return format is LiteLLM-compatible standard format.
         """
         rule = self.match(prompt, model)
         response_text = (
             rule.response if rule else f"[MOCK] No matching rule for prompt (model={model})"
         )
 
-        # レイテンシのシミュレーション
+        # Simulate latency
         if rule and rule.latency_ms > 0:
             await asyncio.sleep(rule.latency_ms / 1000.0)
 
@@ -174,7 +174,7 @@ class LLMMockProvider:
             "_matched_rule": rule.pattern if rule else None,
         }
 
-        # 呼び出し記録
+        # Call recording
         self.record_call(prompt, model, response, rule, now, mock_id)
 
         return response
@@ -188,7 +188,7 @@ class LLMMockProvider:
         timestamp: str = "",
         mock_id: str = "",
     ) -> None:
-        """呼び出しを履歴に記録する."""
+        """Record a call in history."""
         record = MockCallRecord(
             prompt=prompt,
             model=model,
@@ -200,24 +200,24 @@ class LLMMockProvider:
         self._call_history.append(record)
 
     def get_call_history(self, limit: int = 0) -> list[MockCallRecord]:
-        """呼び出し履歴を返す.
+        """Return call history.
 
         Parameters
         ----------
-        limit: 返す件数の上限（0 = 全件）
+        limit: Maximum number of entries to return (0 = all)
         """
         if limit > 0:
             return self._call_history[-limit:]
         return list(self._call_history)
 
     def clear_history(self) -> None:
-        """呼び出し履歴をクリアする."""
+        """Clear call history."""
         self._call_history.clear()
 
     def assert_called_with(self, pattern: str) -> bool:
-        """指定パターンに一致するプロンプトで呼び出されたかを検証する.
+        """Verify whether a call was made with a prompt matching the specified pattern.
 
-        テストのアサーションに使用する。
+        Used for test assertions.
         """
         try:
             compiled = re.compile(pattern, re.IGNORECASE | re.DOTALL)
@@ -228,15 +228,15 @@ class LLMMockProvider:
         return any(compiled.search(record.prompt) for record in self._call_history)
 
     def assert_call_count(self, expected: int) -> bool:
-        """呼び出し回数が期待値と一致するかを検証する."""
+        """Verify whether the call count matches the expected value."""
         return len(self._call_history) == expected
 
     def assert_model_used(self, model: str) -> bool:
-        """指定モデルが使用されたかを検証する."""
+        """Verify whether the specified model was used."""
         return any(model in record.model for record in self._call_history)
 
     def get_summary(self) -> dict[str, Any]:
-        """モックプロバイダーのサマリーを返す."""
+        """Return a summary of the mock provider."""
         return {
             "enabled": self._enabled,
             "rules_count": len(self._rules),
@@ -253,5 +253,5 @@ class LLMMockProvider:
         }
 
 
-# グローバルインスタンス
+# Global instance
 llm_mock = LLMMockProvider()

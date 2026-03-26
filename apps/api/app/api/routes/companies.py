@@ -48,7 +48,7 @@ class DashboardSummary(BaseModel):
 async def list_companies(
     db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """会社一覧を取得"""
+    """List companies."""
     result = await db.execute(select(Company).order_by(Company.created_at.desc()))
     companies = result.scalars().all()
     return [
@@ -69,7 +69,7 @@ async def list_companies(
 async def create_company(
     req: CompanyCreate, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """新規会社を作成"""
+    """Create a new company."""
     company = Company(
         id=uuid.uuid4(),
         slug=req.slug,
@@ -95,7 +95,7 @@ async def create_company(
 async def get_company(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """会社詳細を取得"""
+    """Get company details."""
     result = await db.execute(select(Company).where(Company.id == uuid.UUID(company_id)))
     company = result.scalar_one_or_none()
     if not company:
@@ -115,7 +115,7 @@ async def get_company(
 async def get_org_chart(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """組織図を取得"""
+    """Get organization chart."""
     cid = uuid.UUID(company_id)
     depts = (
         (await db.execute(select(Department).where(Department.company_id == cid))).scalars().all()
@@ -135,7 +135,7 @@ async def get_org_chart(
 async def get_dashboard_summary(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """ダッシュボード要約を取得"""
+    """Get dashboard summary."""
     return DashboardSummary()
 
 
@@ -143,7 +143,7 @@ async def get_dashboard_summary(
 async def list_departments(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """部署一覧"""
+    """List departments."""
     cid = uuid.UUID(company_id)
     result = await db.execute(select(Department).where(Department.company_id == cid))
     depts = result.scalars().all()
@@ -161,7 +161,7 @@ async def create_department(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """部署作成"""
+    """Create a department."""
     dept = Department(id=uuid.uuid4(), company_id=uuid.UUID(company_id), name=name, code=code)
     db.add(dept)
     await db.flush()
@@ -172,7 +172,7 @@ async def create_department(
 async def list_teams(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """チーム一覧"""
+    """List teams."""
     cid = uuid.UUID(company_id)
     result = await db.execute(select(Team).where(Team.company_id == cid))
     teams = result.scalars().all()
@@ -189,7 +189,7 @@ async def create_team(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """チーム作成"""
+    """Create a team."""
     team = Team(
         id=uuid.uuid4(),
         company_id=uuid.UUID(company_id),

@@ -1,13 +1,13 @@
-"""クラウドサービスネイティブ統合 — AWS / GCP / Azure / Cloudflare 抽象化レイヤー.
+"""Cloud service native integration — AWS / GCP / Azure / Cloudflare abstraction layer.
 
-マルチクラウド環境のリソース管理・ストレージ・サーバーレス実行・
-コスト見積もりを統一的なインターフェースで提供する。
+Provides a unified interface for multi-cloud resource management, storage,
+serverless execution, and cost estimation.
 
-すべての操作は:
-- 承認ゲート経由
-- 監査ログ記録
-- データ保護ポリシー適用
-- 認証情報は secret_manager 経由で管理
+All operations:
+- Go through approval gates
+- Are recorded in audit logs
+- Follow data protection policies
+- Credentials are managed via secret_manager
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class CloudProvider(str, Enum):
-    """クラウドプロバイダー."""
+    """Cloud provider."""
 
     AWS = "aws"
     GCP = "gcp"
@@ -31,7 +31,7 @@ class CloudProvider(str, Enum):
 
 
 class CloudService(str, Enum):
-    """クラウドサービス種別."""
+    """Cloud service type."""
 
     COMPUTE = "compute"
     STORAGE = "storage"
@@ -46,7 +46,7 @@ class CloudService(str, Enum):
 
 
 class ResourceStatus(str, Enum):
-    """リソースステータス."""
+    """Resource status."""
 
     CREATING = "creating"
     ACTIVE = "active"
@@ -58,7 +58,7 @@ class ResourceStatus(str, Enum):
 
 @dataclass
 class CloudCredential:
-    """クラウド認証情報."""
+    """Cloud credential."""
 
     provider: CloudProvider
     credential_type: str  # "access_key" | "service_account" | "oauth" | "api_token"
@@ -70,12 +70,12 @@ class CloudCredential:
 
 @dataclass
 class CloudResource:
-    """クラウドリソース."""
+    """Cloud resource."""
 
     id: str
     provider: CloudProvider
     service: CloudService
-    resource_type: str  # "ec2_instance" | "s3_bucket" | "lambda_function" など
+    resource_type: str  # "ec2_instance" | "s3_bucket" | "lambda_function" etc.
     name: str
     region: str = ""
     status: ResourceStatus = ResourceStatus.UNKNOWN
@@ -84,9 +84,9 @@ class CloudResource:
 
 
 class CloudNativeIntegration:
-    """クラウドサービスネイティブ統合.
+    """Cloud service native integration.
 
-    マルチクラウド環境のリソースを統一的なインターフェースで管理する。
+    Manages multi-cloud resources through a unified interface.
     """
 
     def __init__(self) -> None:
@@ -94,32 +94,32 @@ class CloudNativeIntegration:
         self._resources: dict[str, CloudResource] = {}
 
     # ------------------------------------------------------------------
-    # ヘルパー
+    # Helpers
     # ------------------------------------------------------------------
 
     def _now(self) -> str:
         return datetime.now(UTC).isoformat()
 
     def _require_credential(self, provider: CloudProvider) -> CloudCredential:
-        """認証情報が設定されていることを確認する."""
+        """Verify that credentials are configured."""
         cred = self._credentials.get(provider)
         if cred is None:
-            raise ValueError(f"プロバイダー {provider.value} の認証情報が設定されていません")
+            raise ValueError(f"Credentials not configured for provider {provider.value}")
         if not cred.is_valid:
             raise ValueError(
-                f"プロバイダー {provider.value} の認証情報が無効です。"
-                "validate_credentials() で検証してください"
+                f"Credentials for provider {provider.value} are invalid. "
+                "Please verify with validate_credentials()"
             )
         return cred
 
     # ------------------------------------------------------------------
-    # 認証情報管理
+    # Credential management
     # ------------------------------------------------------------------
 
     async def configure_provider(
         self, provider: CloudProvider, credentials: dict
     ) -> CloudCredential:
-        """プロバイダーの認証情報を設定する."""
+        """Configure credentials for a provider."""
         cred_type = credentials.pop("credential_type", "access_key")
         region = credentials.pop("region", "")
 
@@ -133,7 +133,7 @@ class CloudNativeIntegration:
         )
         self._credentials[provider] = credential
         logger.info(
-            "クラウド認証情報設定: provider=%s type=%s region=%s",
+            "Cloud credentials configured: provider=%s type=%s region=%s",
             provider.value,
             cred_type,
             region,
@@ -141,25 +141,25 @@ class CloudNativeIntegration:
         return credential
 
     async def validate_credentials(self, provider: CloudProvider) -> bool:
-        """認証情報の有効性を検証する."""
+        """Validate credential validity."""
         cred = self._credentials.get(provider)
         if cred is None:
-            raise ValueError(f"プロバイダー {provider.value} の認証情報が設定されていません")
+            raise ValueError(f"Credentials not configured for provider {provider.value}")
 
-        # 実際のクラウド API 呼び出しのシミュレーション
-        # 本番では boto3 / google-cloud / azure-sdk を使用
+        # Simulation of actual cloud API calls
+        # In production, use boto3 / google-cloud / azure-sdk
         has_config = bool(cred.config)
         cred.is_valid = has_config
         cred.last_validated = self._now()
         logger.info(
-            "クラウド認証検証: provider=%s valid=%s",
+            "Cloud credential validation: provider=%s valid=%s",
             provider.value,
             cred.is_valid,
         )
         return cred.is_valid
 
     # ------------------------------------------------------------------
-    # リソース管理
+    # Resource management
     # ------------------------------------------------------------------
 
     async def list_resources(
@@ -167,7 +167,7 @@ class CloudNativeIntegration:
         provider: CloudProvider | None = None,
         service: CloudService | None = None,
     ) -> list[CloudResource]:
-        """リソース一覧を取得する."""
+        """Retrieve the list of resources."""
         resources = list(self._resources.values())
         if provider:
             resources = [r for r in resources if r.provider == provider]
@@ -181,7 +181,7 @@ class CloudNativeIntegration:
         service: CloudService,
         config: dict,
     ) -> CloudResource:
-        """クラウドリソースを作成する."""
+        """Create a cloud resource."""
         self._require_credential(provider)
 
         resource_id = str(uuid.uuid4())
@@ -202,11 +202,11 @@ class CloudNativeIntegration:
         )
         self._resources[resource_id] = resource
 
-        # リソース作成のシミュレーション（非同期完了）
+        # Simulate resource creation (async completion)
         resource.status = ResourceStatus.ACTIVE
 
         logger.info(
-            "クラウドリソース作成: id=%s provider=%s service=%s name=%s",
+            "Cloud resource created: id=%s provider=%s service=%s name=%s",
             resource_id,
             provider.value,
             service.value,
@@ -215,22 +215,22 @@ class CloudNativeIntegration:
         return resource
 
     async def delete_resource(self, resource_id: str) -> bool:
-        """クラウドリソースを削除する."""
+        """Delete a cloud resource."""
         resource = self._resources.get(resource_id)
         if resource is None:
-            raise ValueError(f"リソースが見つかりません: {resource_id}")
+            raise ValueError(f"Resource not found: {resource_id}")
 
         self._require_credential(resource.provider)
         resource.status = ResourceStatus.DELETING
         del self._resources[resource_id]
-        logger.info("クラウドリソース削除: id=%s name=%s", resource_id, resource.name)
+        logger.info("Cloud resource deleted: id=%s name=%s", resource_id, resource.name)
         return True
 
     async def get_resource_status(self, resource_id: str) -> dict:
-        """リソースのステータスを取得する."""
+        """Get the status of a resource."""
         resource = self._resources.get(resource_id)
         if resource is None:
-            raise ValueError(f"リソースが見つかりません: {resource_id}")
+            raise ValueError(f"Resource not found: {resource_id}")
         return {
             "id": resource.id,
             "name": resource.name,
@@ -242,7 +242,7 @@ class CloudNativeIntegration:
         }
 
     # ------------------------------------------------------------------
-    # ストレージ
+    # Storage
     # ------------------------------------------------------------------
 
     async def upload_to_storage(
@@ -252,11 +252,11 @@ class CloudNativeIntegration:
         key: str,
         data: bytes,
     ) -> dict:
-        """ストレージにファイルをアップロードする."""
+        """Upload a file to storage."""
         self._require_credential(provider)
         size_bytes = len(data)
         logger.info(
-            "ストレージアップロード: provider=%s bucket=%s key=%s size=%d",
+            "Storage upload: provider=%s bucket=%s key=%s size=%d",
             provider.value,
             bucket,
             key,
@@ -277,10 +277,10 @@ class CloudNativeIntegration:
         bucket: str,
         key: str,
     ) -> dict:
-        """ストレージからファイルをダウンロードする."""
+        """Download a file from storage."""
         self._require_credential(provider)
         logger.info(
-            "ストレージダウンロード: provider=%s bucket=%s key=%s",
+            "Storage download: provider=%s bucket=%s key=%s",
             provider.value,
             bucket,
             key,
@@ -291,11 +291,11 @@ class CloudNativeIntegration:
             "key": key,
             "downloaded_at": self._now(),
             "status": "success",
-            "data": b"",  # 実際にはクラウド SDK からデータを取得
+            "data": b"",  # In production, data would be fetched from cloud SDK
         }
 
     # ------------------------------------------------------------------
-    # サーバーレス
+    # Serverless
     # ------------------------------------------------------------------
 
     async def invoke_serverless(
@@ -304,10 +304,10 @@ class CloudNativeIntegration:
         function_name: str,
         payload: dict,
     ) -> dict:
-        """サーバーレス関数を実行する."""
+        """Invoke a serverless function."""
         self._require_credential(provider)
         logger.info(
-            "サーバーレス実行: provider=%s function=%s",
+            "Serverless invocation: provider=%s function=%s",
             provider.value,
             function_name,
         )
@@ -316,12 +316,12 @@ class CloudNativeIntegration:
             "function_name": function_name,
             "invoked_at": self._now(),
             "status": "success",
-            "response": {},  # 実際には関数の戻り値
+            "response": {},  # In production, the function's return value
             "duration_ms": 0,
         }
 
     # ------------------------------------------------------------------
-    # コスト見積もり
+    # Cost estimation
     # ------------------------------------------------------------------
 
     async def get_cost_estimate(
@@ -329,8 +329,8 @@ class CloudNativeIntegration:
         provider: CloudProvider,
         resources: list[dict],
     ) -> dict:
-        """リソースのコスト見積もりを取得する."""
-        # 簡易見積もりロジック（実際にはクラウドプロバイダーの Pricing API を使用）
+        """Get a cost estimate for resources."""
+        # Simple estimation logic (in production, use cloud provider Pricing APIs)
         cost_map = {
             "compute": 0.05,  # USD/hour
             "storage": 0.023,  # USD/GB/month
@@ -346,11 +346,11 @@ class CloudNativeIntegration:
             quantity = resource.get("quantity", 1)
             rate = cost_map.get(service, 0.05)
             if service == "compute":
-                cost = rate * 24 * 30 * quantity  # 月額
+                cost = rate * 24 * 30 * quantity  # monthly
             elif service == "storage":
-                cost = rate * quantity  # GB 単位
+                cost = rate * quantity  # per GB
             elif service == "serverless":
-                cost = rate * quantity  # 呼び出し数
+                cost = rate * quantity  # per invocation
             else:
                 cost = rate * 24 * 30 * quantity
 
@@ -370,15 +370,15 @@ class CloudNativeIntegration:
             "currency": "USD",
             "breakdown": breakdown,
             "estimated_at": self._now(),
-            "note": "概算見積もり。実際のコストはプロバイダーの料金体系により異なります",
+            "note": "Approximate estimate. Actual costs vary by provider pricing.",
         }
 
     # ------------------------------------------------------------------
-    # プロバイダーステータス
+    # Provider status
     # ------------------------------------------------------------------
 
     async def get_provider_status(self) -> dict:
-        """設定済み全プロバイダーのステータスを取得する."""
+        """Get the status of all configured providers."""
         statuses: dict[str, dict] = {}
         for provider in CloudProvider:
             cred = self._credentials.get(provider)
@@ -400,5 +400,5 @@ class CloudNativeIntegration:
         return statuses
 
 
-# グローバルインスタンス
+# Global instance
 cloud_native = CloudNativeIntegration()

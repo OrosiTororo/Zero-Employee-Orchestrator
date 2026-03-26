@@ -1,6 +1,6 @@
 """Rate limiting middleware using SlowAPI.
 
-認証エンドポイントやAPI全体にレート制限を適用する。
+Applies rate limits to authentication endpoints and the API as a whole.
 """
 
 from slowapi import Limiter
@@ -13,11 +13,11 @@ limiter = Limiter(key_func=get_remote_address)
 
 
 async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
-    """レート制限超過時のレスポンス."""
+    """Response when rate limit is exceeded."""
     return JSONResponse(
         status_code=429,
         content={
-            "detail": "リクエストが多すぎます。しばらく待ってから再試行してください。",
+            "detail": "Too many requests. Please wait a moment and try again.",
             "retry_after": str(exc.detail),
         },
     )

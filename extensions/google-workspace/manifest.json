@@ -1,7 +1,7 @@
 {
   "name": "google-workspace",
   "version": "0.1.0",
-  "description": "Google Workspace 連携拡張 — Google Docs, Sheets, Drive, Calendar, Gmail との統合。",
+  "description": "Google Workspace integration extension — unified access to Google Docs, Sheets, Drive, Calendar, and Gmail.",
   "type": "extension",
   "status": "experimental",
   "required_permissions": ["internet_access", "credential_access"],
@@ -22,13 +22,13 @@
     "create_event"
   ],
   "capabilities": {
-    "docs": "Google Docs の作成・編集・エクスポート",
-    "sheets": "Google Sheets の読み書き",
-    "drive": "Google Drive ファイルの検索・取得・アップロード",
-    "calendar": "Google Calendar のイベント作成・取得",
-    "gmail": "Gmail の読み取り・送信・検索"
+    "docs": "Create, edit, and export Google Docs",
+    "sheets": "Read and write Google Sheets",
+    "drive": "Search, retrieve, and upload files on Google Drive",
+    "calendar": "Create and retrieve Google Calendar events",
+    "gmail": "Read, send, and search Gmail"
   },
   "env_keys": ["GOOGLE_SERVICE_ACCOUNT", "GOOGLE_OAUTH_CLIENT_ID"],
-  "note": "Google Cloud Console でサービスアカウントまたは OAuth クライアントを作成し、必要な API を有効化すること。",
+  "note": "Create a service account or OAuth client in Google Cloud Console and enable the required APIs.",
   "author": "Zero-Employee Orchestrator Team"
 }

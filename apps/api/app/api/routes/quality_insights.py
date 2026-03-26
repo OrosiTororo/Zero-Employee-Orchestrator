@@ -1,33 +1,33 @@
-"""品質・洞察 API ルート — Quality & Insights.
+"""Quality & Insights API routes.
 
-5つの品質・洞察機能の API エンドポイントを提供する:
+Provides API endpoints for 5 quality and insight features:
 
-1. 前提変化の汎用監視 (Prerequisite Monitor)
-   - POST /quality-insights/prerequisites/sources          — 監視対象登録
-   - GET  /quality-insights/prerequisites/sources          — 監視対象一覧
-   - GET  /quality-insights/prerequisites/sources/{id}     — 監視対象詳細
-   - PUT  /quality-insights/prerequisites/sources/{id}     — 監視対象更新
-   - DELETE /quality-insights/prerequisites/sources/{id}   — 監視対象削除
-   - POST /quality-insights/prerequisites/check            — 手動チェック
-   - GET  /quality-insights/prerequisites/changes          — 変更履歴
-   - POST /quality-insights/prerequisites/changes/{id}/ack — 変更確認
-   - GET  /quality-insights/prerequisites/summary          — サマリー
+1. Prerequisite Change Monitoring (Prerequisite Monitor)
+   - POST /quality-insights/prerequisites/sources          — Register monitoring source
+   - GET  /quality-insights/prerequisites/sources          — List monitoring sources
+   - GET  /quality-insights/prerequisites/sources/{id}     — Monitoring source details
+   - PUT  /quality-insights/prerequisites/sources/{id}     — Update monitoring source
+   - DELETE /quality-insights/prerequisites/sources/{id}   — Delete monitoring source
+   - POST /quality-insights/prerequisites/check            — Manual check
+   - GET  /quality-insights/prerequisites/changes          — Change history
+   - POST /quality-insights/prerequisites/changes/{id}/ack — Acknowledge change
+   - GET  /quality-insights/prerequisites/summary          — Summary
 
-2. Spec 間矛盾検出 (Spec Contradiction)
-   - POST /quality-insights/spec-contradictions/check      — 矛盾検出
+2. Spec Contradiction Detection (Spec Contradiction)
+   - POST /quality-insights/spec-contradictions/check      — Detect contradictions
 
-3. タスクリプレイ・比較 (Task Replay)
-   - POST /quality-insights/task-replay/jobs               — リプレイジョブ作成
-   - GET  /quality-insights/task-replay/jobs               — ジョブ一覧
-   - GET  /quality-insights/task-replay/jobs/{id}          — ジョブ詳細
-   - POST /quality-insights/task-replay/jobs/{id}/execute  — 実行結果記録
+3. Task Replay and Comparison (Task Replay)
+   - POST /quality-insights/task-replay/jobs               — Create replay job
+   - GET  /quality-insights/task-replay/jobs               — List jobs
+   - GET  /quality-insights/task-replay/jobs/{id}          — Job details
+   - POST /quality-insights/task-replay/jobs/{id}/execute  — Record execution result
 
-4. ユーザー判断振り返り (Judgment Review)
-   - POST /quality-insights/judgment-review/record         — 判断記録
-   - GET  /quality-insights/judgment-review/report         — レポート生成
+4. User Judgment Review (Judgment Review)
+   - POST /quality-insights/judgment-review/record         — Record judgment
+   - GET  /quality-insights/judgment-review/report         — Generate report
 
-5. Plan 品質検証 (Plan Quality)
-   - POST /quality-insights/plan-quality/verify            — Plan 品質検証
+5. Plan Quality Verification (Plan Quality)
+   - POST /quality-insights/plan-quality/verify            — Plan quality verification
 """
 
 from __future__ import annotations
@@ -105,21 +105,21 @@ router = APIRouter(prefix="/quality-insights")
 
 
 # ===========================================================================
-# 1. 前提変化の汎用監視 (Prerequisite Monitor)
+# 1. Prerequisite Change Monitoring (Prerequisite Monitor)
 # ===========================================================================
 
 
 @router.post(
     "/prerequisites/sources",
     response_model=PrerequisiteSourceResponse,
-    summary="監視対象を登録",
+    summary="Register monitoring source",
 )
 async def register_prerequisite_source(
     body: PrerequisiteSourceCreate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """外部情報源を監視対象として登録する."""
+    """Register an external information source for monitoring."""
     try:
         category = PrerequisiteCategory(body.category)
     except ValueError:
@@ -142,13 +142,13 @@ async def register_prerequisite_source(
 @router.get(
     "/prerequisites/sources",
     response_model=list[PrerequisiteSourceResponse],
-    summary="監視対象一覧",
+    summary="List monitoring sources",
 )
 async def list_prerequisite_sources(
     category: str | None = None,
     current_user: User = Depends(get_current_user),
 ):
-    """登録済みの監視対象を一覧取得する."""
+    """List registered monitoring sources."""
     cat = PrerequisiteCategory(category) if category else None
     sources = prerequisite_monitor.list_sources(
         company_id=str(current_user.company_id) if current_user.company_id else "",
@@ -160,13 +160,13 @@ async def list_prerequisite_sources(
 @router.get(
     "/prerequisites/sources/{source_id}",
     response_model=PrerequisiteSourceResponse,
-    summary="監視対象詳細",
+    summary="Monitoring source details",
 )
 async def get_prerequisite_source(
     source_id: str,
     current_user: User = Depends(get_current_user),
 ):
-    """監視対象の詳細を取得する."""
+    """Get monitoring source details."""
     source = prerequisite_monitor.get_source(source_id)
     if not source:
         raise HTTPException(status_code=404, detail="Source not found")
@@ -176,14 +176,14 @@ async def get_prerequisite_source(
 @router.put(
     "/prerequisites/sources/{source_id}",
     response_model=PrerequisiteSourceResponse,
-    summary="監視対象更新",
+    summary="Update monitoring source",
 )
 async def update_prerequisite_source(
     source_id: str,
     body: PrerequisiteSourceUpdate,
     current_user: User = Depends(get_current_user),
 ):
-    """監視対象を更新する."""
+    """Update a monitoring source."""
     updates = body.model_dump(exclude_unset=True)
     try:
         source = prerequisite_monitor.update_source(source_id, **updates)
@@ -194,13 +194,13 @@ async def update_prerequisite_source(
 
 @router.delete(
     "/prerequisites/sources/{source_id}",
-    summary="監視対象削除",
+    summary="Delete monitoring source",
 )
 async def delete_prerequisite_source(
     source_id: str,
     current_user: User = Depends(get_current_user),
 ):
-    """監視対象を削除する."""
+    """Delete a monitoring source."""
     if not prerequisite_monitor.remove_source(source_id):
         raise HTTPException(status_code=404, detail="Source not found")
     return {"message": "Source deleted"}
@@ -209,13 +209,13 @@ async def delete_prerequisite_source(
 @router.post(
     "/prerequisites/check",
     response_model=PrerequisiteChangeResponse | None,
-    summary="手動チェック実行",
+    summary="Manual check execution",
 )
 async def check_prerequisite(
     body: PrerequisiteCheckRequest,
     current_user: User = Depends(get_current_user),
 ):
-    """監視対象の内容を手動でチェックする."""
+    """Manually check monitoring source content."""
     try:
         change = prerequisite_monitor.check_source(body.source_id, body.content)
     except ValueError:
@@ -228,7 +228,7 @@ async def check_prerequisite(
 @router.get(
     "/prerequisites/changes",
     response_model=list[PrerequisiteChangeResponse],
-    summary="変更履歴",
+    summary="Change history",
 )
 async def list_prerequisite_changes(
     source_id: str | None = None,
@@ -237,7 +237,7 @@ async def list_prerequisite_changes(
     limit: int = Query(default=50, le=200),
     current_user: User = Depends(get_current_user),
 ):
-    """検出された変更の履歴を取得する."""
+    """Get history of detected changes."""
     from app.services.prerequisite_monitor_service import ChangeImpact
 
     imp = ChangeImpact(impact) if impact else None
@@ -253,13 +253,13 @@ async def list_prerequisite_changes(
 
 @router.post(
     "/prerequisites/changes/{change_id}/ack",
-    summary="変更を確認済みにする",
+    summary="Mark change as acknowledged",
 )
 async def acknowledge_prerequisite_change(
     change_id: str,
     current_user: User = Depends(get_current_user),
 ):
-    """変更を確認済みにする."""
+    """Mark a change as acknowledged."""
     change = prerequisite_monitor.acknowledge_change(change_id, str(current_user.id))
     if not change:
         raise HTTPException(status_code=404, detail="Change not found")
@@ -269,32 +269,32 @@ async def acknowledge_prerequisite_change(
 @router.get(
     "/prerequisites/summary",
     response_model=PrerequisiteSummaryResponse,
-    summary="監視サマリー",
+    summary="Monitoring summary",
 )
 async def get_prerequisite_summary(
     current_user: User = Depends(get_current_user),
 ):
-    """監視のサマリーを取得する."""
+    """Get monitoring summary."""
     company_id = str(current_user.company_id) if current_user.company_id else ""
     summary = prerequisite_monitor.get_summary(company_id)
     return PrerequisiteSummaryResponse(**summary)
 
 
 # ===========================================================================
-# 2. Spec 間矛盾検出 (Spec Contradiction)
+# 2. Spec Contradiction Detection (Spec Contradiction)
 # ===========================================================================
 
 
 @router.post(
     "/spec-contradictions/check",
     response_model=SpecContradictionReportResponse,
-    summary="Spec 間矛盾検出",
+    summary="Spec contradiction detection",
 )
 async def check_spec_contradictions(
     body: ContradictionCheckRequest,
     current_user: User = Depends(get_current_user),
 ):
-    """複数の Spec 間の矛盾を検出する."""
+    """Detect contradictions between multiple specs."""
     specs = [
         SpecSummary(
             spec_id=s.spec_id,
@@ -349,20 +349,20 @@ async def check_spec_contradictions(
 
 
 # ===========================================================================
-# 3. タスクリプレイ・比較 (Task Replay)
+# 3. Task Replay and Comparison (Task Replay)
 # ===========================================================================
 
 
 @router.post(
     "/task-replay/jobs",
     response_model=ReplayJobResponse,
-    summary="リプレイジョブ作成",
+    summary="Create replay job",
 )
 async def create_replay_job(
     body: ReplayJobCreateRequest,
     current_user: User = Depends(get_current_user),
 ):
-    """タスクのリプレイジョブを作成する."""
+    """Create a task replay job."""
     configs = [c.model_dump() for c in body.configs]
     job = task_replay_service.create_replay_job(
         task_id=body.task_id,
@@ -377,7 +377,7 @@ async def create_replay_job(
 @router.get(
     "/task-replay/jobs",
     response_model=list[ReplayJobResponse],
-    summary="リプレイジョブ一覧",
+    summary="List replay jobs",
 )
 async def list_replay_jobs(
     task_id: str | None = None,
@@ -385,7 +385,7 @@ async def list_replay_jobs(
     limit: int = Query(default=50, le=200),
     current_user: User = Depends(get_current_user),
 ):
-    """リプレイジョブを一覧取得する."""
+    """List replay jobs."""
     from app.services.task_replay_service import ReplayStatus
 
     st = ReplayStatus(status) if status else None
@@ -396,13 +396,13 @@ async def list_replay_jobs(
 @router.get(
     "/task-replay/jobs/{job_id}",
     response_model=ReplayJobResponse,
-    summary="リプレイジョブ詳細",
+    summary="Replay job details",
 )
 async def get_replay_job(
     job_id: str,
     current_user: User = Depends(get_current_user),
 ):
-    """リプレイジョブの詳細を取得する."""
+    """Get replay job details."""
     job = task_replay_service.get_job(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -412,14 +412,14 @@ async def get_replay_job(
 @router.post(
     "/task-replay/jobs/{job_id}/execute",
     response_model=ReplayExecutionResponse,
-    summary="リプレイ実行結果記録",
+    summary="Record replay execution result",
 )
 async def record_replay_execution(
     job_id: str,
     body: ReplayExecutionRecordRequest,
     current_user: User = Depends(get_current_user),
 ):
-    """リプレイ実行結果を記録する."""
+    """Record replay execution result."""
     try:
         execution = task_replay_service.record_execution(
             job_id=job_id,
@@ -446,19 +446,19 @@ async def record_replay_execution(
 
 
 # ===========================================================================
-# 4. ユーザー判断振り返り (Judgment Review)
+# 4. User Judgment Review (Judgment Review)
 # ===========================================================================
 
 
 @router.post(
     "/judgment-review/record",
-    summary="判断を記録する",
+    summary="Record judgment",
 )
 async def record_judgment(
     body: JudgmentRecordCreate,
     current_user: User = Depends(get_current_user),
 ):
-    """ユーザーの判断（承認・却下等）を記録する."""
+    """Record a user judgment (approval, rejection, etc.)."""
     try:
         action = JudgmentAction(body.action)
     except ValueError:
@@ -486,13 +486,13 @@ async def record_judgment(
 @router.get(
     "/judgment-review/report",
     response_model=JudgmentReviewReportResponse,
-    summary="判断振り返りレポート生成",
+    summary="Generate judgment review report",
 )
 async def get_judgment_review_report(
     period_days: int = Query(default=30, ge=1, le=365),
     current_user: User = Depends(get_current_user),
 ):
-    """ユーザーの判断傾向を分析したレポートを生成する."""
+    """Generate a report analyzing user judgment trends."""
     company_id = str(current_user.company_id) if current_user.company_id else ""
     report = judgment_review_service.generate_report(
         user_id=str(current_user.id),
@@ -546,20 +546,20 @@ async def get_judgment_review_report(
 
 
 # ===========================================================================
-# 5. Plan 品質検証 (Plan Quality)
+# 5. Plan Quality Verification (Plan Quality)
 # ===========================================================================
 
 
 @router.post(
     "/plan-quality/verify",
     response_model=PlanQualityReportResponse,
-    summary="Plan 品質検証",
+    summary="Plan quality verification",
 )
 async def verify_plan_quality(
     body: PlanQualityVerifyRequest,
     current_user: User = Depends(get_current_user),
 ):
-    """Spec → Plan 分解の品質を検証する（MECE チェック）."""
+    """Verify the quality of Spec to Plan decomposition (MECE check)."""
     spec = SpecInput(
         spec_id=body.spec.spec_id,
         objective=body.spec.objective,
@@ -653,7 +653,7 @@ async def verify_plan_quality(
 
 
 # ===========================================================================
-# ヘルパー関数
+# Helper functions
 # ===========================================================================
 
 

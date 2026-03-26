@@ -1,14 +1,14 @@
-"""Avatar AI Co-evolution — ユーザーと AI の共進化エンジン.
+"""Avatar AI Co-evolution — User-AI co-evolution engine.
 
-ユーザーのインタラクションから意思決定基準を学習し、
-AI がユーザーと共に成長する共進化モデルを実装する。
+Learns decision criteria from user interactions and implements a
+co-evolution model where AI grows together with the user.
 
-主な機能:
-  - インタラクション記録と嗜好抽出
-  - 意思決定基準の学習と蓄積
-  - ユーザー嗜好の予測
-  - 選択肢のランキング提案
-  - ユーザーモデルのエクスポート/インポート
+Key features:
+  - Interaction recording and preference extraction
+  - Decision criteria learning and accumulation
+  - User preference prediction
+  - Option ranking suggestions
+  - User model export/import
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class UserPreference:
-    """学習されたユーザー嗜好."""
+    """Learned user preference."""
 
     category: str = ""
     key: str = ""
@@ -34,7 +34,7 @@ class UserPreference:
     updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict[str, Any]:
-        """辞書表現を返す."""
+        """Return a dictionary representation."""
         return {
             "category": self.category,
             "key": self.key,
@@ -47,7 +47,7 @@ class UserPreference:
 
 @dataclass
 class DecisionCriterion:
-    """学習された意思決定基準."""
+    """Learned decision criterion."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     domain: str = ""
@@ -58,7 +58,7 @@ class DecisionCriterion:
     success_rate: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
-        """辞書表現を返す."""
+        """Return a dictionary representation."""
         return {
             "id": self.id,
             "domain": self.domain,
@@ -72,7 +72,7 @@ class DecisionCriterion:
 
 @dataclass
 class InteractionRecord:
-    """ユーザーインタラクションの記録."""
+    """User interaction record."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str = ""
@@ -84,7 +84,7 @@ class InteractionRecord:
     timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict[str, Any]:
-        """辞書表現を返す."""
+        """Return a dictionary representation."""
         return {
             "id": self.id,
             "user_id": self.user_id,
@@ -105,10 +105,10 @@ _MAX_INTERACTIONS = 5000
 
 
 class AvatarCoevolution:
-    """ユーザーと AI の共進化エンジン.
+    """User-AI co-evolution engine.
 
-    ユーザーの意思決定パターンを継続的に学習し、
-    AI の提案精度を向上させる。
+    Continuously learns user decision-making patterns
+    and improves AI suggestion accuracy.
     """
 
     def __init__(self) -> None:
@@ -119,7 +119,7 @@ class AvatarCoevolution:
         self._interactions: list[InteractionRecord] = []
 
     # ------------------------------------------------------------------
-    # インタラクション記録
+    # Interaction recording
     # ------------------------------------------------------------------
 
     def record_interaction(
@@ -131,18 +131,18 @@ class AvatarCoevolution:
         accepted: bool,
         feedback: str = "",
     ) -> InteractionRecord:
-        """ユーザーインタラクションを記録する.
+        """Record a user interaction.
 
         Args:
-            user_id: ユーザー ID。
-            context: インタラクションのコンテキスト。
-            user_decision: ユーザーの実際の決定。
-            ai_suggestion: AI の提案。
-            accepted: ユーザーが AI 提案を採用したか。
-            feedback: ユーザーからのフィードバック。
+            user_id: User ID.
+            context: Interaction context.
+            user_decision: User's actual decision.
+            ai_suggestion: AI's suggestion.
+            accepted: Whether the user adopted the AI suggestion.
+            feedback: Feedback from the user.
 
         Returns:
-            記録されたインタラクション。
+            The recorded interaction.
         """
         record = InteractionRecord(
             user_id=user_id,
@@ -153,13 +153,13 @@ class AvatarCoevolution:
             feedback=feedback,
         )
 
-        # 容量制限
+        # Capacity limit
         if len(self._interactions) >= _MAX_INTERACTIONS:
             self._interactions = self._interactions[-(_MAX_INTERACTIONS // 2) :]
 
         self._interactions.append(record)
 
-        # インタラクションから嗜好を自動学習
+        # Auto-learn preferences from interaction
         self.learn_preference(user_id, record)
 
         logger.debug(
@@ -170,7 +170,7 @@ class AvatarCoevolution:
         return record
 
     # ------------------------------------------------------------------
-    # 嗜好学習
+    # Preference learning
     # ------------------------------------------------------------------
 
     def learn_preference(
@@ -178,14 +178,14 @@ class AvatarCoevolution:
         user_id: str,
         interaction: InteractionRecord,
     ) -> UserPreference | None:
-        """インタラクションからユーザー嗜好を抽出・更新する.
+        """Extract and update user preferences from an interaction.
 
         Args:
-            user_id: ユーザー ID。
-            interaction: 学習元のインタラクション。
+            user_id: User ID.
+            interaction: Source interaction for learning.
 
         Returns:
-            更新または新規作成された嗜好。学習対象外の場合は None。
+            Updated or newly created preference. None if not a learning target.
         """
         domain = interaction.context.get("domain", "general")
         decision = interaction.user_decision
@@ -201,11 +201,11 @@ class AvatarCoevolution:
 
         if category in prefs:
             pref = prefs[category]
-            # 信頼度を更新（同じ選択が繰り返されるほど信頼度が上がる）
+            # Update confidence (increases as the same choice is repeated)
             if pref.value == decision:
                 pref.confidence = min(1.0, pref.confidence + 0.05)
             else:
-                # 異なる選択 — 信頼度を下げ、過半数なら値を更新
+                # Different choice — lower confidence, update value if below threshold
                 pref.confidence = max(0.0, pref.confidence - 0.1)
                 if pref.confidence < 0.3:
                     pref.value = decision
@@ -222,7 +222,7 @@ class AvatarCoevolution:
             )
             prefs[category] = pref
 
-        # 意思決定基準の更新
+        # Update decision criteria
         self._update_criteria(user_id, interaction)
 
         return pref
@@ -232,20 +232,20 @@ class AvatarCoevolution:
         user_id: str,
         interaction: InteractionRecord,
     ) -> None:
-        """インタラクションから意思決定基準を更新する."""
+        """Update decision criteria from an interaction."""
         if user_id not in self._criteria:
             self._criteria[user_id] = []
 
         domain = interaction.context.get("domain", "general")
         criteria_list = self._criteria[user_id]
 
-        # 同一ドメインの既存基準を検索
+        # Search for existing criteria in the same domain
         existing = next((c for c in criteria_list if c.domain == domain), None)
 
         if existing:
             existing.applied_count += 1
             if interaction.user_accepted:
-                # AI 提案が採用された = 基準の精度が高い
+                # AI suggestion was adopted = criteria accuracy is high
                 total = existing.applied_count
                 existing.success_rate = (existing.success_rate * (total - 1) + 1.0) / total
                 existing.weight = min(1.0, existing.weight + 0.02)
@@ -256,7 +256,7 @@ class AvatarCoevolution:
         else:
             criterion = DecisionCriterion(
                 domain=domain,
-                description=(f"ドメイン '{domain}' でのユーザー意思決定パターン"),
+                description=(f"User decision-making pattern in domain '{domain}'"),
                 weight=0.5,
                 applied_count=1,
                 success_rate=1.0 if interaction.user_accepted else 0.0,
@@ -264,7 +264,7 @@ class AvatarCoevolution:
             criteria_list.append(criterion)
 
     # ------------------------------------------------------------------
-    # 嗜好予測
+    # Preference prediction
     # ------------------------------------------------------------------
 
     async def predict_preference(
@@ -272,14 +272,14 @@ class AvatarCoevolution:
         user_id: str,
         context: dict[str, Any],
     ) -> dict[str, Any]:
-        """ユーザーの嗜好を予測する.
+        """Predict a user's preference.
 
         Args:
-            user_id: ユーザー ID。
-            context: 予測対象のコンテキスト。
+            user_id: User ID.
+            context: Context for prediction.
 
         Returns:
-            予測結果（predicted_value, confidence, basis）。
+            Prediction result (predicted_value, confidence, basis).
         """
         domain = context.get("domain", "general")
         category = f"{domain}:decision"
@@ -296,7 +296,7 @@ class AvatarCoevolution:
                 "learned_from_count": len(pref.learned_from),
             }
 
-        # 類似ドメインからの推定
+        # Estimation from similar domains
         similar_prefs = [p for p in prefs.values() if p.key and domain.split(":")[0] in p.key]
         if similar_prefs:
             best = max(similar_prefs, key=lambda p: p.confidence)
@@ -316,7 +316,7 @@ class AvatarCoevolution:
         }
 
     # ------------------------------------------------------------------
-    # 意思決定支援
+    # Decision support
     # ------------------------------------------------------------------
 
     async def suggest_decision(
@@ -325,15 +325,15 @@ class AvatarCoevolution:
         context: dict[str, Any],
         options: list[str],
     ) -> list[dict[str, Any]]:
-        """ユーザーの嗜好に基づいて選択肢をランキングする.
+        """Rank options based on user preferences.
 
         Args:
-            user_id: ユーザー ID。
-            context: 意思決定のコンテキスト。
-            options: 選択肢のリスト。
+            user_id: User ID.
+            context: Decision context.
+            options: List of options.
 
         Returns:
-            スコア付き・ランキング済みの選択肢リスト。
+            Scored and ranked list of options.
         """
         if not options:
             return []
@@ -343,7 +343,7 @@ class AvatarCoevolution:
         predicted_value = prediction.get("predicted_value")
         pred_confidence = prediction.get("confidence", 0.0)
 
-        # 過去のインタラクションから各選択肢のスコアを計算
+        # Calculate scores for each option from past interactions
         user_interactions = [
             i
             for i in self._interactions
@@ -352,19 +352,19 @@ class AvatarCoevolution:
 
         scored_options: list[dict[str, Any]] = []
         for option in options:
-            score = 0.5  # ベーススコア
+            score = 0.5  # Base score
 
-            # 予測値との一致度
+            # Match with predicted value
             if predicted_value and option == predicted_value:
                 score += 0.3 * pred_confidence
 
-            # 過去の選択頻度
+            # Past selection frequency
             choice_count = sum(1 for i in user_interactions if i.user_decision == option)
             total = len(user_interactions) if user_interactions else 1
             frequency_score = choice_count / total
             score += 0.2 * frequency_score
 
-            # 意思決定基準に基づく補正
+            # Adjustment based on decision criteria
             criteria = self._criteria.get(user_id, [])
             domain_criteria = [c for c in criteria if c.domain == domain]
             if domain_criteria:
@@ -380,23 +380,23 @@ class AvatarCoevolution:
                 }
             )
 
-        # スコア降順でソート
+        # Sort by score descending
         scored_options.sort(key=lambda x: x["score"], reverse=True)
 
-        # ランク付与
+        # Assign ranks
         for i, opt in enumerate(scored_options):
             opt["rank"] = i + 1
 
         return scored_options
 
     # ------------------------------------------------------------------
-    # ユーザープロファイル
+    # User profile
     # ------------------------------------------------------------------
 
     def get_user_profile(self, user_id: str) -> dict[str, Any]:
-        """ユーザーの統合プロファイルを返す.
+        """Return a user's unified profile.
 
-        嗜好・意思決定基準・インタラクション統計を集約する。
+        Aggregates preferences, decision criteria, and interaction statistics.
         """
         prefs = self._preferences.get(user_id, {})
         criteria = self._criteria.get(user_id, [])
@@ -406,7 +406,7 @@ class AvatarCoevolution:
         accepted_count = sum(1 for i in interactions if i.user_accepted)
         acceptance_rate = accepted_count / total_interactions if total_interactions > 0 else 0.0
 
-        # ドメイン別統計
+        # Per-domain statistics
         domain_stats: dict[str, dict[str, int]] = {}
         for interaction in interactions:
             domain = interaction.context.get("domain", "general")
@@ -428,9 +428,9 @@ class AvatarCoevolution:
         }
 
     def get_alignment_score(self, user_id: str) -> float:
-        """AI がユーザーをどれだけ理解しているかのスコア（0.0〜1.0）を返す.
+        """Return a score (0.0-1.0) of how well AI understands the user.
 
-        嗜好の信頼度・意思決定基準の成功率・インタラクション数を総合評価する。
+        Comprehensively evaluates preference confidence, decision criteria success rate, and interaction count.
         """
         prefs = self._preferences.get(user_id, {})
         criteria = self._criteria.get(user_id, [])
@@ -439,20 +439,20 @@ class AvatarCoevolution:
         if not interactions:
             return 0.0
 
-        # 嗜好の平均信頼度
+        # Average preference confidence
         avg_pref_confidence = (
             sum(p.confidence for p in prefs.values()) / len(prefs) if prefs else 0.0
         )
 
-        # 意思決定基準の平均成功率
+        # Average decision criteria success rate
         avg_criteria_success = (
             sum(c.success_rate for c in criteria) / len(criteria) if criteria else 0.0
         )
 
-        # インタラクション数に基づく経験値（100 件で飽和）
+        # Experience factor based on interaction count (saturates at 100)
         experience_factor = min(1.0, len(interactions) / 100.0)
 
-        # 直近の受容率（最新 20 件）
+        # Recent acceptance rate (latest 20 interactions)
         recent = interactions[-20:]
         recent_acceptance = (
             sum(1 for i in recent if i.user_accepted) / len(recent) if recent else 0.0
@@ -468,7 +468,7 @@ class AvatarCoevolution:
         return round(min(1.0, alignment), 4)
 
     def get_evolution_history(self, user_id: str) -> list[dict[str, Any]]:
-        """ユーザーとの共進化の時系列履歴を返す."""
+        """Return the chronological history of co-evolution with a user."""
         interactions = [i for i in self._interactions if i.user_id == user_id]
 
         history: list[dict[str, Any]] = []
@@ -492,11 +492,11 @@ class AvatarCoevolution:
         return history
 
     # ------------------------------------------------------------------
-    # エクスポート / インポート
+    # Export / Import
     # ------------------------------------------------------------------
 
     def export_profile(self, user_id: str) -> dict[str, Any]:
-        """ユーザープロファイルをエクスポート可能な形式で返す."""
+        """Return user profile in an exportable format."""
         prefs = self._preferences.get(user_id, {})
         criteria = self._criteria.get(user_id, [])
         interactions = [i for i in self._interactions if i.user_id == user_id]
@@ -511,21 +511,21 @@ class AvatarCoevolution:
         }
 
     def import_profile(self, user_id: str, data: dict[str, Any]) -> bool:
-        """エクスポートされたプロファイルをインポートする.
+        """Import an exported profile.
 
         Args:
-            user_id: インポート先ユーザー ID。
-            data: export_profile() で生成されたデータ。
+            user_id: Target user ID for import.
+            data: Data generated by export_profile().
 
         Returns:
-            インポート成功なら True。
+            True if import succeeded.
         """
         version = data.get("version", "")
         if version != "1.0":
             logger.warning("Avatar: unsupported profile version '%s'", version)
             return False
 
-        # 嗜好のインポート
+        # Import preferences
         prefs_data = data.get("preferences", {})
         imported_prefs: dict[str, UserPreference] = {}
         for category, pref_dict in prefs_data.items():
@@ -534,11 +534,11 @@ class AvatarCoevolution:
                 key=pref_dict.get("key", ""),
                 value=pref_dict.get("value"),
                 confidence=pref_dict.get("confidence", 0.0),
-                learned_from=[],  # リセット
+                learned_from=[],  # Reset
             )
         self._preferences[user_id] = imported_prefs
 
-        # 意思決定基準のインポート
+        # Import decision criteria
         criteria_data = data.get("criteria", [])
         imported_criteria: list[DecisionCriterion] = []
         for c_dict in criteria_data:
@@ -554,7 +554,7 @@ class AvatarCoevolution:
             )
         self._criteria[user_id] = imported_criteria
 
-        # インタラクション履歴のインポート
+        # Import interaction history
         interactions_data = data.get("interactions", [])
         for i_dict in interactions_data:
             record = InteractionRecord(
@@ -578,5 +578,5 @@ class AvatarCoevolution:
         return True
 
 
-# グローバルインスタンス
+# Global instance
 avatar_coevolution = AvatarCoevolution()

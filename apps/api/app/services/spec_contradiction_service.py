@@ -1,14 +1,15 @@
-"""Spec 間矛盾検出サービス — Spec Contradiction Detector.
+"""Cross-spec contradiction detection service -- Spec Contradiction Detector.
 
-複数チケットの Spec が互いに矛盾していないかを CrossModelJudge の応用で検証する。
-既存の Judge 基盤（否定パターン検出・数値不整合・セマンティック比較）を流用して、
-Spec レベルの矛盾を検出する。
+Verifies that Specs across multiple tickets are not contradicting each other
+using an application of CrossModelJudge.
+Leverages the existing Judge infrastructure (negation pattern detection,
+numeric discrepancy, semantic comparison) to detect contradictions at the Spec level.
 
-検証対象:
-- 同一プロジェクト内の複数 Spec の目的・制約条件・受け入れ基準
-- リソース割り当ての競合
-- スケジュール・期限の矛盾
-- 技術的前提条件の不整合
+Verification targets:
+- Objectives, constraints, and acceptance criteria of multiple Specs within the same project
+- Resource allocation conflicts
+- Schedule and deadline contradictions
+- Technical prerequisite inconsistencies
 """
 
 from __future__ import annotations
@@ -29,12 +30,12 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# データ構造
+# Data structures
 # ---------------------------------------------------------------------------
 
 
 class ContradictionType(str, Enum):
-    """矛盾の種類."""
+    """Contradiction type."""
 
     OBJECTIVE_CONFLICT = "objective_conflict"
     CONSTRAINT_CONFLICT = "constraint_conflict"
@@ -48,7 +49,7 @@ class ContradictionType(str, Enum):
 
 
 class ContradictionSeverity(str, Enum):
-    """矛盾の深刻度."""
+    """Contradiction severity."""
 
     INFO = "info"
     WARNING = "warning"
@@ -58,7 +59,7 @@ class ContradictionSeverity(str, Enum):
 
 @dataclass
 class SpecSummary:
-    """検証対象の Spec の概要."""
+    """Summary of the Spec under verification."""
 
     spec_id: str = ""
     ticket_id: str = ""
@@ -74,7 +75,7 @@ class SpecSummary:
 
 @dataclass
 class ContradictionDetail:
-    """検出された矛盾の詳細."""
+    """Details of a detected contradiction."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     type: ContradictionType = ContradictionType.OBJECTIVE_CONFLICT
@@ -93,7 +94,7 @@ class ContradictionDetail:
 
 @dataclass
 class SpecContradictionReport:
-    """Spec 間矛盾検出レポート."""
+    """Cross-spec contradiction detection report."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     company_id: str = ""
@@ -109,7 +110,7 @@ class SpecContradictionReport:
 
 
 # ---------------------------------------------------------------------------
-# 矛盾検出エンジン
+# Contradiction detection engine
 # ---------------------------------------------------------------------------
 
 
@@ -134,7 +135,7 @@ class SpecContradictionDetector:
         company_id: str = "",
         project_id: str | None = None,
     ) -> SpecContradictionReport:
-        """複数の Spec 間の矛盾を検出する."""
+        """Detect contradictions between multiple Specs."""
         contradictions: list[ContradictionDetail] = []
 
         for i in range(len(specs)):
@@ -147,7 +148,7 @@ class SpecContradictionDetector:
         warning = sum(1 for c in contradictions if c.severity == ContradictionSeverity.WARNING)
         info = sum(1 for c in contradictions if c.severity == ContradictionSeverity.INFO)
 
-        # 一貫性スコア: 矛盾が多いほど低い
+        # Consistency score: lower when more contradictions exist
         max_pairs = max(len(specs) * (len(specs) - 1) // 2, 1)
         penalty = critical * 0.3 + error * 0.15 + warning * 0.05 + info * 0.01
         score = max(0.0, 1.0 - penalty / max_pairs)
@@ -165,10 +166,10 @@ class SpecContradictionDetector:
         )
 
     def _compare_pair(self, spec_a: SpecSummary, spec_b: SpecSummary) -> list[ContradictionDetail]:
-        """2つの Spec を比較して矛盾を検出する."""
+        """Compare two Specs and detect contradictions."""
         results: list[ContradictionDetail] = []
 
-        # 1. 目的の矛盾チェック（否定パターン検出）
+        # 1. Objective contradiction check (negation pattern detection)
         if spec_a.objective and spec_b.objective:
             negations = self._check_negation_conflict(spec_a.objective, spec_b.objective)
             if negations:
@@ -189,7 +190,7 @@ class SpecContradictionDetector:
                     )
                 )
 
-        # 2. 制約条件の矛盾チェック
+        # 2. Constraint contradiction check
         for ca in spec_a.constraints:
             for cb in spec_b.constraints:
                 neg = self._check_negation_conflict(ca, cb)
@@ -238,7 +239,7 @@ class SpecContradictionDetector:
                         )
                     )
 
-        # 3. 受け入れ基準の矛盾チェック
+        # 3. Acceptance criteria contradiction check
         for aa in spec_a.acceptance_criteria:
             for ab in spec_b.acceptance_criteria:
                 neg = self._check_negation_conflict(aa, ab)
@@ -260,14 +261,14 @@ class SpecContradictionDetector:
                         )
                     )
 
-        # 4. 予算の競合チェック
+        # 4. Budget conflict check
         if spec_a.estimated_budget and spec_b.estimated_budget:
             result = _numeric_close(
                 str(spec_a.estimated_budget),
                 str(spec_b.estimated_budget),
                 tolerance=self.numeric_tolerance,
             )
-            # 同一リソースを参照している可能性がある場合のみ
+            # Only when there is a possibility of referencing the same resource
             sim = _jaccard_similarity(spec_a.objective, spec_b.objective)
             if sim > self.semantic_threshold and result is False:
                 results.append(
@@ -287,7 +288,7 @@ class SpecContradictionDetector:
                     )
                 )
 
-        # 5. 優先度矛盾（類似目的で異なる優先度）
+        # 5. Priority conflict (different priorities for similar objectives)
         if spec_a.priority != spec_b.priority:
             sim = _jaccard_similarity(spec_a.objective, spec_b.objective)
             if sim > self.semantic_threshold:
@@ -311,14 +312,14 @@ class SpecContradictionDetector:
         return results
 
     def _check_negation_conflict(self, text_a: str, text_b: str) -> list[str]:
-        """否定パターンによる矛盾を検出する."""
+        """Detect contradictions using negation patterns."""
         conflicts: list[str] = []
         for pos_pat, neg_pat in _NEGATION_PAIRS:
             a_pos = bool(pos_pat.search(text_a))
             a_neg = bool(neg_pat.search(text_a))
             b_pos = bool(pos_pat.search(text_b))
             b_neg = bool(neg_pat.search(text_b))
-            # A が肯定で B が否定、または A が否定で B が肯定
+            # A is positive and B is negative, or A is negative and B is positive
             if (a_pos and not a_neg and b_neg and not b_pos) or (
                 a_neg and not a_pos and b_pos and not b_neg
             ):
@@ -326,7 +327,7 @@ class SpecContradictionDetector:
         return conflicts
 
     def _check_numeric_conflict(self, text_a: str, text_b: str) -> bool:
-        """数値不整合を検出する."""
+        """Detect numeric discrepancies."""
         import re
 
         nums_a = re.findall(r"\d+(?:\.\d+)?%?", text_a)
@@ -340,7 +341,7 @@ class SpecContradictionDetector:
 
 
 # ---------------------------------------------------------------------------
-# シングルトンインスタンス
+# Singleton instance
 # ---------------------------------------------------------------------------
 
 spec_contradiction_detector = SpecContradictionDetector()

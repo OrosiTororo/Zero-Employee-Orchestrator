@@ -1,7 +1,7 @@
-"""リソースインポート API エンドポイント.
+"""Resource import API endpoints.
 
-業務マニュアル、ルール、ドキュメントフォルダなどの
-インポート・検索・管理機能を提供する。
+Provides import, search, and management functionality
+for business manuals, rules, document folders, etc.
 """
 
 from __future__ import annotations
@@ -26,38 +26,38 @@ router = APIRouter(prefix="/resources", tags=["resources"])
 
 
 # ---------------------------------------------------------------------------
-# Pydantic スキーマ
+# Pydantic schemas
 # ---------------------------------------------------------------------------
 class ImportFileBody(BaseModel):
-    """ファイルインポートリクエスト."""
+    """File import request."""
 
-    file_path: str = Field(..., description="インポートするファイルのパス")
+    file_path: str = Field(..., description="Path of the file to import")
     resource_type: ResourceType | None = Field(
-        default=None, description="リソース種別（省略時は自動判定）"
+        default=None, description="Resource type (auto-detected if omitted)"
     )
-    tags: list[str] = Field(default_factory=list, description="タグ")
+    tags: list[str] = Field(default_factory=list, description="Tags")
 
 
 class ImportFolderBody(BaseModel):
-    """フォルダインポートリクエスト."""
+    """Folder import request."""
 
-    folder_path: str = Field(..., description="インポートするフォルダのパス")
-    recursive: bool = Field(default=True, description="サブフォルダも再帰的に処理")
+    folder_path: str = Field(..., description="Path of the folder to import")
+    recursive: bool = Field(default=True, description="Process subfolders recursively")
     file_types: list[str] | None = Field(
         default=None,
-        description='対象ファイル拡張子（例: [".txt", ".pdf"]）',
+        description='Target file extensions (e.g., [".txt", ".pdf"])',
     )
 
 
 class ImportUrlBody(BaseModel):
-    """URLインポートリクエスト."""
+    """URL import request."""
 
-    url: str = Field(..., description="インポートするURL")
-    tags: list[str] = Field(default_factory=list, description="タグ")
+    url: str = Field(..., description="URL to import")
+    tags: list[str] = Field(default_factory=list, description="Tags")
 
 
 class ResourceResponse(BaseModel):
-    """リソースレスポンス."""
+    """Resource response."""
 
     id: str
     name: str
@@ -72,24 +72,24 @@ class ResourceResponse(BaseModel):
 
 
 class ResourceListResponse(BaseModel):
-    """リソース一覧レスポンス."""
+    """Resource list response."""
 
     resources: list[ResourceResponse]
     total: int
 
 
 class ImportFolderResponse(BaseModel):
-    """フォルダインポートレスポンス."""
+    """Folder import response."""
 
     imported: list[ResourceResponse]
     total: int
 
 
 # ---------------------------------------------------------------------------
-# ヘルパー
+# Helpers
 # ---------------------------------------------------------------------------
 def _to_response(r: ImportedResource) -> ResourceResponse:
-    """ImportedResource を ResourceResponse に変換する."""
+    """Convert ImportedResource to ResourceResponse."""
     return ResourceResponse(
         id=r.id,
         name=r.name,
@@ -105,13 +105,13 @@ def _to_response(r: ImportedResource) -> ResourceResponse:
 
 
 # ---------------------------------------------------------------------------
-# エンドポイント
+# Endpoints
 # ---------------------------------------------------------------------------
 @router.post("/import/file", response_model=ResourceResponse)
 async def import_file(
     body: ImportFileBody, user: User = Depends(get_current_user)
 ) -> ResourceResponse:
-    """単一ファイルをインポートする."""
+    """Import a single file."""
     try:
         resource = await resource_import_service.import_file(
             file_path=body.file_path,
@@ -121,7 +121,7 @@ async def import_file(
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"インポートに失敗しました: {exc}") from exc
+        raise HTTPException(status_code=500, detail=f"Import failed: {exc}") from exc
     return _to_response(resource)
 
 
@@ -129,7 +129,7 @@ async def import_file(
 async def import_folder(
     body: ImportFolderBody, user: User = Depends(get_current_user)
 ) -> ImportFolderResponse:
-    """フォルダからリソースを一括インポートする."""
+    """Batch import resources from a folder."""
     file_types = set(body.file_types) if body.file_types else None
     try:
         resources = await resource_import_service.import_folder(
@@ -140,9 +140,7 @@ async def import_folder(
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except Exception as exc:
-        raise HTTPException(
-            status_code=500, detail=f"フォルダインポートに失敗しました: {exc}"
-        ) from exc
+        raise HTTPException(status_code=500, detail=f"Folder import failed: {exc}") from exc
     return ImportFolderResponse(
         imported=[_to_response(r) for r in resources],
         total=len(resources),
@@ -153,26 +151,26 @@ async def import_folder(
 async def import_url(
     body: ImportUrlBody, user: User = Depends(get_current_user)
 ) -> ResourceResponse:
-    """URLからリソースをインポートする."""
+    """Import a resource from a URL."""
     try:
         resource = await resource_import_service.import_url(
             url=body.url,
             tags=body.tags,
         )
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"URLインポートに失敗しました: {exc}") from exc
+        raise HTTPException(status_code=500, detail=f"URL import failed: {exc}") from exc
     return _to_response(resource)
 
 
 @router.get("", response_model=ResourceListResponse)
 async def list_resources(
-    status: ImportStatus | None = Query(default=None, description="ステータスフィルタ"),
-    resource_type: ResourceType | None = Query(default=None, description="リソース種別フィルタ"),
-    limit: int = Query(default=100, ge=1, le=1000, description="取得件数上限"),
-    offset: int = Query(default=0, ge=0, description="スキップ件数"),
+    status: ImportStatus | None = Query(default=None, description="Status filter"),
+    resource_type: ResourceType | None = Query(default=None, description="Resource type filter"),
+    limit: int = Query(default=100, ge=1, le=1000, description="Max items to retrieve"),
+    offset: int = Query(default=0, ge=0, description="Items to skip"),
     user: User = Depends(get_current_user),
 ) -> ResourceListResponse:
-    """リソース一覧を取得する."""
+    """Get resource list."""
     resources = await resource_import_service.list_resources(
         status=status,
         resource_type=resource_type,
@@ -188,12 +186,12 @@ async def list_resources(
 
 @router.get("/search", response_model=ResourceListResponse)
 async def search_resources(
-    q: str = Query(..., min_length=1, description="検索クエリ"),
-    resource_type: ResourceType | None = Query(default=None, description="リソース種別フィルタ"),
-    tags: list[str] | None = Query(default=None, description="タグフィルタ"),
+    q: str = Query(..., min_length=1, description="Search query"),
+    resource_type: ResourceType | None = Query(default=None, description="Resource type filter"),
+    tags: list[str] | None = Query(default=None, description="Tag filter"),
     user: User = Depends(get_current_user),
 ) -> ResourceListResponse:
-    """リソースを検索する."""
+    """Search resources."""
     results = await resource_import_service.search_resources(
         query=q,
         resource_type=resource_type,
@@ -209,10 +207,10 @@ async def search_resources(
 async def get_resource(
     resource_id: str, user: User = Depends(get_current_user)
 ) -> ResourceResponse:
-    """リソース詳細を取得する."""
+    """Get resource details."""
     resource = resource_import_service.get_resource(resource_id)
     if resource is None:
-        raise HTTPException(status_code=404, detail="リソースが見つかりません")
+        raise HTTPException(status_code=404, detail="Resource not found")
     return _to_response(resource)
 
 
@@ -220,8 +218,8 @@ async def get_resource(
 async def delete_resource(
     resource_id: str, user: User = Depends(get_current_user)
 ) -> dict[str, str]:
-    """リソースを削除する."""
+    """Delete a resource."""
     deleted = await resource_import_service.delete_resource(resource_id)
     if not deleted:
-        raise HTTPException(status_code=404, detail="リソースが見つかりません")
-    return {"message": "リソースを削除しました"}
+        raise HTTPException(status_code=404, detail="Resource not found")
+    return {"message": "Resource deleted"}

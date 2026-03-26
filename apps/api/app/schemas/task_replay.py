@@ -1,4 +1,4 @@
-"""タスクリプレイ・比較 API スキーマ."""
+"""Task replay and comparison API schemas."""
 
 from __future__ import annotations
 
@@ -8,9 +8,9 @@ from pydantic import BaseModel, Field
 
 
 class ReplayConfigSchema(BaseModel):
-    """リプレイ設定."""
+    """Replay configuration."""
 
-    model_id: str = Field(..., description="使用するモデルID")
+    model_id: str = Field(..., description="Model ID to use")
     temperature: float = Field(default=0.7, ge=0.0, le=2.0)
     max_tokens: int = Field(default=4096, ge=1, le=200000)
     quality_mode: str = Field(default="standard")
@@ -18,16 +18,16 @@ class ReplayConfigSchema(BaseModel):
 
 
 class ReplayJobCreateRequest(BaseModel):
-    """リプレイジョブ作成リクエスト."""
+    """Replay job creation request."""
 
-    task_id: str = Field(..., description="元タスクのID")
-    task_description: str = Field(..., description="タスクの説明")
-    original_output: str = Field(..., description="元の出力")
+    task_id: str = Field(..., description="Original task ID")
+    task_description: str = Field(..., description="Task description")
+    original_output: str = Field(..., description="Original output")
     configs: list[ReplayConfigSchema] = Field(..., min_length=1, max_length=10)
 
 
 class ReplayExecutionRecordRequest(BaseModel):
-    """リプレイ実行結果の記録リクエスト."""
+    """Request to record replay execution results."""
 
     config_index: int = Field(..., ge=0)
     output: str = Field(...)
@@ -39,7 +39,7 @@ class ReplayExecutionRecordRequest(BaseModel):
 
 
 class ComparisonResultResponse(BaseModel):
-    """比較結果のレスポンス."""
+    """Comparison result response."""
 
     dimension: str
     winner_execution_id: str
@@ -49,7 +49,7 @@ class ComparisonResultResponse(BaseModel):
 
 
 class ReplayExecutionResponse(BaseModel):
-    """リプレイ実行のレスポンス."""
+    """Replay execution response."""
 
     id: str
     model_id: str
@@ -61,7 +61,7 @@ class ReplayExecutionResponse(BaseModel):
 
 
 class ReplayJobResponse(BaseModel):
-    """リプレイジョブのレスポンス."""
+    """Replay job response."""
 
     id: str
     original_task_id: str

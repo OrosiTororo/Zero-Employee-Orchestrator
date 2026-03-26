@@ -113,16 +113,16 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)  # type: ignore[arg-type]
 
-# Security headers — OWASP 推奨ヘッダーを全レスポンスに付与
+# Security headers -- apply OWASP recommended headers to all responses
 app.add_middleware(SecurityHeadersMiddleware)
 
-# Request validation — 不正リクエストの早期拒否
+# Request validation -- early rejection of invalid requests
 app.add_middleware(RequestValidationMiddleware)
 
-# Input sanitization — プロンプトインジェクション・PII 自動検査
+# Input sanitization -- automatic prompt injection and PII inspection
 app.add_middleware(InputSanitizationMiddleware)
 
-# CORS — allow_methods / allow_headers を明示的に制限
+# CORS -- explicitly restrict allow_methods / allow_headers
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,

@@ -1,6 +1,6 @@
-"""秘書 / ブレインダンプ API エンドポイント.
+"""Secretary / Brain Dump API endpoints.
 
-CEO の思考・アイデア・ToDo を投げ込み、整理・蓄積する機能。
+Functionality to dump, organize, and accumulate CEO thoughts, ideas, and todos.
 """
 
 from datetime import date
@@ -23,7 +23,7 @@ router = APIRouter()
 
 
 class BrainDumpRequest(BaseModel):
-    """ブレインダンプ投稿リクエスト."""
+    """Brain dump post request."""
 
     raw_text: str
     category: str | None = None
@@ -32,7 +32,7 @@ class BrainDumpRequest(BaseModel):
 
 
 class BrainDumpResponse(BaseModel):
-    """ブレインダンプレスポンス."""
+    """Brain dump response."""
 
     id: str
     raw_text: str
@@ -47,7 +47,7 @@ class BrainDumpResponse(BaseModel):
 
 
 class BrainDumpUpdateRequest(BaseModel):
-    """ブレインダンプ更新リクエスト."""
+    """Brain dump update request."""
 
     category: str | None = None
     priority: str | None = None
@@ -57,7 +57,7 @@ class BrainDumpUpdateRequest(BaseModel):
 
 
 class DailyStatsResponse(BaseModel):
-    """日次統計レスポンス."""
+    """Daily statistics response."""
 
     date: str
     total_dumps: int
@@ -99,7 +99,7 @@ async def create_brain_dump(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """思考・アイデア・ToDo を投げ込む."""
+    """Dump thoughts, ideas, and todos."""
     svc = SecretaryService(db)
     record = await svc.brain_dump(
         company_id=company_id,
@@ -124,7 +124,7 @@ async def list_brain_dumps(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """ブレインダンプ一覧を取得."""
+    """List brain dumps."""
     svc = SecretaryService(db)
     records = await svc.list_dumps(
         company_id=company_id,
@@ -143,7 +143,7 @@ async def get_brain_dump(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """単一のブレインダンプを取得."""
+    """Get a single brain dump."""
     svc = SecretaryService(db)
     record = await svc.get_dump(dump_id)
     if not record:
@@ -158,7 +158,7 @@ async def update_brain_dump(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """ブレインダンプを更新."""
+    """Update a brain dump."""
     svc = SecretaryService(db)
     record = await svc.update_dump(
         dump_id=dump_id,
@@ -183,7 +183,7 @@ async def search_brain_dumps(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """ブレインダンプをキーワード検索."""
+    """Search brain dumps by keyword."""
     if not q:
         raise HTTPException(status_code=400, detail="Query parameter 'q' is required")
     svc = SecretaryService(db)
@@ -198,7 +198,7 @@ async def get_action_items(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """全ブレインダンプからアクションアイテムを集約."""
+    """Aggregate action items from all brain dumps."""
     svc = SecretaryService(db)
     items = await svc.get_action_items(
         company_id=company_id,
@@ -214,7 +214,7 @@ async def get_daily_stats(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """指定日のブレインダンプ統計を取得."""
+    """Get brain dump statistics for a specified date."""
     date_str = target_date or date.today().isoformat()
     svc = SecretaryService(db)
     stats = await svc.get_daily_stats(company_id=company_id, date_str=date_str)

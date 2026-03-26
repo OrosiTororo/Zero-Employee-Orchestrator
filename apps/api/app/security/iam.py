@@ -1,14 +1,14 @@
-"""IAM — 人間/AIアカウント分離とアクセス制御.
+"""IAM -- Human/AI account separation and access control.
 
-人間とAIで別のアカウントを使い、IAMの仕組みに乗ってAIの権限を
-適切に絞る。人間用アカウントの認証トークンにAIが触れないよう
-セキュリティを工夫する。
+Use separate accounts for humans and AI, leveraging IAM mechanisms to
+appropriately restrict AI permissions. Security measures ensure that AI
+cannot access human account authentication tokens.
 
-設計原則:
-  - 人間アカウントとAIアカウントは別テーブルで管理
-  - AIトークンは人間トークンより狭いスコープ
-  - 認証情報はAIが読めないファイルパーミッション設定で保護
-  - 全アクセスは監査ログに記録
+Design principles:
+  - Human and AI accounts are managed in separate tables
+  - AI tokens have narrower scopes than human tokens
+  - Credentials are protected with file permissions unreadable by AI
+  - All access is recorded in audit logs
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ class AccountType(str, Enum):
 
 
 class PermissionScope(str, Enum):
-    """権限スコープ."""
+    """Permission scope."""
 
     READ_TICKETS = "read:tickets"
     WRITE_TICKETS = "write:tickets"
@@ -57,7 +57,7 @@ class PermissionScope(str, Enum):
     MANAGE_IAM = "manage:iam"
 
 
-# デフォルトのAIエージェント権限（人間より制限的）
+# Default AI agent permissions (more restrictive than human permissions)
 DEFAULT_AI_PERMISSIONS = frozenset(
     {
         PermissionScope.READ_TICKETS,
@@ -72,19 +72,19 @@ DEFAULT_AI_PERMISSIONS = frozenset(
     }
 )
 
-# AIエージェントに禁止される権限
+# Permissions denied to AI agents
 AI_DENIED_PERMISSIONS = frozenset(
     {
         PermissionScope.READ_SECRETS,
         PermissionScope.ADMIN,
         PermissionScope.MANAGE_IAM,
-        PermissionScope.APPROVE_ACTIONS,  # 承認は人間のみ
+        PermissionScope.APPROVE_ACTIONS,  # Approvals are human-only
     }
 )
 
 
 class IAMPolicy(Base):
-    """IAMポリシー定義."""
+    """IAM policy definition."""
 
     __tablename__ = "iam_policies"
 
@@ -101,7 +101,7 @@ class IAMPolicy(Base):
 
 
 class AIServiceAccount(Base):
-    """AIエージェント専用サービスアカウント."""
+    """AI agent dedicated service account."""
 
     __tablename__ = "ai_service_accounts"
 
@@ -119,7 +119,7 @@ class AIServiceAccount(Base):
 
 
 class IAMManager:
-    """IAMアクセス制御マネージャー."""
+    """IAM access control manager."""
 
     def __init__(self) -> None:
         self._credential_dir = os.environ.get("CREDENTIAL_DIR", "/etc/zero-employee/credentials")
@@ -132,10 +132,10 @@ class IAMManager:
         company_id: str | uuid.UUID | None = None,
         custom_permissions: list[str] | None = None,
     ) -> tuple[AIServiceAccount, str]:
-        """AIエージェント用のサービスアカウントを作成.
+        """Create a service account for an AI agent.
 
         Returns:
-            (account, token) - アカウントと生成されたトークン
+            (account, token) - The account and generated token
         """
         from app.core.security import generate_token, hash_sha256
 
@@ -143,7 +143,7 @@ class IAMManager:
         cid = uuid.UUID(str(company_id)) if company_id else None
 
         permissions = custom_permissions or [p.value for p in DEFAULT_AI_PERMISSIONS]
-        # AIに禁止された権限を除外
+        # Exclude permissions denied to AI
         permissions = [p for p in permissions if p not in {d.value for d in AI_DENIED_PERMISSIONS}]
 
         account = AIServiceAccount(
@@ -163,7 +163,7 @@ class IAMManager:
         return account, token
 
     async def verify_ai_token(self, db: AsyncSession, token: str) -> AIServiceAccount | None:
-        """AIトークンを検証."""
+        """Verify an AI token."""
         from app.core.security import hash_sha256
 
         token_hash = hash_sha256(token)
@@ -184,24 +184,24 @@ class IAMManager:
         account: AIServiceAccount,
         required_permission: PermissionScope | str,
     ) -> bool:
-        """権限チェック."""
+        """Check permission."""
         perm = (
             required_permission.value
             if isinstance(required_permission, PermissionScope)
             else required_permission
         )
 
-        # 明示的に拒否されている場合
+        # If explicitly denied
         if perm in {d.value for d in AI_DENIED_PERMISSIONS}:
             if account.account_type == AccountType.AI_AGENT.value:
                 return False
 
-        # 許可リストをチェック
+        # Check allowlist
         allowed = (account.permissions or {}).get("allowed", [])
         return perm in allowed
 
     def check_resource_access(self, account: AIServiceAccount, resource_path: str) -> bool:
-        """リソースへのアクセスをチェック."""
+        """Check access to a resource."""
         denied_paths = (account.denied_resources or {}).get("paths", [])
         for denied_path in denied_paths:
             if resource_path.startswith(denied_path):
@@ -210,10 +210,10 @@ class IAMManager:
 
     @staticmethod
     def protect_credential_file(filepath: str) -> bool:
-        """認証情報ファイルをAIエージェントから読めないようにする.
+        """Protect a credential file from being read by AI agents.
 
-        ファイルのパーミッションを owner read only (0o400) に設定。
-        AIエージェントは別のユーザーで動作するため読めない。
+        Sets file permissions to owner read only (0o400).
+        AI agents run as a different user and thus cannot read the file.
         """
         try:
             os.chmod(filepath, stat.S_IRUSR)  # 0o400
@@ -225,9 +225,9 @@ class IAMManager:
 
     @staticmethod
     def create_credential_store(base_dir: str) -> str:
-        """AIが読めない認証情報ストアを作成."""
+        """Create a credential store that AI cannot read."""
         os.makedirs(base_dir, exist_ok=True)
-        # ディレクトリを owner only に設定
+        # Set directory to owner only
         try:
             os.chmod(base_dir, stat.S_IRWXU)  # 0o700
         except OSError:
@@ -237,7 +237,7 @@ class IAMManager:
     async def get_account_for_agent(
         self, db: AsyncSession, agent_id: str
     ) -> AIServiceAccount | None:
-        """エージェントのサービスアカウントを取得."""
+        """Get the service account for an agent."""
         result = await db.execute(
             select(AIServiceAccount).where(
                 AIServiceAccount.agent_id == agent_id,
@@ -249,7 +249,7 @@ class IAMManager:
     async def list_ai_accounts(
         self, db: AsyncSession, company_id: str | uuid.UUID | None = None
     ) -> list[AIServiceAccount]:
-        """AIサービスアカウント一覧."""
+        """List AI service accounts."""
         stmt = select(AIServiceAccount).where(AIServiceAccount.is_active.is_(True))
         if company_id:
             cid = (
@@ -260,7 +260,7 @@ class IAMManager:
         return list(result.scalars().all())
 
     async def revoke_ai_account(self, db: AsyncSession, account_id: str | uuid.UUID) -> bool:
-        """AIサービスアカウントを無効化."""
+        """Deactivate an AI service account."""
         aid = uuid.UUID(str(account_id)) if not isinstance(account_id, uuid.UUID) else account_id
         result = await db.execute(select(AIServiceAccount).where(AIServiceAccount.id == aid))
         account = result.scalar_one_or_none()

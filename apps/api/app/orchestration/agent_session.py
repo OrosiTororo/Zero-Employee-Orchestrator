@@ -1,10 +1,10 @@
-"""Agent Session — AIエージェントのコンテキスト永続化.
+"""Agent Session — AI agent context persistence.
 
-AIチームメイトがコンテキストを保持したまま複数ラウンドの
-やり取りができるようにするセッション管理。
+Session management that allows AI teammates to maintain context
+across multiple rounds of interaction.
 
-例: debuggerエージェントが調査を終えた後 idle 状態で待機し、
-再メッセージ時に前回のコンテキストを保持したまま再調査に取り掛かれる。
+Example: After a debugger agent finishes an investigation, it waits in idle state,
+and when re-messaged, it can resume investigation with the previous context intact.
 """
 
 from __future__ import annotations
@@ -26,15 +26,15 @@ logger = logging.getLogger(__name__)
 
 
 class SessionStatus(str, Enum):
-    ACTIVE = "active"  # 作業中
-    IDLE = "idle"  # 待機中（コンテキスト保持）
-    SUSPENDED = "suspended"  # 一時停止
-    EXPIRED = "expired"  # 期限切れ
+    ACTIVE = "active"  # Working
+    IDLE = "idle"  # Waiting (context preserved)
+    SUSPENDED = "suspended"  # Suspended
+    EXPIRED = "expired"  # Expired
     TERMINATED = "terminated"
 
 
 class AgentSessionRecord(Base):
-    """エージェントセッションの永続化."""
+    """Agent session persistence."""
 
     __tablename__ = "agent_sessions"
 
@@ -45,17 +45,17 @@ class AgentSessionRecord(Base):
     status: Mapped[str] = mapped_column(String(30), default="active")
     role: Mapped[str] = mapped_column(String(60), default="general")
 
-    # コンテキスト
+    # Context
     context_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     conversation_history: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     working_memory: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
-    # メトリクス
+    # Metrics
     message_count: Mapped[int] = mapped_column(Integer, default=0)
     round_count: Mapped[int] = mapped_column(Integer, default=0)
     total_tokens_used: Mapped[int] = mapped_column(Integer, default=0)
 
-    # タイムスタンプ
+    # Timestamps
     started_at: Mapped[float] = mapped_column(Float, default=time.time)
     last_active_at: Mapped[float] = mapped_column(Float, default=time.time)
     idle_since: Mapped[float | None] = mapped_column(Float, nullable=True)
@@ -64,7 +64,7 @@ class AgentSessionRecord(Base):
 
 @dataclass
 class InMemorySession:
-    """インメモリのセッションデータ（高速アクセス用）."""
+    """In-memory session data (for fast access)."""
 
     session_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     agent_id: str = ""
@@ -73,29 +73,29 @@ class InMemorySession:
     role: str = "general"
     status: SessionStatus = SessionStatus.ACTIVE
 
-    # コンテキスト
+    # Context
     context: dict[str, Any] = field(default_factory=dict)
     conversation_history: list[dict[str, Any]] = field(default_factory=list)
     working_memory: dict[str, Any] = field(default_factory=dict)
 
-    # メトリクス
+    # Metrics
     message_count: int = 0
     round_count: int = 0
     total_tokens_used: int = 0
 
-    # タイムスタンプ
+    # Timestamps
     started_at: float = field(default_factory=time.time)
     last_active_at: float = field(default_factory=time.time)
     idle_since: float | None = None
 
-    # セッション有効期限（秒）
-    ttl: float = 86400  # 24時間
+    # Session time-to-live (seconds)
+    ttl: float = 86400  # 24 hours
 
     def is_expired(self) -> bool:
         return time.time() > self.started_at + self.ttl
 
     def add_message(self, role: str, content: str, metadata: dict | None = None) -> None:
-        """会話履歴にメッセージを追加."""
+        """Add a message to conversation history."""
         self.conversation_history.append(
             {
                 "role": role,
@@ -111,7 +111,7 @@ class InMemorySession:
             self.idle_since = None
 
     def add_to_working_memory(self, key: str, value: Any) -> None:
-        """ワーキングメモリに情報を追加."""
+        """Add information to working memory."""
         self.working_memory[key] = {
             "value": value,
             "stored_at": time.time(),
@@ -119,24 +119,24 @@ class InMemorySession:
         self.last_active_at = time.time()
 
     def get_from_working_memory(self, key: str) -> Any:
-        """ワーキングメモリから情報を取得."""
+        """Retrieve information from working memory."""
         entry = self.working_memory.get(key)
         return entry["value"] if entry else None
 
     def go_idle(self) -> None:
-        """アイドル状態に移行."""
+        """Transition to idle state."""
         self.status = SessionStatus.IDLE
         self.idle_since = time.time()
         self.round_count += 1
 
     def resume(self) -> None:
-        """アイドル状態から復帰."""
+        """Resume from idle state."""
         self.status = SessionStatus.ACTIVE
         self.idle_since = None
         self.last_active_at = time.time()
 
     def get_context_summary(self) -> dict[str, Any]:
-        """セッションのコンテキストサマリーを取得."""
+        """Get a context summary of the session."""
         return {
             "session_id": self.session_id,
             "agent_id": self.agent_id,
@@ -170,7 +170,7 @@ class InMemorySession:
 
 
 class AgentSessionManager:
-    """エージェントセッションの管理."""
+    """Agent session management."""
 
     def __init__(self, max_sessions: int = 500) -> None:
         self._sessions: dict[str, InMemorySession] = {}
@@ -187,7 +187,7 @@ class AgentSessionManager:
         initial_context: dict[str, Any] | None = None,
         ttl: float = 86400,
     ) -> InMemorySession:
-        """新しいセッションを作成."""
+        """Create a new session."""
         self._cleanup_expired()
 
         session = InMemorySession(
@@ -220,7 +220,7 @@ class AgentSessionManager:
         return session
 
     def get_active_session(self, agent_id: str) -> InMemorySession | None:
-        """エージェントのアクティブまたはアイドルセッションを取得."""
+        """Get an agent's active or idle session."""
         session_ids = self._agent_sessions.get(agent_id, [])
         for sid in reversed(session_ids):
             s = self._sessions.get(sid)
@@ -234,7 +234,7 @@ class AgentSessionManager:
         role: str = "general",
         **kwargs: Any,
     ) -> InMemorySession:
-        """既存のアクティブ/アイドルセッションを取得、なければ新規作成."""
+        """Get an existing active/idle session, or create a new one."""
         existing = self.get_active_session(agent_id)
         if existing:
             existing.resume()
@@ -247,7 +247,7 @@ class AgentSessionManager:
         status: SessionStatus | None = None,
         agent_id: str | None = None,
     ) -> list[InMemorySession]:
-        """セッション一覧を取得."""
+        """Get list of sessions."""
         result = list(self._sessions.values())
         if company_id:
             result = [s for s in result if s.company_id == company_id]
@@ -258,7 +258,7 @@ class AgentSessionManager:
         return result
 
     def terminate_session(self, session_id: str) -> bool:
-        """セッションを終了."""
+        """Terminate a session."""
         session = self._sessions.get(session_id)
         if session:
             session.status = SessionStatus.TERMINATED
@@ -266,7 +266,7 @@ class AgentSessionManager:
         return False
 
     def _cleanup_expired(self) -> None:
-        """期限切れセッションをクリーンアップ."""
+        """Clean up expired sessions."""
         if len(self._sessions) < self._max:
             return
         expired = [
@@ -278,7 +278,7 @@ class AgentSessionManager:
             del self._sessions[sid]
 
     async def persist_session(self, session: InMemorySession, db: AsyncSession) -> None:
-        """セッションをDBに永続化."""
+        """Persist a session to the database."""
         result = await db.execute(
             select(AgentSessionRecord).where(
                 AgentSessionRecord.id == uuid.UUID(session.session_id)
@@ -320,7 +320,7 @@ class AgentSessionManager:
         await db.flush()
 
     async def restore_session(self, agent_id: str, db: AsyncSession) -> InMemorySession | None:
-        """DBからセッションを復元."""
+        """Restore a session from the database."""
         result = await db.execute(
             select(AgentSessionRecord)
             .where(

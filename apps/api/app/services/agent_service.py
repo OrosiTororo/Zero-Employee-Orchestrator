@@ -15,7 +15,7 @@ AGENT_TRANSITIONS = AgentStateMachine.transitions
 
 
 def validate_agent_transition(current: str, target: str) -> bool:
-    """エージェントの状態遷移が有効か検証する."""
+    """Validate whether an agent state transition is valid."""
     return target in AGENT_TRANSITIONS.get(current, [])
 
 
@@ -37,7 +37,7 @@ async def provision_agent(
     can_spend_budget: bool = False,
     config_json: dict | None = None,
 ) -> Agent:
-    """新規エージェントをプロビジョニングする."""
+    """Provision a new agent."""
     agent = Agent(
         id=generate_uuid(),
         company_id=uuid.UUID(company_id),
@@ -78,7 +78,7 @@ async def activate_agent(
     db: AsyncSession,
     agent: Agent,
 ) -> Agent:
-    """エージェントをアクティブ (idle) 状態にする."""
+    """Activate an agent (set to idle status)."""
     if not validate_agent_transition(agent.status, "idle"):
         raise ValueError(f"Cannot activate agent in status: {agent.status}")
 
@@ -105,7 +105,7 @@ async def assign_agent_task(
     db: AsyncSession,
     agent: Agent,
 ) -> Agent:
-    """エージェントをビジー状態にする (タスク割当時)."""
+    """Set an agent to busy status (when assigning a task)."""
     if not validate_agent_transition(agent.status, "busy"):
         raise ValueError(f"Cannot assign task to agent in status: {agent.status}")
 
@@ -130,7 +130,7 @@ async def release_agent(
     db: AsyncSession,
     agent: Agent,
 ) -> Agent:
-    """エージェントをアイドル状態に戻す (タスク完了時)."""
+    """Return an agent to idle status (when a task is completed)."""
     if not validate_agent_transition(agent.status, "idle"):
         raise ValueError(f"Cannot release agent in status: {agent.status}")
 
@@ -156,7 +156,7 @@ async def decommission_agent(
     agent: Agent,
     reason: str = "",
 ) -> Agent:
-    """エージェントを廃止する."""
+    """Decommission an agent."""
     if not validate_agent_transition(agent.status, "decommissioned"):
         raise ValueError(f"Cannot decommission agent in status: {agent.status}")
 
@@ -184,7 +184,7 @@ async def get_available_agents(
     company_id: str,
     agent_type: str | None = None,
 ) -> list[Agent]:
-    """利用可能な (idle 状態の) エージェントを取得."""
+    """Get available (idle) agents."""
     stmt = select(Agent).where(
         Agent.company_id == uuid.UUID(company_id),
         Agent.status == "idle",

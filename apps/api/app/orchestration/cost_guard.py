@@ -1,8 +1,8 @@
-"""Cost Guard — 実行前コスト見積もり＋予算チェック.
+"""Cost Guard — Pre-execution cost estimation + budget check.
 
-タスク実行前にコストを見積もり、予算ポリシーと照合して
-実行可否を判定する。予算超過時はタスクをブロックし、
-警告閾値到達時は通知を返す。
+Estimates costs before task execution and checks against budget policies
+to determine execution eligibility. Blocks tasks when budget is exceeded
+and returns notifications when warning thresholds are reached.
 """
 
 from dataclasses import dataclass
@@ -31,7 +31,7 @@ _FALLBACK_COST_TABLE: dict[str, dict[str, float]] = {
 
 
 def _load_cost_table() -> dict[str, dict[str, float]]:
-    """ModelRegistry からコストテーブルを読み込む."""
+    """Load cost table from ModelRegistry."""
     try:
         from app.providers.model_registry import get_model_registry
 
@@ -49,7 +49,7 @@ DEFAULT_COST_TABLE: dict[str, dict[str, float]] = _load_cost_table()
 
 @dataclass
 class CostEstimate:
-    """タスク実行の推定コスト."""
+    """Estimated cost for task execution."""
 
     model_name: str
     estimated_input_tokens: int
@@ -60,7 +60,7 @@ class CostEstimate:
 
 @dataclass
 class CostGuardResult:
-    """コストガード判定結果."""
+    """Cost guard decision result."""
 
     decision: CostDecision
     estimate: CostEstimate | None
@@ -77,7 +77,7 @@ def estimate_cost(
     estimated_output_tokens: int = 500,
     cost_table: dict[str, dict[str, float]] | None = None,
 ) -> CostEstimate:
-    """モデルとトークン数からコストを見積もる."""
+    """Estimate cost from model and token count."""
     table = cost_table or DEFAULT_COST_TABLE
 
     # Find matching model in cost table (longest prefix match)
@@ -113,7 +113,7 @@ def check_budget(
     warn_threshold_pct: float = 80.0,
     stop_threshold_pct: float = 100.0,
 ) -> CostGuardResult:
-    """予算チェックを実行し、実行可否を判定する."""
+    """Execute budget check and determine execution eligibility."""
     if budget_limit_usd <= 0:
         return CostGuardResult(
             decision=CostDecision.ALLOW,
@@ -122,7 +122,7 @@ def check_budget(
             current_usage_usd=current_usage_usd,
             projected_usage_usd=current_usage_usd + estimated_cost_usd,
             usage_pct=0.0,
-            message="予算制限なし",
+            message="No budget limit",
         )
 
     projected = current_usage_usd + estimated_cost_usd
@@ -130,13 +130,13 @@ def check_budget(
 
     if usage_pct >= stop_threshold_pct:
         decision = CostDecision.BLOCK
-        message = f"予算上限超過: {usage_pct:.1f}% (上限 ${budget_limit_usd:.2f})"
+        message = f"Budget limit exceeded: {usage_pct:.1f}% (limit ${budget_limit_usd:.2f})"
     elif usage_pct >= warn_threshold_pct:
         decision = CostDecision.WARN
-        message = f"予算警告: {usage_pct:.1f}% (上限 ${budget_limit_usd:.2f})"
+        message = f"Budget warning: {usage_pct:.1f}% (limit ${budget_limit_usd:.2f})"
     else:
         decision = CostDecision.ALLOW
-        message = f"予算内: {usage_pct:.1f}% (残り ${budget_limit_usd - current_usage_usd:.2f})"
+        message = f"Within budget: {usage_pct:.1f}% (remaining ${budget_limit_usd - current_usage_usd:.2f})"
 
     return CostGuardResult(
         decision=decision,
@@ -158,7 +158,7 @@ def pre_execution_check(
     warn_threshold_pct: float = 80.0,
     stop_threshold_pct: float = 100.0,
 ) -> CostGuardResult:
-    """タスク実行前の統合チェック: コスト見積もり + 予算チェック."""
+    """Pre-execution integrated check: cost estimation + budget check."""
     estimate = estimate_cost(model_name, estimated_input_tokens, estimated_output_tokens)
     result = check_budget(
         estimated_cost_usd=estimate.estimated_cost_usd,

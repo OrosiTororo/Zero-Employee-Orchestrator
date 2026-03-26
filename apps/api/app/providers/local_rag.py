@@ -436,7 +436,7 @@ class LocalVectorStore:
         import stat
 
         self._store_dir.mkdir(parents=True, exist_ok=True)
-        # ディレクトリは所有者のみアクセス可能
+        # Directory is accessible only by the owner
         try:
             os.chmod(self._store_dir, stat.S_IRWXU)
         except OSError:

@@ -1,6 +1,6 @@
-"""チーム管理 API エンドポイント.
+"""Team management API endpoints.
 
-チームの作成・招待・メンバー管理・権限チェックを提供する。
+Provides team creation, invitations, member management, and permission checks.
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ router = APIRouter(prefix="/teams", tags=["teams"])
 
 
 class CreateTeamRequest(BaseModel):
-    """チーム作成リクエスト."""
+    """Team creation request."""
 
     name: str = Field(..., min_length=1, max_length=100)
     company_id: str = Field(..., min_length=1)
@@ -31,7 +31,7 @@ class CreateTeamRequest(BaseModel):
 
 
 class InviteMemberRequest(BaseModel):
-    """メンバー招待リクエスト."""
+    """Member invitation request."""
 
     email: str = Field(..., min_length=1)
     role: str = Field(default="member")
@@ -39,13 +39,13 @@ class InviteMemberRequest(BaseModel):
 
 
 class AcceptInvitationRequest(BaseModel):
-    """招待受諾リクエスト."""
+    """Accept invitation request."""
 
     user_id: str = Field(..., min_length=1)
 
 
 class RemoveMemberRequest(BaseModel):
-    """メンバー除外リクエスト."""
+    """Remove member request."""
 
     removed_by: str = Field(..., min_length=1)
 
@@ -55,7 +55,7 @@ class RemoveMemberRequest(BaseModel):
 
 @router.post("", status_code=201)
 async def create_team(req: CreateTeamRequest, user: User = Depends(get_current_user)) -> dict:
-    """チームを作成する."""
+    """Create a team."""
     team = await team_service.create_team(
         name=req.name,
         company_id=req.company_id,
@@ -69,17 +69,17 @@ async def list_teams(
     company_id: str = Query(..., min_length=1),
     user: User = Depends(get_current_user),
 ) -> list[dict]:
-    """企業のチーム一覧を取得する."""
+    """Get list of teams for a company."""
     teams = await team_service.list_teams(company_id)
     return [_team_to_dict(t) for t in teams]
 
 
 @router.get("/{team_id}")
 async def get_team(team_id: str, user: User = Depends(get_current_user)) -> dict:
-    """チームを ID で取得する."""
+    """Get a team by ID."""
     team = await team_service.get_team(team_id)
     if team is None:
-        raise HTTPException(status_code=404, detail="チームが見つかりません")
+        raise HTTPException(status_code=404, detail="Team not found")
     return _team_to_dict(team)
 
 
@@ -87,13 +87,13 @@ async def get_team(team_id: str, user: User = Depends(get_current_user)) -> dict
 async def invite_member(
     team_id: str, req: InviteMemberRequest, user: User = Depends(get_current_user)
 ) -> dict:
-    """メンバーをチームに招待する."""
+    """Invite a member to a team."""
     try:
         role = TeamRole(req.role)
     except ValueError:
         raise HTTPException(
             status_code=400,
-            detail=f"無効なロール: {req.role}。有効値: {[r.value for r in TeamRole]}",
+            detail=f"Invalid role: {req.role}. Valid values: {[r.value for r in TeamRole]}",
         )
 
     try:
@@ -123,7 +123,7 @@ async def invite_member(
 async def accept_invitation(
     invitation_id: str, req: AcceptInvitationRequest, user: User = Depends(get_current_user)
 ) -> dict:
-    """招待を受諾してチームに参加する."""
+    """Accept invitation and join a team."""
     try:
         member = await team_service.accept_invitation(
             invitation_id=invitation_id,
@@ -145,7 +145,7 @@ async def accept_invitation(
 async def remove_member(
     team_id: str, user_id: str, req: RemoveMemberRequest, user: User = Depends(get_current_user)
 ) -> dict:
-    """メンバーをチームから除外する."""
+    """Remove a member from a team."""
     try:
         await team_service.remove_member(
             team_id=team_id,
@@ -160,11 +160,11 @@ async def remove_member(
     return {"status": "removed", "team_id": team_id, "user_id": user_id}
 
 
-# ---------- ヘルパー ----------
+# ---------- Helpers ----------
 
 
 def _team_to_dict(team) -> dict:
-    """Team を dict に変換する."""
+    """Convert Team to dict."""
     return {
         "id": team.id,
         "name": team.name,

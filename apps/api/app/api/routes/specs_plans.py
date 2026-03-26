@@ -26,8 +26,8 @@ class SpecCreate(BaseModel):
     constraints_json: dict | None = None
     acceptance_criteria_json: dict | None = None
     risk_notes: str = ""
-    file_context: str = ""  # 添付ファイルから抽出されたテキスト
-    attachments: list[dict] | None = None  # 添付ファイルメタデータ
+    file_context: str = ""  # Text extracted from attached files
+    attachments: list[dict] | None = None  # Attached file metadata
 
 
 class PlanCreate(BaseModel):
@@ -38,14 +38,14 @@ class PlanCreate(BaseModel):
     approval_required: bool = True
     risk_level: str = "low"
     plan_json: dict | None = None
-    file_context: str = ""  # 添付ファイルから抽出されたテキスト
+    file_context: str = ""  # Text extracted from attached files
 
 
 @router.get("/tickets/{ticket_id}/specs")
 async def list_specs(
     ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """チケットのspec一覧"""
+    """List specs for a ticket."""
     tid = parse_uuid(ticket_id, "ticket_id")
     result = await db.execute(
         select(Spec).where(Spec.ticket_id == tid).order_by(Spec.version_no.desc())
@@ -70,7 +70,7 @@ async def create_spec(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """spec作成"""
+    """Create a spec."""
     tid = parse_uuid(ticket_id, "ticket_id")
     existing = await db.execute(select(Spec).where(Spec.ticket_id == tid))
     count = len(existing.scalars().all())
@@ -94,7 +94,7 @@ async def create_spec(
 async def list_plans(
     ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """チケットのplan一覧"""
+    """List plans for a ticket."""
     tid = parse_uuid(ticket_id, "ticket_id")
     result = await db.execute(
         select(Plan).where(Plan.ticket_id == tid).order_by(Plan.version_no.desc())
@@ -121,7 +121,7 @@ async def create_plan(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """plan作成"""
+    """Create a plan."""
     tid = parse_uuid(ticket_id, "ticket_id")
     existing = await db.execute(select(Plan).where(Plan.ticket_id == tid))
     count = len(existing.scalars().all())
@@ -147,7 +147,7 @@ async def create_plan(
 async def approve_plan(
     plan_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """planを承認 + DAG構築 + タスク生成"""
+    """Approve plan + build DAG + generate tasks."""
     pid = parse_uuid(plan_id, "plan_id")
     result = await db.execute(select(Plan).where(Plan.id == pid))
     plan = result.scalar_one_or_none()
@@ -218,7 +218,7 @@ async def reject_plan(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """planを却下"""
+    """Reject plan."""
     result = await db.execute(select(Plan).where(Plan.id == parse_uuid(plan_id, "plan_id")))
     plan = result.scalar_one_or_none()
     if not plan:
@@ -232,7 +232,7 @@ async def reject_plan(
 async def list_plan_tasks(
     plan_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    """planのtask一覧"""
+    """List tasks for a plan."""
     pid = parse_uuid(plan_id, "plan_id")
     result = await db.execute(select(Task).where(Task.plan_id == pid).order_by(Task.sequence_no))
     tasks = result.scalars().all()

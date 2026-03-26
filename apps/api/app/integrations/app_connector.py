@@ -1,19 +1,19 @@
-"""汎用アプリケーション連携ハブ — 幅広い外部アプリとの統合を管理.
+"""Generic application connector hub — manages integration with a wide range of external apps.
 
-ナレッジベース（Obsidian, Notion, Logseq 等）、生産性ツール（Google Workspace,
-Microsoft 365 等）、プロジェクト管理ツール、CRM、カレンダーなど多種多様な
-アプリケーションとの接続を統一的に管理する。
+Manages connections to diverse applications including knowledge bases (Obsidian,
+Notion, Logseq, etc.), productivity tools (Google Workspace, Microsoft 365, etc.),
+project management tools, CRM, calendars, and more through a unified interface.
 
-すべての接続はユーザーが明示的に許可した範囲でのみ動作し、
-ワークスペース隔離・承認ゲート・監査ログを経由する。
+All connections operate only within the scope explicitly permitted by the user,
+going through workspace isolation, approval gates, and audit logging.
 
-安全性:
-- ユーザーが接続を登録・許可するまでアクセスしない
-- ワークスペース隔離チェック
-- 承認ゲート適用（外部送信・データ取得）
-- PII ガード適用
-- 監査ログ記録
-- シークレットは SecretManager 経由で保管
+Safety:
+- No access until the user registers and permits a connection
+- Workspace isolation check
+- Approval gate enforcement (outbound transmission and data retrieval)
+- PII guard enforcement
+- Audit log recording
+- Secrets stored via SecretManager
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 class AppCategory(str, Enum):
-    """アプリケーションカテゴリ."""
+    """Application category."""
 
     KNOWLEDGE_BASE = "knowledge_base"
     NOTE_TAKING = "note_taking"
@@ -50,7 +50,7 @@ class AppCategory(str, Enum):
 
 
 class AppConnectionStatus(str, Enum):
-    """接続ステータス."""
+    """Connection status."""
 
     CONNECTED = "connected"
     DISCONNECTED = "disconnected"
@@ -60,7 +60,7 @@ class AppConnectionStatus(str, Enum):
 
 
 class AppAuthMethod(str, Enum):
-    """認証方式."""
+    """Authentication method."""
 
     NONE = "none"
     API_KEY = "api_key"
@@ -72,7 +72,7 @@ class AppAuthMethod(str, Enum):
 
 
 class AppDataDirection(str, Enum):
-    """データフロー方向."""
+    """Data flow direction."""
 
     READ_ONLY = "read_only"
     WRITE_ONLY = "write_only"
@@ -81,7 +81,7 @@ class AppDataDirection(str, Enum):
 
 @dataclass
 class AppPermission:
-    """アプリケーション連携で許可された操作."""
+    """Permitted operations for application integration."""
 
     read: bool = False
     write: bool = False
@@ -94,7 +94,7 @@ class AppPermission:
 
 @dataclass
 class AppDefinition:
-    """連携可能なアプリケーションの定義."""
+    """Definition of an integrable application."""
 
     id: str
     name: str
@@ -112,7 +112,7 @@ class AppDefinition:
 
 @dataclass
 class AppConnection:
-    """ユーザーが確立したアプリケーション接続."""
+    """Application connection established by a user."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     app_id: str = ""
@@ -127,7 +127,7 @@ class AppConnection:
 
 @dataclass
 class AppSyncResult:
-    """同期結果."""
+    """Sync result."""
 
     connection_id: str
     app_id: str
@@ -141,16 +141,16 @@ class AppSyncResult:
 
 
 # ------------------------------------------------------------------ #
-#  対応アプリケーション定義
+#  Supported application definitions
 # ------------------------------------------------------------------ #
 
 _APP_DEFINITIONS: list[AppDefinition] = [
-    # --- ナレッジベース ---
+    # --- Knowledge bases ---
     AppDefinition(
         id="obsidian",
         name="Obsidian",
         category=AppCategory.KNOWLEDGE_BASE,
-        description="Obsidian Vault との双方向同期・リンクグラフ解析",
+        description="Bidirectional sync with Obsidian Vault and link graph analysis",
         description_en="Bidirectional sync with Obsidian Vault and link graph analysis",
         auth_method=AppAuthMethod.LOCAL_FILE,
         capabilities=[
@@ -167,7 +167,7 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="notion",
         name="Notion",
         category=AppCategory.KNOWLEDGE_BASE,
-        description="Notion ページ・データベースの読み書き・検索",
+        description="Read/write/search Notion pages and databases",
         description_en="Read/write/search Notion pages and databases",
         auth_method=AppAuthMethod.TOKEN,
         env_key="NOTION_API_KEY",
@@ -184,7 +184,7 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="logseq",
         name="Logseq",
         category=AppCategory.KNOWLEDGE_BASE,
-        description="Logseq グラフとの同期・ブロック単位の読み書き",
+        description="Sync with Logseq graphs, block-level read/write",
         description_en="Sync with Logseq graphs, block-level read/write",
         auth_method=AppAuthMethod.LOCAL_FILE,
         capabilities=[
@@ -200,7 +200,7 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="joplin",
         name="Joplin",
         category=AppCategory.NOTE_TAKING,
-        description="Joplin ノートの読み書き・検索（REST API）",
+        description="Read/write/search Joplin notes via REST API",
         description_en="Read/write/search Joplin notes via REST API",
         auth_method=AppAuthMethod.TOKEN,
         env_key="JOPLIN_TOKEN",
@@ -211,7 +211,7 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="anytype",
         name="Anytype",
         category=AppCategory.KNOWLEDGE_BASE,
-        description="Anytype オブジェクトの読み取り・検索",
+        description="Read and search Anytype objects",
         description_en="Read and search Anytype objects",
         auth_method=AppAuthMethod.LOCAL_FILE,
         data_direction=AppDataDirection.READ_ONLY,
@@ -222,18 +222,18 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="roam_research",
         name="Roam Research",
         category=AppCategory.KNOWLEDGE_BASE,
-        description="Roam Research グラフの読み書き",
+        description="Read/write Roam Research graphs",
         description_en="Read/write Roam Research graphs",
         auth_method=AppAuthMethod.API_KEY,
         env_key="ROAM_API_KEY",
         capabilities=["read_blocks", "write_blocks", "search", "graph_query"],
     ),
-    # --- ドキュメント ---
+    # --- Documents ---
     AppDefinition(
         id="google_docs",
         name="Google Docs",
         category=AppCategory.DOCUMENT,
-        description="Google ドキュメントの作成・編集・共有",
+        description="Create, edit, and share Google Docs",
         description_en="Create, edit, and share Google Docs",
         auth_method=AppAuthMethod.OAUTH2,
         env_key="GOOGLE_SERVICE_ACCOUNT",
@@ -243,7 +243,7 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="google_sheets",
         name="Google Sheets",
         category=AppCategory.DOCUMENT,
-        description="Google スプレッドシートの読み書き",
+        description="Read/write Google Sheets",
         description_en="Read/write Google Sheets",
         auth_method=AppAuthMethod.OAUTH2,
         env_key="GOOGLE_SERVICE_ACCOUNT",
@@ -253,7 +253,7 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="google_drive",
         name="Google Drive",
         category=AppCategory.CLOUD_STORAGE,
-        description="Google Drive ファイルの検索・取得・アップロード",
+        description="Search, retrieve, and upload Google Drive files",
         description_en="Search, retrieve, and upload Google Drive files",
         auth_method=AppAuthMethod.OAUTH2,
         env_key="GOOGLE_SERVICE_ACCOUNT",
@@ -263,7 +263,7 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="microsoft_365",
         name="Microsoft 365",
         category=AppCategory.PRODUCTIVITY,
-        description="Word・Excel・PowerPoint・OneDrive の操作",
+        description="Operate Word, Excel, PowerPoint, and OneDrive",
         description_en="Operate Word, Excel, PowerPoint, and OneDrive",
         auth_method=AppAuthMethod.OAUTH2,
         env_key="MICROSOFT_CLIENT_ID",
@@ -273,18 +273,18 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="confluence",
         name="Confluence",
         category=AppCategory.DOCUMENT,
-        description="Confluence ページ・スペースの読み書き",
+        description="Read/write Confluence pages and spaces",
         description_en="Read/write Confluence pages and spaces",
         auth_method=AppAuthMethod.API_KEY,
         env_key="CONFLUENCE_API_TOKEN",
         capabilities=["read_pages", "write_pages", "search", "spaces"],
     ),
-    # --- プロジェクト管理 ---
+    # --- Project management ---
     AppDefinition(
         id="jira",
         name="Jira",
         category=AppCategory.PROJECT_MANAGEMENT,
-        description="Jira チケットの作成・更新・検索",
+        description="Create, update, and search Jira tickets",
         description_en="Create, update, and search Jira tickets",
         auth_method=AppAuthMethod.API_KEY,
         env_key="JIRA_API_TOKEN",
@@ -294,7 +294,7 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="linear",
         name="Linear",
         category=AppCategory.PROJECT_MANAGEMENT,
-        description="Linear Issue の作成・更新",
+        description="Create and update Linear issues",
         description_en="Create and update Linear issues",
         auth_method=AppAuthMethod.API_KEY,
         env_key="LINEAR_API_KEY",
@@ -304,7 +304,7 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="asana",
         name="Asana",
         category=AppCategory.PROJECT_MANAGEMENT,
-        description="Asana タスク・プロジェクトの操作",
+        description="Operate Asana tasks and projects",
         description_en="Operate Asana tasks and projects",
         auth_method=AppAuthMethod.TOKEN,
         env_key="ASANA_ACCESS_TOKEN",
@@ -314,7 +314,7 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="trello",
         name="Trello",
         category=AppCategory.PROJECT_MANAGEMENT,
-        description="Trello ボード・カードの操作",
+        description="Operate Trello boards and cards",
         description_en="Operate Trello boards and cards",
         auth_method=AppAuthMethod.API_KEY,
         env_key="TRELLO_API_KEY",
@@ -324,18 +324,18 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="clickup",
         name="ClickUp",
         category=AppCategory.PROJECT_MANAGEMENT,
-        description="ClickUp タスク・スペースの操作",
+        description="Operate ClickUp tasks and spaces",
         description_en="Operate ClickUp tasks and spaces",
         auth_method=AppAuthMethod.API_KEY,
         env_key="CLICKUP_API_KEY",
         capabilities=["create_task", "update_task", "search"],
     ),
-    # --- コミュニケーション ---
+    # --- Communication ---
     AppDefinition(
         id="slack",
         name="Slack",
         category=AppCategory.COMMUNICATION,
-        description="Slack メッセージの送受信・チャンネル管理",
+        description="Send/receive Slack messages and manage channels",
         description_en="Send/receive Slack messages and manage channels",
         auth_method=AppAuthMethod.TOKEN,
         env_key="SLACK_BOT_TOKEN",
@@ -345,7 +345,7 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="discord",
         name="Discord",
         category=AppCategory.COMMUNICATION,
-        description="Discord メッセージの送受信",
+        description="Send/receive Discord messages",
         description_en="Send/receive Discord messages",
         auth_method=AppAuthMethod.TOKEN,
         env_key="DISCORD_BOT_TOKEN",
@@ -355,7 +355,7 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="teams",
         name="Microsoft Teams",
         category=AppCategory.COMMUNICATION,
-        description="Microsoft Teams メッセージの送受信",
+        description="Send/receive Microsoft Teams messages",
         description_en="Send/receive Microsoft Teams messages",
         auth_method=AppAuthMethod.OAUTH2,
         env_key="MICROSOFT_CLIENT_ID",
@@ -366,7 +366,7 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="hubspot",
         name="HubSpot",
         category=AppCategory.CRM,
-        description="HubSpot CRM の連絡先・取引・タスク操作",
+        description="Operate HubSpot CRM contacts, deals, and tasks",
         description_en="Operate HubSpot CRM contacts, deals, and tasks",
         auth_method=AppAuthMethod.API_KEY,
         env_key="HUBSPOT_API_KEY",
@@ -376,18 +376,18 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="salesforce",
         name="Salesforce",
         category=AppCategory.CRM,
-        description="Salesforce CRM のオブジェクト操作",
+        description="Operate Salesforce CRM objects",
         description_en="Operate Salesforce CRM objects",
         auth_method=AppAuthMethod.OAUTH2,
         env_key="SALESFORCE_CLIENT_ID",
         capabilities=["read_objects", "create_record", "search", "reports"],
     ),
-    # --- カレンダー ---
+    # --- Calendar ---
     AppDefinition(
         id="google_calendar",
         name="Google Calendar",
         category=AppCategory.CALENDAR,
-        description="Google カレンダーのイベント作成・取得",
+        description="Create and retrieve Google Calendar events",
         description_en="Create and retrieve Google Calendar events",
         auth_method=AppAuthMethod.OAUTH2,
         env_key="GOOGLE_SERVICE_ACCOUNT",
@@ -397,29 +397,29 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="outlook_calendar",
         name="Outlook Calendar",
         category=AppCategory.CALENDAR,
-        description="Outlook カレンダーのイベント操作",
+        description="Operate Outlook Calendar events",
         description_en="Operate Outlook Calendar events",
         auth_method=AppAuthMethod.OAUTH2,
         env_key="MICROSOFT_CLIENT_ID",
         capabilities=["read_events", "create_event", "update_event"],
     ),
-    # --- メール ---
+    # --- Email ---
     AppDefinition(
         id="gmail",
         name="Gmail",
         category=AppCategory.EMAIL,
-        description="Gmail の読み取り・送信・検索",
+        description="Read, send, and search Gmail",
         description_en="Read, send, and search Gmail",
         auth_method=AppAuthMethod.OAUTH2,
         env_key="GOOGLE_SERVICE_ACCOUNT",
         capabilities=["read_emails", "send_email", "search", "labels"],
     ),
-    # --- クラウドストレージ ---
+    # --- Cloud storage ---
     AppDefinition(
         id="dropbox",
         name="Dropbox",
         category=AppCategory.CLOUD_STORAGE,
-        description="Dropbox ファイルの検索・取得・アップロード",
+        description="Search, retrieve, and upload Dropbox files",
         description_en="Search, retrieve, and upload Dropbox files",
         auth_method=AppAuthMethod.OAUTH2,
         env_key="DROPBOX_ACCESS_TOKEN",
@@ -429,18 +429,18 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="onedrive",
         name="OneDrive",
         category=AppCategory.CLOUD_STORAGE,
-        description="OneDrive ファイルの操作",
+        description="Operate OneDrive files",
         description_en="Operate OneDrive files",
         auth_method=AppAuthMethod.OAUTH2,
         env_key="MICROSOFT_CLIENT_ID",
         capabilities=["search_files", "download", "upload", "share"],
     ),
-    # --- コードホスティング ---
+    # --- Code hosting ---
     AppDefinition(
         id="github",
         name="GitHub",
         category=AppCategory.CODE_HOSTING,
-        description="GitHub リポジトリ・Issue・PR の操作",
+        description="Operate GitHub repositories, issues, and PRs",
         description_en="Operate GitHub repositories, issues, and PRs",
         auth_method=AppAuthMethod.TOKEN,
         env_key="GITHUB_TOKEN",
@@ -450,18 +450,18 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="gitlab",
         name="GitLab",
         category=AppCategory.CODE_HOSTING,
-        description="GitLab リポジトリ・MR の操作",
+        description="Operate GitLab repositories and merge requests",
         description_en="Operate GitLab repositories and merge requests",
         auth_method=AppAuthMethod.TOKEN,
         env_key="GITLAB_TOKEN",
         capabilities=["create_issue", "create_mr", "review_code", "search"],
     ),
-    # --- デザイン ---
+    # --- Design ---
     AppDefinition(
         id="figma",
         name="Figma",
         category=AppCategory.DESIGN,
-        description="Figma デザインの取得・分析（MCP 経由）",
+        description="Retrieve and analyze Figma designs via MCP",
         description_en="Retrieve and analyze Figma designs via MCP",
         auth_method=AppAuthMethod.API_KEY,
         env_key="FIGMA_ACCESS_TOKEN",
@@ -472,30 +472,30 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="canva",
         name="Canva",
         category=AppCategory.DESIGN,
-        description="Canva デザインの取得・エクスポート",
+        description="Retrieve and export Canva designs",
         description_en="Retrieve and export Canva designs",
         auth_method=AppAuthMethod.OAUTH2,
         env_key="CANVA_API_KEY",
         data_direction=AppDataDirection.READ_ONLY,
         capabilities=["get_designs", "export"],
     ),
-    # --- 分析 ---
+    # --- Analytics ---
     AppDefinition(
         id="airtable",
         name="Airtable",
         category=AppCategory.ANALYTICS,
-        description="Airtable ベース・テーブルの操作",
+        description="Operate Airtable bases and tables",
         description_en="Operate Airtable bases and tables",
         auth_method=AppAuthMethod.API_KEY,
         env_key="AIRTABLE_API_KEY",
         capabilities=["read_records", "write_records", "search"],
     ),
-    # --- オートメーション ---
+    # --- Automation ---
     AppDefinition(
         id="n8n",
         name="n8n",
         category=AppCategory.AUTOMATION,
-        description="n8n ワークフローのトリガー・管理",
+        description="Trigger and manage n8n workflows",
         description_en="Trigger and manage n8n workflows",
         auth_method=AppAuthMethod.WEBHOOK,
         capabilities=["trigger_workflow", "list_workflows", "get_status"],
@@ -505,7 +505,7 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="zapier",
         name="Zapier",
         category=AppCategory.AUTOMATION,
-        description="Zapier Zap のトリガー",
+        description="Trigger Zapier Zaps",
         description_en="Trigger Zapier Zaps",
         auth_method=AppAuthMethod.WEBHOOK,
         capabilities=["trigger_zap"],
@@ -514,7 +514,7 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         id="make",
         name="Make (Integromat)",
         category=AppCategory.AUTOMATION,
-        description="Make シナリオのトリガー",
+        description="Trigger Make scenarios",
         description_en="Trigger Make scenarios",
         auth_method=AppAuthMethod.WEBHOOK,
         capabilities=["trigger_scenario"],
@@ -523,11 +523,11 @@ _APP_DEFINITIONS: list[AppDefinition] = [
 
 
 class AppConnectorHub:
-    """汎用アプリケーション連携ハブ.
+    """Generic application connector hub.
 
-    外部アプリケーションの一覧管理・接続確立・データ同期を
-    統一的に提供する。すべての操作はユーザーが許可した範囲でのみ
-    実行される。
+    Provides unified management of external application listings,
+    connection establishment, and data synchronization.
+    All operations are executed only within user-permitted scope.
     """
 
     def __init__(self) -> None:
@@ -536,25 +536,25 @@ class AppConnectorHub:
         self._sync_history: list[AppSyncResult] = []
 
     # ------------------------------------------------------------------ #
-    #  アプリ定義管理
+    #  App definition management
     # ------------------------------------------------------------------ #
 
     def list_apps(
         self,
         category: AppCategory | None = None,
     ) -> list[AppDefinition]:
-        """対応アプリケーション一覧を返す."""
+        """Return a list of supported applications."""
         apps = list(self._definitions.values())
         if category is not None:
             apps = [a for a in apps if a.category == category]
         return apps
 
     def get_app(self, app_id: str) -> AppDefinition | None:
-        """アプリ定義を取得する."""
+        """Get an application definition."""
         return self._definitions.get(app_id)
 
     def register_custom_app(self, app_def: AppDefinition) -> str:
-        """ユーザー定義のカスタムアプリを登録する."""
+        """Register a user-defined custom application."""
         if not app_def.id:
             app_def.id = str(uuid.uuid4())
         self._definitions[app_def.id] = app_def
@@ -562,7 +562,7 @@ class AppConnectorHub:
         return app_def.id
 
     def list_categories(self) -> list[dict[str, Any]]:
-        """利用可能なカテゴリ一覧と各カテゴリのアプリ数を返す."""
+        """Return available categories and the number of apps in each."""
         counts: dict[str, int] = {}
         for d in self._definitions.values():
             counts[d.category.value] = counts.get(d.category.value, 0) + 1
@@ -573,7 +573,7 @@ class AppConnectorHub:
         ]
 
     # ------------------------------------------------------------------ #
-    #  接続管理
+    #  Connection management
     # ------------------------------------------------------------------ #
 
     def connect(
@@ -583,19 +583,19 @@ class AppConnectorHub:
         config: dict[str, Any] | None = None,
         permissions: AppPermission | None = None,
     ) -> AppConnection:
-        """アプリケーション接続を確立する.
+        """Establish an application connection.
 
         Args:
-            app_id: 接続するアプリケーション ID
-            user_id: ユーザー ID
-            config: 接続設定（API キー、パス等）
-            permissions: 許可する操作
+            app_id: Application ID to connect
+            user_id: User ID
+            config: Connection settings (API key, path, etc.)
+            permissions: Permitted operations
 
         Returns:
-            確立された AppConnection
+            Established AppConnection
 
         Raises:
-            KeyError: app_id が登録されていない場合
+            KeyError: If app_id is not registered
         """
         app_def = self._definitions.get(app_id)
         if app_def is None:
@@ -610,7 +610,7 @@ class AppConnectorHub:
             connected_at=datetime.now(UTC).isoformat(),
         )
 
-        # 認証情報の検証
+        # Credential verification
         if app_def.auth_method == AppAuthMethod.LOCAL_FILE:
             path = (config or {}).get("path", "")
             if not path:
@@ -636,7 +636,7 @@ class AppConnectorHub:
         return conn
 
     def disconnect(self, connection_id: str) -> bool:
-        """接続を切断する."""
+        """Disconnect the connection."""
         conn = self._connections.get(connection_id)
         if conn is None:
             return False
@@ -645,7 +645,7 @@ class AppConnectorHub:
         return True
 
     def get_connection(self, connection_id: str) -> AppConnection | None:
-        """接続情報を取得する."""
+        """Get connection info."""
         return self._connections.get(connection_id)
 
     def list_connections(
@@ -654,7 +654,7 @@ class AppConnectorHub:
         app_id: str | None = None,
         status: AppConnectionStatus | None = None,
     ) -> list[AppConnection]:
-        """接続一覧を返す."""
+        """Return a list of connections."""
         conns = list(self._connections.values())
         if user_id:
             conns = [c for c in conns if c.user_id == user_id]
@@ -669,7 +669,7 @@ class AppConnectorHub:
         connection_id: str,
         permissions: AppPermission,
     ) -> bool:
-        """接続のパーミッションを更新する."""
+        """Update connection permissions."""
         conn = self._connections.get(connection_id)
         if conn is None:
             return False
@@ -678,7 +678,7 @@ class AppConnectorHub:
         return True
 
     def remove_connection(self, connection_id: str) -> bool:
-        """接続を完全に削除する."""
+        """Completely remove a connection."""
         if connection_id in self._connections:
             conn = self._connections.pop(connection_id)
             logger.info("App connection removed: %s (app=%s)", connection_id, conn.app_id)
@@ -686,7 +686,7 @@ class AppConnectorHub:
         return False
 
     # ------------------------------------------------------------------ #
-    #  データ同期
+    #  Data synchronization
     # ------------------------------------------------------------------ #
 
     async def sync(
@@ -695,12 +695,12 @@ class AppConnectorHub:
         direction: AppDataDirection | None = None,
         options: dict[str, Any] | None = None,
     ) -> AppSyncResult:
-        """接続先とデータを同期する.
+        """Synchronize data with the connected app.
 
         Args:
-            connection_id: 接続 ID
-            direction: 同期方向（省略時はアプリ定義のデフォルト）
-            options: 同期オプション（フィルタ、範囲等）
+            connection_id: Connection ID
+            direction: Sync direction (defaults to app definition default if omitted)
+            options: Sync options (filters, range, etc.)
 
         Returns:
             AppSyncResult
@@ -742,7 +742,7 @@ class AppConnectorHub:
         )
 
         try:
-            # アプリ固有の同期ハンドラにディスパッチ
+            # Dispatch to app-specific sync handler
             handler = self._get_sync_handler(conn.app_id)
             if handler:
                 sync_data = await handler(conn, sync_dir, options or {})
@@ -750,7 +750,7 @@ class AppConnectorHub:
                 result.items_written = sync_data.get("items_written", 0)
                 result.items_skipped = sync_data.get("items_skipped", 0)
             else:
-                # 汎用同期（ToolConnector に委譲）
+                # Generic sync (delegated to ToolConnector)
                 result.items_read = 0
                 result.items_written = 0
 
@@ -771,19 +771,19 @@ class AppConnectorHub:
         tags: list[str] | None = None,
         limit: int = 100,
     ) -> dict[str, Any]:
-        """接続先からナレッジストアにデータをインポートする.
+        """Import data from the connected app to the knowledge store.
 
-        ユーザーが許可した範囲のデータのみを取得し、
-        ナレッジストアに登録する。
+        Retrieves only data within the user-permitted scope and
+        registers it in the knowledge store.
 
         Args:
-            connection_id: 接続 ID
-            query: 検索クエリ（空の場合は全件）
-            tags: 付与するタグ
-            limit: 最大取得件数
+            connection_id: Connection ID
+            query: Search query (empty for all)
+            tags: Tags to assign
+            limit: Maximum number of items to retrieve
 
         Returns:
-            インポート結果の辞書
+            Dictionary of import results
         """
         conn = self._connections.get(connection_id)
         if conn is None:
@@ -808,7 +808,7 @@ class AppConnectorHub:
             if not hasattr(knowledge_store, "add_entry"):
                 return {"error": "Knowledge store not available"}
 
-            # Obsidian は既存の専用統合を使用
+            # Obsidian uses the existing dedicated integration
             if conn.app_id == "obsidian":
                 from app.integrations.obsidian import obsidian_integration
 
@@ -817,7 +817,7 @@ class AppConnectorHub:
                     result = await obsidian_integration.sync_knowledge_store(vault_id)
                     return result
 
-            # 汎用インポート: 外部データの取得はアプリ固有ハンドラに委譲
+            # Generic import: external data retrieval is delegated to app-specific handlers
             logger.info(
                 "Importing from %s to knowledge store (query=%s, limit=%d)",
                 conn.app_id,
@@ -842,18 +842,18 @@ class AppConnectorHub:
         connection_id: str | None = None,
         limit: int = 50,
     ) -> list[AppSyncResult]:
-        """同期履歴を取得する."""
+        """Get sync history."""
         history = self._sync_history
         if connection_id:
             history = [h for h in history if h.connection_id == connection_id]
         return history[-limit:]
 
     # ------------------------------------------------------------------ #
-    #  統計情報
+    #  Statistics
     # ------------------------------------------------------------------ #
 
     def get_summary(self) -> dict[str, Any]:
-        """連携ハブの概要を返す."""
+        """Return a summary of the connector hub."""
         import os
 
         all_apps = list(self._definitions.values())
@@ -884,11 +884,11 @@ class AppConnectorHub:
         }
 
     # ------------------------------------------------------------------ #
-    #  内部ヘルパー
+    #  Internal helpers
     # ------------------------------------------------------------------ #
 
     def _get_sync_handler(self, app_id: str):
-        """アプリ固有の同期ハンドラを返す（あれば）."""
+        """Return an app-specific sync handler if available."""
         handlers = {
             "obsidian": self._sync_obsidian,
             "notion": self._sync_generic_api,
@@ -903,7 +903,7 @@ class AppConnectorHub:
         direction: AppDataDirection,
         options: dict[str, Any],
     ) -> dict[str, int]:
-        """Obsidian 同期ハンドラ."""
+        """Obsidian sync handler."""
         from app.integrations.obsidian import obsidian_integration
 
         vault_id = conn.config.get("vault_id", "")
@@ -926,7 +926,7 @@ class AppConnectorHub:
         direction: AppDataDirection,
         options: dict[str, Any],
     ) -> dict[str, int]:
-        """汎用 API 同期ハンドラ."""
+        """Generic API sync handler."""
         logger.info("Generic API sync for %s (delegated to ToolConnector)", conn.app_id)
         return {"items_read": 0, "items_written": 0, "items_skipped": 0}
 
@@ -936,7 +936,7 @@ class AppConnectorHub:
         direction: AppDataDirection,
         options: dict[str, Any],
     ) -> dict[str, int]:
-        """ローカルファイル同期ハンドラ."""
+        """Local file sync handler."""
         from pathlib import Path
 
         path = conn.config.get("path", "")
@@ -951,5 +951,5 @@ class AppConnectorHub:
         return {"items_read": count, "items_written": 0, "items_skipped": 0}
 
 
-# グローバルインスタンス
+# Global instance
 app_connector_hub = AppConnectorHub()

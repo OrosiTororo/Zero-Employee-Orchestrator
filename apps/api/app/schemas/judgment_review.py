@@ -1,4 +1,4 @@
-"""ユーザー判断振り返りレポート API スキーマ."""
+"""User judgment review report API schemas."""
 
 from __future__ import annotations
 
@@ -6,19 +6,19 @@ from pydantic import BaseModel, Field
 
 
 class JudgmentRecordCreate(BaseModel):
-    """判断記録の作成リクエスト."""
+    """Request to create a judgment record."""
 
-    action: str = Field(..., description="判断アクション: approved/rejected/deferred")
-    category: str = Field(default="other", description="判断カテゴリ")
-    target_type: str = Field(default="", description="対象タイプ")
-    target_id: str = Field(default="", description="対象ID")
-    risk_level: str = Field(default="low", description="リスクレベル")
-    reason: str = Field(default="", description="判断理由")
+    action: str = Field(..., description="Judgment action: approved/rejected/deferred")
+    category: str = Field(default="other", description="Judgment category")
+    target_type: str = Field(default="", description="Target type")
+    target_id: str = Field(default="", description="Target ID")
+    risk_level: str = Field(default="low", description="Risk level")
+    reason: str = Field(default="", description="Judgment reason")
     response_time_seconds: float | None = Field(default=None)
 
 
 class CategoryInsightResponse(BaseModel):
-    """カテゴリ別洞察のレスポンス."""
+    """Per-category insight response."""
 
     category: str
     total: int
@@ -30,7 +30,7 @@ class CategoryInsightResponse(BaseModel):
 
 
 class TrendPointResponse(BaseModel):
-    """トレンドデータポイント."""
+    """Trend data point."""
 
     period: str
     total: int
@@ -40,7 +40,7 @@ class TrendPointResponse(BaseModel):
 
 
 class JudgmentPatternResponse(BaseModel):
-    """検出パターンのレスポンス."""
+    """Detected pattern response."""
 
     pattern_type: str
     description: str
@@ -49,7 +49,7 @@ class JudgmentPatternResponse(BaseModel):
 
 
 class JudgmentReviewReportResponse(BaseModel):
-    """振り返りレポートのレスポンス."""
+    """Review report response."""
 
     id: str
     user_id: str

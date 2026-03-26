@@ -1,13 +1,12 @@
-"""マルチユーザー・チームサービス — チーム作成・招待・権限管理.
+"""Multi-user team service -- Team creation, invitations, and permission management.
 
-チームベースの認証・権限管理を提供する。
-各チームはオーナー・管理者・メンバー・閲覧者・AI オペレーターの
-5 つのロールで構成される。
+Provides team-based authentication and permission management.
+Each team consists of 5 roles: owner, admin, member, viewer, and AI operator.
 
-権限チェック:
-- resource_type + action の組み合わせで許可ロールを判定
-- AI_OPERATOR は AI 関連リソースのみ操作可能
-- VIEWER は読み取り専用
+Permission checks:
+- Allowed roles determined by resource_type + action combination
+- AI_OPERATOR can only operate on AI-related resources
+- VIEWER is read-only
 """
 
 from __future__ import annotations
@@ -22,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class TeamRole(str, Enum):
-    """チームロール."""
+    """Team role."""
 
     OWNER = "owner"
     ADMIN = "admin"
@@ -33,7 +32,7 @@ class TeamRole(str, Enum):
 
 @dataclass
 class TeamMember:
-    """チームメンバー."""
+    """Team member."""
 
     user_id: str
     email: str
@@ -45,7 +44,7 @@ class TeamMember:
 
 @dataclass
 class Team:
-    """チーム."""
+    """Team."""
 
     id: str
     name: str
@@ -57,7 +56,7 @@ class Team:
 
 @dataclass
 class TeamInvitation:
-    """チーム招待."""
+    """Team invitation."""
 
     id: str
     team_id: str
@@ -71,7 +70,7 @@ class TeamInvitation:
 
 @dataclass
 class TeamPermission:
-    """チーム権限ルール."""
+    """Team permission rule."""
 
     resource_type: str
     action: str
@@ -80,7 +79,7 @@ class TeamPermission:
 
 @dataclass
 class TeamActivity:
-    """チームアクティビティログエントリ."""
+    """Team activity log entry."""
 
     id: str
     team_id: str
@@ -90,15 +89,15 @@ class TeamActivity:
     timestamp: str
 
 
-# デフォルト権限ルール
+# Default permission rules
 _DEFAULT_PERMISSIONS: list[TeamPermission] = [
-    # チーム管理
+    # Team management
     TeamPermission("team", "update", [TeamRole.OWNER, TeamRole.ADMIN]),
     TeamPermission("team", "delete", [TeamRole.OWNER]),
     TeamPermission("team", "invite", [TeamRole.OWNER, TeamRole.ADMIN]),
     TeamPermission("team", "remove_member", [TeamRole.OWNER, TeamRole.ADMIN]),
     TeamPermission("team", "read", list(TeamRole)),
-    # プロジェクト
+    # Projects
     TeamPermission(
         "project",
         "create",
@@ -111,7 +110,7 @@ _DEFAULT_PERMISSIONS: list[TeamPermission] = [
     ),
     TeamPermission("project", "delete", [TeamRole.OWNER, TeamRole.ADMIN]),
     TeamPermission("project", "read", list(TeamRole)),
-    # タスク
+    # Tasks
     TeamPermission(
         "task",
         "create",
@@ -124,7 +123,7 @@ _DEFAULT_PERMISSIONS: list[TeamPermission] = [
     ),
     TeamPermission("task", "delete", [TeamRole.OWNER, TeamRole.ADMIN]),
     TeamPermission("task", "read", list(TeamRole)),
-    # AI 操作
+    # AI operations
     TeamPermission(
         "ai",
         "execute",
@@ -136,21 +135,21 @@ _DEFAULT_PERMISSIONS: list[TeamPermission] = [
         [TeamRole.OWNER, TeamRole.ADMIN],
     ),
     TeamPermission("ai", "read", list(TeamRole)),
-    # 予算
+    # Budget
     TeamPermission("budget", "manage", [TeamRole.OWNER, TeamRole.ADMIN]),
     TeamPermission("budget", "read", list(TeamRole)),
-    # セキュリティ
+    # Security
     TeamPermission("security", "manage", [TeamRole.OWNER]),
     TeamPermission("security", "read", [TeamRole.OWNER, TeamRole.ADMIN]),
-    # 監査
+    # Audit
     TeamPermission("audit", "read", [TeamRole.OWNER, TeamRole.ADMIN]),
 ]
 
 
 class TeamService:
-    """マルチユーザー・チームサービス.
+    """Multi-user team service.
 
-    チームの作成・招待・権限管理・アクティビティ記録を行う。
+    Handles team creation, invitations, permission management, and activity recording.
     """
 
     def __init__(self) -> None:
@@ -160,14 +159,14 @@ class TeamService:
         self._activity_log: list[TeamActivity] = []
 
     # ------------------------------------------------------------------
-    # ヘルパー
+    # Helpers
     # ------------------------------------------------------------------
 
     def _now(self) -> str:
         return datetime.now(UTC).isoformat()
 
     def _record_activity(self, team_id: str, user_id: str, action: str, details: str) -> None:
-        """アクティビティを記録する."""
+        """Record an activity."""
         self._activity_log.append(
             TeamActivity(
                 id=str(uuid.uuid4()),
@@ -180,18 +179,18 @@ class TeamService:
         )
 
     def _get_member(self, team: Team, user_id: str) -> TeamMember | None:
-        """チームメンバーを取得する."""
+        """Get a team member."""
         for m in team.members:
             if m.user_id == user_id and m.is_active:
                 return m
         return None
 
     # ------------------------------------------------------------------
-    # チーム CRUD
+    # Team CRUD
     # ------------------------------------------------------------------
 
     async def create_team(self, name: str, company_id: str, owner_user_id: str) -> Team:
-        """チームを作成する."""
+        """Create a team."""
         team_id = str(uuid.uuid4())
         now = self._now()
         owner = TeamMember(
@@ -211,20 +210,20 @@ class TeamService:
             settings={},
         )
         self._teams[team_id] = team
-        self._record_activity(team_id, owner_user_id, "create_team", f"チーム '{name}' を作成")
-        logger.info("チーム作成: id=%s name=%s owner=%s", team_id, name, owner_user_id)
+        self._record_activity(team_id, owner_user_id, "create_team", f"Created team '{name}'")
+        logger.info("Team created: id=%s name=%s owner=%s", team_id, name, owner_user_id)
         return team
 
     async def get_team(self, team_id: str) -> Team | None:
-        """チームを ID で取得する."""
+        """Get a team by ID."""
         return self._teams.get(team_id)
 
     async def list_teams(self, company_id: str) -> list[Team]:
-        """企業のチーム一覧を取得する."""
+        """Get a list of teams for a company."""
         return [t for t in self._teams.values() if t.company_id == company_id]
 
     # ------------------------------------------------------------------
-    # 招待・参加
+    # Invitations & joining
     # ------------------------------------------------------------------
 
     async def invite_member(
@@ -234,21 +233,21 @@ class TeamService:
         role: TeamRole,
         invited_by: str,
     ) -> TeamInvitation:
-        """メンバーをチームに招待する."""
+        """Invite a member to a team."""
         team = self._teams.get(team_id)
         if team is None:
-            raise ValueError(f"チームが見つかりません: {team_id}")
+            raise ValueError(f"Team not found: {team_id}")
 
         # 招待者の権限チェック
         inviter = self._get_member(team, invited_by)
         if inviter is None:
-            raise ValueError("招待者がチームメンバーではありません")
+            raise ValueError("Inviter is not a team member")
         if inviter.role not in (TeamRole.OWNER, TeamRole.ADMIN):
-            raise PermissionError("招待権限がありません")
+            raise PermissionError("No invitation permission")
 
         # OWNER ロールは招待不可（transfer_ownership を使用）
         if role == TeamRole.OWNER:
-            raise ValueError("OWNER ロールは招待できません。ownership 移譲を使用してください")
+            raise ValueError("Cannot invite to OWNER role. Use ownership transfer instead")
 
         now = self._now()
         invitation = TeamInvitation(
@@ -266,10 +265,10 @@ class TeamService:
             team_id,
             invited_by,
             "invite_member",
-            f"{email} を {role.value} として招待",
+            f"Invited {email} as {role.value}",
         )
         logger.info(
-            "チーム招待: team=%s email=%s role=%s",
+            "Team invitation: team=%s email=%s role=%s",
             team_id,
             email,
             role.value,
@@ -277,26 +276,26 @@ class TeamService:
         return invitation
 
     async def accept_invitation(self, invitation_id: str, user_id: str) -> TeamMember:
-        """招待を受諾してチームに参加する."""
+        """Accept an invitation and join a team."""
         invitation = self._invitations.get(invitation_id)
         if invitation is None:
-            raise ValueError(f"招待が見つかりません: {invitation_id}")
+            raise ValueError(f"Invitation not found: {invitation_id}")
         if invitation.accepted:
-            raise ValueError("この招待は既に受諾済みです")
+            raise ValueError("This invitation has already been accepted")
 
-        # 有効期限チェック
+        # Expiration check
         expires = datetime.fromisoformat(invitation.expires_at)
         if datetime.now(UTC) > expires:
-            raise ValueError("招待の有効期限が切れています")
+            raise ValueError("Invitation has expired")
 
         team = self._teams.get(invitation.team_id)
         if team is None:
-            raise ValueError("チームが見つかりません")
+            raise ValueError("Team not found")
 
-        # 既存メンバーチェック
+        # Existing member check
         existing = self._get_member(team, user_id)
         if existing is not None:
-            raise ValueError("既にチームメンバーです")
+            raise ValueError("Already a team member")
 
         member = TeamMember(
             user_id=user_id,
@@ -312,10 +311,10 @@ class TeamService:
             invitation.team_id,
             user_id,
             "accept_invitation",
-            f"招待を受諾 (role={invitation.role.value})",
+            f"Accepted invitation (role={invitation.role.value})",
         )
         logger.info(
-            "招待受諾: team=%s user=%s role=%s",
+            "Invitation accepted: team=%s user=%s role=%s",
             invitation.team_id,
             user_id,
             invitation.role.value,
@@ -323,37 +322,37 @@ class TeamService:
         return member
 
     # ------------------------------------------------------------------
-    # メンバー管理
+    # Member management
     # ------------------------------------------------------------------
 
     async def remove_member(self, team_id: str, user_id: str, removed_by: str) -> bool:
-        """メンバーをチームから除外する."""
+        """Remove a member from a team."""
         team = self._teams.get(team_id)
         if team is None:
-            raise ValueError(f"チームが見つかりません: {team_id}")
+            raise ValueError(f"Team not found: {team_id}")
 
         remover = self._get_member(team, removed_by)
         if remover is None:
-            raise ValueError("操作者がチームメンバーではありません")
+            raise ValueError("Operator is not a team member")
         if remover.role not in (TeamRole.OWNER, TeamRole.ADMIN):
-            raise PermissionError("メンバー除外の権限がありません")
+            raise PermissionError("No permission to remove members")
 
         target = self._get_member(team, user_id)
         if target is None:
-            raise ValueError("対象ユーザーがチームメンバーではありません")
+            raise ValueError("Target user is not a team member")
         if target.role == TeamRole.OWNER:
-            raise ValueError("OWNER は除外できません")
+            raise ValueError("OWNER cannot be removed")
         if target.role == TeamRole.ADMIN and remover.role != TeamRole.OWNER:
-            raise PermissionError("ADMIN を除外できるのは OWNER のみです")
+            raise PermissionError("Only OWNER can remove ADMIN")
 
         target.is_active = False
         self._record_activity(
             team_id,
             removed_by,
             "remove_member",
-            f"メンバー {user_id} を除外",
+            f"Removed member {user_id}",
         )
-        logger.info("メンバー除外: team=%s user=%s by=%s", team_id, user_id, removed_by)
+        logger.info("Member removed: team=%s user=%s by=%s", team_id, user_id, removed_by)
         return True
 
     async def update_role(
@@ -363,25 +362,25 @@ class TeamService:
         new_role: TeamRole,
         updated_by: str,
     ) -> TeamMember:
-        """メンバーのロールを変更する."""
+        """Change a member's role."""
         team = self._teams.get(team_id)
         if team is None:
-            raise ValueError(f"チームが見つかりません: {team_id}")
+            raise ValueError(f"Team not found: {team_id}")
 
         updater = self._get_member(team, updated_by)
         if updater is None:
-            raise ValueError("操作者がチームメンバーではありません")
+            raise ValueError("Operator is not a team member")
         if updater.role != TeamRole.OWNER:
-            raise PermissionError("ロール変更は OWNER のみ可能です")
+            raise PermissionError("Only OWNER can change roles")
 
         if new_role == TeamRole.OWNER:
-            raise ValueError("OWNER ロールへの変更は transfer_ownership を使用してください")
+            raise ValueError("Use transfer_ownership to change to OWNER role")
 
         target = self._get_member(team, user_id)
         if target is None:
-            raise ValueError("対象ユーザーがチームメンバーではありません")
+            raise ValueError("Target user is not a team member")
         if target.role == TeamRole.OWNER:
-            raise ValueError("OWNER のロールは変更できません")
+            raise ValueError("OWNER role cannot be changed")
 
         old_role = target.role
         target.role = new_role
@@ -389,10 +388,10 @@ class TeamService:
             team_id,
             updated_by,
             "update_role",
-            f"{user_id} のロールを {old_role.value} → {new_role.value} に変更",
+            f"Changed {user_id} role from {old_role.value} to {new_role.value}",
         )
         logger.info(
-            "ロール変更: team=%s user=%s %s->%s",
+            "Role changed: team=%s user=%s %s->%s",
             team_id,
             user_id,
             old_role.value,
@@ -401,14 +400,14 @@ class TeamService:
         return target
 
     async def get_team_members(self, team_id: str) -> list[TeamMember]:
-        """チームのアクティブメンバー一覧を取得する."""
+        """Get a list of active team members."""
         team = self._teams.get(team_id)
         if team is None:
-            raise ValueError(f"チームが見つかりません: {team_id}")
+            raise ValueError(f"Team not found: {team_id}")
         return [m for m in team.members if m.is_active]
 
     # ------------------------------------------------------------------
-    # 権限チェック
+    # Permission checks
     # ------------------------------------------------------------------
 
     async def check_permission(
@@ -418,7 +417,7 @@ class TeamService:
         resource_type: str,
         action: str,
     ) -> bool:
-        """ユーザーの権限をチェックする."""
+        """Check a user's permissions."""
         team = self._teams.get(team_id)
         if team is None:
             return False
@@ -427,7 +426,7 @@ class TeamService:
         if member is None:
             return False
 
-        # OWNER は全権限を持つ
+        # OWNER has all permissions
         if member.role == TeamRole.OWNER:
             return True
 
@@ -435,11 +434,11 @@ class TeamService:
             if perm.resource_type == resource_type and perm.action == action:
                 return member.role in perm.allowed_roles
 
-        # 未定義の権限は OWNER/ADMIN のみ許可
+        # Undefined permissions are only allowed for OWNER/ADMIN
         return member.role in (TeamRole.OWNER, TeamRole.ADMIN)
 
     # ------------------------------------------------------------------
-    # オーナーシップ移譲
+    # Ownership transfer
     # ------------------------------------------------------------------
 
     async def transfer_ownership(
@@ -448,18 +447,18 @@ class TeamService:
         new_owner_id: str,
         current_owner_id: str,
     ) -> Team:
-        """チームのオーナーシップを移譲する."""
+        """Transfer team ownership."""
         team = self._teams.get(team_id)
         if team is None:
-            raise ValueError(f"チームが見つかりません: {team_id}")
+            raise ValueError(f"Team not found: {team_id}")
 
         current_owner = self._get_member(team, current_owner_id)
         if current_owner is None or current_owner.role != TeamRole.OWNER:
-            raise PermissionError("オーナーシップ移譲は現在の OWNER のみ可能です")
+            raise PermissionError("Only the current OWNER can transfer ownership")
 
         new_owner = self._get_member(team, new_owner_id)
         if new_owner is None:
-            raise ValueError("移譲先ユーザーがチームメンバーではありません")
+            raise ValueError("Transfer target user is not a team member")
 
         current_owner.role = TeamRole.ADMIN
         new_owner.role = TeamRole.OWNER
@@ -467,10 +466,10 @@ class TeamService:
             team_id,
             current_owner_id,
             "transfer_ownership",
-            f"オーナーシップを {new_owner_id} に移譲",
+            f"Transferred ownership to {new_owner_id}",
         )
         logger.info(
-            "オーナーシップ移譲: team=%s %s -> %s",
+            "Ownership transferred: team=%s %s -> %s",
             team_id,
             current_owner_id,
             new_owner_id,
@@ -478,14 +477,14 @@ class TeamService:
         return team
 
     # ------------------------------------------------------------------
-    # アクティビティ
+    # Activity
     # ------------------------------------------------------------------
 
     async def get_activity_log(self, team_id: str, limit: int = 50) -> list[TeamActivity]:
-        """チームのアクティビティログを取得する."""
+        """Get a team's activity log."""
         activities = [a for a in self._activity_log if a.team_id == team_id]
         return sorted(activities, key=lambda a: a.timestamp, reverse=True)[:limit]
 
 
-# グローバルインスタンス
+# Global instance
 team_service = TeamService()

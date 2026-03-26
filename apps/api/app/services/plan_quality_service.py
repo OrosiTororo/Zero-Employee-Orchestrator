@@ -1,15 +1,15 @@
-"""目的→Plan 分解の品質検証サービス — Plan Quality Verifier.
+"""Objective-to-Plan decomposition quality verification service -- Plan Quality Verifier.
 
-Spec から Plan への分解が「漏れなく・重複なく」かを Judge Layer で検証する
-ステージ追加。MECE (Mutually Exclusive, Collectively Exhaustive) の観点で
-Plan の品質を評価する。
+Adds a verification stage using the Judge Layer to check whether the decomposition
+from Spec to Plan is complete and non-overlapping (MECE: Mutually Exclusive,
+Collectively Exhaustive).
 
-検証項目:
-- 目的のカバレッジ（Spec の目的がすべて Plan のタスクにマッピングされているか）
-- 制約条件の反映（Spec の制約がタスクレベルで考慮されているか）
-- 受け入れ基準の対応（各受け入れ基準に対応するタスクが存在するか）
-- タスク間の重複検出（類似タスクの検出）
-- 依存関係の論理的整合性
+Verification items:
+- Objective coverage (whether all Spec objectives are mapped to Plan tasks)
+- Constraint reflection (whether Spec constraints are considered at the task level)
+- Acceptance criteria mapping (whether tasks exist for each acceptance criterion)
+- Duplicate task detection (detecting similar tasks)
+- Dependency logical consistency
 """
 
 from __future__ import annotations
@@ -54,7 +54,7 @@ def _plan_similarity(a: str, b: str) -> float:
 
 
 # ---------------------------------------------------------------------------
-# データ構造
+# Data structures
 # ---------------------------------------------------------------------------
 
 
@@ -183,7 +183,7 @@ class PlanQualityReport:
 
 
 # ---------------------------------------------------------------------------
-# メインサービス
+# Main service
 # ---------------------------------------------------------------------------
 
 
@@ -518,7 +518,7 @@ class PlanQualityVerifier:
 
 
 # ---------------------------------------------------------------------------
-# シングルトンインスタンス
+# Singleton instance
 # ---------------------------------------------------------------------------
 
 plan_quality_verifier = PlanQualityVerifier()

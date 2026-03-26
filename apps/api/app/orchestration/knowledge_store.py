@@ -1,13 +1,12 @@
-"""Knowledge Store — ユーザー設定・ナレッジの永続記憶.
+"""Knowledge Store — Persistent storage for user settings and knowledge.
 
-計画時にユーザーに同じ質問を繰り返さないよう、
-ファイル/フォルダの権限設定、業務資料の場所、ユーザーの好みなどを
-永続化して活用する。
+Persists and utilizes file/folder permissions, business document locations,
+and user preferences to avoid repeating the same questions during planning.
 
-機能:
-  - ユーザー設定の記憶（フォルダパス・権限・好み）
-  - 変更検知（前回の情報との差分検出）
-  - Experience Memory との統合
+Features:
+  - User setting storage (folder paths, permissions, preferences)
+  - Change detection (diff detection from previous information)
+  - Integration with Experience Memory
 """
 
 from __future__ import annotations
@@ -28,21 +27,21 @@ logger = logging.getLogger(__name__)
 
 
 class KnowledgeCategory(str, Enum):
-    """ナレッジの種類."""
+    """Knowledge category."""
 
-    FILE_PERMISSION = "file_permission"  # ファイル・フォルダへのアクセス許可
-    FOLDER_LOCATION = "folder_location"  # 業務資料フォルダの場所
-    USER_PREFERENCE = "user_preference"  # ユーザーの好み・設定
-    TOOL_CONFIG = "tool_config"  # ツール接続設定
-    WORKFLOW_PATTERN = "workflow_pattern"  # よく使うワークフローパターン
-    AGENT_INSTRUCTION = "agent_instruction"  # エージェントへの恒久指示
-    ENVIRONMENT = "environment"  # 環境情報（OS、パスなど）
-    CREDENTIAL_HINT = "credential_hint"  # 認証情報のヒント（値自体は保存しない）
-    CHANGE_LOG = "change_log"  # 変更履歴
+    FILE_PERMISSION = "file_permission"  # File/folder access permission
+    FOLDER_LOCATION = "folder_location"  # Business document folder location
+    USER_PREFERENCE = "user_preference"  # User preferences/settings
+    TOOL_CONFIG = "tool_config"  # Tool connection configuration
+    WORKFLOW_PATTERN = "workflow_pattern"  # Frequently used workflow patterns
+    AGENT_INSTRUCTION = "agent_instruction"  # Permanent instructions for agents
+    ENVIRONMENT = "environment"  # Environment info (OS, paths, etc.)
+    CREDENTIAL_HINT = "credential_hint"  # Credential hints (actual values are not stored)
+    CHANGE_LOG = "change_log"  # Change history
 
 
 class KnowledgeRecord(Base):
-    """永続化されたナレッジエントリ."""
+    """Persisted knowledge entry."""
 
     __tablename__ = "knowledge_store"
 
@@ -64,7 +63,7 @@ class KnowledgeRecord(Base):
 
 
 class ChangeDetectionRecord(Base):
-    """変更検知の記録."""
+    """Change detection record."""
 
     __tablename__ = "change_detections"
 
@@ -80,7 +79,7 @@ class ChangeDetectionRecord(Base):
 
 
 class KnowledgeStore:
-    """ユーザー設定・ナレッジの永続管理."""
+    """Persistent management of user settings and knowledge."""
 
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
@@ -96,13 +95,13 @@ class KnowledgeStore:
         metadata: dict[str, Any] | None = None,
         source: str = "user_input",
     ) -> KnowledgeRecord:
-        """ナレッジを記憶する（既存キーは更新）.
+        """Store knowledge (updates existing keys).
 
-        ファイルパス・フォルダ関連のナレッジは workspace_isolation でチェックする。
+        File path and folder-related knowledge is checked via workspace_isolation.
         """
         cat = category.value if isinstance(category, KnowledgeCategory) else category
 
-        # ワークスペース隔離チェック: ファイル/フォルダパスの記憶時
+        # Workspace isolation check: when storing file/folder paths
         if cat in (
             KnowledgeCategory.FILE_PERMISSION.value if isinstance(category, str) else "",
             KnowledgeCategory.FILE_PERMISSION.value,
@@ -119,11 +118,11 @@ class KnowledgeStore:
                         ws_check.reason,
                     )
                     raise PermissionError(
-                        f"ワークスペース隔離: パス '{value}' へのアクセスが許可されていません — "
+                        f"Workspace isolation: access to path '{value}' is not allowed — "
                         f"{ws_check.reason}"
                     )
             except (ImportError, AttributeError):
-                pass  # workspace_isolation が利用不可の場合はスキップ
+                pass  # Skip if workspace_isolation is unavailable
         cid = uuid.UUID(str(company_id)) if company_id else None
         uid = uuid.UUID(str(user_id)) if user_id else None
 
@@ -146,7 +145,7 @@ class KnowledgeStore:
             existing.is_active = True
             existing.updated_at = datetime.now(UTC)
 
-            # 変更検知
+            # Change detection
             if old_value != value:
                 change = ChangeDetectionRecord(
                     id=uuid.uuid4(),
@@ -184,7 +183,7 @@ class KnowledgeStore:
         company_id: str | uuid.UUID | None = None,
         user_id: str | uuid.UUID | None = None,
     ) -> list[KnowledgeRecord]:
-        """ナレッジを検索する."""
+        """Search knowledge."""
         stmt = select(KnowledgeRecord).where(KnowledgeRecord.is_active.is_(True))
 
         if category:
@@ -204,7 +203,7 @@ class KnowledgeStore:
         result = await self._db.execute(stmt)
         records = list(result.scalars().all())
 
-        # 使用回数を更新
+        # Update usage count
         for r in records:
             r.use_count += 1
             r.last_used_at = datetime.now(UTC)
@@ -218,7 +217,7 @@ class KnowledgeStore:
         key: str,
         **kwargs: Any,
     ) -> KnowledgeRecord | None:
-        """単一のナレッジを取得."""
+        """Get a single knowledge entry."""
         records = await self.recall(category, key, **kwargs)
         return records[0] if records else None
 
@@ -226,7 +225,7 @@ class KnowledgeStore:
         self,
         record_id: str | uuid.UUID,
     ) -> bool:
-        """ナレッジを無効化する（ソフトデリート）."""
+        """Deactivate knowledge (soft delete)."""
         rid = uuid.UUID(str(record_id)) if not isinstance(record_id, uuid.UUID) else record_id
         result = await self._db.execute(select(KnowledgeRecord).where(KnowledgeRecord.id == rid))
         record = result.scalar_one_or_none()
@@ -242,7 +241,7 @@ class KnowledgeStore:
         key: str,
         **kwargs: Any,
     ) -> bool:
-        """ナレッジが存在するか確認."""
+        """Check if knowledge exists."""
         record = await self.recall_one(category, key, **kwargs)
         return record is not None
 
@@ -252,7 +251,7 @@ class KnowledgeStore:
         unacknowledged_only: bool = True,
         limit: int = 50,
     ) -> list[ChangeDetectionRecord]:
-        """変更検知の一覧を取得."""
+        """Get list of change detections."""
         stmt = select(ChangeDetectionRecord)
         if company_id:
             cid = (
@@ -267,7 +266,7 @@ class KnowledgeStore:
         return list(result.scalars().all())
 
     async def acknowledge_change(self, change_id: str | uuid.UUID) -> bool:
-        """変更を確認済みにする."""
+        """Mark a change as acknowledged."""
         cid = uuid.UUID(str(change_id)) if not isinstance(change_id, uuid.UUID) else change_id
         result = await self._db.execute(
             select(ChangeDetectionRecord).where(ChangeDetectionRecord.id == cid)
@@ -287,7 +286,7 @@ class KnowledgeStore:
         company_id: str | uuid.UUID | None = None,
         user_id: str | uuid.UUID | None = None,
     ) -> KnowledgeRecord:
-        """ファイル/フォルダの操作権限を記憶."""
+        """Store file/folder operation permissions."""
         return await self.remember(
             KnowledgeCategory.FILE_PERMISSION,
             path,
@@ -305,7 +304,7 @@ class KnowledgeStore:
         company_id: str | uuid.UUID | None = None,
         user_id: str | uuid.UUID | None = None,
     ) -> KnowledgeRecord:
-        """業務資料フォルダの場所を記憶."""
+        """Store business document folder location."""
         return await self.remember(
             KnowledgeCategory.FOLDER_LOCATION,
             name,
@@ -318,11 +317,11 @@ class KnowledgeStore:
     async def get_all_permissions(
         self, company_id: str | uuid.UUID | None = None
     ) -> list[KnowledgeRecord]:
-        """全ファイル権限を取得."""
+        """Get all file permissions."""
         return await self.recall(KnowledgeCategory.FILE_PERMISSION, company_id=company_id)
 
     async def get_all_folder_locations(
         self, company_id: str | uuid.UUID | None = None
     ) -> list[KnowledgeRecord]:
-        """全フォルダ位置を取得."""
+        """Get all folder locations."""
         return await self.recall(KnowledgeCategory.FOLDER_LOCATION, company_id=company_id)

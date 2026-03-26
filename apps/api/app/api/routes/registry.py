@@ -1,7 +1,7 @@
-"""Skill / Plugin / Extension レジストリ API エンドポイント.
+"""Skill / Plugin / Extension registry API endpoints.
 
-全 CRUD 操作、自然言語スキル生成、システム保護を提供する。
-書き込み系操作（作成・更新・削除・インストール）は認証必須。
+Provides full CRUD operations, natural language skill generation, and system protection.
+Write operations (create, update, delete, install) require authentication.
 """
 
 import uuid
@@ -32,7 +32,7 @@ router = APIRouter()
 
 
 # ===================================================================
-# Skill エンドポイント
+# Skill endpoints
 # ===================================================================
 
 
@@ -43,7 +43,7 @@ async def list_skills(
     include_disabled: bool = False,
     db: AsyncSession = Depends(get_db),
 ):
-    """Skill 一覧を取得する."""
+    """List all skills."""
     skills = await skill_service.list_skills(
         db, status=status, skill_type=skill_type, include_disabled=include_disabled
     )
@@ -55,10 +55,10 @@ async def get_skill(
     skill_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
 ):
-    """Skill を ID で取得する."""
+    """Get a skill by ID."""
     skill = await skill_service.get_skill(db, skill_id)
     if skill is None:
-        raise HTTPException(status_code=404, detail="スキルが見つかりません")
+        raise HTTPException(status_code=404, detail="Skill not found")
     return _skill_to_read(skill)
 
 
@@ -68,12 +68,12 @@ async def create_skill(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """新しい Skill を作成する."""
+    """Create a new skill."""
     existing = await skill_service.get_skill_by_slug(db, data.slug)
     if existing:
         raise HTTPException(
             status_code=409,
-            detail=f"スキル '{data.slug}' は既に存在します",
+            detail=f"Skill '{data.slug}' already exists",
         )
     skill = await skill_service.create_skill(db, data)
     await db.commit()
@@ -86,12 +86,12 @@ async def install_skill(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Skill をインストールする (create のエイリアス)."""
+    """Install a skill (alias for create)."""
     existing = await skill_service.get_skill_by_slug(db, data.slug)
     if existing:
         raise HTTPException(
             status_code=409,
-            detail=f"スキル '{data.slug}' は既に存在します",
+            detail=f"Skill '{data.slug}' already exists",
         )
     skill = await skill_service.create_skill(db, data)
     await db.commit()
@@ -105,13 +105,13 @@ async def update_skill(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Skill を更新する."""
+    """Update a skill."""
     try:
         skill = await skill_service.update_skill(db, skill_id, data)
     except ValueError as e:
         raise HTTPException(status_code=403, detail=str(e))
     if skill is None:
-        raise HTTPException(status_code=404, detail="スキルが見つかりません")
+        raise HTTPException(status_code=404, detail="Skill not found")
     await db.commit()
     return _skill_to_read(skill)
 
@@ -122,9 +122,9 @@ async def delete_skill(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Skill を削除する. システム保護スキルは削除不可."""
+    """Delete a skill. System-protected skills cannot be deleted."""
     deleted, message = await skill_service.delete_skill(db, skill_id)
-    if not deleted and "見つかりません" in message:
+    if not deleted and "not found" in message.lower():
         raise HTTPException(status_code=404, detail=message)
     if not deleted:
         raise HTTPException(status_code=403, detail=message)
@@ -138,7 +138,7 @@ async def generate_skill(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """自然言語の説明からスキルを自動生成する."""
+    """Auto-generate a skill from a natural language description."""
     result = await skill_service.generate_skill_from_description(request, db)
     if result.registered:
         await db.commit()
@@ -146,7 +146,7 @@ async def generate_skill(
 
 
 # ===================================================================
-# Plugin エンドポイント
+# Plugin endpoints
 # ===================================================================
 
 
@@ -156,7 +156,7 @@ async def list_plugins(
     include_disabled: bool = False,
     db: AsyncSession = Depends(get_db),
 ):
-    """Plugin 一覧を取得する."""
+    """List all plugins."""
     plugins = await registry_service.list_plugins(
         db, status=status, include_disabled=include_disabled
     )
@@ -168,10 +168,10 @@ async def get_plugin(
     plugin_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
 ):
-    """Plugin を ID で取得する."""
+    """Get a plugin by ID."""
     plugin = await registry_service.get_plugin(db, plugin_id)
     if plugin is None:
-        raise HTTPException(status_code=404, detail="プラグインが見つかりません")
+        raise HTTPException(status_code=404, detail="Plugin not found")
     return _plugin_to_read(plugin)
 
 
@@ -181,12 +181,12 @@ async def create_plugin(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """新しい Plugin を作成する."""
+    """Create a new plugin."""
     existing = await registry_service.get_plugin_by_slug(db, data.slug)
     if existing:
         raise HTTPException(
             status_code=409,
-            detail=f"プラグイン '{data.slug}' は既に存在します",
+            detail=f"Plugin '{data.slug}' already exists",
         )
     plugin = await registry_service.create_plugin(db, data)
     await db.commit()
@@ -199,12 +199,12 @@ async def install_plugin(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Plugin をインストールする."""
+    """Install a plugin."""
     existing = await registry_service.get_plugin_by_slug(db, data.slug)
     if existing:
         raise HTTPException(
             status_code=409,
-            detail=f"プラグイン '{data.slug}' は既に存在します",
+            detail=f"Plugin '{data.slug}' already exists",
         )
     plugin = await registry_service.create_plugin(db, data)
     await db.commit()
@@ -218,13 +218,13 @@ async def update_plugin(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Plugin を更新する."""
+    """Update a plugin."""
     try:
         plugin = await registry_service.update_plugin(db, plugin_id, data)
     except ValueError as e:
         raise HTTPException(status_code=403, detail=str(e))
     if plugin is None:
-        raise HTTPException(status_code=404, detail="プラグインが見つかりません")
+        raise HTTPException(status_code=404, detail="Plugin not found")
     await db.commit()
     return _plugin_to_read(plugin)
 
@@ -235,9 +235,9 @@ async def delete_plugin(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Plugin を削除する. システム保護プラグインは削除不可."""
+    """Delete a plugin. System-protected plugins cannot be deleted."""
     deleted, message = await registry_service.delete_plugin(db, plugin_id)
-    if not deleted and "見つかりません" in message:
+    if not deleted and "not found" in message.lower():
         raise HTTPException(status_code=404, detail=message)
     if not deleted:
         raise HTTPException(status_code=403, detail=message)
@@ -250,7 +250,7 @@ async def search_external_plugins(
     query: str = "",
     limit: int = 20,
 ):
-    """外部ソース（GitHub 等）からプラグインを検索する."""
+    """Search for plugins from external sources (GitHub, etc.)."""
     from app.integrations.external_skills import plugin_importer
 
     results = await plugin_importer.search_plugins(query, limit)
@@ -273,21 +273,21 @@ async def import_plugin(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """GitHub リポジトリからプラグインをインポート・インストールする."""
+    """Import and install a plugin from a GitHub repository."""
     from app.integrations.external_skills import plugin_importer
 
     manifest = await plugin_importer.fetch_plugin_manifest(source_uri)
     if manifest is None:
         raise HTTPException(
             status_code=404,
-            detail="指定されたソースからプラグインマニフェストが見つかりません",
+            detail="Plugin manifest not found at the specified source",
         )
 
     existing = await registry_service.get_plugin_by_slug(db, manifest.slug)
     if existing:
         raise HTTPException(
             status_code=409,
-            detail=f"プラグイン '{manifest.slug}' は既に存在します",
+            detail=f"Plugin '{manifest.slug}' already exists",
         )
 
     create_data = plugin_importer.to_plugin_create_data(manifest)
@@ -299,7 +299,7 @@ async def import_plugin(
 
 
 # ===================================================================
-# Extension エンドポイント
+# Extension endpoints
 # ===================================================================
 
 
@@ -309,7 +309,7 @@ async def list_extensions(
     include_disabled: bool = False,
     db: AsyncSession = Depends(get_db),
 ):
-    """Extension 一覧を取得する."""
+    """List all extensions."""
     extensions = await registry_service.list_extensions(
         db, status=status, include_disabled=include_disabled
     )
@@ -321,10 +321,10 @@ async def get_extension(
     ext_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
 ):
-    """Extension を ID で取得する."""
+    """Get an extension by ID."""
     ext = await registry_service.get_extension(db, ext_id)
     if ext is None:
-        raise HTTPException(status_code=404, detail="拡張が見つかりません")
+        raise HTTPException(status_code=404, detail="Extension not found")
     return _extension_to_read(ext)
 
 
@@ -334,12 +334,12 @@ async def create_extension(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """新しい Extension を作成する."""
+    """Create a new extension."""
     existing = await registry_service.get_extension_by_slug(db, data.slug)
     if existing:
         raise HTTPException(
             status_code=409,
-            detail=f"拡張 '{data.slug}' は既に存在します",
+            detail=f"Extension '{data.slug}' already exists",
         )
     ext = await registry_service.create_extension(db, data)
     await db.commit()
@@ -352,12 +352,12 @@ async def install_extension(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Extension をインストールする."""
+    """Install an extension."""
     existing = await registry_service.get_extension_by_slug(db, data.slug)
     if existing:
         raise HTTPException(
             status_code=409,
-            detail=f"拡張 '{data.slug}' は既に存在します",
+            detail=f"Extension '{data.slug}' already exists",
         )
     ext = await registry_service.create_extension(db, data)
     await db.commit()
@@ -371,13 +371,13 @@ async def update_extension(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Extension を更新する."""
+    """Update an extension."""
     try:
         ext = await registry_service.update_extension(db, ext_id, data)
     except ValueError as e:
         raise HTTPException(status_code=403, detail=str(e))
     if ext is None:
-        raise HTTPException(status_code=404, detail="拡張が見つかりません")
+        raise HTTPException(status_code=404, detail="Extension not found")
     await db.commit()
     return _extension_to_read(ext)
 
@@ -388,9 +388,9 @@ async def delete_extension(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Extension を削除する. システム保護拡張は削除不可."""
+    """Delete an extension. System-protected extensions cannot be deleted."""
     deleted, message = await registry_service.delete_extension(db, ext_id)
-    if not deleted and "見つかりません" in message:
+    if not deleted and "not found" in message.lower():
         raise HTTPException(status_code=404, detail=message)
     if not deleted:
         raise HTTPException(status_code=403, detail=message)
@@ -399,7 +399,7 @@ async def delete_extension(
 
 
 # ===================================================================
-# ヘルパー — ORM → Pydantic 変換
+# Helpers — ORM to Pydantic conversion
 # ===================================================================
 
 

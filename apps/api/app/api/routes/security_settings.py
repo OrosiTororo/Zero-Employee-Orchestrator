@@ -1,12 +1,12 @@
-"""セキュリティ設定 API エンドポイント.
+"""Security settings API endpoints.
 
-ファイルシステムサンドボックス、データ保護、PII 保護の
-設定を GUI / CLI / TUI から変更するための API。
+API for changing file system sandbox, data protection, and PII protection
+settings from GUI / CLI / TUI.
 
-初期設定は最もセキュアな状態:
-- サンドボックス: STRICT（許可リストのみ）
-- データ転送: LOCKDOWN（外部転送全面禁止）
-- PII 検出: 全カテゴリ有効
+Initial settings are the most secure:
+- Sandbox: STRICT (allowlist only)
+- Data transfer: LOCKDOWN (all external transfers blocked)
+- PII detection: all categories enabled
 """
 
 from __future__ import annotations
@@ -47,7 +47,7 @@ router = APIRouter(prefix="/security", tags=["security"])
 
 
 class SandboxConfigRequest(BaseModel):
-    """サンドボックス設定リクエスト."""
+    """Sandbox configuration request."""
 
     level: str = Field(default="strict", description="strict | moderate | permissive")
     allowed_paths: list[str] = Field(default_factory=list)
@@ -57,7 +57,7 @@ class SandboxConfigRequest(BaseModel):
 
 
 class DataProtectionConfigRequest(BaseModel):
-    """データ保護設定リクエスト."""
+    """Data protection configuration request."""
 
     transfer_policy: str = Field(
         default="lockdown", description="lockdown | restricted | permissive"
@@ -79,26 +79,26 @@ class DataProtectionConfigRequest(BaseModel):
 
 
 class AllowedPathRequest(BaseModel):
-    """許可パス追加リクエスト."""
+    """Add allowed path request."""
 
     path: str
 
 
 class AccessCheckRequest(BaseModel):
-    """アクセスチェックリクエスト."""
+    """Access check request."""
 
     path: str
     access_type: str = "read"
 
 
 class PIICheckRequest(BaseModel):
-    """PII チェックリクエスト."""
+    """PII check request."""
 
     text: str
 
 
 class SecurityOverviewResponse(BaseModel):
-    """セキュリティ設定概要."""
+    """Security settings overview."""
 
     sandbox: dict
     data_protection: dict
@@ -110,7 +110,7 @@ class SecurityOverviewResponse(BaseModel):
 
 @router.get("/overview")
 async def get_security_overview(user: User = Depends(get_current_user)) -> SecurityOverviewResponse:
-    """セキュリティ設定の概要を返す."""
+    """Return security settings overview."""
     sandbox_config = filesystem_sandbox.config
     dp_config = data_protection_guard.config
 
@@ -147,7 +147,7 @@ async def get_security_overview(user: User = Depends(get_current_user)) -> Secur
 
 @router.get("/sandbox")
 async def get_sandbox_config(user: User = Depends(get_current_user)) -> dict:
-    """サンドボックス設定を取得する."""
+    """Get sandbox configuration."""
     config = filesystem_sandbox.config
     return {
         "level": config.level.value,
@@ -162,7 +162,7 @@ async def get_sandbox_config(user: User = Depends(get_current_user)) -> dict:
 async def update_sandbox_config(
     req: SandboxConfigRequest, user: User = Depends(get_current_user)
 ) -> dict:
-    """サンドボックス設定を更新する."""
+    """Update sandbox configuration."""
     try:
         level = SandboxLevel(req.level)
     except ValueError:
@@ -185,7 +185,7 @@ async def update_sandbox_config(
 
 @router.post("/sandbox/allowed-paths")
 async def add_allowed_path(req: AllowedPathRequest, user: User = Depends(get_current_user)) -> dict:
-    """許可パスを追加する."""
+    """Add an allowed path."""
     filesystem_sandbox.add_allowed_path(req.path)
     return {
         "status": "added",
@@ -198,14 +198,14 @@ async def add_allowed_path(req: AllowedPathRequest, user: User = Depends(get_cur
 async def remove_allowed_path(
     req: AllowedPathRequest, user: User = Depends(get_current_user)
 ) -> dict:
-    """許可パスを削除する."""
+    """Remove an allowed path."""
     filesystem_sandbox.remove_allowed_path(req.path)
     return {"status": "removed", "path": req.path}
 
 
 @router.post("/sandbox/check-access")
 async def check_access(req: AccessCheckRequest, user: User = Depends(get_current_user)) -> dict:
-    """パスへのアクセス可否をチェックする."""
+    """Check whether access to a path is allowed."""
     try:
         access_type = AccessType(req.access_type)
     except ValueError:
@@ -229,7 +229,7 @@ async def check_access(req: AccessCheckRequest, user: User = Depends(get_current
 
 @router.get("/data-protection")
 async def get_data_protection_config(user: User = Depends(get_current_user)) -> dict:
-    """データ保護設定を取得する."""
+    """Get data protection configuration."""
     config = data_protection_guard.config
     return {
         "transfer_policy": config.transfer_policy.value,
@@ -254,7 +254,7 @@ async def get_data_protection_config(user: User = Depends(get_current_user)) -> 
 async def update_data_protection_config(
     req: DataProtectionConfigRequest, user: User = Depends(get_current_user)
 ) -> dict:
-    """データ保護設定を更新する."""
+    """Update data protection configuration."""
     try:
         policy = TransferPolicy(req.transfer_policy)
     except ValueError:
@@ -290,13 +290,13 @@ async def update_data_protection_config(
 
 @router.get("/pii/categories")
 async def get_pii_categories_list(user: User = Depends(get_current_user)) -> list[dict]:
-    """PII カテゴリ一覧を返す."""
+    """Return PII category list."""
     return get_pii_categories()
 
 
 @router.post("/pii/check")
 async def check_pii(req: PIICheckRequest, user: User = Depends(get_current_user)) -> dict:
-    """テキストの PII をチェックする."""
+    """Check text for PII."""
     result = detect_and_mask_pii(req.text)
     return {
         "has_pii": result.detected_count > 0,
@@ -310,7 +310,7 @@ async def check_pii(req: PIICheckRequest, user: User = Depends(get_current_user)
 
 
 class WorkspaceConfigRequest(BaseModel):
-    """ワークスペース設定リクエスト."""
+    """Workspace configuration request."""
 
     local_access_enabled: bool = False
     cloud_access_enabled: bool = False
@@ -320,7 +320,7 @@ class WorkspaceConfigRequest(BaseModel):
 
 
 class TaskWorkspaceOverrideRequest(BaseModel):
-    """タスク単位のワークスペースオーバーライドリクエスト."""
+    """Per-task workspace override request."""
 
     additional_local_paths: list[str] = Field(default_factory=list)
     additional_cloud_sources: list[str] = Field(default_factory=list)
@@ -330,7 +330,7 @@ class TaskWorkspaceOverrideRequest(BaseModel):
 
 @router.get("/workspace")
 async def get_workspace_config(user: User = Depends(get_current_user)) -> dict:
-    """ワークスペース設定を取得する."""
+    """Get workspace configuration."""
     config = workspace_isolation.config
     return {
         "local_access_enabled": config.local_access_enabled,
@@ -347,7 +347,7 @@ async def get_workspace_config(user: User = Depends(get_current_user)) -> dict:
 async def update_workspace_config(
     req: WorkspaceConfigRequest, user: User = Depends(get_current_user)
 ) -> dict:
-    """ワークスペース設定を更新する."""
+    """Update workspace configuration."""
     try:
         storage = StorageLocation(req.storage_location)
     except ValueError:
@@ -376,7 +376,7 @@ async def update_workspace_config(
 async def set_task_workspace_override(
     task_id: str, req: TaskWorkspaceOverrideRequest, user: User = Depends(get_current_user)
 ) -> dict:
-    """タスク単位のワークスペースオーバーライドを設定する."""
+    """Set per-task workspace override."""
     storage = None
     if req.storage_location:
         try:
@@ -408,7 +408,7 @@ async def set_task_workspace_override(
 async def approve_task_workspace_override(
     task_id: str, user: User = Depends(get_current_user)
 ) -> dict:
-    """タスク単位のワークスペースオーバーライドを承認する."""
+    """Approve per-task workspace override."""
     approved = workspace_isolation.approve_task_override(task_id)
     if not approved:
         raise HTTPException(
@@ -422,7 +422,7 @@ async def approve_task_workspace_override(
 
 
 class RedTeamRunRequest(BaseModel):
-    """レッドチームテスト実行リクエスト."""
+    """Red team test execution request."""
 
     category: str | None = Field(
         default=None,
@@ -437,7 +437,7 @@ class RedTeamRunRequest(BaseModel):
 async def run_redteam_tests(
     req: RedTeamRunRequest | None = None, user: User = Depends(get_current_user)
 ) -> dict:
-    """レッドチームセキュリティテストを実行する."""
+    """Run red team security tests."""
     from app.security.redteam import VulnerabilityType
 
     service = RedTeamService()

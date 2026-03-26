@@ -1,10 +1,10 @@
-"""External Skill Import — 外部AIエージェント・プラットフォームからのSkill取得.
+"""External Skill Import — retrieve skills from external AI agents and platforms.
 
-以下のソースからSkillを追加可能:
-  - GitHub Agent Skills リポジトリ
-  - skills.sh プラットフォーム
-  - OpenClaw / Claude Code のSkill形式
-  - 任意のGitリポジトリ
+Skills can be added from the following sources:
+  - GitHub Agent Skills repositories
+  - skills.sh platform
+  - OpenClaw / Claude Code skill formats
+  - Arbitrary Git repositories
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ class SkillSourceType(str, Enum):
 
 @dataclass
 class ExternalSkillManifest:
-    """外部スキルのマニフェスト."""
+    """External skill manifest."""
 
     name: str
     slug: str
@@ -50,7 +50,7 @@ class ExternalSkillManifest:
 
 @dataclass
 class SkillSearchResult:
-    """スキル検索結果."""
+    """Skill search result."""
 
     name: str
     slug: str
@@ -64,19 +64,19 @@ class SkillSearchResult:
 
 
 class ExternalSkillImporter:
-    """外部ソースからスキルをインポートするマネージャー."""
+    """Manager for importing skills from external sources."""
 
-    # 既知のスキルソース
+    # Known skill sources
     KNOWN_SOURCES = {
         "github_agent_skills": {
             "base_url": "https://api.github.com",
             "search_path": "/search/repositories?q=topic:agent-skills",
-            "description": "GitHub Agent Skills リポジトリ",
+            "description": "GitHub Agent Skills repositories",
         },
         "skills_sh": {
             "base_url": "https://skills.sh",
             "api_path": "/api/v1/skills",
-            "description": "skills.sh プラットフォーム",
+            "description": "skills.sh platform",
         },
     }
 
@@ -89,7 +89,7 @@ class ExternalSkillImporter:
         source_type: SkillSourceType | None = None,
         limit: int = 20,
     ) -> list[SkillSearchResult]:
-        """外部ソースからスキルを検索."""
+        """Search for skills from external sources."""
         results: list[SkillSearchResult] = []
 
         if source_type is None or source_type == SkillSourceType.GITHUB_AGENT_SKILLS:
@@ -101,7 +101,7 @@ class ExternalSkillImporter:
         return results[:limit]
 
     async def _search_github(self, query: str, limit: int) -> list[SkillSearchResult]:
-        """GitHub Agent Skillsリポジトリを検索."""
+        """Search GitHub Agent Skills repositories."""
         try:
             import aiohttp
 
@@ -133,7 +133,7 @@ class ExternalSkillImporter:
             return []
 
     async def _search_skills_sh(self, query: str, limit: int) -> list[SkillSearchResult]:
-        """skills.sh プラットフォームを検索."""
+        """Search the skills.sh platform."""
         try:
             import aiohttp
 
@@ -165,7 +165,7 @@ class ExternalSkillImporter:
         source_type: SkillSourceType,
         source_uri: str,
     ) -> ExternalSkillManifest | None:
-        """外部ソースからスキルマニフェストを取得."""
+        """Fetch a skill manifest from an external source."""
         try:
             if source_type == SkillSourceType.GIT_REPO:
                 return await self._fetch_from_git(source_uri)
@@ -182,8 +182,8 @@ class ExternalSkillImporter:
         return None
 
     async def _fetch_from_git(self, repo_url: str) -> ExternalSkillManifest | None:
-        """Gitリポジトリからスキルマニフェストを取得."""
-        # manifest.json または skill.json を探す
+        """Fetch a skill manifest from a Git repository."""
+        # Look for manifest.json or skill.json
         try:
             import aiohttp
 
@@ -217,7 +217,7 @@ class ExternalSkillImporter:
         return await self._fetch_from_git(repo_url)
 
     async def _fetch_claude_code_skill(self, source_uri: str) -> ExternalSkillManifest | None:
-        """Claude Code形式のスキルを変換して取得."""
+        """Convert and fetch a Claude Code format skill."""
         try:
             import aiohttp
 
@@ -247,7 +247,7 @@ class ExternalSkillImporter:
         return None
 
     async def _fetch_openclaw_skill(self, source_uri: str) -> ExternalSkillManifest | None:
-        """OpenClaw形式のスキルを変換して取得."""
+        """Convert and fetch an OpenClaw format skill."""
         try:
             import aiohttp
 
@@ -270,11 +270,11 @@ class ExternalSkillImporter:
         return None
 
     async def _fetch_from_url(self, url: str) -> ExternalSkillManifest | None:
-        """任意のURLからスキルを取得."""
+        """Fetch a skill from an arbitrary URL."""
         return await self._fetch_from_git(url)
 
     def to_skill_create_data(self, manifest: ExternalSkillManifest) -> dict[str, Any]:
-        """マニフェストをSkillCreate用のデータに変換."""
+        """Convert a manifest to SkillCreate data."""
         return {
             "slug": manifest.slug,
             "name": manifest.name,
@@ -288,7 +288,7 @@ class ExternalSkillImporter:
 
 
 def _slugify(text: str) -> str:
-    """テキストをslugに変換."""
+    """Convert text to a slug."""
     text = text.lower().strip()
     text = re.sub(r"[^\w\s-]", "", text)
     text = re.sub(r"[\s_]+", "-", text)
@@ -296,7 +296,7 @@ def _slugify(text: str) -> str:
 
 
 def _git_to_raw_url(repo_url: str) -> str:
-    """GitHubリポジトリURLをraw content URLに変換."""
+    """Convert a GitHub repository URL to a raw content URL."""
     if "github.com" in repo_url:
         parts = repo_url.rstrip("/").replace("https://github.com/", "").split("/")
         if len(parts) >= 2:
@@ -310,7 +310,7 @@ skill_importer = ExternalSkillImporter()
 
 @dataclass
 class ExternalPluginManifest:
-    """外部プラグインのマニフェスト."""
+    """External plugin manifest."""
 
     name: str
     slug: str
@@ -327,7 +327,7 @@ class ExternalPluginManifest:
 
 @dataclass
 class PluginSearchResult:
-    """プラグイン検索結果."""
+    """Plugin search result."""
 
     name: str
     slug: str
@@ -340,19 +340,19 @@ class PluginSearchResult:
 
 
 class ExternalPluginImporter:
-    """外部GitHubリポジトリからプラグインをインポートするマネージャー."""
+    """Manager for importing plugins from external GitHub repositories."""
 
-    # 既知のプラグインソース
+    # Known plugin sources
     KNOWN_SOURCES = {
         "github": {
             "base_url": "https://api.github.com",
             "search_topics": ["zeo-plugin", "ai-orchestrator-plugin"],
-            "description": "GitHub Plugin リポジトリ",
+            "description": "GitHub Plugin repositories",
         },
         "community_registry": {
             "base_url": "https://plugins.zeo.dev",
             "api_path": "/api/v1/plugins",
-            "description": "コミュニティプラグインレジストリ",
+            "description": "Community plugin registry",
         },
     }
 
@@ -364,7 +364,7 @@ class ExternalPluginImporter:
         query: str,
         limit: int = 20,
     ) -> list[PluginSearchResult]:
-        """GitHubおよびコミュニティレジストリからプラグインを検索."""
+        """Search GitHub and community registry for plugins."""
         cache_key = f"{query}:{limit}"
         if cache_key in self._cached_searches:
             return self._cached_searches[cache_key]
@@ -382,7 +382,7 @@ class ExternalPluginImporter:
         query: str,
         limit: int,
     ) -> list[PluginSearchResult]:
-        """GitHub リポジトリをzeo-plugin / ai-orchestrator-pluginトピックで検索."""
+        """Search GitHub repositories by zeo-plugin / ai-orchestrator-plugin topics."""
         results: list[PluginSearchResult] = []
         try:
             import aiohttp
@@ -416,7 +416,7 @@ class ExternalPluginImporter:
         except Exception as exc:
             logger.warning("GitHub plugin search failed: %s", exc)
 
-        # 重複排除（同一slug）
+        # Deduplicate (by slug)
         seen: set[str] = set()
         unique: list[PluginSearchResult] = []
         for r in results:
@@ -430,7 +430,7 @@ class ExternalPluginImporter:
         query: str,
         limit: int,
     ) -> list[PluginSearchResult]:
-        """コミュニティプラグインレジストリを検索."""
+        """Search the community plugin registry."""
         try:
             import aiohttp
 
@@ -460,7 +460,7 @@ class ExternalPluginImporter:
         self,
         source_uri: str,
     ) -> ExternalPluginManifest | None:
-        """GitHubリポジトリからプラグインマニフェスト(plugin.json / manifest.json)を取得."""
+        """Fetch plugin manifest (plugin.json / manifest.json) from a GitHub repository."""
         try:
             import aiohttp
 
@@ -499,7 +499,7 @@ class ExternalPluginImporter:
         self,
         manifest: ExternalPluginManifest,
     ) -> dict[str, Any]:
-        """マニフェストをPluginCreate用のデータに変換."""
+        """Convert a manifest to PluginCreate data."""
         return {
             "slug": manifest.slug,
             "name": manifest.name,

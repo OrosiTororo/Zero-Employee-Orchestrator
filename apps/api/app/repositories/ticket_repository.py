@@ -1,4 +1,4 @@
-"""チケットリポジトリ — Ticket / TicketThread の DB 操作."""
+"""Ticket repository -- Ticket / TicketThread DB operations."""
 
 from __future__ import annotations
 

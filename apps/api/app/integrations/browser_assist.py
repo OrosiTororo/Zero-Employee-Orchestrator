@@ -1,21 +1,22 @@
-"""ブラウザアシスト統合 — ユーザーの画面を見て操作を案内する.
+"""Browser assist integration — view the user's screen and guide operations.
 
-ユーザーがChrome等のウェブブラウザやアプリケーションを使用中に、
-操作方法や手順を問われた際、ユーザーと同じ画面を見て回答・調査・アシストする。
+When users are using a web browser like Chrome or other applications and ask about
+how to perform operations, this service views the same screen and provides
+answers, investigation, and assistance.
 
-機能:
-- スクリーンショット分析: LLM のマルチモーダル機能で画面を理解
-- ステップバイステップ案内: UI 要素を特定し、操作手順を提示
-- エラー診断: 画面上のエラーメッセージを読み取り、解決策を提案
-- フォーム入力支援: フォームの各フィールドの入力方法を案内
-- UI 説明: 画面上の各要素の役割と使い方を説明
+Features:
+- Screenshot analysis: Understand the screen using LLM multimodal capabilities
+- Step-by-step guidance: Identify UI elements and present operation steps
+- Error diagnosis: Read error messages on screen and suggest solutions
+- Form input assistance: Guide how to fill each form field
+- UI explanation: Explain the role and usage of each screen element
 
-安全性:
-- スクリーンショットは一時的にのみ保持（永続保存しない）
-- パスワードフィールドの内容は自動的にぼかし処理
-- ユーザーの明示的な同意が必要
-- 全キャプチャは監査ログに記録（画像本体は除く）
-- 自律的なクリック操作は行わない（案内のみ）
+Safety:
+- Screenshots are held only temporarily (not persisted)
+- Password field contents are automatically blurred
+- Requires explicit user consent
+- All captures are recorded in audit logs (excluding the image itself)
+- No autonomous click operations (guidance only)
 """
 
 from __future__ import annotations
@@ -31,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class AssistAction(str, Enum):
-    """アシストアクション種別."""
+    """Assist action type."""
 
     ANALYZE_SCREEN = "analyze_screen"
     GUIDE_NAVIGATION = "guide_navigation"
@@ -42,7 +43,7 @@ class AssistAction(str, Enum):
 
 @dataclass
 class AssistStep:
-    """操作手順の1ステップ."""
+    """A single step in an operation procedure."""
 
     step_number: int
     instruction: str
@@ -52,7 +53,7 @@ class AssistStep:
 
 @dataclass
 class AssistResult:
-    """アシスト結果."""
+    """Assist result."""
 
     action: AssistAction
     steps: list[AssistStep] = field(default_factory=list)
@@ -63,7 +64,7 @@ class AssistResult:
 
 @dataclass
 class ScreenCaptureMetadata:
-    """スクリーンキャプチャのメタデータ（画像本体は含まない）."""
+    """Screen capture metadata (does not include the image itself)."""
 
     capture_id: str
     timestamp: str
@@ -74,25 +75,25 @@ class ScreenCaptureMetadata:
 
 
 class BrowserAssistService:
-    """ブラウザアシストサービス.
+    """Browser assist service.
 
-    LLM のマルチモーダル機能を利用して、ユーザーの画面を分析し、
-    操作方法を案内する。
+    Uses LLM multimodal capabilities to analyze the user's screen
+    and guide operations.
     """
 
     def __init__(self) -> None:
         self._consent_cache: dict[str, bool] = {}
 
     def check_user_consent(self, user_id: str) -> bool:
-        """ユーザーが画面共有に同意しているか確認する."""
+        """Check if the user has consented to screen sharing."""
         return self._consent_cache.get(user_id, False)
 
     def grant_consent(self, user_id: str) -> None:
-        """ユーザーの画面共有同意を記録する."""
+        """Record the user's screen sharing consent."""
         self._consent_cache[user_id] = True
 
     def revoke_consent(self, user_id: str) -> None:
-        """ユーザーの画面共有同意を取り消す."""
+        """Revoke the user's screen sharing consent."""
         self._consent_cache[user_id] = False
 
     async def analyze_screenshot(
@@ -105,21 +106,21 @@ class BrowserAssistService:
         language: str = "ja",
         user_id: str = "",
     ) -> AssistResult:
-        """スクリーンショットを分析し、ユーザーの質問に回答する.
+        """Analyze a screenshot and answer the user's question.
 
         Args:
-            screenshot_base64: Base64 エンコードされたスクリーンショット
-            user_question: ユーザーの質問
-            action: アシストアクション種別
-            target_url: ユーザーが閲覧中の URL
-            browser: ブラウザ種別
-            language: 回答言語
-            user_id: ユーザーID（監査用）
+            screenshot_base64: Base64-encoded screenshot
+            user_question: User's question
+            action: Assist action type
+            target_url: URL the user is currently viewing
+            browser: Browser type
+            language: Response language
+            user_id: User ID (for auditing)
 
         Returns:
-            AssistResult: 分析結果と操作手順
+            AssistResult: Analysis results and operation steps
         """
-        # メタデータを生成（監査ログ用。画像本体は保存しない）
+        # Generate metadata (for audit log; the image itself is not stored)
         image_bytes = base64.b64decode(screenshot_base64) if screenshot_base64 else b""
         metadata = ScreenCaptureMetadata(
             capture_id=hashlib.sha256(
@@ -139,7 +140,7 @@ class BrowserAssistService:
             user_id,
         )
 
-        # LLM にマルチモーダル分析を依頼
+        # Request multimodal analysis from LLM
         prompt = self._build_analysis_prompt(
             action=action,
             user_question=user_question,
@@ -148,7 +149,7 @@ class BrowserAssistService:
             language=language,
         )
 
-        # LLM プロバイダー経由でマルチモーダル分析を実行
+        # Execute multimodal analysis via LLM provider
         try:
             result = await self._call_multimodal_llm(
                 prompt=prompt,
@@ -173,7 +174,7 @@ class BrowserAssistService:
         browser: str,
         language: str,
     ) -> str:
-        """LLM への分析プロンプトを構築する."""
+        """Build analysis prompt for the LLM."""
         lang_instructions = {
             "ja": {
                 AssistAction.ANALYZE_SCREEN: (
@@ -240,7 +241,7 @@ class BrowserAssistService:
         action: AssistAction,
         language: str,
     ) -> AssistResult:
-        """マルチモーダル LLM を呼び出してスクリーンショットを分析する."""
+        """Call multimodal LLM to analyze the screenshot."""
         try:
             from app.providers.gateway import call_llm
 
@@ -253,7 +254,7 @@ class BrowserAssistService:
                 }
             ]
 
-            # 画像がある場合はマルチモーダルメッセージにする
+            # Make it a multimodal message if an image is present
             if image_base64:
                 messages[0]["content"].append(
                     {
@@ -273,7 +274,7 @@ class BrowserAssistService:
                 confidence=0.8,
             )
         except ImportError:
-            # Gateway が利用できない場合はフォールバック
+            # Fallback if gateway is not available
             return AssistResult(
                 action=action,
                 explanation=self._get_fallback_message(action, language),
@@ -281,7 +282,7 @@ class BrowserAssistService:
             )
 
     def _get_fallback_message(self, action: AssistAction, language: str) -> str:
-        """LLM が利用できない場合のフォールバックメッセージ."""
+        """Fallback message when LLM is not available."""
         messages = {
             "ja": (
                 "現在、画面分析用の LLM プロバイダーが設定されていません。\n"
@@ -297,5 +298,5 @@ class BrowserAssistService:
         return messages.get(language, messages["en"])
 
 
-# シングルトンインスタンス
+# Singleton instance
 browser_assist_service = BrowserAssistService()

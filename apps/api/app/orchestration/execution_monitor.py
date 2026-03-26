@@ -1,17 +1,17 @@
-"""Execution Monitor — リアルタイム実行監視と WebSocket 配信.
+"""Execution Monitor — Real-time execution monitoring and WebSocket delivery.
 
-マルチエージェントのタスク実行をリアルタイムで監視し、
-推論トレース・通信ログ・状態変化を WebSocket 経由でフロントエンドに配信する。
+Monitors multi-agent task execution in real-time and delivers reasoning traces,
+communication logs, and state changes to the frontend via WebSocket.
 
-監視対象:
-  - エージェントの状態変化
-  - タスクの実行進捗
-  - 推論トレースの各ステップ
-  - エージェント間通信
-  - Judge 判定結果
-  - エスカレーション・エラー
+Monitoring targets:
+  - Agent state changes
+  - Task execution progress
+  - Individual reasoning trace steps
+  - Inter-agent communication
+  - Judge verdict results
+  - Escalations and errors
 
-使い方:
+Usage:
   monitor = get_execution_monitor()
   await monitor.on_task_started(task_id, agent_id, company_id)
   await monitor.on_reasoning_step(trace_id, step)
@@ -30,44 +30,44 @@ logger = logging.getLogger(__name__)
 
 
 class MonitorEventType(str, Enum):
-    """監視イベントの種類."""
+    """Monitor event type."""
 
-    # タスク実行
+    # Task execution
     TASK_STARTED = "monitor.task.started"
     TASK_PROGRESS = "monitor.task.progress"
     TASK_COMPLETED = "monitor.task.completed"
     TASK_FAILED = "monitor.task.failed"
     TASK_RETRYING = "monitor.task.retrying"
 
-    # エージェント
+    # Agent
     AGENT_STATE_CHANGED = "monitor.agent.state_changed"
     AGENT_ASSIGNED = "monitor.agent.assigned"
     AGENT_RELEASED = "monitor.agent.released"
 
-    # 推論トレース
+    # Reasoning trace
     REASONING_STEP = "monitor.reasoning.step"
     REASONING_DECISION = "monitor.reasoning.decision"
     REASONING_COMPLETED = "monitor.reasoning.completed"
 
-    # エージェント通信
+    # Agent communication
     AGENT_COMM = "monitor.agent_comm"
     AGENT_DELEGATION = "monitor.agent_delegation"
     AGENT_ESCALATION = "monitor.agent_escalation"
 
-    # 品質・ガバナンス
+    # Quality / Governance
     JUDGE_RESULT = "monitor.judge.result"
     APPROVAL_REQUESTED = "monitor.approval.requested"
     APPROVAL_RESOLVED = "monitor.approval.resolved"
     COST_WARNING = "monitor.cost.warning"
 
-    # システム
+    # System
     ERROR = "monitor.error"
     HEARTBEAT = "monitor.heartbeat"
 
 
 @dataclass
 class MonitorEvent:
-    """監視イベント."""
+    """Monitor event."""
 
     event_type: MonitorEventType
     company_id: str
@@ -78,7 +78,7 @@ class MonitorEvent:
     trace_id: str | None = None
 
     def to_ws_event(self) -> dict[str, Any]:
-        """WebSocket 配信用の dict に変換."""
+        """Convert to dict for WebSocket delivery."""
         return {
             "event_type": self.event_type.value,
             "target_type": "monitor",
@@ -96,7 +96,7 @@ class MonitorEvent:
 
 @dataclass
 class ActiveExecution:
-    """現在実行中のタスクの監視情報."""
+    """Monitoring information for a currently executing task."""
 
     task_id: str
     agent_id: str
@@ -134,10 +134,10 @@ class ActiveExecution:
 
 
 class ExecutionMonitor:
-    """リアルタイム実行監視.
+    """Real-time execution monitoring.
 
-    WebSocket の emit_event と連携して、フロントエンドに
-    実行状況をリアルタイム配信する。
+    Works with WebSocket emit_event to deliver execution status
+    to the frontend in real-time.
     """
 
     def __init__(self) -> None:
@@ -146,11 +146,11 @@ class ExecutionMonitor:
         self._max_events = 500
 
     # ------------------------------------------------------------------
-    # イベント配信
+    # Event delivery
     # ------------------------------------------------------------------
 
     async def _emit(self, event: MonitorEvent) -> None:
-        """イベントを WebSocket 経由で配信."""
+        """Deliver event via WebSocket."""
         self._recent_events.append(event)
         if len(self._recent_events) > self._max_events:
             self._recent_events = self._recent_events[-(self._max_events // 2) :]
@@ -169,7 +169,7 @@ class ExecutionMonitor:
             logger.debug("Monitor emit failed (WS not available): %s", exc)
 
     # ------------------------------------------------------------------
-    # タスク実行イベント
+    # Task execution events
     # ------------------------------------------------------------------
 
     async def on_task_started(
@@ -182,7 +182,7 @@ class ExecutionMonitor:
         trace_id: str | None = None,
         provider_override: dict | None = None,
     ) -> None:
-        """タスク実行開始."""
+        """Task execution started."""
         execution = ActiveExecution(
             task_id=task_id,
             agent_id=agent_id,
@@ -202,7 +202,7 @@ class ExecutionMonitor:
                 trace_id=trace_id,
                 data={
                     "model": model,
-                    "message": f"エージェント {agent_id} がタスク実行を開始",
+                    "message": f"Agent {agent_id} started task execution",
                 },
             )
         )
@@ -214,7 +214,7 @@ class ExecutionMonitor:
         current_step: str,
         company_id: str,
     ) -> None:
-        """タスク進捗更新."""
+        """Task progress update."""
         if task_id in self._active:
             ex = self._active[task_id]
             ex.progress_pct = progress_pct
@@ -242,7 +242,7 @@ class ExecutionMonitor:
         tokens_used: int = 0,
         cost_usd: float = 0.0,
     ) -> None:
-        """タスク完了."""
+        """Task completed."""
         execution = self._active.pop(task_id, None)
 
         await self._emit(
@@ -271,7 +271,7 @@ class ExecutionMonitor:
         *,
         will_retry: bool = False,
     ) -> None:
-        """タスク失敗."""
+        """Task failed."""
         execution = self._active.get(task_id)
         event_type = MonitorEventType.TASK_RETRYING if will_retry else MonitorEventType.TASK_FAILED
 
@@ -292,7 +292,7 @@ class ExecutionMonitor:
         )
 
     # ------------------------------------------------------------------
-    # 推論トレースイベント
+    # Reasoning trace events
     # ------------------------------------------------------------------
 
     async def on_reasoning_step(
@@ -306,7 +306,7 @@ class ExecutionMonitor:
         details: dict | None = None,
         confidence: str = "medium",
     ) -> None:
-        """推論ステップの発生."""
+        """Reasoning step occurred."""
         if task_id in self._active:
             self._active[task_id].reasoning_steps += 1
             self._active[task_id].current_step = summary
@@ -339,7 +339,7 @@ class ExecutionMonitor:
         total_decisions: int,
         outcome: str,
     ) -> None:
-        """推論トレース完了."""
+        """Reasoning trace completed."""
         await self._emit(
             MonitorEvent(
                 event_type=MonitorEventType.REASONING_COMPLETED,
@@ -355,7 +355,7 @@ class ExecutionMonitor:
         )
 
     # ------------------------------------------------------------------
-    # エージェント通信イベント
+    # Agent communication events
     # ------------------------------------------------------------------
 
     async def on_agent_message(
@@ -368,7 +368,7 @@ class ExecutionMonitor:
         *,
         task_id: str | None = None,
     ) -> None:
-        """エージェント間メッセージ."""
+        """Inter-agent message."""
         is_delegation = msg_type == "delegation"
         is_escalation = msg_type == "escalation"
 
@@ -395,7 +395,7 @@ class ExecutionMonitor:
         )
 
     # ------------------------------------------------------------------
-    # 品質・ガバナンスイベント
+    # Quality / Governance events
     # ------------------------------------------------------------------
 
     async def on_judge_result(
@@ -406,7 +406,7 @@ class ExecutionMonitor:
         score: float,
         reasons: list[str],
     ) -> None:
-        """Judge 判定結果."""
+        """Judge verdict result."""
         await self._emit(
             MonitorEvent(
                 event_type=MonitorEventType.JUDGE_RESULT,
@@ -429,7 +429,7 @@ class ExecutionMonitor:
         agent_id: str | None = None,
         severity: str = "medium",
     ) -> None:
-        """エラー通知."""
+        """Error notification."""
         await self._emit(
             MonitorEvent(
                 event_type=MonitorEventType.ERROR,
@@ -444,11 +444,11 @@ class ExecutionMonitor:
         )
 
     # ------------------------------------------------------------------
-    # 監視ダッシュボード用クエリ
+    # Monitoring dashboard queries
     # ------------------------------------------------------------------
 
     def get_active_executions(self, company_id: str | None = None) -> list[dict]:
-        """実行中のタスク一覧."""
+        """List of currently executing tasks."""
         result = list(self._active.values())
         if company_id:
             result = [e for e in result if e.company_id == company_id]
@@ -460,7 +460,7 @@ class ExecutionMonitor:
         event_type: str | None = None,
         limit: int = 50,
     ) -> list[dict]:
-        """最近のイベント一覧."""
+        """List of recent events."""
         result = self._recent_events
         if company_id:
             result = [e for e in result if e.company_id == company_id]
@@ -469,7 +469,7 @@ class ExecutionMonitor:
         return [e.to_ws_event() for e in result[-limit:]]
 
     def get_agent_activity(self, agent_id: str) -> dict[str, Any]:
-        """エージェントのアクティビティサマリー."""
+        """Agent activity summary."""
         active_tasks = [e for e in self._active.values() if e.agent_id == agent_id]
         recent = [e for e in self._recent_events if e.agent_id == agent_id]
 
@@ -482,7 +482,7 @@ class ExecutionMonitor:
         }
 
     def get_system_summary(self, company_id: str | None = None) -> dict[str, Any]:
-        """システム全体のサマリー."""
+        """System-wide summary."""
         active = self.get_active_executions(company_id)
         events = self._recent_events
         if company_id:

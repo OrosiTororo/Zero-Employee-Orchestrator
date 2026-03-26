@@ -1,14 +1,14 @@
-"""Browser Assist WebSocket — リアルタイムチャット用 WebSocket エンドポイント.
+"""Browser Assist WebSocket — real-time chat WebSocket endpoint.
 
-Chrome 拡張機能やデスクトップアプリからの接続を受け付け、
-ユーザーの現在の画面を AI が確認しながらリアルタイムでアシストする。
+Accepts connections from Chrome extensions and desktop apps,
+assisting users in real-time while AI views their current screen.
 
-安全性:
-- ユーザーの明示的な同意（consent）が必要
-- スクリーンショットは一時的にのみ処理（永続保存しない）
-- 全メッセージは監査ログに記録
-- プロンプトインジェクション検査を実施
-- PII 検出・マスキング
+Safety:
+- Requires explicit user consent
+- Screenshots are processed temporarily only (not permanently stored)
+- All messages are recorded in audit logs
+- Prompt injection inspection is performed
+- PII detection and masking
 """
 
 from __future__ import annotations
@@ -33,7 +33,7 @@ router = APIRouter()
 
 
 class BrowserAssistConnectionManager:
-    """Browser Assist WebSocket 接続マネージャー."""
+    """Browser Assist WebSocket connection manager."""
 
     def __init__(self) -> None:
         self._connections: dict[str, WebSocket] = {}  # session_id -> ws
@@ -69,18 +69,18 @@ ba_manager = BrowserAssistConnectionManager()
 
 @router.websocket("/ws/browser-assist")
 async def browser_assist_websocket(websocket: WebSocket):
-    """Browser Assist 専用 WebSocket エンドポイント.
+    """Browser Assist dedicated WebSocket endpoint.
 
-    Chrome 拡張機能からの接続を受け付け、リアルタイムでチャットを行う。
-    ユーザーの画面キャプチャと質問を受け取り、AI が分析して回答する。
+    Accepts connections from Chrome extensions and conducts real-time chat.
+    Receives user screen captures and questions, and AI analyzes and responds.
 
     Client message format:
     {
         "type": "browser_assist_chat",
-        "content": "質問テキスト",
-        "url": "閲覧中の URL",
-        "title": "ページタイトル",
-        "user_id": "ユーザーID",
+        "content": "question text",
+        "url": "currently viewed URL",
+        "title": "page title",
+        "user_id": "user ID",
         "language": "ja",
         "attachments": [{"name": "...", "type": "image/png", "data": "data:..."}]
     }
@@ -91,7 +91,7 @@ async def browser_assist_websocket(websocket: WebSocket):
     await ba_manager.connect(websocket, session_id, user_id)
 
     try:
-        # 接続確認メッセージ
+        # Connection confirmation message
         await ba_manager.send_to_session(
             session_id,
             {
@@ -124,7 +124,7 @@ async def browser_assist_websocket(websocket: WebSocket):
                 await _handle_chat_message(session_id, user_id, msg)
 
             elif msg_type == "page_context":
-                # ページの DOM 情報やメタデータを受信（将来の拡張用）
+                # Receive page DOM information and metadata (for future extensions)
                 logger.info(
                     "Page context received: session=%s, url=%s",
                     session_id,
@@ -143,7 +143,7 @@ async def _handle_chat_message(
     user_id: str,
     msg: dict,
 ) -> None:
-    """チャットメッセージを処理する."""
+    """Process a chat message."""
     content = msg.get("content", "")
     url = msg.get("url", "")
     language = msg.get("language", "ja")
@@ -159,7 +159,7 @@ async def _handle_chat_message(
         )
         return
 
-    # プロンプトインジェクション検査
+    # Prompt injection inspection
     if content:
         guard = scan_prompt_injection(content)
         if not guard.is_safe and guard.threat_level.value in ("high", "critical"):
@@ -172,7 +172,7 @@ async def _handle_chat_message(
             )
             return
 
-    # PII 検出・マスキング（AI に渡す前にユーザーデータをマスク）
+    # PII detection and masking (mask user data before passing to AI)
     if content:
         pii_result = detect_and_mask_pii(content)
         if pii_result.detected_types:
@@ -181,7 +181,7 @@ async def _handle_chat_message(
                 pii_result.detected_types,
                 session_id,
             )
-            # ユーザーに警告
+            # Warn user
             await ba_manager.send_to_session(
                 session_id,
                 {
@@ -192,15 +192,15 @@ async def _handle_chat_message(
             )
             content = pii_result.masked_text
 
-    # 同意チェック
+    # Consent check
     if not browser_assist_service.check_user_consent(user_id):
-        # WebSocket 経由の場合は自動同意（拡張機能をインストールした時点で同意とみなす）
+        # Auto-consent via WebSocket (consent is assumed when extension is installed)
         browser_assist_service.grant_consent(user_id)
 
     # Typing indicator
     await ba_manager.send_to_session(session_id, {"type": "typing_start"})
 
-    # 画像添付があれば base64 を抽出
+    # Extract base64 if image attachment is present
     screenshot_base64 = ""
     for att in attachments:
         if att.get("type", "").startswith("image/"):

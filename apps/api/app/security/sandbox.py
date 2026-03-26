@@ -1,19 +1,19 @@
-"""ファイルシステムサンドボックス — AI のフォルダアクセス制限.
+"""File system sandbox -- Restrict AI folder access.
 
-AI がアクセスできるフォルダを、ユーザーが明示的に許可したフォルダのみに
-制限するサンドボックス機能。
+Sandbox functionality that restricts AI access to only folders
+explicitly permitted by the user.
 
-設計原則:
-- 初期設定: AI はユーザーが許可したフォルダ以外にアクセス不可
-- ホワイトリスト方式: 許可されたパスのみアクセス可能
-- シンボリックリンク追跡による脱出を防止
-- パストラバーサル攻撃を防止
-- 全アクセス試行を監査ログに記録
+Design principles:
+- Default: AI cannot access any folders not permitted by the user
+- Whitelist-based: Only permitted paths are accessible
+- Prevent escape via symlink following
+- Prevent path traversal attacks
+- Record all access attempts in audit logs
 
-セキュリティレベル:
-- STRICT: 許可リストのフォルダのみ（初期設定）
-- MODERATE: 許可リスト + 公開ディレクトリ
-- PERMISSIVE: 禁止リスト以外すべて（非推奨）
+Security levels:
+- STRICT: Whitelisted folders only (default)
+- MODERATE: Whitelist + public directories
+- PERMISSIVE: Everything except blocklist (not recommended)
 """
 
 from __future__ import annotations
@@ -28,15 +28,15 @@ logger = logging.getLogger(__name__)
 
 
 class SandboxLevel(str, Enum):
-    """サンドボックスレベル."""
+    """Sandbox level."""
 
-    STRICT = "strict"  # ホワイトリストのみ（初期設定）
-    MODERATE = "moderate"  # ホワイトリスト + 公開ディレクトリ
-    PERMISSIVE = "permissive"  # ブラックリスト以外すべて（非推奨）
+    STRICT = "strict"  # Whitelist only (default)
+    MODERATE = "moderate"  # Whitelist + public directories
+    PERMISSIVE = "permissive"  # Everything except blocklist (not recommended)
 
 
 class AccessType(str, Enum):
-    """アクセス種別."""
+    """Access type."""
 
     READ = "read"
     WRITE = "write"
@@ -47,7 +47,7 @@ class AccessType(str, Enum):
 
 @dataclass
 class AccessCheckResult:
-    """アクセスチェック結果."""
+    """Access check result."""
 
     allowed: bool
     path: str
@@ -58,7 +58,7 @@ class AccessCheckResult:
 
 @dataclass
 class SandboxConfig:
-    """サンドボックス設定."""
+    """Sandbox configuration."""
 
     level: SandboxLevel = SandboxLevel.STRICT
     allowed_paths: list[str] = field(default_factory=list)
@@ -68,7 +68,7 @@ class SandboxConfig:
     allow_symlink_follow: bool = False
 
 
-# デフォルトの禁止パス（全レベルで共通）
+# Default denied paths (common across all levels)
 _DEFAULT_DENIED_PATHS: list[str] = [
     "/etc/shadow",
     "/etc/passwd",
@@ -101,7 +101,7 @@ _DEFAULT_DENIED_PATHS: list[str] = [
     "kubeconfig",
 ]
 
-# デフォルトの許可拡張子
+# Default allowed extensions
 _DEFAULT_ALLOWED_EXTENSIONS: set[str] = {
     ".txt",
     ".md",
@@ -147,9 +147,9 @@ _DEFAULT_ALLOWED_EXTENSIONS: set[str] = {
 
 
 class FileSystemSandbox:
-    """ファイルシステムサンドボックス.
+    """File system sandbox.
 
-    AI がアクセスできるフォルダ・ファイルをユーザー指定のホワイトリストに制限する。
+    Restricts AI-accessible folders and files to a user-specified whitelist.
     """
 
     def __init__(self, config: SandboxConfig | None = None) -> None:
@@ -160,7 +160,7 @@ class FileSystemSandbox:
         return self._config
 
     def update_config(self, config: SandboxConfig) -> None:
-        """設定を更新する."""
+        """Update configuration."""
         self._config = config
         logger.info(
             "Sandbox config updated: level=%s, allowed=%d paths, denied=%d paths",
@@ -170,14 +170,14 @@ class FileSystemSandbox:
         )
 
     def add_allowed_path(self, path: str) -> None:
-        """許可パスを追加する."""
+        """Add an allowed path."""
         resolved = str(Path(path).resolve())
         if resolved not in self._config.allowed_paths:
             self._config.allowed_paths.append(resolved)
             logger.info("Sandbox: allowed path added: %s", resolved)
 
     def remove_allowed_path(self, path: str) -> None:
-        """許可パスを削除する."""
+        """Remove an allowed path."""
         resolved = str(Path(path).resolve())
         self._config.allowed_paths = [p for p in self._config.allowed_paths if p != resolved]
         logger.info("Sandbox: allowed path removed: %s", resolved)
@@ -187,17 +187,17 @@ class FileSystemSandbox:
         path: str,
         access_type: AccessType = AccessType.READ,
     ) -> AccessCheckResult:
-        """パスへのアクセスが許可されているかチェックする.
+        """Check whether access to a path is permitted.
 
         Args:
-            path: チェック対象のパス
-            access_type: アクセス種別
+            path: Path to check
+            access_type: Type of access
 
         Returns:
-            AccessCheckResult: アクセス可否と理由
+            AccessCheckResult: Access permission result and reason
         """
         try:
-            # パスを正規化（パストラバーサル防止）
+            # Normalize path (prevent path traversal)
             resolved_path = str(Path(path).resolve())
         except (ValueError, OSError) as exc:
             return AccessCheckResult(
@@ -208,8 +208,8 @@ class FileSystemSandbox:
                 sandbox_level=self._config.level,
             )
 
-        # シンボリックリンクチェック（解決前の元パスでリンクを検出）
-        # 注意: os.path.islink は resolve() 前の元パスで実行する必要がある
+        # Symlink check (detect links using original path before resolution)
+        # Note: os.path.islink must be run on the original path before resolve()
         if not self._config.allow_symlink_follow and os.path.islink(path):
             return AccessCheckResult(
                 allowed=False,
@@ -219,8 +219,8 @@ class FileSystemSandbox:
                 sandbox_level=self._config.level,
             )
 
-        # 解決後パスが元パスと大きく異なる場合もシンボリックリンク攻撃の可能性
-        # (シンボリックリンクチェーンや間接リンクへの対策)
+        # If resolved path differs significantly from original, possible symlink attack
+        # (countermeasure against symlink chains and indirect links)
         if not self._config.allow_symlink_follow:
             original_dir = str(Path(path).parent.resolve())
             resolved_dir = str(Path(resolved_path).parent)
@@ -233,10 +233,10 @@ class FileSystemSandbox:
                     sandbox_level=self._config.level,
                 )
 
-        # 禁止パスチェック（全レベル共通）
+        # Denied path check (common across all levels)
         for denied in self._config.denied_paths:
             if denied.startswith("/") or denied.startswith("~"):
-                # 絶対パスの禁止ルール
+                # Absolute path denial rule
                 denied_resolved = str(Path(denied).expanduser().resolve())
                 if resolved_path.startswith(denied_resolved) or resolved_path == denied_resolved:
                     return AccessCheckResult(
@@ -247,7 +247,7 @@ class FileSystemSandbox:
                         sandbox_level=self._config.level,
                     )
             else:
-                # ファイル名パターンの禁止ルール
+                # Filename pattern denial rule
                 basename = os.path.basename(resolved_path)
                 if basename == denied or resolved_path.endswith(denied):
                     return AccessCheckResult(
@@ -258,7 +258,7 @@ class FileSystemSandbox:
                         sandbox_level=self._config.level,
                     )
 
-        # レベル別チェック
+        # Level-specific checks
         if self._config.level == SandboxLevel.STRICT:
             return self._check_strict(resolved_path, access_type)
         elif self._config.level == SandboxLevel.MODERATE:
@@ -267,7 +267,7 @@ class FileSystemSandbox:
             return self._check_permissive(resolved_path, access_type)
 
     def _check_strict(self, resolved_path: str, access_type: AccessType) -> AccessCheckResult:
-        """STRICT モード: 許可リストのフォルダのみ."""
+        """STRICT mode: whitelisted folders only."""
         for allowed in self._config.allowed_paths:
             allowed_resolved = str(Path(allowed).resolve())
             if resolved_path.startswith(allowed_resolved) or resolved_path == allowed_resolved:
@@ -288,8 +288,8 @@ class FileSystemSandbox:
         )
 
     def _check_moderate(self, resolved_path: str, access_type: AccessType) -> AccessCheckResult:
-        """MODERATE モード: 許可リスト + 一般的な公開ディレクトリ."""
-        # 許可リストチェック
+        """MODERATE mode: whitelist + common public directories."""
+        # Allowlist check
         for allowed in self._config.allowed_paths:
             allowed_resolved = str(Path(allowed).resolve())
             if resolved_path.startswith(allowed_resolved):
@@ -301,7 +301,7 @@ class FileSystemSandbox:
                     sandbox_level=self._config.level,
                 )
 
-        # 読み取りの場合は拡張子チェック
+        # Extension check for read access
         if access_type == AccessType.READ:
             ext = Path(resolved_path).suffix.lower()
             if ext in self._config.allowed_extensions:
@@ -322,8 +322,8 @@ class FileSystemSandbox:
         )
 
     def _check_permissive(self, resolved_path: str, access_type: AccessType) -> AccessCheckResult:
-        """PERMISSIVE モード: 禁止リスト以外すべて許可（非推奨）."""
-        # 禁止パスは既にチェック済み
+        """PERMISSIVE mode: allow everything except denied list (not recommended)."""
+        # Denied paths already checked above
         return AccessCheckResult(
             allowed=True,
             path=resolved_path,
@@ -333,7 +333,7 @@ class FileSystemSandbox:
         )
 
     def check_file_size(self, path: str) -> bool:
-        """ファイルサイズが制限内かチェックする."""
+        """Check whether the file size is within limits."""
         try:
             size_mb = os.path.getsize(path) / (1024 * 1024)
             return size_mb <= self._config.max_file_size_mb
@@ -341,13 +341,13 @@ class FileSystemSandbox:
             return False
 
     def get_allowed_paths(self) -> list[str]:
-        """許可パス一覧を返す."""
+        """Return the list of allowed paths."""
         return list(self._config.allowed_paths)
 
     def get_denied_paths(self) -> list[str]:
-        """禁止パス一覧を返す."""
+        """Return the list of denied paths."""
         return list(self._config.denied_paths)
 
 
-# グローバルインスタンス
+# Global instance
 filesystem_sandbox = FileSystemSandbox()

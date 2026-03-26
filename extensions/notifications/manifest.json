@@ -1,7 +1,7 @@
 {
   "name": "notifications",
   "version": "0.1.0",
-  "description": "通知機能拡張 - Slack, Discord, LINE, メール等への通知を提供",
+  "description": "Notification extension — provides notification delivery to Slack, Discord, LINE, email, and other channels",
   "type": "extension",
   "status": "experimental",
   "required_permissions": ["external_send"],

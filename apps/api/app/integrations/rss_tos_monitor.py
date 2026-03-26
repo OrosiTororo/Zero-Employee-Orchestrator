@@ -1,16 +1,17 @@
-"""RSS/ToS 自動更新パイプライン — AI サービスの変更を自動監視.
+"""RSS/ToS auto-update pipeline — automatically monitor changes in AI services.
 
-主要 AI プロバイダーの RSS フィード・利用規約・料金ページを定期的に監視し、
-モデル更新・料金変更・利用規約改定・廃止予定などの変更を自動検出する。
+Periodically monitors RSS feeds, terms of service, and pricing pages of major
+AI providers, automatically detecting changes such as model updates, pricing
+changes, terms of service revisions, and deprecation notices.
 
-検出された変更はモデルカタログの自動更新トリガーとして使用される。
+Detected changes are used as triggers for automatic model catalog updates.
 
-対応プロバイダー:
+Supported providers:
 - OpenAI, Anthropic, Google AI, Mistral, Cohere, Meta AI
 
-安全性:
-- 外部 HTTP 通信はデータ保護ポリシーに従う
-- 取得コンテンツの LLM 入力時は wrap_external_data() を適用
+Safety:
+- External HTTP communication follows data protection policies
+- wrap_external_data() is applied when feeding fetched content to LLMs
 """
 
 from __future__ import annotations
@@ -27,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 class ChangeType(str, Enum):
-    """検出される変更の種類."""
+    """Types of detected changes."""
 
     MODEL_UPDATE = "model_update"
     PRICING_CHANGE = "pricing_change"
@@ -39,7 +40,7 @@ class ChangeType(str, Enum):
 
 
 class ImpactLevel(str, Enum):
-    """変更の影響レベル."""
+    """Impact level of changes."""
 
     LOW = "low"
     MEDIUM = "medium"
@@ -49,7 +50,7 @@ class ImpactLevel(str, Enum):
 
 @dataclass
 class MonitoredService:
-    """監視対象のサービス."""
+    """Monitored service."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = ""
@@ -63,7 +64,7 @@ class MonitoredService:
 
 @dataclass
 class DetectedChange:
-    """検出された変更."""
+    """Detected change."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     service_id: str = ""
@@ -77,7 +78,7 @@ class DetectedChange:
     impact_level: ImpactLevel = ImpactLevel.LOW
 
 
-# 主要 AI プロバイダーの事前定義
+# Predefined major AI providers
 _DEFAULT_SERVICES: list[MonitoredService] = [
     MonitoredService(
         id="openai",
@@ -129,7 +130,7 @@ _DEFAULT_SERVICES: list[MonitoredService] = [
     ),
 ]
 
-# 変更分類用キーワード
+# Keywords for change classification
 _CHANGE_KEYWORDS: dict[ChangeType, list[str]] = {
     ChangeType.MODEL_UPDATE: [
         "model",
@@ -207,10 +208,10 @@ _CHANGE_KEYWORDS: dict[ChangeType, list[str]] = {
 
 
 class RSSToSMonitor:
-    """RSS/ToS 自動更新モニター.
+    """RSS/ToS auto-update monitor.
 
-    AI プロバイダーの RSS フィード・利用規約・料金ページを定期的に監視し、
-    変更を検出して通知・モデルカタログ更新をトリガーする。
+    Periodically monitors AI provider RSS feeds, terms of service, and pricing
+    pages, detecting changes and triggering notifications and model catalog updates.
     """
 
     def __init__(self) -> None:
@@ -226,17 +227,17 @@ class RSSToSMonitor:
         pricing_url: str = "",
         interval: int = 24,
     ) -> MonitoredService:
-        """監視対象サービスを登録する.
+        """Register a service to monitor.
 
         Args:
-            name: サービス名
-            rss_url: RSS フィード URL
-            tos_url: 利用規約 URL
-            pricing_url: 料金ページ URL
-            interval: チェック間隔（時間）
+            name: Service name
+            rss_url: RSS feed URL
+            tos_url: Terms of service URL
+            pricing_url: Pricing page URL
+            interval: Check interval (hours)
 
         Returns:
-            登録されたサービス
+            Registered service
         """
         service = MonitoredService(
             name=name,
@@ -246,38 +247,38 @@ class RSSToSMonitor:
             check_interval_hours=interval,
         )
         self._services[service.id] = service
-        logger.info("監視サービス登録: %s (%s)", name, service.id)
+        logger.info("Monitoring service registered: %s (%s)", name, service.id)
         return service
 
     async def check_service(self, service_id: str) -> list[DetectedChange]:
-        """指定サービスの変更をチェックする.
+        """Check for changes in a specified service.
 
-        RSS フィードと ToS ページを取得し、前回チェック時からの変更を検出する。
+        Fetches RSS feeds and ToS pages, detecting changes since the last check.
 
         Args:
-            service_id: サービスID
+            service_id: Service ID
 
         Returns:
-            検出された変更のリスト
+            List of detected changes
         """
         service = self._services.get(service_id)
         if not service:
-            logger.warning("不明なサービスID: %s", service_id)
+            logger.warning("Unknown service ID: %s", service_id)
             return []
 
         changes: list[DetectedChange] = []
 
-        # RSS フィードのチェック
+        # Check RSS feed
         if service.rss_url:
             rss_changes = await self._check_rss(service)
             changes.extend(rss_changes)
 
-        # ToS ページのチェック
+        # Check ToS page
         if service.tos_url:
             tos_changes = await self._check_tos(service)
             changes.extend(tos_changes)
 
-        # 料金ページのチェック
+        # Check pricing page
         if service.pricing_url:
             pricing_changes = await self._check_pricing(service)
             changes.extend(pricing_changes)
@@ -288,19 +289,19 @@ class RSSToSMonitor:
             self._changes.extend(changes)
 
         logger.info(
-            "サービスチェック完了: %s, 変更数=%d",
+            "Service check complete: %s, changes=%d",
             service.name,
             len(changes),
         )
         return changes
 
     async def check_all(self) -> list[DetectedChange]:
-        """全サービスの変更をチェックする.
+        """Check all services for changes.
 
-        チェック間隔を超えたサービスのみ対象とする。
+        Only targets services that have exceeded their check interval.
 
         Returns:
-            検出された全変更のリスト
+            List of all detected changes
         """
         now = datetime.now(UTC)
         all_changes: list[DetectedChange] = []
@@ -314,19 +315,19 @@ class RSSToSMonitor:
             changes = await self.check_service(service_id)
             all_changes.extend(changes)
 
-        logger.info("全サービスチェック完了: 合計変更数=%d", len(all_changes))
+        logger.info("All services check complete: total_changes=%d", len(all_changes))
         return all_changes
 
     async def _check_rss(self, service: MonitoredService) -> list[DetectedChange]:
-        """RSS フィードを取得してチェックする.
+        """Fetch and check RSS feed.
 
-        取得した外部コンテンツはプロンプトインジェクション検査を適用する。
+        Prompt injection inspection is applied to fetched external content.
         """
         content = await self._fetch_url(service.rss_url)
         if not content:
             return []
 
-        # 外部データのプロンプトインジェクション検査
+        # Prompt injection inspection of external data
         try:
             from app.security.prompt_guard import scan_prompt_injection
 
@@ -371,7 +372,7 @@ class RSSToSMonitor:
         return changes
 
     async def _check_tos(self, service: MonitoredService) -> list[DetectedChange]:
-        """利用規約ページの変更を検出する."""
+        """Detect changes in terms of service page."""
         content = await self._fetch_url(service.tos_url)
         if not content:
             return []
@@ -379,7 +380,7 @@ class RSSToSMonitor:
         return self._detect_tos_changes(service, content)
 
     async def _check_pricing(self, service: MonitoredService) -> list[DetectedChange]:
-        """料金ページの変更を検出する."""
+        """Detect changes in pricing page."""
         content = await self._fetch_url(service.pricing_url)
         if not content:
             return []
@@ -394,27 +395,27 @@ class RSSToSMonitor:
             DetectedChange(
                 service_id=service.id,
                 change_type=ChangeType.PRICING_CHANGE,
-                title=f"{service.name} 料金ページ更新検出",
-                summary=f"{service.name} の料金ページに変更が検出されました。",
+                title=f"{service.name} pricing page update detected",
+                summary=f"Changes detected in {service.name} pricing page.",
                 source_url=service.pricing_url,
                 impact_level=ImpactLevel.MEDIUM,
             )
         ]
 
     def _parse_rss_feed(self, content: str) -> list[dict[str, str]]:
-        """RSS XML をパースしてエントリーを抽出する.
+        """Parse RSS XML and extract entries.
 
-        簡易 XML パーサーで <item> / <entry> 要素を抽出する。
+        Uses a simple XML parser to extract <item> / <entry> elements.
 
         Args:
-            content: RSS フィードの XML 文字列
+            content: RSS feed XML string
 
         Returns:
-            エントリーの辞書リスト (title, summary, link, content)
+            List of entry dictionaries (title, summary, link, content)
         """
         entries: list[dict[str, str]] = []
 
-        # <item> (RSS 2.0) または <entry> (Atom) を検出
+        # Detect <item> (RSS 2.0) or <entry> (Atom)
         item_pattern = re.compile(
             r"<(?:item|entry)>(.*?)</(?:item|entry)>",
             re.DOTALL | re.IGNORECASE,
@@ -424,12 +425,12 @@ class RSSToSMonitor:
             item_xml = match.group(1)
             entry: dict[str, str] = {}
 
-            # タイトル
+            # Title
             title_match = re.search(r"<title[^>]*>(.*?)</title>", item_xml, re.DOTALL)
             if title_match:
                 entry["title"] = self._strip_xml_tags(title_match.group(1)).strip()
 
-            # リンク
+            # Link
             link_match = re.search(
                 r"<link[^>]*(?:href=[\"']([^\"']+)[\"']|>(.*?)</link>)",
                 item_xml,
@@ -438,7 +439,7 @@ class RSSToSMonitor:
             if link_match:
                 entry["link"] = (link_match.group(1) or link_match.group(2) or "").strip()
 
-            # 概要
+            # Summary
             desc_match = re.search(
                 r"<(?:description|summary)[^>]*>(.*?)</(?:description|summary)>",
                 item_xml,
@@ -447,7 +448,7 @@ class RSSToSMonitor:
             if desc_match:
                 entry["summary"] = self._strip_xml_tags(desc_match.group(1)).strip()
 
-            # 本文
+            # Body
             content_match = re.search(
                 r"<content[^>]*>(.*?)</content>",
                 item_xml,
@@ -466,16 +467,16 @@ class RSSToSMonitor:
         service: MonitoredService,
         current_content: str,
     ) -> list[DetectedChange]:
-        """利用規約の変更を検出する.
+        """Detect changes in terms of service.
 
-        キャッシュ済みのハッシュと比較して変更を検出する。
+        Compares with cached hash to detect changes.
 
         Args:
-            service: 監視対象サービス
-            current_content: 現在の利用規約テキスト
+            service: Monitored service
+            current_content: Current terms of service text
 
         Returns:
-            検出された変更のリスト
+            List of detected changes
         """
         content_hash = self._hash_content(current_content)
         cache_key = f"tos:{service.id}"
@@ -489,24 +490,24 @@ class RSSToSMonitor:
             DetectedChange(
                 service_id=service.id,
                 change_type=ChangeType.TOS_UPDATE,
-                title=f"{service.name} 利用規約更新検出",
-                summary=f"{service.name} の利用規約に変更が検出されました。確認してください。",
+                title=f"{service.name} terms of service update detected",
+                summary=f"Changes detected in {service.name} terms of service. Please review.",
                 source_url=service.tos_url,
                 impact_level=ImpactLevel.HIGH,
             )
         ]
 
     def _classify_change(self, title: str, content: str) -> ChangeType:
-        """タイトルと内容からChangeTypeを判定する.
+        """Determine ChangeType from title and content.
 
-        キーワードマッチングに基づいて変更の種類を分類する。
+        Classifies the type of change based on keyword matching.
 
         Args:
-            title: 変更のタイトル
-            content: 変更の内容
+            title: Title of the change
+            content: Content of the change
 
         Returns:
-            判定された変更タイプ
+            Determined change type
         """
         combined = f"{title} {content}".lower()
         scores: dict[ChangeType, int] = {ct: 0 for ct in ChangeType}
@@ -523,13 +524,13 @@ class RSSToSMonitor:
         return best
 
     def _assess_impact(self, change: DetectedChange) -> ImpactLevel:
-        """変更の影響レベルを評価する.
+        """Assess the impact level of a change.
 
         Args:
-            change: 検出された変更
+            change: Detected change
 
         Returns:
-            影響レベル
+            Impact level
         """
         return self._assess_impact_from_text(
             change.title,
@@ -543,8 +544,8 @@ class RSSToSMonitor:
         summary: str,
         change_type: ChangeType,
     ) -> ImpactLevel:
-        """テキストと変更タイプから影響レベルを評価する."""
-        # 変更タイプに基づくベースライン
+        """Assess impact level from text and change type."""
+        # Baseline based on change type
         type_impact: dict[ChangeType, ImpactLevel] = {
             ChangeType.SECURITY_ADVISORY: ImpactLevel.CRITICAL,
             ChangeType.DEPRECATION: ImpactLevel.HIGH,
@@ -557,7 +558,7 @@ class RSSToSMonitor:
 
         base_level = type_impact.get(change_type, ImpactLevel.LOW)
 
-        # 緊急キーワードでエスカレーション
+        # Escalate on urgency keywords
         combined = f"{title} {summary}".lower()
         critical_words = [
             "breaking",
@@ -581,15 +582,15 @@ class RSSToSMonitor:
         change_type: ChangeType | None = None,
         service_name: str | None = None,
     ) -> list[DetectedChange]:
-        """最近の変更を取得する.
+        """Get recent changes.
 
         Args:
-            limit: 取得件数上限
-            change_type: フィルタする変更タイプ
-            service_name: フィルタするサービス名
+            limit: Maximum number of entries to retrieve
+            change_type: Change type to filter by
+            service_name: Service name to filter by
 
         Returns:
-            フィルタ済みの変更リスト（新しい順）
+            Filtered list of changes (newest first)
         """
         filtered = self._changes
 
@@ -610,26 +611,26 @@ class RSSToSMonitor:
         return sorted_changes[:limit]
 
     def acknowledge_change(self, change_id: str) -> bool:
-        """変更を確認済みにする.
+        """Mark a change as acknowledged.
 
         Args:
-            change_id: 変更ID
+            change_id: Change ID
 
         Returns:
-            確認済みに設定できたかどうか
+            Whether it was successfully marked as acknowledged
         """
         for change in self._changes:
             if change.id == change_id:
                 change.acknowledged = True
-                logger.info("変更確認済み: %s", change_id)
+                logger.info("Change acknowledged: %s", change_id)
                 return True
         return False
 
     def get_monitoring_status(self) -> dict:
-        """監視状況の概要を返す.
+        """Return a monitoring status summary.
 
         Returns:
-            サービス数・変更数・未確認数などの概要辞書
+            Summary dictionary with service count, change count, unacknowledged count, etc.
         """
         now = datetime.now(UTC)
         unacknowledged = [c for c in self._changes if not c.acknowledged]
@@ -665,27 +666,27 @@ class RSSToSMonitor:
         }
 
     async def update_model_catalog(self, change: DetectedChange) -> bool:
-        """モデルカタログの更新をトリガーする.
+        """Trigger a model catalog update.
 
-        MODEL_UPDATE タイプの変更が検出された場合にモデルカタログの
-        更新処理を起動する。ユーザーがファイルを一切触らずに
-        AI モデル更新を自動で行う。
+        When a MODEL_UPDATE type change is detected, initiates the model
+        catalog update process. Automatically updates AI models without
+        any user file manipulation.
 
         Args:
-            change: 検出されたモデル更新の変更
+            change: Detected model update change
 
         Returns:
-            更新がトリガーされたかどうか
+            Whether the update was triggered
         """
         if change.change_type != ChangeType.MODEL_UPDATE:
-            logger.debug("モデル更新ではないためスキップ: %s", change.change_type.value)
+            logger.debug("Not a model update, skipping: %s", change.change_type.value)
             return False
 
         service = self._services.get(change.service_id)
         service_name = service.name if service else change.service_id
 
         logger.info(
-            "モデルカタログ更新トリガー: service=%s, title=%s",
+            "Model catalog update trigger: service=%s, title=%s",
             service_name,
             change.title,
         )
@@ -697,27 +698,27 @@ class RSSToSMonitor:
             updated = await registry.refresh_catalog()
             if updated:
                 logger.info(
-                    "モデルカタログ自動更新完了: service=%s, updated=%s",
+                    "Model catalog auto-update complete: service=%s, updated=%s",
                     service_name,
                     updated,
                 )
             else:
-                logger.info("モデルカタログ変更なし: %s", service_name)
+                logger.info("No model catalog changes: %s", service_name)
             return True
         except Exception as exc:
-            logger.error("モデルカタログ更新失敗: %s", exc)
+            logger.error("Model catalog update failed: %s", exc)
 
         return False
 
     async def check_and_auto_update(self) -> dict:
-        """全サービスをチェックし、モデル更新を自動適用する.
+        """Check all services and auto-apply model updates.
 
-        RSS/ToS パイプラインからモデル更新を検出し、
-        model_catalog.json を自動で更新する。
-        ユーザーの手動操作は不要。
+        Detects model updates from the RSS/ToS pipeline and
+        automatically updates model_catalog.json.
+        No manual user action required.
 
         Returns:
-            更新結果の概要
+            Update result summary
         """
         changes = await self.check_all()
         model_updates = [c for c in changes if c.change_type == ChangeType.MODEL_UPDATE]
@@ -734,15 +735,15 @@ class RSSToSMonitor:
         }
 
     async def _fetch_url(self, url: str) -> str:
-        """URL からコンテンツを取得する.
+        """Fetch content from a URL.
 
-        httpx を使用して非同期 HTTP GET を実行する。
+        Executes an async HTTP GET using httpx.
 
         Args:
-            url: 取得対象の URL
+            url: Target URL to fetch
 
         Returns:
-            レスポンスのテキスト。エラー時は空文字列。
+            Response text. Empty string on error.
         """
         if not url:
             return ""
@@ -750,7 +751,7 @@ class RSSToSMonitor:
         try:
             import httpx
         except ImportError:
-            logger.warning("httpx が未インストールのため URL 取得をスキップ: %s", url)
+            logger.warning("httpx not installed, skipping URL fetch: %s", url)
             return ""
 
         try:
@@ -763,22 +764,22 @@ class RSSToSMonitor:
                 response.raise_for_status()
                 return response.text
         except Exception as exc:
-            logger.warning("URL 取得失敗: %s — %s", url, exc)
+            logger.warning("URL fetch failed: %s — %s", url, exc)
             return ""
 
     @staticmethod
     def _hash_content(content: str) -> str:
-        """コンテンツの SHA-256 ハッシュを生成する."""
+        """Generate a SHA-256 hash of the content."""
         return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
     @staticmethod
     def _strip_xml_tags(text: str) -> str:
-        """XML / HTML タグを除去する."""
-        # CDATA セクションの展開
+        """Strip XML / HTML tags."""
+        # Expand CDATA sections
         text = re.sub(r"<!\[CDATA\[(.*?)\]\]>", r"\1", text, flags=re.DOTALL)
-        # タグの除去
+        # Remove tags
         text = re.sub(r"<[^>]+>", "", text)
-        # HTML エンティティの基本的な変換
+        # Basic HTML entity conversion
         text = text.replace("&amp;", "&")
         text = text.replace("&lt;", "<")
         text = text.replace("&gt;", ">")
@@ -787,5 +788,5 @@ class RSSToSMonitor:
         return text
 
 
-# グローバルインスタンス
+# Global instance
 rss_tos_monitor = RSSToSMonitor()

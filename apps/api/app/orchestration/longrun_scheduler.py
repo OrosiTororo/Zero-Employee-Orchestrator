@@ -1,15 +1,15 @@
-"""Longrun Scheduler — 24/365 長期継続実行スケジューラ.
+"""Longrun Scheduler — 24/365 long-running execution scheduler.
 
-AI 組織が継続的に稼働し、定期タスク・イベント駆動タスク・
-連続実行タスクを管理するスケジューラ。
+A scheduler for continuous AI organization operation, managing periodic tasks,
+event-driven tasks, and continuous execution tasks.
 
-ROADMAP v1.0: 24/365 ロングラン実行基盤。
+ROADMAP v1.0: 24/365 long-running execution platform.
 
-スケジュール種別:
-  - INTERVAL: 一定間隔で繰り返し実行
-  - CRON: cron 式に基づくスケジュール
-  - EVENT_DRIVEN: 外部イベントをトリガーとする実行
-  - CONTINUOUS: 常時実行（停止指示まで）
+Schedule types:
+  - INTERVAL: Repeated execution at fixed intervals
+  - CRON: Schedule based on cron expressions
+  - EVENT_DRIVEN: Execution triggered by external events
+  - CONTINUOUS: Always running (until stop instruction)
 """
 
 from __future__ import annotations
@@ -28,16 +28,16 @@ logger = logging.getLogger(__name__)
 
 
 class ScheduleType(str, Enum):
-    """スケジュール種別."""
+    """Schedule type."""
 
-    INTERVAL = "interval"  # 一定間隔
-    CRON = "cron"  # cron 式
-    EVENT_DRIVEN = "event_driven"  # イベント駆動
-    CONTINUOUS = "continuous"  # 常時実行
+    INTERVAL = "interval"  # Fixed interval
+    CRON = "cron"  # Cron expression
+    EVENT_DRIVEN = "event_driven"  # Event-driven
+    CONTINUOUS = "continuous"  # Always running
 
 
 class JobStatus(str, Enum):
-    """ジョブの状態."""
+    """Job status."""
 
     SCHEDULED = "scheduled"
     RUNNING = "running"
@@ -49,7 +49,7 @@ class JobStatus(str, Enum):
 
 @dataclass
 class ScheduledJob:
-    """スケジュールされたジョブ."""
+    """Scheduled job."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = ""
@@ -68,7 +68,7 @@ class ScheduledJob:
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict[str, Any]:
-        """辞書表現を返す."""
+        """Return a dictionary representation."""
         return {
             "id": self.id,
             "name": self.name,
@@ -90,7 +90,7 @@ class ScheduledJob:
 
 @dataclass
 class JobResult:
-    """ジョブ実行結果."""
+    """Job execution result."""
 
     job_id: str = ""
     success: bool = False
@@ -101,7 +101,7 @@ class JobResult:
     duration_ms: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
-        """辞書表現を返す."""
+        """Return a dictionary representation."""
         return {
             "job_id": self.job_id,
             "success": self.success,
@@ -122,9 +122,9 @@ _MAX_RESULTS_PER_JOB = 200
 
 
 class LongrunScheduler:
-    """24/365 長期継続実行スケジューラ.
+    """24/365 long-running execution scheduler.
 
-    ジョブの登録・スケジューリング・実行・監視を一元管理する。
+    Centrally manages job registration, scheduling, execution, and monitoring.
     """
 
     def __init__(self) -> None:
@@ -135,7 +135,7 @@ class LongrunScheduler:
         self._loop_task: asyncio.Task[None] | None = None
 
     # ------------------------------------------------------------------
-    # ハンドラ登録
+    # Handler registration
     # ------------------------------------------------------------------
 
     def register_handler(
@@ -143,17 +143,17 @@ class LongrunScheduler:
         name: str,
         handler_fn: Callable[..., Any],
     ) -> None:
-        """ジョブハンドラを登録する.
+        """Register a job handler.
 
         Args:
-            name: ハンドラ名（schedule_job で指定する名前）。
-            handler_fn: 実行する callable（async 対応）。
+            name: Handler name (name specified in schedule_job).
+            handler_fn: Callable to execute (async supported).
         """
         self._handlers[name] = handler_fn
         logger.info("Longrun: handler '%s' registered", name)
 
     # ------------------------------------------------------------------
-    # ジョブ管理
+    # Job management
     # ------------------------------------------------------------------
 
     def schedule_job(
@@ -169,21 +169,21 @@ class LongrunScheduler:
         description: str = "",
         max_retries: int = 3,
     ) -> ScheduledJob:
-        """ジョブをスケジュールする.
+        """Schedule a job.
 
         Args:
-            name: ジョブ名。
-            schedule_type: スケジュール種別。
-            handler_name: 実行するハンドラ名。
-            params: ハンドラに渡すパラメータ。
-            interval: インターバル秒数（INTERVAL 型の場合必須）。
-            cron: cron 式（CRON 型の場合必須）。
-            event_trigger: イベント名（EVENT_DRIVEN 型の場合必須）。
-            description: ジョブの説明。
-            max_retries: 最大リトライ回数。
+            name: Job name.
+            schedule_type: Schedule type.
+            handler_name: Handler name to execute.
+            params: Parameters to pass to the handler.
+            interval: Interval in seconds (required for INTERVAL type).
+            cron: Cron expression (required for CRON type).
+            event_trigger: Event name (required for EVENT_DRIVEN type).
+            description: Job description.
+            max_retries: Maximum retry count.
 
         Returns:
-            スケジュールされたジョブ。
+            The scheduled job.
         """
         now = datetime.now(UTC)
         next_run: datetime | None = None
@@ -195,7 +195,7 @@ class LongrunScheduler:
         elif schedule_type == ScheduleType.CRON:
             next_run = self._calculate_next_cron(cron, now)
         elif schedule_type == ScheduleType.CONTINUOUS:
-            next_run = now  # 即時開始
+            next_run = now  # Start immediately
 
         job = ScheduledJob(
             name=name,
@@ -220,7 +220,7 @@ class LongrunScheduler:
         return job
 
     def cancel_job(self, job_id: str) -> bool:
-        """ジョブをキャンセルする."""
+        """Cancel a job."""
         job = self._jobs.get(job_id)
         if not job:
             return False
@@ -230,7 +230,7 @@ class LongrunScheduler:
         return True
 
     def pause_job(self, job_id: str) -> bool:
-        """ジョブを一時停止する."""
+        """Pause a job."""
         job = self._jobs.get(job_id)
         if not job or job.status not in (JobStatus.SCHEDULED, JobStatus.RUNNING):
             return False
@@ -239,13 +239,13 @@ class LongrunScheduler:
         return True
 
     def resume_job(self, job_id: str) -> bool:
-        """ジョブを再開する."""
+        """Resume a job."""
         job = self._jobs.get(job_id)
         if not job or job.status != JobStatus.PAUSED:
             return False
         job.status = JobStatus.SCHEDULED
 
-        # 次回実行時刻を再計算
+        # Recalculate next run time
         now = datetime.now(UTC)
         if job.schedule_type == ScheduleType.INTERVAL and job.interval_seconds:
             from datetime import timedelta
@@ -258,27 +258,27 @@ class LongrunScheduler:
         return True
 
     def get_job(self, job_id: str) -> ScheduledJob | None:
-        """ジョブを取得する."""
+        """Get a job."""
         return self._jobs.get(job_id)
 
     def list_jobs(self, status_filter: JobStatus | None = None) -> list[ScheduledJob]:
-        """ジョブ一覧を取得する."""
+        """Get list of jobs."""
         jobs = list(self._jobs.values())
         if status_filter:
             jobs = [j for j in jobs if j.status == status_filter]
         return jobs
 
     def get_job_history(self, job_id: str, limit: int = 50) -> list[JobResult]:
-        """ジョブの実行履歴を取得する."""
+        """Get job execution history."""
         results = [r for r in self._results if r.job_id == job_id]
         return results[-limit:]
 
     # ------------------------------------------------------------------
-    # スケジューラ起動・停止
+    # Scheduler start/stop
     # ------------------------------------------------------------------
 
     async def start(self) -> None:
-        """スケジューラループを開始する."""
+        """Start the scheduler loop."""
         if self._running:
             logger.warning("Longrun: scheduler is already running")
             return
@@ -288,7 +288,7 @@ class LongrunScheduler:
         logger.info("Longrun: scheduler started")
 
     async def stop(self) -> None:
-        """スケジューラを安全に停止する."""
+        """Safely stop the scheduler."""
         self._running = False
         if self._loop_task and not self._loop_task.done():
             self._loop_task.cancel()
@@ -300,11 +300,11 @@ class LongrunScheduler:
         logger.info("Longrun: scheduler stopped")
 
     # ------------------------------------------------------------------
-    # メインループ
+    # Main loop
     # ------------------------------------------------------------------
 
     async def _run_loop(self) -> None:
-        """メインスケジューラループ — 実行すべきジョブを定期チェックする."""
+        """Main scheduler loop — periodically checks for jobs to execute."""
         logger.info("Longrun: scheduler loop started")
         while self._running:
             try:
@@ -332,13 +332,13 @@ class LongrunScheduler:
         logger.info("Longrun: scheduler loop ended")
 
     async def _execute_job(self, job: ScheduledJob) -> JobResult:
-        """単一ジョブを実行する."""
+        """Execute a single job."""
         handler = self._handlers.get(job.handler_name)
         if not handler:
             result = JobResult(
                 job_id=job.id,
                 success=False,
-                error=f"ハンドラ '{job.handler_name}' が未登録",
+                error=f"Handler '{job.handler_name}' is not registered",
                 finished_at=datetime.now(UTC),
             )
             job.status = JobStatus.FAILED
@@ -390,12 +390,12 @@ class LongrunScheduler:
         result.duration_ms = round(elapsed_ms, 2)
         job.run_count += 1
 
-        # 結果保存（容量制限）
+        # Save results (with capacity limit)
         self._results.append(result)
         if len(self._results) > _MAX_RESULTS_PER_JOB * len(self._jobs or {"_": None}):
             self._results = self._results[-(_MAX_RESULTS_PER_JOB * max(1, len(self._jobs))) :]
 
-        # 次回実行時刻の計算
+        # Calculate next run time
         if result.success:
             job.status = JobStatus.SCHEDULED
             self._schedule_next_run(job)
@@ -412,7 +412,7 @@ class LongrunScheduler:
         return result
 
     def _schedule_next_run(self, job: ScheduledJob) -> None:
-        """次回実行時刻を計算・設定する."""
+        """Calculate and set the next run time."""
         now = datetime.now(UTC)
 
         if job.schedule_type == ScheduleType.INTERVAL and job.interval_seconds:
@@ -422,9 +422,9 @@ class LongrunScheduler:
         elif job.schedule_type == ScheduleType.CRON:
             job.next_run = self._calculate_next_cron(job.cron_expression, now)
         elif job.schedule_type == ScheduleType.CONTINUOUS:
-            job.next_run = now  # 即時再実行
+            job.next_run = now  # Immediate re-execution
         elif job.schedule_type == ScheduleType.EVENT_DRIVEN:
-            job.next_run = None  # イベント待ち
+            job.next_run = None  # Waiting for event
             job.status = JobStatus.SCHEDULED
 
     def _calculate_next_cron(
@@ -432,10 +432,10 @@ class LongrunScheduler:
         cron_expression: str | None,
         now: datetime,
     ) -> datetime | None:
-        """cron 式から次回実行時刻を計算する.
+        """Calculate next run time from a cron expression.
 
-        簡易実装: 分単位の基本パターンのみ対応。
-        本格的な cron パーサーは将来的に外部ライブラリを導入予定。
+        Simple implementation: supports only basic minute-level patterns.
+        A full cron parser will be introduced via an external library in the future.
         """
         if not cron_expression:
             return None
@@ -445,19 +445,19 @@ class LongrunScheduler:
         parts = cron_expression.strip().split()
         if len(parts) < 5:
             logger.warning("Longrun: invalid cron expression '%s'", cron_expression)
-            # フォールバック: 1 時間後
+            # Fallback: 1 hour later
             return now + timedelta(hours=1)
 
         minute_part = parts[0]
         hour_part = parts[1]
 
         try:
-            # "*/N" 形式の分間隔
+            # "*/N" format minute interval
             if minute_part.startswith("*/"):
                 interval_min = int(minute_part[2:])
                 return now + timedelta(minutes=interval_min)
 
-            # 固定時刻 (HH:MM)
+            # Fixed time (HH:MM)
             if minute_part != "*" and hour_part != "*":
                 target_min = int(minute_part)
                 target_hour = int(hour_part)
@@ -474,21 +474,21 @@ class LongrunScheduler:
         except (ValueError, IndexError):
             pass
 
-        # デフォルト: 1 時間後
+        # Default: 1 hour later
         return now + timedelta(hours=1)
 
     # ------------------------------------------------------------------
-    # イベント駆動
+    # Event-driven
     # ------------------------------------------------------------------
 
     async def trigger_event(self, event_name: str) -> list[JobResult]:
-        """イベントを発火し、該当するジョブを実行する.
+        """Fire an event and execute matching jobs.
 
         Args:
-            event_name: イベント名。
+            event_name: Event name.
 
         Returns:
-            実行されたジョブの結果リスト。
+            List of executed job results.
         """
         triggered_jobs = [
             job
@@ -515,11 +515,11 @@ class LongrunScheduler:
         return results
 
     # ------------------------------------------------------------------
-    # システムヘルス
+    # System health
     # ------------------------------------------------------------------
 
     def get_system_health(self) -> dict[str, Any]:
-        """スケジューラのステータスサマリーを返す."""
+        """Return the scheduler status summary."""
         jobs_by_status: dict[str, int] = {}
         for job in self._jobs.values():
             status = job.status.value
@@ -545,5 +545,5 @@ class LongrunScheduler:
         }
 
 
-# グローバルインスタンス
+# Global instance
 longrun_scheduler = LongrunScheduler()

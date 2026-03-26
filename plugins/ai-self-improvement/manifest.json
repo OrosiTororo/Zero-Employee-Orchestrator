@@ -1,7 +1,7 @@
 {
   "slug": "ai-self-improvement",
   "name": "AI Self-Improvement Plugin",
-  "description": "AI が AI を分析・改善・生成する自己改善プラグイン。既存 Skill の品質分析、改善版の自動生成、Experience Memory に基づく Judge 基準の自動調整、失敗パターンからの新 Skill 自動生成、Skill 間の A/B テスト比較を実現する。AI Self-Improvement の第一歩として、個人開発の範囲内で動作する。",
+  "description": "A self-improvement plugin where AI analyzes, improves, and generates AI capabilities. Provides quality analysis of existing Skills, automatic generation of improved versions, auto-tuning of Judge criteria based on Experience Memory, automatic Skill generation from failure patterns, and A/B testing between Skills. Operates within individual development scope as the first step of AI Self-Improvement.",
   "version": "0.1.0",
   "status": "implemented",
   "type": "plugin",
@@ -26,41 +26,41 @@
     "replace_skill_version"
   ],
   "use_cases": [
-    "既存 Skill のコード品質分析と改善提案",
-    "Experience Memory に基づく Judge Layer 判定基準の自動調整",
-    "Failure Taxonomy からの失敗防止 Skill の自動生成",
-    "同一タスクに対する複数 Skill の A/B テスト比較",
-    "Skill のテストコード自動生成とカバレッジ分析",
-    "Skill のバージョン管理と改善前後の比較"
+    "Code quality analysis and improvement suggestions for existing Skills",
+    "Auto-tuning Judge Layer criteria based on Experience Memory",
+    "Automatic generation of failure-prevention Skills from Failure Taxonomy",
+    "A/B test comparison of multiple Skills for the same task",
+    "Auto-generation of test code and coverage analysis for Skills",
+    "Version management and before/after comparison of Skill improvements"
   ],
   "capabilities": {
-    "skill_analysis": "既存 Skill のコード品質・パフォーマンス・エラーハンドリングを AI が評価し、具体的な改善案を生成する",
-    "experience_driven_tuning": "Experience Memory の承認/却下パターンを分析し、Judge Layer のカスタムルールを自動提案する",
-    "failure_learning": "Failure Taxonomy の蓄積データから同種失敗パターンを検出し、防止 Skill を自然言語生成 API で自動作成する",
-    "ab_testing": "同じタスクを複数の Skill で実行し、品質・速度・コストを定量比較して最適 Skill を推薦する",
-    "auto_testing": "Skill のコードを分析し、正常系・異常系のテストケースを自動生成して実行・レポートする",
-    "version_control": "改善前後の Skill をバージョン管理し、いつでもロールバック可能にする"
+    "skill_analysis": "AI evaluates existing Skills for code quality, performance, and error handling, then generates specific improvement proposals",
+    "experience_driven_tuning": "Analyzes approval/rejection patterns from Experience Memory and auto-suggests custom rules for the Judge Layer",
+    "failure_learning": "Detects similar failure patterns from accumulated Failure Taxonomy data and auto-creates prevention Skills via the natural language generation API",
+    "ab_testing": "Executes the same task with multiple Skills, quantitatively compares quality, speed, and cost to recommend the optimal Skill",
+    "auto_testing": "Analyzes Skill code and auto-generates test cases for both normal and error paths, then executes and reports results",
+    "version_control": "Version-manages Skills before and after improvements, enabling rollback at any time"
   },
   "integration": {
-    "judge_layer": "Experience Memory の分析結果から Judge Layer のカスタムルールを自動生成・提案",
-    "experience_memory": "改善サイクルの結果を Experience Memory に蓄積し、次回の改善精度を向上",
-    "failure_taxonomy": "失敗分類データを入力として新 Skill の必要性を判定",
-    "skill_registry": "生成・改善された Skill を Registry に登録（承認後）",
-    "dag": "A/B テストの実行を DAG として管理し、並列比較を効率化"
+    "judge_layer": "Auto-generate and propose custom rules for the Judge Layer from Experience Memory analysis results",
+    "experience_memory": "Accumulate improvement cycle results in Experience Memory to enhance future improvement accuracy",
+    "failure_taxonomy": "Use failure classification data as input to determine the need for new Skills",
+    "skill_registry": "Register generated and improved Skills in the Registry (after approval)",
+    "dag": "Manage A/B test execution as DAGs for efficient parallel comparison"
   },
   "safety": {
-    "sandbox_execution": "新規・改善 Skill はすべてサンドボックス内でテスト実行される",
-    "approval_required": "Skill の適用・Judge 基準の変更には必ずユーザー承認が必要",
-    "rollback": "すべての改善はバージョン管理され、ワンクリックでロールバック可能",
-    "quality_threshold": "Judge Layer の品質基準を下回る改善は自動却下される",
-    "change_limit": "1 サイクルあたりの変更量に上限を設定（暴走防止）",
-    "kill_switch": "Self-Improvement ループを即座に停止する緊急停止機構"
+    "sandbox_execution": "All new and improved Skills are test-executed in a sandbox",
+    "approval_required": "User approval is always required for Skill application and Judge criteria changes",
+    "rollback": "All improvements are version-managed and can be rolled back with one click",
+    "quality_threshold": "Improvements that fall below Judge Layer quality standards are auto-rejected",
+    "change_limit": "Upper limit set for changes per cycle (runaway prevention)",
+    "kill_switch": "Emergency stop mechanism to immediately halt the Self-Improvement loop"
   },
   "limitations": {
-    "individual_scope": "個人開発の範囲内で動作するため、学習データは個人の利用パターンに限定される",
-    "model_dependency": "改善提案の品質は利用する LLM モデルの性能に依存する",
-    "no_architecture_change": "Skill レベルの改善のみ。アーキテクチャレベルの自己改善は Phase 4 以降",
-    "manual_approval": "すべての改善適用にはユーザーの手動承認が必要（完全自動化は Phase 3 以降）"
+    "individual_scope": "Operates within individual development scope — training data is limited to the individual's usage patterns",
+    "model_dependency": "Quality of improvement proposals depends on the LLM model's capabilities",
+    "no_architecture_change": "Skill-level improvements only. Architecture-level self-improvement is planned for Phase 4+",
+    "manual_approval": "All improvement applications require user manual approval (full automation planned for Phase 3+)"
   },
   "roadmap_reference": "docs/AI_SELF_IMPROVEMENT_ROADMAP.md",
   "implementation": {
@@ -68,6 +68,6 @@
     "routes": "app/api/routes/self_improvement.py",
     "schemas": "app/schemas/self_improvement.py"
   },
-  "note": "このプラグインは AI Self-Improvement の Phase 1（個人開発範囲）を実現するものです。6 Skill の実装コード・API エンドポイント・スキーマが完成しています。コミュニティの拡大と共有データの増加により、Phase 2 以降でより高度な自己改善が可能になります。",
+  "note": "This plugin implements Phase 1 (individual development scope) of AI Self-Improvement. All 6 Skills, API endpoints, and schemas are fully implemented. As the community grows and shared data increases, more advanced self-improvement becomes possible in Phase 2+.",
   "author": "Zero-Employee Orchestrator Team"
 }

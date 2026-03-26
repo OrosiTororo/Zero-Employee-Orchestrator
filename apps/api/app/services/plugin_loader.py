@@ -1,37 +1,37 @@
-"""Plugin Loader — VSCode 的なプラグイン動的読み込み・環境解決基盤.
+"""Plugin Loader — VSCode-style dynamic plugin loading and environment resolution.
 
-VSCode のエクステンションのように、ユーザーが自然言語で「browser-use を追加して」
-「画像生成に Flux を使いたい」「音楽生成ツールを追加して」と言うだけで
-プラグインをインストール・設定・有効化できる仕組み。
+Like VSCode extensions, users can simply say in natural language "add browser-use",
+"I want to use Flux for image generation", or "add a music generation tool"
+to install, configure, and enable plugins.
 
-設計思想:
-- **マニフェスト駆動**: プラグインは manifest.json で自己記述（依存関係・設定・権限）
-- **環境自動解決**: pip パッケージ、API キー、環境変数を自動検出・セットアップ案内
-- **軽量コア**: ZEO 本体は最小限。全ての拡張機能はプラグインとして後から追加
-- **コミュニティ対応**: 誰でもプラグインを作成・公開・インストールできる
-- **ツール非固定**: 特定ツールを推奨せず、ユーザーが自由に選択・切替可能
-- **汎用カテゴリ**: ブラウザ操作・画像生成・音楽生成・コード生成等、あらゆる用途に対応
-- **AI エージェント連携**: エージェント組織がタスクに最適なツールを動的に選択
+Design philosophy:
+- **Manifest-driven**: Plugins self-describe via manifest.json (dependencies, settings, permissions)
+- **Auto environment resolution**: Auto-detect pip packages, API keys, env vars and guide setup
+- **Lightweight core**: ZEO core is minimal. All extensions are added later as plugins
+- **Community-ready**: Anyone can create, publish, and install plugins
+- **No tool lock-in**: No specific tool is recommended; users freely choose and switch
+- **Universal categories**: Covers all use cases: browser automation, image/music/code generation, etc.
+- **AI agent integration**: Agent organization dynamically selects optimal tools per task
 
-ツールカテゴリ:
-- browser-automation: ブラウザ自動操作 (browser-use, Playwright, Selenium, ...)
-- image-generation: 画像生成 (DALL-E, Stable Diffusion, Flux, Midjourney, ...)
-- video-generation: 動画生成 (Runway, Pika, Sora, ...)
-- audio-generation: 音声合成 (OpenAI TTS, ElevenLabs, VOICEVOX, ...)
-- music-generation: 音楽生成 (Suno, Udio, MusicGen, ...)
-- code-generation: コード生成 (Cursor, Copilot, ...)
-- data-analysis: データ分析 (pandas-ai, ...)
-- document-processing: 文書処理 (OCR, PDF, ...)
-- communication: コミュニケーション (Slack, Discord, ...)
-- search: 検索 (Perplexity, Tavily, ...)
-- three-d: 3D モデル (Meshy, TripoSR, ...)
-- custom: ユーザー定義
+Tool categories:
+- browser-automation: Browser automation (browser-use, Playwright, Selenium, ...)
+- image-generation: Image generation (DALL-E, Stable Diffusion, Flux, Midjourney, ...)
+- video-generation: Video generation (Runway, Pika, Sora, ...)
+- audio-generation: Speech synthesis (OpenAI TTS, ElevenLabs, VOICEVOX, ...)
+- music-generation: Music generation (Suno, Udio, MusicGen, ...)
+- code-generation: Code generation (Cursor, Copilot, ...)
+- data-analysis: Data analysis (pandas-ai, ...)
+- document-processing: Document processing (OCR, PDF, ...)
+- communication: Communication (Slack, Discord, ...)
+- search: Search (Perplexity, Tavily, ...)
+- three-d: 3D models (Meshy, TripoSR, ...)
+- custom: User-defined
 
-プラグイン追加フロー:
-1. ユーザー: 「browser-use を追加して」or 「画像生成ツールを追加して」
-2. システム: カテゴリ・名前でレジストリ検索 → マニフェスト取得 → 依存関係チェック
-3. システム: 不足パッケージのインストール案内 → API キー設定案内
-4. システム: プラグイン登録 → ツールレジストリに登録 → AI エージェントが利用可能に
+Plugin installation flow:
+1. User: "add browser-use" or "add an image generation tool"
+2. System: Search registry by category/name -> fetch manifest -> check dependencies
+3. System: Guide missing package installation -> guide API key setup
+4. System: Register plugin -> register in tool registry -> available for AI agents
 """
 
 from __future__ import annotations
@@ -47,19 +47,19 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# プラグイン要件の種別
+# Plugin requirement types
 # ---------------------------------------------------------------------------
 
 
 class RequirementType(str, Enum):
-    """プラグインが要求するリソースの種別."""
+    """Type of resource required by a plugin."""
 
-    PIP_PACKAGE = "pip_package"  # Python パッケージ
-    SYSTEM_COMMAND = "system_command"  # OS コマンド (chromium 等)
-    API_KEY = "api_key"  # 外部 API キー
-    ENV_VAR = "env_var"  # 環境変数
-    LLM_PROVIDER = "llm_provider"  # LLM プロバイダー
-    BROWSER = "browser"  # ブラウザ実行環境
+    PIP_PACKAGE = "pip_package"  # Python package
+    SYSTEM_COMMAND = "system_command"  # OS command (chromium, etc.)
+    API_KEY = "api_key"  # External API key
+    ENV_VAR = "env_var"  # Environment variable
+    LLM_PROVIDER = "llm_provider"  # LLM provider
+    BROWSER = "browser"  # Browser runtime environment
 
 
 class RequirementStatus(str, Enum):
@@ -70,19 +70,19 @@ class RequirementStatus(str, Enum):
 
 @dataclass
 class PluginRequirement:
-    """プラグインの 1 つの要件."""
+    """A single requirement for a plugin."""
 
     type: RequirementType
     name: str
     description: str = ""
     required: bool = True
-    install_hint: str = ""  # 解決方法のヒント
-    alternatives: list[str] = field(default_factory=list)  # 代替手段
+    install_hint: str = ""  # Hint for resolution
+    alternatives: list[str] = field(default_factory=list)  # Alternative options
 
 
 @dataclass
 class RequirementCheckResult:
-    """要件チェックの結果."""
+    """Result of a requirement check."""
 
     requirement: PluginRequirement
     status: RequirementStatus
@@ -91,21 +91,21 @@ class RequirementCheckResult:
 
 @dataclass
 class EnvironmentReport:
-    """プラグインの環境チェック全体結果."""
+    """Overall environment check result for a plugin."""
 
     plugin_name: str
     all_satisfied: bool
     results: list[RequirementCheckResult]
-    setup_instructions: list[str]  # ユーザー向けセットアップ手順
+    setup_instructions: list[str]  # Setup instructions for the user
 
 
 # ---------------------------------------------------------------------------
-# プラグインテンプレートカタログ（コミュニティレジストリの代替）
+# Plugin template catalog (substitute for community registry)
 # ---------------------------------------------------------------------------
 
-# 既知のツール → プラグインマニフェストのマッピング
-# ユーザーが「browser-use を追加して」と言った時にここから検索する
-# 将来的にはリモートレジストリ (plugins.zeo.dev) から動的取得
+# Known tool -> plugin manifest mapping
+# Searched when a user says "add browser-use"
+# In the future, dynamically fetched from remote registry (plugins.zeo.dev)
 
 _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
     "browser-use": {
@@ -144,15 +144,15 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
                 "type": "llm_provider",
                 "name": "LLM provider",
                 "required": True,
-                "description": "browser-use の AI 判断に LLM が必要",
+                "description": "LLM required for browser-use AI decision-making",
                 "install_hint": (
-                    "以下のいずれかを設定:\n"
-                    "  - BROWSER_USE_API_KEY (browser-use 専用、推奨)\n"
+                    "Set one of the following:\n"
+                    "  - BROWSER_USE_API_KEY (dedicated for browser-use, recommended)\n"
                     "  - OPENAI_API_KEY (OpenAI)\n"
                     "  - ANTHROPIC_API_KEY (Anthropic)\n"
-                    "  - GEMINI_API_KEY (Google、無料枠あり)\n"
-                    "  - Ollama (ローカル、無料)\n"
-                    "  - g4f (API キー不要モード)"
+                    "  - GEMINI_API_KEY (Google, free tier available)\n"
+                    "  - Ollama (local, free)\n"
+                    "  - g4f (no API key required mode)"
                 ),
                 "alternatives": [
                     "BROWSER_USE_API_KEY",
@@ -214,7 +214,7 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         "adapter": {
             "type": "selenium",
             "module": "app.tools.browser_adapter",
-            "class": None,  # 未実装 — コミュニティ貢献を期待
+            "class": None,  # Not implemented — expecting community contribution
         },
         "settings_schema": {
             "headless": {"type": "boolean", "default": True},
@@ -267,7 +267,7 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         ],
         "adapter": {"type": "mcp", "module": None, "class": None},
     },
-    # ── 画像生成 ──────────────────────────────────────────────────────────
+    # ── Image Generation ──────────────────────────────────────────────────
     "comfyui": {
         "slug": "comfyui",
         "name": "ComfyUI",
@@ -290,7 +290,7 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
                 "type": "env_var",
                 "name": "COMFYUI_URL",
                 "required": True,
-                "install_hint": "COMFYUI_URL=http://localhost:8188 (ComfyUI サーバーの URL)",
+                "install_hint": "COMFYUI_URL=http://localhost:8188 (URL of the ComfyUI server)",
             },
         ],
         "adapter": {"type": "rest_api", "module": None, "class": None},
@@ -314,13 +314,13 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
                 "type": "api_key",
                 "name": "BFL_API_KEY",
                 "required": False,
-                "install_hint": "BFL_API_KEY を設定 (API 経由の場合)。ローカル実行も可能。",
+                "install_hint": "Set BFL_API_KEY (for API access). Local execution is also possible.",
                 "alternatives": ["BFL_API_KEY", "REPLICATE_API_TOKEN"],
             },
         ],
         "adapter": {"type": "rest_api", "module": None, "class": None},
     },
-    # ── 音楽生成 ──────────────────────────────────────────────────────────
+    # ── Music Generation ──────────────────────────────────────────────────
     "suno-api": {
         "slug": "suno-api",
         "name": "Suno Music Generation",
@@ -337,7 +337,7 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
                 "type": "api_key",
                 "name": "SUNO_COOKIE",
                 "required": True,
-                "install_hint": "Suno の Web UI からセッション Cookie を取得して SUNO_COOKIE に設定",
+                "install_hint": "Get session cookie from Suno Web UI and set it as SUNO_COOKIE",
             },
         ],
         "adapter": {"type": "rest_api", "module": None, "class": None},
@@ -363,7 +363,7 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         ],
         "adapter": {"type": "python_module", "module": None, "class": None},
     },
-    # ── 音声合成 ──────────────────────────────────────────────────────────
+    # ── Speech Synthesis ──────────────────────────────────────────────────
     "voicevox": {
         "slug": "voicevox",
         "name": "VOICEVOX",
@@ -380,12 +380,12 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
                 "type": "env_var",
                 "name": "VOICEVOX_URL",
                 "required": True,
-                "install_hint": "VOICEVOX Engine を起動して VOICEVOX_URL=http://localhost:50021 を設定",
+                "install_hint": "Start VOICEVOX Engine and set VOICEVOX_URL=http://localhost:50021",
             },
         ],
         "adapter": {"type": "rest_api", "module": None, "class": None},
     },
-    # ── 検索・リサーチ ────────────────────────────────────────────────────
+    # ── Search / Research ────────────────────────────────────────────────
     "tavily": {
         "slug": "tavily",
         "name": "Tavily Search",
@@ -408,12 +408,12 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
                 "type": "api_key",
                 "name": "TAVILY_API_KEY",
                 "required": True,
-                "install_hint": "https://tavily.com で API キーを取得",
+                "install_hint": "Get API key at https://tavily.com",
             },
         ],
         "adapter": {"type": "python_module", "module": None, "class": None},
     },
-    # ── データ分析 ────────────────────────────────────────────────────────
+    # ── Data Analysis ────────────────────────────────────────────────────
     "pandas-ai": {
         "slug": "pandas-ai",
         "name": "PandasAI",
@@ -436,14 +436,14 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
                 "type": "llm_provider",
                 "name": "LLM provider",
                 "required": True,
-                "description": "データ分析の LLM が必要",
-                "install_hint": "OPENAI_API_KEY または他の LLM プロバイダーを設定",
+                "description": "LLM required for data analysis",
+                "install_hint": "Set OPENAI_API_KEY or another LLM provider",
                 "alternatives": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "ollama", "g4f"],
             },
         ],
         "adapter": {"type": "python_module", "module": None, "class": None},
     },
-    # ── 3D モデル ─────────────────────────────────────────────────────────
+    # ── 3D Models ─────────────────────────────────────────────────────────
     "triposr": {
         "slug": "triposr",
         "name": "TripoSR",
@@ -465,7 +465,7 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         ],
         "adapter": {"type": "python_module", "module": None, "class": None},
     },
-    # ── コミュニケーション ────────────────────────────────────────────────
+    # ── Communication ────────────────────────────────────────────────────
     "slack-sdk": {
         "slug": "slack-sdk",
         "name": "Slack Integration",
@@ -488,7 +488,7 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
                 "type": "api_key",
                 "name": "SLACK_BOT_TOKEN",
                 "required": True,
-                "install_hint": "Slack App を作成して Bot Token を取得",
+                "install_hint": "Create a Slack App and obtain a Bot Token",
             },
         ],
         "adapter": {"type": "python_module", "module": None, "class": None},
@@ -497,29 +497,29 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
 
 
 # ---------------------------------------------------------------------------
-# 汎用ツールレジストリ — AI エージェントがツールを動的に選択する基盤
+# Universal tool registry — foundation for AI agents to dynamically select tools
 # ---------------------------------------------------------------------------
 
 
 class ToolRegistry:
-    """あらゆるカテゴリのツールを統合管理するレジストリ.
+    """Registry that manages tools across all categories.
 
-    AI エージェント組織がタスクに最適なツールを動的に選択するための基盤。
-    特定のツールを固定するのではなく、ユーザーがカテゴリごとに
-    好みのツールを設定し、エージェントがそれを利用する。
+    Foundation for the AI agent organization to dynamically select the optimal
+    tool per task. Rather than locking in specific tools, users configure their
+    preferred tool per category, and agents use that selection.
 
-    例:
-    - 画像生成タスク → ユーザーが設定した画像生成ツール (ComfyUI or DALL-E or Flux)
-    - ブラウザ操作タスク → ユーザーが設定したブラウザツール (browser-use or Playwright)
-    - 音楽生成タスク → ユーザーが設定した音楽ツール (Suno or MusicGen)
+    Examples:
+    - Image generation task -> user-configured image tool (ComfyUI or DALL-E or Flux)
+    - Browser automation task -> user-configured browser tool (browser-use or Playwright)
+    - Music generation task -> user-configured music tool (Suno or MusicGen)
     """
 
     def __init__(self) -> None:
-        # カテゴリ → 登録済みツール名のリスト
+        # Category -> list of registered tool names
         self._tools: dict[str, list[str]] = {}
-        # カテゴリ → アクティブツール名
+        # Category -> active tool name
         self._active: dict[str, str] = {}
-        # ツール名 → 設定
+        # Tool name -> configuration
         self._configs: dict[str, dict] = {}
 
     def register_tool(
@@ -528,12 +528,12 @@ class ToolRegistry:
         category: str,
         config: dict,
     ) -> None:
-        """ツールをレジストリに登録する.
+        """Register a tool in the registry.
 
         Args:
-            slug: ツール識別子
-            category: ツールカテゴリ
-            config: ツール設定（マニフェスト情報等）
+            slug: Tool identifier
+            category: Tool category
+            config: Tool configuration (manifest info, etc.)
         """
         if category not in self._tools:
             self._tools[category] = []
@@ -541,14 +541,14 @@ class ToolRegistry:
             self._tools[category].append(slug)
         self._configs[slug] = {**config, "category": category}
 
-        # そのカテゴリで初めてのツールならアクティブに設定
+        # Set as active if this is the first tool in the category
         if category not in self._active:
             self._active[category] = slug
 
-        logger.info("ツール登録: %s (カテゴリ: %s)", slug, category)
+        logger.info("Tool registered: %s (category: %s)", slug, category)
 
     def unregister_tool(self, slug: str) -> bool:
-        """ツールを登録解除する."""
+        """Unregister a tool."""
         config = self._configs.pop(slug, None)
         if config is None:
             return False
@@ -557,7 +557,7 @@ class ToolRegistry:
         if category in self._tools and slug in self._tools[category]:
             self._tools[category].remove(slug)
 
-        # アクティブツールが削除されたら別のツールに切替
+        # Switch to another tool if the active one was removed
         if self._active.get(category) == slug:
             remaining = self._tools.get(category, [])
             self._active[category] = remaining[0] if remaining else ""
@@ -565,30 +565,30 @@ class ToolRegistry:
         return True
 
     def set_active_tool(self, category: str, slug: str) -> bool:
-        """カテゴリのアクティブツールを切り替える.
+        """Switch the active tool for a category.
 
-        ユーザーが「画像生成は ComfyUI を使って」と言った場合、
-        image-generation カテゴリのアクティブツールを comfyui に切り替える。
+        When a user says "use ComfyUI for image generation",
+        switch the active tool for the image-generation category to comfyui.
         """
         if category not in self._tools or slug not in self._tools[category]:
             return False
         self._active[category] = slug
-        logger.info("アクティブツール変更: %s → %s", category, slug)
+        logger.info("Active tool changed: %s -> %s", category, slug)
         return True
 
     def get_active_tool(self, category: str) -> str | None:
-        """カテゴリのアクティブツールを取得する.
+        """Get the active tool for a category.
 
-        AI エージェントが「画像生成をしたい」時に呼ぶ。
+        Called when an AI agent wants to perform e.g. "image generation".
         """
         return self._active.get(category)
 
     def get_tool_config(self, slug: str) -> dict | None:
-        """ツールの設定情報を取得する."""
+        """Get configuration for a tool."""
         return self._configs.get(slug)
 
     def list_tools(self, category: str | None = None) -> list[dict]:
-        """登録済みツール一覧を返す."""
+        """Return a list of registered tools."""
         results = []
         for slug, config in self._configs.items():
             if category and config.get("category") != category:
@@ -606,7 +606,7 @@ class ToolRegistry:
         return results
 
     def list_categories(self) -> list[dict]:
-        """カテゴリ一覧とアクティブツールを返す."""
+        """Return a list of categories and their active tools."""
         return [
             {
                 "category": cat,
@@ -618,19 +618,19 @@ class ToolRegistry:
         ]
 
     def resolve_tool_for_task(self, task_description: str) -> dict | None:
-        """タスクの説明文からカテゴリを推定し、アクティブツールを返す.
+        """Infer category from task description and return the active tool.
 
-        AI エージェント組織がタスクを実行する際に呼ぶ。
+        Called when the AI agent organization executes a task.
 
         Args:
-            task_description: タスクの自然言語記述
+            task_description: Natural language description of the task
 
         Returns:
-            ツール設定、またはマッチしない場合 None
+            Tool configuration, or None if no match
         """
         desc_lower = task_description.lower()
 
-        # カテゴリキーワードマッピング
+        # Category keyword mapping
         category_keywords: dict[str, list[str]] = {
             "browser-automation": [
                 "ブラウザ",
@@ -732,18 +732,18 @@ class ToolRegistry:
 
 
 # ---------------------------------------------------------------------------
-# 環境チェッカー
+# Environment checker
 # ---------------------------------------------------------------------------
 
 
 class EnvironmentResolver:
-    """プラグインの依存関係・環境要件を検証・解決する.
+    """Verify and resolve plugin dependencies and environment requirements.
 
-    各要件を検査し、不足しているものについてはセットアップ手順を生成する。
+    Inspects each requirement and generates setup instructions for missing ones.
     """
 
     def check_pip_package(self, package_name: str) -> bool:
-        """pip パッケージがインストール済みか確認する."""
+        """Check whether a pip package is installed."""
         try:
             importlib.import_module(package_name.replace("-", "_"))
             return True
@@ -751,33 +751,33 @@ class EnvironmentResolver:
             return False
 
     def check_system_command(self, command: str) -> bool:
-        """システムコマンドが利用可能か確認する."""
+        """Check whether a system command is available."""
         import shutil
 
         return shutil.which(command) is not None
 
     def check_env_var(self, var_name: str) -> bool:
-        """環境変数が設定されているか確認する."""
+        """Check whether an environment variable is set."""
         import os
 
         return bool(os.environ.get(var_name, ""))
 
     def check_llm_provider(self, alternatives: list[str]) -> tuple[bool, str]:
-        """LLM プロバイダーが少なくとも 1 つ利用可能か確認する.
+        """Check whether at least one LLM provider is available.
 
         Returns:
-            (利用可能か, 利用可能なプロバイダー名)
+            (is_available, available_provider_name)
         """
         import os
 
-        # API キー系
+        # API key checks
         for alt in alternatives:
             if alt in ("ollama", "g4f"):
                 continue
             if os.environ.get(alt, ""):
                 return True, alt
 
-        # Ollama チェック
+        # Ollama check
         if "ollama" in alternatives:
             try:
                 from app.providers.ollama_provider import ollama_provider
@@ -787,7 +787,7 @@ class EnvironmentResolver:
             except ImportError:
                 pass
 
-        # g4f チェック
+        # g4f check
         if "g4f" in alternatives:
             try:
                 from app.providers.g4f_provider import g4f_provider
@@ -800,7 +800,7 @@ class EnvironmentResolver:
         return False, ""
 
     def check_browser(self) -> bool:
-        """ブラウザが利用可能か確認する."""
+        """Check whether a browser is available."""
         import shutil
 
         browsers = ["chromium", "chromium-browser", "google-chrome", "chrome"]
@@ -810,7 +810,7 @@ class EnvironmentResolver:
         self,
         requirements: list[dict],
     ) -> EnvironmentReport:
-        """プラグインの全要件をチェックし、レポートを生成する."""
+        """Check all plugin requirements and generate a report."""
         results: list[RequirementCheckResult] = []
         setup_instructions: list[str] = []
         all_satisfied = True
@@ -830,52 +830,52 @@ class EnvironmentResolver:
 
             if req.type == RequirementType.PIP_PACKAGE:
                 if self.check_pip_package(req.name):
-                    detail = f"{req.name} はインストール済み"
+                    detail = f"{req.name} is installed"
                 else:
                     status = RequirementStatus.MISSING
-                    detail = f"{req.name} が見つかりません"
-                    setup_instructions.append(f"パッケージをインストール: {req.install_hint}")
+                    detail = f"{req.name} not found"
+                    setup_instructions.append(f"Install package: {req.install_hint}")
 
             elif req.type == RequirementType.SYSTEM_COMMAND:
                 if self.check_system_command(req.name):
-                    detail = f"{req.name} コマンドが利用可能"
+                    detail = f"{req.name} command is available"
                 else:
                     status = RequirementStatus.MISSING
-                    detail = f"{req.name} コマンドが見つかりません"
-                    setup_instructions.append(f"コマンドをインストール: {req.install_hint}")
+                    detail = f"{req.name} command not found"
+                    setup_instructions.append(f"Install command: {req.install_hint}")
 
             elif req.type == RequirementType.API_KEY:
                 if self.check_env_var(req.name):
-                    detail = f"{req.name} が設定済み"
+                    detail = f"{req.name} is configured"
                 else:
                     status = RequirementStatus.MISSING
-                    detail = f"{req.name} が未設定"
-                    setup_instructions.append(f"API キーを設定: {req.install_hint}")
+                    detail = f"{req.name} is not set"
+                    setup_instructions.append(f"Set API key: {req.install_hint}")
 
             elif req.type == RequirementType.ENV_VAR:
                 if self.check_env_var(req.name):
-                    detail = f"{req.name} が設定済み"
+                    detail = f"{req.name} is configured"
                 else:
                     status = RequirementStatus.MISSING
-                    detail = f"{req.name} が未設定"
-                    setup_instructions.append(f"環境変数を設定: {req.install_hint}")
+                    detail = f"{req.name} is not set"
+                    setup_instructions.append(f"Set environment variable: {req.install_hint}")
 
             elif req.type == RequirementType.LLM_PROVIDER:
                 available, provider_name = self.check_llm_provider(req.alternatives)
                 if available:
-                    detail = f"LLM プロバイダー利用可能: {provider_name}"
+                    detail = f"LLM provider available: {provider_name}"
                 else:
                     status = RequirementStatus.MISSING
-                    detail = "利用可能な LLM プロバイダーがありません"
-                    setup_instructions.append(f"LLM プロバイダーを設定:\n{req.install_hint}")
+                    detail = "No LLM provider available"
+                    setup_instructions.append(f"Set up LLM provider:\n{req.install_hint}")
 
             elif req.type == RequirementType.BROWSER:
                 if self.check_browser():
-                    detail = "ブラウザが利用可能"
+                    detail = "Browser is available"
                 else:
                     status = RequirementStatus.MISSING
-                    detail = "ブラウザが見つかりません"
-                    setup_instructions.append(f"ブラウザをインストール: {req.install_hint}")
+                    detail = "Browser not found"
+                    setup_instructions.append(f"Install browser: {req.install_hint}")
 
             if status == RequirementStatus.MISSING and not req.required:
                 status = RequirementStatus.OPTIONAL
@@ -900,23 +900,23 @@ class EnvironmentResolver:
 
 
 # ---------------------------------------------------------------------------
-# プラグインローダー
+# Plugin loader
 # ---------------------------------------------------------------------------
 
 
 class PluginLoader:
-    """プラグインの検索・環境チェック・インストール・有効化を統合管理する.
+    """Manages plugin search, environment check, installation, and activation.
 
-    VSCode のエクステンション管理と同様に:
-    1. 検索: ユーザーが名前やキーワードで検索（自然言語対応）
-    2. チェック: 依存関係・環境要件を自動検査
-    3. インストール: pip パッケージのインストール支援
-    4. 有効化: アダプタ/サービスの登録と有効化
-    5. ツール切替: カテゴリごとにアクティブツールを切り替え
+    Similar to VSCode extension management:
+    1. Search: Users search by name or keyword (natural language supported)
+    2. Check: Automatic inspection of dependencies and environment requirements
+    3. Install: Assistance with pip package installation
+    4. Activate: Register and activate adapters/services
+    5. Tool switch: Switch active tools per category
 
-    AI エージェント組織との連携:
-    - エージェントは tool_registry.resolve_tool_for_task() でタスクに最適なツールを選択
-    - ユーザーが設定したアクティブツールをエージェントが自動的に使用
+    Integration with AI agent organization:
+    - Agents select the optimal tool per task via tool_registry.resolve_tool_for_task()
+    - Agents automatically use the active tool configured by the user
     """
 
     def __init__(self) -> None:
@@ -924,25 +924,25 @@ class PluginLoader:
         self._installed_plugins: dict[str, dict] = {}
         self.tool_registry = ToolRegistry()
 
-    # ----- 検索 -----
+    # ----- Search -----
 
     def search(self, query: str) -> list[dict]:
-        """自然言語クエリでプラグインを検索する.
+        """Search plugins with a natural language query.
 
-        ユーザーが「ブラウザ操作」「browser-use」「Web 自動化」等と
-        入力したときに適切なプラグインを返す。
+        Returns appropriate plugins when users enter queries like
+        "browser automation", "browser-use", "web automation", etc.
 
         Args:
-            query: 検索クエリ（自然言語 or プラグイン名）
+            query: Search query (natural language or plugin name)
 
         Returns:
-            マッチしたプラグインテンプレートのリスト
+            List of matching plugin templates
         """
         query_lower = query.lower()
         results = []
 
         for slug, template in _KNOWN_PLUGIN_TEMPLATES.items():
-            # スラッグ・名前・説明・カテゴリでマッチ
+            # Match by slug, name, description, category
             searchable = " ".join(
                 [
                     slug,
@@ -974,21 +974,21 @@ class PluginLoader:
         return results
 
     def get_template(self, slug: str) -> dict | None:
-        """プラグインテンプレートを取得する."""
+        """Get a plugin template."""
         return _KNOWN_PLUGIN_TEMPLATES.get(slug)
 
-    # ----- 環境チェック -----
+    # ----- Environment check -----
 
     def check_environment(self, slug: str) -> EnvironmentReport:
-        """プラグインの環境要件をチェックする.
+        """Check the environment requirements for a plugin.
 
-        インストール前にユーザーに何が必要かを提示する。
+        Presents what is needed to the user before installation.
 
         Args:
-            slug: プラグインスラッグ
+            slug: Plugin slug
 
         Returns:
-            環境チェックレポート
+            Environment check report
         """
         template = _KNOWN_PLUGIN_TEMPLATES.get(slug)
         if not template:
@@ -996,7 +996,7 @@ class PluginLoader:
                 plugin_name=slug,
                 all_satisfied=False,
                 results=[],
-                setup_instructions=[f"プラグイン '{slug}' が見つかりません"],
+                setup_instructions=[f"Plugin '{slug}' not found"],
             )
 
         requirements = template.get("requirements", [])
@@ -1004,7 +1004,7 @@ class PluginLoader:
         report.plugin_name = template["name"]
         return report
 
-    # ----- インストール -----
+    # ----- Install -----
 
     async def install_plugin(
         self,
@@ -1013,25 +1013,25 @@ class PluginLoader:
         auto_install_packages: bool = False,
         dry_run: bool = False,
     ) -> dict:
-        """プラグインをインストールする.
+        """Install a plugin.
 
         Args:
-            slug: プラグインスラッグ
-            auto_install_packages: pip パッケージを自動インストールするか
-            dry_run: 実際にはインストールせず、手順のみ返す
+            slug: Plugin slug
+            auto_install_packages: Whether to auto-install pip packages
+            dry_run: Only return instructions without actually installing
 
         Returns:
-            インストール結果
+            Installation result
         """
         template = _KNOWN_PLUGIN_TEMPLATES.get(slug)
         if not template:
             return {
                 "success": False,
-                "error": f"プラグイン '{slug}' が見つかりません",
+                "error": f"Plugin '{slug}' not found",
                 "available_plugins": list(_KNOWN_PLUGIN_TEMPLATES.keys()),
             }
 
-        # 環境チェック
+        # Environment check
         env_report = self.check_environment(slug)
 
         if dry_run:
@@ -1055,7 +1055,7 @@ class PluginLoader:
                 },
             }
 
-        # pip パッケージの自動インストール
+        # Auto-install pip packages
         if auto_install_packages and not env_report.all_satisfied:
             for result in env_report.results:
                 if (
@@ -1063,7 +1063,7 @@ class PluginLoader:
                     and result.requirement.type == RequirementType.PIP_PACKAGE
                 ):
                     package = result.requirement.name
-                    logger.info("自動インストール: %s", package)
+                    logger.info("Auto-installing: %s", package)
                     try:
                         subprocess.check_call(
                             [sys.executable, "-m", "pip", "install", package],
@@ -1072,14 +1072,14 @@ class PluginLoader:
                             timeout=120,
                         )
                         result.status = RequirementStatus.SATISFIED
-                        result.detail = f"{package} をインストールしました"
+                        result.detail = f"{package} has been installed"
                     except Exception as exc:
-                        logger.error("パッケージインストール失敗 %s: %s", package, exc)
+                        logger.error("Package installation failed %s: %s", package, exc)
 
-            # 再チェック
+            # Re-check
             env_report = self.check_environment(slug)
 
-        # アダプタ登録
+        # Adapter registration
         adapter_config = template.get("adapter", {})
         adapter_registered = False
 
@@ -1089,21 +1089,21 @@ class PluginLoader:
                 adapter_cls = getattr(module, adapter_config["class"])
                 adapter_instance = adapter_cls()
 
-                # ブラウザアダプタレジストリに登録
+                # Register in browser adapter registry
                 from app.tools.browser_adapter import browser_adapter_registry
 
                 browser_adapter_registry.register(slug, adapter_instance)
                 adapter_registered = True
-                logger.info("アダプタ登録完了: %s", slug)
+                logger.info("Adapter registered: %s", slug)
             except Exception as exc:
-                logger.warning("アダプタ登録失敗: %s — %s", slug, exc)
+                logger.warning("Adapter registration failed: %s — %s", slug, exc)
 
         self._installed_plugins[slug] = {
             "template": template,
             "adapter_registered": adapter_registered,
         }
 
-        # ツールレジストリに登録（AI エージェントが利用可能に）
+        # Register in tool registry (makes it available to AI agents)
         category = template.get("category", "custom")
         self.tool_registry.register_tool(
             slug=slug,
@@ -1130,14 +1130,14 @@ class PluginLoader:
             },
         }
 
-    # ----- アンインストール -----
+    # ----- Uninstall -----
 
     def uninstall_plugin(self, slug: str) -> dict:
-        """プラグインを登録解除する（pip パッケージは削除しない）."""
+        """Unregister a plugin (does not remove pip packages)."""
         if slug not in self._installed_plugins:
-            return {"success": False, "error": f"プラグイン '{slug}' はインストールされていません"}
+            return {"success": False, "error": f"Plugin '{slug}' is not installed"}
 
-        # ブラウザアダプタレジストリからも解除
+        # Also unregister from browser adapter registry
         try:
             from app.tools.browser_adapter import browser_adapter_registry
 
@@ -1145,16 +1145,16 @@ class PluginLoader:
         except Exception:
             pass
 
-        # ツールレジストリからも解除
+        # Also unregister from tool registry
         self.tool_registry.unregister_tool(slug)
 
         del self._installed_plugins[slug]
-        return {"success": True, "message": f"プラグイン '{slug}' を削除しました"}
+        return {"success": True, "message": f"Plugin '{slug}' has been removed"}
 
-    # ----- 一覧 -----
+    # ----- List -----
 
     def list_installed(self) -> list[dict]:
-        """インストール済みプラグイン一覧を返す."""
+        """Return a list of installed plugins."""
         return [
             {
                 "slug": slug,
@@ -1165,7 +1165,7 @@ class PluginLoader:
         ]
 
     def list_available(self) -> list[dict]:
-        """利用可能な全プラグイン一覧を返す."""
+        """Return a list of all available plugins."""
         return [
             {
                 "slug": slug,
@@ -1185,7 +1185,7 @@ class PluginLoader:
 
 
 # ---------------------------------------------------------------------------
-# グローバルインスタンス
+# Global instance
 # ---------------------------------------------------------------------------
 
 plugin_loader = PluginLoader()

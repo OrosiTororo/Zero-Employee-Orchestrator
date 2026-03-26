@@ -1,8 +1,8 @@
-"""ユーザーリソースインポートサービス.
+"""User resource import service.
 
-業務マニュアル、ルール、ドキュメントフォルダなどを
-AIが学習・参照できるようにインポート・管理する。
-テキスト抽出やサマリー生成の機能を提供する。
+Imports and manages business manuals, rules, document folders, etc.
+so that AI can learn from and reference them.
+Provides text extraction and summary generation capabilities.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-# テキスト抽出可能なファイル拡張子
+# File extensions that support text extraction
 TEXT_EXTENSIONS: set[str] = {
     ".txt",
     ".md",
@@ -38,7 +38,7 @@ TEXT_EXTENSIONS: set[str] = {
     ".cfg",
 }
 
-# インポート対象のデフォルトファイル拡張子
+# Default file extensions for import
 DEFAULT_FILE_TYPES: set[str] = {
     ".txt",
     ".md",
@@ -61,7 +61,7 @@ DEFAULT_FILE_TYPES: set[str] = {
 
 
 class ResourceType(str, Enum):
-    """リソースの種別."""
+    """Resource type."""
 
     DOCUMENT = "document"
     SPREADSHEET = "spreadsheet"
@@ -74,7 +74,7 @@ class ResourceType(str, Enum):
 
 
 class ImportStatus(str, Enum):
-    """インポートステータス."""
+    """Import status."""
 
     PENDING = "pending"
     PROCESSING = "processing"
@@ -85,7 +85,7 @@ class ImportStatus(str, Enum):
 
 @dataclass
 class ImportedResource:
-    """インポートされたリソースを表すデータクラス."""
+    """Data class representing an imported resource."""
 
     id: str
     name: str
@@ -101,7 +101,7 @@ class ImportedResource:
 
 
 def _detect_resource_type(file_path: str) -> ResourceType:
-    """ファイルパスからリソース種別を推定する."""
+    """Detect resource type from file path."""
     ext = Path(file_path).suffix.lower()
     if ext == ".pdf":
         return ResourceType.PDF
@@ -115,14 +115,14 @@ def _detect_resource_type(file_path: str) -> ResourceType:
 
 
 class ResourceImportService:
-    """ユーザーリソースのインポート・管理を行うサービス.
+    """Service for importing and managing user resources.
 
-    ファイル、フォルダ、URLからリソースをインポートし、
-    テキスト抽出やサマリー生成を行う。
+    Imports resources from files, folders, and URLs,
+    and performs text extraction and summary generation.
     """
 
     def __init__(self) -> None:
-        """サービスを初期化する."""
+        """Initialize the service."""
         self._resources: dict[str, ImportedResource] = {}
 
     async def import_file(
@@ -132,22 +132,22 @@ class ResourceImportService:
         *,
         tags: list[str] | None = None,
     ) -> ImportedResource:
-        """単一ファイルをインポートする.
+        """Import a single file.
 
         Args:
-            file_path: インポート対象のファイルパス
-            resource_type: リソース種別（省略時は拡張子から推定）
-            tags: タグのリスト
+            file_path: File path to import
+            resource_type: Resource type (auto-detected from extension if omitted)
+            tags: List of tags
 
         Returns:
-            インポートされたリソース
+            The imported resource
 
         Raises:
-            FileNotFoundError: ファイルが存在しない場合
+            FileNotFoundError: If the file does not exist
         """
         path = Path(file_path)
         if not path.exists():
-            raise FileNotFoundError(f"ファイルが見つかりません: {file_path}")
+            raise FileNotFoundError(f"File not found: {file_path}")
 
         if resource_type is None:
             resource_type = _detect_resource_type(file_path)
@@ -163,7 +163,7 @@ class ResourceImportService:
             tags=tags or [],
         )
 
-        # テキスト抽出を試行
+        # Attempt text extraction
         resource.status = ImportStatus.PROCESSING
         try:
             resource.extracted_text = await self.extract_text(resource)
@@ -171,12 +171,12 @@ class ResourceImportService:
             resource.status = ImportStatus.COMPLETED
             resource.processed_at = datetime.now(UTC)
         except Exception:
-            logger.warning("テキスト抽出失敗: %s", file_path, exc_info=True)
+            logger.warning("Text extraction failed: %s", file_path, exc_info=True)
             resource.status = ImportStatus.FAILED
 
         self._resources[resource_id] = resource
         logger.info(
-            "ファイルインポート: id=%s, name=%s, type=%s",
+            "File imported: id=%s, name=%s, type=%s",
             resource_id,
             path.name,
             resource_type.value,
@@ -190,22 +190,22 @@ class ResourceImportService:
         recursive: bool = True,
         file_types: set[str] | None = None,
     ) -> list[ImportedResource]:
-        """フォルダからリソースをインポートする.
+        """Import resources from a folder.
 
         Args:
-            folder_path: インポート対象のフォルダパス
-            recursive: サブフォルダも再帰的に処理するか
-            file_types: 対象ファイル拡張子（省略時はデフォルトセット）
+            folder_path: Folder path to import
+            recursive: Whether to recursively process subfolders
+            file_types: Target file extensions (defaults to default set if omitted)
 
         Returns:
-            インポートされたリソースのリスト
+            List of imported resources
 
         Raises:
-            FileNotFoundError: フォルダが存在しない場合
+            FileNotFoundError: If the folder does not exist
         """
         path = Path(folder_path)
         if not path.is_dir():
-            raise FileNotFoundError(f"フォルダが見つかりません: {folder_path}")
+            raise FileNotFoundError(f"Folder not found: {folder_path}")
 
         allowed = file_types or DEFAULT_FILE_TYPES
         imported: list[ImportedResource] = []
@@ -220,9 +220,9 @@ class ResourceImportService:
                 resource = await self.import_file(str(file_path))
                 imported.append(resource)
             except Exception:
-                logger.warning("フォルダインポート中のエラー: %s", file_path, exc_info=True)
+                logger.warning("Error during folder import: %s", file_path, exc_info=True)
 
-        logger.info("フォルダインポート完了: path=%s, count=%d", folder_path, len(imported))
+        logger.info("Folder import completed: path=%s, count=%d", folder_path, len(imported))
         return imported
 
     async def import_url(
@@ -231,14 +231,14 @@ class ResourceImportService:
         *,
         tags: list[str] | None = None,
     ) -> ImportedResource:
-        """URLからリソースをインポートする.
+        """Import a resource from a URL.
 
         Args:
-            url: インポート対象のURL
-            tags: タグのリスト
+            url: URL to import
+            tags: List of tags
 
         Returns:
-            インポートされたリソース
+            The imported resource
         """
         resource_id = str(uuid.uuid4())
         resource = ImportedResource(
@@ -250,21 +250,21 @@ class ResourceImportService:
             status=ImportStatus.PENDING,
         )
 
-        # NOTE: 実際のURL取得は外部HTTPクライアントを使用する
-        # ここではメタデータのみ保存し、非同期処理で取得を行う
+        # NOTE: Actual URL fetching uses an external HTTP client
+        # Here we only save metadata; fetching is done asynchronously
         resource.status = ImportStatus.PROCESSING
         self._resources[resource_id] = resource
-        logger.info("URLインポート登録: id=%s, url=%s", resource_id, url)
+        logger.info("URL import registered: id=%s, url=%s", resource_id, url)
         return resource
 
     def get_resource(self, resource_id: str) -> ImportedResource | None:
-        """リソースをIDで取得する.
+        """Get a resource by ID.
 
         Args:
-            resource_id: リソースID
+            resource_id: Resource ID
 
         Returns:
-            リソース（存在しない場合は None）
+            The resource (None if not found)
         """
         return self._resources.get(resource_id)
 
@@ -275,18 +275,18 @@ class ResourceImportService:
         resource_type: ResourceType | None = None,
         tags: list[str] | None = None,
     ) -> list[ImportedResource]:
-        """リソースを検索する.
+        """Search for resources.
 
-        名前、サマリー、抽出テキスト内をクエリで検索する。
-        リソース種別やタグでフィルタリングも可能。
+        Searches within names, summaries, and extracted text by query.
+        Can also filter by resource type and tags.
 
         Args:
-            query: 検索クエリ文字列
-            resource_type: フィルタするリソース種別
-            tags: フィルタするタグ（いずれか一致）
+            query: Search query string
+            resource_type: Resource type to filter by
+            tags: Tags to filter by (any match)
 
         Returns:
-            マッチしたリソースのリスト
+            List of matched resources
         """
         query_lower = query.lower()
         results: list[ImportedResource] = []
@@ -297,7 +297,7 @@ class ResourceImportService:
             if tags and not any(t in resource.tags for t in tags):
                 continue
 
-            # テキスト検索
+            # Text search
             searchable = (
                 f"{resource.name} {resource.content_summary} {resource.extracted_text}"
             ).lower()
@@ -314,16 +314,16 @@ class ResourceImportService:
         limit: int = 100,
         offset: int = 0,
     ) -> list[ImportedResource]:
-        """リソース一覧を取得する.
+        """Get a list of resources.
 
         Args:
-            status: フィルタするステータス
-            resource_type: フィルタするリソース種別
-            limit: 取得件数上限
-            offset: スキップ件数
+            status: Status to filter by
+            resource_type: Resource type to filter by
+            limit: Maximum number of items to retrieve
+            offset: Number of items to skip
 
         Returns:
-            リソースのリスト
+            List of resources
         """
         resources = list(self._resources.values())
 
@@ -332,37 +332,37 @@ class ResourceImportService:
         if resource_type:
             resources = [r for r in resources if r.resource_type == resource_type]
 
-        # imported_at で降順ソート
+        # Sort by imported_at descending
         resources.sort(key=lambda r: r.imported_at, reverse=True)
         return resources[offset : offset + limit]
 
     async def delete_resource(self, resource_id: str) -> bool:
-        """リソースを削除する.
+        """Delete a resource.
 
         Args:
-            resource_id: リソースID
+            resource_id: Resource ID
 
         Returns:
-            削除成功の場合 True
+            True if deletion was successful
         """
         if resource_id not in self._resources:
             return False
 
         del self._resources[resource_id]
-        logger.info("リソース削除: id=%s", resource_id)
+        logger.info("Resource deleted: id=%s", resource_id)
         return True
 
     async def extract_text(self, resource: ImportedResource) -> str:
-        """リソースからテキストを抽出する.
+        """Extract text from a resource.
 
-        対応するファイル形式からプレーンテキストを抽出する。
-        現在はテキストベースのファイルのみ対応。
+        Extracts plain text from supported file formats.
+        Currently supports text-based files only.
 
         Args:
-            resource: 対象リソース
+            resource: Target resource
 
         Returns:
-            抽出されたテキスト
+            Extracted text
         """
         if resource.resource_type == ResourceType.URL:
             return ""
@@ -375,37 +375,37 @@ class ResourceImportService:
         if ext in TEXT_EXTENSIONS:
             try:
                 content = path.read_text(encoding="utf-8", errors="replace")
-                # 大きすぎるファイルは先頭部分のみ
+                # For files that are too large, only the beginning portion
                 max_chars = 100_000
                 if len(content) > max_chars:
                     content = content[:max_chars] + "\n... (truncated)"
                 return content
             except Exception:
-                logger.warning("テキスト読み取り失敗: %s", path, exc_info=True)
+                logger.warning("Text read failed: %s", path, exc_info=True)
                 return ""
 
-        # PDF, DOCX などは将来的に専用ライブラリで対応
+        # PDF, DOCX, etc. will be supported by dedicated libraries in the future
         mime_type, _ = mimetypes.guess_type(str(path))
-        logger.debug("テキスト抽出未対応: %s (mime=%s)", path.name, mime_type)
+        logger.debug("Text extraction not supported: %s (mime=%s)", path.name, mime_type)
         return ""
 
     async def generate_summary(self, resource: ImportedResource) -> str:
-        """リソースのサマリーを生成する.
+        """Generate a summary for a resource.
 
-        抽出テキストの先頭から簡易サマリーを作成する。
-        将来的にはLLMを使用した高品質なサマリー生成に移行予定。
+        Creates a simple summary from the beginning of the extracted text.
+        Will transition to high-quality LLM-based summary generation in the future.
 
         Args:
-            resource: 対象リソース
+            resource: Target resource
 
         Returns:
-            サマリー文字列
+            Summary string
         """
         text = resource.extracted_text
         if not text:
             return ""
 
-        # 簡易サマリー: 先頭200文字
+        # Simple summary: first 200 characters
         summary = text[:200].strip()
         if len(text) > 200:
             summary += "..."
@@ -413,6 +413,6 @@ class ResourceImportService:
 
 
 # ---------------------------------------------------------------------------
-# グローバルインスタンス
+# Global instance
 # ---------------------------------------------------------------------------
 resource_import_service = ResourceImportService()

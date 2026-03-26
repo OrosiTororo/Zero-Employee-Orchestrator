@@ -1,13 +1,13 @@
-"""Skill マーケットプレイスサービス — コミュニティ Skill/Plugin の公開・検索・レビュー・インストール.
+"""Skill marketplace service -- Community Skill/Plugin publishing, search, review, and installation.
 
-Skill / Plugin / Extension をマーケットプレイスに公開し、
-検索・レビュー・インストールを可能にする。
+Publishes Skill / Plugin / Extension to the marketplace,
+enabling search, review, and installation.
 
-公開フロー:
-1. 開発者が Listing を DRAFT として作成
-2. publish() でレビュー待ち (PENDING_REVIEW) に遷移
-3. 管理者が approve() または reject() で承認/却下
-4. PUBLISHED になった Listing は検索・インストール可能
+Publishing flow:
+1. Developer creates a Listing as DRAFT
+2. publish() transitions to review pending (PENDING_REVIEW)
+3. Admin approves or rejects with approve() or reject()
+4. PUBLISHED Listings become searchable and installable
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class MarketplaceCategory(str, Enum):
-    """マーケットプレイスカテゴリ."""
+    """Marketplace category."""
 
     PRODUCTIVITY = "productivity"
     COMMUNICATION = "communication"
@@ -37,7 +37,7 @@ class MarketplaceCategory(str, Enum):
 
 
 class ListingStatus(str, Enum):
-    """Listing のステータス."""
+    """Listing status."""
 
     DRAFT = "draft"
     PENDING_REVIEW = "pending_review"
@@ -48,7 +48,7 @@ class ListingStatus(str, Enum):
 
 @dataclass
 class MarketplaceListing:
-    """マーケットプレイス Listing."""
+    """Marketplace listing."""
 
     id: str
     name: str
@@ -69,7 +69,7 @@ class MarketplaceListing:
 
 @dataclass
 class Review:
-    """レビュー."""
+    """Review."""
 
     id: str
     listing_id: str
@@ -92,7 +92,7 @@ class MarketplaceService:
         self._installed: dict[str, list[str]] = {}  # company_id -> listing_ids
 
     # ------------------------------------------------------------------
-    # 公開・承認
+    # Publishing & approval
     # ------------------------------------------------------------------
 
     async def publish(self, listing: MarketplaceListing) -> MarketplaceListing:
@@ -145,7 +145,7 @@ class MarketplaceService:
         return listing
 
     # ------------------------------------------------------------------
-    # 検索・取得
+    # Search & retrieval
     # ------------------------------------------------------------------
 
     async def search(
@@ -189,7 +189,7 @@ class MarketplaceService:
         return self._listings.get(listing_id)
 
     # ------------------------------------------------------------------
-    # インストール・アンインストール
+    # Install & uninstall
     # ------------------------------------------------------------------
 
     async def install(self, listing_id: str, company_id: str) -> MarketplaceListing:
@@ -227,7 +227,7 @@ class MarketplaceService:
         return True
 
     # ------------------------------------------------------------------
-    # レビュー
+    # Reviews
     # ------------------------------------------------------------------
 
     async def add_review(
@@ -273,7 +273,7 @@ class MarketplaceService:
         return sorted(reviews, key=lambda r: r.created_at, reverse=True)[:limit]
 
     # ------------------------------------------------------------------
-    # トレンド・インストール済み
+    # Trending & installed
     # ------------------------------------------------------------------
 
     async def get_trending(self, limit: int = 10) -> list[MarketplaceListing]:
@@ -294,7 +294,7 @@ class MarketplaceService:
         return [self._listings[lid] for lid in installed_ids if lid in self._listings]
 
     # ------------------------------------------------------------------
-    # 更新
+    # Update
     # ------------------------------------------------------------------
 
     async def update_listing(self, listing_id: str, updates: dict) -> MarketplaceListing:
@@ -325,5 +325,5 @@ class MarketplaceService:
         return listing
 
 
-# グローバルインスタンス
+# Global instance
 marketplace_service = MarketplaceService()
