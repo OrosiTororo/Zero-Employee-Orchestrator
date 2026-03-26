@@ -571,7 +571,7 @@ For details, see [docs/dev/FEATURE_BOUNDARY.md](../dev/FEATURE_BOUNDARY.md).
 | `docs/dev/MASTER_GUIDE.md` | Implementation and operations guide | AI agents, implementers |
 | `docs/dev/BUILD_GUIDE.md` | Step-by-step build instructions (with phase-by-phase code) | Source build users |
 | `docs/dev/FEATURE_BOUNDARY.md` | Core vs. extension feature boundary definitions | Developers |
-| `docs/dev/instructions_section2-7` | Implementation instructions for each area | Implementers |
+| `docs/dev/PROPOSAL.md` | Project proposal document | Grant reviewers, sponsors |
 | `CLAUDE.md` | Development guide for Claude Code | AI agents |
 
 **Other:**

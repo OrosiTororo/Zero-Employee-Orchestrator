@@ -67,21 +67,8 @@
 | `docs/dev/FEATURE_BOUNDARY.md` | Core features vs Skill/Plugin/Extension boundary definition | Developers, designers |
 | `docs/dev/DEVELOPER_SETUP.md` | Developer setup (Sentry, red-team testing, etc.) | ZEO developers |
 | `docs/dev/SKILL.md` | SKILL.md file creation guide | Skill developers |
-| `docs/dev/Progressive.md` | CLAUDE.md authoring methodology | Developers |
 | `docs/dev/PROPOSAL.md` | Project proposal document | Grant reviewers, sponsors |
-| `docs/dev/TITLE_PROPOSALS.md` | Project title proposals | Project stakeholders |
 | `docs/dev/AI_SELF_IMPROVEMENT_ROADMAP.md` | AI self-improvement roadmap | Developers, researchers |
-
-### Implementation Instruction Files (`instructions_section*`)
-
-| File | Contents |
-|------|----------|
-| `docs/dev/instructions_section2_init.md` | Repository initialization (directory structure, monorepo, environment) |
-| `docs/dev/instructions_section3_backend.md` | FastAPI backend construction |
-| `docs/dev/instructions_section4_frontend.md` | React frontend construction |
-| `docs/dev/instructions_section5_skills.md` | Skills / Plugins / Extensions implementation |
-| `docs/dev/instructions_section6_tauri.md` | Tauri integration and desktop app packaging |
-| `docs/dev/instructions_section7_test.md` | Testing and verification |
 
 ---
 
@@ -133,7 +120,7 @@
 2. docs/dev/DESIGN.md                  <- Implementation design (DB, API, state transitions)
 3. docs/dev/MASTER_GUIDE.md            <- Operational guide (approach, criteria, prohibitions)
 4. CLAUDE.md                           <- AI agent development guide
-5. docs/dev/instructions_section2-7    <- Specific implementation instructions
+5. docs/dev/BUILD_GUIDE.md             <- Build from scratch guide (phase-by-phase)
 ```
 
 ### For Users

@@ -571,7 +571,7 @@ ZEO 的设计文档覆盖范围非常广泛，但实现中遵循以下原则：
 | `docs/dev/MASTER_GUIDE.md` | 实现运维指南 | AI Agent、实现者 |
 | `docs/dev/BUILD_GUIDE.md` | 从零开始的构建步骤（附分阶段代码） | 源码构建用户 |
 | `docs/dev/FEATURE_BOUNDARY.md` | 核心 vs 扩展的功能边界定义 | 开发者 |
-| `docs/dev/instructions_section2-7` | 各领域的实现指示 | 实现者 |
+| `docs/dev/PROPOSAL.md` | 项目提案书 | 资助审查员、赞助商 |
 | `CLAUDE.md` | Claude Code 开发指南 | AI Agent |
 
 **其他：**

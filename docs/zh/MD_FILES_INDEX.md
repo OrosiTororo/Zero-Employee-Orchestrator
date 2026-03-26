@@ -67,21 +67,8 @@
 | `docs/dev/FEATURE_BOUNDARY.md` | 核心功能 vs Skill/Plugin/Extension 边界定义 | 开发者、设计者 |
 | `docs/dev/DEVELOPER_SETUP.md` | 开发者设置（Sentry、红队测试等） | ZEO 开发者 |
 | `docs/dev/SKILL.md` | SKILL.md 文件创建指南 | Skill 开发者 |
-| `docs/dev/Progressive.md` | CLAUDE.md 编写方法论 | 开发者 |
 | `docs/dev/PROPOSAL.md` | 项目提案书 | 资助审查员、赞助商 |
-| `docs/dev/TITLE_PROPOSALS.md` | 项目标题提案 | 项目相关人员 |
 | `docs/dev/AI_SELF_IMPROVEMENT_ROADMAP.md` | AI 自我改进路线图 | 开发者、研究人员 |
-
-### 实现指令文件 (`instructions_section*`)
-
-| 文件 | 内容 |
-|------|------|
-| `docs/dev/instructions_section2_init.md` | 仓库初始化（目录结构、monorepo、环境） |
-| `docs/dev/instructions_section3_backend.md` | FastAPI 后端构建 |
-| `docs/dev/instructions_section4_frontend.md` | React 前端构建 |
-| `docs/dev/instructions_section5_skills.md` | Skills / Plugins / Extensions 实现 |
-| `docs/dev/instructions_section6_tauri.md` | Tauri 集成和桌面应用打包 |
-| `docs/dev/instructions_section7_test.md` | 测试和验证 |
 
 ---
 
@@ -133,7 +120,7 @@
 2. docs/dev/DESIGN.md                  <- 实现设计（DB、API、状态转换）
 3. docs/dev/MASTER_GUIDE.md            <- 运营指南（方法、标准、禁止事项）
 4. CLAUDE.md                           <- AI 代理开发指南
-5. docs/dev/instructions_section2-7    <- 各领域具体实现指令
+5. docs/dev/BUILD_GUIDE.md             <- 从零构建指南（分阶段）
 ```
 
 ### 用户
