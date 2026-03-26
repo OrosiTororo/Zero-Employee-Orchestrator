@@ -1,17 +1,20 @@
-"""ブラウザ自動操作・プラグインローダー・ツールレジストリ API.
+"""Browser automation, plugin loader, and tool registry API.
 
-- ブラウザアダプタの一覧・切替・タスク実行
-- プラグインの検索・環境チェック・インストール（VSCode 的な拡張管理）
-- ツールレジストリ（AI エージェントが動的にツールを選択）
-- Web AI セッション（API 料金なしで AI を利用）
+- Browser adapter listing, switching, and task execution
+- Plugin search, environment check, and installation (VS Code-style extension management)
+- Tool registry (AI agents dynamically select optimal tools)
+- Web AI sessions (use AI without API fees)
 """
 
 from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
+
+from app.api.routes.auth import get_current_user
+from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -99,13 +102,13 @@ class WebSessionResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# アダプタ管理エンドポイント
+# Adapter management endpoints
 # ---------------------------------------------------------------------------
 
 
 @router.get("/adapters", response_model=AdapterListResponse)
-async def list_adapters():
-    """登録済み・インストール可能なブラウザ自動操作アダプタ一覧."""
+async def list_adapters(user: User = Depends(get_current_user)):
+    """List registered and installable browser automation adapters."""
     from app.tools.browser_adapter import browser_adapter_registry
 
     adapters = []
@@ -164,30 +167,30 @@ async def list_adapters():
 
 
 @router.post("/adapters/active")
-async def set_active_adapter(req: SetActiveRequest):
-    """アクティブなブラウザ自動操作アダプタを切り替える."""
+async def set_active_adapter(req: SetActiveRequest, user: User = Depends(get_current_user)):
+    """Switch the active browser automation adapter."""
     from app.tools.browser_adapter import browser_adapter_registry
 
     if not browser_adapter_registry.set_active(req.adapter_name):
         raise HTTPException(
             status_code=404,
-            detail=f"アダプタが見つかりません: {req.adapter_name}",
+            detail=f"Adapter not found: {req.adapter_name}",
         )
     return {
         "active": req.adapter_name,
-        "message": f"アダプタを {req.adapter_name} に切り替えました",
+        "message": f"Switched active adapter to {req.adapter_name}",
     }
 
 
 @router.post("/tasks", response_model=BrowserTaskResponse)
-async def execute_browser_task(req: BrowserTaskRequest):
-    """ブラウザ自動操作タスクを実行する.
+async def execute_browser_task(req: BrowserTaskRequest, user: User = Depends(get_current_user)):
+    """Execute a browser automation task.
 
-    アクティブなアダプタ (builtin / browser-use 等) でタスクを実行する。
+    Runs the task using the active adapter (builtin / browser-use, etc.).
     """
     from app.tools.browser_adapter import BrowserTask, browser_adapter_registry
 
-    # プロンプトインジェクション検査
+    # Prompt injection check
     try:
         from app.security.prompt_guard import scan_prompt_injection
 
@@ -195,7 +198,7 @@ async def execute_browser_task(req: BrowserTaskRequest):
         if scan_result.threat_level in ("HIGH", "CRITICAL"):
             raise HTTPException(
                 status_code=400,
-                detail="プロンプトインジェクションの疑いがあります",
+                detail="Suspected prompt injection detected",
             )
     except ImportError:
         pass
@@ -223,32 +226,32 @@ async def execute_browser_task(req: BrowserTaskRequest):
 
 
 # ---------------------------------------------------------------------------
-# Web AI セッションエンドポイント
+# Web AI session endpoints
 # ---------------------------------------------------------------------------
 
 
 @router.get("/web-ai/services", response_model=list[WebAIServiceInfo])
-async def list_web_ai_services():
-    """API 料金なしで利用可能な Web AI サービス一覧."""
+async def list_web_ai_services(user: User = Depends(get_current_user)):
+    """List Web AI services available without API fees."""
     from app.providers.web_session_provider import web_session_provider
 
     return web_session_provider.list_services()
 
 
 @router.get("/web-ai/free-options", response_model=list[FreeOptionInfo])
-async def list_free_options():
-    """無料で AI を利用する方法の推奨一覧."""
+async def list_free_options(user: User = Depends(get_current_user)):
+    """List recommended free AI usage options."""
     from app.providers.web_session_provider import web_session_provider
 
     return web_session_provider.get_recommended_free_options()
 
 
 @router.post("/web-ai/complete", response_model=WebSessionResponse)
-async def web_ai_complete(req: WebSessionRequest):
-    """Web AI セッション経由で AI にリクエストを送信する."""
+async def web_ai_complete(req: WebSessionRequest, user: User = Depends(get_current_user)):
+    """Send a request to AI via a Web AI session."""
     from app.providers.web_session_provider import WebAIService, web_session_provider
 
-    # プロンプトインジェクション検査
+    # Prompt injection check
     try:
         from app.security.prompt_guard import scan_prompt_injection
 
@@ -256,7 +259,7 @@ async def web_ai_complete(req: WebSessionRequest):
         if scan_result.threat_level in ("HIGH", "CRITICAL"):
             raise HTTPException(
                 status_code=400,
-                detail="プロンプトインジェクションの疑いがあります",
+                detail="Suspected prompt injection detected",
             )
     except ImportError:
         pass
@@ -266,7 +269,7 @@ async def web_ai_complete(req: WebSessionRequest):
     except ValueError:
         raise HTTPException(
             status_code=400,
-            detail=f"未対応のサービス: {req.service}。利用可能: {[s.value for s in WebAIService]}",
+            detail=f"Unsupported service: {req.service}. Available: {[s.value for s in WebAIService]}",
         )
 
     messages = [{"role": "user", "content": req.message}]
@@ -282,7 +285,7 @@ async def web_ai_complete(req: WebSessionRequest):
 
 
 # ---------------------------------------------------------------------------
-# プラグインローダーエンドポイント — VSCode 的なプラグイン管理
+# Plugin loader endpoints — VS Code-style plugin management
 # ---------------------------------------------------------------------------
 
 
@@ -306,11 +309,11 @@ class ToolResolveRequest(BaseModel):
 
 
 @router.get("/plugins/available")
-async def list_available_plugins():
-    """インストール可能なプラグイン一覧（全カテゴリ）.
+async def list_available_plugins(user: User = Depends(get_current_user)):
+    """List available plugins across all categories.
 
-    ブラウザ操作、画像生成、音楽生成、検索、データ分析など
-    あらゆるカテゴリのプラグインを一覧表示。
+    Displays plugins for browser automation, image generation, music generation,
+    search, data analysis, and more.
     """
     from app.services.plugin_loader import plugin_loader
 
@@ -318,10 +321,10 @@ async def list_available_plugins():
 
 
 @router.post("/plugins/search")
-async def search_plugins(req: PluginSearchRequest):
-    """自然言語でプラグインを検索する.
+async def search_plugins(req: PluginSearchRequest, user: User = Depends(get_current_user)):
+    """Search for plugins using natural language.
 
-    「ブラウザ操作」「画像生成」「browser-use」等のキーワードで検索。
+    Search by keywords such as 'browser automation', 'image generation', 'browser-use', etc.
     """
     from app.services.plugin_loader import plugin_loader
 
@@ -329,16 +332,18 @@ async def search_plugins(req: PluginSearchRequest):
 
 
 @router.get("/plugins/installed")
-async def list_installed_plugins():
-    """インストール済みプラグイン一覧."""
+async def list_installed_plugins(user: User = Depends(get_current_user)):
+    """List installed plugins."""
     from app.services.plugin_loader import plugin_loader
 
     return plugin_loader.list_installed()
 
 
 @router.post("/plugins/check-env")
-async def check_plugin_environment(req: PluginInstallRequest):
-    """プラグインの環境要件をチェックする（インストール前の確認）."""
+async def check_plugin_environment(
+    req: PluginInstallRequest, user: User = Depends(get_current_user)
+):
+    """Check plugin environment requirements (pre-install verification)."""
     from app.services.plugin_loader import plugin_loader
 
     report = plugin_loader.check_environment(req.slug)
@@ -360,19 +365,19 @@ async def check_plugin_environment(req: PluginInstallRequest):
 
 
 @router.post("/plugins/install")
-async def install_plugin(req: PluginInstallRequest):
-    """プラグインをインストールする.
+async def install_plugin(req: PluginInstallRequest, user: User = Depends(get_current_user)):
+    """Install a plugin.
 
-    依存関係チェック → パッケージインストール → アダプタ登録 → ツールレジストリ登録
-    の順に実行。dry_run=true で手順のみ確認可能。
+    Executes: dependency check -> package install -> adapter registration -> tool registry.
+    Use dry_run=true to preview the steps without installing.
 
-    レスポンスには透明性レポートが含まれ、ユーザーが正確な判断を
-    行うための情報（ソース、コスト、リスク、権限等）を提示する。
+    Response includes a transparency report with source, cost, risk, and permission
+    information to help users make informed decisions.
     """
     from app.orchestration.transparency import build_plugin_install_transparency
     from app.services.plugin_loader import plugin_loader
 
-    # 透明性レポートの生成（インストール前に常にユーザーに提示）
+    # Generate transparency report (always shown to user before install)
     template = plugin_loader.get_template(req.slug)
     env_report = plugin_loader.check_environment(req.slug)
     transparency = {}
@@ -391,14 +396,14 @@ async def install_plugin(req: PluginInstallRequest):
         dry_run=req.dry_run,
     )
 
-    # 透明性レポートをレスポンスに含める
+    # Include transparency report in response
     result["transparency"] = transparency
     return result
 
 
 @router.delete("/plugins/{slug}")
-async def uninstall_plugin(slug: str):
-    """プラグインをアンインストールする."""
+async def uninstall_plugin(slug: str, user: User = Depends(get_current_user)):
+    """Uninstall a plugin."""
     from app.services.plugin_loader import plugin_loader
 
     result = plugin_loader.uninstall_plugin(slug)
@@ -408,15 +413,15 @@ async def uninstall_plugin(slug: str):
 
 
 # ---------------------------------------------------------------------------
-# ツールレジストリエンドポイント — AI エージェントのツール選択基盤
+# Tool registry endpoints — AI agent tool selection infrastructure
 # ---------------------------------------------------------------------------
 
 
 @router.get("/tools")
-async def list_tools(category: str | None = None):
-    """登録済みツール一覧（カテゴリフィルター可）.
+async def list_tools(category: str | None = None, user: User = Depends(get_current_user)):
+    """List registered tools (filterable by category).
 
-    AI エージェント組織が利用可能なツールを一覧表示する。
+    Displays tools available to AI agent organizations.
     """
     from app.services.plugin_loader import plugin_loader
 
@@ -424,44 +429,44 @@ async def list_tools(category: str | None = None):
 
 
 @router.get("/tools/categories")
-async def list_tool_categories():
-    """ツールカテゴリ一覧とアクティブツール."""
+async def list_tool_categories(user: User = Depends(get_current_user)):
+    """List tool categories and active tools."""
     from app.services.plugin_loader import plugin_loader
 
     return plugin_loader.tool_registry.list_categories()
 
 
 @router.post("/tools/select")
-async def select_active_tool(req: ToolSelectRequest):
-    """カテゴリのアクティブツールを切り替える.
+async def select_active_tool(req: ToolSelectRequest, user: User = Depends(get_current_user)):
+    """Switch the active tool for a category.
 
-    ユーザーが「画像生成は ComfyUI を使って」と言った場合、
-    image-generation カテゴリのアクティブツールを comfyui に切り替える。
+    For example, when a user says 'use ComfyUI for image generation',
+    this switches the active tool for the image-generation category to comfyui.
     """
     from app.services.plugin_loader import plugin_loader
 
     if not plugin_loader.tool_registry.set_active_tool(req.category, req.slug):
         raise HTTPException(
             status_code=404,
-            detail=f"カテゴリ '{req.category}' にツール '{req.slug}' が見つかりません",
+            detail=f"Tool '{req.slug}' not found in category '{req.category}'",
         )
     return {
         "category": req.category,
         "active_tool": req.slug,
-        "message": f"{req.category} のアクティブツールを {req.slug} に変更しました",
+        "message": f"Switched active tool for {req.category} to {req.slug}",
     }
 
 
 @router.post("/tools/resolve")
-async def resolve_tool_for_task(req: ToolResolveRequest):
-    """タスク記述文から最適なツールを自動選択する.
+async def resolve_tool_for_task(req: ToolResolveRequest, user: User = Depends(get_current_user)):
+    """Auto-select the optimal tool for a task description.
 
-    AI エージェントがタスクを実行する際に呼ぶ。
-    タスクの内容からカテゴリを推定し、アクティブツールを返す。
+    Called by AI agents when executing tasks.
+    Infers the category from the task content and returns the active tool.
     """
     from app.services.plugin_loader import plugin_loader
 
     tool = plugin_loader.tool_registry.resolve_tool_for_task(req.task_description)
     if tool is None:
-        return {"resolved": False, "message": "該当するツールが見つかりません"}
+        return {"resolved": False, "message": "No matching tool found"}
     return {"resolved": True, "tool": tool}
