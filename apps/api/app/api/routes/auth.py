@@ -113,7 +113,7 @@ async def logout():
 
 @router.get("/me", response_model=UserRead)
 async def get_me(user: User = Depends(get_current_user)):
-    """現在のユーザー情報を取得"""
+    """Get current user information."""
     return UserRead(
         id=str(user.id),
         email=user.email,
@@ -128,7 +128,7 @@ async def get_me(user: User = Depends(get_current_user)):
 
 @router.post("/refresh")
 async def refresh_token(user: User = Depends(get_current_user)):
-    """トークンの更新"""
+    """Refresh token."""
     token = create_access_token(str(user.id))
     return {"access_token": token, "token_type": "bearer"}
 
@@ -136,11 +136,11 @@ async def refresh_token(user: User = Depends(get_current_user)):
 @router.post("/anonymous-session")
 @limiter.limit("10/minute")
 async def create_anonymous_session(request: Request, db: AsyncSession = Depends(get_db)):
-    """ログイン不要の匿名セッション.
+    """Create an anonymous session without login.
 
-    ログインしなくても基本機能が使える。
-    ログインすると、複数デバイスでの状態共有が可能になる。
-    匿名セッションのデータは後からアカウントに紐付け可能。
+    Basic features are available without logging in.
+    Logging in enables state sharing across multiple devices.
+    Anonymous session data can be linked to an account later.
     """
     anon_id = generate_uuid()
     user = User(
@@ -182,7 +182,7 @@ async def create_anonymous_session(request: Request, db: AsyncSession = Depends(
         "company_id": str(company.id),
         "display_name": user.display_name,
         "is_anonymous": True,
-        "message": "ログインすると複数デバイスでの状態共有が可能になります",
+        "message": "Login to enable state sharing across multiple devices",
     }
 
 
@@ -198,13 +198,13 @@ async def link_anonymous_to_account(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """匿名セッションを正式アカウントに紐付け.
+    """Link an anonymous session to a formal account.
 
-    ログイン不要で使い始めた後、アカウントを作成して
-    既存のデータを引き継ぐ。
+    After starting without login, create an account and
+    carry over existing data.
     """
     if user.role != "anonymous":
-        raise HTTPException(status_code=400, detail="既にアカウントに紐付けられています")
+        raise HTTPException(status_code=400, detail="Already linked to an account")
 
     # メールの重複チェック
     result = await db.execute(select(User).where(User.email == req.email))

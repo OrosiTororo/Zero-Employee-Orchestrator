@@ -312,7 +312,7 @@ class A2ACommunicationHub:
         else:
             messages = list(mailbox.inbox)
 
-        # 既読にマーク
+        # Mark as read
         now = datetime.now(UTC)
         for msg in messages:
             if msg.read_at is None:
@@ -330,17 +330,17 @@ class A2ACommunicationHub:
         original_msg_id: str,
         content: str,
     ) -> AgentMessage | None:
-        """メッセージに返信する.
+        """Reply to a message.
 
         Args:
-            agent_id: 返信者のエージェント ID。
-            original_msg_id: 返信先メッセージ ID。
-            content: 返信内容。
+            agent_id: Replier's agent ID.
+            original_msg_id: Original message ID to reply to.
+            content: Reply content.
 
         Returns:
-            返信メッセージ。元メッセージが見つからない場合は None。
+            The reply message. None if the original message is not found.
         """
-        # 元メッセージを検索
+        # Search for the original message
         original: AgentMessage | None = None
         for msg in self._all_messages:
             if msg.id == original_msg_id:
@@ -363,18 +363,18 @@ class A2ACommunicationHub:
         return reply_msg
 
     # ------------------------------------------------------------------
-    # チャネル管理
+    # Channel management
     # ------------------------------------------------------------------
 
     def create_channel(self, name: str, creator_id: str) -> bool:
-        """名前付きチャネルを作成する.
+        """Create a named channel.
 
         Args:
-            name: チャネル名。
-            creator_id: 作成者エージェント ID（自動購読される）。
+            name: Channel name.
+            creator_id: Creator agent ID (auto-subscribed).
 
         Returns:
-            作成成功なら True、既に存在する場合は False。
+            True if created successfully, False if already exists.
         """
         if name in self._channels:
             logger.debug("A2A: channel '%s' already exists", name)
@@ -388,7 +388,7 @@ class A2ACommunicationHub:
         return True
 
     def join_channel(self, channel: str, agent_id: str) -> bool:
-        """チャネルに参加する."""
+        """Join a channel."""
         if channel not in self._channels:
             logger.warning("A2A: channel '%s' does not exist", channel)
             return False

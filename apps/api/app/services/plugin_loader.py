@@ -618,19 +618,19 @@ class ToolRegistry:
         ]
 
     def resolve_tool_for_task(self, task_description: str) -> dict | None:
-        """タスクの説明文からカテゴリを推定し、アクティブツールを返す.
+        """Infer category from task description and return the active tool.
 
-        AI エージェント組織がタスクを実行する際に呼ぶ。
+        Called when the AI agent organization executes a task.
 
         Args:
-            task_description: タスクの自然言語記述
+            task_description: Natural language description of the task
 
         Returns:
-            ツール設定、またはマッチしない場合 None
+            Tool configuration, or None if no match
         """
         desc_lower = task_description.lower()
 
-        # カテゴリキーワードマッピング
+        # Category keyword mapping
         category_keywords: dict[str, list[str]] = {
             "browser-automation": [
                 "ブラウザ",
@@ -732,18 +732,18 @@ class ToolRegistry:
 
 
 # ---------------------------------------------------------------------------
-# 環境チェッカー
+# Environment checker
 # ---------------------------------------------------------------------------
 
 
 class EnvironmentResolver:
-    """プラグインの依存関係・環境要件を検証・解決する.
+    """Verify and resolve plugin dependencies and environment requirements.
 
-    各要件を検査し、不足しているものについてはセットアップ手順を生成する。
+    Inspects each requirement and generates setup instructions for missing ones.
     """
 
     def check_pip_package(self, package_name: str) -> bool:
-        """pip パッケージがインストール済みか確認する."""
+        """Check whether a pip package is installed."""
         try:
             importlib.import_module(package_name.replace("-", "_"))
             return True
@@ -751,33 +751,33 @@ class EnvironmentResolver:
             return False
 
     def check_system_command(self, command: str) -> bool:
-        """システムコマンドが利用可能か確認する."""
+        """Check whether a system command is available."""
         import shutil
 
         return shutil.which(command) is not None
 
     def check_env_var(self, var_name: str) -> bool:
-        """環境変数が設定されているか確認する."""
+        """Check whether an environment variable is set."""
         import os
 
         return bool(os.environ.get(var_name, ""))
 
     def check_llm_provider(self, alternatives: list[str]) -> tuple[bool, str]:
-        """LLM プロバイダーが少なくとも 1 つ利用可能か確認する.
+        """Check whether at least one LLM provider is available.
 
         Returns:
-            (利用可能か, 利用可能なプロバイダー名)
+            (is_available, available_provider_name)
         """
         import os
 
-        # API キー系
+        # API key checks
         for alt in alternatives:
             if alt in ("ollama", "g4f"):
                 continue
             if os.environ.get(alt, ""):
                 return True, alt
 
-        # Ollama チェック
+        # Ollama check
         if "ollama" in alternatives:
             try:
                 from app.providers.ollama_provider import ollama_provider
@@ -787,7 +787,7 @@ class EnvironmentResolver:
             except ImportError:
                 pass
 
-        # g4f チェック
+        # g4f check
         if "g4f" in alternatives:
             try:
                 from app.providers.g4f_provider import g4f_provider
@@ -800,7 +800,7 @@ class EnvironmentResolver:
         return False, ""
 
     def check_browser(self) -> bool:
-        """ブラウザが利用可能か確認する."""
+        """Check whether a browser is available."""
         import shutil
 
         browsers = ["chromium", "chromium-browser", "google-chrome", "chrome"]

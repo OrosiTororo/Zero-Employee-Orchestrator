@@ -191,17 +191,17 @@ class IAMManager:
             else required_permission
         )
 
-        # 明示的に拒否されている場合
+        # If explicitly denied
         if perm in {d.value for d in AI_DENIED_PERMISSIONS}:
             if account.account_type == AccountType.AI_AGENT.value:
                 return False
 
-        # 許可リストをチェック
+        # Check allowlist
         allowed = (account.permissions or {}).get("allowed", [])
         return perm in allowed
 
     def check_resource_access(self, account: AIServiceAccount, resource_path: str) -> bool:
-        """リソースへのアクセスをチェック."""
+        """Check access to a resource."""
         denied_paths = (account.denied_resources or {}).get("paths", [])
         for denied_path in denied_paths:
             if resource_path.startswith(denied_path):
@@ -210,10 +210,10 @@ class IAMManager:
 
     @staticmethod
     def protect_credential_file(filepath: str) -> bool:
-        """認証情報ファイルをAIエージェントから読めないようにする.
+        """Protect a credential file from being read by AI agents.
 
-        ファイルのパーミッションを owner read only (0o400) に設定。
-        AIエージェントは別のユーザーで動作するため読めない。
+        Sets file permissions to owner read only (0o400).
+        AI agents run as a different user and thus cannot read the file.
         """
         try:
             os.chmod(filepath, stat.S_IRUSR)  # 0o400
@@ -225,9 +225,9 @@ class IAMManager:
 
     @staticmethod
     def create_credential_store(base_dir: str) -> str:
-        """AIが読めない認証情報ストアを作成."""
+        """Create a credential store that AI cannot read."""
         os.makedirs(base_dir, exist_ok=True)
-        # ディレクトリを owner only に設定
+        # Set directory to owner only
         try:
             os.chmod(base_dir, stat.S_IRWXU)  # 0o700
         except OSError:

@@ -223,14 +223,14 @@ class CloudNativeIntegration:
         self._require_credential(resource.provider)
         resource.status = ResourceStatus.DELETING
         del self._resources[resource_id]
-        logger.info("クラウドリソース削除: id=%s name=%s", resource_id, resource.name)
+        logger.info("Cloud resource deleted: id=%s name=%s", resource_id, resource.name)
         return True
 
     async def get_resource_status(self, resource_id: str) -> dict:
-        """リソースのステータスを取得する."""
+        """Get the status of a resource."""
         resource = self._resources.get(resource_id)
         if resource is None:
-            raise ValueError(f"リソースが見つかりません: {resource_id}")
+            raise ValueError(f"Resource not found: {resource_id}")
         return {
             "id": resource.id,
             "name": resource.name,
@@ -242,7 +242,7 @@ class CloudNativeIntegration:
         }
 
     # ------------------------------------------------------------------
-    # ストレージ
+    # Storage
     # ------------------------------------------------------------------
 
     async def upload_to_storage(
@@ -252,11 +252,11 @@ class CloudNativeIntegration:
         key: str,
         data: bytes,
     ) -> dict:
-        """ストレージにファイルをアップロードする."""
+        """Upload a file to storage."""
         self._require_credential(provider)
         size_bytes = len(data)
         logger.info(
-            "ストレージアップロード: provider=%s bucket=%s key=%s size=%d",
+            "Storage upload: provider=%s bucket=%s key=%s size=%d",
             provider.value,
             bucket,
             key,

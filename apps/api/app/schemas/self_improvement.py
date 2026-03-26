@@ -1,6 +1,6 @@
-"""AI Self-Improvement API スキーマ — Level 2: 自己改善の芽.
+"""AI Self-Improvement API schemas -- Level 2: Seeds of self-improvement.
 
-Skill 分析・改善・Judge 調整・失敗学習・A/Bテスト・テスト自動生成の DTO。
+DTOs for Skill analysis, improvement, Judge tuning, failure learning, A/B testing, and auto test generation.
 """
 
 from __future__ import annotations
@@ -15,13 +15,13 @@ from pydantic import BaseModel, Field
 
 
 class SkillAnalysisRequest(BaseModel):
-    """Skill 分析リクエスト."""
+    """Skill analysis request."""
 
-    skill_id: str = Field(..., description="分析対象のスキルID")
+    skill_id: str = Field(..., description="ID of the skill to analyze")
 
 
 class AnalysisFindingResponse(BaseModel):
-    """分析結果の個別項目."""
+    """Individual analysis finding."""
 
     category: str
     priority: str
@@ -31,7 +31,7 @@ class AnalysisFindingResponse(BaseModel):
 
 
 class SkillAnalysisResponse(BaseModel):
-    """Skill 分析結果."""
+    """Skill analysis result."""
 
     skill_id: str
     skill_slug: str
@@ -47,13 +47,13 @@ class SkillAnalysisResponse(BaseModel):
 
 
 class SkillImproveRequest(BaseModel):
-    """Skill 改善リクエスト."""
+    """Skill improvement request."""
 
-    skill_id: str = Field(..., description="改善対象のスキルID")
+    skill_id: str = Field(..., description="ID of the skill to improve")
 
 
 class SkillImprovementResponse(BaseModel):
-    """Skill 改善提案."""
+    """Skill improvement proposal."""
 
     original_skill_id: str
     original_version: str
@@ -67,7 +67,7 @@ class SkillImprovementResponse(BaseModel):
 
 
 class SkillImprovementApplyRequest(BaseModel):
-    """Skill 改善適用リクエスト（承認後）."""
+    """Skill improvement apply request (after approval)."""
 
     skill_id: str
     improved_code: str
@@ -80,13 +80,13 @@ class SkillImprovementApplyRequest(BaseModel):
 
 
 class JudgeTuneRequest(BaseModel):
-    """Judge 調整リクエスト."""
+    """Judge tuning request."""
 
-    company_id: str = Field(..., description="対象の会社ID")
+    company_id: str = Field(..., description="Target company ID")
 
 
 class JudgeTuningRuleResponse(BaseModel):
-    """Judge 調整ルール."""
+    """Judge tuning rule."""
 
     rule_name: str
     rule_type: str
@@ -98,7 +98,7 @@ class JudgeTuningRuleResponse(BaseModel):
 
 
 class JudgeTuningResponse(BaseModel):
-    """Judge 調整結果."""
+    """Judge tuning result."""
 
     company_id: str
     proposed_rules: list[JudgeTuningRuleResponse]
