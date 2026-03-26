@@ -13,7 +13,7 @@ from app.orchestration.state_machine import (
 
 class TestBaseStateMachine:
     def test_invalid_initial_state_raises(self):
-        with pytest.raises(StateMachineError, match="不明な初期状態"):
+        with pytest.raises(StateMachineError, match="Unknown initial state"):
             TaskStateMachine("nonexistent")
 
     def test_state_property(self):
@@ -37,7 +37,7 @@ class TestTicketStateMachine:
 
     def test_invalid_transition_raises(self):
         sm = TicketStateMachine("draft")
-        with pytest.raises(StateMachineError, match="遷移不可"):
+        with pytest.raises(StateMachineError, match="Transition not allowed"):
             sm.transition("done")
 
     def test_cancelled_is_terminal(self):
