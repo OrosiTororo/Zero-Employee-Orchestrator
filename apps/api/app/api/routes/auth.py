@@ -36,7 +36,7 @@ async def get_current_user(
 ) -> User:
     """Extract current user from Authorization header."""
     if not authorization:
-        raise HTTPException(status_code=401, detail="認証が必要です")
+        raise HTTPException(status_code=401, detail="Authentication required")
     token = authorization.replace("Bearer ", "")
     user_id = decode_access_token(token)
     if not user_id:

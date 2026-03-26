@@ -700,38 +700,38 @@ def build_parser() -> argparse.ArgumentParser:
     """Build the CLI parser."""
     parser = argparse.ArgumentParser(
         prog="zero-employee",
-        description="Zero-Employee Orchestrator — AI オーケストレーション基盤",
+        description="Zero-Employee Orchestrator -- AI orchestration platform",
     )
-    subparsers = parser.add_subparsers(dest="command", help="コマンド一覧")
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # serve
-    serve_parser = subparsers.add_parser("serve", help="API サーバーを起動")
-    serve_parser.add_argument("--host", default="0.0.0.0", help="ホスト (default: 0.0.0.0)")
-    serve_parser.add_argument("--port", type=int, default=18234, help="ポート (default: 18234)")
-    serve_parser.add_argument("--reload", action="store_true", help="ホットリロードを有効化")
+    serve_parser = subparsers.add_parser("serve", help="Start the API server")
+    serve_parser.add_argument("--host", default="0.0.0.0", help="Host (default: 0.0.0.0)")
+    serve_parser.add_argument("--port", type=int, default=18234, help="Port (default: 18234)")
+    serve_parser.add_argument("--reload", action="store_true", help="Enable hot reload")
     serve_parser.add_argument(
         "--skip-update-check",
         action="store_true",
-        help="起動時のバージョンチェックをスキップ",
+        help="Skip version check at startup",
     )
     serve_parser.set_defaults(func=cmd_serve)
 
     # db
-    db_parser = subparsers.add_parser("db", help="データベース操作")
+    db_parser = subparsers.add_parser("db", help="Database operations")
     db_sub = db_parser.add_subparsers(dest="db_command")
-    upgrade_parser = db_sub.add_parser("upgrade", help="マイグレーション実行")
+    upgrade_parser = db_sub.add_parser("upgrade", help="Run migration")
     upgrade_parser.set_defaults(func=cmd_db_upgrade)
 
     # health
-    health_parser = subparsers.add_parser("health", help="ヘルスチェック")
-    health_parser.add_argument("--host", default="127.0.0.1", help="ホスト")
-    health_parser.add_argument("--port", type=int, default=18234, help="ポート")
+    health_parser = subparsers.add_parser("health", help="Health check")
+    health_parser.add_argument("--host", default="127.0.0.1", help="Host")
+    health_parser.add_argument("--port", type=int, default=18234, help="Port")
     health_parser.set_defaults(func=cmd_health)
 
-    # config — 設定管理
+    # config -- configuration management
     config_parser = subparsers.add_parser(
         "config",
-        help="設定管理 (API キー・実行モード等)",
+        help="Configuration management (API keys, execution mode, etc.)",
     )
     config_parser.add_argument(
         "config_action",
@@ -744,10 +744,10 @@ def build_parser() -> argparse.ArgumentParser:
     config_parser.add_argument("value", nargs="?", default="", help="Config value (for set)")
     config_parser.set_defaults(func=cmd_config)
 
-    # local — ローカルチャットモード
+    # local -- local chat mode
     local_parser = subparsers.add_parser(
         "local",
-        help="ローカルチャットモード (Ollama / オフライン)",
+        help="Local chat mode (Ollama / offline)",
     )
     local_parser.add_argument(
         "--model",
@@ -774,16 +774,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     local_parser.set_defaults(func=cmd_local)
 
-    # chat — 全プロバイダー対応チャットモード
+    # chat -- multi-provider chat mode
     chat_parser = subparsers.add_parser(
         "chat",
-        help="チャットモード (全プロバイダー対応・自然言語で全操作可能)",
+        help="Chat mode (all providers, all operations via natural language)",
     )
     chat_parser.add_argument(
         "--mode",
         default="",
         choices=["quality", "speed", "cost", "free", "subscription", ""],
-        help="実行モード (default: auto)",
+        help="Execution mode (default: auto)",
     )
     chat_parser.add_argument(
         "--lang",
@@ -805,44 +805,44 @@ def build_parser() -> argparse.ArgumentParser:
     )
     chat_parser.set_defaults(func=cmd_chat)
 
-    # models — モデル一覧
-    models_parser = subparsers.add_parser("models", help="利用可能モデル一覧")
+    # models -- model listing
+    models_parser = subparsers.add_parser("models", help="List available models")
     models_parser.set_defaults(func=cmd_models)
 
-    # pull — モデルダウンロード
-    pull_parser = subparsers.add_parser("pull", help="Ollama モデルをダウンロード")
+    # pull -- model download
+    pull_parser = subparsers.add_parser("pull", help="Download an Ollama model")
     pull_parser.add_argument("model_name", help="Model name (e.g. qwen3:8b)")
     pull_parser.set_defaults(func=cmd_pull)
 
-    # update — アップデート管理
+    # update -- update management
     update_parser = subparsers.add_parser(
         "update",
-        help="最新バージョンにアップデート",
+        help="Update to the latest version",
     )
     update_parser.add_argument(
         "--check",
         dest="check_only",
         action="store_true",
-        help="アップデート確認のみ（インストールしない）",
+        help="Check for updates only (do not install)",
     )
     update_parser.add_argument(
         "--verbose",
         action="store_true",
-        help="pip の出力を表示",
+        help="Show pip output",
     )
     update_parser.set_defaults(func=cmd_update)
 
-    # security — セキュリティ管理
-    security_parser = subparsers.add_parser("security", help="セキュリティ設定管理")
+    # security -- security management
+    security_parser = subparsers.add_parser("security", help="Security configuration management")
     security_sub = security_parser.add_subparsers(dest="security_command")
-    sec_status_parser = security_sub.add_parser("status", help="セキュリティ設定の概要を表示")
+    sec_status_parser = security_sub.add_parser("status", help="Display security configuration summary")
     sec_status_parser.set_defaults(func=cmd_security_status)
 
     return parser
 
 
 def main() -> None:
-    """CLI メインエントリーポイント."""
+    """CLI main entry point."""
     from app.banner import print_banner
 
     parser = build_parser()

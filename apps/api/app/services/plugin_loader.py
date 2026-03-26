@@ -1,37 +1,37 @@
-"""Plugin Loader — VSCode 的なプラグイン動的読み込み・環境解決基盤.
+"""Plugin Loader — VSCode-style dynamic plugin loading and environment resolution.
 
-VSCode のエクステンションのように、ユーザーが自然言語で「browser-use を追加して」
-「画像生成に Flux を使いたい」「音楽生成ツールを追加して」と言うだけで
-プラグインをインストール・設定・有効化できる仕組み。
+Like VSCode extensions, users can simply say in natural language "add browser-use",
+"I want to use Flux for image generation", or "add a music generation tool"
+to install, configure, and enable plugins.
 
-設計思想:
-- **マニフェスト駆動**: プラグインは manifest.json で自己記述（依存関係・設定・権限）
-- **環境自動解決**: pip パッケージ、API キー、環境変数を自動検出・セットアップ案内
-- **軽量コア**: ZEO 本体は最小限。全ての拡張機能はプラグインとして後から追加
-- **コミュニティ対応**: 誰でもプラグインを作成・公開・インストールできる
-- **ツール非固定**: 特定ツールを推奨せず、ユーザーが自由に選択・切替可能
-- **汎用カテゴリ**: ブラウザ操作・画像生成・音楽生成・コード生成等、あらゆる用途に対応
-- **AI エージェント連携**: エージェント組織がタスクに最適なツールを動的に選択
+Design philosophy:
+- **Manifest-driven**: Plugins self-describe via manifest.json (dependencies, settings, permissions)
+- **Auto environment resolution**: Auto-detect pip packages, API keys, env vars and guide setup
+- **Lightweight core**: ZEO core is minimal. All extensions are added later as plugins
+- **Community-ready**: Anyone can create, publish, and install plugins
+- **No tool lock-in**: No specific tool is recommended; users freely choose and switch
+- **Universal categories**: Covers all use cases: browser automation, image/music/code generation, etc.
+- **AI agent integration**: Agent organization dynamically selects optimal tools per task
 
-ツールカテゴリ:
-- browser-automation: ブラウザ自動操作 (browser-use, Playwright, Selenium, ...)
-- image-generation: 画像生成 (DALL-E, Stable Diffusion, Flux, Midjourney, ...)
-- video-generation: 動画生成 (Runway, Pika, Sora, ...)
-- audio-generation: 音声合成 (OpenAI TTS, ElevenLabs, VOICEVOX, ...)
-- music-generation: 音楽生成 (Suno, Udio, MusicGen, ...)
-- code-generation: コード生成 (Cursor, Copilot, ...)
-- data-analysis: データ分析 (pandas-ai, ...)
-- document-processing: 文書処理 (OCR, PDF, ...)
-- communication: コミュニケーション (Slack, Discord, ...)
-- search: 検索 (Perplexity, Tavily, ...)
-- three-d: 3D モデル (Meshy, TripoSR, ...)
-- custom: ユーザー定義
+Tool categories:
+- browser-automation: Browser automation (browser-use, Playwright, Selenium, ...)
+- image-generation: Image generation (DALL-E, Stable Diffusion, Flux, Midjourney, ...)
+- video-generation: Video generation (Runway, Pika, Sora, ...)
+- audio-generation: Speech synthesis (OpenAI TTS, ElevenLabs, VOICEVOX, ...)
+- music-generation: Music generation (Suno, Udio, MusicGen, ...)
+- code-generation: Code generation (Cursor, Copilot, ...)
+- data-analysis: Data analysis (pandas-ai, ...)
+- document-processing: Document processing (OCR, PDF, ...)
+- communication: Communication (Slack, Discord, ...)
+- search: Search (Perplexity, Tavily, ...)
+- three-d: 3D models (Meshy, TripoSR, ...)
+- custom: User-defined
 
-プラグイン追加フロー:
-1. ユーザー: 「browser-use を追加して」or 「画像生成ツールを追加して」
-2. システム: カテゴリ・名前でレジストリ検索 → マニフェスト取得 → 依存関係チェック
-3. システム: 不足パッケージのインストール案内 → API キー設定案内
-4. システム: プラグイン登録 → ツールレジストリに登録 → AI エージェントが利用可能に
+Plugin installation flow:
+1. User: "add browser-use" or "add an image generation tool"
+2. System: Search registry by category/name -> fetch manifest -> check dependencies
+3. System: Guide missing package installation -> guide API key setup
+4. System: Register plugin -> register in tool registry -> available for AI agents
 """
 
 from __future__ import annotations
@@ -47,19 +47,19 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# プラグイン要件の種別
+# Plugin requirement types
 # ---------------------------------------------------------------------------
 
 
 class RequirementType(str, Enum):
-    """プラグインが要求するリソースの種別."""
+    """Type of resource required by a plugin."""
 
-    PIP_PACKAGE = "pip_package"  # Python パッケージ
-    SYSTEM_COMMAND = "system_command"  # OS コマンド (chromium 等)
-    API_KEY = "api_key"  # 外部 API キー
-    ENV_VAR = "env_var"  # 環境変数
-    LLM_PROVIDER = "llm_provider"  # LLM プロバイダー
-    BROWSER = "browser"  # ブラウザ実行環境
+    PIP_PACKAGE = "pip_package"  # Python package
+    SYSTEM_COMMAND = "system_command"  # OS command (chromium, etc.)
+    API_KEY = "api_key"  # External API key
+    ENV_VAR = "env_var"  # Environment variable
+    LLM_PROVIDER = "llm_provider"  # LLM provider
+    BROWSER = "browser"  # Browser runtime environment
 
 
 class RequirementStatus(str, Enum):
@@ -70,19 +70,19 @@ class RequirementStatus(str, Enum):
 
 @dataclass
 class PluginRequirement:
-    """プラグインの 1 つの要件."""
+    """A single requirement for a plugin."""
 
     type: RequirementType
     name: str
     description: str = ""
     required: bool = True
-    install_hint: str = ""  # 解決方法のヒント
-    alternatives: list[str] = field(default_factory=list)  # 代替手段
+    install_hint: str = ""  # Hint for resolution
+    alternatives: list[str] = field(default_factory=list)  # Alternative options
 
 
 @dataclass
 class RequirementCheckResult:
-    """要件チェックの結果."""
+    """Result of a requirement check."""
 
     requirement: PluginRequirement
     status: RequirementStatus
@@ -91,21 +91,21 @@ class RequirementCheckResult:
 
 @dataclass
 class EnvironmentReport:
-    """プラグインの環境チェック全体結果."""
+    """Overall environment check result for a plugin."""
 
     plugin_name: str
     all_satisfied: bool
     results: list[RequirementCheckResult]
-    setup_instructions: list[str]  # ユーザー向けセットアップ手順
+    setup_instructions: list[str]  # Setup instructions for the user
 
 
 # ---------------------------------------------------------------------------
-# プラグインテンプレートカタログ（コミュニティレジストリの代替）
+# Plugin template catalog (substitute for community registry)
 # ---------------------------------------------------------------------------
 
-# 既知のツール → プラグインマニフェストのマッピング
-# ユーザーが「browser-use を追加して」と言った時にここから検索する
-# 将来的にはリモートレジストリ (plugins.zeo.dev) から動的取得
+# Known tool -> plugin manifest mapping
+# Searched when a user says "add browser-use"
+# In the future, dynamically fetched from remote registry (plugins.zeo.dev)
 
 _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
     "browser-use": {
@@ -144,15 +144,15 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
                 "type": "llm_provider",
                 "name": "LLM provider",
                 "required": True,
-                "description": "browser-use の AI 判断に LLM が必要",
+                "description": "LLM required for browser-use AI decision-making",
                 "install_hint": (
-                    "以下のいずれかを設定:\n"
-                    "  - BROWSER_USE_API_KEY (browser-use 専用、推奨)\n"
+                    "Set one of the following:\n"
+                    "  - BROWSER_USE_API_KEY (dedicated for browser-use, recommended)\n"
                     "  - OPENAI_API_KEY (OpenAI)\n"
                     "  - ANTHROPIC_API_KEY (Anthropic)\n"
-                    "  - GEMINI_API_KEY (Google、無料枠あり)\n"
-                    "  - Ollama (ローカル、無料)\n"
-                    "  - g4f (API キー不要モード)"
+                    "  - GEMINI_API_KEY (Google, free tier available)\n"
+                    "  - Ollama (local, free)\n"
+                    "  - g4f (no API key required mode)"
                 ),
                 "alternatives": [
                     "BROWSER_USE_API_KEY",
@@ -214,7 +214,7 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         "adapter": {
             "type": "selenium",
             "module": "app.tools.browser_adapter",
-            "class": None,  # 未実装 — コミュニティ貢献を期待
+            "class": None,  # Not implemented — expecting community contribution
         },
         "settings_schema": {
             "headless": {"type": "boolean", "default": True},
@@ -267,7 +267,7 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         ],
         "adapter": {"type": "mcp", "module": None, "class": None},
     },
-    # ── 画像生成 ──────────────────────────────────────────────────────────
+    # ── Image Generation ──────────────────────────────────────────────────
     "comfyui": {
         "slug": "comfyui",
         "name": "ComfyUI",
@@ -290,7 +290,7 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
                 "type": "env_var",
                 "name": "COMFYUI_URL",
                 "required": True,
-                "install_hint": "COMFYUI_URL=http://localhost:8188 (ComfyUI サーバーの URL)",
+                "install_hint": "COMFYUI_URL=http://localhost:8188 (URL of the ComfyUI server)",
             },
         ],
         "adapter": {"type": "rest_api", "module": None, "class": None},
@@ -314,13 +314,13 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
                 "type": "api_key",
                 "name": "BFL_API_KEY",
                 "required": False,
-                "install_hint": "BFL_API_KEY を設定 (API 経由の場合)。ローカル実行も可能。",
+                "install_hint": "Set BFL_API_KEY (for API access). Local execution is also possible.",
                 "alternatives": ["BFL_API_KEY", "REPLICATE_API_TOKEN"],
             },
         ],
         "adapter": {"type": "rest_api", "module": None, "class": None},
     },
-    # ── 音楽生成 ──────────────────────────────────────────────────────────
+    # ── Music Generation ──────────────────────────────────────────────────
     "suno-api": {
         "slug": "suno-api",
         "name": "Suno Music Generation",
@@ -337,7 +337,7 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
                 "type": "api_key",
                 "name": "SUNO_COOKIE",
                 "required": True,
-                "install_hint": "Suno の Web UI からセッション Cookie を取得して SUNO_COOKIE に設定",
+                "install_hint": "Get session cookie from Suno Web UI and set it as SUNO_COOKIE",
             },
         ],
         "adapter": {"type": "rest_api", "module": None, "class": None},
@@ -363,7 +363,7 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         ],
         "adapter": {"type": "python_module", "module": None, "class": None},
     },
-    # ── 音声合成 ──────────────────────────────────────────────────────────
+    # ── Speech Synthesis ──────────────────────────────────────────────────
     "voicevox": {
         "slug": "voicevox",
         "name": "VOICEVOX",
@@ -380,12 +380,12 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
                 "type": "env_var",
                 "name": "VOICEVOX_URL",
                 "required": True,
-                "install_hint": "VOICEVOX Engine を起動して VOICEVOX_URL=http://localhost:50021 を設定",
+                "install_hint": "Start VOICEVOX Engine and set VOICEVOX_URL=http://localhost:50021",
             },
         ],
         "adapter": {"type": "rest_api", "module": None, "class": None},
     },
-    # ── 検索・リサーチ ────────────────────────────────────────────────────
+    # ── Search / Research ────────────────────────────────────────────────
     "tavily": {
         "slug": "tavily",
         "name": "Tavily Search",

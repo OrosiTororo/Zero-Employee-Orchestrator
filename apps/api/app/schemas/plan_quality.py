@@ -1,4 +1,4 @@
-"""Plan 品質検証 API スキーマ."""
+"""Plan quality verification API schemas."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class PlanTaskForVerification(BaseModel):
-    """検証用のタスク."""
+    """Task for verification."""
 
     task_id: str
     title: str
@@ -17,7 +17,7 @@ class PlanTaskForVerification(BaseModel):
 
 
 class SpecForVerification(BaseModel):
-    """検証用の Spec."""
+    """Spec for verification."""
 
     spec_id: str
     objective: str = ""
@@ -27,7 +27,7 @@ class SpecForVerification(BaseModel):
 
 
 class PlanForVerification(BaseModel):
-    """検証用の Plan."""
+    """Plan for verification."""
 
     plan_id: str
     spec_id: str
@@ -35,14 +35,14 @@ class PlanForVerification(BaseModel):
 
 
 class PlanQualityVerifyRequest(BaseModel):
-    """Plan 品質検証リクエスト."""
+    """Plan quality verification request."""
 
     spec: SpecForVerification
     plan: PlanForVerification
 
 
 class CoverageItemResponse(BaseModel):
-    """カバレッジ項目のレスポンス."""
+    """Coverage item response."""
 
     source_type: str
     source_text: str
@@ -53,7 +53,7 @@ class CoverageItemResponse(BaseModel):
 
 
 class DuplicatePairResponse(BaseModel):
-    """重複ペアのレスポンス."""
+    """Duplicate pair response."""
 
     task_a_id: str
     task_a_title: str

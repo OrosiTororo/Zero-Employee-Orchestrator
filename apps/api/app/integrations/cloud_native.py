@@ -1,13 +1,13 @@
-"""クラウドサービスネイティブ統合 — AWS / GCP / Azure / Cloudflare 抽象化レイヤー.
+"""Cloud service native integration — AWS / GCP / Azure / Cloudflare abstraction layer.
 
-マルチクラウド環境のリソース管理・ストレージ・サーバーレス実行・
-コスト見積もりを統一的なインターフェースで提供する。
+Provides a unified interface for multi-cloud resource management, storage,
+serverless execution, and cost estimation.
 
-すべての操作は:
-- 承認ゲート経由
-- 監査ログ記録
-- データ保護ポリシー適用
-- 認証情報は secret_manager 経由で管理
+All operations:
+- Go through approval gates
+- Are recorded in audit logs
+- Follow data protection policies
+- Credentials are managed via secret_manager
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class CloudProvider(str, Enum):
-    """クラウドプロバイダー."""
+    """Cloud provider."""
 
     AWS = "aws"
     GCP = "gcp"
@@ -31,7 +31,7 @@ class CloudProvider(str, Enum):
 
 
 class CloudService(str, Enum):
-    """クラウドサービス種別."""
+    """Cloud service type."""
 
     COMPUTE = "compute"
     STORAGE = "storage"
@@ -46,7 +46,7 @@ class CloudService(str, Enum):
 
 
 class ResourceStatus(str, Enum):
-    """リソースステータス."""
+    """Resource status."""
 
     CREATING = "creating"
     ACTIVE = "active"
@@ -58,7 +58,7 @@ class ResourceStatus(str, Enum):
 
 @dataclass
 class CloudCredential:
-    """クラウド認証情報."""
+    """Cloud credential."""
 
     provider: CloudProvider
     credential_type: str  # "access_key" | "service_account" | "oauth" | "api_token"
@@ -70,12 +70,12 @@ class CloudCredential:
 
 @dataclass
 class CloudResource:
-    """クラウドリソース."""
+    """Cloud resource."""
 
     id: str
     provider: CloudProvider
     service: CloudService
-    resource_type: str  # "ec2_instance" | "s3_bucket" | "lambda_function" など
+    resource_type: str  # "ec2_instance" | "s3_bucket" | "lambda_function" etc.
     name: str
     region: str = ""
     status: ResourceStatus = ResourceStatus.UNKNOWN
@@ -84,9 +84,9 @@ class CloudResource:
 
 
 class CloudNativeIntegration:
-    """クラウドサービスネイティブ統合.
+    """Cloud service native integration.
 
-    マルチクラウド環境のリソースを統一的なインターフェースで管理する。
+    Manages multi-cloud resources through a unified interface.
     """
 
     def __init__(self) -> None:
@@ -94,26 +94,26 @@ class CloudNativeIntegration:
         self._resources: dict[str, CloudResource] = {}
 
     # ------------------------------------------------------------------
-    # ヘルパー
+    # Helpers
     # ------------------------------------------------------------------
 
     def _now(self) -> str:
         return datetime.now(UTC).isoformat()
 
     def _require_credential(self, provider: CloudProvider) -> CloudCredential:
-        """認証情報が設定されていることを確認する."""
+        """Verify that credentials are configured."""
         cred = self._credentials.get(provider)
         if cred is None:
-            raise ValueError(f"プロバイダー {provider.value} の認証情報が設定されていません")
+            raise ValueError(f"Credentials not configured for provider {provider.value}")
         if not cred.is_valid:
             raise ValueError(
-                f"プロバイダー {provider.value} の認証情報が無効です。"
-                "validate_credentials() で検証してください"
+                f"Credentials for provider {provider.value} are invalid. "
+                "Please verify with validate_credentials()"
             )
         return cred
 
     # ------------------------------------------------------------------
-    # 認証情報管理
+    # Credential management
     # ------------------------------------------------------------------
 
     async def configure_provider(

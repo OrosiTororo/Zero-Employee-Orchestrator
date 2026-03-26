@@ -1,4 +1,4 @@
-"""共通バリデーションヘルパー."""
+"""Common validation helpers."""
 
 from __future__ import annotations
 
@@ -11,9 +11,9 @@ logger = logging.getLogger(__name__)
 
 
 def parse_uuid(value: str, name: str = "ID") -> uuid.UUID:
-    """UUID 文字列を安全にパースする.
+    """Safely parse a UUID string.
 
-    不正な UUID 文字列の場合は 400 Bad Request を返す。
+    Returns 400 Bad Request if the UUID string is invalid.
     """
     try:
         return uuid.UUID(value)
@@ -25,10 +25,10 @@ def parse_uuid(value: str, name: str = "ID") -> uuid.UUID:
 
 
 def require_iam_permission(required: str):
-    """IAM 権限チェックデコレータ（FastAPI Depends 互換）.
+    """IAM permission check decorator (FastAPI Depends compatible).
 
-    AI エージェントからのリクエストに対して、要求された権限を持っているか検証する。
-    人間ユーザーからのリクエストは常に許可する。
+    Verifies that requests from AI agents have the required permissions.
+    Requests from human users are always allowed.
 
     Usage::
 
@@ -44,16 +44,16 @@ def require_iam_permission(required: str):
     from app.api.routes.auth import get_current_user
 
     async def _check(request: Request, user=Depends(get_current_user)):
-        # AI エージェントからのリクエストかどうかを判定
-        # X-Agent-Token ヘッダーがある場合は AI エージェント
+        # Determine if the request is from an AI agent
+        # If X-Agent-Token header is present, it's an AI agent
         agent_token = request.headers.get("X-Agent-Token")
         if not agent_token:
-            return True  # 人間ユーザーは常に許可
+            return True  # Human users are always allowed
 
-        # IAM チェック
+        # IAM check
         from app.security.iam import AI_DENIED_PERMISSIONS
 
-        # AI に明示的に禁止されている権限
+        # Permissions explicitly denied to AI
         denied_values = {d.value for d in AI_DENIED_PERMISSIONS}
         if required in denied_values:
             logger.warning(
@@ -62,7 +62,7 @@ def require_iam_permission(required: str):
             )
             raise HTTPException(
                 status_code=403,
-                detail=f"AI エージェントにはこの操作の権限がありません: {required}",
+                detail=f"AI agent does not have permission for this operation: {required}",
             )
 
         return True

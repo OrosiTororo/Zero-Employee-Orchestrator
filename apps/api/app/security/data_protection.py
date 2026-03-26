@@ -1,17 +1,17 @@
-"""データ保護・転送セキュリティ設定.
+"""Data protection and transfer security settings.
 
-AI によるダウンロード・アップロード・外部通信を制御する
-セキュリティ設定モジュール。
+Security settings module that controls downloads, uploads, and external
+communications by AI.
 
-セキュリティポリシー:
-- LOCKDOWN: 外部転送を全面禁止（初期設定）
-- RESTRICTED: ユーザーが許可した宛先のみ
-- PERMISSIVE: 禁止リスト以外すべて許可（非推奨）
+Security policies:
+- LOCKDOWN: All external transfers are prohibited (default)
+- RESTRICTED: Only user-approved destinations
+- PERMISSIVE: Everything allowed except blocklist (not recommended)
 
-設定方法:
-- GUI: 設定画面 > セキュリティ > データ保護
+Configuration methods:
+- GUI: Settings > Security > Data Protection
 - CLI: zero-employee config set SECURITY_TRANSFER_POLICY lockdown
-- TUI: セキュリティメニュー > データ転送ポリシー
+- TUI: Security Menu > Data Transfer Policy
 - API: PUT /api/v1/security/data-protection
 """
 
@@ -25,22 +25,22 @@ logger = logging.getLogger(__name__)
 
 
 class TransferPolicy(str, Enum):
-    """データ転送ポリシー."""
+    """Data transfer policy."""
 
-    LOCKDOWN = "lockdown"  # 外部転送全面禁止（初期設定）
-    RESTRICTED = "restricted"  # 許可された宛先のみ
-    PERMISSIVE = "permissive"  # 禁止リスト以外許可（非推奨）
+    LOCKDOWN = "lockdown"  # All external transfers prohibited (default)
+    RESTRICTED = "restricted"  # Approved destinations only
+    PERMISSIVE = "permissive"  # Everything allowed except blocklist (not recommended)
 
 
 class TransferDirection(str, Enum):
-    """転送方向."""
+    """Transfer direction."""
 
     UPLOAD = "upload"
     DOWNLOAD = "download"
 
 
 class TransferType(str, Enum):
-    """転送タイプ."""
+    """Transfer type."""
 
     FILE = "file"
     API_REQUEST = "api_request"
@@ -51,7 +51,7 @@ class TransferType(str, Enum):
 
 @dataclass
 class TransferCheckResult:
-    """転送可否チェック結果."""
+    """Transfer permission check result."""
 
     allowed: bool
     direction: TransferDirection
@@ -63,15 +63,15 @@ class TransferCheckResult:
 
 @dataclass
 class DataProtectionConfig:
-    """データ保護設定.
+    """Data protection configuration.
 
-    初期設定は最もセキュアな LOCKDOWN モード。
+    Default setting is the most secure LOCKDOWN mode.
     """
 
     transfer_policy: TransferPolicy = TransferPolicy.LOCKDOWN
 
-    # アップロード設定
-    upload_enabled: bool = False  # AI によるアップロードを許可するか
+    # Upload settings
+    upload_enabled: bool = False  # Whether to allow uploads by AI
     upload_allowed_destinations: list[str] = field(default_factory=list)
     upload_max_size_mb: int = 10
     upload_allowed_types: set[str] = field(
@@ -87,15 +87,15 @@ class DataProtectionConfig:
             ".pdf",
         }
     )
-    upload_require_approval: bool = True  # アップロード前に承認を要求
+    upload_require_approval: bool = True  # Require approval before upload
 
-    # ダウンロード設定
-    download_enabled: bool = False  # AI によるダウンロードを許可するか
+    # Download settings
+    download_enabled: bool = False  # Whether to allow downloads by AI
     download_allowed_sources: list[str] = field(default_factory=list)
     download_max_size_mb: int = 100
     download_require_approval: bool = True
 
-    # 禁止パターン（アップロードに含めてはいけない内容）
+    # Blocked patterns (content that must not be included in uploads)
     upload_blocked_patterns: list[str] = field(
         default_factory=lambda: [
             "password",
@@ -111,24 +111,24 @@ class DataProtectionConfig:
         ]
     )
 
-    # 外部 API 通信設定
+    # External API communication settings
     external_api_enabled: bool = False
     external_api_allowed_hosts: list[str] = field(default_factory=list)
     external_api_require_approval: bool = True
 
-    # PII 保護
-    pii_auto_detect: bool = True  # PII 自動検出を有効にする
-    pii_block_upload: bool = True  # PII を含むアップロードをブロック
-    pii_mask_in_logs: bool = True  # ログ中の PII をマスク
+    # PII protection
+    pii_auto_detect: bool = True  # Enable automatic PII detection
+    pii_block_upload: bool = True  # Block uploads containing PII
+    pii_mask_in_logs: bool = True  # Mask PII in logs
 
-    # パスワード類の特別保護
-    password_upload_blocked: bool = True  # パスワード類のアップロードは常にブロック
+    # Special protection for passwords and credentials
+    password_upload_blocked: bool = True  # Always block uploads of passwords and credentials
 
 
 class DataProtectionGuard:
-    """データ保護ガード.
+    """Data protection guard.
 
-    AI によるデータ転送（アップロード・ダウンロード）を制御する。
+    Controls data transfers (uploads/downloads) by AI.
     """
 
     def __init__(self, config: DataProtectionConfig | None = None) -> None:
@@ -139,7 +139,7 @@ class DataProtectionGuard:
         return self._config
 
     def update_config(self, config: DataProtectionConfig) -> None:
-        """設定を更新する."""
+        """Update configuration."""
         self._config = config
         logger.info("Data protection config updated: policy=%s", config.transfer_policy.value)
 
@@ -150,8 +150,8 @@ class DataProtectionGuard:
         file_size_mb: float = 0,
         content_preview: str = "",
     ) -> TransferCheckResult:
-        """アップロードの可否をチェックする."""
-        # LOCKDOWN モード: すべて拒否
+        """Check whether an upload is permitted."""
+        # LOCKDOWN mode: reject all
         if self._config.transfer_policy == TransferPolicy.LOCKDOWN:
             return TransferCheckResult(
                 allowed=False,
@@ -162,7 +162,7 @@ class DataProtectionGuard:
                 "Change policy via settings to enable.",
             )
 
-        # アップロード無効
+        # Uploads disabled
         if not self._config.upload_enabled:
             return TransferCheckResult(
                 allowed=False,
@@ -172,7 +172,7 @@ class DataProtectionGuard:
                 reason="Uploads are disabled in current configuration.",
             )
 
-        # パスワード類チェック
+        # Password/credential check
         if self._config.password_upload_blocked and content_preview:
             lower = content_preview.lower()
             for pattern in self._config.upload_blocked_patterns:
@@ -185,7 +185,7 @@ class DataProtectionGuard:
                         reason=f"Upload blocked: content contains sensitive pattern '{pattern}'",
                     )
 
-        # ファイルサイズチェック
+        # File size check
         if file_size_mb > self._config.upload_max_size_mb:
             return TransferCheckResult(
                 allowed=False,
@@ -196,7 +196,7 @@ class DataProtectionGuard:
                 f"{self._config.upload_max_size_mb}MB",
             )
 
-        # 拡張子チェック
+        # File extension check
         if file_name:
             ext = "." + file_name.rsplit(".", 1)[-1].lower() if "." in file_name else ""
             if ext and ext not in self._config.upload_allowed_types:
@@ -208,7 +208,7 @@ class DataProtectionGuard:
                     reason=f"File type '{ext}' is not allowed for upload",
                 )
 
-        # RESTRICTED モード: 許可リストチェック
+        # RESTRICTED mode: allowlist check
         if self._config.transfer_policy == TransferPolicy.RESTRICTED:
             if destination not in self._config.upload_allowed_destinations:
                 allowed_any = any(
@@ -237,7 +237,7 @@ class DataProtectionGuard:
         source: str,
         file_size_mb: float = 0,
     ) -> TransferCheckResult:
-        """ダウンロードの可否をチェックする."""
+        """Check whether a download is permitted."""
         if self._config.transfer_policy == TransferPolicy.LOCKDOWN:
             return TransferCheckResult(
                 allowed=False,
@@ -289,7 +289,7 @@ class DataProtectionGuard:
         )
 
     def check_external_api(self, host: str) -> TransferCheckResult:
-        """外部 API 通信の可否をチェックする."""
+        """Check whether an external API call is permitted."""
         if self._config.transfer_policy == TransferPolicy.LOCKDOWN:
             return TransferCheckResult(
                 allowed=False,
@@ -328,5 +328,5 @@ class DataProtectionGuard:
         )
 
 
-# グローバルインスタンス（初期設定は LOCKDOWN）
+# Global instance (default is LOCKDOWN)
 data_protection_guard = DataProtectionGuard()

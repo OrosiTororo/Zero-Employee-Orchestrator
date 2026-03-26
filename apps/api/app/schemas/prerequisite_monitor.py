@@ -1,4 +1,4 @@
-"""前提変化の汎用監視 API スキーマ."""
+"""Generic prerequisite change monitoring API schemas."""
 
 from __future__ import annotations
 
@@ -6,19 +6,19 @@ from pydantic import BaseModel, Field
 
 
 class PrerequisiteSourceCreate(BaseModel):
-    """監視対象の登録リクエスト."""
+    """Request to register a monitoring target."""
 
-    name: str = Field(..., description="監視対象の名前")
-    url: str = Field(..., description="監視対象のURL")
-    category: str = Field(default="custom", description="カテゴリ")
-    description: str = Field(default="", description="説明")
+    name: str = Field(..., description="Name of the monitoring target")
+    url: str = Field(..., description="URL of the monitoring target")
+    category: str = Field(default="custom", description="Category")
+    description: str = Field(default="", description="Description")
     check_interval_hours: int = Field(default=24, ge=1, le=720)
-    keywords: list[str] = Field(default_factory=list, description="監視キーワード")
+    keywords: list[str] = Field(default_factory=list, description="Monitoring keywords")
     linked_ticket_ids: list[str] = Field(default_factory=list)
 
 
 class PrerequisiteSourceUpdate(BaseModel):
-    """監視対象の更新リクエスト."""
+    """Request to update a monitoring target."""
 
     name: str | None = None
     url: str | None = None
@@ -31,7 +31,7 @@ class PrerequisiteSourceUpdate(BaseModel):
 
 
 class PrerequisiteSourceResponse(BaseModel):
-    """監視対象のレスポンス."""
+    """Response for a monitoring target."""
 
     id: str
     company_id: str
@@ -49,7 +49,7 @@ class PrerequisiteSourceResponse(BaseModel):
 
 
 class PrerequisiteChangeResponse(BaseModel):
-    """検出された変更のレスポンス."""
+    """Response for a detected change."""
 
     id: str
     source_id: str
@@ -66,14 +66,14 @@ class PrerequisiteChangeResponse(BaseModel):
 
 
 class PrerequisiteCheckRequest(BaseModel):
-    """手動チェックリクエスト."""
+    """Manual check request."""
 
-    source_id: str = Field(..., description="チェック対象のソースID")
-    content: str = Field(..., description="取得したコンテンツ")
+    source_id: str = Field(..., description="Source ID to check")
+    content: str = Field(..., description="Retrieved content")
 
 
 class PrerequisiteSummaryResponse(BaseModel):
-    """サマリーレスポンス."""
+    """Summary response."""
 
     total_sources: int
     active_sources: int

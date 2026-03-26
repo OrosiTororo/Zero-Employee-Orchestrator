@@ -1,13 +1,13 @@
-"""A2A Bidirectional Communication — エージェント間双方向通信ハブ.
+"""A2A Bidirectional Communication — Inter-agent bidirectional communication hub.
 
-親→子のサブエージェント指示だけでなく、ピア間の対等な通信・交渉・
-チャネルベースのブロードキャストを実現する。
+Supports not only parent-to-child sub-agent instructions, but also peer-to-peer
+communication, negotiation, and channel-based broadcasting.
 
-主な機能:
-  - ダイレクトメッセージ送受信
-  - 名前付きチャネルによるグループ通信
-  - メッセージスレッドの追跡
-  - エージェント間交渉プロトコル
+Key features:
+  - Direct message send/receive
+  - Group communication via named channels
+  - Message thread tracking
+  - Inter-agent negotiation protocol
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class MessagePriority(str, Enum):
-    """メッセージの優先度."""
+    """Message priority."""
 
     LOW = "low"
     NORMAL = "normal"
@@ -32,17 +32,17 @@ class MessagePriority(str, Enum):
 
 
 class MessageType(str, Enum):
-    """メッセージの種類."""
+    """Message type."""
 
-    REQUEST = "request"  # 要求
-    RESPONSE = "response"  # 応答
-    BROADCAST = "broadcast"  # 一斉送信
-    NOTIFICATION = "notification"  # 通知
-    NEGOTIATION = "negotiation"  # 交渉
+    REQUEST = "request"  # Request
+    RESPONSE = "response"  # Response
+    BROADCAST = "broadcast"  # Broadcast
+    NOTIFICATION = "notification"  # Notification
+    NEGOTIATION = "negotiation"  # Negotiation
 
 
 class NegotiationStatus(str, Enum):
-    """交渉の状態."""
+    """Negotiation status."""
 
     PROPOSED = "proposed"
     COUNTER_PROPOSED = "counter_proposed"
@@ -53,21 +53,21 @@ class NegotiationStatus(str, Enum):
 
 @dataclass
 class AgentMessage:
-    """エージェント間の 1 メッセージ."""
+    """A single message between agents."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     sender_id: str = ""
-    receiver_id: str = ""  # 空文字列はブロードキャスト
+    receiver_id: str = ""  # Empty string means broadcast
     message_type: MessageType = MessageType.NOTIFICATION
     priority: MessagePriority = MessagePriority.NORMAL
     content: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     read_at: datetime | None = None
-    reply_to: str | None = None  # 返信先メッセージ ID
+    reply_to: str | None = None  # Reply-to message ID
 
     def to_dict(self) -> dict[str, Any]:
-        """辞書表現を返す."""
+        """Return a dictionary representation."""
         return {
             "id": self.id,
             "sender_id": self.sender_id,
@@ -84,7 +84,7 @@ class AgentMessage:
 
 @dataclass
 class AgentMailbox:
-    """エージェントのメールボックス."""
+    """Agent mailbox."""
 
     agent_id: str = ""
     inbox: list[AgentMessage] = field(default_factory=list)
@@ -92,7 +92,7 @@ class AgentMailbox:
     unread_count: int = 0
 
     def to_dict(self) -> dict[str, Any]:
-        """辞書表現を返す."""
+        """Return a dictionary representation."""
         return {
             "agent_id": self.agent_id,
             "inbox_count": len(self.inbox),
@@ -103,7 +103,7 @@ class AgentMailbox:
 
 @dataclass
 class Negotiation:
-    """エージェント間交渉セッション."""
+    """Inter-agent negotiation session."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     topic: str = ""
@@ -115,7 +115,7 @@ class Negotiation:
     resolved_at: datetime | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        """辞書表現を返す."""
+        """Return a dictionary representation."""
         return {
             "id": self.id,
             "topic": self.topic,
@@ -136,10 +136,10 @@ _MAX_MAILBOX_SIZE = 2000
 
 
 class A2ACommunicationHub:
-    """エージェント間双方向通信ハブ.
+    """Inter-agent bidirectional communication hub.
 
-    各エージェントにメールボックスを割り当て、ダイレクトメッセージ・
-    チャネルブロードキャスト・交渉プロトコルを提供する。
+    Assigns a mailbox to each agent and provides direct messaging,
+    channel broadcasting, and negotiation protocol.
     """
 
     def __init__(self) -> None:
@@ -149,11 +149,11 @@ class A2ACommunicationHub:
         self._all_messages: list[AgentMessage] = []
 
     # ------------------------------------------------------------------
-    # エージェント登録
+    # Agent registration
     # ------------------------------------------------------------------
 
     def register_agent(self, agent_id: str) -> AgentMailbox:
-        """エージェントを登録しメールボックスを作成する."""
+        """Register an agent and create a mailbox."""
         if agent_id in self._mailboxes:
             logger.debug("Agent '%s' already registered", agent_id)
             return self._mailboxes[agent_id]
