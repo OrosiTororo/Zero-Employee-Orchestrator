@@ -393,6 +393,12 @@ def set_config_value(key: str, value: str) -> None:
         except (TypeError, AttributeError):
             logger.debug("Could not update settings.%s at runtime", key)
 
+    # LANGUAGE 変更時は i18n モジュールにも即座に反映
+    if key == "LANGUAGE":
+        from app.core.i18n import set_language
+
+        set_language(value)
+
     logger.info("Config updated: %s", key)
 
 
@@ -516,6 +522,12 @@ def apply_runtime_config() -> None:
                     applied += 1
                 except (TypeError, AttributeError):
                     logger.debug("Could not apply runtime config: %s", key)
+
+    # LANGUAGE がランタイム設定にある場合は i18n モジュールにも反映
+    if "LANGUAGE" in config and not os.environ.get("LANGUAGE"):
+        from app.core.i18n import set_language
+
+        set_language(str(config["LANGUAGE"]))
 
     if applied:
         logger.info("Applied %d runtime config values from %s", applied, _CONFIG_FILE)

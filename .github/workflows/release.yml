@@ -30,11 +30,11 @@ jobs:
             target: macos
             rust_target: universal-apple-darwin
             wix_language: ''
-          # Windows — all languages in one job (en-US, ja-JP, zh-CN MSI + single NSIS exe)
+          # Windows — single MSI (en-US) + NSIS exe; app handles i18n internally
           - platform: windows-latest
             target: windows
             rust_target: ''
-            wix_language: '["en-US", "ja-JP", "zh-CN"]'
+            wix_language: ''
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -109,9 +109,7 @@ jobs:
 
             | OS | ファイル | 説明 |
             |---|---|---|
-            | **Windows** | `_x64_ja-JP.msi` | Windows インストーラー（日本語）⭐ |
-            | **Windows** | `_x64_en-US.msi` | Windows インストーラー（英語） |
-            | **Windows** | `_x64_zh-CN.msi` | Windows インストーラー（中文） |
+            | **Windows** | `_x64_en-US.msi` | Windows インストーラー（.msi）⭐ |
             | **Windows** | `_x64-setup.exe` | Windows インストーラー（.exe / NSIS） |
             | **macOS** | `_universal.dmg` | macOS（Intel / Apple Silicon）⭐ |
             | **Linux** | `_amd64.AppImage` | そのまま実行可能（インストール不要）⭐ |
@@ -133,8 +131,9 @@ jobs:
             1. Assets からファイルをダウンロード
             2. インストーラーを実行
             3. アカウント登録（またはログインせずに開始）
-            4. 設定画面で LLM API キーを入力
-            5. ダッシュボードから自然言語で業務を依頼
+            4. セットアップウィザードで言語を選択（日本語 / English / 中文）
+            5. 設定画面で LLM API キーを入力
+            6. ダッシュボードから自然言語で業務を依頼
 
             ### CLI / TUI 版（エンジニア向け）
 
@@ -157,9 +156,7 @@ jobs:
 
             | OS | File | Description |
             |---|---|---|
-            | **Windows** | `_x64_en-US.msi` | Windows installer (English) ⭐ |
-            | **Windows** | `_x64_ja-JP.msi` | Windows installer (Japanese) |
-            | **Windows** | `_x64_zh-CN.msi` | Windows installer (Chinese) |
+            | **Windows** | `_x64_en-US.msi` | Windows installer (.msi) ⭐ |
             | **Windows** | `_x64-setup.exe` | Windows installer (.exe / NSIS) |
             | **macOS** | `_universal.dmg` | macOS (Intel / Apple Silicon) ⭐ |
             | **Linux** | `_amd64.AppImage` | Portable (no install needed) ⭐ |
@@ -181,8 +178,9 @@ jobs:
             1. Download the file matching your OS from Assets
             2. Run the installer
             3. Register an account (or start without login)
-            4. Enter your LLM API key in Settings
-            5. Request tasks in natural language from the Dashboard
+            4. Choose your language in the setup wizard (日本語 / English / 中文)
+            5. Enter your LLM API key in Settings
+            6. Request tasks in natural language from the Dashboard
 
             ### CLI / TUI (for developers)
 
@@ -205,9 +203,7 @@ jobs:
 
             | 操作系统 | 文件 | 说明 |
             |---|---|---|
-            | **Windows** | `_x64_zh-CN.msi` | Windows 安装程序（中文）⭐ |
-            | **Windows** | `_x64_en-US.msi` | Windows 安装程序（英文） |
-            | **Windows** | `_x64_ja-JP.msi` | Windows 安装程序（日文） |
+            | **Windows** | `_x64_en-US.msi` | Windows 安装程序（.msi）⭐ |
             | **Windows** | `_x64-setup.exe` | Windows 安装程序（.exe / NSIS） |
             | **macOS** | `_universal.dmg` | macOS（Intel / Apple Silicon）⭐ |
             | **Linux** | `_amd64.AppImage` | 便携版（无需安装）⭐ |
@@ -229,8 +225,9 @@ jobs:
             1. 从 Assets 下载与您操作系统匹配的文件
             2. 运行安装程序
             3. 注册账户（或不登录直接开始）
-            4. 在设置界面输入 LLM API 密钥
-            5. 从仪表板用自然语言提交任务
+            4. 在设置向导中选择语言（日本語 / English / 中文）
+            5. 在设置界面输入 LLM API 密钥
+            6. 从仪表板用自然语言提交任务
 
             ### CLI / TUI 版（面向开发者）
 
