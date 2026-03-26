@@ -51,7 +51,7 @@ Pre-built desktop installers are available on the [Releases](https://github.com/
 | **Linux** | `.deb` / `.rpm` | Debian/Ubuntu / Fedora/RHEL |
 
 After installation, a **setup wizard** will guide you through:
-1. **Language** — Choose English, 日本語, or 中文 (changeable later in Settings)
+1. **Language** — Choose English, 日本語, 中文, 한국어, Português, or Türkçe (changeable later in Settings)
 2. **LLM provider** — Pick how the AI runs (no API key needed for subscription mode)
 3. **First task** — Start using the platform immediately
 
@@ -118,6 +118,9 @@ The default language is English. Change it system-wide (CLI, AI responses, and W
 # At startup
 zero-employee chat --lang ja      # Japanese
 zero-employee chat --lang zh      # Chinese
+zero-employee chat --lang ko      # Korean
+zero-employee chat --lang pt      # Portuguese
+zero-employee chat --lang tr      # Turkish
 
 # Persistently (saved to ~/.zero-employee/config.json)
 zero-employee config set LANGUAGE ja
@@ -126,6 +129,9 @@ zero-employee config set LANGUAGE ja
 /lang en                          # Switch to English
 /lang ja                          # Switch to Japanese
 /lang zh                          # Switch to Chinese
+/lang ko                          # Switch to Korean
+/lang pt                          # Switch to Portuguese
+/lang tr                          # Switch to Turkish
 ```
 
 In the desktop app, change language anytime via **Settings**.
