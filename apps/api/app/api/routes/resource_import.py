@@ -140,9 +140,7 @@ async def import_folder(
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except Exception as exc:
-        raise HTTPException(
-            status_code=500, detail=f"Folder import failed: {exc}"
-        ) from exc
+        raise HTTPException(status_code=500, detail=f"Folder import failed: {exc}") from exc
     return ImportFolderResponse(
         imported=[_to_response(r) for r in resources],
         total=len(resources),

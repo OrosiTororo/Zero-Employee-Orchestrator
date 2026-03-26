@@ -531,7 +531,9 @@ class NLCommandProcessor:
                     lines.append(f"  {key} = {info['value']}")
             return CommandResult(
                 success=True,
-                message="Current settings:\n" + "\n".join(lines) if lines else "No settings configured",
+                message="Current settings:\n" + "\n".join(lines)
+                if lines
+                else "No settings configured",
                 data={"config": config},
             )
 

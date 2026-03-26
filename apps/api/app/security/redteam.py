@@ -682,9 +682,7 @@ class RedTeamService:
                     if resp2.status_code in (401, 403):
                         checks_passed.append("Forged token -> rejected")
                     else:
-                        checks_failed.append(
-                            f"Forged token -> {resp2.status_code} (not rejected)"
-                        )
+                        checks_failed.append(f"Forged token -> {resp2.status_code} (not rejected)")
         except Exception:
             # When server is not running, judge by middleware validation only
             pass

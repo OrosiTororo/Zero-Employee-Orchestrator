@@ -835,7 +835,9 @@ def build_parser() -> argparse.ArgumentParser:
     # security -- security management
     security_parser = subparsers.add_parser("security", help="Security configuration management")
     security_sub = security_parser.add_subparsers(dest="security_command")
-    sec_status_parser = security_sub.add_parser("status", help="Display security configuration summary")
+    sec_status_parser = security_sub.add_parser(
+        "status", help="Display security configuration summary"
+    )
     sec_status_parser.set_defaults(func=cmd_security_status)
 
     return parser

@@ -514,9 +514,7 @@ class MetaSkillEngine:
         )[:10]
 
         insight_summary = (
-            "; ".join(i.content[:50] for i in recent_insights)
-            if recent_insights
-            else "No insights"
+            "; ".join(i.content[:50] for i in recent_insights) if recent_insights else "No insights"
         )
 
         content = (

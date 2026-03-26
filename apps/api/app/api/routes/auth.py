@@ -72,9 +72,7 @@ async def login(request: Request, req: LoginRequest, db: AsyncSession = Depends(
     """Login with email/password."""
     user = await authenticate_user(db, req.email, req.password)
     if not user:
-        raise HTTPException(
-            status_code=401, detail="Incorrect email address or password"
-        )
+        raise HTTPException(status_code=401, detail="Incorrect email address or password")
 
     token = create_access_token(str(user.id))
     return LoginResponse(

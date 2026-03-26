@@ -237,7 +237,9 @@ class ReasoningTrace:
         if summary:
             self.summary = summary
         else:
-            self.summary = f"{len(self.steps)} steps, {self.total_decisions} decisions, outcome: {outcome}"
+            self.summary = (
+                f"{len(self.steps)} steps, {self.total_decisions} decisions, outcome: {outcome}"
+            )
 
     def to_dict(self) -> dict[str, Any]:
         return {

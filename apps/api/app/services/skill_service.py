@@ -109,9 +109,7 @@ def analyze_code_safety(code: str) -> RegistrySafetyReport:
     else:
         report.risk_level = "low"
 
-    report.summary = (
-        f"Issues detected: {len(issues)}" if issues else "No safety issues detected"
-    )
+    report.summary = f"Issues detected: {len(issues)}" if issues else "No safety issues detected"
 
     return report
 

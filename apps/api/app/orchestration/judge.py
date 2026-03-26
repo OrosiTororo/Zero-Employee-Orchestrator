@@ -116,7 +116,9 @@ class PolicyPackJudge:
         if operations:
             dangerous = self.check_dangerous_operations(operations)
             if dangerous:
-                violations.extend([f"Approval-required operation detected: {op}" for op in dangerous])
+                violations.extend(
+                    [f"Approval-required operation detected: {op}" for op in dangerous]
+                )
 
             # autonomy_boundary check
             try:

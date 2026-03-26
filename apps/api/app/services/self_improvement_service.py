@@ -595,7 +595,9 @@ async def improve_skill(
             expected = meta.get("expected_improvements", [])
 
     except Exception as exc:
-        logger.warning("Skipping LLM improvement generation, applying static improvements only: %s", exc)
+        logger.warning(
+            "Skipping LLM improvement generation, applying static improvements only: %s", exc
+        )
         improved_code, changes = _apply_static_improvements(original_code, analysis.findings)
         expected = ["Basic improvements based on static analysis"]
 
@@ -838,7 +840,8 @@ async def _llm_propose_judge_rules(
 
     # Summarize data
     success_summary = "\n".join(
-        f"- [{s.category}] {s.title} (effectiveness: {s.effectiveness_score})" for s in successes[:20]
+        f"- [{s.category}] {s.title} (effectiveness: {s.effectiveness_score})"
+        for s in successes[:20]
     )
     failure_summary = "\n".join(
         f"- [{f.category}/{f.subcategory}] {f.description} (occurrences: {f.occurrence_count}, recovery rate: {f.recovery_success_rate:.0%})"
@@ -1152,9 +1155,7 @@ async def run_skill_ab_test(
     score_diff = avg_a_score - avg_b_score
     if abs(score_diff) > 0.05:
         winner = str(skill_a_id) if score_diff > 0 else str(skill_b_id)
-        winner_reason = (
-            f"Quality score difference: {abs(score_diff):.2f} (A: {avg_a_score:.2f}, B: {avg_b_score:.2f})"
-        )
+        winner_reason = f"Quality score difference: {abs(score_diff):.2f} (A: {avg_a_score:.2f}, B: {avg_b_score:.2f})"
     elif abs(avg_a_time - avg_b_time) > 100:  # More than 100ms difference
         winner = str(skill_a_id) if avg_a_time < avg_b_time else str(skill_b_id)
         winner_reason = (

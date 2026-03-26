@@ -275,7 +275,7 @@ def inject_failure_warnings(
 
     for warning in warnings:
         question_text = (
-            f"In similar past tasks, the \"{warning.subcategory}\" issue occurred "
+            f'In similar past tasks, the "{warning.subcategory}" issue occurred '
             f"{warning.occurrence_count} time(s)"
             f" (recovery success rate: {warning.recovery_success_rate:.0%})."
             f" Prevention: {warning.prevention_strategy} — "

@@ -65,7 +65,9 @@ async def start_task(
             db.add(audit)
             await db.commit()
             await db.refresh(task)
-            raise PermissionError(f"Operation '{operation_type}' requires approval: {gate_result.reason}")
+            raise PermissionError(
+                f"Operation '{operation_type}' requires approval: {gate_result.reason}"
+            )
 
     task.status = "running"
     task.started_at = datetime.now(UTC)
