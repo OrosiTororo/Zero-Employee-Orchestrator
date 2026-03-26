@@ -1405,4 +1405,4 @@ pnpm lint
 | `docs/dev/DESIGN.md` | 実装設計書（DB・API・画面・状態遷移） |
 | `docs/dev/MASTER_GUIDE.md` | 実装運用ガイド |
 | `docs/FEATURES.md` | 機能一覧（本ガイドの姉妹文書） |
-| `docs/dev/instructions_section2〜7` | 各領域の実装指示 |
+| `docs/dev/FEATURE_BOUNDARY.md` | コア vs Skill/Plugin/Extension 境界定義 |

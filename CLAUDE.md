@@ -18,6 +18,8 @@ ls apps/api/app/tests/
 - `docs/Zero-Employee Orchestrator.md` — 最上位基準文書
 - `docs/dev/DESIGN.md` — 実装設計書
 - `docs/dev/MASTER_GUIDE.md` — 実装運用ガイド
+- `docs/dev/BUILD_GUIDE.md` — ゼロから構築する手順（フェーズ別）
+- `docs/dev/FEATURE_BOUNDARY.md` — コア vs Skill/Plugin/Extension 境界定義
 - `ROADMAP.md` — ロードマップ（v0.2 以降の残課題）
 - `docs/dev/DEVELOPER_SETUP.md` — 開発者セットアップガイド（Sentry・レッドチームテスト等）
 - `USER_SETUP.md` — 利用ユーザーセットアップガイド（API キー・セキュリティ・DB・デプロイ等）
@@ -43,12 +45,12 @@ apps/
 ├── api/              # FastAPI バックエンド (Python 3.12+)
 │   ├── app/
 │   │   ├── core/           # 設定・DB・レート制限・i18n
-│   │   ├── api/routes/     # REST API エンドポイント (39 ルートモジュール・330+ エンドポイント)
+│   │   ├── api/routes/     # REST API エンドポイント (39 ルートモジュール・333 エンドポイント)
 │   │   ├── api/ws/         # WebSocket (events, browser_assist_ws)
 │   │   ├── api/deps/       # 依存性注入
 │   │   ├── models/         # SQLAlchemy ORM
 │   │   ├── schemas/        # Pydantic DTO
-│   │   ├── services/       # ビジネスロジック (19 サービス + Plugin Loader)
+│   │   ├── services/       # ビジネスロジック (25 サービス)
 │   │   ├── repositories/   # DB 入出力抽象化
 │   │   ├── orchestration/  # DAG・Judge・状態機械・Knowledge・Memory・MetaSkill・A2A・Transparency (22 モジュール)
 │   │   ├── heartbeat/      # Heartbeat スケジューラ
@@ -64,8 +66,8 @@ apps/
 ├── desktop/          # Tauri v2 + React UI
 ├── edge/             # Cloudflare Workers (proxy / full)
 └── worker/           # バックグラウンドワーカー
-skills/builtin/       # 組み込み Skill (7 個 + browser-assist)
-plugins/              # Plugin マニフェスト (10 Plugin + browser-use)
+skills/builtin/       # 組み込み Skill (8 個: 7 Python モジュール + browser-assist マニフェスト)
+plugins/              # Plugin マニフェスト (10 Plugin)
 extensions/           # Extension マニフェスト (5 Extension + Chrome 拡張機能)
 ```
 
@@ -262,7 +264,7 @@ spec-contradiction, task-replay, judgment-review, plan-quality)
 | Plugin | 複数 Skill をバンドル | ai-secretary, ai-avatar, research |
 | Extension | システム連携・インフラ | mcp, oauth, notifications, obsidian, browser-assist (Chrome 拡張機能) |
 
-- ビルトイン Skill (7 個): spec-writer, plan-writer, task-breakdown, review-assistant, artifact-summarizer, local-context, browser-assist
+- ビルトイン Skill (8 個): spec-writer, plan-writer, task-breakdown, review-assistant, artifact-summarizer, local-context, domain-skills, browser-assist
 - システム保護 Skill は削除・無効化不可
 - 自然言語スキル生成: `POST /api/v1/registry/skills/generate` (16 種類の危険パターン検出)
 
