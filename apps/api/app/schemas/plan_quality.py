@@ -63,7 +63,7 @@ class DuplicatePairResponse(BaseModel):
 
 
 class QualityIssueResponse(BaseModel):
-    """品質問題のレスポンス."""
+    """Quality issue response."""
 
     id: str
     type: str
@@ -74,7 +74,7 @@ class QualityIssueResponse(BaseModel):
 
 
 class PlanQualityReportResponse(BaseModel):
-    """Plan 品質検証レポートのレスポンス."""
+    """Plan quality verification report response."""
 
     id: str
     plan_id: str

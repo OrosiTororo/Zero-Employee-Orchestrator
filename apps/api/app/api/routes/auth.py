@@ -40,21 +40,21 @@ async def get_current_user(
     token = authorization.replace("Bearer ", "")
     user_id = decode_access_token(token)
     if not user_id:
-        raise HTTPException(status_code=401, detail="無効なトークンです")
+        raise HTTPException(status_code=401, detail="Invalid token")
     user = await get_user_by_id(db, user_id)
     if not user:
-        raise HTTPException(status_code=401, detail="ユーザーが見つかりません")
+        raise HTTPException(status_code=401, detail="User not found")
     return user
 
 
 @router.post("/register", response_model=LoginResponse)
 @limiter.limit("5/minute")
 async def register(request: Request, req: RegisterRequest, db: AsyncSession = Depends(get_db)):
-    """新規アカウント登録 - メールとパスワードで登録し、デフォルト組織を自動作成"""
+    """Register a new account - register with email and password, auto-create default organization."""
     # Check if email already exists
     result = await db.execute(select(User).where(User.email == req.email))
     if result.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="このメールアドレスは既に登録されています")
+        raise HTTPException(status_code=400, detail="This email address is already registered")
 
     user = await register_user(db, req.email, req.password, req.display_name)
     token = create_access_token(str(user.id))
@@ -69,11 +69,11 @@ async def register(request: Request, req: RegisterRequest, db: AsyncSession = De
 @router.post("/login", response_model=LoginResponse)
 @limiter.limit("10/minute")
 async def login(request: Request, req: LoginRequest, db: AsyncSession = Depends(get_db)):
-    """メール/パスワードでログイン"""
+    """Login with email/password."""
     user = await authenticate_user(db, req.email, req.password)
     if not user:
         raise HTTPException(
-            status_code=401, detail="メールアドレスまたはパスワードが正しくありません"
+            status_code=401, detail="Incorrect email address or password"
         )
 
     token = create_access_token(str(user.id))
@@ -86,29 +86,29 @@ async def login(request: Request, req: LoginRequest, db: AsyncSession = Depends(
 
 @router.get("/google/authorize")
 async def google_authorize():
-    """Google OAuth 認可URL取得 (未実装スタブ)"""
+    """Get Google OAuth authorization URL (unimplemented stub)."""
     raise HTTPException(
         status_code=501,
-        detail="Google OAuth は準備中です。メール登録をご利用ください。",
+        detail="Google OAuth is not yet available. Please use email registration.",
     )
 
 
 @router.post("/oauth/login", response_model=LoginResponse)
 async def oauth_login(req: OAuthLoginRequest, db: AsyncSession = Depends(get_db)):
-    """OAuth プロバイダー経由のログイン (Google, GitHub等)"""
+    """Login via OAuth provider (Google, GitHub, etc.)."""
     # In production, validate the OAuth code with the provider
     # For now, create/find user by provider info
     # This would be expanded with actual OAuth flow
     raise HTTPException(
         status_code=501,
-        detail=f"OAuth provider '{req.provider}' は準備中です。メール登録をご利用ください。",
+        detail=f"OAuth provider '{req.provider}' is not yet available. Please use email registration.",
     )
 
 
 @router.post("/logout")
 async def logout():
-    """ログアウト"""
-    return {"status": "ok", "message": "ログアウトしました"}
+    """Logout."""
+    return {"status": "ok", "message": "Logged out successfully"}
 
 
 @router.get("/me", response_model=UserRead)
@@ -209,7 +209,7 @@ async def link_anonymous_to_account(
     # メールの重複チェック
     result = await db.execute(select(User).where(User.email == req.email))
     if result.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="このメールアドレスは既に登録されています")
+        raise HTTPException(status_code=400, detail="This email address is already registered")
 
     user.email = req.email
     user.display_name = req.display_name

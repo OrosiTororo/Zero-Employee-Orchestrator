@@ -1,17 +1,17 @@
-"""Zero-Employee Orchestrator — バナー表示.
+"""Zero-Employee Orchestrator -- Banner display.
 
-CLI / TUI 起動時に表示するロゴ・バナー。
-vibe-local のTUIデザインを参考に、モデル情報・エンジン状態・
-モード表示をステータスラインとして表示する。
+Logo and banner displayed at CLI / TUI startup.
+Inspired by vibe-local's TUI design, displays model info, engine status,
+and mode as status lines.
 
-カラーテーマ: シアン〜ブルーのグラデーション
-（vibe-local のマゼンタ系とは差別化）
+Color theme: cyan-to-blue gradient
+(differentiated from vibe-local's magenta scheme)
 """
 
 import os
 import shutil
 
-# ANSI カラーコード
+# ANSI color codes
 _CYAN = "\033[38;5;51m"
 _CYAN_DARK = "\033[38;5;38m"
 _BLUE = "\033[38;5;33m"
@@ -25,7 +25,7 @@ _DIM = "\033[2m"
 _BOLD = "\033[1m"
 _RESET = "\033[0m"
 
-# ステータスラインのアイコン
+# Status line icons
 _ICON_MODEL = "\u25cf"  # ● (filled circle)
 _ICON_ENGINE = "\u2699"  # ⚙ (gear)
 _ICON_MODE = "\u26a1"  # ⚡ (lightning)
@@ -59,7 +59,7 @@ def _separator(width: int = 50) -> str:
 
 
 def print_banner(compact: bool = False) -> None:
-    """ターミナルにカラーバナーを表示する."""
+    """Display a colored banner in the terminal."""
     from app.core.i18n import t
 
     art = BANNER_ASCII_COMPACT if compact else BANNER_ASCII
@@ -93,10 +93,10 @@ def print_local_banner(
     language: str = "ja",
     ollama_available: bool = False,
 ) -> None:
-    """ローカルモード用の詳細バナーを表示する.
+    """Display a detailed banner for local mode.
 
-    vibe-local のステータス表示を参考にしつつ、
-    Zero-Employee Orchestrator の業務遂行モードに適合させた表示。
+    Inspired by vibe-local's status display, adapted for
+    Zero-Employee Orchestrator's task execution mode.
     """
     from app.core.i18n import t
 

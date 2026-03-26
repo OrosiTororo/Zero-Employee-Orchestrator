@@ -119,7 +119,7 @@ class CloudNativeIntegration:
     async def configure_provider(
         self, provider: CloudProvider, credentials: dict
     ) -> CloudCredential:
-        """プロバイダーの認証情報を設定する."""
+        """Configure credentials for a provider."""
         cred_type = credentials.pop("credential_type", "access_key")
         region = credentials.pop("region", "")
 
@@ -133,7 +133,7 @@ class CloudNativeIntegration:
         )
         self._credentials[provider] = credential
         logger.info(
-            "クラウド認証情報設定: provider=%s type=%s region=%s",
+            "Cloud credentials configured: provider=%s type=%s region=%s",
             provider.value,
             cred_type,
             region,
@@ -141,25 +141,25 @@ class CloudNativeIntegration:
         return credential
 
     async def validate_credentials(self, provider: CloudProvider) -> bool:
-        """認証情報の有効性を検証する."""
+        """Validate credential validity."""
         cred = self._credentials.get(provider)
         if cred is None:
-            raise ValueError(f"プロバイダー {provider.value} の認証情報が設定されていません")
+            raise ValueError(f"Credentials not configured for provider {provider.value}")
 
-        # 実際のクラウド API 呼び出しのシミュレーション
-        # 本番では boto3 / google-cloud / azure-sdk を使用
+        # Simulation of actual cloud API calls
+        # In production, use boto3 / google-cloud / azure-sdk
         has_config = bool(cred.config)
         cred.is_valid = has_config
         cred.last_validated = self._now()
         logger.info(
-            "クラウド認証検証: provider=%s valid=%s",
+            "Cloud credential validation: provider=%s valid=%s",
             provider.value,
             cred.is_valid,
         )
         return cred.is_valid
 
     # ------------------------------------------------------------------
-    # リソース管理
+    # Resource management
     # ------------------------------------------------------------------
 
     async def list_resources(
@@ -167,7 +167,7 @@ class CloudNativeIntegration:
         provider: CloudProvider | None = None,
         service: CloudService | None = None,
     ) -> list[CloudResource]:
-        """リソース一覧を取得する."""
+        """Retrieve the list of resources."""
         resources = list(self._resources.values())
         if provider:
             resources = [r for r in resources if r.provider == provider]
@@ -181,7 +181,7 @@ class CloudNativeIntegration:
         service: CloudService,
         config: dict,
     ) -> CloudResource:
-        """クラウドリソースを作成する."""
+        """Create a cloud resource."""
         self._require_credential(provider)
 
         resource_id = str(uuid.uuid4())
@@ -202,11 +202,11 @@ class CloudNativeIntegration:
         )
         self._resources[resource_id] = resource
 
-        # リソース作成のシミュレーション（非同期完了）
+        # Simulate resource creation (async completion)
         resource.status = ResourceStatus.ACTIVE
 
         logger.info(
-            "クラウドリソース作成: id=%s provider=%s service=%s name=%s",
+            "Cloud resource created: id=%s provider=%s service=%s name=%s",
             resource_id,
             provider.value,
             service.value,
@@ -215,10 +215,10 @@ class CloudNativeIntegration:
         return resource
 
     async def delete_resource(self, resource_id: str) -> bool:
-        """クラウドリソースを削除する."""
+        """Delete a cloud resource."""
         resource = self._resources.get(resource_id)
         if resource is None:
-            raise ValueError(f"リソースが見つかりません: {resource_id}")
+            raise ValueError(f"Resource not found: {resource_id}")
 
         self._require_credential(resource.provider)
         resource.status = ResourceStatus.DELETING

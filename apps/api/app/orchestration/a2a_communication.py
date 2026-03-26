@@ -164,13 +164,13 @@ class A2ACommunicationHub:
         return mailbox
 
     def unregister_agent(self, agent_id: str) -> bool:
-        """エージェントを登録解除する."""
+        """Unregister an agent."""
         if agent_id not in self._mailboxes:
             return False
 
         del self._mailboxes[agent_id]
 
-        # チャネルからも除外
+        # Remove from channels as well
         for subscribers in self._channels.values():
             if agent_id in subscribers:
                 subscribers.remove(agent_id)
@@ -179,7 +179,7 @@ class A2ACommunicationHub:
         return True
 
     # ------------------------------------------------------------------
-    # メッセージ送受信
+    # Message send/receive
     # ------------------------------------------------------------------
 
     def send_message(
@@ -192,20 +192,20 @@ class A2ACommunicationHub:
         *,
         metadata: dict[str, Any] | None = None,
     ) -> AgentMessage:
-        """ダイレクトメッセージを送信する.
+        """Send a direct message.
 
         Args:
-            sender_id: 送信元エージェント ID。
-            receiver_id: 送信先エージェント ID。
-            content: メッセージ本文。
-            msg_type: メッセージ種別。
-            priority: 優先度。
-            metadata: 追加メタデータ。
+            sender_id: Sender agent ID.
+            receiver_id: Receiver agent ID.
+            content: Message body.
+            msg_type: Message type.
+            priority: Priority level.
+            metadata: Additional metadata.
 
         Returns:
-            送信されたメッセージ。
+            The sent message.
         """
-        # 未登録エージェントは自動登録
+        # Auto-register unregistered agents
         if sender_id not in self._mailboxes:
             self.register_agent(sender_id)
         if receiver_id not in self._mailboxes:
@@ -220,7 +220,7 @@ class A2ACommunicationHub:
             metadata=metadata or {},
         )
 
-        # メールボックスに配信
+        # Deliver to mailboxes
         sender_mb = self._mailboxes[sender_id]
         receiver_mb = self._mailboxes[receiver_id]
 
@@ -228,7 +228,7 @@ class A2ACommunicationHub:
         receiver_mb.inbox.append(msg)
         receiver_mb.unread_count += 1
 
-        # 容量制限
+        # Capacity limit
         self._trim_mailbox(sender_mb)
         self._trim_mailbox(receiver_mb)
 
@@ -251,16 +251,16 @@ class A2ACommunicationHub:
         *,
         metadata: dict[str, Any] | None = None,
     ) -> list[AgentMessage]:
-        """チャネルの全登録エージェントにブロードキャストする.
+        """Broadcast to all subscribed agents in a channel.
 
         Args:
-            sender_id: 送信元エージェント ID。
-            channel: チャネル名。
-            content: メッセージ本文。
-            metadata: 追加メタデータ。
+            sender_id: Sender agent ID.
+            channel: Channel name.
+            content: Message body.
+            metadata: Additional metadata.
 
         Returns:
-            送信されたメッセージのリスト。
+            List of sent messages.
         """
         subscribers = self._channels.get(channel, [])
         if not subscribers:
@@ -270,7 +270,7 @@ class A2ACommunicationHub:
         messages: list[AgentMessage] = []
         for subscriber_id in subscribers:
             if subscriber_id == sender_id:
-                continue  # 自分自身には送らない
+                continue  # Don't send to self
             msg = self.send_message(
                 sender_id=sender_id,
                 receiver_id=subscriber_id,
@@ -294,14 +294,14 @@ class A2ACommunicationHub:
         agent_id: str,
         unread_only: bool = False,
     ) -> list[AgentMessage]:
-        """エージェントの受信メッセージを取得する.
+        """Retrieve received messages for an agent.
 
         Args:
-            agent_id: エージェント ID。
-            unread_only: True の場合、未読メッセージのみ返す。
+            agent_id: Agent ID.
+            unread_only: If True, return only unread messages.
 
         Returns:
-            メッセージのリスト。
+            List of messages.
         """
         mailbox = self._mailboxes.get(agent_id)
         if not mailbox:

@@ -408,12 +408,12 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
                 "type": "api_key",
                 "name": "TAVILY_API_KEY",
                 "required": True,
-                "install_hint": "https://tavily.com で API キーを取得",
+                "install_hint": "Get API key at https://tavily.com",
             },
         ],
         "adapter": {"type": "python_module", "module": None, "class": None},
     },
-    # ── データ分析 ────────────────────────────────────────────────────────
+    # ── Data Analysis ────────────────────────────────────────────────────
     "pandas-ai": {
         "slug": "pandas-ai",
         "name": "PandasAI",
@@ -436,14 +436,14 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
                 "type": "llm_provider",
                 "name": "LLM provider",
                 "required": True,
-                "description": "データ分析の LLM が必要",
-                "install_hint": "OPENAI_API_KEY または他の LLM プロバイダーを設定",
+                "description": "LLM required for data analysis",
+                "install_hint": "Set OPENAI_API_KEY or another LLM provider",
                 "alternatives": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "ollama", "g4f"],
             },
         ],
         "adapter": {"type": "python_module", "module": None, "class": None},
     },
-    # ── 3D モデル ─────────────────────────────────────────────────────────
+    # ── 3D Models ─────────────────────────────────────────────────────────
     "triposr": {
         "slug": "triposr",
         "name": "TripoSR",
@@ -465,7 +465,7 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         ],
         "adapter": {"type": "python_module", "module": None, "class": None},
     },
-    # ── コミュニケーション ────────────────────────────────────────────────
+    # ── Communication ────────────────────────────────────────────────────
     "slack-sdk": {
         "slug": "slack-sdk",
         "name": "Slack Integration",
@@ -488,7 +488,7 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
                 "type": "api_key",
                 "name": "SLACK_BOT_TOKEN",
                 "required": True,
-                "install_hint": "Slack App を作成して Bot Token を取得",
+                "install_hint": "Create a Slack App and obtain a Bot Token",
             },
         ],
         "adapter": {"type": "python_module", "module": None, "class": None},
@@ -497,29 +497,29 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
 
 
 # ---------------------------------------------------------------------------
-# 汎用ツールレジストリ — AI エージェントがツールを動的に選択する基盤
+# Universal tool registry — foundation for AI agents to dynamically select tools
 # ---------------------------------------------------------------------------
 
 
 class ToolRegistry:
-    """あらゆるカテゴリのツールを統合管理するレジストリ.
+    """Registry that manages tools across all categories.
 
-    AI エージェント組織がタスクに最適なツールを動的に選択するための基盤。
-    特定のツールを固定するのではなく、ユーザーがカテゴリごとに
-    好みのツールを設定し、エージェントがそれを利用する。
+    Foundation for the AI agent organization to dynamically select the optimal
+    tool per task. Rather than locking in specific tools, users configure their
+    preferred tool per category, and agents use that selection.
 
-    例:
-    - 画像生成タスク → ユーザーが設定した画像生成ツール (ComfyUI or DALL-E or Flux)
-    - ブラウザ操作タスク → ユーザーが設定したブラウザツール (browser-use or Playwright)
-    - 音楽生成タスク → ユーザーが設定した音楽ツール (Suno or MusicGen)
+    Examples:
+    - Image generation task -> user-configured image tool (ComfyUI or DALL-E or Flux)
+    - Browser automation task -> user-configured browser tool (browser-use or Playwright)
+    - Music generation task -> user-configured music tool (Suno or MusicGen)
     """
 
     def __init__(self) -> None:
-        # カテゴリ → 登録済みツール名のリスト
+        # Category -> list of registered tool names
         self._tools: dict[str, list[str]] = {}
-        # カテゴリ → アクティブツール名
+        # Category -> active tool name
         self._active: dict[str, str] = {}
-        # ツール名 → 設定
+        # Tool name -> configuration
         self._configs: dict[str, dict] = {}
 
     def register_tool(
@@ -528,12 +528,12 @@ class ToolRegistry:
         category: str,
         config: dict,
     ) -> None:
-        """ツールをレジストリに登録する.
+        """Register a tool in the registry.
 
         Args:
-            slug: ツール識別子
-            category: ツールカテゴリ
-            config: ツール設定（マニフェスト情報等）
+            slug: Tool identifier
+            category: Tool category
+            config: Tool configuration (manifest info, etc.)
         """
         if category not in self._tools:
             self._tools[category] = []
@@ -541,14 +541,14 @@ class ToolRegistry:
             self._tools[category].append(slug)
         self._configs[slug] = {**config, "category": category}
 
-        # そのカテゴリで初めてのツールならアクティブに設定
+        # Set as active if this is the first tool in the category
         if category not in self._active:
             self._active[category] = slug
 
-        logger.info("ツール登録: %s (カテゴリ: %s)", slug, category)
+        logger.info("Tool registered: %s (category: %s)", slug, category)
 
     def unregister_tool(self, slug: str) -> bool:
-        """ツールを登録解除する."""
+        """Unregister a tool."""
         config = self._configs.pop(slug, None)
         if config is None:
             return False
@@ -557,7 +557,7 @@ class ToolRegistry:
         if category in self._tools and slug in self._tools[category]:
             self._tools[category].remove(slug)
 
-        # アクティブツールが削除されたら別のツールに切替
+        # Switch to another tool if the active one was removed
         if self._active.get(category) == slug:
             remaining = self._tools.get(category, [])
             self._active[category] = remaining[0] if remaining else ""
@@ -565,30 +565,30 @@ class ToolRegistry:
         return True
 
     def set_active_tool(self, category: str, slug: str) -> bool:
-        """カテゴリのアクティブツールを切り替える.
+        """Switch the active tool for a category.
 
-        ユーザーが「画像生成は ComfyUI を使って」と言った場合、
-        image-generation カテゴリのアクティブツールを comfyui に切り替える。
+        When a user says "use ComfyUI for image generation",
+        switch the active tool for the image-generation category to comfyui.
         """
         if category not in self._tools or slug not in self._tools[category]:
             return False
         self._active[category] = slug
-        logger.info("アクティブツール変更: %s → %s", category, slug)
+        logger.info("Active tool changed: %s -> %s", category, slug)
         return True
 
     def get_active_tool(self, category: str) -> str | None:
-        """カテゴリのアクティブツールを取得する.
+        """Get the active tool for a category.
 
-        AI エージェントが「画像生成をしたい」時に呼ぶ。
+        Called when an AI agent wants to perform e.g. "image generation".
         """
         return self._active.get(category)
 
     def get_tool_config(self, slug: str) -> dict | None:
-        """ツールの設定情報を取得する."""
+        """Get configuration for a tool."""
         return self._configs.get(slug)
 
     def list_tools(self, category: str | None = None) -> list[dict]:
-        """登録済みツール一覧を返す."""
+        """Return a list of registered tools."""
         results = []
         for slug, config in self._configs.items():
             if category and config.get("category") != category:
@@ -606,7 +606,7 @@ class ToolRegistry:
         return results
 
     def list_categories(self) -> list[dict]:
-        """カテゴリ一覧とアクティブツールを返す."""
+        """Return a list of categories and their active tools."""
         return [
             {
                 "category": cat,
