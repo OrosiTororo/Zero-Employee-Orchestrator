@@ -46,14 +46,14 @@ apps/
 ├── api/              # FastAPI backend (Python 3.12+)
 │   ├── app/
 │   │   ├── core/           # Config, DB, rate limiting, i18n
-│   │   ├── api/routes/     # REST API endpoints (40 route modules, 350+ endpoints)
+│   │   ├── api/routes/     # REST API endpoints (41 route modules, 350+ endpoints)
 │   │   ├── api/ws/         # WebSocket (events, browser_assist_ws)
 │   │   ├── api/deps/       # Dependency injection
 │   │   ├── models/         # SQLAlchemy ORM
 │   │   ├── schemas/        # Pydantic DTO
-│   │   ├── services/       # Business logic (25 services)
+│   │   ├── services/       # Business logic (26 services)
 │   │   ├── repositories/   # DB I/O abstraction
-│   │   ├── orchestration/  # DAG, Judge, state machine, Knowledge, Memory, MetaSkill, A2A, Transparency (22 modules)
+│   │   ├── orchestration/  # DAG, Judge, state machine, Knowledge, Memory, MetaSkill, A2A, Transparency (23 modules)
 │   │   ├── heartbeat/      # Heartbeat scheduler
 │   │   ├── providers/      # LLM gateway, Ollama, g4f, RAG, ModelRegistry, WebSession
 │   │   ├── tools/          # External tool connectors (MCP/Webhook/API/CLI/GraphQL/Browser/BrowserAdapter/LSP)
@@ -104,19 +104,25 @@ zero-employee models
 zero-employee config list
 ```
 
-## pyproject.toml Management (Important)
+## Version Management (Important)
 
-**IMPORTANT: Two `pyproject.toml` files exist. Always use the `bump-version` script when updating versions.**
+**IMPORTANT: 8 version-bearing files exist. Always use the `bump-version` script when updating versions.**
 
-| File | Purpose | Package Path |
-|------|---------|-------------|
-| `pyproject.toml` (root) | PyPI publishing and build | `packages = ["apps/api/app"]` |
-| `apps/api/pyproject.toml` | Development (`working-directory: apps/api`) | `packages = ["app"]` |
+| File | Format |
+|------|--------|
+| `pyproject.toml` (root) | `version = "X.Y.Z"` |
+| `apps/api/pyproject.toml` | `version = "X.Y.Z"` |
+| `apps/desktop/package.json` | `"version": "X.Y.Z"` |
+| `apps/desktop/ui/package.json` | `"version": "X.Y.Z"` |
+| `apps/edge/proxy/package.json` | `"version": "X.Y.Z"` |
+| `apps/edge/full/package.json` | `"version": "X.Y.Z"` |
+| `apps/desktop/src-tauri/tauri.conf.json` | `"version": "X.Y.Z"` |
+| `apps/desktop/src-tauri/Cargo.toml` | `version = "X.Y.Z"` |
 
 - Version update: `./scripts/bump-version.sh 0.2.0`
-- `name`, `version`, `description`, `requires-python`, `license`, `dependencies`, `dev dependencies` must match in both files
-- CI (`check-metadata-sync` job) will fail if they are out of sync
-- When changing metadata, always update both files simultaneously
+- The script updates all 8 files and verifies consistency
+- CI (`check-metadata-sync` job) will fail if pyproject.toml files are out of sync
+- When changing metadata, always update both pyproject.toml files simultaneously
 
 ## Coding Conventions
 
