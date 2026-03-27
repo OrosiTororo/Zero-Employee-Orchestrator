@@ -412,13 +412,21 @@ for ongoing threat modeling:
 | 38 | `ErrorToast.test.tsx` | No frontend tests | 5 tests: empty state, add toast, multiple, dismiss, limit |
 | 39 | `use-websocket.test.ts` | No frontend tests | 6 tests: connection state, events, subscribers, wildcard, unsub |
 
-### 8.6 Remaining Issues
+### 8.6 Final Fixes (Fourth Commit)
 
-All CRITICAL and HIGH priority issues have been resolved. Remaining items:
+| # | File | Issue | Fix |
+|---|------|-------|-----|
+| 40 | `logging_config.py` | No structured logging | New: JSON-format structured logging with `ContextVar`-based request_id/user_id injection |
+| 41 | `main.py` | RequestIDMiddleware didn't set context var | Sets `request_id_var` so all log messages include correlation ID |
+| 42 | `database.py` | No connection pooling config | SQLite uses NullPool; PostgreSQL/MySQL uses QueuePool (pool_size=20, pool_pre_ping, pool_recycle=1800s) |
+| 43 | `auth_service.py` | `register_user` — 3 inserts without transaction | Wrapped in `db.begin_nested()` for atomic rollback |
+| 44 | `auth.py` | `create_anonymous_session` — 3 inserts without transaction | Wrapped in `db.begin_nested()` for atomic rollback |
+| 45 | `ci.yml` | No coverage reporting | Added `pytest-cov` with XML report + GitHub step summary |
+| 46 | `ci.yml` | No dependency audit | Added `pip-audit --strict` step |
+| 47 | `ci.yml` | No migration validation | Added model-to-table validation step |
+| 48 | `ci.yml` | No frontend tests in CI | Added `pnpm test` step (Vitest) |
 
-| Priority | Issue | Recommendation |
-|----------|-------|----------------|
-| MEDIUM | Structured logging | Add JSON-format logging with request_id, user_id context |
-| MEDIUM | Database transactions | Wrap multi-step DB ops in explicit `async with session.begin()` |
-| MEDIUM | Connection pooling | Add SQLAlchemy pool configuration for production (QueuePool) |
-| LOW | CI/CD enhancement | Add pytest coverage reporting, pip-audit, database migration validation |
+### 8.7 Remaining Issues
+
+All CRITICAL, HIGH, and MEDIUM issues have been resolved.
+No remaining issues require immediate action.

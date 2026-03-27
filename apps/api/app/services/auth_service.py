@@ -58,38 +58,43 @@ async def register_user(
     password: str,
     display_name: str,
 ) -> User:
-    """Register a new user with email/password and create a default company."""
-    user = User(
-        id=generate_uuid(),
-        email=email,
-        display_name=display_name,
-        role="owner",
-        status="active",
-        auth_provider="local",
-        password_hash=hash_password(password),
-    )
-    db.add(user)
+    """Register a new user with email/password and create a default company.
 
-    # Create default company for new user
-    company = Company(
-        id=generate_uuid(),
-        slug=f"company-{str(user.id)[:8]}",
-        name=f"{display_name}'s Organization",
-        mission="",
-        description="",
-        status="active",
-    )
-    db.add(company)
+    All three inserts (user, company, membership) are wrapped in an
+    explicit transaction so that a failure in any step rolls back cleanly.
+    """
+    async with db.begin_nested():
+        user = User(
+            id=generate_uuid(),
+            email=email,
+            display_name=display_name,
+            role="owner",
+            status="active",
+            auth_provider="local",
+            password_hash=hash_password(password),
+        )
+        db.add(user)
 
-    member = CompanyMember(
-        id=generate_uuid(),
-        company_id=company.id,
-        user_id=user.id,
-        company_role="owner",
-        status="active",
-        joined_at=datetime.now(UTC),
-    )
-    db.add(member)
+        # Create default company for new user
+        company = Company(
+            id=generate_uuid(),
+            slug=f"company-{str(user.id)[:8]}",
+            name=f"{display_name}'s Organization",
+            mission="",
+            description="",
+            status="active",
+        )
+        db.add(company)
+
+        member = CompanyMember(
+            id=generate_uuid(),
+            company_id=company.id,
+            user_id=user.id,
+            company_role="owner",
+            status="active",
+            joined_at=datetime.now(UTC),
+        )
+        db.add(member)
 
     await db.commit()
     await db.refresh(user)

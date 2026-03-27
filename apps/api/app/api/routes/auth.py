@@ -204,35 +204,36 @@ async def create_anonymous_session(request: Request, db: AsyncSession = Depends(
     Anonymous session data can be linked to an account later.
     """
     anon_id = generate_uuid()
-    user = User(
-        id=anon_id,
-        email=None,
-        display_name=f"Anonymous-{str(anon_id)[:8]}",
-        role="anonymous",
-        status="active",
-        auth_provider="anonymous",
-    )
-    db.add(user)
+    async with db.begin_nested():
+        user = User(
+            id=anon_id,
+            email=None,
+            display_name=f"Anonymous-{str(anon_id)[:8]}",
+            role="anonymous",
+            status="active",
+            auth_provider="anonymous",
+        )
+        db.add(user)
 
-    company = Company(
-        id=generate_uuid(),
-        slug=f"anon-{str(anon_id)[:8]}",
-        name="Anonymous Workspace",
-        mission="",
-        description="",
-        status="active",
-    )
-    db.add(company)
+        company = Company(
+            id=generate_uuid(),
+            slug=f"anon-{str(anon_id)[:8]}",
+            name="Anonymous Workspace",
+            mission="",
+            description="",
+            status="active",
+        )
+        db.add(company)
 
-    member = CompanyMember(
-        id=generate_uuid(),
-        company_id=company.id,
-        user_id=user.id,
-        company_role="owner",
-        status="active",
-        joined_at=datetime.now(UTC),
-    )
-    db.add(member)
+        member = CompanyMember(
+            id=generate_uuid(),
+            company_id=company.id,
+            user_id=user.id,
+            company_role="owner",
+            status="active",
+            joined_at=datetime.now(UTC),
+        )
+        db.add(member)
 
     await db.commit()
 
