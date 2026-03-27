@@ -51,11 +51,10 @@ class Settings(BaseSettings):
     # Security — auto-generated for local dev if not explicitly set
     SECRET_KEY: str = _auto_secret_key()
 
-    # CORS — In production, restrict allowed origins to actual domains
-    # e.g.: ["https://your-app.example.com"]
+    # CORS — In production (DEBUG=false), defaults to Tauri origins only.
+    # Override via CORS_ORIGINS env var with comma-separated URLs.
+    # In development (DEBUG=true), localhost origins are also included.
     CORS_ORIGINS: list[str] = [
-        "http://localhost:3000",
-        "http://localhost:5173",
         "tauri://localhost",
         "https://tauri.localhost",
     ]
@@ -104,6 +103,15 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+# ---------------------------------------------------------------------------
+# Automatically add localhost origins in development mode
+# ---------------------------------------------------------------------------
+if settings.DEBUG:
+    _dev_origins = ["http://localhost:3000", "http://localhost:5173"]
+    for origin in _dev_origins:
+        if origin not in settings.CORS_ORIGINS:
+            settings.CORS_ORIGINS.append(origin)
 
 # ---------------------------------------------------------------------------
 # Startup safety check: warn on insecure defaults in development,

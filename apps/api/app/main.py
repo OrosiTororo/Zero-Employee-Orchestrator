@@ -1,11 +1,15 @@
 """FastAPI application entry point."""
 
 import logging
+import uuid
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+from starlette.requests import Request
+from starlette.responses import Response
 
 import app.models  # noqa: F401
 import app.orchestration.agent_session  # noqa: F401
@@ -25,6 +29,17 @@ from app.security.security_headers import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class RequestIDMiddleware(BaseHTTPMiddleware):
+    """Assign a unique request ID to every request for distributed tracing."""
+
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
+        request.state.request_id = request_id
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        return response
 
 
 @asynccontextmanager
@@ -112,6 +127,9 @@ app = FastAPI(
 # Rate limiting
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)  # type: ignore[arg-type]
+
+# Request ID tracing -- assign unique ID to each request for correlation
+app.add_middleware(RequestIDMiddleware)
 
 # Security headers -- apply OWASP recommended headers to all responses
 app.add_middleware(SecurityHeadersMiddleware)

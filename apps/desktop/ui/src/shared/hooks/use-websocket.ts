@@ -55,46 +55,67 @@ export const useWSStore = create<WSState>((set, get) => ({
   },
 }))
 
+/** Maximum reconnection attempts before giving up. */
+const MAX_RECONNECT_ATTEMPTS = 8
+
 export function useWebSocket(companyId?: string) {
   const wsRef = useRef<WebSocket | null>(null)
+  const reconnectAttempt = useRef(0)
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { setConnected, setLastEvent } = useWSStore()
 
   useEffect(() => {
     if (!companyId) return
 
-    const url = `${WS_BASE}/ws/events?company_id=${companyId}`
-    const ws = new WebSocket(url)
-    wsRef.current = ws
+    let disposed = false
 
-    ws.onopen = () => setConnected(true)
-    ws.onclose = () => {
-      setConnected(false)
-      // Reconnect after delay
-      setTimeout(() => {
-        if (wsRef.current === ws) {
-          wsRef.current = null
+    function connect() {
+      if (disposed) return
+
+      const url = `${WS_BASE}/ws/events?company_id=${companyId}`
+      const ws = new WebSocket(url)
+      wsRef.current = ws
+
+      ws.onopen = () => {
+        setConnected(true)
+        reconnectAttempt.current = 0 // Reset on successful connection
+      }
+      ws.onclose = () => {
+        setConnected(false)
+        if (disposed) return
+
+        // Exponential backoff with jitter: 1s, 2s, 4s, 8s, 16s, 32s, ...
+        if (reconnectAttempt.current < MAX_RECONNECT_ATTEMPTS) {
+          const baseDelay = Math.min(1000 * 2 ** reconnectAttempt.current, 30000)
+          const jitter = Math.random() * 1000
+          reconnectAttempt.current++
+          reconnectTimer.current = setTimeout(connect, baseDelay + jitter)
         }
-      }, 3000)
-    }
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data) as WSEvent
-        setLastEvent(data)
-      } catch {
-        // ignore non-JSON messages
+      }
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data) as WSEvent
+          setLastEvent(data)
+        } catch {
+          // ignore non-JSON messages
+        }
       }
     }
 
+    connect()
+
     // Ping every 30s to keep alive
     const interval = setInterval(() => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: "ping" }))
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({ type: "ping" }))
       }
     }, 30000)
 
     return () => {
+      disposed = true
       clearInterval(interval)
-      ws.close()
+      if (reconnectTimer.current) clearTimeout(reconnectTimer.current)
+      wsRef.current?.close()
     }
   }, [companyId, setConnected, setLastEvent])
 

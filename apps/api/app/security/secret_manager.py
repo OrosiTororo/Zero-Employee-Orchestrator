@@ -104,6 +104,12 @@ class SecretStore:
         self._key = Fernet.generate_key()
         self._fernet = Fernet(self._key)
         self._store: dict[str, bytes] = {}
+        logger.warning(
+            "SecretStore initialized with ephemeral encryption key. "
+            "All secrets will be lost on process restart. "
+            "For production, use an external secret manager (AWS Secrets Manager, "
+            "HashiCorp Vault, etc.)."
+        )
 
     def store(self, name: str, value: str) -> SecretMetadata:
         """Encrypt and store a secret using Fernet."""

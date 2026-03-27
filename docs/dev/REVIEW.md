@@ -380,26 +380,35 @@ for ongoing threat modeling:
 - `TestDataProtection.test_subdomain_blocked_without_wildcard` — Spoofing prevention
 - `TestDataProtection.test_path_boundary_matching` — Path boundary safety
 
-### 8.4 Remaining Issues (Not Fixed — Require Larger Changes)
+### 8.4 Additional Fixes (Second Commit)
+
+| # | File | Issue | Fix |
+|---|------|-------|-----|
+| 18 | `main.py` | No request ID tracing for correlation | Added `RequestIDMiddleware` with X-Request-ID header propagation |
+| 19 | `config.py` | CORS includes localhost in production | Dev origins auto-added only when DEBUG=true |
+| 20 | `secret_manager.py` | No warning about ephemeral keys | Added startup warning log |
+| 21 | `connector.py` | Stub returns fake success for DB/gRPC | Replaced with `NotImplementedError` |
+| 22 | `model_registry.py` | O(n) reverse lookup by latest_model_id | Added `_latest_id_index` for O(1) lookup |
+| 23 | `router.tsx` | No 404 route — unknown URLs crash app | Added `NotFoundPage` catch-all route |
+| 24 | `main.tsx` | No error boundary — uncaught errors crash app | Added `ErrorBoundary` wrapper + `ToastContainer` |
+| 25 | `use-websocket.ts` | Fixed 3s reconnect with no backoff | Exponential backoff (1s-30s) with jitter, max 8 retries |
+| 26 | `ErrorBoundary.tsx` | Missing component | New: React class error boundary with recovery |
+| 27 | `ErrorToast.tsx` | Missing component | New: Toast notification system with zustand store |
+| 28 | `NotFoundPage.tsx` | Missing component | New: 404 page with link to dashboard |
+
+### 8.5 Remaining Issues (Require Feature Implementation)
 
 | Priority | Issue | File | Reason |
 |----------|-------|------|--------|
-| CRITICAL | No LLM request timeout | `gateway.py` | Requires LiteLLM config change + testing |
 | CRITICAL | Ephemeral secret keys | `secret_manager.py` | Needs external secret store integration |
-| HIGH | Thread-unsafe singletons | `model_registry.py` | Requires architectural decision on DI |
-| HIGH | Incomplete OAuth flows | `auth.py` | Feature implementation, not a fix |
-| HIGH | No frontend error boundaries | `App.tsx` | React architecture change |
-| HIGH | Stub connector implementations | `connector.py` | Feature implementation |
-| MEDIUM | No frontend tests | `ui/` | Test infrastructure needed |
-| MEDIUM | No request ID tracing | `main.py` | Middleware addition |
+| HIGH | Incomplete OAuth flows | `auth.py` | Feature implementation |
+| MEDIUM | No frontend tests | `ui/` | Test infrastructure needed (Vitest) |
 | MEDIUM | Global mutable singletons | Multiple | DI framework needed |
-| MEDIUM | CORS origins include dev URLs | `config.py` | Needs env-conditional configuration |
 
-### 8.5 Architecture Recommendations
+### 8.6 Architecture Recommendations
 
 1. **Dependency Injection**: Replace module-level singletons with a DI container (e.g., `dependency-injector` or FastAPI's built-in `Depends()`) for testability
 2. **Structured Logging**: Add JSON-format structured logging with request_id, user_id, and component context
 3. **Database Transactions**: Wrap multi-step DB operations in explicit `async with session.begin()` blocks
 4. **Connection Pooling**: Add SQLAlchemy pool configuration for production databases (QueuePool, pool_pre_ping)
-5. **Frontend Error Handling**: Add React ErrorBoundary, toast notifications, and retry logic with exponential backoff
-6. **CI/CD Enhancement**: Add pytest coverage reporting, pip-audit, frontend test runner (Vitest), and database migration validation
+5. **CI/CD Enhancement**: Add pytest coverage reporting, pip-audit, frontend test runner (Vitest), and database migration validation
