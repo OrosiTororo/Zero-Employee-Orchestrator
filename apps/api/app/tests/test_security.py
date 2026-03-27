@@ -200,6 +200,34 @@ class TestPIIGuard:
         result = detect_and_mask_pii("")
         assert not result.has_pii
 
+    def test_invalid_credit_card_rejected(self):
+        """Invalid credit card numbers (failing Luhn check) should not be flagged."""
+        result = detect_and_mask_pii("number: 1234-5678-9012-3456")
+        # 1234567890123456 fails Luhn — should not be detected as credit card
+        assert PIICategory.CREDIT_CARD.value not in result.detected_types
+
+    def test_valid_credit_card_detected(self):
+        """Valid credit card numbers (passing Luhn check) should be detected."""
+        # 4111111111111111 is a well-known Luhn-valid test number
+        result = detect_and_mask_pii("card: 4111-1111-1111-1111")
+        assert PIICategory.CREDIT_CARD.value in result.detected_types
+
+    def test_invalid_ip_rejected(self):
+        """IP addresses with octets > 255 should not be flagged."""
+        result = detect_and_mask_pii("addr: 999.999.999.999")
+        assert PIICategory.IP_ADDRESS.value not in result.detected_types
+
+    def test_valid_ip_detected(self):
+        """Valid IP addresses should be detected."""
+        result = detect_and_mask_pii("addr: 10.0.0.1")
+        assert PIICategory.IP_ADDRESS.value in result.detected_types
+
+    def test_password_detection(self):
+        result = detect_and_mask_pii("password=SuperSecretValue123")
+        assert result.has_pii
+        assert PIICategory.PASSWORD.value in result.detected_types
+        assert "SuperSecretValue123" not in result.masked_text
+
 
 # ---------------------------------------------------------------------------
 # Sandbox
@@ -345,8 +373,25 @@ class TestDataProtection:
         )
         assert not result.allowed
 
-    def test_legitimate_subdomain_allowed(self):
-        """Legitimate subdomains should be allowed."""
+    def test_legitimate_subdomain_allowed_with_wildcard(self):
+        """Legitimate subdomains should be allowed when wildcard is configured."""
+        guard = DataProtectionGuard(
+            DataProtectionConfig(
+                transfer_policy=TransferPolicy.RESTRICTED,
+                upload_enabled=True,
+                password_upload_blocked=False,
+                upload_allowed_destinations=["https://*.example.com"],
+            )
+        )
+        result = guard.check_upload(
+            "https://api.example.com/upload",
+            file_name="test.txt",
+            content_preview="hello",
+        )
+        assert result.allowed
+
+    def test_subdomain_blocked_without_wildcard(self):
+        """Subdomains should NOT match exact host entries (prevents spoofing)."""
         guard = DataProtectionGuard(
             DataProtectionConfig(
                 transfer_policy=TransferPolicy.RESTRICTED,
@@ -360,7 +405,31 @@ class TestDataProtection:
             file_name="test.txt",
             content_preview="hello",
         )
-        assert result.allowed
+        assert not result.allowed
+
+    def test_path_boundary_matching(self):
+        """Path matching must respect boundaries (/api should not match /api-secrets)."""
+        guard = DataProtectionGuard(
+            DataProtectionConfig(
+                transfer_policy=TransferPolicy.RESTRICTED,
+                upload_enabled=True,
+                password_upload_blocked=False,
+                upload_allowed_destinations=["https://example.com/api"],
+            )
+        )
+        result_ok = guard.check_upload(
+            "https://example.com/api/upload",
+            file_name="test.txt",
+            content_preview="hello",
+        )
+        assert result_ok.allowed
+
+        result_bad = guard.check_upload(
+            "https://example.com/api-secrets",
+            file_name="test.txt",
+            content_preview="hello",
+        )
+        assert not result_bad.allowed
 
     def test_blocked_pattern_in_content(self):
         guard = DataProtectionGuard(
@@ -606,3 +675,81 @@ class TestNLCommandProcessor:
 
         result = nl_command_processor.parse("set execution mode to free")
         assert result.category == CommandCategory.CONFIG
+
+
+# ---------------------------------------------------------------------------
+# Host Header Validation
+# ---------------------------------------------------------------------------
+
+
+class TestHostValidation:
+    """Host header validation tests."""
+
+    def test_valid_localhost(self):
+        from app.security.security_headers import _is_valid_host
+
+        assert _is_valid_host("localhost")
+        assert _is_valid_host("localhost:8080")
+
+    def test_valid_ip(self):
+        from app.security.security_headers import _is_valid_host
+
+        assert _is_valid_host("192.168.1.1")
+        assert _is_valid_host("192.168.1.1:8080")
+
+    def test_invalid_ip_octets(self):
+        from app.security.security_headers import _is_valid_host
+
+        assert not _is_valid_host("999.999.999.999")
+        assert not _is_valid_host("256.1.1.1")
+
+    def test_valid_domain(self):
+        from app.security.security_headers import _is_valid_host
+
+        assert _is_valid_host("example.com")
+        assert _is_valid_host("sub.example.com:443")
+
+    def test_oversized_host_rejected(self):
+        from app.security.security_headers import _is_valid_host
+
+        assert not _is_valid_host("a" * 256)
+
+    def test_invalid_port(self):
+        from app.security.security_headers import _is_valid_host
+
+        assert not _is_valid_host("example.com:99999")
+        assert not _is_valid_host("example.com:0")
+        assert not _is_valid_host("example.com:abc")
+
+
+# ---------------------------------------------------------------------------
+# Legacy Password Hash Rejection
+# ---------------------------------------------------------------------------
+
+
+class TestPasswordHashSecurity:
+    """Password hashing security tests."""
+
+    def test_bcrypt_verify(self):
+        from app.core.security import hash_password, verify_password
+
+        hashed = hash_password("test_password")
+        assert verify_password("test_password", hashed)
+        assert not verify_password("wrong_password", hashed)
+
+    def test_unsalted_sha256_rejected(self):
+        """Unsalted SHA-256 hashes must be rejected."""
+        import hashlib
+
+        from app.core.security import verify_password
+
+        legacy_hash = hashlib.sha256(b"test").hexdigest()
+        # Must return False — unsalted hashes are no longer accepted
+        assert not verify_password("test", legacy_hash)
+
+    def test_hash_sha256_alias_uses_bcrypt(self):
+        """hash_sha256 alias should now produce bcrypt hashes."""
+        from app.core.security import hash_sha256
+
+        result = hash_sha256("test_value")
+        assert result.startswith("$2")

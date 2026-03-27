@@ -7,14 +7,14 @@ and API requests, and masks them before passing to AI.
 Detection categories:
 - Email addresses
 - Phone numbers (Japan, US, international)
-- Credit card numbers
+- Credit card numbers (with Luhn validation)
 - My Number (Japan's individual number)
 - Addresses (Japanese postal code + address patterns)
 - Dates of birth
 - Passport numbers
 - Driver's license numbers
 - Bank account numbers
-- IP addresses
+- IP addresses (with octet range validation)
 - Passwords / secrets
 
 Default: All detection enabled (security first)
@@ -61,6 +61,32 @@ class PIIDetectionResult:
         return self.detected_count > 0
 
 
+def _luhn_check(number_str: str) -> bool:
+    """Validate a credit card number using the Luhn algorithm."""
+    digits = [int(d) for d in number_str if d.isdigit()]
+    if len(digits) != 16:
+        return False
+    total = 0
+    for i, digit in enumerate(reversed(digits)):
+        if i % 2 == 1:
+            digit *= 2
+            if digit > 9:
+                digit -= 9
+        total += digit
+    return total % 10 == 0
+
+
+def _is_valid_ipv4(ip_str: str) -> bool:
+    """Validate that all octets are in the 0-255 range."""
+    parts = ip_str.split(".")
+    if len(parts) != 4:
+        return False
+    try:
+        return all(0 <= int(p) <= 255 for p in parts)
+    except ValueError:
+        return False
+
+
 # PII pattern definitions
 _PII_PATTERNS: list[tuple[PIICategory, re.Pattern, str]] = [
     # Email address
@@ -87,10 +113,13 @@ _PII_PATTERNS: list[tuple[PIICategory, re.Pattern, str]] = [
         re.compile(r"(?:\+\d{1,3}[-\s]?)?\(?\d{2,4}\)?[-\s]?\d{3,4}[-\s]?\d{3,4}"),
         "[PHONE]",
     ),
-    # My Number (12 digits)
+    # My Number (12 digits) — require keyword context to reduce false positives
     (
         PIICategory.MY_NUMBER,
-        re.compile(r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}\b"),
+        re.compile(
+            r"(?:マイナンバー|個人番号|my\s*number)\s*[:：]?\s*(\d{4}[-\s]?\d{4}[-\s]?\d{4})\b",
+            re.IGNORECASE,
+        ),
         "[MY_NUMBER]",
     ),
     # Japanese postal code + address
@@ -119,7 +148,7 @@ _PII_PATTERNS: list[tuple[PIICategory, re.Pattern, str]] = [
         re.compile(r"\b\d{3}[-\s]?\d{2}[-\s]?\d{4}\b"),
         "[SSN]",
     ),
-    # IP address (v4)
+    # IP address (v4) — validated post-match by _is_valid_ipv4
     (
         PIICategory.IP_ADDRESS,
         re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b"),
@@ -166,6 +195,11 @@ def detect_and_mask_pii(
             continue
 
         matches = list(pattern.finditer(masked))
+        # Post-match validation for patterns that need extra checks
+        if category == PIICategory.CREDIT_CARD:
+            matches = [m for m in matches if _luhn_check(m.group())]
+        elif category == PIICategory.IP_ADDRESS:
+            matches = [m for m in matches if _is_valid_ipv4(m.group())]
         if matches:
             for match in reversed(matches):  # Replace from end to avoid position shift
                 matched_text = match.group()
