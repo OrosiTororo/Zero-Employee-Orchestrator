@@ -1,16 +1,16 @@
 """Auth-related DTOs."""
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
 class RegisterRequest(BaseModel):
-    email: str
+    email: EmailStr
     password: str
     display_name: str
 
 
 class LoginRequest(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 
@@ -25,6 +25,20 @@ class OAuthLoginRequest(BaseModel):
     provider: str
     code: str
     redirect_uri: str | None = None
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetConfirm(BaseModel):
+    token: str
+    new_password: str
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
 
 
 class UserRead(BaseModel):

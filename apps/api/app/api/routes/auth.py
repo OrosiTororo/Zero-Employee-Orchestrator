@@ -13,18 +13,24 @@ from app.core.security import generate_uuid, hash_password
 from app.models.company import Company
 from app.models.user import CompanyMember, User
 from app.schemas.auth import (
+    ChangePasswordRequest,
     LoginRequest,
     LoginResponse,
     OAuthLoginRequest,
+    PasswordResetConfirm,
+    PasswordResetRequest,
     RegisterRequest,
     UserRead,
 )
 from app.services.auth_service import (
     authenticate_user,
+    change_password,
+    confirm_password_reset,
     create_access_token,
     decode_access_token,
     get_user_by_id,
     register_user,
+    request_password_reset,
 )
 
 router = APIRouter()
@@ -129,6 +135,63 @@ async def refresh_token(user: User = Depends(get_current_user)):
     """Refresh token."""
     token = create_access_token(str(user.id))
     return {"access_token": token, "token_type": "bearer"}
+
+
+@router.post("/password-reset/request")
+@limiter.limit("3/minute")
+async def password_reset_request(
+    request: Request,
+    req: PasswordResetRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Request a password reset.
+
+    Generates a short-lived reset token.  In production this token
+    would be sent via email; in the current implementation it is
+    returned directly in the response for development convenience.
+    """
+    token = await request_password_reset(db, req.email)
+    # Always return 200 to prevent email enumeration attacks
+    if token is None:
+        return {"message": "If an account with this email exists, a reset link has been sent."}
+    # NOTE: In production, send the token via email instead of returning it.
+    return {
+        "message": "If an account with this email exists, a reset link has been sent.",
+        "reset_token": token,  # Remove in production — send via email instead
+    }
+
+
+@router.post("/password-reset/confirm")
+@limiter.limit("5/minute")
+async def password_reset_confirm(
+    request: Request,
+    req: PasswordResetConfirm,
+    db: AsyncSession = Depends(get_db),
+):
+    """Confirm a password reset with the token received via email."""
+    success = await confirm_password_reset(db, req.token, req.new_password)
+    if not success:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid or expired reset token",
+        )
+    return {"message": "Password has been reset successfully"}
+
+
+@router.post("/change-password")
+async def change_password_endpoint(
+    req: ChangePasswordRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Change password for the current authenticated user."""
+    success = await change_password(db, user, req.current_password, req.new_password)
+    if not success:
+        raise HTTPException(
+            status_code=400,
+            detail="Current password is incorrect",
+        )
+    return {"message": "Password changed successfully"}
 
 
 @router.post("/anonymous-session")

@@ -396,19 +396,29 @@ for ongoing threat modeling:
 | 27 | `ErrorToast.tsx` | Missing component | New: Toast notification system with zustand store |
 | 28 | `NotFoundPage.tsx` | Missing component | New: 404 page with link to dashboard |
 
-### 8.5 Remaining Issues (Require Feature Implementation)
+### 8.5 Additional Fixes (Third Commit)
 
-| Priority | Issue | File | Reason |
-|----------|-------|------|--------|
-| CRITICAL | Ephemeral secret keys | `secret_manager.py` | Needs external secret store integration |
-| HIGH | Incomplete OAuth flows | `auth.py` | Feature implementation |
-| MEDIUM | No frontend tests | `ui/` | Test infrastructure needed (Vitest) |
-| MEDIUM | Global mutable singletons | Multiple | DI framework needed |
+| # | File | Issue | Fix |
+|---|------|-------|-----|
+| 29 | `secret_manager.py` | Ephemeral keys lost on restart | File-backed persistence with PBKDF2 key derivation (`SECRETS_PERSIST=true`) |
+| 30 | `auth.py` | No password reset flow | Added `/password-reset/request` and `/password-reset/confirm` endpoints |
+| 31 | `auth.py` | No change-password for logged-in users | Added `/change-password` endpoint |
+| 32 | `auth_service.py` | Missing password reset logic | `request_password_reset()`, `confirm_password_reset()`, `change_password()` |
+| 33 | `schemas/auth.py` | Missing DTOs | Added `PasswordResetRequest`, `PasswordResetConfirm`, `ChangePasswordRequest`; email validation via `EmailStr` |
+| 34 | `deps/services.py` | No DI pattern for singletons | New: centralized DI providers via `lru_cache` for sandbox, data protection, gateway, etc. |
+| 35 | `security_settings.py` | Direct singleton imports | Migrated all endpoints to use `Depends()` injection |
+| 36 | `vite.config.ts` | No test infrastructure | Added Vitest configuration |
+| 37 | `ErrorBoundary.test.tsx` | No frontend tests | 3 tests: renders children, fallback on error, custom fallback |
+| 38 | `ErrorToast.test.tsx` | No frontend tests | 5 tests: empty state, add toast, multiple, dismiss, limit |
+| 39 | `use-websocket.test.ts` | No frontend tests | 6 tests: connection state, events, subscribers, wildcard, unsub |
 
-### 8.6 Architecture Recommendations
+### 8.6 Remaining Issues
 
-1. **Dependency Injection**: Replace module-level singletons with a DI container (e.g., `dependency-injector` or FastAPI's built-in `Depends()`) for testability
-2. **Structured Logging**: Add JSON-format structured logging with request_id, user_id, and component context
-3. **Database Transactions**: Wrap multi-step DB operations in explicit `async with session.begin()` blocks
-4. **Connection Pooling**: Add SQLAlchemy pool configuration for production databases (QueuePool, pool_pre_ping)
-5. **CI/CD Enhancement**: Add pytest coverage reporting, pip-audit, frontend test runner (Vitest), and database migration validation
+All CRITICAL and HIGH priority issues have been resolved. Remaining items:
+
+| Priority | Issue | Recommendation |
+|----------|-------|----------------|
+| MEDIUM | Structured logging | Add JSON-format logging with request_id, user_id context |
+| MEDIUM | Database transactions | Wrap multi-step DB ops in explicit `async with session.begin()` |
+| MEDIUM | Connection pooling | Add SQLAlchemy pool configuration for production (QueuePool) |
+| LOW | CI/CD enhancement | Add pytest coverage reporting, pip-audit, database migration validation |

@@ -16,26 +16,27 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app.api.deps.services import get_data_protection, get_sandbox, get_workspace_isolation
 from app.api.routes.auth import get_current_user
 from app.models.user import User
 from app.security.data_protection import (
     DataProtectionConfig,
+    DataProtectionGuard,
     TransferPolicy,
-    data_protection_guard,
 )
 from app.security.pii_guard import detect_and_mask_pii, get_pii_categories
 from app.security.redteam import RedTeamService
 from app.security.sandbox import (
     AccessType,
+    FileSystemSandbox,
     SandboxConfig,
     SandboxLevel,
-    filesystem_sandbox,
 )
 from app.security.workspace_isolation import (
     StorageLocation,
     TaskWorkspaceOverride,
     WorkspaceConfig,
-    workspace_isolation,
+    WorkspaceIsolation,
 )
 
 logger = logging.getLogger(__name__)
@@ -109,10 +110,14 @@ class SecurityOverviewResponse(BaseModel):
 
 
 @router.get("/overview")
-async def get_security_overview(user: User = Depends(get_current_user)) -> SecurityOverviewResponse:
+async def get_security_overview(
+    user: User = Depends(get_current_user),
+    sandbox: FileSystemSandbox = Depends(get_sandbox),
+    dp_guard: DataProtectionGuard = Depends(get_data_protection),
+) -> SecurityOverviewResponse:
     """Return security settings overview."""
-    sandbox_config = filesystem_sandbox.config
-    dp_config = data_protection_guard.config
+    sandbox_config = sandbox.config
+    dp_config = dp_guard.config
 
     return SecurityOverviewResponse(
         sandbox={
@@ -146,9 +151,12 @@ async def get_security_overview(user: User = Depends(get_current_user)) -> Secur
 
 
 @router.get("/sandbox")
-async def get_sandbox_config(user: User = Depends(get_current_user)) -> dict:
+async def get_sandbox_config(
+    user: User = Depends(get_current_user),
+    sandbox: FileSystemSandbox = Depends(get_sandbox),
+) -> dict:
     """Get sandbox configuration."""
-    config = filesystem_sandbox.config
+    config = sandbox.config
     return {
         "level": config.level.value,
         "allowed_paths": config.allowed_paths,
@@ -160,7 +168,9 @@ async def get_sandbox_config(user: User = Depends(get_current_user)) -> dict:
 
 @router.put("/sandbox")
 async def update_sandbox_config(
-    req: SandboxConfigRequest, user: User = Depends(get_current_user)
+    req: SandboxConfigRequest,
+    user: User = Depends(get_current_user),
+    sandbox: FileSystemSandbox = Depends(get_sandbox),
 ) -> dict:
     """Update sandbox configuration."""
     try:
@@ -174,37 +184,47 @@ async def update_sandbox_config(
     config = SandboxConfig(
         level=level,
         allowed_paths=req.allowed_paths,
-        denied_paths=req.denied_paths or list(filesystem_sandbox.config.denied_paths),
+        denied_paths=req.denied_paths or list(sandbox.config.denied_paths),
         max_file_size_mb=req.max_file_size_mb,
         allow_symlink_follow=req.allow_symlink_follow,
     )
-    filesystem_sandbox.update_config(config)
+    sandbox.update_config(config)
 
     return {"status": "updated", "level": level.value}
 
 
 @router.post("/sandbox/allowed-paths")
-async def add_allowed_path(req: AllowedPathRequest, user: User = Depends(get_current_user)) -> dict:
+async def add_allowed_path(
+    req: AllowedPathRequest,
+    user: User = Depends(get_current_user),
+    sandbox: FileSystemSandbox = Depends(get_sandbox),
+) -> dict:
     """Add an allowed path."""
-    filesystem_sandbox.add_allowed_path(req.path)
+    sandbox.add_allowed_path(req.path)
     return {
         "status": "added",
         "path": req.path,
-        "total_allowed": len(filesystem_sandbox.get_allowed_paths()),
+        "total_allowed": len(sandbox.get_allowed_paths()),
     }
 
 
 @router.delete("/sandbox/allowed-paths")
 async def remove_allowed_path(
-    req: AllowedPathRequest, user: User = Depends(get_current_user)
+    req: AllowedPathRequest,
+    user: User = Depends(get_current_user),
+    sandbox: FileSystemSandbox = Depends(get_sandbox),
 ) -> dict:
     """Remove an allowed path."""
-    filesystem_sandbox.remove_allowed_path(req.path)
+    sandbox.remove_allowed_path(req.path)
     return {"status": "removed", "path": req.path}
 
 
 @router.post("/sandbox/check-access")
-async def check_access(req: AccessCheckRequest, user: User = Depends(get_current_user)) -> dict:
+async def check_access(
+    req: AccessCheckRequest,
+    user: User = Depends(get_current_user),
+    sandbox: FileSystemSandbox = Depends(get_sandbox),
+) -> dict:
     """Check whether access to a path is allowed."""
     try:
         access_type = AccessType(req.access_type)
@@ -214,7 +234,7 @@ async def check_access(req: AccessCheckRequest, user: User = Depends(get_current
             detail=f"Invalid access_type: {req.access_type}. Valid: read, write, execute, list, delete",
         )
 
-    result = filesystem_sandbox.check_access(req.path, access_type)
+    result = sandbox.check_access(req.path, access_type)
     return {
         "allowed": result.allowed,
         "path": result.path,
@@ -228,9 +248,12 @@ async def check_access(req: AccessCheckRequest, user: User = Depends(get_current
 
 
 @router.get("/data-protection")
-async def get_data_protection_config(user: User = Depends(get_current_user)) -> dict:
+async def get_data_protection_config(
+    user: User = Depends(get_current_user),
+    dp_guard: DataProtectionGuard = Depends(get_data_protection),
+) -> dict:
     """Get data protection configuration."""
-    config = data_protection_guard.config
+    config = dp_guard.config
     return {
         "transfer_policy": config.transfer_policy.value,
         "upload_enabled": config.upload_enabled,
@@ -252,7 +275,9 @@ async def get_data_protection_config(user: User = Depends(get_current_user)) -> 
 
 @router.put("/data-protection")
 async def update_data_protection_config(
-    req: DataProtectionConfigRequest, user: User = Depends(get_current_user)
+    req: DataProtectionConfigRequest,
+    user: User = Depends(get_current_user),
+    dp_guard: DataProtectionGuard = Depends(get_data_protection),
 ) -> dict:
     """Update data protection configuration."""
     try:
@@ -280,7 +305,7 @@ async def update_data_protection_config(
         pii_block_upload=req.pii_block_upload,
         password_upload_blocked=req.password_upload_blocked,
     )
-    data_protection_guard.update_config(config)
+    dp_guard.update_config(config)
 
     return {"status": "updated", "policy": policy.value}
 
@@ -329,9 +354,12 @@ class TaskWorkspaceOverrideRequest(BaseModel):
 
 
 @router.get("/workspace")
-async def get_workspace_config(user: User = Depends(get_current_user)) -> dict:
+async def get_workspace_config(
+    user: User = Depends(get_current_user),
+    ws_isolation: WorkspaceIsolation = Depends(get_workspace_isolation),
+) -> dict:
     """Get workspace configuration."""
-    config = workspace_isolation.config
+    config = ws_isolation.config
     return {
         "local_access_enabled": config.local_access_enabled,
         "cloud_access_enabled": config.cloud_access_enabled,
@@ -339,13 +367,15 @@ async def get_workspace_config(user: User = Depends(get_current_user)) -> dict:
         "cloud_providers": config.cloud_providers,
         "storage_location": config.storage_location.value,
         "internal_storage_path": config.internal_storage_path,
-        "access_scope": workspace_isolation.get_access_scope().value,
+        "access_scope": ws_isolation.get_access_scope().value,
     }
 
 
 @router.put("/workspace")
 async def update_workspace_config(
-    req: WorkspaceConfigRequest, user: User = Depends(get_current_user)
+    req: WorkspaceConfigRequest,
+    user: User = Depends(get_current_user),
+    ws_isolation: WorkspaceIsolation = Depends(get_workspace_isolation),
 ) -> dict:
     """Update workspace configuration."""
     try:
@@ -364,17 +394,20 @@ async def update_workspace_config(
         cloud_providers=req.cloud_providers,
         storage_location=storage,
     )
-    workspace_isolation.update_config(config)
+    ws_isolation.update_config(config)
 
     return {
         "status": "updated",
-        "access_scope": workspace_isolation.get_access_scope().value,
+        "access_scope": ws_isolation.get_access_scope().value,
     }
 
 
 @router.post("/workspace/tasks/{task_id}/override")
 async def set_task_workspace_override(
-    task_id: str, req: TaskWorkspaceOverrideRequest, user: User = Depends(get_current_user)
+    task_id: str,
+    req: TaskWorkspaceOverrideRequest,
+    user: User = Depends(get_current_user),
+    ws_isolation: WorkspaceIsolation = Depends(get_workspace_isolation),
 ) -> dict:
     """Set per-task workspace override."""
     storage = None
@@ -395,7 +428,7 @@ async def set_task_workspace_override(
         output_path=req.output_path,
         approved_by_user=False,
     )
-    workspace_isolation.set_task_override(override)
+    ws_isolation.set_task_override(override)
 
     return {
         "status": "override_set",
@@ -406,10 +439,12 @@ async def set_task_workspace_override(
 
 @router.post("/workspace/tasks/{task_id}/approve")
 async def approve_task_workspace_override(
-    task_id: str, user: User = Depends(get_current_user)
+    task_id: str,
+    user: User = Depends(get_current_user),
+    ws_isolation: WorkspaceIsolation = Depends(get_workspace_isolation),
 ) -> dict:
     """Approve per-task workspace override."""
-    approved = workspace_isolation.approve_task_override(task_id)
+    approved = ws_isolation.approve_task_override(task_id)
     if not approved:
         raise HTTPException(
             status_code=404,
