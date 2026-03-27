@@ -4,7 +4,6 @@ version = "0.1.0"
 description = "Zero-Employee Orchestrator – AI Orchestration Platform for multi-agent business automation with human approval and full auditability"
 requires-python = ">=3.12"
 license = "MIT"
-readme = "../../README.md"
 keywords = [
     "ai",
     "orchestrator",
