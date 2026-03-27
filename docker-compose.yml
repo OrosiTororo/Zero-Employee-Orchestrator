@@ -19,6 +19,8 @@ services:
       - SECRET_KEY=${SECRET_KEY:-}
       - SENTRY_DSN=${SENTRY_DSN:-}
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
     volumes:
       - app-data:/app/data
       - rag-store:/app/.zero_employee
