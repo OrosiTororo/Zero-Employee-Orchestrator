@@ -1,0 +1,67 @@
+name: Cleanup Release Assets
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to clean up (e.g., v0.1.1). Leave empty for all releases.'
+        required: false
+        default: ''
+      dry_run:
+        description: 'Dry run (list assets to delete without deleting)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clean up unnecessary release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REPO="${{ github.repository }}"
+          TAG="${{ github.event.inputs.tag }}"
+          DRY_RUN="${{ github.event.inputs.dry_run }}"
+
+          # Patterns for unnecessary assets (updater artifacts)
+          PATTERNS='\.sig$|\.app\.tar\.gz$'
+
+          if [ -n "$TAG" ]; then
+            TAGS="$TAG"
+          else
+            TAGS=$(gh release list --repo "$REPO" --limit 50 --json tagName -q '.[].tagName')
+          fi
+
+          for tag in $TAGS; do
+            echo "=== Processing release: $tag ==="
+            ASSETS=$(gh release view "$tag" --repo "$REPO" --json assets -q '.assets[] | "\(.name)\t\(.size)"')
+
+            if [ -z "$ASSETS" ]; then
+              echo "  No assets found"
+              continue
+            fi
+
+            echo "$ASSETS" | while IFS=$'\t' read -r name size; do
+              if echo "$name" | grep -qE "$PATTERNS"; then
+                if [ "$DRY_RUN" = "true" ]; then
+                  echo "  [DRY RUN] Would delete: $name ($size bytes)"
+                else
+                  echo "  Deleting: $name ($size bytes)"
+                  gh release delete-asset "$tag" "$name" --repo "$REPO" --yes
+                fi
+              else
+                echo "  Keeping: $name ($size bytes)"
+              fi
+            done
+          done
+
+          echo ""
+          echo "=== Done ==="
