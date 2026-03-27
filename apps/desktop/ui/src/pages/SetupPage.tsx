@@ -42,6 +42,9 @@ const LOCALE_FLAGS: Record<Locale, string> = {
   ja: "\u{1F1EF}\u{1F1F5}",
   en: "\u{1F1EC}\u{1F1E7}",
   zh: "\u{1F1E8}\u{1F1F3}",
+  ko: "\u{1F1F0}\u{1F1F7}",
+  pt: "\u{1F1E7}\u{1F1F7}",
+  tr: "\u{1F1F9}\u{1F1F7}",
 }
 
 interface OrgPreview {
