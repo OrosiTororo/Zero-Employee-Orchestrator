@@ -2,13 +2,19 @@ import { create } from "zustand"
 import jaLocale from "./locales/ja.json"
 import enLocale from "./locales/en.json"
 import zhLocale from "./locales/zh.json"
+import koLocale from "./locales/ko.json"
+import ptLocale from "./locales/pt.json"
+import trLocale from "./locales/tr.json"
 
-export type Locale = "ja" | "en" | "zh"
+export type Locale = "ja" | "en" | "zh" | "ko" | "pt" | "tr"
 
 export const LOCALE_LABELS: Record<Locale, string> = {
   ja: "日本語",
   en: "English",
   zh: "中文",
+  ko: "한국어",
+  pt: "Português",
+  tr: "Türkçe",
 }
 
 type Messages = typeof jaLocale
@@ -17,6 +23,9 @@ export const locales: Record<Locale, Messages> = {
   ja: jaLocale,
   en: enLocale as unknown as Messages,
   zh: zhLocale as unknown as Messages,
+  ko: koLocale as unknown as Messages,
+  pt: ptLocale as unknown as Messages,
+  tr: trLocale as unknown as Messages,
 }
 
 interface I18nState {
@@ -28,13 +37,16 @@ interface I18nState {
 function getInitialLocale(): Locale {
   try {
     const stored = localStorage.getItem("locale")
-    if (stored === "ja" || stored === "en" || stored === "zh") return stored
+    if (stored && stored in locales) return stored as Locale
   } catch {
     // localStorage unavailable (SSR or restricted context)
   }
   const browserLang = navigator.language.toLowerCase()
   if (browserLang.startsWith("ja")) return "ja"
   if (browserLang.startsWith("zh")) return "zh"
+  if (browserLang.startsWith("ko")) return "ko"
+  if (browserLang.startsWith("pt")) return "pt"
+  if (browserLang.startsWith("tr")) return "tr"
   return "en"
 }
 

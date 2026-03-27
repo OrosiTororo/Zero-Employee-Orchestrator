@@ -2,7 +2,7 @@
   "common": {
     "appName": "Zero-Employee Orchestrator",
     "appTagline": "AI Business Orchestration Platform",
-    "version": "v0.1.0",
+    "version": "v0.1.1",
     "back": "Back",
     "next": "Next",
     "save": "Save",
@@ -234,7 +234,13 @@
     "modeSubscriptionDesc": "API-key-free via g4f (for trial use)",
     "ollamaLocal": "Ollama (Local LLM)",
     "ollamaDesc": "No API key · Offline · Unlimited",
-    "ollamaAutoDetect": "Automatically detected if Ollama is installed."
+    "ollamaAutoDetect": "Automatically detected if Ollama is installed.",
+    "addCustomProvider": "Add custom provider",
+    "customProviderName": "Provider name",
+    "customProviderKey": "Environment variable name",
+    "customProviderPlaceholder": "API key placeholder",
+    "addProvider": "Add",
+    "removeProvider": "Remove"
   },
   "secretary": {
     "title": "Secretary",

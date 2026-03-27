@@ -1,18 +1,19 @@
 #!/bin/bash
-# scripts/bump-version.sh — pyproject.toml version sync script
+# scripts/bump-version.sh — unified version sync script
 #
 # Usage:
 #   ./scripts/bump-version.sh 0.2.0
 #   ./scripts/bump-version.sh 1.0.0-rc1
 #
-# Updates version in both root/pyproject.toml and apps/api/pyproject.toml,
-# then verifies they match.
+# Updates version in all version-bearing files:
+#   - pyproject.toml (root + apps/api)
+#   - package.json (apps/desktop, apps/desktop/ui, apps/edge/proxy, apps/edge/full)
+#   - tauri.conf.json (apps/desktop/src-tauri)
+#   - Cargo.toml (apps/desktop/src-tauri)
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-ROOT_TOML="$REPO_ROOT/pyproject.toml"
-API_TOML="$REPO_ROOT/apps/api/pyproject.toml"
 
 # ────────────────────────────────────────────
 # Argument check
@@ -34,48 +35,87 @@ if ! echo "$NEW_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$';
 fi
 
 # ────────────────────────────────────────────
-# Get current versions
+# File lists
 # ────────────────────────────────────────────
-get_version() {
+PYPROJECT_FILES=(
+  "$REPO_ROOT/pyproject.toml"
+  "$REPO_ROOT/apps/api/pyproject.toml"
+)
+
+PACKAGE_JSON_FILES=(
+  "$REPO_ROOT/apps/desktop/package.json"
+  "$REPO_ROOT/apps/desktop/ui/package.json"
+  "$REPO_ROOT/apps/edge/proxy/package.json"
+  "$REPO_ROOT/apps/edge/full/package.json"
+)
+
+CARGO_TOML="$REPO_ROOT/apps/desktop/src-tauri/Cargo.toml"
+TAURI_CONF="$REPO_ROOT/apps/desktop/src-tauri/tauri.conf.json"
+
+# ────────────────────────────────────────────
+# Helper functions
+# ────────────────────────────────────────────
+get_toml_version() {
   grep -m1 '^version = ' "$1" | sed 's/version = "\(.*\)"/\1/'
 }
 
-CURRENT_ROOT=$(get_version "$ROOT_TOML")
-CURRENT_API=$(get_version "$API_TOML")
+get_json_version() {
+  grep -m1 '"version"' "$1" | sed 's/.*"version": *"\(.*\)".*/\1/'
+}
 
+update_toml_version() {
+  local file="$1"
+  sed -i "0,/^version = \".*\"/s//version = \"$NEW_VERSION\"/" "$file"
+}
+
+update_json_version() {
+  local file="$1"
+  sed -i "s/\"version\": *\"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" "$file"
+}
+
+# ────────────────────────────────────────────
+# Show current state
+# ────────────────────────────────────────────
 echo "=========================================="
 echo " Zero-Employee Orchestrator Version Update"
 echo "=========================================="
 echo ""
-echo "Current versions:"
-echo "  root/pyproject.toml:     $CURRENT_ROOT"
-echo "  apps/api/pyproject.toml: $CURRENT_API"
-echo ""
 echo "New version: $NEW_VERSION"
 echo ""
+echo "Current versions:"
 
-if [ "$CURRENT_ROOT" != "$CURRENT_API" ]; then
-  echo "Warning: Current versions do not match!"
-  echo ""
-fi
+for f in "${PYPROJECT_FILES[@]}"; do
+  label="${f#$REPO_ROOT/}"
+  echo "  $label: $(get_toml_version "$f")"
+done
+for f in "${PACKAGE_JSON_FILES[@]}"; do
+  label="${f#$REPO_ROOT/}"
+  echo "  $label: $(get_json_version "$f")"
+done
+echo "  apps/desktop/src-tauri/Cargo.toml: $(get_toml_version "$CARGO_TOML")"
+echo "  apps/desktop/src-tauri/tauri.conf.json: $(get_json_version "$TAURI_CONF")"
+echo ""
 
 # ────────────────────────────────────────────
-# Update versions
+# Update all files
 # ────────────────────────────────────────────
-# Replace version = "X.Y.Z" with sed (first occurrence only)
-update_version() {
-  local file="$1"
-  local label="$2"
-  if sed -i "0,/^version = \".*\"/s//version = \"$NEW_VERSION\"/" "$file"; then
-    echo "Updated $label"
-  else
-    echo "Failed to update $label"
-    exit 1
-  fi
-}
+echo "Updating..."
 
-update_version "$ROOT_TOML" "root/pyproject.toml"
-update_version "$API_TOML"  "apps/api/pyproject.toml"
+for f in "${PYPROJECT_FILES[@]}"; do
+  update_toml_version "$f"
+  echo "  Updated ${f#$REPO_ROOT/}"
+done
+
+for f in "${PACKAGE_JSON_FILES[@]}"; do
+  update_json_version "$f"
+  echo "  Updated ${f#$REPO_ROOT/}"
+done
+
+update_toml_version "$CARGO_TOML"
+echo "  Updated apps/desktop/src-tauri/Cargo.toml"
+
+update_json_version "$TAURI_CONF"
+echo "  Updated apps/desktop/src-tauri/tauri.conf.json"
 
 # ────────────────────────────────────────────
 # Post-update verification
@@ -85,17 +125,51 @@ echo "=========================================="
 echo " Post-Update Verification"
 echo "=========================================="
 
-UPDATED_ROOT=$(get_version "$ROOT_TOML")
-UPDATED_API=$(get_version "$API_TOML")
+FAILED=0
 
-echo "  root/pyproject.toml:     $UPDATED_ROOT"
-echo "  apps/api/pyproject.toml: $UPDATED_API"
+for f in "${PYPROJECT_FILES[@]}"; do
+  v=$(get_toml_version "$f")
+  label="${f#$REPO_ROOT/}"
+  if [ "$v" = "$NEW_VERSION" ]; then
+    echo "  ✓ $label: $v"
+  else
+    echo "  ✗ $label: $v (expected $NEW_VERSION)"
+    FAILED=1
+  fi
+done
+
+for f in "${PACKAGE_JSON_FILES[@]}"; do
+  v=$(get_json_version "$f")
+  label="${f#$REPO_ROOT/}"
+  if [ "$v" = "$NEW_VERSION" ]; then
+    echo "  ✓ $label: $v"
+  else
+    echo "  ✗ $label: $v (expected $NEW_VERSION)"
+    FAILED=1
+  fi
+done
+
+v=$(get_toml_version "$CARGO_TOML")
+if [ "$v" = "$NEW_VERSION" ]; then
+  echo "  ✓ apps/desktop/src-tauri/Cargo.toml: $v"
+else
+  echo "  ✗ apps/desktop/src-tauri/Cargo.toml: $v (expected $NEW_VERSION)"
+  FAILED=1
+fi
+
+v=$(get_json_version "$TAURI_CONF")
+if [ "$v" = "$NEW_VERSION" ]; then
+  echo "  ✓ apps/desktop/src-tauri/tauri.conf.json: $v"
+else
+  echo "  ✗ apps/desktop/src-tauri/tauri.conf.json: $v (expected $NEW_VERSION)"
+  FAILED=1
+fi
+
 echo ""
-
-if [ "$UPDATED_ROOT" = "$NEW_VERSION" ] && [ "$UPDATED_API" = "$NEW_VERSION" ]; then
-  echo "Both files match: $NEW_VERSION"
+if [ "$FAILED" -eq 0 ]; then
+  echo "All 8 files updated to $NEW_VERSION"
   exit 0
 else
-  echo "Version update failed. Please check manually."
+  echo "Some files failed to update. Please check manually."
   exit 1
 fi

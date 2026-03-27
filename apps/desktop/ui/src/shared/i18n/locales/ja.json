@@ -2,7 +2,7 @@
   "common": {
     "appName": "Zero-Employee Orchestrator",
     "appTagline": "AI業務オーケストレーション基盤",
-    "version": "v0.1.0",
+    "version": "v0.1.1",
     "back": "戻る",
     "next": "次へ",
     "save": "保存",
@@ -234,7 +234,13 @@
     "modeSubscriptionDesc": "g4f経由でAPIキー不要（試用向け）",
     "ollamaLocal": "Ollama (ローカルLLM)",
     "ollamaDesc": "APIキー不要・オフライン・無制限",
-    "ollamaAutoDetect": "Ollama がインストール済みであれば自動検出されます。"
+    "ollamaAutoDetect": "Ollama がインストール済みであれば自動検出されます。",
+    "addCustomProvider": "カスタムプロバイダーを追加",
+    "customProviderName": "プロバイダー名",
+    "customProviderKey": "環境変数名",
+    "customProviderPlaceholder": "APIキーのプレースホルダー",
+    "addProvider": "追加",
+    "removeProvider": "削除"
   },
   "secretary": {
     "title": "秘書",
