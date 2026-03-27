@@ -12,6 +12,8 @@ import {
   EyeOff,
   Check,
   Globe,
+  Plus,
+  X,
 } from "lucide-react"
 import { api } from "../shared/api/client"
 import { useT, useI18n, LOCALE_LABELS, type Locale } from "@/shared/i18n"
@@ -22,7 +24,13 @@ interface ProviderInfo {
   configured: boolean
 }
 
-const PROVIDER_KEYS = [
+interface CustomProvider {
+  key: string
+  name: string
+  placeholder: string
+}
+
+const DEFAULT_PROVIDER_KEYS = [
   {
     key: "OPENROUTER_API_KEY",
     name: "OpenRouter",
@@ -43,7 +51,7 @@ const PROVIDER_KEYS = [
     name: "Google Gemini",
     placeholder: "AIzaSy-xxxxxxxxxxxx",
   },
-] as const
+]
 
 const EXECUTION_MODES = [
   { value: "quality", labelKey: "modeQuality" as const, descKey: "modeQualityDesc" as const },
@@ -52,8 +60,6 @@ const EXECUTION_MODES = [
   { value: "free", labelKey: "modeFree" as const, descKey: "modeFreeDesc" as const },
   { value: "subscription", labelKey: "modeSubscription" as const, descKey: "modeSubscriptionDesc" as const },
 ] as const
-
-const LOCALES: Locale[] = ["ja", "en", "zh"]
 
 export function SettingsPage() {
   const t = useT()
@@ -71,6 +77,31 @@ export function SettingsPage() {
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({})
   const [providerStatus, setProviderStatus] = useState<Record<string, ProviderInfo>>({})
   const [_configLoading, setConfigLoading] = useState(true)
+
+  // Custom provider states
+  const [customProviders, setCustomProviders] = useState<CustomProvider[]>([])
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [newProviderName, setNewProviderName] = useState("")
+  const [newProviderKey, setNewProviderKey] = useState("")
+  const [newProviderPlaceholder, setNewProviderPlaceholder] = useState("")
+
+  // Load custom providers from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("custom_providers")
+      if (stored) setCustomProviders(JSON.parse(stored))
+    } catch { /* noop */ }
+  }, [])
+
+  const saveCustomProviders = (providers: CustomProvider[]) => {
+    setCustomProviders(providers)
+    try { localStorage.setItem("custom_providers", JSON.stringify(providers)) } catch { /* noop */ }
+  }
+
+  const allProviderKeys = [
+    ...DEFAULT_PROVIDER_KEYS,
+    ...customProviders,
+  ]
 
   const loadConfig = useCallback(async () => {
     try {
@@ -149,6 +180,25 @@ export function SettingsPage() {
     }
   }
 
+  const handleAddCustomProvider = () => {
+    if (!newProviderName || !newProviderKey) return
+    const envKey = newProviderKey.toUpperCase().replace(/[^A-Z0-9_]/g, "_")
+    const provider: CustomProvider = {
+      key: envKey,
+      name: newProviderName,
+      placeholder: newProviderPlaceholder || `${envKey.toLowerCase()}-xxxxxxxxxxxx`,
+    }
+    saveCustomProviders([...customProviders, provider])
+    setNewProviderName("")
+    setNewProviderKey("")
+    setNewProviderPlaceholder("")
+    setShowAddForm(false)
+  }
+
+  const handleRemoveCustomProvider = (key: string) => {
+    saveCustomProviders(customProviders.filter((p) => p.key !== key))
+  }
+
   const providers = [
     {
       id: "openrouter",
@@ -176,6 +226,9 @@ export function SettingsPage() {
     },
   ]
 
+  const isCustomProvider = (key: string) =>
+    customProviders.some((p) => p.key === key)
+
   return (
     <div className="h-full overflow-auto">
       <div className="max-w-[720px] mx-auto px-6 py-6">
@@ -198,8 +251,8 @@ export function SettingsPage() {
               <label className="text-[11px] text-[#6a6a6a] block mb-2">
                 {t.settings.uiLanguage}
               </label>
-              <div className="flex gap-2">
-                {LOCALES.map((loc) => (
+              <div className="flex flex-wrap gap-2">
+                {(Object.keys(LOCALE_LABELS) as Locale[]).map((loc) => (
                   <button
                     key={loc}
                     onClick={() => handleLanguageChange(loc)}
@@ -237,12 +290,14 @@ export function SettingsPage() {
             </div>
           </div>
           <div className="flex flex-col gap-3">
-            {PROVIDER_KEYS.map((provider) => {
+            {allProviderKeys.map((provider) => {
               const status = providerStatus[provider.key === "OPENROUTER_API_KEY" ? "openrouter"
                 : provider.key === "OPENAI_API_KEY" ? "openai"
                 : provider.key === "ANTHROPIC_API_KEY" ? "anthropic"
-                : "gemini"]
+                : provider.key === "GEMINI_API_KEY" ? "gemini"
+                : provider.key.toLowerCase().replace(/_api_key$/, "")]
               const isConfigured = status?.configured ?? false
+              const isCustom = isCustomProvider(provider.key)
 
               return (
                 <div
@@ -257,11 +312,22 @@ export function SettingsPage() {
                       />
                       <span className="text-[13px] text-[#cccccc]">{provider.name}</span>
                     </div>
-                    {isConfigured && (
-                      <span className="text-[10px] text-[#4ec9b0] border border-[#4ec9b0] rounded px-1.5 py-0.5">
-                        {t.settings.configured}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {isConfigured && (
+                        <span className="text-[10px] text-[#4ec9b0] border border-[#4ec9b0] rounded px-1.5 py-0.5">
+                          {t.settings.configured}
+                        </span>
+                      )}
+                      {isCustom && (
+                        <button
+                          onClick={() => handleRemoveCustomProvider(provider.key)}
+                          className="text-[#6a6a6a] hover:text-[#f44747] transition-colors"
+                          title={t.settings.removeProvider}
+                        >
+                          <X size={14} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <div className="relative flex-1">
@@ -305,6 +371,57 @@ export function SettingsPage() {
               )
             })}
           </div>
+
+          {/* Add custom provider */}
+          {!showAddForm ? (
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="mt-3 flex items-center gap-1.5 px-3 py-2 rounded text-[12px] text-[#007acc] border border-dashed border-[#3e3e42] hover:border-[#007acc] transition-colors w-full justify-center"
+            >
+              <Plus size={14} />
+              {t.settings.addCustomProvider}
+            </button>
+          ) : (
+            <div className="mt-3 rounded border border-[#007acc] bg-[#1e1e1e] px-3 py-3">
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <input
+                    value={newProviderName}
+                    onChange={(e) => setNewProviderName(e.target.value)}
+                    placeholder={t.settings.customProviderName}
+                    className="flex-1 px-3 py-1.5 rounded text-[12px] outline-none bg-[#3c3c3c] text-[#cccccc] border border-[#3e3e42] focus:border-[#007acc]"
+                  />
+                  <input
+                    value={newProviderKey}
+                    onChange={(e) => setNewProviderKey(e.target.value)}
+                    placeholder={t.settings.customProviderKey}
+                    className="flex-1 px-3 py-1.5 rounded text-[12px] outline-none bg-[#3c3c3c] text-[#cccccc] border border-[#3e3e42] focus:border-[#007acc] font-mono"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    value={newProviderPlaceholder}
+                    onChange={(e) => setNewProviderPlaceholder(e.target.value)}
+                    placeholder={t.settings.customProviderPlaceholder}
+                    className="flex-1 px-3 py-1.5 rounded text-[12px] outline-none bg-[#3c3c3c] text-[#cccccc] border border-[#3e3e42] focus:border-[#007acc] font-mono"
+                  />
+                  <button
+                    onClick={handleAddCustomProvider}
+                    disabled={!newProviderName || !newProviderKey}
+                    className="px-3 py-1.5 rounded text-[11px] bg-[#007acc] text-white disabled:opacity-40"
+                  >
+                    {t.settings.addProvider}
+                  </button>
+                  <button
+                    onClick={() => setShowAddForm(false)}
+                    className="px-3 py-1.5 rounded text-[11px] text-[#cccccc] border border-[#3e3e42]"
+                  >
+                    {t.common.cancel}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Ollama info */}
           <div className="mt-3 rounded border border-[#3e3e42] bg-[#1e1e1e] px-3 py-3">

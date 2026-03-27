@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import {
   LayoutDashboard,
@@ -16,8 +15,6 @@ import {
   Download,
   ChevronRight,
   LogOut,
-  PanelLeftClose,
-  PanelLeft,
   Activity,
   Shield,
   Sparkles,
@@ -35,7 +32,6 @@ export function Layout({ children }: LayoutProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const logout = useAuthStore((s) => s.logout)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const t = useT()
 
   const navItems = [
@@ -104,7 +100,7 @@ export function Layout({ children }: LayoutProps) {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Activity Bar (icon strip) */}
+        {/* Activity Bar */}
         <div className="w-[48px] shrink-0 flex flex-col items-center pt-1 bg-[var(--bg-activity-bar)] border-r border-[var(--border)]">
           {navItems.map((item) => {
             const isActive =
@@ -115,7 +111,7 @@ export function Layout({ children }: LayoutProps) {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className="group relative w-[48px] h-[48px] flex items-center justify-center"
+                className="group relative w-[48px] h-[40px] flex items-center justify-center"
                 style={{
                   color: isActive ? "#ffffff" : "var(--text-muted)",
                   borderLeft: isActive
@@ -141,76 +137,17 @@ export function Layout({ children }: LayoutProps) {
               logout()
               navigate("/login")
             }}
-            className="w-[48px] h-[48px] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+            className="w-[48px] h-[40px] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
             title="ログアウト"
           >
             <LogOut size={20} />
           </button>
         </div>
 
-        {/* Sidebar */}
-        <div
-          className="shrink-0 flex flex-col overflow-hidden bg-[var(--bg-surface)] border-r border-[var(--border)] transition-all duration-200"
-          style={{ width: sidebarCollapsed ? "0px" : "200px" }}
-        >
-          <div className="h-[35px] flex items-center justify-between px-4 shrink-0">
-            <span className="uppercase text-[11px] tracking-wider text-[var(--text-secondary)] font-medium">
-              {t.nav.navigation}
-            </span>
-            <button
-              onClick={() => setSidebarCollapsed(true)}
-              className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-            >
-              <PanelLeftClose size={14} />
-            </button>
-          </div>
-          <nav className="flex-1 overflow-auto px-1">
-            {navItems.map((item) => {
-              const isActive =
-                item.path === "/"
-                  ? location.pathname === "/"
-                  : location.pathname.startsWith(item.path)
-              return (
-                <button
-                  key={item.path}
-                  onClick={() => navigate(item.path)}
-                  className="w-full flex items-center gap-2.5 px-3 py-[6px] rounded text-[13px] text-left transition-colors"
-                  style={{
-                    color: isActive
-                      ? "var(--text-primary)"
-                      : "var(--text-secondary)",
-                    background: isActive ? "var(--bg-active)" : "transparent",
-                    fontWeight: isActive ? 500 : 400,
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive)
-                      e.currentTarget.style.background = "var(--bg-hover)"
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive)
-                      e.currentTarget.style.background = "transparent"
-                  }}
-                >
-                  <item.icon size={15} />
-                  <span>{item.label}</span>
-                </button>
-              )
-            })}
-          </nav>
-        </div>
-
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Tab Bar */}
           <div className="h-[35px] flex items-end shrink-0 bg-[var(--bg-surface)]">
-            {sidebarCollapsed && (
-              <button
-                onClick={() => setSidebarCollapsed(false)}
-                className="h-[35px] flex items-center px-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-              >
-                <PanelLeft size={14} />
-              </button>
-            )}
             <div
               className="h-[35px] flex items-center px-4 text-[13px] cursor-default bg-[var(--bg-base)] text-[var(--text-primary)] border-t-2 border-t-[var(--accent)] border-r border-r-[var(--border)]"
               style={{ minWidth: "120px" }}
@@ -227,17 +164,12 @@ export function Layout({ children }: LayoutProps) {
       </div>
 
       {/* Status Bar */}
-      <div
-        className="h-[22px] flex items-center px-3 shrink-0 text-[11px] text-white/90"
-        style={{
-          background: "linear-gradient(90deg, #0078d4, #6d28d9)",
-        }}
-      >
+      <div className="h-[22px] flex items-center px-3 shrink-0 text-[11px] text-[var(--text-secondary)] bg-[var(--bg-activity-bar)] border-t border-[var(--border)]">
         <div className="flex items-center gap-4">
           <span className="font-medium">{t.common.appName}</span>
         </div>
         <div className="flex-1" />
-        <div className="flex items-center gap-4 text-white/70">
+        <div className="flex items-center gap-4 text-[var(--text-muted)]">
           <span>{t.common.typescriptReact}</span>
         </div>
       </div>

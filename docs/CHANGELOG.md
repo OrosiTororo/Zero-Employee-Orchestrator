@@ -7,23 +7,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [0.1.1] - 2026-03-25
+## [0.1.1] - 2026-03-27
 
 ### Added
 
+- **6-language i18n support** — Added Korean (한국어), Portuguese (Português), Turkish (Türkçe) to the existing Japanese, English, and Chinese UI translations
+- **Extensible LLM API key settings** — Users can now add custom LLM providers beyond the built-in four (OpenRouter, OpenAI, Anthropic, Gemini)
+- **Skill registry detail view** — Click any skill in the registry to see its full metadata, schema, configuration, and status
 - **Design Interview past-failure pattern feedback** — Automatically searches similar failure patterns from Experience Memory and Failure Taxonomy, dynamically injects warnings and additional questions during Interview. Integrated as risk notes during Spec generation.
 - **Added 21 undocumented features to FEATURES.md** — RSS/ToS auto-update, Knowledge Refresh, A2A bidirectional communication, Avatar AI co-evolution, Longrun Scheduler, Agent Session, Artifact Bridge, Media generation, AI Tools registry, iPaaS integration, Artifact export, Repurpose engine, Obsidian integration, Cloud-native integration, Smart device integration, Governance & compliance, Marketplace, Team management, Red-team testing, Workspace isolation
+
+### Changed
+
+- **VSCode-like single activity bar navigation** — Removed redundant double sidebar; now uses a single icon-based activity bar with tooltips (matching VSCode UX)
+- **Removed gradient from status bar** — Replaced blue-purple gradient with a clean flat color for better readability
+- **Dependabot configuration overhaul** — Ignore major version updates, grouping, full ecosystem coverage (pip/npm/cargo/github-actions), Cloudflare Workers separate management
+- **Dependabot auto-merge workflow added** — Auto-approve and squash-merge patch/minor updates after CI passes
 
 ### Security
 
 - **Sandbox symlink attack hardening** — Detects and blocks when resolved path points to a different directory than original
 - **Data Protection password pattern matching fix** — Fixed to use case-insensitive pattern matching
 - **CI: Run tests on Dependabot PRs** — Fixed lint-and-test job that was previously skipped for Dependabot PRs
-
-### Changed
-
-- **Dependabot configuration overhaul** — Ignore major version updates, grouping, full ecosystem coverage (pip/npm/cargo/github-actions), Cloudflare Workers separate management
-- **Dependabot auto-merge workflow added** — Auto-approve and squash-merge patch/minor updates after CI passes
 
 ## [0.1.0] - 2026-03-12 — Platform v0.1 (Consolidated Release)
 

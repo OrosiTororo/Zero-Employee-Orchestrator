@@ -16,6 +16,7 @@ import { CostsPage } from '@/pages/CostsPage'
 import { AuditPage } from '@/pages/AuditPage'
 import { SkillsPage } from '@/pages/SkillsPage'
 import { SkillCreatePage } from '@/pages/SkillCreatePage'
+import { SkillDetailPage } from '@/pages/SkillDetailPage'
 import { PluginsPage } from '@/pages/PluginsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { ReleasesPage } from '@/pages/ReleasesPage'
@@ -50,6 +51,7 @@ export const router = createBrowserRouter([
       { path: 'costs', element: <CostsPage /> },
       { path: 'audit', element: <AuditPage /> },
       { path: 'skills', element: <SkillsPage /> },
+      { path: 'skills/:id', element: <SkillDetailPage /> },
       { path: 'skills/create', element: <SkillCreatePage /> },
       { path: 'plugins', element: <PluginsPage /> },
       { path: 'settings', element: <SettingsPage /> },

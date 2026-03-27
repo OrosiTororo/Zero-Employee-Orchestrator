@@ -197,8 +197,9 @@ export function SkillsPage() {
                 return (
                   <div
                     key={skill.id}
-                    className="rounded px-4 py-3 border border-[#3e3e42] bg-[#252526] hover:border-[#007acc] transition-colors"
+                    className="rounded px-4 py-3 border border-[#3e3e42] bg-[#252526] hover:border-[#007acc] transition-colors cursor-pointer"
                     style={{ opacity: skill.enabled ? 1 : 0.5 }}
+                    onClick={() => navigate(`/skills/${skill.id}`)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -230,7 +231,7 @@ export function SkillsPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => handleToggle(skill)}
+                          onClick={(e) => { e.stopPropagation(); handleToggle(skill) }}
                           className="text-[#6a6a6a] hover:text-[#cccccc]"
                           title={
                             skill.is_system_protected
@@ -251,7 +252,7 @@ export function SkillsPage() {
                           )}
                         </button>
                         <button
-                          onClick={() => handleDelete(skill)}
+                          onClick={(e) => { e.stopPropagation(); handleDelete(skill) }}
                           className="text-[#6a6a6a] hover:text-[#f44747]"
                           title={
                             skill.is_system_protected
