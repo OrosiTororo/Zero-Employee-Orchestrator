@@ -1,8 +1,12 @@
 """State & Memory Layer (Layer 7) - State machines, Experience Memory, Failure Taxonomy."""
 
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
+
+# Maximum number of state transition history entries to retain (prevents unbounded memory growth)
+_MAX_HISTORY_SIZE = 1000
 
 # ---------------------------------------------------------------------------
 # State Machine base
@@ -18,11 +22,11 @@ class BaseStateMachine:
 
     transitions: dict[str, list[str]] = {}
 
-    def __init__(self, initial_state: str) -> None:
+    def __init__(self, initial_state: str, max_history: int = _MAX_HISTORY_SIZE) -> None:
         if initial_state not in self.transitions:
             raise StateMachineError(f"Unknown initial state: {initial_state}")
         self._state = initial_state
-        self._history: list[dict[str, str]] = []
+        self._history: deque[dict[str, str]] = deque(maxlen=max_history)
 
     @property
     def state(self) -> str:

@@ -247,9 +247,15 @@ class FileSystemSandbox:
                         sandbox_level=self._config.level,
                     )
             else:
-                # Filename pattern denial rule
+                # Filename pattern denial rule — match against basename and all
+                # path segments to prevent bypass via variants like .env.backup
                 basename = os.path.basename(resolved_path)
-                if basename == denied or resolved_path.endswith(denied):
+                if (
+                    basename == denied
+                    or resolved_path.endswith(denied)
+                    or basename.startswith(denied)
+                    or any(seg == denied for seg in Path(resolved_path).parts)
+                ):
                     return AccessCheckResult(
                         allowed=False,
                         path=resolved_path,
