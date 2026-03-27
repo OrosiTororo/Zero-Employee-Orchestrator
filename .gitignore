@@ -69,3 +69,4 @@ zero_employee_orchestrator.db
 *.nsis
 *.AppImage
 *.dmg
+.wrangler/cache
