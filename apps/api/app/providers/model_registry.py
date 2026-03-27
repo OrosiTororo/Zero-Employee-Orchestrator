@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import threading
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -628,20 +629,26 @@ class ModelRegistry:
 # ---------------------------------------------------------------------------
 
 _registry: ModelRegistry | None = None
+_registry_lock = threading.Lock()
 
 
 def get_model_registry() -> ModelRegistry:
-    """Get the global model registry."""
+    """Get the global model registry (thread-safe singleton)."""
     global _registry
-    if _registry is None:
-        catalog_path = os.environ.get("MODEL_CATALOG_PATH", str(_DEFAULT_CATALOG_PATH))
-        _registry = ModelRegistry(catalog_path=catalog_path)
+    if _registry is not None:
+        return _registry
+    with _registry_lock:
+        # Double-checked locking
+        if _registry is None:
+            catalog_path = os.environ.get("MODEL_CATALOG_PATH", str(_DEFAULT_CATALOG_PATH))
+            _registry = ModelRegistry(catalog_path=catalog_path)
     return _registry
 
 
 def reload_model_registry() -> ModelRegistry:
-    """Reload the model registry."""
+    """Reload the model registry (thread-safe)."""
     global _registry
-    catalog_path = os.environ.get("MODEL_CATALOG_PATH", str(_DEFAULT_CATALOG_PATH))
-    _registry = ModelRegistry(catalog_path=catalog_path)
+    with _registry_lock:
+        catalog_path = os.environ.get("MODEL_CATALOG_PATH", str(_DEFAULT_CATALOG_PATH))
+        _registry = ModelRegistry(catalog_path=catalog_path)
     return _registry

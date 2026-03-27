@@ -337,8 +337,18 @@ class LLMGateway:
                 sanitized.append(msg)
             return sanitized
         except Exception as exc:
-            logger.debug("Message sanitization skipped: %s", exc)
-            return messages
+            logger.error(
+                "Message sanitization FAILED — refusing to send unsanitized messages: %s", exc
+            )
+            # Return messages with a security warning prepended instead of silently skipping
+            warning_msg = {
+                "role": "system",
+                "content": (
+                    "[SECURITY WARNING] Message sanitization failed. "
+                    "External data in these messages has NOT been scanned for prompt injection."
+                ),
+            }
+            return [warning_msg] + messages
 
     async def complete(self, request: CompletionRequest) -> CompletionResponse:
         """Send completion request, routing to appropriate provider."""
@@ -365,6 +375,7 @@ class LLMGateway:
                 temperature=request.temperature,
                 max_tokens=request.max_tokens,
                 tools=request.tools,
+                timeout=120,  # Prevent indefinite hangs on LLM calls
             )
 
             content = response.choices[0].message.content or ""
@@ -400,7 +411,7 @@ class LLMGateway:
                 provider="mock",
             )
         except Exception as e:
-            logger.error(f"LLM completion failed: {e}")
+            logger.error("LLM completion failed: %s", e)
             return CompletionResponse(
                 content=f"Error: {e}",
                 model_used=model,
@@ -545,8 +556,8 @@ class LLMGateway:
             from app.providers.model_registry import get_model_registry
 
             return get_model_registry().estimate_cost(model, input_tokens, output_tokens)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Cost estimation via registry failed for %s: %s", model, exc)
 
         # Inline fallback if registry is unavailable
         if model.startswith(("g4f/", "ollama/")):

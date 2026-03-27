@@ -20,6 +20,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
+from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -172,8 +173,16 @@ class DataProtectionGuard:
                 reason="Uploads are disabled in current configuration.",
             )
 
-        # Password/credential check
-        if self._config.password_upload_blocked and content_preview:
+        # Password/credential check — block if preview is empty when password blocking is on
+        if self._config.password_upload_blocked:
+            if not content_preview:
+                return TransferCheckResult(
+                    allowed=False,
+                    direction=TransferDirection.UPLOAD,
+                    transfer_type=TransferType.FILE,
+                    destination=destination,
+                    reason="Upload blocked: content preview required for sensitive content check",
+                )
             lower = content_preview.lower()
             for pattern in self._config.upload_blocked_patterns:
                 if pattern.lower() in lower:
@@ -208,20 +217,18 @@ class DataProtectionGuard:
                     reason=f"File type '{ext}' is not allowed for upload",
                 )
 
-        # RESTRICTED mode: allowlist check
+        # RESTRICTED mode: allowlist check (secure domain comparison)
         if self._config.transfer_policy == TransferPolicy.RESTRICTED:
-            if destination not in self._config.upload_allowed_destinations:
-                allowed_any = any(
-                    destination.startswith(d) for d in self._config.upload_allowed_destinations
+            if not self._is_destination_allowed(
+                destination, self._config.upload_allowed_destinations
+            ):
+                return TransferCheckResult(
+                    allowed=False,
+                    direction=TransferDirection.UPLOAD,
+                    transfer_type=TransferType.FILE,
+                    destination=destination,
+                    reason="Destination not in allowed list",
                 )
-                if not allowed_any:
-                    return TransferCheckResult(
-                        allowed=False,
-                        direction=TransferDirection.UPLOAD,
-                        transfer_type=TransferType.FILE,
-                        destination=destination,
-                        reason="Destination not in allowed list",
-                    )
 
         return TransferCheckResult(
             allowed=True,
@@ -266,18 +273,14 @@ class DataProtectionGuard:
             )
 
         if self._config.transfer_policy == TransferPolicy.RESTRICTED:
-            if source not in self._config.download_allowed_sources:
-                allowed_any = any(
-                    source.startswith(s) for s in self._config.download_allowed_sources
+            if not self._is_destination_allowed(source, self._config.download_allowed_sources):
+                return TransferCheckResult(
+                    allowed=False,
+                    direction=TransferDirection.DOWNLOAD,
+                    transfer_type=TransferType.FILE,
+                    destination=source,
+                    reason="Source not in allowed list",
                 )
-                if not allowed_any:
-                    return TransferCheckResult(
-                        allowed=False,
-                        direction=TransferDirection.DOWNLOAD,
-                        transfer_type=TransferType.FILE,
-                        destination=source,
-                        reason="Source not in allowed list",
-                    )
 
         return TransferCheckResult(
             allowed=True,
@@ -326,6 +329,44 @@ class DataProtectionGuard:
             reason="External API call allowed",
             requires_approval=self._config.external_api_require_approval,
         )
+
+    @staticmethod
+    def _is_destination_allowed(url: str, allowed_list: list[str]) -> bool:
+        """Check if a URL matches the allowed list using secure domain comparison.
+
+        Prevents subdomain spoofing (e.g. ``https://example.com.attacker.com``
+        must NOT match an allowed entry of ``https://example.com``).
+        """
+        if url in allowed_list:
+            return True
+
+        try:
+            parsed = urlparse(url)
+            url_host = (parsed.hostname or "").lower()
+            url_scheme = parsed.scheme.lower()
+        except Exception:
+            return False
+
+        for allowed in allowed_list:
+            try:
+                allowed_parsed = urlparse(allowed)
+                allowed_host = (allowed_parsed.hostname or "").lower()
+                allowed_scheme = allowed_parsed.scheme.lower()
+
+                # Scheme must match
+                if url_scheme != allowed_scheme:
+                    continue
+
+                # Exact host match or subdomain match (e.g. sub.example.com for example.com)
+                if url_host == allowed_host or url_host.endswith("." + allowed_host):
+                    # Path prefix must also match if the allowed entry has a path
+                    allowed_path = allowed_parsed.path.rstrip("/")
+                    if not allowed_path or parsed.path.startswith(allowed_path):
+                        return True
+            except Exception:
+                continue
+
+        return False
 
 
 # Global instance (default is LOCKDOWN)

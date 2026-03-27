@@ -69,6 +69,7 @@ The base language for `docs/` is English. Translations are in language-specific 
 | `docs/ja-JP/BUILD_GUIDE.md` | Build from scratch guide (phase-by-phase, Japanese) | Developers building from source |
 | `docs/dev/FEATURE_BOUNDARY.md` | Core features vs Skill/Plugin/Extension boundary definition | Developers, designers |
 | `docs/dev/DEVELOPER_SETUP.md` | Developer setup (Sentry, red-team testing, etc.) | ZEO developers |
+| `docs/dev/REVIEW.md` | Comprehensive code review with security findings, architecture analysis, and OWASP/A2A best practice comparison (2026-03-27) | All developers |
 | `docs/dev/SKILL.md` | SKILL.md file creation guide | Skill developers |
 | `docs/dev/PROPOSAL.md` | Project proposal document | Grant reviewers, sponsors |
 | `docs/ja-JP/AI_SELF_IMPROVEMENT_ROADMAP.md` | AI self-improvement roadmap (Japanese) | Developers, researchers |

@@ -5,8 +5,11 @@ to determine execution eligibility. Blocks tasks when budget is exceeded
 and returns notifications when warning thresholds are reached.
 """
 
+import logging
 from dataclasses import dataclass
 from enum import Enum
+
+logger = logging.getLogger(__name__)
 
 
 class CostDecision(str, Enum):
@@ -39,8 +42,8 @@ def _load_cost_table() -> dict[str, dict[str, float]]:
         table = registry.get_cost_table()
         if table:
             return table
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("Failed to load cost table from ModelRegistry: %s — using fallback", exc)
     return _FALLBACK_COST_TABLE
 
 

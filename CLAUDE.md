@@ -23,6 +23,7 @@ Reference documents:
 - `docs/dev/FEATURE_BOUNDARY.md` -- Core vs Skill/Plugin/Extension boundary definition
 - `ROADMAP.md` -- Roadmap (remaining tasks from v0.2 onward)
 - `docs/dev/DEVELOPER_SETUP.md` -- Developer setup guide (Sentry, red-team testing, etc.)
+- `docs/dev/REVIEW.md` -- **Comprehensive code review (2026-03-27) with security findings, architecture analysis, and industry best practice comparison**
 - `USER_SETUP.md` -- User setup guide (API keys, security, DB, deployment, etc.)
 
 **IMPORTANT: If this file contains outdated information, read the actual code and README.md and update it. Always check the repository structure and all md files. When reviewing the repository, check all files. Record updates in md files.**
