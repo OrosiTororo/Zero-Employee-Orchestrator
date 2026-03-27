@@ -145,9 +145,7 @@ class TestPromptGuard:
         assert result2.is_safe
 
     def test_safe_english_text(self):
-        result = scan_prompt_injection(
-            "Please write a quarterly sales report for Q3 2025."
-        )
+        result = scan_prompt_injection("Please write a quarterly sales report for Q3 2025.")
         assert result.is_safe
 
 
@@ -237,9 +235,7 @@ class TestSandbox:
         assert not result.allowed
 
     def test_denied_credentials_json(self):
-        result = filesystem_sandbox.check_access(
-            "/home/user/credentials.json", AccessType.READ
-        )
+        result = filesystem_sandbox.check_access("/home/user/credentials.json", AccessType.READ)
         assert not result.allowed
 
     def test_denied_pem_file(self):
@@ -262,9 +258,7 @@ class TestSandbox:
 
     def test_path_traversal_blocked(self):
         """Path traversal attempts should be caught by resolve."""
-        result = filesystem_sandbox.check_access(
-            "/etc/../etc/shadow", AccessType.READ
-        )
+        result = filesystem_sandbox.check_access("/etc/../etc/shadow", AccessType.READ)
         assert not result.allowed
 
     def test_file_size_check(self):
@@ -288,24 +282,18 @@ class TestDataProtection:
     """Data protection policy tests."""
 
     def test_lockdown_blocks_all_uploads(self):
-        guard = DataProtectionGuard(
-            DataProtectionConfig(transfer_policy=TransferPolicy.LOCKDOWN)
-        )
+        guard = DataProtectionGuard(DataProtectionConfig(transfer_policy=TransferPolicy.LOCKDOWN))
         result = guard.check_upload("https://example.com", file_name="test.txt")
         assert not result.allowed
         assert "LOCKDOWN" in result.reason
 
     def test_lockdown_blocks_all_downloads(self):
-        guard = DataProtectionGuard(
-            DataProtectionConfig(transfer_policy=TransferPolicy.LOCKDOWN)
-        )
+        guard = DataProtectionGuard(DataProtectionConfig(transfer_policy=TransferPolicy.LOCKDOWN))
         result = guard.check_download("https://example.com/file.txt")
         assert not result.allowed
 
     def test_lockdown_blocks_external_api(self):
-        guard = DataProtectionGuard(
-            DataProtectionConfig(transfer_policy=TransferPolicy.LOCKDOWN)
-        )
+        guard = DataProtectionGuard(DataProtectionConfig(transfer_policy=TransferPolicy.LOCKDOWN))
         result = guard.check_external_api("api.example.com")
         assert not result.allowed
 
@@ -398,9 +386,7 @@ class TestDataProtection:
                 password_upload_blocked=True,
             )
         )
-        result = guard.check_upload(
-            "https://example.com", file_name="data.csv", content_preview=""
-        )
+        result = guard.check_upload("https://example.com", file_name="data.csv", content_preview="")
         assert not result.allowed
         assert "content preview required" in result.reason
 

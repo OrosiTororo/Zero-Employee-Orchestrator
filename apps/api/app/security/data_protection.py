@@ -273,9 +273,7 @@ class DataProtectionGuard:
             )
 
         if self._config.transfer_policy == TransferPolicy.RESTRICTED:
-            if not self._is_destination_allowed(
-                source, self._config.download_allowed_sources
-            ):
+            if not self._is_destination_allowed(source, self._config.download_allowed_sources):
                 return TransferCheckResult(
                     allowed=False,
                     direction=TransferDirection.DOWNLOAD,
@@ -331,7 +329,6 @@ class DataProtectionGuard:
             reason="External API call allowed",
             requires_approval=self._config.external_api_require_approval,
         )
-
 
     @staticmethod
     def _is_destination_allowed(url: str, allowed_list: list[str]) -> bool:
