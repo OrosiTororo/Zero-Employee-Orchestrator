@@ -7,4 +7,4 @@ BACKEND_ORIGIN = "http://localhost:18234"
 
 [[kv_namespaces]]
 binding = "RATE_LIMIT"
-id = "placeholder-id"
+id = "21e5ccb52e034b4ead2781a3f0445783"
