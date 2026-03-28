@@ -29,6 +29,12 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "resources": {
+      "../../api/app": "api/app",
+      "../../api/pyproject.toml": "api/pyproject.toml",
+      "../../api/alembic": "api/alembic",
+      "../../api/alembic.ini": "api/alembic.ini"
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

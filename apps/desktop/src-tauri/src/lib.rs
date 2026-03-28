@@ -55,24 +55,48 @@ fn ensure_path() {
 /// Find the API directory relative to the executable or project root.
 fn find_api_dir() -> Option<PathBuf> {
     let mut candidates = vec![
+        // Development: running from apps/desktop/src-tauri (cargo tauri dev)
         PathBuf::from("../../api"),
+        // Development: running from project root
         PathBuf::from("apps/api"),
+        // Development: running from apps/desktop
         PathBuf::from("../api"),
     ];
 
     if let Ok(exe) = std::env::current_exe() {
         if let Some(exe_dir) = exe.parent() {
+            // --- Bundled (production) paths ---
+            // Tauri resources are placed next to the executable
+            candidates.push(exe_dir.join("api"));
+            // Linux: /usr/share/<app>/api (Tauri resource dir)
             candidates.push(exe_dir.join("../share/zero-employee-orchestrator/api"));
+            // Linux AppImage: resources next to exe
+            candidates.push(exe_dir.join("../resources/api"));
+            // macOS .app: Contents/Resources/api
+            candidates.push(exe_dir.join("../Resources/api"));
+            // Windows: same dir as exe
             candidates.push(exe_dir.join("apps/api"));
             candidates.push(exe_dir.join("../../apps/api"));
-            candidates.push(exe_dir.join("../Resources/api"));
+            // Data directory: ~/.local/share/<app>/api (fallback for cloned repo)
+            if let Ok(home) = std::env::var("HOME") {
+                candidates.push(PathBuf::from(format!(
+                    "{}/.local/share/zero-employee-orchestrator/api",
+                    home
+                )));
+                // Also check if the user cloned the repo to home
+                candidates.push(PathBuf::from(format!(
+                    "{}/Zero-Employee-Orchestrator/apps/api",
+                    home
+                )));
+            }
         }
     }
 
     for candidate in &candidates {
         let resolved = std::fs::canonicalize(candidate).ok();
         if let Some(ref p) = resolved {
-            if p.join("app").join("main.py").exists() {
+            // Check for app/main.py (source layout) or pyproject.toml (bundled layout)
+            if p.join("app").join("main.py").exists() || p.join("pyproject.toml").exists() {
                 eprintln!("[sidecar] found API directory: {}", p.display());
                 return resolved;
             }
