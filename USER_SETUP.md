@@ -513,7 +513,7 @@ Installing the Obsidian plugin "Local REST API" is also recommended.
 
 ## 15. App Connector Hub
 
-ZEO supports integration with 35+ external applications.
+ZEO supports integration with 34+ external applications.
 All connections operate only within the scope explicitly permitted by the user.
 
 ### List Supported Applications

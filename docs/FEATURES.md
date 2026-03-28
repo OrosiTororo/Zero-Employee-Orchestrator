@@ -2,8 +2,8 @@
 
 # Zero-Employee Orchestrator — Feature List
 
-> Last updated: 2026-03-25
-> Target version: v0.1
+> Last updated: 2026-03-28
+> Current version: v0.1.1
 
 ---
 
@@ -12,6 +12,22 @@
 Zero-Employee Orchestrator is an **AI orchestration platform** that enables you to define business operations in natural language, assign roles to multiple AI agents, and execute, re-plan, and improve operations with human approval and auditability as prerequisites.
 
 This document provides a comprehensive summary of currently implemented features and capabilities.
+
+---
+
+## What's New in v0.1.1 (2026-03-28)
+
+| Area | Change |
+|------|--------|
+| **Production Deployment** | Docker Compose hardened with resource limits, network isolation, read-only FS, log rotation |
+| **CI Security** | Trivy container scanning, blocking pip-audit, red-team test job added |
+| **Red-team Tests** | All 22 tests now exercise actual security modules with real payloads |
+| **i18n** | 65+ translation keys across 6 languages (EN/JA/ZH/KO/PT/TR); default language changed to English |
+| **Model Catalog** | Updated to GPT-5.4, GPT-5.4 Mini, Llama 4, Phi-4, Claude Haiku latest |
+| **PII Guard** | All 13 categories now have detection patterns (added driver's license, Japanese name) |
+| **Documentation** | Corrected all inflated metrics; consistent across 7 language versions |
+
+See [CHANGELOG](../docs/CHANGELOG.md) for full details.
 
 ---
 
@@ -323,7 +339,7 @@ Cost information is dynamically loaded from the model catalog, so no code change
 | Claude Sonnet 4.6 | 0.003 | 0.015 |
 | Claude Haiku 4.5 | 0.001 | 0.005 |
 | GPT-5.4 | 0.005 | 0.015 |
-| GPT-5 Mini | 0.00015 | 0.0006 |
+| GPT-5.4 Mini | 0.00015 | 0.0006 |
 | Gemini 2.5 Pro | 0.00125 | 0.005 |
 | Gemini 2.5 Flash | 0.0001 | 0.0004 |
 | Gemini 2.5 Flash Lite | 0.00005 | 0.0002 |
@@ -357,7 +373,7 @@ Cost information is dynamically loaded from the model catalog, so no code change
 
 | Mode | Recommended Models | Max Retries | Judge Threshold | Human Review | Cross-Model Verification |
 |------|-------------------|-------------|-----------------|--------------|------------------------|
-| **DRAFT** | GPT-5 Mini, Claude Haiku 4.5 | 1 | 50% | Not required | None |
+| **DRAFT** | GPT-5.4 Mini, Claude Haiku 4.5 | 1 | 50% | Not required | None |
 | **STANDARD** | GPT-5.4, Claude Sonnet 4.6 | 2 | 70% | Not required | None |
 | **HIGH** | GPT-5.4, Claude Sonnet 4.6 | 3 | 85% | Not required | **Enabled** |
 | **CRITICAL** | Claude Opus 4.6, GPT-5.4 | 5 | 95% | **Required** | **Enabled** |
@@ -603,11 +619,11 @@ A unified LLM gateway based on LiteLLM supports multiple providers.
 | Provider | Example Models |
 |----------|---------------|
 | **OpenRouter** | Access multiple models with a single API key |
-| **OpenAI** | GPT-5.4, GPT-5 Mini |
+| **OpenAI** | GPT-5.4, GPT-5.4 Mini |
 | **Anthropic** | Claude Opus 4.6, Sonnet 4.6, Haiku 4.5 |
 | **Google** | Gemini 2.5 Pro, Flash, Flash Lite |
 | **DeepSeek** | DeepSeek Chat |
-| **Ollama** | Llama 3.2, Mistral, Phi-3, Qwen3, etc. (local, free) |
+| **Ollama** | Llama 4, Mistral, Phi-4, Qwen3, etc. (local, free) |
 | **g4f** | Via free providers (no API key required) |
 
 > **Supported models are managed in `model_catalog.json`.**
@@ -619,8 +635,8 @@ A unified LLM gateway based on LiteLLM supports multiple providers.
 | Mode | Description | Recommended Models |
 |------|-------------|-------------------|
 | `QUALITY` | Highest quality | Claude Opus 4.6, GPT-5.4 |
-| `SPEED` | Fast response | Claude Haiku 4.5, GPT-5 Mini |
-| `COST` | Low cost | Claude Haiku 4.5, GPT-5 Mini, DeepSeek |
+| `SPEED` | Fast response | Claude Haiku 4.5, GPT-5.4 Mini |
+| `COST` | Low cost | Claude Haiku 4.5, GPT-5.4 Mini, DeepSeek |
 | `FREE` | Free (local + free APIs) | Ollama, Gemini free tier, g4f |
 | `SUBSCRIPTION` | Free (no API key required) | Various models via g4f |
 
@@ -1628,22 +1644,29 @@ API: `/api/v1/teams/*`
 
 ---
 
-## 53. Red-team Security Testing (v0.1)
+## 53. Red-team Security Testing (v0.1.1)
 
 Automatically tests the system's security defenses to detect and report vulnerabilities early.
+All tests exercise actual security modules with real payloads — not just config validation.
 
-### Test Categories
+### Test Categories (8 categories, 22 tests)
 
-| Category | Description |
-|----------|-------------|
-| **Prompt Injection** | Adversarial input tests against LLM |
-| **Data Leakage** | Unauthorized information exfiltration tests |
-| **Privilege Escalation** | IAM bypass tests |
-| **PII Leakage** | Unauthorized personal information exposure tests |
-| **Unauthorized Access** | Authentication/authorization bypass tests |
-| **Sandbox Escape** | File system restriction breach tests |
-| **Rate Limit Bypass** | API rate limit circumvention tests |
-| **Auth Bypass** | Authentication mechanism bypass tests |
+| Category | Tests | Verification Method |
+|----------|-------|-------------------|
+| **Prompt Injection** | 4 | Scans payloads through `prompt_guard` and verifies detection |
+| **Data Leakage** | 3 | Runs payloads through both `sanitizer` and `pii_guard` |
+| **Privilege Escalation** | 3 | Verifies IAM denied scopes + prompt guard escalation detection |
+| **PII Leakage** | 3 | Runs payloads through `pii_guard` and verifies masking |
+| **Unauthorized Access** | 2 | Verifies security headers middleware + auth dependency |
+| **Sandbox Escape** | 3 | Tests 8+ dangerous paths including path traversal variants |
+| **Rate Limit Bypass** | 2 | Verifies limiter config + 429 handler + live endpoint test |
+| **Auth Bypass** | 2 | Tests algorithm=none, expired, and tampered JWT tokens |
+
+### CI Integration (v0.1.1)
+
+- Red-team tests run automatically on every PR via GitHub Actions
+- Build fails on any **critical** findings
+- Warning issued when failure rate exceeds 20%
 
 ---
 
@@ -2275,7 +2298,7 @@ Middleware that automatically applies prompt injection scanning and PII detectio
 
 | Inspection | Description |
 |-----------|-------------|
-| **Prompt injection** | 5-level threat detection with 40+ patterns |
+| **Prompt injection** | 5-level threat detection with 28+ patterns |
 | **PII detection** | Detection and masking of 13 PII categories |
 | **External data wrapping** | Boundary marker application for external data sent to LLM |
 

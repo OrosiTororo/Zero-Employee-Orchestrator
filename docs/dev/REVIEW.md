@@ -226,7 +226,7 @@ validation, URL domain spoofing, symlink traversal, and LLM message sanitization
 - **Multi-provider LLM support**: Ollama, g4f, LiteLLM with auto-discovery
 - **Family-based model IDs**: `model_catalog.json` allows version updates without code changes
 - **Comprehensive approval gates**: 12 categories of dangerous operations
-- **Prompt injection defense**: 5 categories, 40+ patterns including Japanese
+- **Prompt injection defense**: 5 categories, 28+ patterns including Japanese
 - **PII detection**: 13 categories with masking
 - **Extensive API surface**: 350+ endpoints covering the full domain
 - **Version management**: 8-file version sync with bump script and CI check
@@ -267,7 +267,7 @@ validation, URL domain spoofing, symlink traversal, and LLM message sanitization
 ### 7.1 OWASP LLM Top 10 (2025) Compliance
 
 Prompt injection remains the #1 vulnerability (LLM01:2025). The current system addresses this
-with 5-category, 40+ pattern detection, but industry standards now recommend:
+with 5-category, 28+ pattern detection, but industry standards now recommend:
 
 | OWASP Recommendation | ZEO Status | Gap |
 |---------------------|------------|-----|

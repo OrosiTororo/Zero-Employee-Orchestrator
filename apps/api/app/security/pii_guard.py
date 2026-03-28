@@ -16,6 +16,9 @@ Detection categories:
 - Bank account numbers
 - IP addresses (with octet range validation)
 - Passwords / secrets
+- Social Security Numbers (US)
+- Driver's license numbers (Japan, US)
+- Japanese full names (with keyword context)
 
 Default: All detection enabled (security first)
 """
@@ -168,6 +171,25 @@ _PII_PATTERNS: list[tuple[PIICategory, re.Pattern, str]] = [
         PIICategory.BANK_ACCOUNT,
         re.compile(r"(?:口座番号|account)\s*[:：]?\s*\d{7,}", re.IGNORECASE),
         "[BANK_ACCOUNT]",
+    ),
+    # Driver's license number (Japan: 12 digits; US: state-dependent alphanumeric)
+    (
+        PIICategory.DRIVERS_LICENSE,
+        re.compile(
+            r"(?:運転免許|免許証|driver'?s?\s*licen[cs]e)\s*[:：]?\s*"
+            r"(?:\d{12}|[A-Z]\d{7,14})",
+            re.IGNORECASE,
+        ),
+        "[DRIVERS_LICENSE]",
+    ),
+    # Japanese full name (family + given name in kanji/katakana)
+    (
+        PIICategory.NAME_JP,
+        re.compile(
+            r"(?:氏名|名前|フルネーム)\s*[:：]?\s*"
+            r"[\u4e00-\u9fff\u30a0-\u30ff]{1,6}\s*[\u4e00-\u9fff\u30a0-\u30ff]{1,6}"
+        ),
+        "[NAME]",
     ),
 ]
 

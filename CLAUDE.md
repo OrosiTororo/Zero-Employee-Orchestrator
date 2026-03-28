@@ -47,12 +47,12 @@ apps/
 ├── api/              # FastAPI backend (Python 3.12+)
 │   ├── app/
 │   │   ├── core/           # Config, DB, rate limiting, i18n
-│   │   ├── api/routes/     # REST API endpoints (41 route modules, 350+ endpoints)
+│   │   ├── api/routes/     # REST API endpoints (40 route modules, 350+ endpoints)
 │   │   ├── api/ws/         # WebSocket (events, browser_assist_ws)
 │   │   ├── api/deps/       # Dependency injection
 │   │   ├── models/         # SQLAlchemy ORM
 │   │   ├── schemas/        # Pydantic DTO
-│   │   ├── services/       # Business logic (26 services)
+│   │   ├── services/       # Business logic (25 services)
 │   │   ├── repositories/   # DB I/O abstraction
 │   │   ├── orchestration/  # DAG, Judge, state machine, Knowledge, Memory, MetaSkill, A2A, Transparency (23 modules)
 │   │   ├── heartbeat/      # Heartbeat scheduler
@@ -183,7 +183,7 @@ latest_model_id:   "claude-opus-4-6"  <- Used for actual API calls
 
 Defense layers:
 - Workspace isolation (`security/workspace_isolation.py`) -- No local/cloud connections by default
-- Prompt injection defense (`security/prompt_guard.py`) -- 5 categories, 40+ patterns
+- Prompt injection defense (`security/prompt_guard.py`) -- 5 categories, 28+ patterns
 - Approval gates (`policies/approval_gate.py`) -- 12 categories of dangerous operations
 - Autonomy boundaries (`policies/autonomy_boundary.py`)
 - IAM (`security/iam.py`) -- AI denied secret and admin access
@@ -249,7 +249,7 @@ Operates only within the scope permitted by the user.
 
 - Connector hub: `apps/api/app/integrations/app_connector.py`
 - Supported categories (16): knowledge_base, note_taking, document, productivity, project_management, communication, crm, calendar, email, cloud_storage, design, code_hosting, database, analytics, automation, custom
-- Supported apps (35+): Obsidian, Notion, Logseq, Joplin, Anytype, Roam Research, Google Docs/Sheets/Drive/Calendar/Gmail, Microsoft 365/Teams/OneDrive/Outlook, Confluence, Jira, Linear, Asana, Trello, ClickUp, Slack, Discord, HubSpot, Salesforce, Figma, Canva, Airtable, Dropbox, GitHub, GitLab, n8n, Zapier, Make
+- Supported apps (34+): Obsidian, Notion, Logseq, Joplin, Anytype, Roam Research, Google Docs/Sheets/Drive/Calendar/Gmail, Microsoft 365/Teams/OneDrive/Outlook, Confluence, Jira, Linear, Asana, Trello, ClickUp, Slack, Discord, HubSpot, Salesforce, Figma, Canva, Airtable, Dropbox, GitHub, GitLab, n8n, Zapier, Make
 - Custom app registration supported (users can add arbitrary apps)
 - API: `/api/v1/app-integrations/*`
 
@@ -317,3 +317,22 @@ All formerly planned v0.2-v1.0 features are implemented in v0.1. Remaining tasks
 - **v1.0**: Self-Improvement Loop automation, Cross-Orchestrator Learning
 
 See `ROADMAP.md` for details.
+
+## Release Notes Guidelines
+
+**GitHub Releases text must focus on system changes only.**
+
+Write about:
+- Security improvements (new defenses, hardened modules, vulnerability fixes)
+- Deployment changes (Docker, infrastructure, production configuration)
+- AI model catalog updates (new models, version changes, pricing)
+- Internationalization (new languages, translation coverage)
+- Platform features (new capabilities, API additions, orchestration improvements)
+
+Do NOT write about:
+- Documentation changes (typo fixes, wording improvements, accuracy corrections)
+- CI/CD pipeline changes (GitHub Actions, workflow modifications)
+- Repository configuration (Dependabot, linter settings, gitignore)
+- Internal refactoring that does not change user-facing behavior
+
+The audience is end users, not developers. Describe what changed in the system behavior, not what files were edited.

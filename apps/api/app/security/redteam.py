@@ -423,15 +423,23 @@ class RedTeamService:
     # ------------------------------------------------------------------
 
     async def _test_prompt_injection(self, test: SecurityTest) -> TestResult:
-        """Test prompt injection defenses."""
+        """Test prompt injection defenses by actually scanning the payload."""
         try:
             from app.security.prompt_guard import scan_prompt_injection
 
             result = scan_prompt_injection(test.test_payload)
-            passed = not result.is_safe or len(result.detections) > 0
-            actual = (
-                f"Injection detected (detections={result.detections})" if passed else "Not detected"
-            )
+            # The payload MUST be detected as unsafe for the test to pass
+            passed = not result.is_safe and len(result.detections) > 0
+            if passed:
+                actual = (
+                    f"Injection detected: threat_level={result.threat_level.value}, "
+                    f"detections={result.detections}"
+                )
+            else:
+                actual = (
+                    f"NOT detected: threat_level={result.threat_level.value}, "
+                    f"is_safe={result.is_safe}, detections={result.detections}"
+                )
         except ImportError:
             passed = False
             actual = "Cannot test: prompt_guard module not installed"
@@ -448,25 +456,47 @@ class RedTeamService:
         )
 
     async def _test_data_leakage(self, test: SecurityTest) -> TestResult:
-        """Test data leakage defenses."""
+        """Test data leakage defenses by running sanitizer on actual payloads."""
+        checks_passed: list[str] = []
+        checks_failed: list[str] = []
+
+        # 1. Test sanitizer
         try:
             from app.security.sanitizer import sanitize_text
 
             result = sanitize_text(test.test_payload)
-            passed = (
-                result.sanitized_text != test.test_payload
-                or result.redacted_count > 0
-                or "[REDACTED:" in result.sanitized_text
-            )
-            actual = (
-                f"Sanitization applied (redacted={result.redacted_count})"
-                if passed
-                else "Sanitization not applied"
-            )
+            if result.redacted_count > 0 and "[REDACTED:" in result.sanitized_text:
+                checks_passed.append(
+                    f"Sanitizer redacted {result.redacted_count} items "
+                    f"(types: {result.redacted_types})"
+                )
+            elif result.sanitized_text != test.test_payload:
+                checks_passed.append("Sanitizer modified output")
+            else:
+                checks_failed.append(
+                    f"Sanitizer did not redact payload: '{test.test_payload[:60]}...'"
+                )
         except ImportError:
-            passed = False
-            actual = "Cannot test: sanitizer module not installed"
-            logger.warning("redteam: sanitizer module not found")
+            checks_failed.append("sanitizer module not installed")
+
+        # 2. Also test PII guard on the same payload (defense in depth)
+        try:
+            from app.security.pii_guard import detect_and_mask_pii
+
+            pii_result = detect_and_mask_pii(test.test_payload)
+            if pii_result.has_pii:
+                checks_passed.append(
+                    f"PII guard detected {pii_result.detected_count} items "
+                    f"(types: {pii_result.detected_types})"
+                )
+        except ImportError:
+            pass  # PII guard is a secondary check, not required
+
+        passed = len(checks_failed) == 0 and len(checks_passed) > 0
+        detail_parts = [f"Passed: {', '.join(checks_passed)}"] if checks_passed else []
+        if checks_failed:
+            detail_parts.append(f"Failed: {', '.join(checks_failed)}")
+        actual = "; ".join(detail_parts) if detail_parts else "No verification items"
 
         return TestResult(
             id=str(uuid.uuid4()),
@@ -479,11 +509,14 @@ class RedTeamService:
         )
 
     async def _test_privilege_escalation(self, test: SecurityTest) -> TestResult:
-        """Test privilege escalation defenses."""
+        """Test privilege escalation defenses via IAM checks AND prompt guard."""
+        checks_passed: list[str] = []
+        checks_failed: list[str] = []
+
+        # 1. Verify IAM denies critical scopes to AI
         try:
             from app.security.iam import AI_DENIED_PERMISSIONS, PermissionScope
 
-            # Verify that permission scopes denied to AI are defined
             denied = {d.value for d in AI_DENIED_PERMISSIONS}
             critical_denied = {
                 PermissionScope.READ_SECRETS.value,
@@ -491,16 +524,32 @@ class RedTeamService:
                 PermissionScope.MANAGE_IAM.value,
             }
             missing = critical_denied - denied
-            passed = len(missing) == 0
-            actual = (
-                "Privilege escalation blocked (required scopes defined in AI_DENIED_PERMISSIONS)"
-                if passed
-                else f"Missing denied scopes: {missing}"
-            )
+            if len(missing) == 0:
+                checks_passed.append("IAM denies critical scopes to AI")
+            else:
+                checks_failed.append(f"Missing denied scopes: {missing}")
         except ImportError:
-            passed = False
-            actual = "Cannot test: IAM module not installed"
-            logger.warning("redteam: iam module not found")
+            checks_failed.append("IAM module not installed")
+
+        # 2. Verify prompt guard catches the escalation payload
+        try:
+            from app.security.prompt_guard import scan_prompt_injection
+
+            result = scan_prompt_injection(test.test_payload)
+            if not result.is_safe and len(result.detections) > 0:
+                checks_passed.append(f"Prompt guard detected escalation: {result.detections}")
+            else:
+                # Some payloads may not trigger prompt guard (e.g. pe-003)
+                # but should still be blocked by IAM
+                checks_passed.append("Prompt guard did not flag (IAM handles)")
+        except ImportError:
+            pass  # prompt_guard is secondary for this test
+
+        passed = len(checks_failed) == 0 and len(checks_passed) > 0
+        detail_parts = [f"Passed: {', '.join(checks_passed)}"] if checks_passed else []
+        if checks_failed:
+            detail_parts.append(f"Failed: {', '.join(checks_failed)}")
+        actual = "; ".join(detail_parts) if detail_parts else "No verification items"
 
         return TestResult(
             id=str(uuid.uuid4()),
@@ -536,17 +585,45 @@ class RedTeamService:
         )
 
     async def _test_sandbox_escape(self, test: SecurityTest) -> TestResult:
-        """Test sandbox escape defenses."""
+        """Test sandbox escape defenses against specific attack paths."""
+        checks_passed: list[str] = []
+        checks_failed: list[str] = []
+
         try:
             from app.security.sandbox import AccessType, filesystem_sandbox
 
-            result = filesystem_sandbox.check_access("/etc/passwd", AccessType.READ)
-            passed = not result.allowed
-            actual = "Access denied" if passed else "Access was allowed"
+            # Test multiple dangerous paths
+            dangerous_paths = [
+                "/etc/passwd",
+                "/etc/shadow",
+                "/root/.ssh/",
+                "../../../etc/passwd",
+                "/home/../etc/passwd",
+            ]
+            for path in dangerous_paths:
+                result = filesystem_sandbox.check_access(path, AccessType.READ)
+                if not result.allowed:
+                    checks_passed.append(f"Blocked: {path}")
+                else:
+                    checks_failed.append(f"ALLOWED: {path}")
+
+            # Also test write access to system dirs
+            write_paths = ["/etc/crontab", "/usr/bin/malware", "/tmp/../etc/passwd"]
+            for path in write_paths:
+                result = filesystem_sandbox.check_access(path, AccessType.WRITE)
+                if not result.allowed:
+                    checks_passed.append(f"Write blocked: {path}")
+                else:
+                    checks_failed.append(f"Write ALLOWED: {path}")
+
         except ImportError:
-            passed = False
-            actual = "Cannot test: sandbox module not installed"
-            logger.warning("redteam: sandbox module not found")
+            checks_failed.append("sandbox module not installed")
+
+        passed = len(checks_failed) == 0 and len(checks_passed) > 0
+        detail_parts = [f"Passed: {', '.join(checks_passed)}"] if checks_passed else []
+        if checks_failed:
+            detail_parts.append(f"Failed: {', '.join(checks_failed)}")
+        actual = "; ".join(detail_parts) if detail_parts else "No verification items"
 
         return TestResult(
             id=str(uuid.uuid4()),

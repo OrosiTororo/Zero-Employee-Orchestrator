@@ -175,7 +175,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI バックエンド
 │   │   └── app/
 │   │       ├── core/               # 設定・DB・セキュリティ・i18n
-│   │       ├── api/routes/         # 40+ REST API ルートモジュール
+│   │       ├── api/routes/         # 28+ REST API ルートモジュール
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -260,7 +260,7 @@ Zero-Employee-Orchestrator/
 |------|------|
 | **ブラウザアシスト** | Chrome 拡張機能オーバーレイ — AI がリアルタイムで画面を確認 |
 | **メディア生成** | 画像・動画・音声・音楽・3D — 動的プロバイダー登録対応 |
-| **アプリコネクタハブ** | 35+ アプリ（Obsidian、Notion、Google Workspace、Microsoft 365 等） |
+| **アプリコネクタハブ** | 34+ アプリ（Obsidian、Notion、Google Workspace、Microsoft 365 等） |
 | **AI ツール統合** | 19 カテゴリ、45+ の外部ツール |
 | **A2A 通信** | エージェント間のピアツーピア通信・チャンネル・交渉 |
 | **分身 AI** | ユーザーの判断基準を学習し共に成長 |
@@ -271,7 +271,7 @@ Zero-Employee-Orchestrator/
 
 | 機能 | 説明 |
 |------|------|
-| **プロンプトインジェクション防御** | 5 カテゴリ、40+ 検出パターン |
+| **プロンプトインジェクション防御** | 5 カテゴリ、28+ 検出パターン |
 | **承認ゲート** | 12 カテゴリの危険操作に人間の承認を必須化 |
 | **ファイルサンドボックス** | AI がアクセスできるフォルダをユーザー許可制で制限（初期設定: STRICT） |
 | **データ保護** | AI のアップロード・ダウンロードをポリシーで制御（初期設定: LOCKDOWN） |
@@ -284,7 +284,7 @@ Zero-Employee-Orchestrator/
 | 機能 | 説明 |
 |------|------|
 | **マルチモデル対応** | 動的カタログ、自動フォールバック、タスク単位のプロバイダー指定 |
-| **多言語対応（i18n）** | 日本語 / English / 中文 — UI・AI 応答・CLI |
+| **多言語対応（i18n）** | 6 言語（EN / JA / ZH / KO / PT / TR）— UI・AI 応答・CLI |
 | **自律運用** | Docker / Cloudflare Workers — PC がオフでも稼働 |
 | **24/365 スケジューラ** | 9 種類の発火契機: cron、チケット作成、予算閾値等 |
 | **iPaaS 連携** | n8n / Zapier / Make Webhook 連携 |
@@ -299,7 +299,7 @@ ZEO は**セキュリティファースト**で設計された多層防御を備
 
 | レイヤー | 説明 |
 |---------|------|
-| **プロンプトインジェクション防御** | 外部入力からの指示注入を検出・遮断（5 カテゴリ、40+ パターン） |
+| **プロンプトインジェクション防御** | 外部入力からの指示注入を検出・遮断（5 カテゴリ、28+ パターン） |
 | **承認ゲート** | 12 カテゴリの危険操作（送信・削除・課金・権限変更等）に人間の承認を必須化 |
 | **自律実行境界** | AI が自律実行できる操作を明示的に制限 |
 | **IAM** | 人間/AI アカウント分離、AI に対するシークレット・管理権限の拒否 |
@@ -349,7 +349,7 @@ zero-employee update             # 最新版にアップデート
 | モード | 説明 | 例 |
 |-------|------|-----|
 | **Quality** | 最高品質 | Claude Opus, GPT-5.4, Gemini 2.5 Pro |
-| **Speed** | 高速応答 | Claude Haiku, GPT-5 Mini, Gemini 2.5 Flash |
+| **Speed** | 高速応答 | Claude Haiku, GPT-5.4 Mini, Gemini 2.5 Flash |
 | **Cost** | 低コスト | Haiku, Mini, Flash Lite, DeepSeek |
 | **Free** | 無料 | Gemini 無料枠, Ollama ローカル |
 | **Subscription** | API キー不要 | g4f 経由 |

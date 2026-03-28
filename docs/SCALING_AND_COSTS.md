@@ -29,7 +29,7 @@ The primary cost of this system is LLM API usage fees.
 | Claude Sonnet 4.6 | Input $0.003 / Output $0.015 | Balance of quality and cost |
 | Claude Haiku 4.5 | Input $0.001 / Output $0.005 | Fast, low cost |
 | GPT-5.4 | Input $0.005 / Output $0.015 | OpenAI's high-performance model |
-| GPT-5 Mini | Input $0.00015 / Output $0.0006 | OpenAI's lightweight model |
+| GPT-5.4 Mini | Input $0.00015 / Output $0.0006 | OpenAI's lightweight model |
 | Gemini 2.5 Pro | Input $0.00125 / Output $0.005 | Google's high-performance model |
 | Gemini 2.5 Flash | Input $0.0001 / Output $0.0004 | Free tier available |
 | DeepSeek Chat | Input $0.00014 / Output $0.00028 | Low cost |

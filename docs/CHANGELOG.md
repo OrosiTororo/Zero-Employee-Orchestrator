@@ -1,16 +1,34 @@
 # Changelog
 
-> English | [日本語](ja-JP/CHANGELOG.md) | [中文](zh/CHANGELOG.md)
+> English | [日本語](ja-JP/CHANGELOG.md) | [中文](zh/CHANGELOG.md) | [한국어](ko-KR/CHANGELOG.md) | [Português](pt-BR/CHANGELOG.md) | [Türkçe](tr/CHANGELOG.md)
 
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [0.1.1] - 2026-03-27
+## [0.1.1] - 2026-03-28
 
 ### Added
 
+- **Production-hardened Docker Compose** — Resource limits (memory/CPU), network isolation, log rotation, read-only filesystem, `no-new-privileges` security option, and healthcheck `start_period`
+- **Trivy container image scanning in CI** — New CI job scans Docker images for CRITICAL/HIGH vulnerabilities before merge
+- **Red-team security tests in CI** — New CI job runs the full red-team test suite and fails on critical findings
+- **65+ i18n translation keys** — Expanded from ~30 to 65+ keys across all 6 languages, covering security messages, settings, navigation, common actions, skill/plugin management, server health, budget/cost, judge layer, and browser assist
+- **Missing PII detection patterns** — Added driver's license (Japan/US) and Japanese full name patterns to complete all 13 PII categories
+- **Missing built-in skills documented** — Added `domain_skills` and `browser-assist` to FEATURE_BOUNDARY.md (8 built-in skills total)
+
+### Changed
+
+- **Default language changed to English** — Changed from `ja` to `en` for wider international adoption (users can set `LANGUAGE=ja` in config or via `--lang ja`)
+- **Model catalog updated to latest** — GPT-5.4 / GPT-5.4 Mini (from 4.1), Llama 4 (from 3.2), Phi-4 (from 3), Claude Haiku non-dated alias
+- **Documentation accuracy fixes** — Corrected inflated claims: prompt guard patterns 40+→28+, app connectors 35+→34+, route modules 41→40, services 26→25. Fixed "GPT-5 Mini"→"GPT-5.4 Mini" across all languages
+- **i18n language list updated** — All READMEs and docs updated from "3 languages" to "6 languages (EN/JA/ZH/KO/PT/TR)"
+
+### Security
+
+- **pip-audit now blocking in CI** — Removed `continue-on-error` so dependency vulnerabilities fail the build
+- **Red-team tests strengthened** — Test handlers now exercise security modules with real payloads instead of config-only validation: prompt injection tests verify detection results, data leakage tests check both sanitizer and PII guard, sandbox tests verify 8+ dangerous paths
 - **6-language i18n support** — Added Korean (한국어), Portuguese (Português), Turkish (Türkçe) to the existing Japanese, English, and Chinese UI translations
 - **Extensible LLM API key settings** — Users can now add custom LLM providers beyond the built-in four (OpenRouter, OpenAI, Anthropic, Gemini)
 - **Skill registry detail view** — Click any skill in the registry to see its full metadata, schema, configuration, and status
@@ -493,4 +511,5 @@ The following features were reclassified from core features to extension feature
 - Frontend type definitions (`shared/types/index.ts`)
   - TypeScript types for all entities corresponding to backend schema section 38
 
+[0.1.1]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.1.1
 [0.1.0]: https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases/tag/v0.1.0

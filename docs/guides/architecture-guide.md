@@ -146,7 +146,7 @@ Quality verification using a **Two-stage + Cross-Model** approach.
                     ↓
         ┌─── Stage 1: Rule-based ───┐
         │   Fast pattern matching    │
-        │   40+ detection rules      │
+        │   28+ detection rules      │
         │   Format validation        │
         └───────────┬───────────────┘
                     ↓
@@ -235,7 +235,7 @@ LLM gateway powered by LiteLLM with intelligent routing.
 | Mode | Use Case | Example Models |
 |------|----------|----------------|
 | `quality` | High-stakes tasks | Claude Opus, GPT-5.4, Gemini 2.5 Pro |
-| `speed` | Fast iteration | Claude Haiku, GPT-5 Mini, Gemini Flash |
+| `speed` | Fast iteration | Claude Haiku, GPT-5.4 Mini, Gemini Flash |
 | `cost` | Budget-conscious | Haiku, Mini, Flash Lite, DeepSeek |
 | `free` | No API cost | Ollama local models |
 | `subscription` | No key needed | via g4f |

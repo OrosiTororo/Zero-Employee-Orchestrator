@@ -1,16 +1,34 @@
 # Changelog
 
-> [日本語](../ja-JP/CHANGELOG.md) | [English](../CHANGELOG.md) | 中文
+> [English](../CHANGELOG.md) | [日本語](../ja-JP/CHANGELOG.md) | 中文 | [한국어](../ko-KR/CHANGELOG.md) | [Português](../pt-BR/CHANGELOG.md) | [Türkçe](../tr/CHANGELOG.md)
 
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [0.1.1] - 2026-03-27
+## [0.1.1] - 2026-03-28
 
 ### 新增
 
+- **生产环境 Docker Compose** — 资源限制（内存/CPU）、网络隔离、日志轮转、只读文件系统、`no-new-privileges` 安全选项、健康检查 `start_period`
+- **CI 添加 Trivy 容器镜像扫描** — 合并前扫描 Docker 镜像的 CRITICAL/HIGH 漏洞的新 CI 任务
+- **CI 添加 Red-team 安全测试** — 运行完整 Red-team 测试套件，发现严重问题时使构建失败的新 CI 任务
+- **65+ i18n 翻译键** — 全 6 种语言从约 30 个扩展到 65+ 个键，涵盖安全消息、设置、导航、常用操作、技能/插件管理、服务器健康、预算/成本、Judge Layer 和浏览器助手
+- **补充缺失的 PII 检测模式** — 添加驾驶证（日本/美国）和日语姓名模式，完善全部 13 个 PII 类别
+- **补充缺失的内置技能文档** — 在 FEATURE_BOUNDARY.md 中添加 `domain_skills` 和 `browser-assist`（内置技能共 8 个）
+
+### 变更
+
+- **默认语言改为英语** — 从 `ja` 改为 `en` 以促进国际化采用（用户可在配置中设置 `LANGUAGE=ja` 或通过 `--lang ja` 切换为日语）
+- **模型目录更新至最新** — GPT-5.4 / GPT-5.4 Mini（从 4.1）、Llama 4（从 3.2）、Phi-4（从 3）、Claude Haiku 非日期别名
+- **文档准确性修正** — 修正夸大描述：提示防护模式 40+→28+、应用连接器 35+→34+、路由模块 41→40、服务 26→25。全语言修正"GPT-5 Mini"→"GPT-5.4 Mini"
+- **i18n 语言列表更新** — 所有 README 和文档从"3 种语言"更新为"6 种语言（EN/JA/ZH/KO/PT/TR）"
+
+### 安全
+
+- **CI 中 pip-audit 改为阻塞模式** — 移除 `continue-on-error`，依赖漏洞将导致构建失败
+- **Red-team 测试强化** — 测试处理器现在使用真实载荷执行安全模块，而非仅配置验证：提示注入测试验证检测结果、数据泄露测试同时检查清洗器和 PII 防护、沙箱测试验证 8+ 个危险路径
 - **6语言 i18n 支持** — 在现有日语、英语、中文基础上，新增韩语（한국어）、葡萄牙语（Português）、土耳其语（Türkçe）的UI翻译
 - **可扩展 LLM API 密钥设置** — 用户现在可以在内置四个供应商（OpenRouter、OpenAI、Anthropic、Gemini）之外添加自定义供应商
 - **技能注册表详情视图** — 点击注册表中的任何技能可查看其完整元数据、模式、配置和状态

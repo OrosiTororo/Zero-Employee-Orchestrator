@@ -24,7 +24,7 @@ v0.1 includes all features originally planned for v0.2 through v1.0, implemented
 - Skill Marketplace, Multi-user/Team, Browser Automation, Obsidian Integration, LSP Integration
 
 **App Connector Hub:**
-- 35+ app integrations (Obsidian, Notion, Logseq, Joplin, Anytype, Roam Research, Google Workspace, Microsoft 365, Jira, Linear, Asana, Trello, ClickUp, HubSpot, Salesforce, etc.)
+- 34+ app integrations (Obsidian, Notion, Logseq, Joplin, Anytype, Roam Research, Google Workspace, Microsoft 365, Jira, Linear, Asana, Trello, ClickUp, HubSpot, Salesforce, etc.)
 - Per-connection permission control (read/write/delete/sync/export + path restrictions)
 - Custom app registration
 
