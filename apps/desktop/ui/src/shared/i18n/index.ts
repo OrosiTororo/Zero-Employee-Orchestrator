@@ -36,6 +36,16 @@ interface I18nState {
   setLocale: (locale: Locale) => void
 }
 
+function detectLocaleFromOS(): Locale {
+  const browserLang = navigator.language.toLowerCase()
+  if (browserLang.startsWith("ja")) return "ja"
+  if (browserLang.startsWith("zh")) return "zh"
+  if (browserLang.startsWith("ko")) return "ko"
+  if (browserLang.startsWith("pt")) return "pt"
+  if (browserLang.startsWith("tr")) return "tr"
+  return "en"
+}
+
 function getInitialLocale(): { locale: Locale; chosen: boolean } {
   try {
     const stored = localStorage.getItem("locale")
@@ -43,9 +53,9 @@ function getInitialLocale(): { locale: Locale; chosen: boolean } {
   } catch {
     // localStorage unavailable
   }
-  // No stored preference — use a neutral default (English) so the app doesn't
-  // silently commit to the OS language. The language chooser will be shown first.
-  return { locale: "en", chosen: false }
+  // No stored preference — detect from OS language for initial display,
+  // but still show the LanguageGate so the user can confirm or change.
+  return { locale: detectLocaleFromOS(), chosen: false }
 }
 
 export const useI18n = create<I18nState>((set) => {
