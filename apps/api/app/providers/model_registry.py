@@ -98,6 +98,7 @@ class ModelRegistry:
     def __init__(self, catalog_path: str | Path | None = None) -> None:
         self._catalog_path = Path(catalog_path) if catalog_path else _DEFAULT_CATALOG_PATH
         self._models: dict[str, ModelEntry] = {}
+        self._latest_id_index: dict[str, ModelEntry] = {}
         self._mode_catalog = ModeCatalog()
         self._quality_sla = QualitySLAModels()
         self._provider_health: dict[str, ProviderHealthStatus] = {}
@@ -161,6 +162,14 @@ class ModelRegistry:
                 critical=sla.get("critical", {}),
             )
 
+            # Build reverse-lookup index for O(1) resolution by latest_model_id
+            self._latest_id_index: dict[str, ModelEntry] = {}
+            for entry in self._models.values():
+                if entry.latest_model_id:
+                    self._latest_id_index[entry.latest_model_id] = entry
+                    full_key = f"{entry.provider}/{entry.latest_model_id}"
+                    self._latest_id_index[full_key] = entry
+
             self._last_loaded = time.time()
             logger.info(
                 "Loaded model catalog v%s with %d models",
@@ -173,6 +182,7 @@ class ModelRegistry:
     def reload(self) -> None:
         """Reload the catalog."""
         self._models.clear()
+        self._latest_id_index.clear()
         self._load_catalog()
 
     def save_catalog(self) -> None:
@@ -308,13 +318,8 @@ class ModelRegistry:
         # First search by family ID
         entry = self._models.get(model_id)
         if entry is None:
-            # Reverse lookup by latest_model_id
-            for m in self._models.values():
-                if m.latest_model_id and (
-                    m.latest_model_id == model_id or f"{m.provider}/{m.latest_model_id}" == model_id
-                ):
-                    entry = m
-                    break
+            # O(1) reverse lookup by latest_model_id via pre-built index
+            entry = self._latest_id_index.get(model_id)
         if entry:
             return (input_tokens / 1000 * entry.cost_per_1k_input) + (
                 output_tokens / 1000 * entry.cost_per_1k_output

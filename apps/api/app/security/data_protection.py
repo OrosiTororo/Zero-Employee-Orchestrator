@@ -334,8 +334,11 @@ class DataProtectionGuard:
     def _is_destination_allowed(url: str, allowed_list: list[str]) -> bool:
         """Check if a URL matches the allowed list using secure domain comparison.
 
-        Prevents subdomain spoofing (e.g. ``https://example.com.attacker.com``
-        must NOT match an allowed entry of ``https://example.com``).
+        Security measures:
+        - Prevents subdomain spoofing (``https://example.com.attacker.com``
+          does NOT match ``https://example.com``).
+        - Requires path boundary matching (``/api`` does not match ``/api-secrets``).
+        - Wildcard subdomains must be explicitly prefixed with ``*.``.
         """
         if url in allowed_list:
             return True
@@ -345,6 +348,9 @@ class DataProtectionGuard:
             url_host = (parsed.hostname or "").lower()
             url_scheme = parsed.scheme.lower()
         except Exception:
+            return False
+
+        if not url_host:
             return False
 
         for allowed in allowed_list:
@@ -357,12 +363,23 @@ class DataProtectionGuard:
                 if url_scheme != allowed_scheme:
                     continue
 
-                # Exact host match or subdomain match (e.g. sub.example.com for example.com)
-                if url_host == allowed_host or url_host.endswith("." + allowed_host):
-                    # Path prefix must also match if the allowed entry has a path
+                # Exact host match
+                if url_host == allowed_host:
                     allowed_path = allowed_parsed.path.rstrip("/")
-                    if not allowed_path or parsed.path.startswith(allowed_path):
+                    # Path must match exactly or be a sub-path with "/" boundary
+                    if (
+                        not allowed_path
+                        or parsed.path == allowed_path
+                        or parsed.path.startswith(allowed_path + "/")
+                    ):
                         return True
+                # Wildcard subdomain match only when explicitly configured
+                elif allowed_host.startswith("*."):
+                    suffix = allowed_host[2:]  # Remove "*."
+                    if url_host.endswith("." + suffix) and url_host != suffix:
+                        allowed_path = allowed_parsed.path.rstrip("/")
+                        if not allowed_path or parsed.path.startswith(allowed_path + "/"):
+                            return True
             except Exception:
                 continue
 

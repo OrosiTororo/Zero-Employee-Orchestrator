@@ -337,18 +337,19 @@ class LLMGateway:
                 sanitized.append(msg)
             return sanitized
         except Exception as exc:
-            logger.error(
+            logger.critical(
                 "Message sanitization FAILED — refusing to send unsanitized messages: %s", exc
             )
-            # Return messages with a security warning prepended instead of silently skipping
+            # Return ONLY a security warning — never forward unsanitized messages
             warning_msg = {
                 "role": "system",
                 "content": (
-                    "[SECURITY WARNING] Message sanitization failed. "
-                    "External data in these messages has NOT been scanned for prompt injection."
+                    "[SECURITY ERROR] Message sanitization failed. "
+                    "Messages have been blocked to prevent unsanitized data from reaching the LLM. "
+                    "Please retry the request."
                 ),
             }
-            return [warning_msg] + messages
+            return [warning_msg]
 
     async def complete(self, request: CompletionRequest) -> CompletionResponse:
         """Send completion request, routing to appropriate provider."""

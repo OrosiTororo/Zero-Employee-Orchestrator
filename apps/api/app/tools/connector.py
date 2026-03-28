@@ -501,12 +501,14 @@ class ToolConnector:
         method: str,
         payload: dict[str, Any],
     ) -> dict[str, Any]:
-        """Database operation placeholder."""
-        return {
-            "status": "delegated",
-            "method": method,
-            "message": "Database operations should use the repository layer",
-        }
+        """Database operations.
+
+        Not yet implemented — database access should use the repository layer.
+        """
+        raise NotImplementedError(
+            "Direct database operations are not supported via the tool connector. "
+            "Use the repository layer instead."
+        )
 
     async def _execute_grpc(
         self,
@@ -514,13 +516,15 @@ class ToolConnector:
         method: str,
         payload: dict[str, Any],
     ) -> dict[str, Any]:
-        """gRPC call placeholder."""
-        return {
-            "status": "delegated",
-            "method": method,
-            "target": config.base_url,
-            "message": "gRPC calls require grpcio. Configure the service stub.",
-        }
+        """gRPC call.
+
+        Not yet implemented — requires grpcio and service stub configuration.
+        Install via Plugin when gRPC support is needed.
+        """
+        raise NotImplementedError(
+            "gRPC calls require the grpcio package and a configured service stub. "
+            "Install the gRPC plugin to enable this feature."
+        )
 
     async def _execute_oauth(
         self,

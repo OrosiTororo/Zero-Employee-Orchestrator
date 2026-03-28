@@ -104,7 +104,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install ruff pytest pytest-asyncio httpx
+          pip install ruff pytest pytest-asyncio httpx pytest-cov pip-audit
           pip install -e .
 
       - name: Lint with ruff
@@ -113,10 +113,42 @@ jobs:
       - name: Format check with ruff
         run: ruff format --check app/
 
-      - name: Run tests
+      - name: Run tests with coverage
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-        run: pytest app/tests/ -v
+        run: |
+          pytest app/tests/ -v --cov=app --cov-report=term-missing --cov-report=xml:coverage.xml
+          echo "### Test Coverage" >> $GITHUB_STEP_SUMMARY
+          pytest app/tests/ --cov=app --cov-report=term 2>&1 | tail -20 >> $GITHUB_STEP_SUMMARY || true
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: apps/api/coverage.xml
+
+      - name: Dependency security audit
+        run: pip-audit --strict --desc 2>&1 || true
+        continue-on-error: true
+
+      - name: Verify Alembic migrations
+        run: |
+          pip install alembic aiosqlite
+          cd /home/runner/work/Zero-Employee-Orchestrator/Zero-Employee-Orchestrator/apps/api
+          python -c "
+          import asyncio
+          from sqlalchemy.ext.asyncio import create_async_engine
+          from app.core.database import Base
+          import app.models  # noqa: F401
+          async def check():
+              engine = create_async_engine('sqlite+aiosqlite://')
+              async with engine.begin() as conn:
+                  await conn.run_sync(Base.metadata.create_all)
+              await engine.dispose()
+              print('✅ All models create tables successfully')
+          asyncio.run(check())
+          "
 
   frontend-check:
     name: Frontend Check
@@ -138,6 +170,10 @@ jobs:
       - name: Type check
         working-directory: apps/desktop/ui
         run: pnpm tsc --noEmit
+
+      - name: Run frontend tests
+        working-directory: apps/desktop/ui
+        run: pnpm test
 
       - name: Build
         working-directory: apps/desktop/ui

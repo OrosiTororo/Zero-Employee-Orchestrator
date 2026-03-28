@@ -59,14 +59,23 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
     MAX_BODY_SIZE: int = 10 * 1024 * 1024
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        # Content-Length check
+        # Content-Length check (with safe int conversion)
         content_length = request.headers.get("content-length")
-        if content_length and int(content_length) > self.MAX_BODY_SIZE:
-            return Response(
-                content='{"detail": "Request body too large"}',
-                status_code=413,
-                media_type="application/json",
-            )
+        if content_length:
+            try:
+                size = int(content_length)
+                if size < 0 or size > self.MAX_BODY_SIZE:
+                    return Response(
+                        content='{"detail": "Request body too large"}',
+                        status_code=413,
+                        media_type="application/json",
+                    )
+            except (ValueError, OverflowError):
+                return Response(
+                    content='{"detail": "Invalid Content-Length header"}',
+                    status_code=400,
+                    media_type="application/json",
+                )
 
         # Host header validation (prevent Host header injection)
         host = request.headers.get("host", "")
@@ -81,16 +90,47 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
 
 
 def _is_valid_host(host: str) -> bool:
-    """Validate whether the Host header is legitimate."""
+    """Validate whether the Host header is legitimate.
+
+    Rejects oversized headers and validates IP octets are in 0-255 range.
+    """
+    import ipaddress
     import re
 
-    # Allow localhost, IP addresses, and standard domain names
-    # Also allow with port numbers
-    pattern = re.compile(
-        r"^("
-        r"localhost(:\d+)?|"
-        r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?|"
-        r"[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?)*(:\d+)?"
-        r")$"
+    if len(host) > 255:
+        return False
+
+    # Separate host and port
+    host_part = host
+    if ":" in host:
+        parts = host.rsplit(":", 1)
+        host_part = parts[0]
+        try:
+            port = int(parts[1])
+            if port < 1 or port > 65535:
+                return False
+        except (ValueError, OverflowError):
+            return False
+
+    # Allow localhost
+    if host_part.lower() == "localhost":
+        return True
+
+    # Validate IP addresses with proper octet range checking
+    try:
+        ipaddress.ip_address(host_part)
+        return True
+    except ValueError:
+        pass
+
+    # If the host looks like an IP (digits and dots only), reject it here
+    # since ipaddress.ip_address() already failed above.
+    if re.fullmatch(r"[\d.]+", host_part):
+        return False
+
+    # Validate domain names (RFC 1123)
+    domain_pattern = re.compile(
+        r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)*"
+        r"[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?$"
     )
-    return bool(pattern.match(host))
+    return bool(domain_pattern.match(host_part))

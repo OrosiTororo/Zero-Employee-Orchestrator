@@ -208,22 +208,27 @@ class FileSystemSandbox:
                 sandbox_level=self._config.level,
             )
 
-        # Symlink check (detect links using original path before resolution)
-        # Note: os.path.islink must be run on the original path before resolve()
-        if not self._config.allow_symlink_follow and os.path.islink(path):
-            return AccessCheckResult(
-                allowed=False,
-                path=resolved_path,
-                access_type=access_type,
-                reason="Symlink following is disabled",
-                sandbox_level=self._config.level,
-            )
-
-        # If resolved path differs significantly from original, possible symlink attack
-        # (countermeasure against symlink chains and indirect links)
+        # Symlink check — inspect the entire path chain, not just the leaf node.
+        # A symlink anywhere in the ancestor chain can redirect access.
         if not self._config.allow_symlink_follow:
+            try:
+                check_path = Path(path)
+                for part in [check_path, *check_path.parents]:
+                    if part.is_symlink():
+                        return AccessCheckResult(
+                            allowed=False,
+                            path=resolved_path,
+                            access_type=access_type,
+                            reason=f"Symlink detected in path chain: {part}",
+                            sandbox_level=self._config.level,
+                        )
+            except OSError:
+                pass
+
+            # Cross-check: if the resolved path lands in a different directory
+            # than the original path's parent, treat it as a symlink attack.
             original_dir = str(Path(path).parent.resolve())
-            resolved_dir = str(Path(resolved_path).parent)
+            resolved_dir = str(Path(resolved_path).parent.resolve())
             if original_dir != resolved_dir:
                 return AccessCheckResult(
                     allowed=False,

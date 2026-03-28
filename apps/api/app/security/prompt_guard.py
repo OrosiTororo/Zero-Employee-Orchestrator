@@ -186,19 +186,29 @@ _BOUNDARY_MANIPULATION_PATTERNS: list[tuple[re.Pattern, str]] = [
 
 
 def _try_decode_base64(text: str) -> str | None:
-    """Attempt to decode Base64-encoded text."""
+    """Attempt to decode Base64-encoded text.
+
+    Guards against DoS via size limits and validates that the decoded
+    output is predominantly printable ASCII.
+    """
     stripped = text.strip()
     if not stripped or len(stripped) < 8:
+        return None
+    # Reject oversized payloads to prevent DoS
+    if len(stripped) > 10_000:
         return None
     # Check if composed only of Base64 character set
     if not re.fullmatch(r"[A-Za-z0-9+/=\s]+", stripped):
         return None
     try:
         decoded = base64.b64decode(stripped, validate=True).decode("utf-8")
-        # Check if decoded result is readable text
-        if decoded and decoded.isprintable():
+        if not decoded:
+            return None
+        # Stricter validation: require >= 80% printable ASCII characters
+        printable_count = sum(1 for c in decoded if 32 <= ord(c) <= 126 or c in "\n\r\t")
+        if printable_count / len(decoded) >= 0.8:
             return decoded
-    except Exception:
+    except (base64.binascii.Error, UnicodeDecodeError):
         pass
     return None
 

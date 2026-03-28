@@ -133,6 +133,7 @@ class Negotiation:
 # ---------------------------------------------------------------------------
 
 _MAX_MAILBOX_SIZE = 2000
+_MAX_TOTAL_MESSAGES = 50_000
 
 
 class A2ACommunicationHub:
@@ -147,6 +148,7 @@ class A2ACommunicationHub:
         self._channels: dict[str, list[str]] = {}  # channel_name -> [agent_ids]
         self._negotiations: dict[str, Negotiation] = {}
         self._all_messages: list[AgentMessage] = []
+        self._message_index: dict[str, AgentMessage] = {}  # O(1) lookup by ID
 
     # ------------------------------------------------------------------
     # Agent registration
@@ -233,6 +235,14 @@ class A2ACommunicationHub:
         self._trim_mailbox(receiver_mb)
 
         self._all_messages.append(msg)
+        self._message_index[msg.id] = msg
+
+        # Prevent unbounded memory growth
+        if len(self._all_messages) > _MAX_TOTAL_MESSAGES:
+            removed = self._all_messages[: len(self._all_messages) - _MAX_TOTAL_MESSAGES]
+            self._all_messages = self._all_messages[-_MAX_TOTAL_MESSAGES:]
+            for old_msg in removed:
+                self._message_index.pop(old_msg.id, None)
 
         logger.debug(
             "A2A: %s -> %s [%s] %s",
@@ -340,12 +350,8 @@ class A2ACommunicationHub:
         Returns:
             The reply message. None if the original message is not found.
         """
-        # Search for the original message
-        original: AgentMessage | None = None
-        for msg in self._all_messages:
-            if msg.id == original_msg_id:
-                original = msg
-                break
+        # O(1) lookup via message index instead of linear scan
+        original = self._message_index.get(original_msg_id)
 
         if original is None:
             logger.warning("A2A reply: original message '%s' not found", original_msg_id)

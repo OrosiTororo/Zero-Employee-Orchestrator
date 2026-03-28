@@ -4,8 +4,11 @@ Handles plan generation, task decomposition into DAGs, cost estimation,
 and self-healing on failures.
 """
 
+import logging
 from dataclasses import dataclass, field
 from enum import Enum
+
+logger = logging.getLogger(__name__)
 
 
 class TaskNodeStatus(str, Enum):
@@ -58,11 +61,20 @@ class ExecutionDAG:
         for node in self.nodes:
             if node.status != TaskNodeStatus.PENDING:
                 continue
-            deps_satisfied = all(
-                self._node_map.get(dep_id, TaskNode(id="", title="")).status
-                == TaskNodeStatus.SUCCEEDED
-                for dep_id in node.depends_on
-            )
+            # Verify all dependencies exist and have succeeded.
+            # Missing dependency IDs are logged and treated as unsatisfied.
+            deps_satisfied = True
+            for dep_id in node.depends_on:
+                dep_node = self._node_map.get(dep_id)
+                if dep_node is None:
+                    logger.warning(
+                        "DAG node '%s' references unknown dependency '%s'", node.id, dep_id
+                    )
+                    deps_satisfied = False
+                    break
+                if dep_node.status != TaskNodeStatus.SUCCEEDED:
+                    deps_satisfied = False
+                    break
             if deps_satisfied:
                 # Autonomy boundary check: determine if task_type requires approval
                 autonomy = check_autonomy(node.task_type)
@@ -141,6 +153,7 @@ def rebuild_dag_after_failure(
     """
     node = dag._node_map.get(failed_node_id)
     if not node:
+        logger.warning("rebuild_dag_after_failure: node '%s' not found in DAG", failed_node_id)
         return dag
 
     if strategy == "retry":

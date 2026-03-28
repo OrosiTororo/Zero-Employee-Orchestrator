@@ -18,9 +18,12 @@ class StateMachineError(Exception):
 
 
 class BaseStateMachine:
-    """Generic state machine: validates and executes state transitions based on a transition table."""
+    """Generic state machine: validates and executes state transitions based on a transition table.
 
-    transitions: dict[str, list[str]] = {}
+    Subclasses must define ``transitions`` as a class-level dict.
+    """
+
+    transitions: dict[str, list[str]]
 
     def __init__(self, initial_state: str, max_history: int = _MAX_HISTORY_SIZE) -> None:
         if initial_state not in self.transitions:

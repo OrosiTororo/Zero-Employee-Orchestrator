@@ -1,11 +1,15 @@
 """FastAPI application entry point."""
 
 import logging
+import uuid
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+from starlette.requests import Request
+from starlette.responses import Response
 
 import app.models  # noqa: F401
 import app.orchestration.agent_session  # noqa: F401
@@ -17,6 +21,7 @@ from app.api.ws.browser_assist_ws import router as browser_assist_ws_router
 from app.api.ws.events import router as ws_router
 from app.core.config import settings
 from app.core.database import Base, engine
+from app.core.logging_config import configure_logging, request_id_var
 from app.core.rate_limit import limiter, rate_limit_exceeded_handler
 from app.security.input_sanitization import InputSanitizationMiddleware
 from app.security.security_headers import (
@@ -24,7 +29,29 @@ from app.security.security_headers import (
     SecurityHeadersMiddleware,
 )
 
+# Configure structured logging before anything else logs
+configure_logging(json_format=not settings.DEBUG, level="DEBUG" if settings.DEBUG else "INFO")
+
 logger = logging.getLogger(__name__)
+
+
+class RequestIDMiddleware(BaseHTTPMiddleware):
+    """Assign a unique request ID to every request for distributed tracing.
+
+    Also sets the ``request_id`` context variable so that all log messages
+    emitted during request processing include the correlation ID.
+    """
+
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
+        request.state.request_id = request_id
+        token = request_id_var.set(request_id)
+        try:
+            response = await call_next(request)
+            response.headers["X-Request-ID"] = request_id
+            return response
+        finally:
+            request_id_var.reset(token)
 
 
 @asynccontextmanager
@@ -112,6 +139,9 @@ app = FastAPI(
 # Rate limiting
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)  # type: ignore[arg-type]
+
+# Request ID tracing -- assign unique ID to each request for correlation
+app.add_middleware(RequestIDMiddleware)
 
 # Security headers -- apply OWASP recommended headers to all responses
 app.add_middleware(SecurityHeadersMiddleware)

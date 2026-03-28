@@ -50,8 +50,8 @@ class RuleBasedJudge:
                     else:
                         warnings.append(rule["name"])
                         score -= 0.05
-            except Exception:
-                warnings.append(f"Rule check failed: {rule['name']}")
+            except (KeyError, TypeError, AttributeError, ValueError) as exc:
+                warnings.append(f"Rule check failed: {rule['name']} ({exc})")
 
         score = max(0.0, score)
 
