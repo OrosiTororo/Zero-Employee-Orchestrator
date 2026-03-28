@@ -159,7 +159,7 @@ jobs:
         run: docker build -t zeo-test:latest .
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@57a97c7a4f658deae1729a3e2c918c3db7c13531  # v0.35.0
         with:
           image-ref: zeo-test:latest
           format: table

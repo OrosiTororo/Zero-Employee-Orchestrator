@@ -537,9 +537,7 @@ class RedTeamService:
 
             result = scan_prompt_injection(test.test_payload)
             if not result.is_safe and len(result.detections) > 0:
-                checks_passed.append(
-                    f"Prompt guard detected escalation: {result.detections}"
-                )
+                checks_passed.append(f"Prompt guard detected escalation: {result.detections}")
             else:
                 # Some payloads may not trigger prompt guard (e.g. pe-003)
                 # but should still be blocked by IAM
