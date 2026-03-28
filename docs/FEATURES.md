@@ -2,8 +2,8 @@
 
 # Zero-Employee Orchestrator — Feature List
 
-> Last updated: 2026-03-25
-> Target version: v0.1
+> Last updated: 2026-03-28
+> Current version: v0.1.1
 
 ---
 
@@ -12,6 +12,22 @@
 Zero-Employee Orchestrator is an **AI orchestration platform** that enables you to define business operations in natural language, assign roles to multiple AI agents, and execute, re-plan, and improve operations with human approval and auditability as prerequisites.
 
 This document provides a comprehensive summary of currently implemented features and capabilities.
+
+---
+
+## What's New in v0.1.1 (2026-03-28)
+
+| Area | Change |
+|------|--------|
+| **Production Deployment** | Docker Compose hardened with resource limits, network isolation, read-only FS, log rotation |
+| **CI Security** | Trivy container scanning, blocking pip-audit, red-team test job added |
+| **Red-team Tests** | All 22 tests now exercise actual security modules with real payloads |
+| **i18n** | 65+ translation keys across 6 languages (EN/JA/ZH/KO/PT/TR); default language changed to English |
+| **Model Catalog** | Updated to GPT-5.4, GPT-5.4 Mini, Llama 4, Phi-4, Claude Haiku latest |
+| **PII Guard** | All 13 categories now have detection patterns (added driver's license, Japanese name) |
+| **Documentation** | Corrected all inflated metrics; consistent across 7 language versions |
+
+See [CHANGELOG](../docs/CHANGELOG.md) for full details.
 
 ---
 
@@ -607,7 +623,7 @@ A unified LLM gateway based on LiteLLM supports multiple providers.
 | **Anthropic** | Claude Opus 4.6, Sonnet 4.6, Haiku 4.5 |
 | **Google** | Gemini 2.5 Pro, Flash, Flash Lite |
 | **DeepSeek** | DeepSeek Chat |
-| **Ollama** | Llama 3.2, Mistral, Phi-3, Qwen3, etc. (local, free) |
+| **Ollama** | Llama 4, Mistral, Phi-4, Qwen3, etc. (local, free) |
 | **g4f** | Via free providers (no API key required) |
 
 > **Supported models are managed in `model_catalog.json`.**
@@ -1628,22 +1644,29 @@ API: `/api/v1/teams/*`
 
 ---
 
-## 53. Red-team Security Testing (v0.1)
+## 53. Red-team Security Testing (v0.1.1)
 
 Automatically tests the system's security defenses to detect and report vulnerabilities early.
+All tests exercise actual security modules with real payloads — not just config validation.
 
-### Test Categories
+### Test Categories (8 categories, 22 tests)
 
-| Category | Description |
-|----------|-------------|
-| **Prompt Injection** | Adversarial input tests against LLM |
-| **Data Leakage** | Unauthorized information exfiltration tests |
-| **Privilege Escalation** | IAM bypass tests |
-| **PII Leakage** | Unauthorized personal information exposure tests |
-| **Unauthorized Access** | Authentication/authorization bypass tests |
-| **Sandbox Escape** | File system restriction breach tests |
-| **Rate Limit Bypass** | API rate limit circumvention tests |
-| **Auth Bypass** | Authentication mechanism bypass tests |
+| Category | Tests | Verification Method |
+|----------|-------|-------------------|
+| **Prompt Injection** | 4 | Scans payloads through `prompt_guard` and verifies detection |
+| **Data Leakage** | 3 | Runs payloads through both `sanitizer` and `pii_guard` |
+| **Privilege Escalation** | 3 | Verifies IAM denied scopes + prompt guard escalation detection |
+| **PII Leakage** | 3 | Runs payloads through `pii_guard` and verifies masking |
+| **Unauthorized Access** | 2 | Verifies security headers middleware + auth dependency |
+| **Sandbox Escape** | 3 | Tests 8+ dangerous paths including path traversal variants |
+| **Rate Limit Bypass** | 2 | Verifies limiter config + 429 handler + live endpoint test |
+| **Auth Bypass** | 2 | Tests algorithm=none, expired, and tampered JWT tokens |
+
+### CI Integration (v0.1.1)
+
+- Red-team tests run automatically on every PR via GitHub Actions
+- Build fails on any **critical** findings
+- Warning issued when failure rate exceeds 20%
 
 ---
 

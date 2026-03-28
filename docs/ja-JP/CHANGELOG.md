@@ -7,10 +7,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [0.1.1] - 2026-03-27
+## [0.1.1] - 2026-03-28
 
 ### Added
 
+- **本番環境対応 Docker Compose** — リソース制限（メモリ/CPU）、ネットワーク分離、ログローテーション、読み取り専用ファイルシステム、`no-new-privileges` セキュリティオプション、ヘルスチェック `start_period`
+- **CI に Trivy コンテナイメージスキャン追加** — マージ前に Docker イメージの CRITICAL/HIGH 脆弱性をスキャンする新しい CI ジョブ
+- **CI に Red-team セキュリティテスト追加** — 完全な Red-team テストスイートを実行し、重大な発見でビルドを失敗させる新しい CI ジョブ
+- **65+ i18n 翻訳キー** — 全 6 言語で約 30 から 65+ キーに拡張。セキュリティメッセージ、設定、ナビゲーション、共通アクション、スキル/プラグイン管理、サーバーヘルス、予算/コスト、Judge Layer、ブラウザアシストをカバー
+- **欠落していた PII 検出パターン追加** — 運転免許証（日本/米国）と日本語氏名のパターンを追加し、全 13 PII カテゴリを完成
+- **欠落していた組み込みスキルを文書化** — `domain_skills` と `browser-assist` を FEATURE_BOUNDARY.md に追加（組み込みスキル合計 8 個）
+
+### Changed
+
+- **デフォルト言語を英語に変更** — 国際的な利用を促進するため `ja` から `en` に変更（ユーザーは設定で `LANGUAGE=ja` または `--lang ja` で日本語に変更可能）
+- **モデルカタログを最新に更新** — GPT-5.4 / GPT-5.4 Mini（4.1 から）、Llama 4（3.2 から）、Phi-4（3 から）、Claude Haiku 非日付エイリアス
+- **ドキュメント正確性の修正** — 誇大記載を修正: プロンプトガードパターン 40+→28+、アプリコネクタ 35+→34+、ルートモジュール 41→40、サービス 26→25。全言語で「GPT-5 Mini」→「GPT-5.4 Mini」に修正
+- **i18n 言語リスト更新** — 全 README およびドキュメントを「3 言語」から「6 言語（EN/JA/ZH/KO/PT/TR）」に更新
+
+### Security
+
+- **CI で pip-audit をブロッキングに変更** — `continue-on-error` を削除し、依存関係の脆弱性でビルドを失敗させるように変更
+- **Red-team テストを強化** — テストハンドラが設定検証のみではなく、実際のペイロードでセキュリティモジュールを実行するように改善: プロンプトインジェクションテストは検出結果を検証、データ漏洩テストはサニタイザーと PII ガードの両方をチェック、サンドボックステストは 8 以上の危険パスを検証
 - **6言語 i18n 対応** — 既存の日本語・英語・中国語に加え、韓国語（한국어）・ポルトガル語（Português）・トルコ語（Türkçe）のUI翻訳を追加
 - **拡張可能な LLM API キー設定** — 既定の4プロバイダー（OpenRouter, OpenAI, Anthropic, Gemini）以外のカスタムプロバイダーを自由に追加可能に
 - **スキルレジストリ詳細ビュー** — レジストリのスキルをクリックすると、メタデータ・スキーマ・設定・ステータスの詳細を表示
