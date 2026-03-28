@@ -57,6 +57,7 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = [
         "tauri://localhost",
         "https://tauri.localhost",
+        "http://tauri.localhost",
     ]
 
     # Database

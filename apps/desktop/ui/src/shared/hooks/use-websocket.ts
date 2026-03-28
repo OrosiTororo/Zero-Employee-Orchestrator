@@ -4,8 +4,9 @@ import { create } from 'zustand'
 // In Tauri use absolute URL; in Vite dev server use relative (proxied via vite.config.ts)
 const isTauri =
   typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
-const WS_BASE = isTauri
-  ? "ws://localhost:18234"
+const isDev = import.meta.env.DEV
+const WS_BASE = isTauri && !isDev
+  ? "ws://127.0.0.1:18234"
   : `ws://${window.location.host}`
 
 interface WSEvent {

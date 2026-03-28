@@ -4,12 +4,12 @@ const isTauri =
 const isDev = import.meta.env.DEV
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL ||
-  (isTauri && !isDev ? "http://localhost:18234/api/v1" : "/api/v1")
+  (isTauri && !isDev ? "http://127.0.0.1:18234/api/v1" : "/api/v1")
 
 /** Base URL without the /api/v1 suffix, used for health checks. */
 const SERVER_BASE =
   import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/v1$/, "") ||
-  (isTauri && !isDev ? "http://localhost:18234" : "")
+  (isTauri && !isDev ? "http://127.0.0.1:18234" : "")
 
 function getAuthHeaders(): Record<string, string> {
   const token = localStorage.getItem("auth_token")
