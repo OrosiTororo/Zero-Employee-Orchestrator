@@ -1,4 +1,4 @@
-import { useI18n, LOCALE_LABELS, type Locale } from "@/shared/i18n"
+import { useI18n, type Locale } from "@/shared/i18n"
 import { LogoMark } from "@/shared/ui/Logo"
 
 /**
