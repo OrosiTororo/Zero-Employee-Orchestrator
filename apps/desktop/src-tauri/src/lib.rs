@@ -284,6 +284,12 @@ USE_G4F=true
     }
 }
 
+/// Return the path for the backend stderr log file.
+fn dirs_for_log(api_dir: &PathBuf) -> PathBuf {
+    // Place the log next to the database in the API directory
+    api_dir.join("backend.log")
+}
+
 /// Kill any existing process listening on port 18234.
 fn kill_port_18234() {
     if cfg!(windows) {
@@ -344,7 +350,22 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Result<Child, String> {
         did_auto_setup,
     );
 
-    // Capture stderr so we can report errors to the frontend
+    // Redirect stderr to a log file instead of Stdio::piped().
+    // IMPORTANT: piped() causes the backend to HANG once the pipe buffer (64KB)
+    // fills up, because the backend outputs massive DEBUG logs (SQLAlchemy etc.)
+    // and nobody is reading from the pipe. A log file avoids this entirely.
+    let log_dir = dirs_for_log(api_dir);
+    let stderr_target = match std::fs::File::create(&log_dir) {
+        Ok(f) => {
+            eprintln!("[sidecar] backend stderr → {}", log_dir.display());
+            Stdio::from(f)
+        }
+        Err(e) => {
+            eprintln!("[sidecar] could not create log file ({}), using inherit: {e}", log_dir.display());
+            Stdio::inherit()
+        }
+    };
+
     let child = if python == "uv" {
         Command::new("uv")
             .args([
@@ -357,7 +378,7 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Result<Child, String> {
                 "18234",
             ])
             .current_dir(api_dir)
-            .stderr(Stdio::piped())
+            .stderr(stderr_target)
             .spawn()
     } else {
         Command::new(&python)
@@ -371,7 +392,7 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Result<Child, String> {
                 "18234",
             ])
             .current_dir(api_dir)
-            .stderr(Stdio::piped())
+            .stderr(stderr_target)
             .spawn()
     };
 
@@ -381,16 +402,11 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Result<Child, String> {
             std::thread::sleep(Duration::from_millis(500));
             match c.try_wait() {
                 Ok(Some(status)) => {
-                    // Process crashed immediately — read stderr for the reason
+                    // Process crashed immediately — read the log file for the reason
                     let mut error_msg = format!("バックエンドが起動直後にクラッシュしました (exit {status})");
-                    if let Some(stderr) = c.stderr.take() {
-                        use std::io::Read;
-                        let mut buf = String::new();
-                        let mut reader = std::io::BufReader::new(stderr);
-                        let _ = reader.read_to_string(&mut buf);
-                        if !buf.is_empty() {
-                            // Take last 500 chars of stderr for useful error context
-                            let tail: String = buf.chars().rev().take(500).collect::<Vec<_>>().into_iter().rev().collect();
+                    if let Ok(log_content) = std::fs::read_to_string(&log_dir) {
+                        if !log_content.is_empty() {
+                            let tail: String = log_content.chars().rev().take(500).collect::<Vec<_>>().into_iter().rev().collect();
                             eprintln!("[sidecar] backend stderr:\n{}", tail);
                             error_msg = format!("{}\n\n{}", error_msg, tail.trim());
                         }
@@ -507,8 +523,31 @@ fn check_backend_health() -> bool {
 
 /// Tauri command: get the last backend startup error (if any).
 #[tauri::command]
-fn get_backend_error(error_state: tauri::State<'_, BackendError>) -> Option<String> {
-    error_state.0.lock().ok().and_then(|e| e.clone())
+fn get_backend_error(
+    error_state: tauri::State<'_, BackendError>,
+    api_dir_state: tauri::State<'_, ApiDir>,
+) -> Option<String> {
+    // First check stored error
+    if let Some(err) = error_state.0.lock().ok().and_then(|e| e.clone()) {
+        return Some(err);
+    }
+    // Otherwise try reading the tail of the log file for diagnostics
+    let api_dir = api_dir_state.0.lock().ok()?.clone()?;
+    let log_path = dirs_for_log(&api_dir);
+    if let Ok(content) = std::fs::read_to_string(&log_path) {
+        if !content.is_empty() {
+            let tail: String = content
+                .chars()
+                .rev()
+                .take(800)
+                .collect::<Vec<_>>()
+                .into_iter()
+                .rev()
+                .collect();
+            return Some(tail);
+        }
+    }
+    None
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
