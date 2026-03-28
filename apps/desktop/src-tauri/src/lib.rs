@@ -18,6 +18,40 @@ struct ApiDir(Mutex<Option<PathBuf>>);
 /// Last error message from backend startup, readable by frontend.
 struct BackendError(Mutex<Option<String>>);
 
+/// Ensure common tool directories are in PATH.
+/// GUI apps (macOS .app, Linux desktop launchers) don't load shell profiles,
+/// so tools like `uv`, `python3`, and `cargo` may not be found.
+fn ensure_path() {
+    let home = match std::env::var("HOME") {
+        Ok(h) => h,
+        Err(_) => return,
+    };
+
+    let extra_dirs = [
+        format!("{}/.local/bin", home),
+        format!("{}/.cargo/bin", home),
+        "/usr/local/bin".to_string(),
+        "/opt/homebrew/bin".to_string(),     // macOS Apple Silicon
+        "/opt/homebrew/sbin".to_string(),
+        format!("{}/Library/Application Support/uv/bin", home), // macOS uv location
+    ];
+
+    let current_path = std::env::var("PATH").unwrap_or_default();
+    let mut new_parts: Vec<String> = Vec::new();
+
+    for dir in &extra_dirs {
+        if !current_path.contains(dir.as_str()) && PathBuf::from(dir).is_dir() {
+            new_parts.push(dir.clone());
+        }
+    }
+
+    if !new_parts.is_empty() {
+        let new_path = format!("{}:{}", new_parts.join(":"), current_path);
+        eprintln!("[sidecar] PATH supplemented with: {}", new_parts.join(", "));
+        std::env::set_var("PATH", new_path);
+    }
+}
+
 /// Find the API directory relative to the executable or project root.
 fn find_api_dir() -> Option<PathBuf> {
     let mut candidates = vec![
@@ -479,6 +513,11 @@ fn get_backend_error(error_state: tauri::State<'_, BackendError>) -> Option<Stri
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Supplement PATH so we can find uv, python3, etc. even when launched
+    // from a GUI context (macOS .app, Linux desktop launcher) where shell
+    // profiles aren't loaded.
+    ensure_path();
+
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
