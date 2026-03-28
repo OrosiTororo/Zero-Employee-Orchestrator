@@ -20,15 +20,15 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:18234',
+        target: 'http://127.0.0.1:18234',
         changeOrigin: true,
       },
       '/ws': {
-        target: 'ws://localhost:18234',
+        target: 'ws://127.0.0.1:18234',
         ws: true,
       },
       '/healthz': {
-        target: 'http://localhost:18234',
+        target: 'http://127.0.0.1:18234',
         changeOrigin: true,
       },
     },

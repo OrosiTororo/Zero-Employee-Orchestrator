@@ -14,7 +14,7 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
 
   const check = useCallback(async () => {
     setStatus("checking")
-    const ok = await waitForBackend(8, 1500)
+    const ok = await waitForBackend(15, 2000)
     setStatus(ok ? "connected" : "failed")
   }, [])
 

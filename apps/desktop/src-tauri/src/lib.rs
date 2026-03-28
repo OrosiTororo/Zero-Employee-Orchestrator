@@ -13,8 +13,8 @@ struct BackendProcess(Mutex<Option<Child>>);
 
 /// Find the API directory relative to the executable or project root.
 fn find_api_dir() -> Option<PathBuf> {
-    // Development: project_root/apps/api
-    let candidates = [
+    // Build a list of candidate paths from multiple strategies.
+    let mut candidates = vec![
         // When running from apps/desktop/src-tauri (cargo tauri dev)
         PathBuf::from("../../api"),
         // When running from project root
@@ -23,14 +23,34 @@ fn find_api_dir() -> Option<PathBuf> {
         PathBuf::from("../api"),
     ];
 
+    // Also try paths relative to the executable location (production builds)
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(exe_dir) = exe.parent() {
+            // e.g. /usr/bin/../share/zero-employee-orchestrator/api
+            candidates.push(exe_dir.join("../share/zero-employee-orchestrator/api"));
+            // Portable layout: executable next to apps/api
+            candidates.push(exe_dir.join("apps/api"));
+            candidates.push(exe_dir.join("../../apps/api"));
+            // macOS .app bundle: Contents/MacOS/../../Resources/api
+            candidates.push(exe_dir.join("../Resources/api"));
+        }
+    }
+
     for candidate in &candidates {
         let resolved = std::fs::canonicalize(candidate).ok();
         if let Some(ref p) = resolved {
             if p.join("app").join("main.py").exists() {
+                eprintln!("[sidecar] found API directory: {}", p.display());
                 return resolved;
             }
         }
     }
+
+    eprintln!(
+        "[sidecar] could not find API directory. Tried {} paths from cwd={:?}",
+        candidates.len(),
+        std::env::current_dir().ok()
+    );
     None
 }
 
