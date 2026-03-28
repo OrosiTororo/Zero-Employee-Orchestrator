@@ -17,16 +17,6 @@
 
 ---
 
-<div align="center">
-
-**🌐 Language / 言語 / 语言**
-
-[English](../../README.md) | [日本語](../ja-JP/README.md) | [简体中文](../zh-CN/README.md) | [繁體中文](../zh-TW/README.md) | [한국어](../ko-KR/README.md) | [**Português (Brasil)**](README.md) | [Türkçe](../tr/README.md)
-
-</div>
-
----
-
 **A plataforma para operar IA como uma organização — não apenas um chatbot.**
 
 Defina fluxos de trabalho de negócios em linguagem natural, orquestre múltiplos agentes de IA com delegação baseada em papéis e execute tarefas com portões de aprovação humana e auditabilidade completa. Construído com uma arquitetura de 9 camadas com Self-Healing DAG, Judge Layer e Experience Memory.
@@ -35,9 +25,120 @@ O ZEO em si é gratuito e de código aberto. Os custos de API dos LLMs são pago
 
 ---
 
-## Guias
+## Primeiros Passos
 
-Este repositório é a plataforma em si. Os guias explicam a arquitetura e a filosofia de design.
+**Escolha seu caminho:**
+
+| Método | Ideal para | Tempo | Chave de API necessária? |
+|--------|-----------|-------|--------------------------|
+| **[Aplicativo Desktop](#️-baixar-aplicativo-desktop)** | Usuários não técnicos | 2 min | Não (modo assinatura) |
+| **[CLI (pip install)](#-início-rápido-cli)** | Desenvolvedores | 2 min | Não (assinatura ou Ollama) |
+| **[Docker](#-início-rápido-cli)** | Auto-hospedagem / produção | 5 min | Não (assinatura ou Ollama) |
+
+**Requisitos do Sistema:** Python 3.12+ (CLI), Node.js 22+ (desenvolvimento frontend), 4 GB de RAM mínimo. Modelos locais Ollama precisam de 8 GB+ de RAM.
+
+---
+
+## 🖥️ Baixar Aplicativo Desktop
+
+Instaladores desktop pré-compilados estão disponíveis na página de [Releases](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases).
+
+| SO | Arquivo | Descrição |
+|---|---|---|
+| **Windows** | `.msi` / `-setup.exe` | Instalador Windows |
+| **macOS** | `.dmg` | macOS (Intel / Apple Silicon) |
+| **Linux** | `.AppImage` | Portátil (sem necessidade de instalação) |
+| **Linux** | `.deb` / `.rpm` | Debian/Ubuntu / Fedora/RHEL |
+
+Após a instalação, um **assistente de configuração** guiará você por:
+1. **Idioma** — Escolha English, 日本語, 中文, 한국어, Português ou Türkçe (alterável depois em Configurações)
+2. **Provedor LLM** — Escolha como a IA roda (sem chave de API necessária para modo assinatura)
+3. **Primeira tarefa** — Comece a usar a plataforma imediatamente
+
+---
+
+## 🚀 Início Rápido (CLI)
+
+### Passo 1: Instalação
+
+```bash
+# PyPI (recomendado)
+pip install zero-employee-orchestrator
+
+# Ou a partir do código fonte
+git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
+cd Zero-Employee-Orchestrator && pip install .
+
+# Ou Docker
+docker compose up -d
+```
+
+### Passo 2: Configuração
+
+Escolha **uma** destas opções:
+
+```bash
+# Opção A: Sem chave de API necessária — usa serviços de IA web gratuitos via g4f
+zero-employee config set DEFAULT_EXECUTION_MODE subscription
+
+# Opção B: Totalmente offline — modelos locais via Ollama (sem internet necessária)
+zero-employee config set DEFAULT_EXECUTION_MODE free
+zero-employee pull qwen3:8b
+
+# Opção C: Chave de API — melhor qualidade, pagamento por uso ao provedor
+zero-employee config set OPENROUTER_API_KEY <your-key>  # or GEMINI_API_KEY, etc.
+```
+
+> **O ZEO em si é gratuito.** Os custos de LLM (se houver) são pagos diretamente a cada provedor. Veja [USER_SETUP.md](../../USER_SETUP.md) para todas as opções.
+
+### Passo 3: Iniciar
+
+```bash
+# Iniciar Web UI + servidor API
+zero-employee serve
+# → Abra http://localhost:18234
+
+# Ou use o modo de chat local (Ollama)
+zero-employee local --model qwen3:8b
+```
+
+### Passo 4: Verificar
+
+```bash
+zero-employee health              # Verificar status do servidor
+zero-employee models              # Listar modelos disponíveis
+zero-employee config list         # Revisar suas configurações
+```
+
+### Alterando o Idioma
+
+O idioma padrão é inglês. Altere em todo o sistema (CLI, respostas da IA e Web UI mudam juntos):
+
+```bash
+# Na inicialização
+zero-employee chat --lang ja      # Japonês
+zero-employee chat --lang zh      # Chinês
+zero-employee chat --lang ko      # Coreano
+zero-employee chat --lang pt      # Português
+zero-employee chat --lang tr      # Turco
+
+# Persistentemente (salvo em ~/.zero-employee/config.json)
+zero-employee config set LANGUAGE pt
+
+# Em tempo de execução (no modo chat)
+/lang en                          # Mudar para Inglês
+/lang ja                          # Mudar para Japonês
+/lang zh                          # Mudar para Chinês
+/lang ko                          # Mudar para Coreano
+/lang pt                          # Mudar para Português
+/lang tr                          # Mudar para Turco
+```
+
+No aplicativo desktop, altere o idioma a qualquer momento em **Configurações**.
+
+---
+
+## Guias
 
 <table>
 <tr>
@@ -58,140 +159,11 @@ Este repositório é a plataforma em si. Os guias explicam a arquitetura e a fil
 </td>
 </tr>
 <tr>
-<td align="center"><b>Guia de Início Rápido</b><br/>Instalação, primeiro fluxo de trabalho, básico do CLI. <b>Leia este primeiro.</b></td>
-<td align="center"><b>Mergulho na Arquitetura</b><br/>Arquitetura de 9 camadas, orquestração DAG, Judge Layer, Experience Memory.</td>
-<td align="center"><b>Guia de Segurança</b><br/>Defesa contra injeção de prompt, portões de aprovação, IAM, sandbox, proteção PII.</td>
+<td align="center"><b>Guia de Início Rápido</b><br/>Primeiro fluxo de trabalho, básico do CLI.</td>
+<td align="center"><b>Mergulho na Arquitetura</b><br/>Arquitetura de 9 camadas, DAG, Judge Layer.</td>
+<td align="center"><b>Guia de Segurança</b><br/>Defesa de prompt, portões de aprovação, sandbox.</td>
 </tr>
 </table>
-
-| Tópico | O que Você Aprenderá |
-|--------|---------------------|
-| Arquitetura de 9 Camadas | User → Design Interview → Task Orchestrator → Skill → Judge → Re-Propose → Memory → Provider → Registry |
-| Self-Healing DAG | Replanejamento automático e re-proposta em caso de falha de tarefa |
-| Judge Layer | Verificação de qualidade em dois estágios + Cross-Model |
-| Skill / Plugin / Extension | Extensibilidade em 3 níveis com geração de skills em linguagem natural |
-| Human-in-the-Loop | 12 categorias de operações perigosas requerem aprovação humana |
-| Design Security-First | Defesa contra injeção de prompt (40+ padrões), mascaramento PII, sandbox de arquivos |
-
----
-
-## Novidades
-
-### v0.1.0 — Lançamento Inicial (Mar 2026)
-
-- **Arquitetura de 9 camadas** — User Layer → Design Interview → Task Orchestrator → Skill Layer → Judge Layer → Re-Propose → State & Memory → Provider → Skill Registry
-- **Self-Healing DAG** — Replanejamento automático em caso de falha com reconstrução dinâmica do DAG
-- **Judge Layer** — Primeira passagem baseada em regras + verificação de alta precisão Cross-Model
-- **Experience Memory** — Aprende com execuções passadas para melhorar o desempenho futuro
-- **Skill / Plugin / Extension** — Extensibilidade em 3 níveis: 8 skills integradas, 10 plugins, 5 extensões
-- **Geração de skills em linguagem natural** — Descreva uma skill em linguagem natural e a IA gera automaticamente (com verificações de segurança)
-- **Browser Assist** — Chat overlay com extensão Chrome, compartilhamento de tela em tempo real e diagnóstico de erros
-- **Geração de mídia** — Imagem (DALL-E, SD), vídeo (Runway ML, Pika), áudio (TTS, ElevenLabs), música (Suno), 3D (registro dinâmico de provedores)
-- **Integração de ferramentas de IA** — 25+ ferramentas externas (GitHub, Slack, Jira, Figma, etc.) operáveis por IA
-- **Security-first** — Defesa contra injeção de prompt (5 categorias, 40+ padrões), portões de aprovação, IAM, proteção PII, sandbox de arquivos
-- **Suporte multi-modelo** — Catálogo dinâmico de modelos via `model_catalog.json`, fallback automático para modelos descontinuados
-- **i18n** — Japonês / Inglês / Chinês — UI, respostas da IA e CLI tudo alternado de forma fluída
-- **Operação autônoma** — Docker / Cloudflare Workers para execução em segundo plano 24/365
-- **Auto-aprimoramento** — IA analisa e melhora suas próprias skills (com aprovação)
-- **Comunicação A2A** — Mensagens peer-to-peer entre agentes, canais e negociação
-
----
-
-## 🖥️ Baixar Aplicativo Desktop
-
-Instaladores desktop pré-compilados estão disponíveis na página de [Releases](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/releases).
-
-| SO | Arquivo | Descrição |
-|---|---|---|
-| **Windows** | `.msi` / `-setup.exe` | Instalador Windows |
-| **macOS** | `.dmg` | macOS (Intel / Apple Silicon) |
-| **Linux** | `.AppImage` | Portátil (sem necessidade de instalação) |
-| **Linux** | `.deb` / `.rpm` | Debian/Ubuntu / Fedora/RHEL |
-
-Todos os instaladores incluem um **assistente de configuração** onde você escolhe seu idioma (English / 日本語 / 中文 / 한국어 / Português / Türkçe). O idioma pode ser alterado a qualquer momento em **Configurações**.
-
----
-
-## 🚀 Início Rápido
-
-Comece a operar em menos de 2 minutos:
-
-### Passo 1: Instalação
-
-```bash
-# PyPI
-pip install zero-employee-orchestrator
-
-# Ou a partir do código fonte
-git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
-cd Zero-Employee-Orchestrator && pip install .
-
-# Ou Docker
-docker compose up -d
-```
-
-### Passo 2: Configuração (Sem Necessidade de Chave de API)
-
-```bash
-# Opção A: Modo assinatura (sem chave necessária)
-zero-employee config set DEFAULT_EXECUTION_MODE subscription
-
-# Opção B: Ollama LLM local (totalmente offline)
-zero-employee config set DEFAULT_EXECUTION_MODE free
-zero-employee pull qwen3:8b
-
-# Opção C: Plataforma multi-LLM (uma chave, vários modelos)
-zero-employee config set OPENROUTER_API_KEY <your-key>
-
-# Opção D: Chaves de API individuais por provedor
-zero-employee config set GEMINI_API_KEY <your-key>
-```
-
-> **O ZEO em si é gratuito.** Os custos de API dos LLMs são pagos diretamente a cada provedor. Veja [USER_SETUP.md](../../USER_SETUP.md) para detalhes.
-
-### Passo 3: Iniciar
-
-```bash
-# Web UI
-zero-employee serve
-# → http://localhost:18234
-
-# Chat local (Ollama)
-zero-employee local --model qwen3:8b --lang en
-```
-
-✨ **Pronto!** Você agora tem uma plataforma completa de orquestração de IA com portões de aprovação humana e auditabilidade.
-
-### Alterando o Idioma (CLI)
-
-O idioma padrão é inglês. Você pode alterá-lo de várias formas:
-
-```bash
-# Na inicialização
-zero-employee chat --lang ja    # Japonês
-zero-employee chat --lang zh    # Chinês
-zero-employee chat --lang ko    # Coreano
-zero-employee chat --lang pt    # Português
-zero-employee chat --lang tr    # Turco
-
-# Persistentemente (salvo em ~/.zero-employee/config.json)
-zero-employee config set LANGUAGE pt
-
-# Em tempo de execução (no modo chat)
-/lang en                         # Mudar para Inglês
-/lang ja                         # Mudar para Japonês
-/lang zh                         # Mudar para Chinês
-/lang ko                         # Mudar para Coreano
-/lang pt                         # Mudar para Português
-/lang tr                         # Mudar para Turco
-
-# Via API
-curl -X PUT http://localhost:18234/api/v1/config \
-  -H "Content-Type: application/json" \
-  -d '{"key": "LANGUAGE", "value": "pt"}'
-```
-
-A configuração de idioma se aplica em todo o sistema: saída do CLI, respostas da IA e a interface Web mudam juntas.
 
 ---
 
@@ -203,7 +175,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # Backend FastAPI
 │   │   └── app/
 │   │       ├── core/               # Config, DB, segurança, i18n
-│   │       ├── api/routes/         # 39 módulos de rotas REST API
+│   │       ├── api/routes/         # 40+ módulos de rotas REST API
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -220,7 +192,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # Workers em segundo plano
 ├── skills/                   # 8 skills integradas
 ├── plugins/                  # 10 manifestos de plugins
-├── extensions/               # 5 manifestos de extensões
+├── extensions/               # 10 manifestos de extensões
 │   └── browser-assist/
 │       └── chrome-extension/ # Extensão Chrome para Browser Assist
 ├── packages/                 # Pacotes NPM compartilhados
@@ -279,7 +251,7 @@ Zero-Employee-Orchestrator/
 | **Geração de Skills em Linguagem Natural** | Descreva em linguagem natural → IA gera automaticamente (com verificações de segurança) |
 | **Marketplace de Skills** | Publicação, busca, avaliação e instalação de skills da comunidade |
 | **Importação de Skills Externas** | Importar skills de repositórios GitHub |
-| **Auto-aprimoramento** | IA analisa e melhora suas próprias skills (com aprovação) |
+| **Autoaprimoramento** | IA analisa e melhora suas próprias skills (com aprovação) |
 | **Meta-Skills** | IA aprende a aprender (Feeling / Seeing / Dreaming / Making / Learning) |
 
 ### Capacidades de IA
@@ -288,7 +260,8 @@ Zero-Employee-Orchestrator/
 |---------------|-----------|
 | **Browser Assist** | Overlay de extensão Chrome — IA vê sua tela em tempo real |
 | **Geração de Mídia** | Imagem, vídeo, áudio, música, 3D — com registro dinâmico de provedores |
-| **Integração de Ferramentas de IA** | 25+ ferramentas externas (GitHub, Slack, Jira, Figma, etc.) |
+| **Hub de Conectores de Apps** | 35+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, etc.) |
+| **Integração de Ferramentas de IA** | 19 categorias, 45+ ferramentas externas |
 | **Comunicação A2A** | Mensagens peer-to-peer entre agentes, canais e negociação |
 | **IA Avatar** | Aprende seus padrões de decisão e evolui com você |
 | **IA Secretária** | Brain dump → tarefas estruturadas, ponte entre você e a organização de IA |
@@ -316,7 +289,7 @@ Zero-Employee-Orchestrator/
 | **Agendador 24/365** | 9 tipos de gatilho: cron, criação de ticket, limiar de orçamento, etc. |
 | **Integração iPaaS** | Integração webhook n8n / Zapier / Make |
 | **Cloud Native** | Camada de abstração AWS / GCP / Azure / Cloudflare |
-| **Governança & Conformidade** | GDPR / HIPAA / SOC2 / ISO27001 / CCPA / APPI |
+| **Governança e Conformidade** | GDPR / HIPAA / SOC2 / ISO27001 / CCPA / APPI |
 
 ---
 
@@ -349,10 +322,10 @@ zero-employee serve --reload     # Hot reload
 
 zero-employee chat               # Modo chat (todos os provedores)
 zero-employee chat --mode free   # Modo gratuito (Ollama / g4f)
-zero-employee chat --lang en     # Seleção de idioma
+zero-employee chat --lang pt     # Seleção de idioma
 
 zero-employee local              # Chat local (Ollama)
-zero-employee local --model qwen3:8b --lang en
+zero-employee local --model qwen3:8b --lang pt
 
 zero-employee models             # Listar modelos instalados
 zero-employee pull qwen3:8b      # Baixar modelo
@@ -393,7 +366,7 @@ Substituição de provedor por tarefa é suportada — especifique provedor, mod
 |------|-----------|---------|
 | **Skill** | Processamento especializado de propósito único | spec-writer, review-assistant, browser-assist |
 | **Plugin** | Agrupa múltiplas Skills | ai-secretary, ai-self-improvement, youtube |
-| **Extension** | Integração de sistema & infraestrutura | mcp, oauth, notifications, browser-assist |
+| **Extension** | Integração de sistema e infraestrutura | mcp, oauth, notifications, browser-assist |
 
 ### Gere Skills com Linguagem Natural
 
@@ -404,7 +377,7 @@ POST /api/v1/registry/skills/generate
 }
 ```
 
-16 padrões perigosos são auto-detectados. Apenas skills que passam nas verificações de segurança são registradas.
+16 padrões perigosos são autodetectados. Apenas skills que passam nas verificações de segurança são registradas.
 
 ---
 
@@ -415,7 +388,7 @@ Chat overlay com extensão Chrome — IA vê sua tela em tempo real e te guia.
 - **Chat Overlay**: UI de chat diretamente em qualquer site
 - **Compartilhamento de Tela em Tempo Real**: IA vê o que você vê (sem screenshots manuais)
 - **Diagnóstico de Erros**: IA lê mensagens de erro na tela e sugere correções
-- **Assistência em Formulários**: Orientação passo-a-passo campo por campo
+- **Assistência em Formulários**: Orientação passo a passo campo por campo
 - **Privacidade em Primeiro Lugar**: Screenshots processados temporariamente, PII mascarado automaticamente, campos de senha desfocados
 
 ### Configuração
