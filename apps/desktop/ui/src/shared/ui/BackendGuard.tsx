@@ -1,8 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react"
 import { waitForBackend } from "@/shared/api/client"
 import { LogoMark } from "@/shared/ui/Logo"
-import { useI18n, useT, LOCALE_LABELS, type Locale } from "@/shared/i18n"
-import { Globe } from "lucide-react"
+import { useT } from "@/shared/i18n"
 
 const isTauri =
   typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
@@ -14,44 +13,6 @@ function tauriInvoke<T>(cmd: string, args?: Record<string, unknown>): Promise<T>
     return Promise.reject(new Error("Tauri runtime not available"))
   }
   return internals.invoke(cmd, args)
-}
-
-/** Compact language switcher shown on pre-login screens. */
-function LanguageSwitcher() {
-  const { locale, setLocale } = useI18n()
-  const [open, setOpen] = useState(false)
-
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[12px] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"
-      >
-        <Globe size={14} />
-        {LOCALE_LABELS[locale]}
-      </button>
-      {open && (
-        <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-[var(--bg-surface)] border border-[var(--border)] rounded-md shadow-lg py-1 min-w-[140px] z-50">
-          {(Object.keys(LOCALE_LABELS) as Locale[]).map((loc) => (
-            <button
-              key={loc}
-              onClick={() => {
-                setLocale(loc)
-                setOpen(false)
-              }}
-              className={`w-full text-left px-3 py-1.5 text-[12px] hover:bg-[var(--bg-hover)] transition-colors ${
-                loc === locale
-                  ? "text-[var(--accent)] font-medium"
-                  : "text-[var(--text-primary)]"
-              }`}
-            >
-              {LOCALE_LABELS[loc]}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  )
 }
 
 /**
@@ -225,9 +186,6 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
             </button>
           </>
         )}
-        <div className="mt-2">
-          <LanguageSwitcher />
-        </div>
       </div>
     </div>
   )

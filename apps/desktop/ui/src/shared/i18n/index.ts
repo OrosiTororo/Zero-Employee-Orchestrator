@@ -31,34 +31,33 @@ export const locales: Record<Locale, Messages> = {
 interface I18nState {
   locale: Locale
   messages: Messages
+  /** True once the user has explicitly chosen a language (or it was restored from storage). */
+  localeChosen: boolean
   setLocale: (locale: Locale) => void
 }
 
-function getInitialLocale(): Locale {
+function getInitialLocale(): { locale: Locale; chosen: boolean } {
   try {
     const stored = localStorage.getItem("locale")
-    if (stored && stored in locales) return stored as Locale
+    if (stored && stored in locales) return { locale: stored as Locale, chosen: true }
   } catch {
-    // localStorage unavailable (SSR or restricted context)
+    // localStorage unavailable
   }
-  const browserLang = navigator.language.toLowerCase()
-  if (browserLang.startsWith("ja")) return "ja"
-  if (browserLang.startsWith("zh")) return "zh"
-  if (browserLang.startsWith("ko")) return "ko"
-  if (browserLang.startsWith("pt")) return "pt"
-  if (browserLang.startsWith("tr")) return "tr"
-  return "en"
+  // No stored preference — use a neutral default (English) so the app doesn't
+  // silently commit to the OS language. The language chooser will be shown first.
+  return { locale: "en", chosen: false }
 }
 
 export const useI18n = create<I18nState>((set) => {
-  const initial = getInitialLocale()
+  const { locale: initial, chosen } = getInitialLocale()
   return {
     locale: initial,
     messages: locales[initial],
+    localeChosen: chosen,
     setLocale: (locale: Locale) => {
       try { localStorage.setItem("locale", locale) } catch { /* noop */ }
       document.documentElement.lang = locale
-      set({ locale, messages: locales[locale] })
+      set({ locale, messages: locales[locale], localeChosen: true })
     },
   }
 })
