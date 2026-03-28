@@ -270,9 +270,17 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Option<Child> {
                 Ok(None) => { /* still running — good */ }
                 Err(e) => eprintln!("[sidecar] could not check process status: {e}"),
             }
-            // Wait longer when auto-setup was performed (dependency install may take time)
-            let max_wait = if did_auto_setup { 60 } else { 15 };
-            wait_for_backend(max_wait);
+            // Wait for backend to respond. Don't block too long here —
+            // the frontend BackendGuard will continue polling and retrying.
+            let max_wait = if did_auto_setup { 30 } else { 15 };
+            let ready = wait_for_backend(max_wait);
+            if !ready {
+                eprintln!(
+                    "[sidecar] backend not yet ready after {}s, \
+                     frontend will continue polling",
+                    max_wait
+                );
+            }
             Some(c)
         }
         Err(e) => {

@@ -28,20 +28,24 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
   )
   const [setupMessage, setSetupMessage] = useState("")
   const retryCount = useRef(0)
-  const maxAutoRetries = isTauri ? 3 : 0
+  // In Tauri mode, auto-retry up to 5 times (each with a long wait) before showing failure
+  const maxAutoRetries = isTauri ? 5 : 0
 
   const check = useCallback(async () => {
     setStatus("checking")
 
-    if (isTauri && retryCount.current === 0) {
-      setSetupMessage("バックエンドを起動しています...")
-    } else if (isTauri) {
-      setSetupMessage("バックエンドを再起動しています...")
+    if (isTauri) {
+      setSetupMessage(
+        retryCount.current === 0
+          ? "バックエンドを起動しています..."
+          : "起動を待っています...",
+      )
     }
 
-    // In Tauri mode, wait longer for first-time setup (dependency install)
-    const attempts = isTauri ? 30 : 15
-    const interval = isTauri ? 2000 : 2000
+    // In Tauri mode, wait generously — the backend may take time on first launch
+    // 45 attempts * 2s = 90 seconds on first try
+    const attempts = isTauri ? 45 : 15
+    const interval = 2000
     const ok = await waitForBackend(attempts, interval)
 
     if (ok) {
@@ -50,26 +54,40 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
       return
     }
 
-    // In Tauri mode, try restarting the backend automatically
+    // In Tauri mode, auto-retry: first just re-check (process may still be starting),
+    // then try restart_backend if re-checks keep failing
     if (isTauri && retryCount.current < maxAutoRetries) {
       retryCount.current += 1
-      setSetupMessage(
-        retryCount.current === 1
-          ? "初回セットアップ中です。依存関係をインストールしています..."
-          : `セットアップを再試行しています... (${retryCount.current}/${maxAutoRetries})`,
-      )
-      try {
-        await tauriInvoke("restart_backend")
-      } catch (e) {
-        console.error("[BackendGuard] restart_backend failed:", e)
+      const attempt = retryCount.current
+
+      if (attempt <= 2) {
+        // First 2 retries: just wait more — the process is likely still starting
+        setSetupMessage("起動に時間がかかっています。もう少しお待ちください...")
+        const retryOk = await waitForBackend(30, 2000)
+        if (retryOk) {
+          setStatus("connected")
+          retryCount.current = 0
+          return
+        }
+      } else {
+        // After that, try restarting the backend process
+        setSetupMessage("バックエンドを再起動しています...")
+        try {
+          await tauriInvoke("restart_backend")
+        } catch (e) {
+          console.error("[BackendGuard] restart_backend failed:", e)
+        }
+        const retryOk = await waitForBackend(45, 2000)
+        if (retryOk) {
+          setStatus("connected")
+          retryCount.current = 0
+          return
+        }
       }
-      // Wait for the restarted backend
-      const retryOk = await waitForBackend(30, 2000)
-      if (retryOk) {
-        setStatus("connected")
-        retryCount.current = 0
-        return
-      }
+
+      // Recurse to try next retry
+      check()
+      return
     }
 
     setStatus("failed")
@@ -105,6 +123,11 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
                 ? setupMessage
                 : "サーバーの起動を待っています"}
             </p>
+            {isTauri && retryCount.current > 0 && (
+              <p className="text-[11px] text-[var(--text-muted)]">
+                初回起動時はセットアップに数分かかる場合があります
+              </p>
+            )}
             <div className="w-32 h-1 rounded-full bg-[var(--border)] overflow-hidden">
               <div className="h-full bg-[var(--accent)] rounded-full animate-[loading_2s_ease-in-out_infinite]" />
             </div>
@@ -116,18 +139,11 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
               サーバーに接続できません
             </p>
             {isTauri ? (
-              <>
-                <p className="text-[12px] text-[var(--text-muted)] leading-relaxed">
-                  バックエンドの自動セットアップに失敗しました。
-                  <br />
-                  ネットワーク接続を確認して再接続してください。
-                </p>
-                <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
-                  初回起動時は必要なツールを自動でインストールします。
-                  <br />
-                  インターネット接続が必要です。
-                </p>
-              </>
+              <p className="text-[12px] text-[var(--text-muted)] leading-relaxed">
+                バックエンドの起動に失敗しました。
+                <br />
+                「再試行」ボタンで再度起動を試みます。
+              </p>
             ) : (
               <>
                 <p className="text-[12px] text-[var(--text-muted)] leading-relaxed">
@@ -152,7 +168,7 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
                 background: "linear-gradient(135deg, #0078d4, #6d28d9)",
               }}
             >
-              再接続
+              再試行
             </button>
           </>
         )}
