@@ -1,5 +1,6 @@
 """Authentication endpoints - registration, login, session management."""
 
+import uuid
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
@@ -36,6 +37,20 @@ from app.services.auth_service import (
 router = APIRouter()
 
 
+async def _get_user_setup_completed(db: AsyncSession, user_id: str) -> bool:
+    """Check if the user's company has completed initial setup."""
+    result = await db.execute(
+        select(Company)
+        .join(CompanyMember, CompanyMember.company_id == Company.id)
+        .where(CompanyMember.user_id == uuid.UUID(user_id))
+        .limit(1)
+    )
+    company = result.scalar_one_or_none()
+    if company is None:
+        return False
+    return bool(company.setup_completed)
+
+
 async def get_current_user(
     db: AsyncSession = Depends(get_db),
     authorization: str | None = Header(None),
@@ -69,6 +84,7 @@ async def register(request: Request, req: RegisterRequest, db: AsyncSession = De
         access_token=token,
         user_id=str(user.id),
         display_name=user.display_name,
+        setup_completed=False,
     )
 
 
@@ -81,10 +97,12 @@ async def login(request: Request, req: LoginRequest, db: AsyncSession = Depends(
         raise HTTPException(status_code=401, detail="Incorrect email address or password")
 
     token = create_access_token(str(user.id))
+    setup_done = await _get_user_setup_completed(db, str(user.id))
     return LoginResponse(
         access_token=token,
         user_id=str(user.id),
         display_name=user.display_name,
+        setup_completed=setup_done,
     )
 
 
@@ -244,6 +262,7 @@ async def create_anonymous_session(request: Request, db: AsyncSession = Depends(
         "company_id": str(company.id),
         "display_name": user.display_name,
         "is_anonymous": True,
+        "setup_completed": False,
         "message": "Login to enable state sharing across multiple devices",
     }
 
@@ -289,6 +308,36 @@ async def link_anonymous_to_account(
         "linked": True,
         "message": "Account created. Multi-device sharing is now enabled",
     }
+
+
+@router.get("/setup-status")
+async def get_setup_status(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Check whether the current user's organization has completed initial setup."""
+    setup_done = await _get_user_setup_completed(db, str(user.id))
+    return {"setup_completed": setup_done}
+
+
+@router.post("/setup-complete")
+async def mark_setup_complete(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Mark the current user's organization setup as completed."""
+    result = await db.execute(
+        select(Company)
+        .join(CompanyMember, CompanyMember.company_id == Company.id)
+        .where(CompanyMember.user_id == user.id)
+        .limit(1)
+    )
+    company = result.scalar_one_or_none()
+    if company is None:
+        raise HTTPException(status_code=404, detail="No organization found")
+    company.setup_completed = True
+    await db.commit()
+    return {"setup_completed": True}
 
 
 async def get_optional_user(

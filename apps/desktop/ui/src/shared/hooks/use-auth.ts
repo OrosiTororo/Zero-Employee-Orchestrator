@@ -8,6 +8,7 @@ interface AuthState {
   userId: string | null
   displayName: string | null
   isAnonymous: boolean
+  setupCompleted: boolean
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string, displayName: string) => Promise<void>
   startAnonymous: () => Promise<void>
@@ -15,6 +16,7 @@ interface AuthState {
   logout: () => void
   checkAuth: () => Promise<void>
   setToken: (token: string) => void
+  setSetupCompleted: () => void
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -24,21 +26,26 @@ export const useAuthStore = create<AuthState>((set) => ({
   userId: null,
   displayName: null,
   isAnonymous: localStorage.getItem("is_anonymous") === "true",
+  setupCompleted: localStorage.getItem("setup_completed") === "true",
 
   login: async (email: string, password: string) => {
     const res = await api.post<{
       access_token: string
       user_id: string
       display_name: string
+      setup_completed?: boolean
     }>("/auth/login", { email, password })
     localStorage.setItem("auth_token", res.access_token)
     localStorage.removeItem("is_anonymous")
+    if (res.setup_completed) localStorage.setItem("setup_completed", "true")
+    else localStorage.removeItem("setup_completed")
     set({
       authenticated: true,
       token: res.access_token,
       userId: res.user_id,
       displayName: res.display_name,
       isAnonymous: false,
+      setupCompleted: !!res.setup_completed,
     })
   },
 
@@ -47,15 +54,18 @@ export const useAuthStore = create<AuthState>((set) => ({
       access_token: string
       user_id: string
       display_name: string
+      setup_completed?: boolean
     }>("/auth/register", { email, password, display_name: displayName })
     localStorage.setItem("auth_token", res.access_token)
     localStorage.removeItem("is_anonymous")
+    localStorage.removeItem("setup_completed")
     set({
       authenticated: true,
       token: res.access_token,
       userId: res.user_id,
       displayName: res.display_name,
       isAnonymous: false,
+      setupCompleted: false,
     })
   },
 
@@ -66,16 +76,19 @@ export const useAuthStore = create<AuthState>((set) => ({
       company_id: string
       display_name: string
       is_anonymous: boolean
+      setup_completed?: boolean
     }>("/auth/anonymous-session")
     localStorage.setItem("auth_token", res.access_token)
     localStorage.setItem("company_id", res.company_id)
     localStorage.setItem("is_anonymous", "true")
+    localStorage.removeItem("setup_completed")
     set({
       authenticated: true,
       token: res.access_token,
       userId: res.user_id,
       displayName: res.display_name,
       isAnonymous: true,
+      setupCompleted: false,
     })
   },
 
@@ -100,7 +113,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: () => {
     localStorage.removeItem("auth_token")
     localStorage.removeItem("is_anonymous")
-    set({ authenticated: false, token: null, userId: null, displayName: null, isAnonymous: false })
+    localStorage.removeItem("setup_completed")
+    set({ authenticated: false, token: null, userId: null, displayName: null, isAnonymous: false, setupCompleted: false })
   },
 
   checkAuth: async () => {
@@ -113,12 +127,22 @@ export const useAuthStore = create<AuthState>((set) => ({
     await waitForBackend(10, 1000)
     try {
       const res = await api.get<{ id: string; display_name: string; role: string }>("/auth/me")
+      let setupDone = localStorage.getItem("setup_completed") === "true"
+      try {
+        const status = await api.get<{ setup_completed: boolean }>("/auth/setup-status")
+        setupDone = status.setup_completed
+        if (setupDone) localStorage.setItem("setup_completed", "true")
+        else localStorage.removeItem("setup_completed")
+      } catch {
+        // setup-status endpoint may not be available yet
+      }
       set({
         authenticated: true,
         loading: false,
         userId: res.id,
         displayName: res.display_name,
         isAnonymous: res.role === "anonymous",
+        setupCompleted: setupDone,
       })
     } catch {
       localStorage.removeItem("auth_token")
@@ -129,6 +153,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   setToken: (token: string) => {
     localStorage.setItem("auth_token", token)
     set({ authenticated: true, token })
+  },
+
+  setSetupCompleted: () => {
+    localStorage.setItem("setup_completed", "true")
+    set({ setupCompleted: true })
   },
 }))
 

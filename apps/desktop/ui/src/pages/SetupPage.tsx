@@ -18,6 +18,7 @@ import {
 import { Logo } from "@/shared/ui/Logo"
 import { useT, useI18n, LOCALE_LABELS, type Locale } from "@/shared/i18n"
 import { api } from "@/shared/api/client"
+import { useAuthStore } from "@/shared/hooks/use-auth"
 
 type Step =
   | "language"
@@ -200,7 +201,13 @@ export function SetupPage() {
     }
   }
 
-  const finishSetup = () => {
+  const finishSetup = async () => {
+    try {
+      await api.post("/auth/setup-complete", {})
+    } catch {
+      // Mark locally even if backend call fails
+    }
+    useAuthStore.getState().setSetupCompleted()
     navigate("/")
   }
 

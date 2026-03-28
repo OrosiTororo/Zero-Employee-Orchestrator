@@ -5,7 +5,7 @@ import { LogoMark } from '@/shared/ui/Logo'
 import { useT } from '@/shared/i18n'
 
 export function App() {
-  const { authenticated, loading } = useAuthStore()
+  const { authenticated, loading, setupCompleted } = useAuthStore()
   const t = useT()
 
   if (loading) {
@@ -25,6 +25,11 @@ export function App() {
   // ログインすると複数デバイスでの状態共有が有効に
   if (!authenticated) {
     return <Navigate to="/login" replace />
+  }
+
+  // セットアップ未完了ならウィザードへリダイレクト
+  if (!setupCompleted) {
+    return <Navigate to="/setup" replace />
   }
 
   return (

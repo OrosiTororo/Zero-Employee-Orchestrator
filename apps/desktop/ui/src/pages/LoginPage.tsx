@@ -29,7 +29,8 @@ export function LoginPage() {
   const [error, setError] = useState("")
 
   if (authenticated) {
-    navigate("/", { replace: true })
+    const { setupCompleted } = useAuthStore.getState()
+    navigate(setupCompleted ? "/" : "/setup", { replace: true })
     return null
   }
 
@@ -41,12 +42,17 @@ export function LoginPage() {
     setLoading(true)
     setError("")
     try {
-      const res = await api.post<{ access_token: string }>("/auth/login", {
+      const res = await api.post<{ access_token: string; setup_completed?: boolean }>("/auth/login", {
         email,
         password,
       })
       setToken(res.access_token)
-      navigate("/")
+      if (res.setup_completed) {
+        useAuthStore.getState().setSetupCompleted()
+        navigate("/")
+      } else {
+        navigate("/setup")
+      }
     } catch (e: unknown) {
       if (e instanceof NetworkError) {
         setError(t.auth.connectionFailed)
@@ -304,7 +310,7 @@ export function LoginPage() {
                 try {
                   const { startAnonymous } = useAuthStore.getState()
                   await startAnonymous()
-                  navigate("/")
+                  navigate("/setup")
                 } catch (e: unknown) {
                   if (e instanceof NetworkError) {
                     setError(t.auth.connectionFailed)
