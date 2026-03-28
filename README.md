@@ -491,7 +491,11 @@ Contributions are welcome.
 
 ---
 
+## 💜 Sponsors
 
+This project is free and open source. Sponsors help keep it maintained and growing.
+
+[**Become a Sponsor**](https://github.com/sponsors/OrosiTororo)
 
 ---
 
