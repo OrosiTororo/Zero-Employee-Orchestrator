@@ -317,3 +317,22 @@ All formerly planned v0.2-v1.0 features are implemented in v0.1. Remaining tasks
 - **v1.0**: Self-Improvement Loop automation, Cross-Orchestrator Learning
 
 See `ROADMAP.md` for details.
+
+## Release Notes Guidelines
+
+**GitHub Releases text must focus on system changes only.**
+
+Write about:
+- Security improvements (new defenses, hardened modules, vulnerability fixes)
+- Deployment changes (Docker, infrastructure, production configuration)
+- AI model catalog updates (new models, version changes, pricing)
+- Internationalization (new languages, translation coverage)
+- Platform features (new capabilities, API additions, orchestration improvements)
+
+Do NOT write about:
+- Documentation changes (typo fixes, wording improvements, accuracy corrections)
+- CI/CD pipeline changes (GitHub Actions, workflow modifications)
+- Repository configuration (Dependabot, linter settings, gitignore)
+- Internal refactoring that does not change user-facing behavior
+
+The audience is end users, not developers. Describe what changed in the system behavior, not what files were edited.
