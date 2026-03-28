@@ -11,6 +11,9 @@ use tauri::Manager;
 
 struct BackendProcess(Mutex<Option<Child>>);
 
+/// Cached API directory so we can re-use it for restarts.
+struct ApiDir(Mutex<Option<PathBuf>>);
+
 /// Find the API directory relative to the executable or project root.
 fn find_api_dir() -> Option<PathBuf> {
     // Build a list of candidate paths from multiple strategies.
@@ -56,7 +59,8 @@ fn find_api_dir() -> Option<PathBuf> {
 
 /// Find a working Python interpreter (prefer .venv inside api dir).
 /// If no .venv exists but `uv` is available, automatically create one and install deps.
-fn find_python(api_dir: &PathBuf) -> String {
+/// Returns (python_path, did_auto_setup).
+fn find_python(api_dir: &PathBuf) -> (String, bool) {
     // Prefer the virtual environment bundled with the API
     let venv_python = if cfg!(windows) {
         api_dir.join(".venv").join("Scripts").join("python.exe")
@@ -64,7 +68,7 @@ fn find_python(api_dir: &PathBuf) -> String {
         api_dir.join(".venv").join("bin").join("python")
     };
     if venv_python.exists() {
-        return venv_python.to_string_lossy().to_string();
+        return (venv_python.to_string_lossy().to_string(), false);
     }
 
     // No .venv found — try to auto-create with uv if available
@@ -94,7 +98,7 @@ fn find_python(api_dir: &PathBuf) -> String {
                     Err(e) => eprintln!("[sidecar] failed to run uv pip install: {e}"),
                 }
                 if venv_python.exists() {
-                    return venv_python.to_string_lossy().to_string();
+                    return (venv_python.to_string_lossy().to_string(), true);
                 }
             }
             Ok(out) => {
@@ -106,16 +110,20 @@ fn find_python(api_dir: &PathBuf) -> String {
             Err(e) => eprintln!("[sidecar] failed to run uv: {e}"),
         }
         // Even if venv creation failed, uv run can still work
-        return "uv".to_string();
+        return ("uv".to_string(), true);
     }
 
     // Fallback to system Python
     eprintln!("[sidecar] warning: no .venv and uv not found, using system python");
-    if cfg!(windows) { "python".to_string() } else { "python3".to_string() }
+    if cfg!(windows) {
+        ("python".to_string(), false)
+    } else {
+        ("python3".to_string(), false)
+    }
 }
 
-/// Wait until the backend health endpoint responds (up to ~10 s).
-fn wait_for_backend(max_attempts: u32) {
+/// Wait until the backend health endpoint responds.
+fn wait_for_backend(max_attempts: u32) -> bool {
     for i in 0..max_attempts {
         let delay = if i == 0 { 500 } else { 1000 };
         std::thread::sleep(Duration::from_millis(delay));
@@ -125,7 +133,7 @@ fn wait_for_backend(max_attempts: u32) {
             .output()
         {
             if output.status.success() {
-                return;
+                return true;
             }
         }
 
@@ -136,26 +144,20 @@ fn wait_for_backend(max_attempts: u32) {
         )
         .is_ok()
         {
-            return;
+            return true;
         }
     }
     eprintln!("[sidecar] backend did not become ready within timeout");
+    false
 }
 
-fn spawn_backend() -> Option<Child> {
-    let api_dir = match find_api_dir() {
-        Some(d) => d,
-        None => {
-            eprintln!("[sidecar] could not locate apps/api directory");
-            return None;
-        }
-    };
-
-    let python = find_python(&api_dir);
+fn spawn_backend_inner(api_dir: &PathBuf) -> Option<Child> {
+    let (python, did_auto_setup) = find_python(api_dir);
     eprintln!(
-        "[sidecar] starting backend: python={}, dir={}",
+        "[sidecar] starting backend: python={}, dir={}, auto_setup={}",
         python,
-        api_dir.display()
+        api_dir.display(),
+        did_auto_setup,
     );
 
     let child = if python == "uv" {
@@ -169,7 +171,7 @@ fn spawn_backend() -> Option<Child> {
                 "--port",
                 "18234",
             ])
-            .current_dir(&api_dir)
+            .current_dir(api_dir)
             .spawn()
     } else {
         Command::new(&python)
@@ -182,7 +184,7 @@ fn spawn_backend() -> Option<Child> {
                 "--port",
                 "18234",
             ])
-            .current_dir(&api_dir)
+            .current_dir(api_dir)
             .spawn()
     };
 
@@ -203,8 +205,9 @@ fn spawn_backend() -> Option<Child> {
                 Ok(None) => { /* still running — good */ }
                 Err(e) => eprintln!("[sidecar] could not check process status: {e}"),
             }
-            // Give the backend time to fully start
-            wait_for_backend(15);
+            // Wait longer when auto-setup was performed (dependency install may take time)
+            let max_wait = if did_auto_setup { 60 } else { 15 };
+            wait_for_backend(max_wait);
             Some(c)
         }
         Err(e) => {
@@ -214,15 +217,91 @@ fn spawn_backend() -> Option<Child> {
     }
 }
 
+fn spawn_backend() -> (Option<Child>, Option<PathBuf>) {
+    let api_dir = match find_api_dir() {
+        Some(d) => d,
+        None => {
+            eprintln!("[sidecar] could not locate apps/api directory");
+            return (None, None);
+        }
+    };
+
+    let child = spawn_backend_inner(&api_dir);
+    (child, Some(api_dir))
+}
+
+/// Tauri command: restart the backend process from the frontend.
+#[tauri::command]
+fn restart_backend(
+    backend: tauri::State<'_, BackendProcess>,
+    api_dir_state: tauri::State<'_, ApiDir>,
+) -> Result<String, String> {
+    // Kill existing process if any
+    if let Ok(mut guard) = backend.0.lock() {
+        if let Some(mut child) = guard.take() {
+            eprintln!("[sidecar] killing existing backend (pid={})", child.id());
+            let _ = child.kill();
+            let _ = child.wait();
+        }
+    }
+
+    // Determine API directory
+    let api_dir = {
+        let dir_guard = api_dir_state
+            .0
+            .lock()
+            .map_err(|e| format!("lock error: {e}"))?;
+        dir_guard.clone()
+    };
+
+    let api_dir = match api_dir.or_else(find_api_dir) {
+        Some(d) => d,
+        None => return Err("API directory not found".to_string()),
+    };
+
+    let child = spawn_backend_inner(&api_dir);
+    if child.is_some() {
+        if let Ok(mut guard) = backend.0.lock() {
+            *guard = child;
+        }
+        Ok("started".to_string())
+    } else {
+        Err("Backend failed to start".to_string())
+    }
+}
+
+/// Tauri command: check if the backend health endpoint is reachable.
+#[tauri::command]
+fn check_backend_health() -> bool {
+    if let Ok(output) = Command::new("curl")
+        .args(["-sf", "http://127.0.0.1:18234/healthz"])
+        .output()
+    {
+        if output.status.success() {
+            return true;
+        }
+    }
+    std::net::TcpStream::connect_timeout(
+        &"127.0.0.1:18234".parse().unwrap(),
+        Duration::from_secs(2),
+    )
+    .is_ok()
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .invoke_handler(tauri::generate_handler![
+            restart_backend,
+            check_backend_health
+        ])
         .setup(|app| {
             // Spawn the Python backend as a sidecar process
-            let child = spawn_backend();
+            let (child, api_dir) = spawn_backend();
             app.manage(BackendProcess(Mutex::new(child)));
+            app.manage(ApiDir(Mutex::new(api_dir)));
             Ok(())
         })
         .on_window_event(|window, event| {
