@@ -83,14 +83,13 @@ jobs:
 
             ### Download
 
-            Click the file matching your OS from **Assets** below. Language can be changed after installation via the setup wizard or Settings.
+            Download the file for your OS from **Assets** below. The installer will ask you to choose a language first.
 
-            | OS | File | Description |
+            | OS | File | Notes |
             |---|---|---|
-            | **Windows** | `.msi` | Windows installer ⭐ |
-            | **Windows** | `-setup.exe` | Windows installer (NSIS) |
-            | **macOS** | `.dmg` | macOS (Intel / Apple Silicon) ⭐ |
-            | **Linux** | `.AppImage` | Portable (no install needed) ⭐ |
+            | **Windows** | `-setup.exe` | Language selection at install ⭐ |
+            | **macOS** | `.dmg` | Intel / Apple Silicon ⭐ |
+            | **Linux** | `.AppImage` | Portable, no install needed ⭐ |
             | **Linux** | `.deb` | Debian / Ubuntu |
             | **Linux** | `.rpm` | Fedora / RHEL |
 
@@ -125,4 +124,4 @@ jobs:
             > Details: [README](https://github.com/OrosiTororo/Zero-Employee-Orchestrator#readme) | [User Guide](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/docs/USER_GUIDE.md) | [CHANGELOG](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/docs/CHANGELOG.md)
           releaseDraft: true
           prerelease: false
-          includeUpdaterJson: false
+          includeUpdaterJson: true

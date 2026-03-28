@@ -28,7 +28,13 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["nsis", "dmg", "appimage", "deb", "rpm"],
+    "resources": {
+      "../../api/app": "api/app",
+      "../../api/pyproject.toml": "api/pyproject.toml",
+      "../../api/alembic": "api/alembic",
+      "../../api/alembic.ini": "api/alembic.ini"
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -38,20 +44,11 @@
     ],
     "shortDescription": "AI Business Orchestration Platform",
     "longDescription": "Define business workflows in natural language, orchestrate multiple AI agents with role-based delegation, and execute tasks with human approval and full auditability",
-    "createUpdaterArtifacts": false,
+    "createUpdaterArtifacts": "v2",
     "macOS": {
       "minimumSystemVersion": "10.13"
     },
     "windows": {
-      "wix": {
-        "language": [
-          "en-US",
-          "ja-JP",
-          "zh-CN",
-          "ko-KR",
-          "pt-BR"
-        ]
-      },
       "nsis": {
         "installMode": "both",
         "displayLanguageSelector": true,
