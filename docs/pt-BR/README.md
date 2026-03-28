@@ -260,7 +260,7 @@ Zero-Employee-Orchestrator/
 |---------------|-----------|
 | **Browser Assist** | Overlay de extensão Chrome — IA vê sua tela em tempo real |
 | **Geração de Mídia** | Imagem, vídeo, áudio, música, 3D — com registro dinâmico de provedores |
-| **Hub de Conectores de Apps** | 35+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, etc.) |
+| **Hub de Conectores de Apps** | 34+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, etc.) |
 | **Integração de Ferramentas de IA** | 19 categorias, 45+ ferramentas externas |
 | **Comunicação A2A** | Mensagens peer-to-peer entre agentes, canais e negociação |
 | **IA Avatar** | Aprende seus padrões de decisão e evolui com você |
@@ -271,7 +271,7 @@ Zero-Employee-Orchestrator/
 
 | Funcionalidade | Descrição |
 |---------------|-----------|
-| **Defesa contra Injeção de Prompt** | 5 categorias, 40+ padrões de detecção |
+| **Defesa contra Injeção de Prompt** | 5 categorias, 28+ padrões de detecção |
 | **Portões de Aprovação** | 12 categorias de operações perigosas requerem aprovação humana |
 | **Sandbox de Arquivos** | IA só pode acessar pastas permitidas pelo usuário (padrão: STRICT) |
 | **Proteção de Dados** | Controle de política de upload/download (padrão: LOCKDOWN) |
@@ -284,7 +284,7 @@ Zero-Employee-Orchestrator/
 | Funcionalidade | Descrição |
 |---------------|-----------|
 | **Suporte Multi-modelo** | Catálogo dinâmico, fallback automático, substituição de provedor por tarefa |
-| **i18n** | Japonês / Inglês / Chinês — UI, respostas da IA, CLI |
+| **i18n** | 6 idiomas (EN / JA / ZH / KO / PT / TR) — UI, respostas da IA, CLI |
 | **Operação Autônoma** | Docker / Cloudflare Workers — roda mesmo com seu PC desligado |
 | **Agendador 24/365** | 9 tipos de gatilho: cron, criação de ticket, limiar de orçamento, etc. |
 | **Integração iPaaS** | Integração webhook n8n / Zapier / Make |
@@ -299,7 +299,7 @@ O ZEO é projetado com **segurança em primeiro lugar** e defesa em múltiplas c
 
 | Camada | Descrição |
 |--------|-----------|
-| **Defesa contra Injeção de Prompt** | Detecta e bloqueia injeção de instruções de entradas externas (5 categorias, 40+ padrões) |
+| **Defesa contra Injeção de Prompt** | Detecta e bloqueia injeção de instruções de entradas externas (5 categorias, 28+ padrões) |
 | **Portões de Aprovação** | 12 categorias de operações perigosas (envio, exclusão, cobrança, alteração de permissão) requerem aprovação humana |
 | **Limites de Autonomia** | Limita explicitamente o que a IA pode fazer de forma autônoma |
 | **IAM** | Contas humanas/IA separadas; IA impedida de acessar segredos e permissões admin |
@@ -349,7 +349,7 @@ Gerenciado via `model_catalog.json` — troque modelos sem alterar código.
 | Modo | Descrição | Exemplos |
 |------|-----------|---------|
 | **Quality** | Mais alta qualidade | Claude Opus, GPT-5.4, Gemini 2.5 Pro |
-| **Speed** | Resposta rápida | Claude Haiku, GPT-5 Mini, Gemini 2.5 Flash |
+| **Speed** | Resposta rápida | Claude Haiku, GPT-5.4 Mini, Gemini 2.5 Flash |
 | **Cost** | Baixo custo | Haiku, Mini, Flash Lite, DeepSeek |
 | **Free** | Gratuito | Nível gratuito Gemini, Ollama local |
 | **Subscription** | Sem chave de API necessária | via g4f |

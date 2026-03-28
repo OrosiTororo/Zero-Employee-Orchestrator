@@ -72,6 +72,8 @@
 | `task_breakdown` | Task decomposition | Required element of DAG generation |
 | `review_assistant` | Review support | Assists the Judge Layer |
 | `artifact_summarizer` | Artifact summarization | Assists the Artifact Bridge |
+| `domain_skills` | Domain-specific skill execution | Provides domain-specialized processing |
+| `browser-assist` | Browser assistance (manifest) | Enables Chrome extension overlay |
 
 ---
 
@@ -166,7 +168,7 @@ See [docs/ja-JP/AI_SELF_IMPROVEMENT_ROADMAP.md](../AI_SELF_IMPROVEMENT_ROADMAP.m
 ### General-Purpose App Connector Hub
 
 A general-purpose application connector hub is implemented in `integrations/app_connector.py`.
-It provides unified management of connections to 35+ external applications.
+It provides unified management of connections to 34+ external applications.
 It operates only within the scope explicitly authorized by the user and supports custom app registration.
 
 ### Reorganization Based on v0.1 Feature Bloat Review

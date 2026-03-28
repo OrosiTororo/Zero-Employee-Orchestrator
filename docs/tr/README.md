@@ -260,7 +260,7 @@ Zero-Employee-Orchestrator/
 |---------|----------|
 | **Tarayıcı Asistanı** | Chrome uzantısı overlay — Yapay zeka ekranınızı gerçek zamanlı görür |
 | **Medya Oluşturma** | Görüntü, video, ses, müzik, 3D — dinamik sağlayıcı kaydıyla |
-| **Uygulama Bağlayıcı Merkezi** | 35+ uygulama (Obsidian, Notion, Google Workspace, Microsoft 365 vb.) |
+| **Uygulama Bağlayıcı Merkezi** | 34+ uygulama (Obsidian, Notion, Google Workspace, Microsoft 365 vb.) |
 | **Yapay Zeka Araç Entegrasyonu** | 19 kategori, 45+ harici araç |
 | **A2A İletişim** | Ajanlar arası eşler arası mesajlaşma, kanallar ve müzakere |
 | **Avatar Yapay Zeka** | Karar kalıplarınızı öğrenir ve sizinle birlikte gelişir |
@@ -271,7 +271,7 @@ Zero-Employee-Orchestrator/
 
 | Özellik | Açıklama |
 |---------|----------|
-| **Prompt Enjeksiyon Savunması** | 5 kategori, 40+ tespit deseni |
+| **Prompt Enjeksiyon Savunması** | 5 kategori, 28+ tespit deseni |
 | **Onay Kapıları** | 12 tehlikeli işlem kategorisi insan onayı gerektirir |
 | **Dosya Sandbox'ı** | Yapay zeka yalnızca kullanıcı tarafından izin verilen klasörlere erişebilir (varsayılan: STRICT) |
 | **Veri Koruması** | Yükleme/indirme politika kontrolü (varsayılan: LOCKDOWN) |
@@ -284,7 +284,7 @@ Zero-Employee-Orchestrator/
 | Özellik | Açıklama |
 |---------|----------|
 | **Çoklu Model Desteği** | Dinamik katalog, otomatik geri dönüş, görev başına sağlayıcı geçersiz kılma |
-| **i18n** | Japonca / İngilizce / Çince — Arayüz, yapay zeka yanıtları, CLI |
+| **i18n** | 6 dil (EN / JA / ZH / KO / PT / TR) — Arayüz, yapay zeka yanıtları, CLI |
 | **Otonom Çalışma** | Docker / Cloudflare Workers — Bilgisayarınız kapalıyken bile çalışır |
 | **24/365 Zamanlayıcı** | 9 tetikleyici türü: cron, bilet oluşturma, bütçe eşiği vb. |
 | **iPaaS Entegrasyonu** | n8n / Zapier / Make webhook entegrasyonu |
@@ -299,7 +299,7 @@ ZEO çok katmanlı savunma ile **güvenlik öncelikli** tasarlanmıştır:
 
 | Katman | Açıklama |
 |--------|----------|
-| **Prompt Enjeksiyon Savunması** | Harici girdilerden talimat enjeksiyonunu tespit eder ve engeller (5 kategori, 40+ desen) |
+| **Prompt Enjeksiyon Savunması** | Harici girdilerden talimat enjeksiyonunu tespit eder ve engeller (5 kategori, 28+ desen) |
 | **Onay Kapıları** | 12 tehlikeli işlem kategorisi (gönderme, silme, faturalandırma, izin değişiklikleri) insan onayı gerektirir |
 | **Otonomi Sınırları** | Yapay zekanın otonom olarak yapabileceklerini açıkça sınırlar |
 | **IAM** | Ayrı insan/yapay zeka hesapları; yapay zekanın gizli anahtar ve yönetici izinlerine erişimi engellenir |
@@ -349,7 +349,7 @@ zero-employee update             # En son sürüme güncelle
 | Mod | Açıklama | Örnekler |
 |-----|----------|----------|
 | **Quality** | En yüksek kalite | Claude Opus, GPT-5.4, Gemini 2.5 Pro |
-| **Speed** | Hızlı yanıt | Claude Haiku, GPT-5 Mini, Gemini 2.5 Flash |
+| **Speed** | Hızlı yanıt | Claude Haiku, GPT-5.4 Mini, Gemini 2.5 Flash |
 | **Cost** | Düşük maliyet | Haiku, Mini, Flash Lite, DeepSeek |
 | **Free** | Ücretsiz | Gemini ücretsiz katman, Ollama yerel |
 | **Subscription** | API anahtarı gerekmez | g4f aracılığıyla |

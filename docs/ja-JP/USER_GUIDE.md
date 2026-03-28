@@ -275,7 +275,7 @@ zero-employee config set GEMINI_API_KEY
 
 **.env ファイルを直接編集:**
 ```env
-# OpenAI（GPT-5.4, GPT-5 Mini 等）
+# OpenAI（GPT-5.4, GPT-5.4 Mini 等）
 OPENAI_API_KEY=sk-xxxxxxxxxxxx
 
 # Anthropic（Claude Opus 4.6, Sonnet 4.6, Haiku 4.5 等）
@@ -517,7 +517,7 @@ Discord / Slack / LINE の Bot Plugin をインストールすると、普段使
 | モード | 説明 | 推奨用途 |
 |--------|------|---------|
 | `quality` | 最高品質モデル（Claude Opus 4.6, GPT-5.4, Gemini 2.5 Pro） | 重要な成果物 |
-| `speed` | 高速モデル（Claude Haiku 4.5, GPT-5 Mini, Gemini 2.5 Flash） | 簡単なタスク |
+| `speed` | 高速モデル（Claude Haiku 4.5, GPT-5.4 Mini, Gemini 2.5 Flash） | 簡単なタスク |
 | `cost` | 低コストモデル（Haiku, Mini, Flash Lite, DeepSeek） | 大量処理 |
 | `free` | 無料モデル（Gemini 無料枠 / Ollama ローカル） | テスト・開発 |
 | `subscription` | 無料（g4f 経由・API キー不要） | 試用向け |

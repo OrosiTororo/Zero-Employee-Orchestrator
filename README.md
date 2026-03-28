@@ -260,7 +260,7 @@ Zero-Employee-Orchestrator/
 |---------|-------------|
 | **Browser Assist** | Chrome extension overlay — AI sees your screen in real-time |
 | **Media Generation** | Image, video, audio, music, 3D — with dynamic provider registration |
-| **App Connector Hub** | 35+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, etc.) |
+| **App Connector Hub** | 34+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, etc.) |
 | **AI Tool Integration** | 45+ external tools across 19 categories |
 | **A2A Communication** | Peer-to-peer agent messaging, channels, and negotiation |
 | **Avatar AI** | Learns your decision patterns and evolves with you |
@@ -271,7 +271,7 @@ Zero-Employee-Orchestrator/
 
 | Feature | Description |
 |---------|-------------|
-| **Prompt Injection Defense** | 5 categories, 40+ detection patterns |
+| **Prompt Injection Defense** | 5 categories, 28+ detection patterns |
 | **Approval Gates** | 12 categories of dangerous operations require human approval |
 | **File Sandbox** | AI can only access user-permitted folders (default: STRICT) |
 | **Data Protection** | Upload/download policy control (default: LOCKDOWN) |
@@ -284,7 +284,7 @@ Zero-Employee-Orchestrator/
 | Feature | Description |
 |---------|-------------|
 | **Multi-model Support** | Dynamic catalog, auto-fallback, per-task provider override |
-| **i18n** | Japanese / English / Chinese — UI, AI responses, CLI |
+| **i18n** | 6 languages (EN / JA / ZH / KO / PT / TR) — UI, AI responses, CLI |
 | **Autonomous Operation** | Docker / Cloudflare Workers — runs when your PC is off |
 | **24/365 Scheduler** | 9 trigger types: cron, ticket creation, budget threshold, etc. |
 | **iPaaS Integration** | n8n / Zapier / Make webhook integration |
@@ -299,7 +299,7 @@ ZEO is designed **security-first** with multi-layered defense:
 
 | Layer | Description |
 |-------|-------------|
-| **Prompt Injection Defense** | Detects and blocks instruction injection from external inputs (5 categories, 40+ patterns) |
+| **Prompt Injection Defense** | Detects and blocks instruction injection from external inputs (5 categories, 28+ patterns) |
 | **Approval Gates** | 12 categories of dangerous operations (send, delete, billing, permission changes) require human approval |
 | **Autonomy Boundaries** | Explicitly limits what AI can do autonomously |
 | **IAM** | Separate human/AI accounts; AI denied secrets and admin permissions |
@@ -349,7 +349,7 @@ Managed via `model_catalog.json` — swap models without code changes.
 | Mode | Description | Examples |
 |------|-------------|---------|
 | **Quality** | Highest quality | Claude Opus, GPT-5.4, Gemini 2.5 Pro |
-| **Speed** | Fast response | Claude Haiku, GPT-5 Mini, Gemini 2.5 Flash |
+| **Speed** | Fast response | Claude Haiku, GPT-5.4 Mini, Gemini 2.5 Flash |
 | **Cost** | Low cost | Haiku, Mini, Flash Lite, DeepSeek |
 | **Free** | Free | Gemini free tier, Ollama local |
 | **Subscription** | No API key needed | via g4f |

@@ -323,7 +323,7 @@ Cost information is dynamically loaded from the model catalog, so no code change
 | Claude Sonnet 4.6 | 0.003 | 0.015 |
 | Claude Haiku 4.5 | 0.001 | 0.005 |
 | GPT-5.4 | 0.005 | 0.015 |
-| GPT-5 Mini | 0.00015 | 0.0006 |
+| GPT-5.4 Mini | 0.00015 | 0.0006 |
 | Gemini 2.5 Pro | 0.00125 | 0.005 |
 | Gemini 2.5 Flash | 0.0001 | 0.0004 |
 | Gemini 2.5 Flash Lite | 0.00005 | 0.0002 |
@@ -357,7 +357,7 @@ Cost information is dynamically loaded from the model catalog, so no code change
 
 | Mode | Recommended Models | Max Retries | Judge Threshold | Human Review | Cross-Model Verification |
 |------|-------------------|-------------|-----------------|--------------|------------------------|
-| **DRAFT** | GPT-5 Mini, Claude Haiku 4.5 | 1 | 50% | Not required | None |
+| **DRAFT** | GPT-5.4 Mini, Claude Haiku 4.5 | 1 | 50% | Not required | None |
 | **STANDARD** | GPT-5.4, Claude Sonnet 4.6 | 2 | 70% | Not required | None |
 | **HIGH** | GPT-5.4, Claude Sonnet 4.6 | 3 | 85% | Not required | **Enabled** |
 | **CRITICAL** | Claude Opus 4.6, GPT-5.4 | 5 | 95% | **Required** | **Enabled** |
@@ -603,7 +603,7 @@ A unified LLM gateway based on LiteLLM supports multiple providers.
 | Provider | Example Models |
 |----------|---------------|
 | **OpenRouter** | Access multiple models with a single API key |
-| **OpenAI** | GPT-5.4, GPT-5 Mini |
+| **OpenAI** | GPT-5.4, GPT-5.4 Mini |
 | **Anthropic** | Claude Opus 4.6, Sonnet 4.6, Haiku 4.5 |
 | **Google** | Gemini 2.5 Pro, Flash, Flash Lite |
 | **DeepSeek** | DeepSeek Chat |
@@ -619,8 +619,8 @@ A unified LLM gateway based on LiteLLM supports multiple providers.
 | Mode | Description | Recommended Models |
 |------|-------------|-------------------|
 | `QUALITY` | Highest quality | Claude Opus 4.6, GPT-5.4 |
-| `SPEED` | Fast response | Claude Haiku 4.5, GPT-5 Mini |
-| `COST` | Low cost | Claude Haiku 4.5, GPT-5 Mini, DeepSeek |
+| `SPEED` | Fast response | Claude Haiku 4.5, GPT-5.4 Mini |
+| `COST` | Low cost | Claude Haiku 4.5, GPT-5.4 Mini, DeepSeek |
 | `FREE` | Free (local + free APIs) | Ollama, Gemini free tier, g4f |
 | `SUBSCRIPTION` | Free (no API key required) | Various models via g4f |
 
@@ -2275,7 +2275,7 @@ Middleware that automatically applies prompt injection scanning and PII detectio
 
 | Inspection | Description |
 |-----------|-------------|
-| **Prompt injection** | 5-level threat detection with 40+ patterns |
+| **Prompt injection** | 5-level threat detection with 28+ patterns |
 | **PII detection** | Detection and masking of 13 PII categories |
 | **External data wrapping** | Boundary marker application for external data sent to LLM |
 

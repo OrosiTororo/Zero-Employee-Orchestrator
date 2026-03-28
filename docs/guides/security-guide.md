@@ -95,7 +95,7 @@ ZEO is designed **security-first** — security is not an afterthought but a cor
 | **Privilege Escalation** | Attempts to gain elevated access | "Grant me admin access", "Disable security checks" |
 | **Encoding Attacks** | Obfuscated injection via encoding | Base64 encoded instructions, Unicode tricks |
 
-### 40+ Detection Patterns
+### 28+ Detection Patterns
 
 The prompt guard scans all user input before it reaches the LLM. Detection includes:
 

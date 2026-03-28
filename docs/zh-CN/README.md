@@ -260,7 +260,7 @@ Zero-Employee-Orchestrator/
 |------|------|
 | **浏览器辅助** | Chrome 扩展程序叠加 — AI 实时查看您的屏幕 |
 | **媒体生成** | 图像、视频、音频、音乐、3D — 支持动态提供商注册 |
-| **应用连接器中心** | 35+ 应用（Obsidian、Notion、Google Workspace、Microsoft 365 等） |
+| **应用连接器中心** | 34+ 应用（Obsidian、Notion、Google Workspace、Microsoft 365 等） |
 | **AI 工具集成** | 19 个类别、45+ 外部工具 |
 | **A2A 通信** | 代理间点对点消息、频道和协商 |
 | **分身 AI** | 从用户对话中学习判断标准，共同成长 |
@@ -271,7 +271,7 @@ Zero-Employee-Orchestrator/
 
 | 功能 | 描述 |
 |------|------|
-| **提示注入防御** | 5 个类别、40+ 检测模式 |
+| **提示注入防御** | 5 个类别、28+ 检测模式 |
 | **审批门控** | 12 类危险操作需要人类审批 |
 | **文件沙箱** | AI 仅可访问用户许可的文件夹（默认：STRICT） |
 | **数据保护** | 上传/下载策略控制（默认：LOCKDOWN） |
@@ -284,7 +284,7 @@ Zero-Employee-Orchestrator/
 | 功能 | 描述 |
 |------|------|
 | **多模型支持** | 动态目录、自动回退、按任务指定提供商 |
-| **多语言（i18n）** | 日本語 / English / 中文 — 界面、AI 回复、CLI |
+| **多语言（i18n）** | 6 种语言（EN / JA / ZH / KO / PT / TR）— 界面、AI 回复、CLI |
 | **自主运行** | Docker / Cloudflare Workers — 即使 PC 关机也能运行 |
 | **24/365 调度器** | 9 种触发类型：cron、工单创建、预算阈值等 |
 | **iPaaS 集成** | n8n / Zapier / Make Webhook 集成 |
@@ -299,7 +299,7 @@ ZEO 采用**安全优先**设计，具备多层防御：
 
 | 层级 | 描述 |
 |------|------|
-| **提示注入防御** | 检测并阻止来自外部输入的指令注入（5 个类别、40+ 模式） |
+| **提示注入防御** | 检测并阻止来自外部输入的指令注入（5 个类别、28+ 模式） |
 | **审批门控** | 12 类危险操作（发送、删除、计费、权限变更等）需要人类审批 |
 | **自主执行边界** | 明确限制 AI 可自主执行的操作 |
 | **IAM** | 人类/AI 账户分离；AI 无法访问密钥和管理权限 |
@@ -349,7 +349,7 @@ zero-employee update             # 更新到最新版本
 | 模式 | 描述 | 示例 |
 |------|------|------|
 | **Quality** | 最高质量 | Claude Opus, GPT-5.4, Gemini 2.5 Pro |
-| **Speed** | 快速响应 | Claude Haiku, GPT-5 Mini, Gemini 2.5 Flash |
+| **Speed** | 快速响应 | Claude Haiku, GPT-5.4 Mini, Gemini 2.5 Flash |
 | **Cost** | 低成本 | Haiku, Mini, Flash Lite, DeepSeek |
 | **Free** | 免费 | Gemini 免费额度, Ollama 本地 |
 | **Subscription** | 无需 API 密钥 | 通过 g4f |

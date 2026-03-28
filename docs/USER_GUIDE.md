@@ -231,7 +231,7 @@ You can control costs by setting `DEFAULT_EXECUTION_MODE` in `apps/api/.env`:
 | Mode | Description | Recommended For |
 |------|-------------|-----------------|
 | `quality` | Highest quality models (Claude Opus 4.6, GPT-5.4, Gemini 2.5 Pro) | Important deliverables |
-| `speed` | Fast models (Claude Haiku 4.5, GPT-5 Mini, Gemini 2.5 Flash) | Simple tasks |
+| `speed` | Fast models (Claude Haiku 4.5, GPT-5.4 Mini, Gemini 2.5 Flash) | Simple tasks |
 | `cost` | Low-cost models (Haiku, Mini, Flash Lite, DeepSeek) | Bulk processing |
 | `free` | Free models (Gemini free tier / Ollama local) | Testing / Development |
 | `subscription` | Free (via g4f, no API key required) | Trial use |

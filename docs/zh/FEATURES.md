@@ -323,7 +323,7 @@ provisioning -> idle -> busy -> idle
 | Claude Sonnet 4.6 | 0.003 | 0.015 |
 | Claude Haiku 4.5 | 0.001 | 0.005 |
 | GPT-5.4 | 0.005 | 0.015 |
-| GPT-5 Mini | 0.00015 | 0.0006 |
+| GPT-5.4 Mini | 0.00015 | 0.0006 |
 | Gemini 2.5 Pro | 0.00125 | 0.005 |
 | Gemini 2.5 Flash | 0.0001 | 0.0004 |
 | Gemini 2.5 Flash Lite | 0.00005 | 0.0002 |
@@ -356,7 +356,7 @@ provisioning -> idle -> busy -> idle
 
 | 模式 | 推荐模型 | 最大重试次数 | Judge 阈值 | 人工审查 | Cross-Model Verification |
 |------|---------|------------|-----------|---------|------------------------|
-| **DRAFT** | GPT-5 Mini, Claude Haiku 4.5 | 1 次 | 50% | 不需要 | 无 |
+| **DRAFT** | GPT-5.4 Mini, Claude Haiku 4.5 | 1 次 | 50% | 不需要 | 无 |
 | **STANDARD** | GPT-5.4, Claude Sonnet 4.6 | 2 次 | 70% | 不需要 | 无 |
 | **HIGH** | GPT-5.4, Claude Sonnet 4.6 | 3 次 | 85% | 不需要 | **有** |
 | **CRITICAL** | Claude Opus 4.6, GPT-5.4 | 5 次 | 95% | **必须** | **有** |
@@ -602,7 +602,7 @@ provisioning -> idle -> busy -> idle
 | 供应商 | 支持模型示例 |
 |--------|------------|
 | **OpenRouter** | 通过单一 API 密钥使用多个模型 |
-| **OpenAI** | GPT-5.4、GPT-5 Mini |
+| **OpenAI** | GPT-5.4、GPT-5.4 Mini |
 | **Anthropic** | Claude Opus 4.6、Sonnet 4.6、Haiku 4.5 |
 | **Google** | Gemini 2.5 Pro、Flash、Flash Lite |
 | **DeepSeek** | DeepSeek Chat |
@@ -618,8 +618,8 @@ provisioning -> idle -> busy -> idle
 | 模式 | 说明 | 推荐模型 |
 |------|------|---------|
 | `QUALITY` | 最高质量 | Claude Opus 4.6、GPT-5.4 |
-| `SPEED` | 快速响应 | Claude Haiku 4.5、GPT-5 Mini |
-| `COST` | 低成本 | Claude Haiku 4.5、GPT-5 Mini、DeepSeek |
+| `SPEED` | 快速响应 | Claude Haiku 4.5、GPT-5.4 Mini |
+| `COST` | 低成本 | Claude Haiku 4.5、GPT-5.4 Mini、DeepSeek |
 | `FREE` | 免费（本地 + 免费 API） | Ollama、Gemini 免费额度、g4f |
 | `SUBSCRIPTION` | 免费（无需 API 密钥） | 通过 g4f 的各种模型 |
 
@@ -2265,7 +2265,7 @@ AI 安全的只读数据库查询接口，用于故障排查和分析。
 
 | 检查 | 说明 |
 |------|------|
-| **提示注入** | 40+ 模式的 5 级威胁检测 |
+| **提示注入** | 28+ 模式的 5 级威胁检测 |
 | **PII 检测** | 13 类个人信息检测和掩码 |
 | **外部数据包装** | 对发送到 LLM 的外部数据添加边界标记 |
 
