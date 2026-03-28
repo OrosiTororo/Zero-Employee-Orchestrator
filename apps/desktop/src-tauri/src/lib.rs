@@ -3,8 +3,9 @@
 /// The desktop app wraps the React frontend and communicates
 /// with the Python FastAPI backend running as a sidecar process.
 
+use std::io::Write;
 use std::path::PathBuf;
-use std::process::{Child, Command};
+use std::process::{Child, Command, Stdio};
 use std::sync::Mutex;
 use std::time::Duration;
 use tauri::Manager;
@@ -14,27 +15,22 @@ struct BackendProcess(Mutex<Option<Child>>);
 /// Cached API directory so we can re-use it for restarts.
 struct ApiDir(Mutex<Option<PathBuf>>);
 
+/// Last error message from backend startup, readable by frontend.
+struct BackendError(Mutex<Option<String>>);
+
 /// Find the API directory relative to the executable or project root.
 fn find_api_dir() -> Option<PathBuf> {
-    // Build a list of candidate paths from multiple strategies.
     let mut candidates = vec![
-        // When running from apps/desktop/src-tauri (cargo tauri dev)
         PathBuf::from("../../api"),
-        // When running from project root
         PathBuf::from("apps/api"),
-        // When running from apps/desktop
         PathBuf::from("../api"),
     ];
 
-    // Also try paths relative to the executable location (production builds)
     if let Ok(exe) = std::env::current_exe() {
         if let Some(exe_dir) = exe.parent() {
-            // e.g. /usr/bin/../share/zero-employee-orchestrator/api
             candidates.push(exe_dir.join("../share/zero-employee-orchestrator/api"));
-            // Portable layout: executable next to apps/api
             candidates.push(exe_dir.join("apps/api"));
             candidates.push(exe_dir.join("../../apps/api"));
-            // macOS .app bundle: Contents/MacOS/../../Resources/api
             candidates.push(exe_dir.join("../Resources/api"));
         }
     }
@@ -63,7 +59,6 @@ fn has_uv() -> bool {
 }
 
 /// Install `uv` automatically if not present.
-/// Uses the official installer script (https://docs.astral.sh/uv/getting-started/installation/).
 fn ensure_uv() -> bool {
     if has_uv() {
         return true;
@@ -72,7 +67,6 @@ fn ensure_uv() -> bool {
     eprintln!("[sidecar] uv not found, installing automatically...");
 
     let result = if cfg!(windows) {
-        // Windows: powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
         Command::new("powershell")
             .args([
                 "-ExecutionPolicy",
@@ -82,7 +76,6 @@ fn ensure_uv() -> bool {
             ])
             .output()
     } else {
-        // macOS/Linux: curl -LsSf https://astral.sh/uv/install.sh | sh
         Command::new("sh")
             .args(["-c", "curl -LsSf https://astral.sh/uv/install.sh | sh"])
             .output()
@@ -91,15 +84,12 @@ fn ensure_uv() -> bool {
     match result {
         Ok(out) if out.status.success() => {
             eprintln!("[sidecar] uv installed successfully");
-            // The installer adds uv to ~/.local/bin or ~/.cargo/bin.
-            // Update PATH for the current process so subsequent Commands can find it.
             if let Ok(home) = std::env::var("HOME") {
                 if let Ok(path) = std::env::var("PATH") {
                     let extra = format!("{}/.local/bin:{}/.cargo/bin", home, home);
                     std::env::set_var("PATH", format!("{}:{}", extra, path));
                 }
             }
-            // Verify it's actually available now
             if has_uv() {
                 return true;
             }
@@ -122,10 +112,8 @@ fn ensure_uv() -> bool {
 
 /// Find a working Python interpreter (prefer .venv inside api dir).
 /// Automatically installs `uv` if needed, then creates venv and installs deps.
-/// `uv` also auto-downloads Python 3.12 if not present on the system.
 /// Returns (python_path, did_auto_setup).
 fn find_python(api_dir: &PathBuf) -> (String, bool) {
-    // Prefer the virtual environment bundled with the API
     let venv_python = if cfg!(windows) {
         api_dir.join(".venv").join("Scripts").join("python.exe")
     } else {
@@ -135,9 +123,7 @@ fn find_python(api_dir: &PathBuf) -> (String, bool) {
         return (venv_python.to_string_lossy().to_string(), false);
     }
 
-    // Ensure uv is available (auto-install if needed)
     if !ensure_uv() {
-        // Last resort: try system Python directly
         eprintln!("[sidecar] warning: could not install uv, falling back to system python");
         if cfg!(windows) {
             return ("python".to_string(), false);
@@ -146,8 +132,7 @@ fn find_python(api_dir: &PathBuf) -> (String, bool) {
         }
     }
 
-    // uv is available — create venv with Python 3.12 (uv auto-downloads Python if needed)
-    eprintln!("[sidecar] .venv not found, auto-setup with uv (Python will be downloaded if needed)...");
+    eprintln!("[sidecar] .venv not found, auto-setup with uv...");
     let venv_result = Command::new("uv")
         .args(["venv", "--python", "3.12", ".venv"])
         .current_dir(api_dir)
@@ -183,7 +168,6 @@ fn find_python(api_dir: &PathBuf) -> (String, bool) {
         }
         Err(e) => eprintln!("[sidecar] failed to run uv: {e}"),
     }
-    // Even if venv creation failed, uv run can still work
     ("uv".to_string(), true)
 }
 
@@ -202,7 +186,6 @@ fn wait_for_backend(max_attempts: u32) -> bool {
             }
         }
 
-        // Fallback: try a raw TCP connect if curl is unavailable
         if std::net::TcpStream::connect_timeout(
             &"127.0.0.1:18234".parse().unwrap(),
             Duration::from_secs(1),
@@ -216,7 +199,109 @@ fn wait_for_backend(max_attempts: u32) -> bool {
     false
 }
 
-fn spawn_backend_inner(api_dir: &PathBuf) -> Option<Child> {
+/// Generate a .env file in the API directory if it doesn't already exist.
+/// This mirrors the setup logic in start.sh that the sidecar would otherwise skip.
+fn ensure_env_file(api_dir: &PathBuf) {
+    let env_path = api_dir.join(".env");
+    if env_path.exists() {
+        return;
+    }
+
+    eprintln!("[sidecar] .env not found, generating default configuration...");
+
+    // Generate a random secret key using Python or a fallback
+    let secret = Command::new("python3")
+        .args(["-c", "import secrets; print(secrets.token_urlsafe(32))"])
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .map(|s| s.trim().to_string())
+        .unwrap_or_else(|| {
+            // Fallback: generate a simple random string in Rust
+            use std::time::{SystemTime, UNIX_EPOCH};
+            let ts = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_millis();
+            format!("auto-tauri-{}", ts)
+        });
+
+    let env_content = format!(
+        r#"DATABASE_URL=sqlite+aiosqlite:///./zero_employee_orchestrator.db
+SECRET_KEY={}
+DEBUG=true
+CORS_ORIGINS=["http://localhost:5173","http://localhost:3000","tauri://localhost","https://tauri.localhost"]
+DEFAULT_EXECUTION_MODE=subscription
+USE_G4F=true
+"#,
+        secret
+    );
+
+    match std::fs::File::create(&env_path) {
+        Ok(mut f) => {
+            if f.write_all(env_content.as_bytes()).is_ok() {
+                eprintln!("[sidecar] .env file created successfully");
+            } else {
+                eprintln!("[sidecar] failed to write .env file");
+            }
+        }
+        Err(e) => eprintln!("[sidecar] failed to create .env file: {e}"),
+    }
+}
+
+/// Kill any existing process listening on port 18234.
+fn kill_port_18234() {
+    if cfg!(windows) {
+        // netstat -ano | findstr :18234 → taskkill /PID ... /F
+        if let Ok(output) = Command::new("cmd")
+            .args(["/C", "for /f \"tokens=5\" %a in ('netstat -ano ^| findstr :18234 ^| findstr LISTENING') do taskkill /PID %a /F"])
+            .output()
+        {
+            if output.status.success() {
+                eprintln!("[sidecar] killed existing process on port 18234");
+            }
+        }
+    } else {
+        // lsof -ti :18234 | xargs kill -9
+        if let Ok(output) = Command::new("sh")
+            .args(["-c", "lsof -ti :18234 | xargs kill -9 2>/dev/null"])
+            .output()
+        {
+            if output.status.success() {
+                eprintln!("[sidecar] killed existing process on port 18234");
+                std::thread::sleep(Duration::from_millis(500));
+            }
+        }
+    }
+}
+
+/// Check if port 18234 is already in use.
+fn is_port_in_use() -> bool {
+    std::net::TcpStream::connect_timeout(
+        &"127.0.0.1:18234".parse().unwrap(),
+        Duration::from_millis(500),
+    )
+    .is_ok()
+}
+
+fn spawn_backend_inner(api_dir: &PathBuf) -> Result<Child, String> {
+    // Ensure .env file exists (equivalent to start.sh's auto-generation)
+    ensure_env_file(api_dir);
+
+    // If port is already in use, try to free it
+    if is_port_in_use() {
+        eprintln!("[sidecar] port 18234 is already in use, attempting to free it...");
+        kill_port_18234();
+        if is_port_in_use() {
+            return Err(
+                "ポート 18234 が他のプロセスに使用されています。\
+                 前回のプロセスが残っている可能性があります。"
+                    .to_string(),
+            );
+        }
+    }
+
     let (python, did_auto_setup) = find_python(api_dir);
     eprintln!(
         "[sidecar] starting backend: python={}, dir={}, auto_setup={}",
@@ -225,6 +310,7 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Option<Child> {
         did_auto_setup,
     );
 
+    // Capture stderr so we can report errors to the frontend
     let child = if python == "uv" {
         Command::new("uv")
             .args([
@@ -237,6 +323,7 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Option<Child> {
                 "18234",
             ])
             .current_dir(api_dir)
+            .stderr(Stdio::piped())
             .spawn()
     } else {
         Command::new(&python)
@@ -250,27 +337,36 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Option<Child> {
                 "18234",
             ])
             .current_dir(api_dir)
+            .stderr(Stdio::piped())
             .spawn()
     };
 
     match child {
         Ok(mut c) => {
             eprintln!("[sidecar] backend process spawned (pid={})", c.id());
-            // Brief pause then check if the process crashed immediately
             std::thread::sleep(Duration::from_millis(500));
             match c.try_wait() {
                 Ok(Some(status)) => {
-                    eprintln!(
-                        "[sidecar] backend process exited immediately with {status}. \
-                         Check that Python >= 3.12 is installed and dependencies are set up \
-                         (run: cd apps/api && uv venv --python 3.12 .venv && uv pip install -e .)"
-                    );
-                    return None;
+                    // Process crashed immediately — read stderr for the reason
+                    let mut error_msg = format!("バックエンドが起動直後にクラッシュしました (exit {status})");
+                    if let Some(stderr) = c.stderr.take() {
+                        use std::io::Read;
+                        let mut buf = String::new();
+                        let mut reader = std::io::BufReader::new(stderr);
+                        let _ = reader.read_to_string(&mut buf);
+                        if !buf.is_empty() {
+                            // Take last 500 chars of stderr for useful error context
+                            let tail: String = buf.chars().rev().take(500).collect::<Vec<_>>().into_iter().rev().collect();
+                            eprintln!("[sidecar] backend stderr:\n{}", tail);
+                            error_msg = format!("{}\n\n{}", error_msg, tail.trim());
+                        }
+                    }
+                    return Err(error_msg);
                 }
                 Ok(None) => { /* still running — good */ }
                 Err(e) => eprintln!("[sidecar] could not check process status: {e}"),
             }
-            // Wait for backend to respond. Don't block too long here —
+            // Wait for backend to respond. Don't block too long —
             // the frontend BackendGuard will continue polling and retrying.
             let max_wait = if did_auto_setup { 30 } else { 15 };
             let ready = wait_for_backend(max_wait);
@@ -281,26 +377,32 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Option<Child> {
                     max_wait
                 );
             }
-            Some(c)
+            Ok(c)
         }
         Err(e) => {
-            eprintln!("[sidecar] failed to start backend: {e}");
-            None
+            Err(format!(
+                "バックエンドプロセスの起動に失敗しました: {e}"
+            ))
         }
     }
 }
 
-fn spawn_backend() -> (Option<Child>, Option<PathBuf>) {
+fn spawn_backend() -> (Option<Child>, Option<PathBuf>, Option<String>) {
     let api_dir = match find_api_dir() {
         Some(d) => d,
         None => {
-            eprintln!("[sidecar] could not locate apps/api directory");
-            return (None, None);
+            return (
+                None,
+                None,
+                Some("API ディレクトリが見つかりません。".to_string()),
+            );
         }
     };
 
-    let child = spawn_backend_inner(&api_dir);
-    (child, Some(api_dir))
+    match spawn_backend_inner(&api_dir) {
+        Ok(child) => (Some(child), Some(api_dir), None),
+        Err(err) => (None, Some(api_dir), Some(err)),
+    }
 }
 
 /// Tauri command: restart the backend process from the frontend.
@@ -308,6 +410,7 @@ fn spawn_backend() -> (Option<Child>, Option<PathBuf>) {
 fn restart_backend(
     backend: tauri::State<'_, BackendProcess>,
     api_dir_state: tauri::State<'_, ApiDir>,
+    error_state: tauri::State<'_, BackendError>,
 ) -> Result<String, String> {
     // Kill existing process if any
     if let Ok(mut guard) = backend.0.lock() {
@@ -318,7 +421,6 @@ fn restart_backend(
         }
     }
 
-    // Determine API directory
     let api_dir = {
         let dir_guard = api_dir_state
             .0
@@ -329,17 +431,25 @@ fn restart_backend(
 
     let api_dir = match api_dir.or_else(find_api_dir) {
         Some(d) => d,
-        None => return Err("API directory not found".to_string()),
+        None => return Err("API ディレクトリが見つかりません。".to_string()),
     };
 
-    let child = spawn_backend_inner(&api_dir);
-    if child.is_some() {
-        if let Ok(mut guard) = backend.0.lock() {
-            *guard = child;
+    match spawn_backend_inner(&api_dir) {
+        Ok(child) => {
+            if let Ok(mut guard) = backend.0.lock() {
+                *guard = Some(child);
+            }
+            if let Ok(mut err) = error_state.0.lock() {
+                *err = None;
+            }
+            Ok("started".to_string())
         }
-        Ok("started".to_string())
-    } else {
-        Err("Backend failed to start".to_string())
+        Err(e) => {
+            if let Ok(mut err) = error_state.0.lock() {
+                *err = Some(e.clone());
+            }
+            Err(e)
+        }
     }
 }
 
@@ -361,6 +471,12 @@ fn check_backend_health() -> bool {
     .is_ok()
 }
 
+/// Tauri command: get the last backend startup error (if any).
+#[tauri::command]
+fn get_backend_error(error_state: tauri::State<'_, BackendError>) -> Option<String> {
+    error_state.0.lock().ok().and_then(|e| e.clone())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -368,18 +484,18 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             restart_backend,
-            check_backend_health
+            check_backend_health,
+            get_backend_error
         ])
         .setup(|app| {
-            // Spawn the Python backend as a sidecar process
-            let (child, api_dir) = spawn_backend();
+            let (child, api_dir, error) = spawn_backend();
             app.manage(BackendProcess(Mutex::new(child)));
             app.manage(ApiDir(Mutex::new(api_dir)));
+            app.manage(BackendError(Mutex::new(error)));
             Ok(())
         })
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::Destroyed = event {
-                // Kill the backend process when the window is closed
                 if let Some(state) = window.try_state::<BackendProcess>() {
                     if let Ok(mut guard) = state.0.lock() {
                         if let Some(mut child) = guard.take() {

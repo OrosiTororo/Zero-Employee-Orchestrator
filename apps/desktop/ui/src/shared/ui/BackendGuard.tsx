@@ -27,12 +27,14 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
     "checking",
   )
   const [setupMessage, setSetupMessage] = useState("")
+  const [errorDetail, setErrorDetail] = useState<string | null>(null)
   const retryCount = useRef(0)
-  // In Tauri mode, auto-retry up to 5 times (each with a long wait) before showing failure
+  // In Tauri mode, auto-retry up to 5 times before showing failure
   const maxAutoRetries = isTauri ? 5 : 0
 
   const check = useCallback(async () => {
     setStatus("checking")
+    setErrorDetail(null)
 
     if (isTauri) {
       setSetupMessage(
@@ -43,7 +45,6 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
     }
 
     // In Tauri mode, wait generously — the backend may take time on first launch
-    // 45 attempts * 2s = 90 seconds on first try
     const attempts = isTauri ? 45 : 15
     const interval = 2000
     const ok = await waitForBackend(attempts, interval)
@@ -54,8 +55,19 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
       return
     }
 
-    // In Tauri mode, auto-retry: first just re-check (process may still be starting),
-    // then try restart_backend if re-checks keep failing
+    // In Tauri mode, check if there's a specific error from the Rust side
+    if (isTauri) {
+      try {
+        const err = await tauriInvoke<string | null>("get_backend_error")
+        if (err) {
+          setErrorDetail(err)
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    // In Tauri mode, auto-retry
     if (isTauri && retryCount.current < maxAutoRetries) {
       retryCount.current += 1
       const attempt = retryCount.current
@@ -74,8 +86,12 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
         setSetupMessage("バックエンドを再起動しています...")
         try {
           await tauriInvoke("restart_backend")
+          setErrorDetail(null)
         } catch (e) {
-          console.error("[BackendGuard] restart_backend failed:", e)
+          // restart_backend returns the error as the rejection reason
+          const msg = e instanceof Error ? e.message : String(e)
+          setErrorDetail(msg)
+          console.error("[BackendGuard] restart_backend failed:", msg)
         }
         const retryOk = await waitForBackend(45, 2000)
         if (retryOk) {
@@ -108,7 +124,7 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="h-screen w-screen flex items-center justify-center bg-[var(--bg-base)]">
-      <div className="flex flex-col items-center gap-4 max-w-xs text-center">
+      <div className="flex flex-col items-center gap-4 max-w-sm text-center">
         <LogoMark
           size={36}
           className={status === "checking" ? "animate-pulse" : ""}
@@ -139,11 +155,20 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
               サーバーに接続できません
             </p>
             {isTauri ? (
-              <p className="text-[12px] text-[var(--text-muted)] leading-relaxed">
-                バックエンドの起動に失敗しました。
-                <br />
-                「再試行」ボタンで再度起動を試みます。
-              </p>
+              <>
+                <p className="text-[12px] text-[var(--text-muted)] leading-relaxed">
+                  バックエンドの起動に失敗しました。
+                  「再試行」ボタンで再度起動を試みます。
+                </p>
+                {errorDetail && (
+                  <div className="text-[11px] text-[var(--text-muted)] leading-relaxed text-left bg-[var(--bg-surface)] rounded-md p-3 w-full max-h-32 overflow-y-auto">
+                    <p className="mb-1 font-medium">エラー詳細:</p>
+                    <pre className="whitespace-pre-wrap break-all bg-[var(--bg-base)] px-2 py-1 rounded text-[10px]">
+                      {errorDetail}
+                    </pre>
+                  </div>
+                )}
+              </>
             ) : (
               <>
                 <p className="text-[12px] text-[var(--text-muted)] leading-relaxed">
