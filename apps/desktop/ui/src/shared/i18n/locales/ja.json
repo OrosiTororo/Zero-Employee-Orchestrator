@@ -53,7 +53,25 @@
     "googleLogin": "Googleでログイン",
     "googleRegister": "Googleで登録",
     "continueWithGoogle": "Googleアカウントで続行",
-    "orDivider": "または"
+    "orDivider": "または",
+    "startWithoutLogin": "ログインせずに始める",
+    "startWithoutLoginNote": "ログインすると複数デバイスでの状態共有が可能になります"
+  },
+  "backend": {
+    "connecting": "バックエンドに接続中...",
+    "waitingForServer": "サーバーの起動を待っています",
+    "startingBackend": "バックエンドを起動しています...",
+    "waitingForStartup": "起動を待っています...",
+    "takingLonger": "起動に時間がかかっています。もう少しお待ちください...",
+    "restartingBackend": "バックエンドを再起動しています...",
+    "firstRunNote": "初回起動時はセットアップに数分かかる場合があります",
+    "cannotConnect": "サーバーに接続できません",
+    "startupFailed": "バックエンドの起動に失敗しました。「再試行」ボタンで再度起動を試みます。",
+    "errorDetail": "エラー詳細:",
+    "checkBackend": "バックエンド API (port 18234) が起動しているか確認してください。",
+    "firstSetup": "初回セットアップ:",
+    "startServer": "サーバー起動:",
+    "retry": "再試行"
   },
   "brand": {
     "feature1Title": "自然言語で業務を設計",

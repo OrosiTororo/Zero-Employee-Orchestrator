@@ -53,7 +53,25 @@
     "googleLogin": "Log in with Google",
     "googleRegister": "Sign up with Google",
     "continueWithGoogle": "Continue with Google",
-    "orDivider": "or"
+    "orDivider": "or",
+    "startWithoutLogin": "Start without login",
+    "startWithoutLoginNote": "Login enables state sync across multiple devices"
+  },
+  "backend": {
+    "connecting": "Connecting to backend...",
+    "waitingForServer": "Waiting for server to start",
+    "startingBackend": "Starting backend...",
+    "waitingForStartup": "Waiting for startup...",
+    "takingLonger": "Startup is taking longer than expected. Please wait...",
+    "restartingBackend": "Restarting backend...",
+    "firstRunNote": "First launch setup may take a few minutes",
+    "cannotConnect": "Cannot connect to server",
+    "startupFailed": "Backend startup failed. Press \"Retry\" to try again.",
+    "errorDetail": "Error details:",
+    "checkBackend": "Please check if the backend API (port 18234) is running.",
+    "firstSetup": "First-time setup:",
+    "startServer": "Start server:",
+    "retry": "Retry"
   },
   "brand": {
     "feature1Title": "Design workflows in natural language",

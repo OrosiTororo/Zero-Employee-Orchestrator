@@ -53,7 +53,25 @@
     "googleLogin": "使用 Google 登录",
     "googleRegister": "使用 Google 注册",
     "continueWithGoogle": "通过 Google 账号继续",
-    "orDivider": "或"
+    "orDivider": "或",
+    "startWithoutLogin": "无需登录即可开始",
+    "startWithoutLoginNote": "登录后可在多设备间同步状态"
+  },
+  "backend": {
+    "connecting": "正在连接后端...",
+    "waitingForServer": "正在等待服务器启动",
+    "startingBackend": "正在启动后端...",
+    "waitingForStartup": "等待启动中...",
+    "takingLonger": "启动时间比预期更长，请稍候...",
+    "restartingBackend": "正在重启后端...",
+    "firstRunNote": "首次启动的设置可能需要几分钟",
+    "cannotConnect": "无法连接到服务器",
+    "startupFailed": "后端启动失败。点击「重试」再次尝试启动。",
+    "errorDetail": "错误详情：",
+    "checkBackend": "请检查后端 API（端口 18234）是否正在运行。",
+    "firstSetup": "首次设置：",
+    "startServer": "启动服务器：",
+    "retry": "重试"
   },
   "brand": {
     "feature1Title": "用自然语言设计工作流",

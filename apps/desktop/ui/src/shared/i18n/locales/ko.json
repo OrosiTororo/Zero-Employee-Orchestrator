@@ -53,7 +53,25 @@
     "googleLogin": "Google로 로그인",
     "googleRegister": "Google로 회원가입",
     "continueWithGoogle": "Google로 계속하기",
-    "orDivider": "또는"
+    "orDivider": "또는",
+    "startWithoutLogin": "로그인 없이 시작",
+    "startWithoutLoginNote": "로그인하면 여러 기기에서 상태를 동기화할 수 있습니다"
+  },
+  "backend": {
+    "connecting": "백엔드에 연결 중...",
+    "waitingForServer": "서버 시작을 기다리는 중",
+    "startingBackend": "백엔드를 시작하는 중...",
+    "waitingForStartup": "시작을 기다리는 중...",
+    "takingLonger": "시작이 예상보다 오래 걸리고 있습니다. 잠시만 기다려 주세요...",
+    "restartingBackend": "백엔드를 재시작하는 중...",
+    "firstRunNote": "첫 실행 시 설정에 몇 분이 걸릴 수 있습니다",
+    "cannotConnect": "서버에 연결할 수 없습니다",
+    "startupFailed": "백엔드 시작에 실패했습니다. \"재시도\" 버튼을 눌러 다시 시도하세요.",
+    "errorDetail": "오류 상세:",
+    "checkBackend": "백엔드 API(포트 18234)가 실행 중인지 확인해 주세요.",
+    "firstSetup": "최초 설정:",
+    "startServer": "서버 시작:",
+    "retry": "재시도"
   },
   "brand": {
     "feature1Title": "자연어로 워크플로우를 설계",
