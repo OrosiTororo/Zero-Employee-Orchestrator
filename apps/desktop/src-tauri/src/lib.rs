@@ -55,6 +55,7 @@ fn find_api_dir() -> Option<PathBuf> {
 }
 
 /// Find a working Python interpreter (prefer .venv inside api dir).
+/// If no .venv exists but `uv` is available, automatically create one and install deps.
 fn find_python(api_dir: &PathBuf) -> String {
     // Prefer the virtual environment bundled with the API
     let venv_python = if cfg!(windows) {
@@ -66,12 +67,50 @@ fn find_python(api_dir: &PathBuf) -> String {
         return venv_python.to_string_lossy().to_string();
     }
 
-    // Fallback to uv run (if uv is available)
+    // No .venv found — try to auto-create with uv if available
     if Command::new("uv").arg("--version").output().is_ok() {
+        eprintln!("[sidecar] .venv not found, attempting auto-setup with uv...");
+        let venv_result = Command::new("uv")
+            .args(["venv", "--python", "3.12", ".venv"])
+            .current_dir(api_dir)
+            .output();
+        match venv_result {
+            Ok(out) if out.status.success() => {
+                eprintln!("[sidecar] created .venv with Python 3.12");
+                let install_result = Command::new("uv")
+                    .args(["pip", "install", "-e", "."])
+                    .current_dir(api_dir)
+                    .output();
+                match install_result {
+                    Ok(out) if out.status.success() => {
+                        eprintln!("[sidecar] dependencies installed successfully");
+                    }
+                    Ok(out) => {
+                        eprintln!(
+                            "[sidecar] dependency install failed: {}",
+                            String::from_utf8_lossy(&out.stderr)
+                        );
+                    }
+                    Err(e) => eprintln!("[sidecar] failed to run uv pip install: {e}"),
+                }
+                if venv_python.exists() {
+                    return venv_python.to_string_lossy().to_string();
+                }
+            }
+            Ok(out) => {
+                eprintln!(
+                    "[sidecar] uv venv creation failed: {}",
+                    String::from_utf8_lossy(&out.stderr)
+                );
+            }
+            Err(e) => eprintln!("[sidecar] failed to run uv: {e}"),
+        }
+        // Even if venv creation failed, uv run can still work
         return "uv".to_string();
     }
 
     // Fallback to system Python
+    eprintln!("[sidecar] warning: no .venv and uv not found, using system python");
     if cfg!(windows) { "python".to_string() } else { "python3".to_string() }
 }
 
@@ -148,10 +187,24 @@ fn spawn_backend() -> Option<Child> {
     };
 
     match child {
-        Ok(c) => {
+        Ok(mut c) => {
             eprintln!("[sidecar] backend process spawned (pid={})", c.id());
-            // Give the backend time to start
-            wait_for_backend(10);
+            // Brief pause then check if the process crashed immediately
+            std::thread::sleep(Duration::from_millis(500));
+            match c.try_wait() {
+                Ok(Some(status)) => {
+                    eprintln!(
+                        "[sidecar] backend process exited immediately with {status}. \
+                         Check that Python >= 3.12 is installed and dependencies are set up \
+                         (run: cd apps/api && uv venv --python 3.12 .venv && uv pip install -e .)"
+                    );
+                    return None;
+                }
+                Ok(None) => { /* still running — good */ }
+                Err(e) => eprintln!("[sidecar] could not check process status: {e}"),
+            }
+            // Give the backend time to fully start
+            wait_for_backend(15);
             Some(c)
         }
         Err(e) => {
