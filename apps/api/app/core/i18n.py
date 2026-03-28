@@ -299,6 +299,335 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "pt": "Operação perigosa detectada: {op} (aprovação necessária)",
         "tr": "Tehlikeli işlem algılandı: {op} (onay gerekli)",
     },
+    # -- Security --
+    "security_injection_detected": {
+        "ja": "プロンプトインジェクションを検出しました（レベル: {level}）",
+        "en": "Prompt injection detected (level: {level})",
+        "zh": "检测到提示注入（级别：{level}）",
+        "ko": "프롬프트 인젝션 감지 (수준: {level})",
+        "pt": "Injeção de prompt detectada (nível: {level})",
+        "tr": "Prompt enjeksiyonu algılandı (seviye: {level})",
+    },
+    "security_pii_detected": {
+        "ja": "個人情報が {count} 件検出されました。マスキングを適用します。",
+        "en": "{count} PII item(s) detected. Masking applied.",
+        "zh": "检测到 {count} 项个人信息。已应用掩码。",
+        "ko": "개인정보 {count}건이 감지되었습니다. 마스킹이 적용됩니다.",
+        "pt": "{count} item(ns) de PII detectado(s). Mascaramento aplicado.",
+        "tr": "{count} kişisel veri tespit edildi. Maskeleme uygulandı.",
+    },
+    "security_sandbox_blocked": {
+        "ja": "ファイルアクセスがブロックされました: {path}",
+        "en": "File access blocked: {path}",
+        "zh": "文件访问被阻止：{path}",
+        "ko": "파일 접근이 차단되었습니다: {path}",
+        "pt": "Acesso ao arquivo bloqueado: {path}",
+        "tr": "Dosya erişimi engellendi: {path}",
+    },
+    "security_approval_needed": {
+        "ja": "この操作は承認が必要です: {category}",
+        "en": "This operation requires approval: {category}",
+        "zh": "此操作需要审批：{category}",
+        "ko": "이 작업은 승인이 필요합니다: {category}",
+        "pt": "Esta operação requer aprovação: {category}",
+        "tr": "Bu işlem onay gerektiriyor: {category}",
+    },
+    "security_data_protected": {
+        "ja": "データ保護ポリシーによりブロックされました",
+        "en": "Blocked by data protection policy",
+        "zh": "被数据保护策略阻止",
+        "ko": "데이터 보호 정책에 의해 차단됨",
+        "pt": "Bloqueado pela política de proteção de dados",
+        "tr": "Veri koruma politikası tarafından engellendi",
+    },
+    "security_redteam_passed": {
+        "ja": "セキュリティテスト合格: {passed}/{total}",
+        "en": "Security tests passed: {passed}/{total}",
+        "zh": "安全测试通过：{passed}/{total}",
+        "ko": "보안 테스트 통과: {passed}/{total}",
+        "pt": "Testes de segurança aprovados: {passed}/{total}",
+        "tr": "Güvenlik testleri geçti: {passed}/{total}",
+    },
+    # -- Settings --
+    "settings_language": {
+        "ja": "言語設定",
+        "en": "Language Settings",
+        "zh": "语言设置",
+        "ko": "언어 설정",
+        "pt": "Configurações de Idioma",
+        "tr": "Dil Ayarları",
+    },
+    "settings_provider": {
+        "ja": "LLM プロバイダー設定",
+        "en": "LLM Provider Settings",
+        "zh": "LLM 提供商设置",
+        "ko": "LLM 프로바이더 설정",
+        "pt": "Configurações do Provedor LLM",
+        "tr": "LLM Sağlayıcı Ayarları",
+    },
+    "settings_security": {
+        "ja": "セキュリティ設定",
+        "en": "Security Settings",
+        "zh": "安全设置",
+        "ko": "보안 설정",
+        "pt": "Configurações de Segurança",
+        "tr": "Güvenlik Ayarları",
+    },
+    "settings_saved": {
+        "ja": "設定を保存しました",
+        "en": "Settings saved",
+        "zh": "设置已保存",
+        "ko": "설정이 저장되었습니다",
+        "pt": "Configurações salvas",
+        "tr": "Ayarlar kaydedildi",
+    },
+    # -- Navigation --
+    "nav_dashboard": {
+        "ja": "ダッシュボード",
+        "en": "Dashboard",
+        "zh": "仪表板",
+        "ko": "대시보드",
+        "pt": "Painel",
+        "tr": "Kontrol Paneli",
+    },
+    "nav_tickets": {
+        "ja": "チケット",
+        "en": "Tickets",
+        "zh": "工单",
+        "ko": "티켓",
+        "pt": "Tickets",
+        "tr": "Biletler",
+    },
+    "nav_approvals": {
+        "ja": "承認管理",
+        "en": "Approvals",
+        "zh": "审批管理",
+        "ko": "승인 관리",
+        "pt": "Aprovações",
+        "tr": "Onaylar",
+    },
+    "nav_audit": {
+        "ja": "監査ログ",
+        "en": "Audit Log",
+        "zh": "审计日志",
+        "ko": "감사 로그",
+        "pt": "Log de Auditoria",
+        "tr": "Denetim Günlüğü",
+    },
+    "nav_settings": {
+        "ja": "設定",
+        "en": "Settings",
+        "zh": "设置",
+        "ko": "설정",
+        "pt": "Configurações",
+        "tr": "Ayarlar",
+    },
+    "nav_skills": {
+        "ja": "スキル管理",
+        "en": "Skills",
+        "zh": "技能管理",
+        "ko": "스킬 관리",
+        "pt": "Skills",
+        "tr": "Beceriler",
+    },
+    "nav_plugins": {
+        "ja": "プラグイン",
+        "en": "Plugins",
+        "zh": "插件",
+        "ko": "플러그인",
+        "pt": "Plugins",
+        "tr": "Eklentiler",
+    },
+    "nav_marketplace": {
+        "ja": "マーケットプレイス",
+        "en": "Marketplace",
+        "zh": "市场",
+        "ko": "마켓플레이스",
+        "pt": "Marketplace",
+        "tr": "Pazar Yeri",
+    },
+    # -- Common actions --
+    "action_save": {
+        "ja": "保存",
+        "en": "Save",
+        "zh": "保存",
+        "ko": "저장",
+        "pt": "Salvar",
+        "tr": "Kaydet",
+    },
+    "action_cancel": {
+        "ja": "キャンセル",
+        "en": "Cancel",
+        "zh": "取消",
+        "ko": "취소",
+        "pt": "Cancelar",
+        "tr": "İptal",
+    },
+    "action_delete": {
+        "ja": "削除",
+        "en": "Delete",
+        "zh": "删除",
+        "ko": "삭제",
+        "pt": "Excluir",
+        "tr": "Sil",
+    },
+    "action_edit": {
+        "ja": "編集",
+        "en": "Edit",
+        "zh": "编辑",
+        "ko": "편집",
+        "pt": "Editar",
+        "tr": "Düzenle",
+    },
+    "action_create": {
+        "ja": "作成",
+        "en": "Create",
+        "zh": "创建",
+        "ko": "생성",
+        "pt": "Criar",
+        "tr": "Oluştur",
+    },
+    "action_approve": {
+        "ja": "承認",
+        "en": "Approve",
+        "zh": "审批",
+        "ko": "승인",
+        "pt": "Aprovar",
+        "tr": "Onayla",
+    },
+    "action_reject": {
+        "ja": "却下",
+        "en": "Reject",
+        "zh": "拒绝",
+        "ko": "거부",
+        "pt": "Rejeitar",
+        "tr": "Reddet",
+    },
+    "action_retry": {
+        "ja": "再試行",
+        "en": "Retry",
+        "zh": "重试",
+        "ko": "재시도",
+        "pt": "Tentar Novamente",
+        "tr": "Yeniden Dene",
+    },
+    # -- Skill / Plugin / Extension --
+    "skill_installed": {
+        "ja": "スキルをインストールしました: {name}",
+        "en": "Skill installed: {name}",
+        "zh": "已安装技能：{name}",
+        "ko": "스킬이 설치되었습니다: {name}",
+        "pt": "Skill instalado: {name}",
+        "tr": "Beceri yüklendi: {name}",
+    },
+    "skill_generated": {
+        "ja": "スキルを自動生成しました: {name}",
+        "en": "Skill auto-generated: {name}",
+        "zh": "已自动生成技能：{name}",
+        "ko": "스킬이 자동 생성되었습니다: {name}",
+        "pt": "Skill gerado automaticamente: {name}",
+        "tr": "Beceri otomatik oluşturuldu: {name}",
+    },
+    "plugin_loaded": {
+        "ja": "プラグインをロードしました: {name}",
+        "en": "Plugin loaded: {name}",
+        "zh": "已加载插件：{name}",
+        "ko": "플러그인이 로드되었습니다: {name}",
+        "pt": "Plugin carregado: {name}",
+        "tr": "Eklenti yüklendi: {name}",
+    },
+    # -- Server / health --
+    "server_starting": {
+        "ja": "サーバーを起動中...",
+        "en": "Starting server...",
+        "zh": "正在启动服务器...",
+        "ko": "서버 시작 중...",
+        "pt": "Iniciando servidor...",
+        "tr": "Sunucu başlatılıyor...",
+    },
+    "server_ready": {
+        "ja": "サーバー起動完了: http://localhost:{port}",
+        "en": "Server ready: http://localhost:{port}",
+        "zh": "服务器就绪：http://localhost:{port}",
+        "ko": "서버 준비 완료: http://localhost:{port}",
+        "pt": "Servidor pronto: http://localhost:{port}",
+        "tr": "Sunucu hazır: http://localhost:{port}",
+    },
+    "server_shutdown": {
+        "ja": "サーバーを停止しました",
+        "en": "Server stopped",
+        "zh": "服务器已停止",
+        "ko": "서버가 중지되었습니다",
+        "pt": "Servidor parado",
+        "tr": "Sunucu durduruldu",
+    },
+    "health_ok": {
+        "ja": "ヘルスチェック: 正常",
+        "en": "Health check: OK",
+        "zh": "健康检查：正常",
+        "ko": "헬스 체크: 정상",
+        "pt": "Verificação de saúde: OK",
+        "tr": "Sağlık kontrolü: Tamam",
+    },
+    "health_degraded": {
+        "ja": "ヘルスチェック: 一部劣化（{detail}）",
+        "en": "Health check: degraded ({detail})",
+        "zh": "健康检查：部分降级（{detail}）",
+        "ko": "헬스 체크: 일부 저하 ({detail})",
+        "pt": "Verificação de saúde: degradado ({detail})",
+        "tr": "Sağlık kontrolü: bozulmuş ({detail})",
+    },
+    # -- Budget / cost --
+    "budget_exceeded": {
+        "ja": "予算上限に達しました（使用額: ${spent}, 上限: ${limit}）",
+        "en": "Budget limit reached (spent: ${spent}, limit: ${limit})",
+        "zh": "已达预算上限（已用：${spent}，上限：${limit}）",
+        "ko": "예산 한도에 도달했습니다 (사용: ${spent}, 한도: ${limit})",
+        "pt": "Limite de orçamento atingido (gasto: ${spent}, limite: ${limit})",
+        "tr": "Bütçe limitine ulaşıldı (harcanan: ${spent}, limit: ${limit})",
+    },
+    "cost_estimate": {
+        "ja": "推定コスト: ${cost}（モデル: {model}）",
+        "en": "Estimated cost: ${cost} (model: {model})",
+        "zh": "预估成本：${cost}（模型：{model}）",
+        "ko": "예상 비용: ${cost} (모델: {model})",
+        "pt": "Custo estimado: ${cost} (modelo: {model})",
+        "tr": "Tahmini maliyet: ${cost} (model: {model})",
+    },
+    # -- Judge Layer --
+    "judge_pass": {
+        "ja": "品質検証合格（スコア: {score}）",
+        "en": "Quality check passed (score: {score})",
+        "zh": "质量验证通过（分数：{score}）",
+        "ko": "품질 검증 통과 (점수: {score})",
+        "pt": "Verificação de qualidade aprovada (pontuação: {score})",
+        "tr": "Kalite kontrolü geçti (puan: {score})",
+    },
+    "judge_fail": {
+        "ja": "品質検証不合格（理由: {reason}）→ Re-Propose を開始",
+        "en": "Quality check failed ({reason}) → starting Re-Propose",
+        "zh": "质量验证未通过（{reason}）→ 开始重新提案",
+        "ko": "품질 검증 실패 ({reason}) → Re-Propose 시작",
+        "pt": "Verificação falhou ({reason}) → iniciando Re-Propose",
+        "tr": "Kalite kontrolü başarısız ({reason}) → Yeniden Öneri başlatılıyor",
+    },
+    # -- Browser Assist --
+    "browser_connected": {
+        "ja": "ブラウザアシストに接続しました",
+        "en": "Connected to Browser Assist",
+        "zh": "已连接到浏览器助手",
+        "ko": "브라우저 어시스트에 연결되었습니다",
+        "pt": "Conectado ao Browser Assist",
+        "tr": "Tarayıcı Yardımcısı'na bağlanıldı",
+    },
+    "browser_screenshot": {
+        "ja": "スクリーンショットを分析中...",
+        "en": "Analyzing screenshot...",
+        "zh": "正在分析截图...",
+        "ko": "스크린샷 분석 중...",
+        "pt": "Analisando captura de tela...",
+        "tr": "Ekran görüntüsü analiz ediliyor...",
+    },
 }
 
 
@@ -306,7 +635,7 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
 # Translation function
 # ---------------------------------------------------------------------------
 
-_current_lang: str = "ja"
+_current_lang: str = "en"
 
 
 def set_language(lang: str) -> None:
@@ -376,7 +705,7 @@ def init_language_from_env() -> None:
         elif "tr" in system_lang:
             set_language("tr")
         else:
-            set_language("ja")  # default to Japanese per project convention
+            set_language("en")  # default to English for wider adoption
 
 
 init_language_from_env()

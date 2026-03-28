@@ -75,8 +75,8 @@ class Settings(BaseSettings):
     # Local RAG store directory (for file-based vector DB)
     RAG_STORE_DIR: str = ".zero_employee/rag_store"
 
-    # Language: ja (Japanese) / en (English) / zh (Chinese)
-    LANGUAGE: str = "ja"
+    # Language: en (English) / ja (Japanese) / zh (Chinese) / ko (Korean) / pt (Portuguese) / tr (Turkish)
+    LANGUAGE: str = "en"
 
     # g4f (subscription/no-API-key mode)
     # When true, g4f is loaded at startup enabling free AI access without API keys.

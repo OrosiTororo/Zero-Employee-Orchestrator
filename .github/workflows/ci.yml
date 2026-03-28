@@ -129,8 +129,7 @@ jobs:
           path: apps/api/coverage.xml
 
       - name: Dependency security audit
-        run: pip-audit --strict --desc 2>&1 || true
-        continue-on-error: true
+        run: pip-audit --strict --desc
 
       - name: Verify Alembic migrations
         run: |
@@ -148,6 +147,68 @@ jobs:
               await engine.dispose()
               print('✅ All models create tables successfully')
           asyncio.run(check())
+          "
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build Docker image
+        run: docker build -t zeo-test:latest .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: zeo-test:latest
+          format: table
+          exit-code: 1
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+
+  redteam-tests:
+    name: Red-team Security Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest pytest-asyncio
+
+      - name: Run red-team tests
+        run: |
+          python -c "
+          import asyncio
+          from app.security.redteam import redteam_service
+
+          async def run():
+              report = await redteam_service.run_all_tests()
+              print(f'Total: {report.total_tests}')
+              print(f'Passed: {report.passed}')
+              print(f'Failed: {report.failed}')
+              print(f'Critical: {report.critical_findings}')
+              print(f'High: {report.high_findings}')
+              for r in report.results:
+                  status = 'PASS' if r.passed else 'FAIL'
+                  print(f'  [{status}] {r.test_id}: {r.actual_behavior}')
+              if report.critical_findings > 0:
+                  print(f'::error::Red-team found {report.critical_findings} critical vulnerabilities')
+                  exit(1)
+              if report.failed > report.total_tests * 0.2:
+                  print(f'::warning::Red-team failure rate > 20%: {report.failed}/{report.total_tests}')
+
+          asyncio.run(run())
           "
 
   frontend-check:

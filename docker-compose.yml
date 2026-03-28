@@ -5,6 +5,9 @@
 #   docker compose up -d          # Start all services
 #   docker compose up api         # Start API only
 #   docker compose logs -f api    # View logs
+#
+# Production:
+#   docker compose --profile production up -d
 
 services:
   api:
@@ -21,6 +24,7 @@ services:
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - LANGUAGE=${LANGUAGE:-en}
     volumes:
       - app-data:/app/data
       - rag-store:/app/.zero_employee
@@ -31,6 +35,27 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "2.0"
+        reservations:
+          memory: 512M
+          cpus: "0.5"
+    networks:
+      - zeo-internal
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:size=100M
 
   # Cloudflare Workers Edge (optional)
   edge:
@@ -44,9 +69,29 @@ services:
       - API_BACKEND_URL=http://api:18234
     user: "1000:1000"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     profiles:
       - edge
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+    networks:
+      - zeo-internal
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  zeo-internal:
+    driver: bridge
+    internal: false
 
 volumes:
   app-data:
