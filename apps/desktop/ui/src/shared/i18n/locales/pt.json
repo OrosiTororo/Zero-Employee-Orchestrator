@@ -53,7 +53,25 @@
     "googleLogin": "Entrar com Google",
     "googleRegister": "Cadastrar com Google",
     "continueWithGoogle": "Continuar com Google",
-    "orDivider": "ou"
+    "orDivider": "ou",
+    "startWithoutLogin": "Começar sem login",
+    "startWithoutLoginNote": "O login permite sincronizar o estado entre vários dispositivos"
+  },
+  "backend": {
+    "connecting": "Conectando ao backend...",
+    "waitingForServer": "Aguardando o servidor iniciar",
+    "startingBackend": "Iniciando o backend...",
+    "waitingForStartup": "Aguardando inicialização...",
+    "takingLonger": "A inicialização está demorando mais que o esperado. Aguarde...",
+    "restartingBackend": "Reiniciando o backend...",
+    "firstRunNote": "A configuração inicial pode levar alguns minutos",
+    "cannotConnect": "Não foi possível conectar ao servidor",
+    "startupFailed": "Falha ao iniciar o backend. Pressione \"Tentar novamente\" para tentar de novo.",
+    "errorDetail": "Detalhes do erro:",
+    "checkBackend": "Verifique se a API do backend (porta 18234) está em execução.",
+    "firstSetup": "Configuração inicial:",
+    "startServer": "Iniciar servidor:",
+    "retry": "Tentar novamente"
   },
   "brand": {
     "feature1Title": "Defina fluxos de trabalho em linguagem natural",

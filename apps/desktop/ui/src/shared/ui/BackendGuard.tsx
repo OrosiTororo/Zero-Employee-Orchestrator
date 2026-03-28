@@ -1,13 +1,12 @@
 import { useEffect, useState, useCallback, useRef } from "react"
 import { waitForBackend } from "@/shared/api/client"
 import { LogoMark } from "@/shared/ui/Logo"
+import { useI18n, useT, LOCALE_LABELS, type Locale } from "@/shared/i18n"
+import { Globe } from "lucide-react"
 
 const isTauri =
   typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
 
-/**
- * Invoke a Tauri command via __TAURI_INTERNALS__ (no extra npm dependency needed).
- */
 function tauriInvoke<T>(cmd: string, args?: Record<string, unknown>): Promise<T> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const internals = (window as any).__TAURI_INTERNALS__
@@ -17,19 +16,56 @@ function tauriInvoke<T>(cmd: string, args?: Record<string, unknown>): Promise<T>
   return internals.invoke(cmd, args)
 }
 
+/** Compact language switcher shown on pre-login screens. */
+function LanguageSwitcher() {
+  const { locale, setLocale } = useI18n()
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[12px] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"
+      >
+        <Globe size={14} />
+        {LOCALE_LABELS[locale]}
+      </button>
+      {open && (
+        <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-[var(--bg-surface)] border border-[var(--border)] rounded-md shadow-lg py-1 min-w-[140px] z-50">
+          {(Object.keys(LOCALE_LABELS) as Locale[]).map((loc) => (
+            <button
+              key={loc}
+              onClick={() => {
+                setLocale(loc)
+                setOpen(false)
+              }}
+              className={`w-full text-left px-3 py-1.5 text-[12px] hover:bg-[var(--bg-hover)] transition-colors ${
+                loc === locale
+                  ? "text-[var(--accent)] font-medium"
+                  : "text-[var(--text-primary)]"
+              }`}
+            >
+              {LOCALE_LABELS[loc]}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 /**
- * アプリ全体をラップし、バックエンド未接続時は「接続中」画面を表示する。
- * Tauri (Desktop App) 環境では自動セットアップ・再起動を行い、
- * コマンド操作不要で起動できるようにする。
+ * Wraps the entire app and shows a "connecting" screen while the backend is unavailable.
+ * In Tauri (Desktop App) mode, auto-setup and restart are handled automatically.
  */
 export function BackendGuard({ children }: { children: React.ReactNode }) {
+  const t = useT()
   const [status, setStatus] = useState<"checking" | "connected" | "failed">(
     "checking",
   )
   const [setupMessage, setSetupMessage] = useState("")
   const [errorDetail, setErrorDetail] = useState<string | null>(null)
   const retryCount = useRef(0)
-  // In Tauri mode, auto-retry up to 5 times before showing failure
   const maxAutoRetries = isTauri ? 5 : 0
 
   const check = useCallback(async () => {
@@ -39,12 +75,11 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
     if (isTauri) {
       setSetupMessage(
         retryCount.current === 0
-          ? "バックエンドを起動しています..."
-          : "起動を待っています...",
+          ? t.backend.startingBackend
+          : t.backend.waitingForStartup,
       )
     }
 
-    // In Tauri mode, wait generously — the backend may take time on first launch
     const attempts = isTauri ? 45 : 15
     const interval = 2000
     const ok = await waitForBackend(attempts, interval)
@@ -55,7 +90,6 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
       return
     }
 
-    // In Tauri mode, check if there's a specific error from the Rust side
     if (isTauri) {
       try {
         const err = await tauriInvoke<string | null>("get_backend_error")
@@ -67,14 +101,12 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // In Tauri mode, auto-retry
     if (isTauri && retryCount.current < maxAutoRetries) {
       retryCount.current += 1
       const attempt = retryCount.current
 
       if (attempt <= 2) {
-        // First 2 retries: just wait more — the process is likely still starting
-        setSetupMessage("起動に時間がかかっています。もう少しお待ちください...")
+        setSetupMessage(t.backend.takingLonger)
         const retryOk = await waitForBackend(30, 2000)
         if (retryOk) {
           setStatus("connected")
@@ -82,13 +114,11 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
           return
         }
       } else {
-        // After that, try restarting the backend process
-        setSetupMessage("バックエンドを再起動しています...")
+        setSetupMessage(t.backend.restartingBackend)
         try {
           await tauriInvoke("restart_backend")
           setErrorDetail(null)
         } catch (e) {
-          // restart_backend returns the error as the rejection reason
           const msg = e instanceof Error ? e.message : String(e)
           setErrorDetail(msg)
           console.error("[BackendGuard] restart_backend failed:", msg)
@@ -101,13 +131,12 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // Recurse to try next retry
       check()
       return
     }
 
     setStatus("failed")
-  }, [maxAutoRetries])
+  }, [maxAutoRetries, t])
 
   useEffect(() => {
     check()
@@ -132,16 +161,16 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
         {status === "checking" && (
           <>
             <p className="text-[14px] font-medium text-[var(--text-primary)]">
-              バックエンドに接続中...
+              {t.backend.connecting}
             </p>
             <p className="text-[12px] text-[var(--text-muted)]">
               {isTauri && setupMessage
                 ? setupMessage
-                : "サーバーの起動を待っています"}
+                : t.backend.waitingForServer}
             </p>
             {isTauri && retryCount.current > 0 && (
               <p className="text-[11px] text-[var(--text-muted)]">
-                初回起動時はセットアップに数分かかる場合があります
+                {t.backend.firstRunNote}
               </p>
             )}
             <div className="w-32 h-1 rounded-full bg-[var(--border)] overflow-hidden">
@@ -152,17 +181,16 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
         {status === "failed" && (
           <>
             <p className="text-[14px] font-medium text-[var(--text-primary)]">
-              サーバーに接続できません
+              {t.backend.cannotConnect}
             </p>
             {isTauri ? (
               <>
                 <p className="text-[12px] text-[var(--text-muted)] leading-relaxed">
-                  バックエンドの起動に失敗しました。
-                  「再試行」ボタンで再度起動を試みます。
+                  {t.backend.startupFailed}
                 </p>
                 {errorDetail && (
                   <div className="text-[11px] text-[var(--text-muted)] leading-relaxed text-left bg-[var(--bg-surface)] rounded-md p-3 w-full max-h-32 overflow-y-auto">
-                    <p className="mb-1 font-medium">エラー詳細:</p>
+                    <p className="mb-1 font-medium">{t.backend.errorDetail}</p>
                     <pre className="whitespace-pre-wrap break-all bg-[var(--bg-base)] px-2 py-1 rounded text-[10px]">
                       {errorDetail}
                     </pre>
@@ -172,14 +200,14 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
             ) : (
               <>
                 <p className="text-[12px] text-[var(--text-muted)] leading-relaxed">
-                  バックエンド API (port 18234) が起動しているか確認してください。
+                  {t.backend.checkBackend}
                 </p>
                 <div className="text-[11px] text-[var(--text-muted)] leading-relaxed text-left bg-[var(--bg-surface)] rounded-md p-3 w-full">
-                  <p className="mb-1.5 font-medium">初回セットアップ:</p>
+                  <p className="mb-1.5 font-medium">{t.backend.firstSetup}</p>
                   <code className="block bg-[var(--bg-base)] px-2 py-1 rounded mb-1.5">
                     cd apps/api && uv venv --python 3.12 .venv && uv pip install -e .
                   </code>
-                  <p className="mb-1.5 font-medium">サーバー起動:</p>
+                  <p className="mb-1.5 font-medium">{t.backend.startServer}</p>
                   <code className="block bg-[var(--bg-base)] px-2 py-1 rounded">
                     zero-employee serve --reload
                   </code>
@@ -193,10 +221,13 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
                 background: "linear-gradient(135deg, #0078d4, #6d28d9)",
               }}
             >
-              再試行
+              {t.backend.retry}
             </button>
           </>
         )}
+        <div className="mt-2">
+          <LanguageSwitcher />
+        </div>
       </div>
     </div>
   )

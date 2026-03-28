@@ -44,7 +44,25 @@
     },
     "windows": {
       "wix": {
-        "language": "en-US"
+        "language": [
+          "en-US",
+          "ja-JP",
+          "zh-CN",
+          "ko-KR",
+          "pt-BR"
+        ]
+      },
+      "nsis": {
+        "installMode": "both",
+        "displayLanguageSelector": true,
+        "languages": [
+          "English",
+          "Japanese",
+          "SimpChinese",
+          "Korean",
+          "PortugueseBR",
+          "Turkish"
+        ]
       }
     }
   },

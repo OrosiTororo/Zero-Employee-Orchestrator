@@ -53,7 +53,25 @@
     "googleLogin": "Google ile giriş yap",
     "googleRegister": "Google ile kayıt ol",
     "continueWithGoogle": "Google ile devam et",
-    "orDivider": "veya"
+    "orDivider": "veya",
+    "startWithoutLogin": "Giriş yapmadan başla",
+    "startWithoutLoginNote": "Giriş yaparak durumu birden fazla cihazda senkronize edebilirsiniz"
+  },
+  "backend": {
+    "connecting": "Arka uca bağlanılıyor...",
+    "waitingForServer": "Sunucunun başlatılması bekleniyor",
+    "startingBackend": "Arka uç başlatılıyor...",
+    "waitingForStartup": "Başlatma bekleniyor...",
+    "takingLonger": "Başlatma beklenenden uzun sürüyor. Lütfen bekleyin...",
+    "restartingBackend": "Arka uç yeniden başlatılıyor...",
+    "firstRunNote": "İlk çalıştırmada kurulum birkaç dakika sürebilir",
+    "cannotConnect": "Sunucuya bağlanılamıyor",
+    "startupFailed": "Arka uç başlatılamadı. Tekrar denemek için \"Tekrar dene\" düğmesine basın.",
+    "errorDetail": "Hata ayrıntıları:",
+    "checkBackend": "Lütfen arka uç API'nin (port 18234) çalışıp çalışmadığını kontrol edin.",
+    "firstSetup": "İlk kurulum:",
+    "startServer": "Sunucuyu başlat:",
+    "retry": "Tekrar dene"
   },
   "brand": {
     "feature1Title": "Doğal dilde iş akışları tasarlayın",
