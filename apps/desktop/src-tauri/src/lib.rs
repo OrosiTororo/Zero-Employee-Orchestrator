@@ -57,8 +57,72 @@ fn find_api_dir() -> Option<PathBuf> {
     None
 }
 
+/// Check if `uv` is available on the system.
+fn has_uv() -> bool {
+    Command::new("uv").arg("--version").output().is_ok()
+}
+
+/// Install `uv` automatically if not present.
+/// Uses the official installer script (https://docs.astral.sh/uv/getting-started/installation/).
+fn ensure_uv() -> bool {
+    if has_uv() {
+        return true;
+    }
+
+    eprintln!("[sidecar] uv not found, installing automatically...");
+
+    let result = if cfg!(windows) {
+        // Windows: powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+        Command::new("powershell")
+            .args([
+                "-ExecutionPolicy",
+                "ByPass",
+                "-c",
+                "irm https://astral.sh/uv/install.ps1 | iex",
+            ])
+            .output()
+    } else {
+        // macOS/Linux: curl -LsSf https://astral.sh/uv/install.sh | sh
+        Command::new("sh")
+            .args(["-c", "curl -LsSf https://astral.sh/uv/install.sh | sh"])
+            .output()
+    };
+
+    match result {
+        Ok(out) if out.status.success() => {
+            eprintln!("[sidecar] uv installed successfully");
+            // The installer adds uv to ~/.local/bin or ~/.cargo/bin.
+            // Update PATH for the current process so subsequent Commands can find it.
+            if let Ok(home) = std::env::var("HOME") {
+                if let Ok(path) = std::env::var("PATH") {
+                    let extra = format!("{}/.local/bin:{}/.cargo/bin", home, home);
+                    std::env::set_var("PATH", format!("{}:{}", extra, path));
+                }
+            }
+            // Verify it's actually available now
+            if has_uv() {
+                return true;
+            }
+            eprintln!("[sidecar] uv installed but not found on PATH");
+            false
+        }
+        Ok(out) => {
+            eprintln!(
+                "[sidecar] uv installation failed: {}",
+                String::from_utf8_lossy(&out.stderr)
+            );
+            false
+        }
+        Err(e) => {
+            eprintln!("[sidecar] failed to run uv installer: {e}");
+            false
+        }
+    }
+}
+
 /// Find a working Python interpreter (prefer .venv inside api dir).
-/// If no .venv exists but `uv` is available, automatically create one and install deps.
+/// Automatically installs `uv` if needed, then creates venv and installs deps.
+/// `uv` also auto-downloads Python 3.12 if not present on the system.
 /// Returns (python_path, did_auto_setup).
 fn find_python(api_dir: &PathBuf) -> (String, bool) {
     // Prefer the virtual environment bundled with the API
@@ -71,55 +135,56 @@ fn find_python(api_dir: &PathBuf) -> (String, bool) {
         return (venv_python.to_string_lossy().to_string(), false);
     }
 
-    // No .venv found — try to auto-create with uv if available
-    if Command::new("uv").arg("--version").output().is_ok() {
-        eprintln!("[sidecar] .venv not found, attempting auto-setup with uv...");
-        let venv_result = Command::new("uv")
-            .args(["venv", "--python", "3.12", ".venv"])
-            .current_dir(api_dir)
-            .output();
-        match venv_result {
-            Ok(out) if out.status.success() => {
-                eprintln!("[sidecar] created .venv with Python 3.12");
-                let install_result = Command::new("uv")
-                    .args(["pip", "install", "-e", "."])
-                    .current_dir(api_dir)
-                    .output();
-                match install_result {
-                    Ok(out) if out.status.success() => {
-                        eprintln!("[sidecar] dependencies installed successfully");
-                    }
-                    Ok(out) => {
-                        eprintln!(
-                            "[sidecar] dependency install failed: {}",
-                            String::from_utf8_lossy(&out.stderr)
-                        );
-                    }
-                    Err(e) => eprintln!("[sidecar] failed to run uv pip install: {e}"),
-                }
-                if venv_python.exists() {
-                    return (venv_python.to_string_lossy().to_string(), true);
-                }
-            }
-            Ok(out) => {
-                eprintln!(
-                    "[sidecar] uv venv creation failed: {}",
-                    String::from_utf8_lossy(&out.stderr)
-                );
-            }
-            Err(e) => eprintln!("[sidecar] failed to run uv: {e}"),
+    // Ensure uv is available (auto-install if needed)
+    if !ensure_uv() {
+        // Last resort: try system Python directly
+        eprintln!("[sidecar] warning: could not install uv, falling back to system python");
+        if cfg!(windows) {
+            return ("python".to_string(), false);
+        } else {
+            return ("python3".to_string(), false);
         }
-        // Even if venv creation failed, uv run can still work
-        return ("uv".to_string(), true);
     }
 
-    // Fallback to system Python
-    eprintln!("[sidecar] warning: no .venv and uv not found, using system python");
-    if cfg!(windows) {
-        ("python".to_string(), false)
-    } else {
-        ("python3".to_string(), false)
+    // uv is available — create venv with Python 3.12 (uv auto-downloads Python if needed)
+    eprintln!("[sidecar] .venv not found, auto-setup with uv (Python will be downloaded if needed)...");
+    let venv_result = Command::new("uv")
+        .args(["venv", "--python", "3.12", ".venv"])
+        .current_dir(api_dir)
+        .output();
+    match venv_result {
+        Ok(out) if out.status.success() => {
+            eprintln!("[sidecar] created .venv with Python 3.12");
+            let install_result = Command::new("uv")
+                .args(["pip", "install", "-e", "."])
+                .current_dir(api_dir)
+                .output();
+            match install_result {
+                Ok(out) if out.status.success() => {
+                    eprintln!("[sidecar] dependencies installed successfully");
+                }
+                Ok(out) => {
+                    eprintln!(
+                        "[sidecar] dependency install failed: {}",
+                        String::from_utf8_lossy(&out.stderr)
+                    );
+                }
+                Err(e) => eprintln!("[sidecar] failed to run uv pip install: {e}"),
+            }
+            if venv_python.exists() {
+                return (venv_python.to_string_lossy().to_string(), true);
+            }
+        }
+        Ok(out) => {
+            eprintln!(
+                "[sidecar] uv venv creation failed: {}",
+                String::from_utf8_lossy(&out.stderr)
+            );
+        }
+        Err(e) => eprintln!("[sidecar] failed to run uv: {e}"),
     }
+    // Even if venv creation failed, uv run can still work
+    ("uv".to_string(), true)
 }
 
 /// Wait until the backend health endpoint responds.

@@ -118,27 +118,15 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
             {isTauri ? (
               <>
                 <p className="text-[12px] text-[var(--text-muted)] leading-relaxed">
-                  バックエンドの自動起動に失敗しました。
+                  バックエンドの自動セットアップに失敗しました。
                   <br />
-                  Python 3.12 と uv がインストールされているか確認してください。
+                  ネットワーク接続を確認して再接続してください。
                 </p>
-                <div className="text-[11px] text-[var(--text-muted)] leading-relaxed text-left bg-[var(--bg-surface)] rounded-md p-3 w-full">
-                  <p className="mb-1.5 font-medium">必要な環境:</p>
-                  <ul className="list-disc list-inside space-y-0.5">
-                    <li>Python 3.12+</li>
-                    <li>
-                      <a
-                        href="https://docs.astral.sh/uv/"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="underline"
-                      >
-                        uv
-                      </a>
-                      {" "}(パッケージマネージャー)
-                    </li>
-                  </ul>
-                </div>
+                <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
+                  初回起動時は必要なツールを自動でインストールします。
+                  <br />
+                  インターネット接続が必要です。
+                </p>
               </>
             ) : (
               <>
