@@ -44,19 +44,13 @@
     ],
     "shortDescription": "AI Business Orchestration Platform",
     "longDescription": "Define business workflows in natural language, orchestrate multiple AI agents with role-based delegation, and execute tasks with human approval and full auditability",
-    "createUpdaterArtifacts": false,
+    "createUpdaterArtifacts": "v2",
     "macOS": {
       "minimumSystemVersion": "10.13"
     },
     "windows": {
       "wix": {
-        "language": [
-          "en-US",
-          "ja-JP",
-          "zh-CN",
-          "ko-KR",
-          "pt-BR"
-        ]
+        "language": "en-US"
       },
       "nsis": {
         "installMode": "both",

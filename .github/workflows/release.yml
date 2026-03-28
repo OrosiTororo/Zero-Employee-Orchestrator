@@ -125,4 +125,4 @@ jobs:
             > Details: [README](https://github.com/OrosiTororo/Zero-Employee-Orchestrator#readme) | [User Guide](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/docs/USER_GUIDE.md) | [CHANGELOG](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/docs/CHANGELOG.md)
           releaseDraft: true
           prerelease: false
-          includeUpdaterJson: false
+          includeUpdaterJson: true
