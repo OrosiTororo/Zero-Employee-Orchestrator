@@ -17,4 +17,5 @@ class Company(Base, TimestampMixin):
     mission: Mapped[str | None] = mapped_column(Text, nullable=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(30), default="active")
+    setup_completed: Mapped[bool] = mapped_column(default=False)
     settings_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
