@@ -1,6 +1,6 @@
 # Changelog
 
-> [English](../CHANGELOG.md) | 日本語 | [中文](../zh/CHANGELOG.md)
+> [English](../CHANGELOG.md) | 日本語 | [中文](../zh/CHANGELOG.md) | [한국어](../ko-KR/CHANGELOG.md) | [Português](../pt-BR/CHANGELOG.md) | [Türkçe](../tr/CHANGELOG.md)
 
 All notable changes to this project will be documented in this file.
 
