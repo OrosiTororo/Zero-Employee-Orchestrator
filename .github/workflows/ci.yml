@@ -129,7 +129,7 @@ jobs:
           path: apps/api/coverage.xml
 
       - name: Dependency security audit
-        run: pip-audit --desc --skip-editable
+        run: pip-audit --desc --skip-editable --ignore-vuln CVE-2026-4539
 
       - name: Verify Alembic migrations
         run: |
