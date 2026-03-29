@@ -116,7 +116,10 @@ Examples:
 Zero-Employee Orchestrator is based on a 9-layer structure.
 
 1. **User Layer**
-   GUI / CLI / TUI / Chat input / Dashboard
+   GUI / CLI (with file/shell operations) / TUI / Chat input / Dashboard
+   - CLI provides Claude Code-like interactive mode with file read/write/edit and shell execution
+   - Both CLI and Desktop/Web offer equivalent operational capabilities
+   - Language is configurable and affects both UI display and AI agent output
 
 2. **Design Interview Layer**
    Purpose clarification, constraint organization, Spec creation

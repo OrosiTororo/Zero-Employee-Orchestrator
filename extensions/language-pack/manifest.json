@@ -1,0 +1,25 @@
+{
+  "name": "language-pack",
+  "version": "0.1.0",
+  "display_name": "Language Pack System",
+  "description": "Manages UI and AI agent output languages as installable extensions. Built-in languages (en, ja, zh, ko, pt, tr) are bundled but only the installer-selected language is active by default. Additional languages can be installed from the marketplace.",
+  "type": "extension",
+  "extension_type": "language_pack",
+  "category": "localization",
+  "author": "Zero-Employee Orchestrator Team",
+  "license": "MIT",
+  "status": "experimental",
+  "capabilities": {
+    "ui_localization": "Translate UI strings and components",
+    "agent_output_language": "Control AI agent response language",
+    "dynamic_loading": "Load language packs at runtime without rebuild",
+    "restart_on_change": "Some language changes require app restart for full effect"
+  },
+  "builtin_languages": ["en", "ja", "zh", "ko", "pt", "tr"],
+  "required_permissions": [],
+  "external_connections": [],
+  "dangerous_operations": false,
+  "approval_required_operations": [],
+  "env_keys": [],
+  "note": "Language affects both UI display and AI agent output. After changing language, some features may require restart to fully apply."
+}

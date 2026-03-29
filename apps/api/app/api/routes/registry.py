@@ -27,8 +27,40 @@ from app.schemas.registry import (
     SkillUpdate,
 )
 from app.services import registry_service, skill_service
+from app.services.skill_service import analyze_code_safety
 
 router = APIRouter()
+
+
+def _check_manifest_safety(manifest_json: dict | None, force: bool = False) -> None:
+    """Run safety analysis on manifest code. Blocks HIGH risk unless force=True."""
+    if not manifest_json:
+        return
+    # Extract code from common manifest keys
+    code_parts = []
+    for key in ("executor_code", "code", "script", "source_code", "generated_code"):
+        if key in manifest_json and isinstance(manifest_json[key], str):
+            code_parts.append(manifest_json[key])
+    if not code_parts:
+        return
+    combined = "\n".join(code_parts)
+    report = analyze_code_safety(combined)
+    if report.risk_level == "high" and not force:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message": "Safety check failed: high-risk code detected / 安全チェック失敗: 高リスクコード検出",
+                "safety_report": {
+                    "risk_level": report.risk_level,
+                    "has_dangerous_code": report.has_dangerous_code,
+                    "has_external_communication": report.has_external_communication,
+                    "has_credential_access": report.has_credential_access,
+                    "has_destructive_operations": report.has_destructive_operations,
+                    "summary": report.summary,
+                },
+                "hint": "Add ?force=true to bypass (requires acknowledgement) / ?force=true で強制インストール可",
+            },
+        )
 
 
 # ===================================================================
@@ -65,10 +97,12 @@ async def get_skill(
 @router.post("/skills", response_model=SkillRead, status_code=201)
 async def create_skill(
     data: SkillCreate,
+    force: bool = False,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     """Create a new skill."""
+    _check_manifest_safety(data.manifest_json, force)
     existing = await skill_service.get_skill_by_slug(db, data.slug)
     if existing:
         raise HTTPException(
@@ -83,10 +117,12 @@ async def create_skill(
 @router.post("/skills/install", response_model=SkillRead, status_code=201)
 async def install_skill(
     data: SkillCreate,
+    force: bool = False,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     """Install a skill (alias for create)."""
+    _check_manifest_safety(data.manifest_json, force)
     existing = await skill_service.get_skill_by_slug(db, data.slug)
     if existing:
         raise HTTPException(
@@ -178,10 +214,12 @@ async def get_plugin(
 @router.post("/plugins", response_model=PluginRead, status_code=201)
 async def create_plugin(
     data: PluginCreate,
+    force: bool = False,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     """Create a new plugin."""
+    _check_manifest_safety(data.manifest_json, force)
     existing = await registry_service.get_plugin_by_slug(db, data.slug)
     if existing:
         raise HTTPException(
@@ -196,10 +234,12 @@ async def create_plugin(
 @router.post("/plugins/install", response_model=PluginRead, status_code=201)
 async def install_plugin(
     data: PluginCreate,
+    force: bool = False,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     """Install a plugin."""
+    _check_manifest_safety(data.manifest_json, force)
     existing = await registry_service.get_plugin_by_slug(db, data.slug)
     if existing:
         raise HTTPException(
@@ -270,6 +310,7 @@ async def search_external_plugins(
 @router.post("/plugins/import", response_model=PluginRead, status_code=201)
 async def import_plugin(
     source_uri: str,
+    force: bool = False,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
@@ -282,6 +323,14 @@ async def import_plugin(
             status_code=404,
             detail="Plugin manifest not found at the specified source",
         )
+
+    # Safety check on the fetched manifest
+    manifest_dict = (
+        manifest.model_dump()
+        if hasattr(manifest, "model_dump")
+        else (manifest.dict() if hasattr(manifest, "dict") else None)
+    )
+    _check_manifest_safety(manifest_dict, force)
 
     existing = await registry_service.get_plugin_by_slug(db, manifest.slug)
     if existing:
@@ -331,10 +380,12 @@ async def get_extension(
 @router.post("/extensions", response_model=ExtensionRead, status_code=201)
 async def create_extension(
     data: ExtensionCreate,
+    force: bool = False,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     """Create a new extension."""
+    _check_manifest_safety(data.manifest_json, force)
     existing = await registry_service.get_extension_by_slug(db, data.slug)
     if existing:
         raise HTTPException(
@@ -349,10 +400,12 @@ async def create_extension(
 @router.post("/extensions/install", response_model=ExtensionRead, status_code=201)
 async def install_extension(
     data: ExtensionCreate,
+    force: bool = False,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     """Install an extension."""
+    _check_manifest_safety(data.manifest_json, force)
     existing = await registry_service.get_extension_by_slug(db, data.slug)
     if existing:
         raise HTTPException(

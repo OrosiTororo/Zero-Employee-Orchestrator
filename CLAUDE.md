@@ -84,6 +84,17 @@ zero-employee chat                  # Default settings
 zero-employee chat --mode free      # Ollama / g4f mode
 zero-employee chat --lang en        # English mode
 
+# Chat mode slash commands (file ops & shell — Claude Code-like)
+# /read <path>     Read a file (sandbox-checked)
+# /write <path>    Write content to a file
+# /edit <path>     View a file for editing
+# /run <command>   Execute a shell command (30s timeout)
+# /ls [path]       List directory contents
+# /cd <path>       Change working directory
+# /pwd             Show current directory
+# /find <pattern>  Find files by glob pattern
+# /grep <pat> [p]  Search file contents
+
 # Tests
 pytest apps/api/app/tests/          # All tests
 pytest apps/api/app/tests/test_cost_guard.py -v  # Individual test
@@ -150,6 +161,26 @@ zero-employee config list
 - No specific provider is promoted as "recommended". Docs and UI present options equally
 - Maintain extensibility for new multi-LLM platforms or key-free services
 
+### Language Extension Design
+
+- The NSIS installer offers 6 language choices (en, ja, zh, ko, pt, tr)
+- Only the installer-selected language is active by default
+- Other languages (including remaining built-in 5 and new languages) are enabled via the language-pack extension system
+- Language changes affect both UI display and AI agent output
+- Some features require app restart after language change
+- Additional languages beyond the built-in 6 can be loaded dynamically via API (`loadLanguagePack()`)
+- Language pack API: `GET /api/v1/language-packs`, `POST /api/v1/language-packs/set`
+- Extension manifest: `extensions/language-pack/manifest.json`
+
+### CLI Design (Claude Code-like)
+
+- `zero-employee chat` provides an interactive agent with file/shell operations
+- Slash commands: `/read`, `/write`, `/edit`, `/run`, `/ls`, `/cd`, `/pwd`, `/find`, `/grep`
+- File operations are sandbox-checked via `sandbox.py`
+- Shell commands have a 30-second timeout and block dangerous patterns
+- Natural language commands process file operations (FILE category in NL command service)
+- Both CLI and Desktop/Web provide equivalent operational capabilities
+
 ## Model Catalog (`apps/api/model_catalog.json`)
 
 **IMPORTANT: Model IDs are managed by family name (do not include version numbers).**
@@ -180,6 +211,7 @@ latest_model_id:   "claude-opus-4-6"  <- Used for actual API calls
 10. **Password uploads are always blocked**
 11. **Workspace isolation**: Check isolation via `workspace_isolation.py`. AI can only access internal storage (default)
 12. **Per-task environment overrides**: If chat instructions differ from system settings, use `should_request_approval()` to ask the user for permission
+13. **Registry safety**: All skill/plugin/extension create/install/import endpoints run `analyze_code_safety()` on manifest code. HIGH risk items are blocked unless `?force=true` is explicitly passed
 
 Defense layers:
 - Workspace isolation (`security/workspace_isolation.py`) -- No local/cloud connections by default
@@ -277,7 +309,8 @@ ollama, knowledge, config, self-improvement, browser-assist, **browser-automatio
 secretary, brainstorm, conversation-memory, hypotheses, sessions, org-setup,
 platform, security, media, ai-tools, **app-integrations**, **files, user-input,
 resources, ipaas, export, marketplace, teams, governance, quality-insights**
-(prerequisite-monitor, spec-contradiction, task-replay, judgment-review, plan-quality)
+(prerequisite-monitor, spec-contradiction, task-replay, judgment-review, plan-quality),
+**language-packs** (list, current, set)
 
 ## Skill / Plugin / Extension
 
@@ -285,7 +318,7 @@ resources, ipaas, export, marketplace, teams, governance, quality-insights**
 |------|------|---------|
 | Skill | Single-purpose specialized processing | spec-writer, review-assistant, browser-assist |
 | Plugin | Bundles multiple Skills | ai-secretary, ai-avatar, research |
-| Extension | System integration and infrastructure | mcp, oauth, notifications, obsidian, notion, logseq, joplin, google-workspace, microsoft-365, browser-assist (Chrome extension) |
+| Extension | System integration and infrastructure | mcp, oauth, notifications, language-pack, obsidian, notion, logseq, joplin, google-workspace, microsoft-365, browser-assist (Chrome extension) |
 
 - Built-in Skills (8): spec-writer, plan-writer, task-breakdown, review-assistant, artifact-summarizer, local-context, domain-skills, browser-assist
 - System protection Skills cannot be deleted or disabled

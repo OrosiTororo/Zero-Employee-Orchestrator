@@ -17,6 +17,7 @@ Usage:
 
 import argparse
 import asyncio
+import os
 import sys
 
 
@@ -586,7 +587,11 @@ def _build_system_prompt(language: str) -> str:
             "- スキル: 「browser-useを追加して」「新しいスキルを生成して」\n"
             "- セキュリティ: 「セキュリティ設定を確認して」\n"
             "- 承認: 「承認待ちを見せて」\n"
-            "- メディア: 「オフィスの画像を生成して」\n"
+            "- メディア: 「オフィスの画像を生成して」\n\n"
+            "ユーザーはファイル操作やシェルコマンドも利用できます:\n"
+            "- ファイル: /read, /write, /edit\n"
+            "- シェル: /run, /ls, /cd, /pwd\n"
+            "- 検索: /find, /grep\n"
         ),
         "en": (
             "You are a task execution agent for Zero-Employee Orchestrator.\n"
@@ -604,7 +609,11 @@ def _build_system_prompt(language: str) -> str:
             "- Skills: 'Add browser-use', 'Generate a new skill'\n"
             "- Security: 'Check security settings'\n"
             "- Approvals: 'Show pending approvals'\n"
-            "- Media: 'Generate an office image'\n"
+            "- Media: 'Generate an office image'\n\n"
+            "Users can also use file operations and shell commands:\n"
+            "- Files: /read, /write, /edit\n"
+            "- Shell: /run, /ls, /cd, /pwd\n"
+            "- Search: /find, /grep\n"
         ),
         "zh": (
             "你是 Zero-Employee Orchestrator 的任务执行代理。\n"
@@ -621,10 +630,166 @@ def _build_system_prompt(language: str) -> str:
             "- 模型: '更新模型', '下载qwen3:8b'\n"
             "- 技能: '添加browser-use', '生成新技能'\n"
             "- 安全: '检查安全设置'\n"
-            "- 审批: '显示待审批项'\n"
+            "- 审批: '显示待审批项'\n\n"
+            "用户还可以使用文件操作和Shell命令:\n"
+            "- 文件: /read, /write, /edit\n"
+            "- Shell: /run, /ls, /cd, /pwd\n"
+            "- 搜索: /find, /grep\n"
         ),
     }
     return lang_instructions.get(language, lang_instructions["en"])
+
+
+def _cli_read_file(path: str) -> str:
+    """Read and display a file."""
+    from pathlib import Path
+
+    from app.security.sandbox import AccessType, FileSystemSandbox
+
+    sandbox = FileSystemSandbox()
+    target = Path(path).resolve()
+    check = sandbox.check_access(str(target), AccessType.READ)
+    if not check.allowed:
+        return f"  \033[38;5;196mAccess denied: {check.reason}\033[0m"
+
+    try:
+        content = target.read_text(encoding="utf-8", errors="replace")
+        lines = content.split("\n")
+        # Show with line numbers
+        numbered = []
+        for i, line in enumerate(lines[:200], 1):
+            numbered.append(f"  \033[38;5;245m{i:4d}\033[0m  {line}")
+        result = "\n".join(numbered)
+        if len(lines) > 200:
+            result += f"\n  \033[38;5;245m... ({len(lines) - 200} more lines)\033[0m"
+        return result
+    except FileNotFoundError:
+        return f"  \033[38;5;196mFile not found: {path}\033[0m"
+    except Exception as e:
+        return f"  \033[38;5;196mError reading file: {e}\033[0m"
+
+
+def _cli_write_file(path: str, content: str) -> str:
+    """Write content to a file with sandbox check."""
+    from pathlib import Path
+
+    from app.security.sandbox import AccessType, FileSystemSandbox
+
+    sandbox = FileSystemSandbox()
+    target = Path(path).resolve()
+    check = sandbox.check_access(str(target), AccessType.WRITE)
+    if not check.allowed:
+        return f"  \033[38;5;196mAccess denied: {check.reason}\033[0m"
+
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content, encoding="utf-8")
+        return f"  \033[38;5;78m\u2714 Written to {target}\033[0m"
+    except Exception as e:
+        return f"  \033[38;5;196mError writing file: {e}\033[0m"
+
+
+def _cli_run_command(command: str) -> str:
+    """Execute a shell command with safety checks."""
+    import subprocess
+
+    # Block obviously dangerous commands
+    dangerous = ["rm -rf /", "mkfs", "dd if=", ":(){:|:&};:", "fork bomb"]
+    cmd_lower = command.lower()
+    for d in dangerous:
+        if d in cmd_lower:
+            return "  \033[38;5;196mBlocked: dangerous command pattern detected\033[0m"
+
+    try:
+        result = subprocess.run(
+            command,
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=30,
+            cwd=os.getcwd(),
+        )
+        output = ""
+        if result.stdout:
+            output += result.stdout
+        if result.stderr:
+            output += f"\033[38;5;220m{result.stderr}\033[0m"
+        if result.returncode != 0:
+            output += f"\n\033[38;5;196m(exit code: {result.returncode})\033[0m"
+        return output or "  (no output)"
+    except subprocess.TimeoutExpired:
+        return "  \033[38;5;220mCommand timed out (30s limit)\033[0m"
+    except Exception as e:
+        return f"  \033[38;5;196mError: {e}\033[0m"
+
+
+def _cli_list_dir(path: str = ".") -> str:
+    """List directory contents."""
+    from pathlib import Path
+
+    try:
+        target = Path(path).resolve()
+        if not target.is_dir():
+            return f"  \033[38;5;196mNot a directory: {path}\033[0m"
+        entries = sorted(target.iterdir(), key=lambda e: (not e.is_dir(), e.name.lower()))
+        lines = []
+        for entry in entries[:100]:
+            if entry.is_dir():
+                lines.append(f"  \033[38;5;33m{entry.name}/\033[0m")
+            else:
+                size = entry.stat().st_size
+                if size < 1024:
+                    sz = f"{size}B"
+                elif size < 1048576:
+                    sz = f"{size // 1024}K"
+                else:
+                    sz = f"{size // 1048576}M"
+                lines.append(f"  {entry.name}  \033[38;5;245m{sz}\033[0m")
+        total = len(list(target.iterdir()))
+        if total > 100:
+            lines.append(f"  \033[38;5;245m... ({total - 100} more)\033[0m")
+        return "\n".join(lines) or "  (empty directory)"
+    except Exception as e:
+        return f"  \033[38;5;196mError: {e}\033[0m"
+
+
+def _cli_find_files(pattern: str) -> str:
+    """Find files matching a glob pattern."""
+    from pathlib import Path
+
+    try:
+        matches = sorted(Path(".").rglob(pattern))[:50]
+        if not matches:
+            return f"  No files matching '{pattern}'"
+        lines = [f"  {m}" for m in matches]
+        total = sum(1 for _ in Path(".").rglob(pattern))
+        if total > 50:
+            lines.append("  ... (showing first 50)")
+        return "\n".join(lines)
+    except Exception as e:
+        return f"  \033[38;5;196mError: {e}\033[0m"
+
+
+def _cli_grep(pattern: str, path: str = ".") -> str:
+    """Search file contents for a pattern."""
+    import subprocess
+
+    try:
+        result = subprocess.run(
+            ["grep", "-rn", "--color=never", "-I", pattern, path],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        if result.stdout:
+            lines = result.stdout.strip().split("\n")[:30]
+            output = "\n".join(f"  {line}" for line in lines)
+            if len(result.stdout.strip().split("\n")) > 30:
+                output += "\n  ... (showing first 30 matches)"
+            return output
+        return f"  No matches for '{pattern}'"
+    except Exception as e:
+        return f"  \033[38;5;196mError: {e}\033[0m"
 
 
 def _handle_command(cmd: str, language: str) -> str | None:
@@ -647,21 +812,54 @@ def _handle_command(cmd: str, language: str) -> str | None:
                 "  /models    - 利用可能モデル一覧\n"
                 "  /lang <code> - 言語変更 (ja/en/zh/ko/pt/tr)\n"
                 "  /clear     - 会話履歴をクリア\n"
-                "  /quit      - 終了"
+                "  /quit      - 終了\n"
+                "\n"
+                "  \033[1mFile Operations:\033[0m\n"
+                "  /read <path>   - ファイルを読み込む\n"
+                "  /write <path>  - ファイルに書き込む\n"
+                "  /edit <path>   - ファイルを表示\n"
+                "  /run <cmd>     - シェルコマンドを実行\n"
+                "  /ls [path]     - ディレクトリ一覧\n"
+                "  /cd <path>     - ディレクトリ移動\n"
+                "  /pwd           - 現在のディレクトリ\n"
+                "  /find <pattern> - ファイル検索\n"
+                "  /grep <pattern> - ファイル内容検索"
             ),
             "en": (
                 "  /help      - Show help\n"
                 "  /models    - List available models\n"
                 "  /lang <code> - Change language (ja/en/zh/ko/pt/tr)\n"
                 "  /clear     - Clear conversation history\n"
-                "  /quit      - Exit"
+                "  /quit      - Exit\n"
+                "\n"
+                "  \033[1mFile Operations:\033[0m\n"
+                "  /read <path>   - Read a file\n"
+                "  /write <path>  - Write to a file\n"
+                "  /edit <path>   - View a file for editing\n"
+                "  /run <cmd>     - Execute shell command\n"
+                "  /ls [path]     - List directory\n"
+                "  /cd <path>     - Change directory\n"
+                "  /pwd           - Current directory\n"
+                "  /find <pattern> - Find files\n"
+                "  /grep <pattern> - Search file contents"
             ),
             "zh": (
                 "  /help      - 显示帮助\n"
                 "  /models    - 列出可用模型\n"
                 "  /lang <code> - 更改语言 (ja/en/zh/ko/pt/tr)\n"
                 "  /clear     - 清除对话历史\n"
-                "  /quit      - 退出"
+                "  /quit      - 退出\n"
+                "\n"
+                "  \033[1mFile Operations:\033[0m\n"
+                "  /read <path>   - 读取文件\n"
+                "  /write <path>  - 写入文件\n"
+                "  /edit <path>   - 查看文件\n"
+                "  /run <cmd>     - 执行命令\n"
+                "  /ls [path]     - 列出目录\n"
+                "  /cd <path>     - 切换目录\n"
+                "  /pwd           - 当前目录\n"
+                "  /find <pattern> - 搜索文件\n"
+                "  /grep <pattern> - 搜索文件内容"
             ),
         }
         print(help_text.get(language, help_text["en"]))
@@ -691,6 +889,70 @@ def _handle_command(cmd: str, language: str) -> str | None:
 
     if command == "/models":
         cmd_models(argparse.Namespace())
+        return None
+
+    if command == "/read" and len(parts) > 1:
+        print(_cli_read_file(" ".join(parts[1:])))
+        return None
+
+    if command == "/write" and len(parts) > 1:
+        filepath = " ".join(parts[1:])
+        print("  Enter content (type '---' on a line by itself to finish):")
+        content_lines: list[str] = []
+        while True:
+            try:
+                line = input("  ")
+                if line.strip() == "---":
+                    break
+                content_lines.append(line)
+            except (KeyboardInterrupt, EOFError):
+                print("\n  (write cancelled)")
+                return None
+        print(_cli_write_file(filepath, "\n".join(content_lines)))
+        return None
+
+    if command == "/edit" and len(parts) > 1:
+        filepath = " ".join(parts[1:])
+        print(_cli_read_file(filepath))
+        print(f"\n  To modify, use /write {filepath}")
+        return None
+
+    if command == "/run":
+        if len(parts) > 1:
+            print(_cli_run_command(" ".join(parts[1:])))
+        else:
+            print("  Usage: /run <command>")
+        return None
+
+    if command == "/ls":
+        path = parts[1] if len(parts) > 1 else "."
+        print(_cli_list_dir(path))
+        return None
+
+    if command == "/cd" and len(parts) > 1:
+        target = parts[1]
+        try:
+            os.chdir(target)
+            print(f"  \033[38;5;78m\u2192 {os.getcwd()}\033[0m")
+        except Exception as e:
+            print(f"  \033[38;5;196mError: {e}\033[0m")
+        return None
+
+    if command == "/pwd":
+        print(f"  {os.getcwd()}")
+        return None
+
+    if command == "/find" and len(parts) > 1:
+        print(_cli_find_files(" ".join(parts[1:])))
+        return None
+
+    if command == "/grep":
+        if len(parts) > 1:
+            pat = parts[1]
+            search_path = parts[2] if len(parts) > 2 else "."
+            print(_cli_grep(pat, search_path))
+        else:
+            print("  Usage: /grep <pattern> [path]")
         return None
 
     print(f"  Unknown command: {command}. Type /help for help.")
