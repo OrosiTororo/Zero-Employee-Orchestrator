@@ -62,8 +62,8 @@ RECOMMENDED_MODELS: dict[str, dict] = {
         "context_window": 32768,
         "supports_tools": True,
     },
-    "llama3.2:latest": {
-        "description": "Llama 3.2 — Meta's compact open-weight model",
+    "llama4:latest": {
+        "description": "Llama 4 — Meta's compact open-weight model",
         "context_window": 131072,
         "supports_tools": True,
     },
@@ -72,8 +72,8 @@ RECOMMENDED_MODELS: dict[str, dict] = {
         "context_window": 32768,
         "supports_tools": False,
     },
-    "phi3:latest": {
-        "description": "Phi-3 — Microsoft's small but capable model",
+    "phi4:latest": {
+        "description": "Phi-4 — Microsoft's small but capable model",
         "context_window": 128000,
         "supports_tools": False,
     },
@@ -389,10 +389,11 @@ class OllamaProvider:
             "qwen3",
             "deepseek-coder-v2",
             "codellama",
+            "llama4",
             "llama3.2",
-            "llama3.1",
             "llama3",
             "mistral",
+            "phi4",
             "phi3",
             "gemma2",
         ]

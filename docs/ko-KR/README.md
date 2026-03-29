@@ -200,7 +200,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # 백그라운드 워커
 ├── skills/                   # 내장 스킬 (8개)
 ├── plugins/                  # 플러그인 매니페스트 (10개)
-├── extensions/               # 익스텐션 매니페스트 (10개)
+├── extensions/               # 익스텐션 매니페스트 (11개)
 │   └── browser-assist/
 │       └── chrome-extension/ # 브라우저 어시스트용 Chrome 확장 프로그램
 ├── packages/                 # 공유 NPM 패키지
@@ -356,8 +356,8 @@ zero-employee update             # 최신 버전으로 업데이트
 
 | 모드 | 설명 | 예시 |
 |------|------|------|
-| **Quality** | 최고 품질 | Claude Opus, GPT-5.4, Gemini 2.5 Pro |
-| **Speed** | 빠른 응답 | Claude Haiku, GPT-5.4 Mini, Gemini 2.5 Flash |
+| **Quality** | 최고 품질 | Claude Opus, GPT, Gemini Pro |
+| **Speed** | 빠른 응답 | Claude Haiku, GPT Mini, Gemini Flash |
 | **Cost** | 저비용 | Haiku, Mini, Flash Lite, DeepSeek |
 | **Free** | 무료 | Gemini 무료 티어, Ollama 로컬 |
 | **Subscription** | API 키 불필요 | g4f 경유 |

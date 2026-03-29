@@ -200,7 +200,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # Arka plan çalışanları
 ├── skills/                   # 8 yerleşik beceri
 ├── plugins/                  # 10 eklenti bildirimi
-├── extensions/               # 10 uzantı bildirimi
+├── extensions/               # 11 uzantı bildirimi
 │   └── browser-assist/
 │       └── chrome-extension/ # Tarayıcı Asistanı Chrome uzantısı
 ├── packages/                 # Paylaşılan NPM paketleri
@@ -356,8 +356,8 @@ zero-employee update             # En son sürüme güncelle
 
 | Mod | Açıklama | Örnekler |
 |-----|----------|----------|
-| **Quality** | En yüksek kalite | Claude Opus, GPT-5.4, Gemini 2.5 Pro |
-| **Speed** | Hızlı yanıt | Claude Haiku, GPT-5.4 Mini, Gemini 2.5 Flash |
+| **Quality** | En yüksek kalite | Claude Opus, GPT, Gemini Pro |
+| **Speed** | Hızlı yanıt | Claude Haiku, GPT Mini, Gemini Flash |
 | **Cost** | Düşük maliyet | Haiku, Mini, Flash Lite, DeepSeek |
 | **Free** | Ücretsiz | Gemini ücretsiz katman, Ollama yerel |
 | **Subscription** | API anahtarı gerekmez | g4f aracılığıyla |

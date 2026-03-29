@@ -23,7 +23,7 @@ Zero-Employee Orchestrator 是一个 **AI 编排平台**，可通过自然语言
 | **CI 安全** | 添加 Trivy 容器扫描、阻塞式 pip-audit、Red-team 测试任务 |
 | **Red-team 测试** | 全部 22 个测试现在使用真实载荷执行实际安全模块 |
 | **多语言** | 6 种语言 65+ 翻译键（EN/JA/ZH/KO/PT/TR），默认语言改为英语 |
-| **模型目录** | 更新至 GPT-5.4、GPT-5.4 Mini、Llama 4、Phi-4、Claude Haiku 最新版 |
+| **模型目录** | 更新至 GPT、Llama、Phi、Claude Haiku 的最新版 |
 | **PII 防护** | 全部 13 个类别均有检测模式（添加驾驶证、日语姓名） |
 | **文档** | 修正所有夸大数值，7 种语言版本保持一致 |
 
@@ -331,22 +331,9 @@ provisioning -> idle -> busy -> idle
 按模型系列的 Token 单价在 `model_catalog.json` 中管理，并在执行前进行成本估算。
 成本信息从模型目录动态加载，因此模型变更时无需修改代码。
 
-| 模型 | 输入 ($/1K tokens) | 输出 ($/1K tokens) |
-|------|-------------------|-------------------|
-| Claude Opus 4.6 | 0.015 | 0.075 |
-| Claude Sonnet 4.6 | 0.003 | 0.015 |
-| Claude Haiku 4.5 | 0.001 | 0.005 |
-| GPT-5.4 | 0.005 | 0.015 |
-| GPT-5.4 Mini | 0.00015 | 0.0006 |
-| Gemini 2.5 Pro | 0.00125 | 0.005 |
-| Gemini 2.5 Flash | 0.0001 | 0.0004 |
-| Gemini 2.5 Flash Lite | 0.00005 | 0.0002 |
-| DeepSeek Chat | 0.00014 | 0.00028 |
-| Ollama（本地） | 0.0 | 0.0 |
-| g4f（免费供应商） | 0.0 | 0.0 |
-
-> **注意**：以上为 `model_catalog.json` 中的默认值。可以通过
-> API（`POST /api/v1/models/update-cost`）或直接编辑文件来根据供应商价格变动进行更新。
+> **价格在 `model_catalog.json` 中动态管理，并通过 RSS/ToS 监控管道自动更新。**
+> 当前价格可通过 `GET /api/v1/models` 查看，或直接参考 `model_catalog.json`。
+> 也可通过 API（`POST /api/v1/models/update-cost`）或直接编辑文件手动更新。
 
 ### 预算检查
 
@@ -370,10 +357,10 @@ provisioning -> idle -> busy -> idle
 
 | 模式 | 推荐模型 | 最大重试次数 | Judge 阈值 | 人工审查 | Cross-Model Verification |
 |------|---------|------------|-----------|---------|------------------------|
-| **DRAFT** | GPT-5.4 Mini, Claude Haiku 4.5 | 1 次 | 50% | 不需要 | 无 |
-| **STANDARD** | GPT-5.4, Claude Sonnet 4.6 | 2 次 | 70% | 不需要 | 无 |
-| **HIGH** | GPT-5.4, Claude Sonnet 4.6 | 3 次 | 85% | 不需要 | **有** |
-| **CRITICAL** | Claude Opus 4.6, GPT-5.4 | 5 次 | 95% | **必须** | **有** |
+| **DRAFT** | GPT Mini, Claude Haiku | 1 次 | 50% | 不需要 | 无 |
+| **STANDARD** | GPT, Claude Sonnet | 2 次 | 70% | 不需要 | 无 |
+| **HIGH** | GPT, Claude Sonnet | 3 次 | 85% | 不需要 | **有** |
+| **CRITICAL** | Claude Opus, GPT | 5 次 | 95% | **必须** | **有** |
 
 模型选择、重试策略和验证级别会根据质量模式自动调整。
 推荐模型从 `model_catalog.json` 加载，因此模型更新时只需编辑文件即可。
@@ -616,11 +603,11 @@ provisioning -> idle -> busy -> idle
 | 供应商 | 支持模型示例 |
 |--------|------------|
 | **OpenRouter** | 通过单一 API 密钥使用多个模型 |
-| **OpenAI** | GPT-5.4、GPT-5.4 Mini |
-| **Anthropic** | Claude Opus 4.6、Sonnet 4.6、Haiku 4.5 |
-| **Google** | Gemini 2.5 Pro、Flash、Flash Lite |
+| **OpenAI** | GPT、GPT Mini |
+| **Anthropic** | Claude Opus、Sonnet、Haiku |
+| **Google** | Gemini Pro、Flash、Flash Lite |
 | **DeepSeek** | DeepSeek Chat |
-| **Ollama** | Llama 3.2、Mistral、Phi-3、Qwen3 等（本地免费） |
+| **Ollama** | Llama、Mistral、Phi、Qwen 等（本地免费） |
 | **g4f** | 通过免费供应商（无需 API 密钥） |
 
 > **支持的模型在 `model_catalog.json` 中管理。**
@@ -631,9 +618,9 @@ provisioning -> idle -> busy -> idle
 
 | 模式 | 说明 | 推荐模型 |
 |------|------|---------|
-| `QUALITY` | 最高质量 | Claude Opus 4.6、GPT-5.4 |
-| `SPEED` | 快速响应 | Claude Haiku 4.5、GPT-5.4 Mini |
-| `COST` | 低成本 | Claude Haiku 4.5、GPT-5.4 Mini、DeepSeek |
+| `QUALITY` | 最高质量 | Claude Opus、GPT |
+| `SPEED` | 快速响应 | Claude Haiku、GPT Mini |
+| `COST` | 低成本 | Claude Haiku、GPT Mini、DeepSeek |
 | `FREE` | 免费（本地 + 免费 API） | Ollama、Gemini 免费额度、g4f |
 | `SUBSCRIPTION` | 免费（无需 API 密钥） | 通过 g4f 的各种模型 |
 
@@ -784,7 +771,7 @@ Company（公司）
 
 ## 22. REST API
 
-在 `/api/v1` 前缀下提供 38 个路由模块、327 个以上的端点。
+在 `/api/v1` 前缀下提供 41 个路由模块、350 个以上的端点。
 
 ### 端点分组
 

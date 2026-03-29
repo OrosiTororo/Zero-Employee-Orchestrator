@@ -571,9 +571,8 @@ DEFAULT_COST_TABLE: dict[str, dict[str, float]] = {
     "claude-opus-4-6": {"input": 0.015, "output": 0.075},
     "claude-sonnet-4-6": {"input": 0.003, "output": 0.015},
     "claude-haiku-4-5-20251001": {"input": 0.001, "output": 0.005},
-    "gemini-2.5-pro": {"input": 0.00125, "output": 0.005},
-    "gemini-2.5-flash": {"input": 0.0001, "output": 0.0004},
-    "gemini-2.5-flash-lite": {"input": 0.00005, "output": 0.0002},
+    "gemini-3.1-pro": {"input": 0.002, "output": 0.018},
+    "gemini-3.1-flash-lite": {"input": 0.00025, "output": 0.0015},
 }
 
 
@@ -650,7 +649,7 @@ class QualitySLAConfig:
 DEFAULT_SLA_CONFIGS = {
     QualityMode.DRAFT: QualitySLAConfig(
         mode=QualityMode.DRAFT, preferred_models=["gpt-5-mini", "claude-haiku-4-5-20251001"],
-        fallback_models=["gemini-2.5-flash-lite"], max_retries=1,
+        fallback_models=["gemini-3.1-flash-lite"], max_retries=1,
         judge_pass_threshold=0.5, requires_human_review=False,
         cross_model_verification=False, max_tokens=2000,
     ),
@@ -662,13 +661,13 @@ DEFAULT_SLA_CONFIGS = {
     ),
     QualityMode.HIGH: QualitySLAConfig(
         mode=QualityMode.HIGH, preferred_models=["gpt-5.4", "claude-sonnet-4-6"],
-        fallback_models=["claude-opus-4-6", "gemini-2.5-pro"], max_retries=3,
+        fallback_models=["claude-opus-4-6", "gemini-3.1-pro"], max_retries=3,
         judge_pass_threshold=0.85, requires_human_review=False,
         cross_model_verification=True, max_tokens=8000,
     ),
     QualityMode.CRITICAL: QualitySLAConfig(
         mode=QualityMode.CRITICAL, preferred_models=["claude-opus-4-6", "gpt-5.4"],
-        fallback_models=["claude-sonnet-4-6", "gemini-2.5-pro"], max_retries=5,
+        fallback_models=["claude-sonnet-4-6", "gemini-3.1-pro"], max_retries=5,
         judge_pass_threshold=0.95, requires_human_review=True,
         cross_model_verification=True, max_tokens=16000,
     ),

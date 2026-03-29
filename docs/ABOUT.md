@@ -169,7 +169,7 @@ GEMINI_API_KEY=<key obtained from Google AI Studio>
 DEFAULT_EXECUTION_MODE=free
 ```
 
-For production use, setting up API keys for OpenRouter / OpenAI / Anthropic enables access to high-quality models such as Claude Opus 4.6, GPT-5.4, and Gemini 2.5 Pro. Supported models are dynamically managed in `model_catalog.json`, allowing you to add or switch models without code changes.
+For production use, setting up API keys for OpenRouter / OpenAI / Anthropic enables access to high-quality models such as Claude Opus, GPT, and Gemini Pro. Supported models are dynamically managed in `model_catalog.json`, allowing you to add or switch models without code changes. Specific model versions are auto-resolved to the latest available.
 
 ---
 

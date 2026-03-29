@@ -156,7 +156,7 @@
       "openrouter": "OpenRouter",
       "openrouterDesc": "하나의 키로 다양한 AI 모델에 접근",
       "openai": "OpenAI",
-      "openaiDesc": "GPT-4o 등을 직접 사용",
+      "openaiDesc": "GPT 등을 직접 사용",
       "anthropic": "Anthropic",
       "anthropicDesc": "Claude 등을 직접 사용",
       "local": "로컬 모델",

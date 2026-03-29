@@ -109,7 +109,7 @@ class MultiModelComparisonRecord(Base):
     user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True, index=True)
     input_text: Mapped[str] = mapped_column(Text)
     input_char_count: Mapped[int] = mapped_column(Integer, default=0)
-    models_requested: Mapped[list] = mapped_column(JSON)  # ["gpt-4", "claude-3", ...]
+    models_requested: Mapped[list] = mapped_column(JSON)  # ["gpt-5.4", "claude-opus", ...]
     responses_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     # responses_json: {model_id: {text, tokens, latency_ms, char_count, error}}
     comparison_summary: Mapped[str | None] = mapped_column(Text, nullable=True)

@@ -95,13 +95,13 @@ const SESSION_TYPES = [
 ]
 
 const PRESET_MODELS = [
-  "anthropic/claude-opus-4-6",
-  "anthropic/claude-sonnet-4-6",
-  "openai/gpt-5.4",
-  "openai/gpt-5-mini",
-  "google/gemini-2.5-pro",
-  "google/gemini-2.5-flash",
-  "deepseek/deepseek-v3",
+  "anthropic/claude-opus",
+  "anthropic/claude-sonnet",
+  "openai/gpt",
+  "openai/gpt-mini",
+  "google/gemini-pro",
+  "google/gemini-flash",
+  "deepseek/deepseek-chat",
 ]
 
 export default function BrainstormPage() {

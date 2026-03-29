@@ -371,13 +371,13 @@ class BrowserUseAdapter(BrowserAdapter):
                 # Prioritize OpenAI-compatible providers
                 api_key = os.environ.get("OPENAI_API_KEY", "")
                 if api_key:
-                    return ChatOpenAI(model="gpt-4o", api_key=api_key)
+                    return ChatOpenAI(model="gpt-5.4", api_key=api_key)
 
                 # Via OpenRouter
                 openrouter_key = os.environ.get("OPENROUTER_API_KEY", "")
                 if openrouter_key:
                     return ChatOpenAI(
-                        model="openai/gpt-4o",
+                        model="openai/gpt-5.4",
                         api_key=openrouter_key,
                         base_url="https://openrouter.ai/api/v1",
                     )

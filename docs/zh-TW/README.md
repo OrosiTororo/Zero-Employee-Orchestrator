@@ -200,7 +200,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # 背景工作程序
 ├── skills/                   # 8 個內建技能
 ├── plugins/                  # 10 個外掛清單
-├── extensions/               # 10 個擴充清單
+├── extensions/               # 11 個擴充清單
 │   └── browser-assist/
 │       └── chrome-extension/ # 瀏覽器輔助 Chrome 擴充功能
 ├── packages/                 # 共享 NPM 套件
@@ -356,8 +356,8 @@ zero-employee update             # 更新至最新版本
 
 | 模式 | 描述 | 範例 |
 |------|------|------|
-| **Quality** | 最高品質 | Claude Opus, GPT-5.4, Gemini 2.5 Pro |
-| **Speed** | 快速回應 | Claude Haiku, GPT-5.4 Mini, Gemini 2.5 Flash |
+| **Quality** | 最高品質 | Claude Opus, GPT, Gemini Pro |
+| **Speed** | 快速回應 | Claude Haiku, GPT Mini, Gemini Flash |
 | **Cost** | 低成本 | Haiku, Mini, Flash Lite, DeepSeek |
 | **Free** | 免費 | Gemini 免費額度, Ollama 本地 |
 | **Subscription** | 無需 API 金鑰 | 透過 g4f |

@@ -169,7 +169,7 @@ GEMINI_API_KEY=<从 Google AI Studio 获取的密钥>
 DEFAULT_EXECUTION_MODE=free
 ```
 
-正式运营时，通过设置 OpenRouter / OpenAI / Anthropic 的 API 密钥，即可使用 Claude Opus 4.6、GPT-5.4、Gemini 2.5 Pro 等高质量模型。支持的模型在 `model_catalog.json` 中动态管理，无需修改代码即可添加或切换模型。
+正式运营时，通过设置 OpenRouter / OpenAI / Anthropic 的 API 密钥，即可使用 Claude Opus、GPT、Gemini Pro 等高质量模型。支持的模型在 `model_catalog.json` 中动态管理，无需修改代码即可添加或切换模型。具体模型版本会自动解析为最新版。
 
 ---
 

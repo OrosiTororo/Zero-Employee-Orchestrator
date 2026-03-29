@@ -156,7 +156,7 @@
       "openrouter": "OpenRouter",
       "openrouterDesc": "Tek bir anahtarla birçok yapay zeka modeline erişin",
       "openai": "OpenAI",
-      "openaiDesc": "GPT-4o ve diğerlerini doğrudan kullanın",
+      "openaiDesc": "GPT ve diğerlerini doğrudan kullanın",
       "anthropic": "Anthropic",
       "anthropicDesc": "Claude ve diğerlerini doğrudan kullanın",
       "local": "Yerel Model",

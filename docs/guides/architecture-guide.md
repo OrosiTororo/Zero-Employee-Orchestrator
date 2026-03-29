@@ -65,7 +65,7 @@ The entry point for all interactions. Supports multiple interfaces:
 | Interface | Description | Port |
 |-----------|-------------|------|
 | **Web UI** | React 19 + Tauri v2 desktop app | 5173 (dev) |
-| **REST API** | FastAPI with 39 route modules, 333+ endpoints | 18234 |
+| **REST API** | FastAPI with 41 route modules, 350+ endpoints | 18234 |
 | **CLI** | `zero-employee` command with chat, serve, config subcommands | — |
 | **WebSocket** | Real-time event streaming and browser assist | 18234 |
 
@@ -234,8 +234,8 @@ LLM gateway powered by LiteLLM with intelligent routing.
 
 | Mode | Use Case | Example Models |
 |------|----------|----------------|
-| `quality` | High-stakes tasks | Claude Opus, GPT-5.4, Gemini 2.5 Pro |
-| `speed` | Fast iteration | Claude Haiku, GPT-5.4 Mini, Gemini Flash |
+| `quality` | High-stakes tasks | Claude Opus, GPT, Gemini Pro |
+| `speed` | Fast iteration | Claude Haiku, GPT Mini, Gemini Flash |
 | `cost` | Budget-conscious | Haiku, Mini, Flash Lite, DeepSeek |
 | `free` | No API cost | Ollama local models |
 | `subscription` | No key needed | via g4f |

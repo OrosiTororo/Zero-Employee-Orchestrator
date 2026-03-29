@@ -200,7 +200,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # バックグラウンドワーカー
 ├── skills/                   # ビルトインスキル（8 個）
 ├── plugins/                  # プラグインマニフェスト（10 個）
-├── extensions/               # エクステンションマニフェスト（10 個）
+├── extensions/               # エクステンションマニフェスト（11 個）
 │   └── browser-assist/
 │       └── chrome-extension/ # ブラウザアシスト用 Chrome 拡張機能
 ├── packages/                 # 共有 NPM パッケージ
@@ -356,8 +356,8 @@ zero-employee update             # 最新版にアップデート
 
 | モード | 説明 | 例 |
 |-------|------|-----|
-| **Quality** | 最高品質 | Claude Opus, GPT-5.4, Gemini 2.5 Pro |
-| **Speed** | 高速応答 | Claude Haiku, GPT-5.4 Mini, Gemini 2.5 Flash |
+| **Quality** | 最高品質 | Claude Opus, GPT, Gemini Pro |
+| **Speed** | 高速応答 | Claude Haiku, GPT Mini, Gemini Flash |
 | **Cost** | 低コスト | Haiku, Mini, Flash Lite, DeepSeek |
 | **Free** | 無料 | Gemini 無料枠, Ollama ローカル |
 | **Subscription** | API キー不要 | g4f 経由 |

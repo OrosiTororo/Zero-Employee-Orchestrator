@@ -41,10 +41,10 @@ class TestResolveTaskProvider:
         assert result["provider"] == "openai"
 
     def test_task_override_model(self):
-        task = self._make_task_stub({"model": "openai/gpt-4o"})
+        task = self._make_task_stub({"model": "openai/gpt-5.4"})
         result = resolve_task_provider(task, "anthropic", "quality")
         assert result["provider"] == "anthropic"  # fallback to company default
-        assert result["model"] == "openai/gpt-4o"
+        assert result["model"] == "openai/gpt-5.4"
 
     def test_task_override_execution_mode(self):
         task = self._make_task_stub({"execution_mode": "speed"})
@@ -85,7 +85,7 @@ class TestTaskNodeProviderOverride:
         node = TaskNode(
             id="t1",
             title="Test",
-            provider_override={"provider": "openai", "model": "gpt-4o"},
+            provider_override={"provider": "openai", "model": "gpt-5.4"},
         )
         assert node.provider_override["provider"] == "openai"
 

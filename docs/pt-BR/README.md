@@ -200,7 +200,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # Workers em segundo plano
 ├── skills/                   # 8 skills integradas
 ├── plugins/                  # 10 manifestos de plugins
-├── extensions/               # 10 manifestos de extensões
+├── extensions/               # 11 manifestos de extensões
 │   └── browser-assist/
 │       └── chrome-extension/ # Extensão Chrome para Browser Assist
 ├── packages/                 # Pacotes NPM compartilhados
@@ -356,8 +356,8 @@ Gerenciado via `model_catalog.json` — troque modelos sem alterar código.
 
 | Modo | Descrição | Exemplos |
 |------|-----------|---------|
-| **Quality** | Mais alta qualidade | Claude Opus, GPT-5.4, Gemini 2.5 Pro |
-| **Speed** | Resposta rápida | Claude Haiku, GPT-5.4 Mini, Gemini 2.5 Flash |
+| **Quality** | Mais alta qualidade | Claude Opus, GPT, Gemini Pro |
+| **Speed** | Resposta rápida | Claude Haiku, GPT Mini, Gemini Flash |
 | **Cost** | Baixo custo | Haiku, Mini, Flash Lite, DeepSeek |
 | **Free** | Gratuito | Nível gratuito Gemini, Ollama local |
 | **Subscription** | Sem chave de API necessária | via g4f |

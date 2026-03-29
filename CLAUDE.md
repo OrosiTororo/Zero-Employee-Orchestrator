@@ -70,7 +70,7 @@ apps/
 └── worker/           # Background workers
 skills/builtin/       # Built-in Skills (8: 7 Python modules + browser-assist manifest)
 plugins/              # Plugin manifests (10 Plugins)
-extensions/           # Extension manifests (10 Extensions + Chrome extension)
+extensions/           # Extension manifests (11 Extensions + Chrome extension)
 ```
 
 ## Commands
