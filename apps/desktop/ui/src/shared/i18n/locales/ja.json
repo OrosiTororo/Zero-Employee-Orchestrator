@@ -271,7 +271,23 @@
     "customProviderKey": "環境変数名",
     "customProviderPlaceholder": "APIキーのプレースホルダー",
     "addProvider": "追加",
-    "removeProvider": "削除"
+    "removeProvider": "削除",
+    "themeSettings": "テーマ",
+    "selectProviders": "プロバイダーを選択",
+    "catProductivity": "生産性",
+    "catDev": "開発",
+    "catCommunication": "コミュニケーション",
+    "catAutomation": "自動化"
+  },
+  "heartbeats": {
+    "title": "ヘルスモニター",
+    "description": "システムやエージェントの稼働状態を定期的にチェックするポリシーを設定します。異常検知時に自動通知・復旧を行います。",
+    "addPolicy": "ポリシー追加",
+    "policies": "監視ポリシー",
+    "emptyPolicies": "監視ポリシーはまだ設定されていません。定期的なヘルスチェックを追加してください。",
+    "history": "実行履歴",
+    "emptyHistory": "実行履歴はありません。",
+    "target": "対象"
   },
   "secretary": {
     "title": "秘書",

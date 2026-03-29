@@ -302,7 +302,7 @@ export function LoginPage() {
               style={{
                 background: loading
                   ? "var(--bg-active)"
-                  : "linear-gradient(135deg, #0078d4, #6d28d9)",
+                  : "var(--gradient-primary)",
               }}
             >
               {mode === "login" ? (

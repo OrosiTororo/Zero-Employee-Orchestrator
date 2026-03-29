@@ -125,7 +125,7 @@ export function DashboardPage() {
                 style={{
                   background:
                     input.trim() && !loading
-                      ? "linear-gradient(135deg, #0078d4, #6d28d9)"
+                      ? "var(--gradient-primary)"
                       : "var(--border)",
                 }}
               >
@@ -135,7 +135,7 @@ export function DashboardPage() {
             </div>
           </div>
           {nlResponse && (
-            <div className="mt-3 rounded-md px-4 py-3 border border-[#4ec9b0]/30 bg-[#4ec9b0]/5 text-[12px] text-[var(--text-primary)] whitespace-pre-wrap">
+            <div className="mt-3 rounded-md px-4 py-3 border border-[var(--success-fg)]/30 bg-[var(--success)]/10 text-[12px] text-[var(--text-primary)] whitespace-pre-wrap">
               {nlResponse}
             </div>
           )}

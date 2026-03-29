@@ -271,7 +271,23 @@
     "customProviderKey": "Environment variable name",
     "customProviderPlaceholder": "API key placeholder",
     "addProvider": "Add",
-    "removeProvider": "Remove"
+    "removeProvider": "Remove",
+    "themeSettings": "Theme",
+    "selectProviders": "Select providers",
+    "catProductivity": "Productivity",
+    "catDev": "Development",
+    "catCommunication": "Communication",
+    "catAutomation": "Automation"
+  },
+  "heartbeats": {
+    "title": "Health Monitor",
+    "description": "Set up policies to periodically check the health of your systems and agents. Automatic notifications and recovery on anomaly detection.",
+    "addPolicy": "Add Policy",
+    "policies": "Monitoring Policies",
+    "emptyPolicies": "No monitoring policies configured yet. Add periodic health checks.",
+    "history": "Execution History",
+    "emptyHistory": "No execution history.",
+    "target": "Target"
   },
   "secretary": {
     "title": "Secretary",

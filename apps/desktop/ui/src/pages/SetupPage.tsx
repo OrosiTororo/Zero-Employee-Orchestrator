@@ -527,7 +527,7 @@ export function SetupPage() {
                       <button
                         onClick={handlePreview}
                         className="px-6 py-2.5 rounded-md text-[13px] font-medium text-white"
-                        style={{ background: "linear-gradient(135deg, #0078d4, #6d28d9)" }}
+                        style={{ background: "var(--gradient-primary)" }}
                       >
                         {t.orgSetup.previewStructure}
                       </button>
@@ -579,7 +579,7 @@ export function SetupPage() {
                         onClick={handleGenerate}
                         disabled={isGenerating}
                         className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-md text-[13px] font-medium text-white disabled:opacity-60"
-                        style={{ background: "linear-gradient(135deg, #0078d4, #6d28d9)" }}
+                        style={{ background: "var(--gradient-primary)" }}
                       >
                         {isGenerating ? (
                           <>
@@ -668,7 +668,7 @@ export function SetupPage() {
             <button
               onClick={finishSetup}
               className="flex items-center gap-2 px-6 py-2.5 rounded-md text-[13px] font-medium text-white"
-              style={{ background: "linear-gradient(135deg, #0078d4, #6d28d9)" }}
+              style={{ background: "var(--gradient-primary)" }}
             >
               <Sparkles size={16} />
               {t.setup.complete.goToDashboard}
@@ -682,7 +682,7 @@ export function SetupPage() {
                 next()
               }}
               className="flex items-center gap-1 px-6 py-2.5 rounded-md text-[13px] font-medium text-white"
-              style={{ background: "linear-gradient(135deg, #0078d4, #6d28d9)" }}
+              style={{ background: "var(--gradient-primary)" }}
             >
               {t.common.next}
               <ChevronRight size={16} />

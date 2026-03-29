@@ -11,7 +11,6 @@ import {
   ScrollText,
   Blocks,
   Puzzle,
-  Blocks,
   Settings as SettingsIcon,
   LogOut,
   Activity,
@@ -79,9 +78,8 @@ export function Layout({ children }: LayoutProps) {
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-[var(--bg-base)]">
       {/* Title Bar */}
-      <div
-        className="flex items-center h-[30px] shrink-0 select-none border-b border-[var(--border)]"
-        style={{ background: "var(--bg-titlebar)" }}
+      <header
+        className="flex items-center h-[30px] shrink-0 select-none border-b border-[var(--border)] bg-[var(--bg-titlebar)]"
       >
         <div className="flex items-center gap-2 px-3">
           <LogoMark size={14} />
@@ -91,11 +89,14 @@ export function Layout({ children }: LayoutProps) {
         </div>
         <div className="flex-1" />
         <div className="px-3 text-[11px] text-[var(--text-muted)]">{t.common.version}</div>
-      </div>
+      </header>
 
       <div className="flex flex-1 overflow-hidden">
         {/* Activity Bar */}
-        <div className="w-[48px] shrink-0 flex flex-col items-center pt-1 bg-[var(--bg-activity-bar)] border-r border-[var(--border)]">
+        <nav
+          className="w-[48px] shrink-0 flex flex-col items-center pt-1 bg-[var(--bg-activity-bar)] border-r border-[var(--border)]"
+          aria-label={t.nav.navigation}
+        >
           {navItems.map((item) => {
             const isActive =
               item.path === "/"
@@ -105,21 +106,24 @@ export function Layout({ children }: LayoutProps) {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className="group relative w-[48px] h-[40px] flex items-center justify-center"
+                className="group relative w-[48px] h-[40px] flex items-center justify-center transition-colors"
                 style={{
-                  color: isActive ? "#ffffff" : "var(--text-muted)",
+                  color: isActive ? "var(--text-primary)" : "var(--text-muted)",
                   borderLeft: isActive
                     ? "2px solid var(--accent)"
                     : "2px solid transparent",
                 }}
-                title={item.label}
+                aria-label={item.label}
+                aria-current={isActive ? "page" : undefined}
               >
                 <item.icon
                   size={20}
                   className="group-hover:text-[var(--text-primary)] transition-colors"
                 />
-                {/* Tooltip */}
-                <span className="pointer-events-none absolute left-[52px] px-2 py-1 rounded text-[11px] text-white bg-[#383838] border border-[var(--border)] whitespace-nowrap opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity z-50 shadow-lg">
+                <span
+                  role="tooltip"
+                  className="pointer-events-none absolute left-[52px] px-2 py-1 rounded text-[11px] text-[var(--text-primary)] bg-[var(--bg-tooltip)] border border-[var(--border)] whitespace-nowrap opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity z-50 shadow-lg"
+                >
                   {item.label}
                 </span>
               </button>
@@ -132,43 +136,40 @@ export function Layout({ children }: LayoutProps) {
               navigate("/login")
             }}
             className="w-[48px] h-[40px] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-            title={t.auth.logout}
+            aria-label={t.auth.logout}
           >
             <LogOut size={20} />
           </button>
-        </div>
+        </nav>
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Tab Bar */}
-          <div className="h-[35px] flex items-end shrink-0 bg-[var(--bg-surface)]">
+          <div className="h-[35px] flex items-end shrink-0 bg-[var(--bg-surface)]" role="tablist">
             <div
               className="h-[35px] flex items-center px-4 text-[13px] cursor-default bg-[var(--bg-base)] text-[var(--text-primary)] border-t-2 border-t-[var(--accent)] border-r border-r-[var(--border)]"
               style={{ minWidth: "120px" }}
+              role="tab"
+              aria-selected="true"
             >
               <span className="truncate">{currentTitle}</span>
             </div>
           </div>
 
           {/* Editor Content */}
-          <div className="flex-1 overflow-auto bg-[var(--bg-base)]">
+          <main className="flex-1 overflow-auto bg-[var(--bg-base)]">
             {children}
-          </div>
+          </main>
         </div>
       </div>
 
       {/* Status Bar */}
-      <div className="h-[22px] flex items-center px-3 shrink-0 text-[11px] text-[var(--text-secondary)] bg-[var(--bg-activity-bar)] border-t border-[var(--border)]">
-        <div className="flex items-center gap-4">
-          <span className="font-medium">{t.common.appName}</span>
-        </div>
+      <footer className="h-[22px] flex items-center px-3 shrink-0 text-[11px] text-[var(--text-secondary)] bg-[var(--bg-activity-bar)] border-t border-[var(--border)]">
+        <span className="font-medium">{t.common.appName}</span>
         <div className="flex-1" />
-        <div className="flex items-center gap-4 text-[var(--text-muted)]">
-          <span>{t.common.typescriptReact}</span>
-        </div>
-      </div>
+        <span className="text-[var(--text-muted)]">{t.common.typescriptReact}</span>
+      </footer>
 
-      {/* Auto-update notification */}
       <UpdateBanner />
     </div>
   )
