@@ -19,6 +19,8 @@ Supported tool categories:
 13. Calendar: Google Calendar, Outlook Calendar
 14. Cloud storage: Google Drive, Dropbox, OneDrive
 15. Automation: n8n, Zapier, Make
+16. Social media: Twitter/X, Instagram, TikTok, YouTube, LinkedIn, Threads
+17. Video editing: Runway ML, Pika, CapCut, Descript
 
 All tool operations:
 - Go through approval gates
@@ -57,6 +59,8 @@ class ToolCategory(str, Enum):
     CLOUD_STORAGE = "cloud_storage"
     AUTOMATION = "automation"
     PRODUCTIVITY = "productivity"
+    SOCIAL_MEDIA = "social_media"
+    VIDEO_EDITING = "video_editing"
 
 
 class ToolStatus(str, Enum):
@@ -577,6 +581,114 @@ _AI_TOOLS: list[AIToolDefinition] = [
         requires_api_key=True,
         env_key="CANVA_API_KEY",
         capabilities=["get_designs", "export"],
+    ),
+    # --- Social media ---
+    AIToolDefinition(
+        id="twitter_x",
+        name="Twitter / X",
+        category=ToolCategory.SOCIAL_MEDIA,
+        description="Post tweets, manage threads, schedule posts",
+        description_en="Post tweets, manage threads, schedule posts on X (formerly Twitter)",
+        requires_api_key=True,
+        env_key="TWITTER_API_KEY",
+        requires_approval=True,
+        capabilities=["post_tweet", "schedule_tweet", "read_timeline", "manage_threads"],
+    ),
+    AIToolDefinition(
+        id="instagram",
+        name="Instagram",
+        category=ToolCategory.SOCIAL_MEDIA,
+        description="Post images/reels, manage stories",
+        description_en="Post images, reels, stories on Instagram via Graph API",
+        requires_api_key=True,
+        env_key="INSTAGRAM_ACCESS_TOKEN",
+        requires_approval=True,
+        capabilities=["post_image", "post_reel", "manage_stories", "schedule_post"],
+    ),
+    AIToolDefinition(
+        id="tiktok",
+        name="TikTok",
+        category=ToolCategory.SOCIAL_MEDIA,
+        description="Post videos, manage content",
+        description_en="Post and manage video content on TikTok",
+        requires_api_key=True,
+        env_key="TIKTOK_ACCESS_TOKEN",
+        requires_approval=True,
+        capabilities=["post_video", "schedule_video", "get_analytics"],
+    ),
+    AIToolDefinition(
+        id="youtube",
+        name="YouTube",
+        category=ToolCategory.SOCIAL_MEDIA,
+        description="Upload videos, manage channel, schedule posts",
+        description_en="Upload videos, manage channel, community posts on YouTube",
+        requires_api_key=True,
+        env_key="YOUTUBE_API_KEY",
+        requires_approval=True,
+        capabilities=["upload_video", "manage_playlists", "community_post", "schedule_upload"],
+    ),
+    AIToolDefinition(
+        id="linkedin",
+        name="LinkedIn",
+        category=ToolCategory.SOCIAL_MEDIA,
+        description="Post articles, manage professional content",
+        description_en="Post articles and manage professional content on LinkedIn",
+        requires_api_key=True,
+        env_key="LINKEDIN_ACCESS_TOKEN",
+        requires_approval=True,
+        capabilities=["post_article", "share_update", "schedule_post"],
+    ),
+    AIToolDefinition(
+        id="threads",
+        name="Threads",
+        category=ToolCategory.SOCIAL_MEDIA,
+        description="Post text and media on Threads",
+        description_en="Post text and media on Meta Threads",
+        requires_api_key=True,
+        env_key="THREADS_ACCESS_TOKEN",
+        requires_approval=True,
+        capabilities=["post_text", "post_media", "reply"],
+    ),
+    # --- Video editing ---
+    AIToolDefinition(
+        id="runway_ml",
+        name="Runway ML",
+        category=ToolCategory.VIDEO_EDITING,
+        description="AI video generation and editing",
+        description_en="AI-powered video generation and editing with Runway ML Gen-3",
+        requires_api_key=True,
+        env_key="RUNWAY_API_KEY",
+        capabilities=["generate_video", "edit_video", "extend_video", "image_to_video"],
+    ),
+    AIToolDefinition(
+        id="pika",
+        name="Pika",
+        category=ToolCategory.VIDEO_EDITING,
+        description="AI video generation",
+        description_en="AI video generation with Pika",
+        requires_api_key=True,
+        env_key="PIKA_API_KEY",
+        capabilities=["generate_video", "image_to_video"],
+    ),
+    AIToolDefinition(
+        id="capcut",
+        name="CapCut",
+        category=ToolCategory.VIDEO_EDITING,
+        description="Video editing and template generation",
+        description_en="Video editing, templates, and effects via CapCut API",
+        requires_api_key=True,
+        env_key="CAPCUT_API_KEY",
+        capabilities=["edit_video", "apply_template", "add_effects"],
+    ),
+    AIToolDefinition(
+        id="descript",
+        name="Descript",
+        category=ToolCategory.VIDEO_EDITING,
+        description="AI video/audio editing with transcription",
+        description_en="AI-powered video and audio editing with transcription",
+        requires_api_key=True,
+        env_key="DESCRIPT_API_KEY",
+        capabilities=["edit_video", "transcribe", "remove_filler_words"],
     ),
 ]
 
