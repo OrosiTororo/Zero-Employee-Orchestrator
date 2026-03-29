@@ -51,9 +51,13 @@ dependencies = [
     "apscheduler>=3.10",
     "structlog>=24.0",
     "python-multipart>=0.0.9",
+    "packaging>=23.0",
 ]
 
 [project.optional-dependencies]
+monitoring = [
+    "sentry-sdk[fastapi]>=2.0",
+]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.24",

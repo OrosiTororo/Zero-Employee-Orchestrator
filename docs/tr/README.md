@@ -33,7 +33,7 @@ ZEO'nun kendisi ücretsiz ve açık kaynaklıdır. LLM API maliyetleri kullanıc
 |--------|-----------|------|--------------------------|
 | **[Masaüstü Uygulaması](#️-masaüstü-uygulamasını-indirin)** | Teknik olmayan kullanıcılar | 2 dk | Hayır (abonelik modu) |
 | **[CLI (pip install)](#-hızlı-başlangıç-cli)** | Geliştiriciler | 2 dk | Hayır (abonelik veya Ollama) |
-| **[Docker](#-hızlı-başlangıç-cli)** | Kendi sunucunuz / üretim | 5 dk | Hayır (abonelik veya Ollama) |
+| **[Docker](#-docker)** | Kendi sunucunuz / üretim | 5 dk | Hayır (abonelik veya Ollama) |
 
 **Sistem Gereksinimleri:** Python 3.12+ (CLI), Node.js 22+ (frontend geliştirme), minimum 4 GB RAM. Ollama yerel modelleri 8 GB+ RAM gerektirir.
 
@@ -69,8 +69,8 @@ pip install zero-employee-orchestrator
 git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
 cd Zero-Employee-Orchestrator && pip install .
 
-# Veya Docker
-docker compose up -d
+# Veya Docker (ayrıntılar için Docker bölümüne bakın)
+docker compose -f docker/docker-compose.yml up -d
 ```
 
 ### Adım 2: Yapılandırma
@@ -94,13 +94,21 @@ zero-employee config set OPENROUTER_API_KEY <your-key>  # or GEMINI_API_KEY, etc
 ### Adım 3: Başlatma
 
 ```bash
-# Web UI + API sunucusunu başlat
-zero-employee serve
-# → http://localhost:18234 adresini açın
+# Seçenek A: start.sh (backend + frontend otomatik olarak başlar)
+./start.sh
+# → http://localhost:5173 adresini açın
 
-# Veya yerel sohbet modunu kullanın (Ollama)
-zero-employee local --model qwen3:8b
+# Seçenek B: Manuel başlatma
+zero-employee serve              # API sunucusunu başlat (port 18234)
+cd apps/desktop/ui && pnpm dev   # Başka bir terminalde frontend'i başlat (port 5173)
+# → http://localhost:5173 adresini açın
+
+# Seçenek C: Yalnızca sohbet modu (Web UI gerekmez)
+zero-employee chat               # Varsayılan ayarlar
+zero-employee local --model qwen3:8b  # Ollama
 ```
+
+> **Not:** `zero-employee serve` yalnızca API sunucusunu başlatır. Web UI ayrı olarak port 5173'te çalışır. En kolay yol `start.sh` kullanmaktır.
 
 ### Adım 4: Doğrulama
 

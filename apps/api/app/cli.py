@@ -20,9 +20,60 @@ import asyncio
 import sys
 
 
+def _find_and_chdir_api() -> None:
+    """Ensure the working directory is the API root (where app/ lives).
+
+    When installed as a package, the CLI may be invoked from any directory.
+    This helper finds the correct API directory and changes into it so that
+    ``uvicorn app.main:app`` can locate the module.
+    """
+    import os
+    import pathlib
+
+    # Already correct?
+    if pathlib.Path("app/main.py").exists():
+        return
+
+    # Check common relative locations
+    for candidate in [
+        pathlib.Path(__file__).resolve().parents[1],  # apps/api (from app/cli.py)
+        pathlib.Path.cwd() / "apps" / "api",  # project root
+    ]:
+        if (candidate / "app" / "main.py").exists():
+            os.chdir(candidate)
+            if str(candidate) not in sys.path:
+                sys.path.insert(0, str(candidate))
+            return
+
+
+def _ensure_env_file() -> None:
+    """Generate a default .env file if it doesn't exist."""
+    import pathlib
+    import secrets as _secrets
+
+    env_path = pathlib.Path(".env")
+    if env_path.exists():
+        return
+
+    secret = _secrets.token_urlsafe(32)
+    env_path.write_text(
+        f"DATABASE_URL=sqlite+aiosqlite:///./zero_employee_orchestrator.db\n"
+        f"SECRET_KEY={secret}\n"
+        f"DEBUG=true\n"
+        f'CORS_ORIGINS=["http://localhost:5173","http://localhost:3000",'
+        f'"tauri://localhost","https://tauri.localhost"]\n'
+        f"DEFAULT_EXECUTION_MODE=subscription\n"
+        f"USE_G4F=true\n"
+    )
+    print("  .env file created with default settings")
+
+
 def cmd_serve(args: argparse.Namespace) -> None:
     """Start the API server."""
     import uvicorn
+
+    _find_and_chdir_api()
+    _ensure_env_file()
 
     # Version check at startup (background, non-blocking)
     if not args.skip_update_check:
@@ -40,6 +91,8 @@ def cmd_serve(args: argparse.Namespace) -> None:
 
 def cmd_db_upgrade(args: argparse.Namespace) -> None:
     """Run DB migration."""
+    _find_and_chdir_api()
+    _ensure_env_file()
     from app.core.database import Base, engine
 
     async def _create_tables() -> None:
@@ -255,6 +308,8 @@ def cmd_config(args: argparse.Namespace) -> None:
 
 def cmd_local(args: argparse.Namespace) -> None:
     """Local chat mode -- fully offline interactive business agent using Ollama."""
+    _find_and_chdir_api()
+    _ensure_env_file()
 
     async def _chat() -> None:
         from app.banner import print_local_banner
@@ -408,6 +463,8 @@ def cmd_chat(args: argparse.Namespace) -> None:
     Available with all LLM providers, not just Ollama.
     Supports all operations via natural language: config changes, ticket creation, model management, etc.
     """
+    _find_and_chdir_api()
+    _ensure_env_file()
 
     async def _chat() -> None:
         from app.banner import print_local_banner
@@ -588,21 +645,21 @@ def _handle_command(cmd: str, language: str) -> str | None:
             "ja": (
                 "  /help      - ヘルプを表示\n"
                 "  /models    - 利用可能モデル一覧\n"
-                "  /lang <code> - 言語変更 (ja/en/zh)\n"
+                "  /lang <code> - 言語変更 (ja/en/zh/ko/pt/tr)\n"
                 "  /clear     - 会話履歴をクリア\n"
                 "  /quit      - 終了"
             ),
             "en": (
                 "  /help      - Show help\n"
                 "  /models    - List available models\n"
-                "  /lang <code> - Change language (ja/en/zh)\n"
+                "  /lang <code> - Change language (ja/en/zh/ko/pt/tr)\n"
                 "  /clear     - Clear conversation history\n"
                 "  /quit      - Exit"
             ),
             "zh": (
                 "  /help      - 显示帮助\n"
                 "  /models    - 列出可用模型\n"
-                "  /lang <code> - 更改语言 (ja/en/zh)\n"
+                "  /lang <code> - 更改语言 (ja/en/zh/ko/pt/tr)\n"
                 "  /clear     - 清除对话历史\n"
                 "  /quit      - 退出"
             ),
@@ -612,12 +669,20 @@ def _handle_command(cmd: str, language: str) -> str | None:
 
     if command == "/lang" and len(parts) > 1:
         new_lang = parts[1].lower()
-        if new_lang in ("ja", "en", "zh"):
+        supported = {"ja", "en", "zh", "ko", "pt", "tr"}
+        if new_lang in supported:
             set_language(new_lang)
-            names = {"ja": "日本語", "en": "English", "zh": "中文"}
+            names = {
+                "ja": "日本語",
+                "en": "English",
+                "zh": "中文",
+                "ko": "한국어",
+                "pt": "Português",
+                "tr": "Türkçe",
+            }
             print(f"  Language: {names[new_lang]}")
         else:
-            print("  Supported: ja, en, zh")
+            print("  Supported: ja, en, zh, ko, pt, tr")
         return None
 
     if command == "/clear":
@@ -757,7 +822,7 @@ def build_parser() -> argparse.ArgumentParser:
     local_parser.add_argument(
         "--lang",
         default="",
-        choices=["ja", "en", "zh", ""],
+        choices=["ja", "en", "zh", "ko", "pt", "tr", ""],
         help="Language (ja/en/zh, default: auto)",
     )
     local_parser.add_argument(
@@ -788,7 +853,7 @@ def build_parser() -> argparse.ArgumentParser:
     chat_parser.add_argument(
         "--lang",
         default="",
-        choices=["ja", "en", "zh", ""],
+        choices=["ja", "en", "zh", "ko", "pt", "tr", ""],
         help="Language (ja/en/zh, default: auto)",
     )
     chat_parser.add_argument(

@@ -9,6 +9,8 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy and install Python dependencies
@@ -17,11 +19,28 @@ RUN pip install --no-cache-dir -e apps/api/
 
 # Copy application code
 COPY apps/api/ apps/api/
+COPY skills/ skills/
 
-RUN chown -R zeapp:zeapp /app
+# Create data directories (writable by non-root user)
+RUN mkdir -p /app/data /app/.zero_employee /home/zeapp/.zero_employee && \
+    chown -R zeapp:zeapp /app /home/zeapp
+
+# Credential store (not accessible by AI agents)
+RUN mkdir -p /etc/zero-employee/credentials && \
+    chmod 700 /etc/zero-employee/credentials && \
+    chown root:root /etc/zero-employee/credentials
 
 USER zeapp
 
+# Environment variables
+ENV PYTHONPATH=/app/apps/api \
+    DATABASE_URL=sqlite+aiosqlite:///./data/zero_employee_orchestrator.db \
+    RAG_STORE_DIR=/app/.zero_employee/rag_store \
+    CREDENTIAL_DIR=/etc/zero-employee/credentials
+
 EXPOSE 18234
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "18234", "--workers", "1"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:18234/healthz || exit 1
+
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "18234"]

@@ -1,4 +1,8 @@
-version: '3.8'
+# Zero-Employee Orchestrator — Full Stack (API + Frontend + Worker)
+#
+# Usage:
+#   docker compose -f docker/docker-compose.yml up -d
+#   docker compose -f docker/docker-compose.yml logs -f
 
 services:
   api:
@@ -8,17 +12,25 @@ services:
     ports:
       - "18234:18234"
     environment:
-      - DATABASE_URL=sqlite+aiosqlite:///./zero_employee_orchestrator.db
-      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set. Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"}
-      - DEBUG=false
-      - CORS_ORIGINS=["http://localhost:5173"]
+      - DATABASE_URL=sqlite+aiosqlite:///./data/zero_employee_orchestrator.db
+      - SECRET_KEY=${SECRET_KEY:-auto-generated-change-me}
+      - DEBUG=${DEBUG:-false}
+      - CORS_ORIGINS=["http://localhost:5173","http://localhost:3000","tauri://localhost","https://tauri.localhost"]
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - LANGUAGE=${LANGUAGE:-en}
     volumes:
       - api-data:/app/data
+      - rag-store:/app/.zero_employee
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:18234/healthz"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 15s
+    security_opt:
+      - no-new-privileges:true
 
   ui:
     build:
@@ -34,14 +46,18 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.api
-    command: python -m apps.worker.main
+    command: ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "18235"]
     environment:
-      - DATABASE_URL=sqlite+aiosqlite:///./zero_employee_orchestrator.db
+      - DATABASE_URL=sqlite+aiosqlite:///./data/zero_employee_orchestrator.db
+      - SECRET_KEY=${SECRET_KEY:-auto-generated-change-me}
     volumes:
       - api-data:/app/data
     depends_on:
       api:
         condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
 
 volumes:
   api-data:
+  rag-store:

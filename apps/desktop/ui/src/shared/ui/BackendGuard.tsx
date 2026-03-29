@@ -27,76 +27,90 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
   const [setupMessage, setSetupMessage] = useState("")
   const [errorDetail, setErrorDetail] = useState<string | null>(null)
   const retryCount = useRef(0)
+  const checkingRef = useRef(false)
   const maxAutoRetries = isTauri ? 5 : 0
 
   const check = useCallback(async () => {
-    setStatus("checking")
-    setErrorDetail(null)
+    // Prevent concurrent check() calls from racing
+    if (checkingRef.current) return
+    checkingRef.current = true
 
-    if (isTauri) {
-      setSetupMessage(
-        retryCount.current === 0
-          ? t.backend.startingBackend
-          : t.backend.waitingForStartup,
-      )
-    }
+    try {
+      setStatus("checking")
+      setErrorDetail(null)
 
-    const attempts = isTauri ? 45 : 15
-    const interval = 2000
-    const ok = await waitForBackend(attempts, interval)
-
-    if (ok) {
-      setStatus("connected")
-      retryCount.current = 0
-      return
-    }
-
-    if (isTauri) {
-      try {
-        const err = await tauriInvoke<string | null>("get_backend_error")
-        if (err) {
-          setErrorDetail(err)
-        }
-      } catch {
-        // ignore
+      if (isTauri) {
+        setSetupMessage(
+          retryCount.current === 0
+            ? t.backend.startingBackend
+            : t.backend.waitingForStartup,
+        )
       }
-    }
 
-    if (isTauri && retryCount.current < maxAutoRetries) {
-      retryCount.current += 1
-      const attempt = retryCount.current
+      // Initial wait: 30s (Tauri) or 15s (browser)
+      const attempts = isTauri ? 15 : 15
+      const interval = 2000
+      const ok = await waitForBackend(attempts, interval)
 
-      if (attempt <= 2) {
-        setSetupMessage(t.backend.takingLonger)
-        const retryOk = await waitForBackend(30, 2000)
-        if (retryOk) {
-          setStatus("connected")
-          retryCount.current = 0
-          return
-        }
-      } else {
-        setSetupMessage(t.backend.restartingBackend)
+      if (ok) {
+        setStatus("connected")
+        retryCount.current = 0
+        return
+      }
+
+      if (isTauri) {
         try {
-          await tauriInvoke("restart_backend")
-          setErrorDetail(null)
-        } catch (e) {
-          const msg = e instanceof Error ? e.message : String(e)
-          setErrorDetail(msg)
-          console.error("[BackendGuard] restart_backend failed:", msg)
-        }
-        const retryOk = await waitForBackend(45, 2000)
-        if (retryOk) {
-          setStatus("connected")
-          retryCount.current = 0
-          return
+          const err = await tauriInvoke<string | null>("get_backend_error")
+          if (err) {
+            setErrorDetail(err)
+          }
+        } catch {
+          // ignore
         }
       }
 
-      check()
-      return
-    }
+      if (isTauri && retryCount.current < maxAutoRetries) {
+        retryCount.current += 1
+        const attempt = retryCount.current
 
-    setStatus("failed")
+        if (attempt <= 2) {
+          // Extra wait: 20s per retry
+          setSetupMessage(t.backend.takingLonger)
+          const retryOk = await waitForBackend(10, 2000)
+          if (retryOk) {
+            setStatus("connected")
+            retryCount.current = 0
+            return
+          }
+        } else {
+          // Restart backend and wait 30s
+          setSetupMessage(t.backend.restartingBackend)
+          try {
+            await tauriInvoke("restart_backend")
+            setErrorDetail(null)
+          } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e)
+            setErrorDetail(msg)
+            console.error("[BackendGuard] restart_backend failed:", msg)
+          }
+          const retryOk = await waitForBackend(15, 2000)
+          if (retryOk) {
+            setStatus("connected")
+            retryCount.current = 0
+            return
+          }
+        }
+
+        // Release lock before recursive retry
+        checkingRef.current = false
+        await check()
+        return
+      }
+
+      setStatus("failed")
+    } finally {
+      checkingRef.current = false
+    }
   }, [maxAutoRetries, t])
 
   useEffect(() => {
@@ -105,7 +119,7 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
 
   const handleRetry = useCallback(async () => {
     retryCount.current = 0
-    check()
+    await check()
   }, [check])
 
   if (status === "connected") {

@@ -49,7 +49,13 @@ export async function waitForBackend(
 
   for (let i = 0; i < maxAttempts; i++) {
     try {
-      const res = await fetch(healthUrl, { method: "GET" })
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 5000)
+      const res = await fetch(healthUrl, {
+        method: "GET",
+        signal: controller.signal,
+      })
+      clearTimeout(timeout)
       if (res.ok) return true
     } catch {
       // Backend not yet reachable — retry
@@ -66,6 +72,8 @@ export async function request<T>(
   options?: RequestInit,
 ): Promise<T> {
   let res: Response
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 30000)
   try {
     res = await fetch(`${API_BASE}${path}`, {
       headers: {
@@ -74,12 +82,16 @@ export async function request<T>(
         ...options?.headers,
       },
       ...options,
+      signal: options?.signal ?? controller.signal,
     })
   } catch {
+    clearTimeout(timeout)
     // First attempt failed — the backend may still be starting (sidecar).
     // Wait for backend readiness and retry once.
     const ready = await waitForBackend(5, 1000)
     if (ready) {
+      const retryController = new AbortController()
+      const retryTimeout = setTimeout(() => retryController.abort(), 30000)
       try {
         res = await fetch(`${API_BASE}${path}`, {
           headers: {
@@ -88,8 +100,11 @@ export async function request<T>(
             ...options?.headers,
           },
           ...options,
+          signal: options?.signal ?? retryController.signal,
         })
+        clearTimeout(retryTimeout)
       } catch {
+        clearTimeout(retryTimeout)
         throw new NetworkError(
           "サーバーに接続できません。バックエンドが起動しているか確認してください。" +
             `\n(接続先: ${API_BASE})`,
@@ -102,6 +117,7 @@ export async function request<T>(
       )
     }
   }
+  clearTimeout(timeout)
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }))
