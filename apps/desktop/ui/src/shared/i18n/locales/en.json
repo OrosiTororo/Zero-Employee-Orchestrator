@@ -218,7 +218,16 @@
     "recommendedActions": "Recommended Actions",
     "action1": "Set your company mission",
     "action2": "Configure provider connections",
-    "action3": "Create your first ticket"
+    "action3": "Create your first ticket",
+    "inputHint": "Ask anything in natural language. File operations, browser control, AI analysis, and more.",
+    "qaResearch": "Research",
+    "qaResearchEx": "Research the latest trends in our industry",
+    "qaReport": "Report",
+    "qaReportEx": "Analyze this month's sales data and create a report",
+    "qaAutomate": "Automate",
+    "qaAutomateEx": "Auto-draft social media posts every Monday",
+    "qaAnalyze": "Analyze",
+    "qaAnalyzeEx": "Classify customer feedback and extract improvements"
   },
   "settings": {
     "title": "Settings",

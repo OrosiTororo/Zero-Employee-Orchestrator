@@ -218,7 +218,16 @@
     "recommendedActions": "推奨アクション",
     "action1": "企業ミッションを設定する",
     "action2": "プロバイダー接続を構成する",
-    "action3": "最初のチケットを作成する"
+    "action3": "最初のチケットを作成する",
+    "inputHint": "自然言語で何でも依頼できます。ファイル操作、ブラウザ操作、AI分析なども可能です。",
+    "qaResearch": "リサーチ",
+    "qaResearchEx": "競合他社の最新動向を調査して",
+    "qaReport": "レポート作成",
+    "qaReportEx": "今月の売上データを分析してレポートを作成して",
+    "qaAutomate": "自動化",
+    "qaAutomateEx": "毎週月曜にSNS投稿を自動で下書きして",
+    "qaAnalyze": "分析",
+    "qaAnalyzeEx": "顧客フィードバックを分類して改善点を抽出して"
   },
   "settings": {
     "title": "設定",

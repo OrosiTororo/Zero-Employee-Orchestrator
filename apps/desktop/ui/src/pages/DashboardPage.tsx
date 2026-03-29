@@ -11,6 +11,11 @@ import {
   AlertTriangle,
   Lightbulb,
   Target,
+  Globe,
+  Terminal,
+  FileText,
+  Zap,
+  ArrowRight,
 } from "lucide-react"
 import { api } from "../shared/api/client"
 import { useT } from "@/shared/i18n"
@@ -37,9 +42,7 @@ export function DashboardPage() {
       setPendingApprovals(approvals.length)
       const active = agents.filter((a: any) => a.status === "active").length
       setAgentStatus(`${active} / ${agents.length}`)
-    } catch {
-      // Stats will remain at defaults
-    }
+    } catch { /* Stats will remain at defaults */ }
   }, [companyId])
 
   useEffect(() => { fetchStats() }, [fetchStats])
@@ -51,38 +54,27 @@ export function DashboardPage() {
     setLoading(true)
     setNlResponse("")
     try {
-      // まず NL コマンドプロセッサで意図を判定
       const nlResult = await api.post<{
-        success: boolean
-        message: string
-        category: string
-        confidence: number
-        delegate_to_llm: boolean
-        suggestions: string[]
+        success: boolean; message: string; category: string
+        confidence: number; delegate_to_llm: boolean; suggestions: string[]
       }>("/command", { text: input.trim() })
 
-      // コマンドとして認識された場合はその場で結果を表示
       if (nlResult.confidence >= 0.3 && !nlResult.delegate_to_llm && nlResult.message) {
         setNlResponse(nlResult.message)
         setInput("")
-        fetchStats() // 統計を再取得
+        fetchStats()
         return
       }
 
-      // 通常のチケット作成フロー
       if (companyId) {
         const ticket = await api.post<{ id: string }>(`/companies/${companyId}/tickets`, {
-          title: input.trim(),
-          description: input.trim(),
-          priority: "medium",
-          source_type: "user",
+          title: input.trim(), description: input.trim(), priority: "medium", source_type: "user",
         })
         navigate(`/tickets/${ticket.id}/interview`)
       } else {
         navigate("/tickets")
       }
-    } catch (e) {
-      console.error("Failed:", e)
+    } catch {
       navigate("/tickets")
     } finally {
       setLoading(false)
@@ -90,22 +82,29 @@ export function DashboardPage() {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSubmit()
-    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit() }
   }
+
+  const quickActions = [
+    { icon: Globe, label: t.dashboard.qaResearch, example: t.dashboard.qaResearchEx },
+    { icon: FileText, label: t.dashboard.qaReport, example: t.dashboard.qaReportEx },
+    { icon: Terminal, label: t.dashboard.qaAutomate, example: t.dashboard.qaAutomateEx },
+    { icon: Zap, label: t.dashboard.qaAnalyze, example: t.dashboard.qaAnalyzeEx },
+  ]
 
   return (
     <div className="h-full overflow-auto">
-      <div className="max-w-[900px] mx-auto px-6 py-6">
-        {/* Natural Language Input */}
-        <div className="mb-8">
+      <div className="max-w-[960px] mx-auto px-6 py-6">
+        {/* Natural Language Input - Hero */}
+        <div className="mb-6">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles size={18} className="text-[var(--accent)]" />
             <h2 className="text-[14px] font-medium text-[var(--text-primary)]">
               {t.dashboard.requestTask}
             </h2>
+            <kbd className="ml-auto text-[10px] text-[var(--text-muted)] border border-[var(--border)] rounded px-1.5 py-0.5">
+              Ctrl+K
+            </kbd>
           </div>
           <div className="rounded-md overflow-hidden border border-[var(--border)] bg-[var(--bg-surface)] focus-within:border-[var(--accent)] transition-colors">
             <textarea
@@ -114,20 +113,19 @@ export function DashboardPage() {
               onKeyDown={handleKeyDown}
               placeholder={t.dashboard.inputPlaceholder}
               className="w-full resize-none px-4 py-3 text-[13px] outline-none bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
-              style={{ minHeight: "80px" }}
+              style={{ minHeight: "72px" }}
               rows={3}
+              aria-label={t.dashboard.requestTask}
             />
-            <div className="flex items-center justify-end px-4 py-2 border-t border-[var(--border)]">
+            <div className="flex items-center justify-between px-4 py-2 border-t border-[var(--border)]">
+              <span className="text-[11px] text-[var(--text-muted)]">
+                {t.dashboard.inputHint}
+              </span>
               <button
                 onClick={handleSubmit}
                 disabled={!input.trim() || loading}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-[12px] text-white font-medium"
-                style={{
-                  background:
-                    input.trim() && !loading
-                      ? "var(--gradient-primary)"
-                      : "var(--border)",
-                }}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-[12px] text-[var(--accent-fg)] font-medium disabled:opacity-40"
+                style={{ background: input.trim() && !loading ? "var(--gradient-primary)" : "var(--border)" }}
               >
                 <Send size={13} />
                 {loading ? t.dashboard.submitting : t.dashboard.submit}
@@ -141,92 +139,66 @@ export function DashboardPage() {
           )}
         </div>
 
-        {/* Company Mission */}
-        <div className="mb-6 rounded-md px-4 py-3 border border-[var(--border)] bg-[var(--bg-surface)]">
-          <div className="flex items-center gap-2 mb-1">
-            <Target size={14} className="text-[var(--accent)]" />
-            <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-medium">
-              {t.dashboard.companyMission}
-            </span>
-          </div>
-          <p className="text-[13px] text-[var(--text-primary)]">
-            {t.dashboard.noMission}
-          </p>
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
+          {quickActions.map((qa, i) => (
+            <button key={i}
+              onClick={() => { setInput(qa.example); }}
+              className="group rounded-md px-3 py-3 text-left border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent)] transition-colors"
+            >
+              <qa.icon size={16} className="text-[var(--accent)] mb-2" />
+              <div className="text-[12px] font-medium text-[var(--text-primary)] mb-0.5">{qa.label}</div>
+              <div className="text-[11px] text-[var(--text-muted)] truncate">{qa.example}</div>
+            </button>
+          ))}
         </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <SummaryCard
-            icon={Ticket}
-            label={t.dashboard.activeTickets}
-            value={String(activeTickets)}
-            sub={t.dashboard.activeSub}
-            onClick={() => navigate("/tickets")}
-          />
-          <SummaryCard
-            icon={ShieldCheck}
-            label={t.dashboard.pendingApprovals}
-            value={String(pendingApprovals)}
-            sub={t.dashboard.pendingSub}
-            onClick={() => navigate("/approvals")}
-          />
-          <SummaryCard
-            icon={Bot}
-            label={t.dashboard.agentStatus}
-            value={agentStatus}
-            sub={t.dashboard.agentSub}
-            onClick={() => navigate("/org-chart")}
-          />
-          <SummaryCard
-            icon={HeartPulse}
-            label={t.dashboard.heartbeat}
-            value={t.dashboard.heartbeatNormal}
-            sub={t.dashboard.heartbeatSub}
-            onClick={() => navigate("/heartbeats")}
-          />
+        {/* Status Grid */}
+        <div className="grid grid-cols-4 gap-3 mb-6">
+          <StatusCard icon={Ticket} label={t.dashboard.activeTickets} value={String(activeTickets)}
+            accent="var(--accent)" onClick={() => navigate("/tickets")} />
+          <StatusCard icon={ShieldCheck} label={t.dashboard.pendingApprovals} value={String(pendingApprovals)}
+            accent={pendingApprovals > 0 ? "var(--warning)" : "var(--accent)"} onClick={() => navigate("/approvals")} />
+          <StatusCard icon={Bot} label={t.dashboard.agentStatus} value={agentStatus}
+            accent="var(--success-fg)" onClick={() => navigate("/org-chart")} />
+          <StatusCard icon={HeartPulse} label={t.dashboard.heartbeat} value={t.dashboard.heartbeatNormal}
+            accent="var(--success-fg)" onClick={() => navigate("/heartbeats")} />
         </div>
 
-        {/* Cost Summary */}
-        <div className="mb-6 rounded-md px-4 py-3 border border-[var(--border)] bg-[var(--bg-surface)]">
-          <div className="flex items-center gap-2 mb-2">
-            <Coins size={14} className="text-[var(--warning)]" />
-            <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-medium">
-              {t.dashboard.costSummary}
-            </span>
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          {/* Cost */}
+          <div className="rounded-md px-4 py-3 border border-[var(--border)] bg-[var(--bg-surface)]">
+            <div className="flex items-center gap-2 mb-2">
+              <Coins size={14} className="text-[var(--warning)]" />
+              <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-medium">
+                {t.dashboard.costSummary}
+              </span>
+            </div>
+            <div className="text-[20px] font-semibold text-[var(--text-primary)]">$0.00</div>
+            <div className="text-[11px] text-[var(--text-muted)]">{t.dashboard.today}</div>
           </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <div className="text-[18px] font-semibold text-[var(--text-primary)]">
-                $0.00
-              </div>
-              <div className="text-[11px] text-[var(--text-muted)]">{t.dashboard.today}</div>
-            </div>
-            <div>
-              <div className="text-[18px] font-semibold text-[var(--text-primary)]">
-                $0.00
-              </div>
-              <div className="text-[11px] text-[var(--text-muted)]">{t.dashboard.thisWeek}</div>
-            </div>
-            <div>
-              <div className="text-[18px] font-semibold text-[var(--text-primary)]">
-                $0.00
-              </div>
-              <div className="text-[11px] text-[var(--text-muted)]">{t.dashboard.thisMonth}</div>
-            </div>
-          </div>
-        </div>
 
-        {/* Errors / Blocks */}
-        <div className="mb-6 rounded-md px-4 py-3 border border-[var(--border)] bg-[var(--bg-surface)]">
-          <div className="flex items-center gap-2 mb-2">
-            <AlertTriangle size={14} className="text-[var(--error)]" />
-            <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-medium">
-              {t.dashboard.errorsBlocks}
-            </span>
+          {/* Mission */}
+          <div className="rounded-md px-4 py-3 border border-[var(--border)] bg-[var(--bg-surface)]">
+            <div className="flex items-center gap-2 mb-2">
+              <Target size={14} className="text-[var(--accent)]" />
+              <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-medium">
+                {t.dashboard.companyMission}
+              </span>
+            </div>
+            <p className="text-[12px] text-[var(--text-muted)] truncate">{t.dashboard.noMission}</p>
           </div>
-          <p className="text-[12px] text-[var(--text-muted)]">
-            {t.dashboard.noErrors}
-          </p>
+
+          {/* Errors */}
+          <div className="rounded-md px-4 py-3 border border-[var(--border)] bg-[var(--bg-surface)]">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle size={14} className="text-[var(--success-fg)]" />
+              <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-medium">
+                {t.dashboard.errorsBlocks}
+              </span>
+            </div>
+            <p className="text-[12px] text-[var(--text-muted)]">{t.dashboard.noErrors}</p>
+          </div>
         </div>
 
         {/* Recommended Actions */}
@@ -237,54 +209,32 @@ export function DashboardPage() {
               {t.dashboard.recommendedActions}
             </span>
           </div>
-          <ul className="flex flex-col gap-1">
-            <li className="text-[12px] text-[var(--text-primary)] flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
-              {t.dashboard.action1}
-            </li>
-            <li className="text-[12px] text-[var(--text-primary)] flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
-              {t.dashboard.action2}
-            </li>
-            <li className="text-[12px] text-[var(--text-primary)] flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
-              {t.dashboard.action3}
-            </li>
-          </ul>
+          <div className="flex flex-col gap-1">
+            {[t.dashboard.action1, t.dashboard.action2, t.dashboard.action3].map((action, i) => (
+              <div key={i} className="flex items-center gap-2 text-[12px] text-[var(--text-primary)] group cursor-pointer hover:text-[var(--accent)]">
+                <ArrowRight size={12} className="text-[var(--text-muted)] group-hover:text-[var(--accent)]" />
+                {action}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
   )
 }
 
-function SummaryCard({
-  icon: Icon,
-  label,
-  value,
-  sub,
-  onClick,
-}: {
-  icon: React.ComponentType<{ size?: number }>
-  label: string
-  value: string
-  sub: string
-  onClick?: () => void
+function StatusCard({ icon: Icon, label, value, accent, onClick }: {
+  icon: React.ComponentType<{ size?: number; className?: string }>
+  label: string; value: string; accent: string; onClick?: () => void
 }) {
   return (
-    <button
-      onClick={onClick}
-      className="rounded-md px-4 py-3 text-left border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent)] transition-colors"
-    >
-      <div className="flex items-center gap-2 mb-1">
-        <Icon size={14} />
-        <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-medium">
-          {label}
-        </span>
+    <button onClick={onClick}
+      className="rounded-md px-3 py-3 text-left border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent)] transition-colors">
+      <div className="flex items-center gap-1.5 mb-1">
+        <Icon size={13} style={{ color: accent }} />
+        <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-medium truncate">{label}</span>
       </div>
-      <div className="text-[20px] font-semibold text-[var(--text-primary)]">
-        {value}
-      </div>
-      <div className="text-[11px] text-[var(--text-muted)]">{sub}</div>
+      <div className="text-[18px] font-semibold text-[var(--text-primary)]">{value}</div>
     </button>
   )
 }
