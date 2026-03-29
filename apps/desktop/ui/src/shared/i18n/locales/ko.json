@@ -59,8 +59,11 @@
   },
   "backend": {
     "connecting": "백엔드에 연결 중...",
-    "waitingForServer": "서버 시작을 기다리는 중",
+    "waitingForServer": "서버 응답 대기 중...",
     "startingBackend": "백엔드를 시작하는 중...",
+    "preparingEnv": "환경 준비 중...",
+    "settingUpPython": "Python 환경 설정 중...",
+    "launchingServer": "서버 시작 중...",
     "waitingForStartup": "시작을 기다리는 중...",
     "takingLonger": "시작이 예상보다 오래 걸리고 있습니다. 잠시만 기다려 주세요...",
     "restartingBackend": "백엔드를 재시작하는 중...",

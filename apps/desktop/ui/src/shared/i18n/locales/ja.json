@@ -59,8 +59,11 @@
   },
   "backend": {
     "connecting": "バックエンドに接続中...",
-    "waitingForServer": "サーバーの起動を待っています",
+    "waitingForServer": "サーバーの応答を待っています...",
     "startingBackend": "バックエンドを起動しています...",
+    "preparingEnv": "環境を準備しています...",
+    "settingUpPython": "Python環境をセットアップ中...",
+    "launchingServer": "サーバーを起動しています...",
     "waitingForStartup": "起動を待っています...",
     "takingLonger": "起動に時間がかかっています。もう少しお待ちください...",
     "restartingBackend": "バックエンドを再起動しています...",

@@ -59,8 +59,11 @@
   },
   "backend": {
     "connecting": "Arka uca bağlanılıyor...",
-    "waitingForServer": "Sunucunun başlatılması bekleniyor",
+    "waitingForServer": "Sunucu yanıtı bekleniyor...",
     "startingBackend": "Arka uç başlatılıyor...",
+    "preparingEnv": "Ortam hazırlanıyor...",
+    "settingUpPython": "Python ortamı kuruluyor...",
+    "launchingServer": "Sunucu başlatılıyor...",
     "waitingForStartup": "Başlatma bekleniyor...",
     "takingLonger": "Başlatma beklenenden uzun sürüyor. Lütfen bekleyin...",
     "restartingBackend": "Arka uç yeniden başlatılıyor...",

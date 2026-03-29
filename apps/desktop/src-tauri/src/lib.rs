@@ -32,6 +32,9 @@ struct ApiDir(Mutex<Option<PathBuf>>);
 /// Last error message from backend startup, readable by frontend.
 struct BackendError(Mutex<Option<String>>);
 
+/// Current startup phase, polled by frontend for progress display.
+struct StartupPhase(Mutex<String>);
+
 /// Ensure common tool directories are in PATH.
 /// GUI apps (macOS .app, Linux desktop launchers) don't load shell profiles,
 /// so tools like `uv`, `python3`, and `cargo` may not be found.
@@ -345,7 +348,7 @@ fn find_python(api_dir: &PathBuf) -> (String, bool) {
     }
 }
 
-/// Wait until the backend health endpoint responds.
+/// Wait until the backend health endpoint responds with HTTP 200.
 /// Uses pure TCP connection instead of spawning curl (which opens visible
 /// console windows on Windows).
 fn wait_for_backend(max_attempts: u32) -> bool {
@@ -354,16 +357,15 @@ fn wait_for_backend(max_attempts: u32) -> bool {
         let delay = if i == 0 { 500 } else { 1000 };
         std::thread::sleep(Duration::from_millis(delay));
 
-        // Try TCP connect — once the server accepts connections, it's ready
+        // Try TCP connect and verify HTTP 200 response
         if let Ok(mut stream) =
             std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(2))
         {
-            // Send a minimal HTTP GET to /healthz and check for 200
             use std::io::{Read, Write as IoWrite};
-            let _ = stream.set_read_timeout(Some(Duration::from_secs(2)));
+            let _ = stream.set_read_timeout(Some(Duration::from_secs(3)));
             let req = b"GET /healthz HTTP/1.0\r\nHost: 127.0.0.1\r\n\r\n";
             if stream.write_all(req).is_ok() {
-                let mut buf = [0u8; 256];
+                let mut buf = [0u8; 512];
                 if let Ok(n) = stream.read(&mut buf) {
                     let response = String::from_utf8_lossy(&buf[..n]);
                     if response.contains("200") {
@@ -371,11 +373,8 @@ fn wait_for_backend(max_attempts: u32) -> bool {
                     }
                 }
             }
-            // TCP connected but HTTP not ready yet — server is starting
-            if i > 2 {
-                // After a few attempts, accept TCP connect as "ready enough"
-                return true;
-            }
+            // TCP connected but HTTP not ready yet — continue waiting
+            eprintln!("[sidecar] attempt {}/{}: TCP ok but HTTP not ready", i + 1, max_attempts);
         }
     }
     eprintln!("[sidecar] backend did not become ready within timeout");
@@ -475,7 +474,20 @@ fn is_port_in_use() -> bool {
     .is_ok()
 }
 
-fn spawn_backend_inner(api_dir: &PathBuf) -> Result<Child, String> {
+fn set_phase(phase_state: &Option<std::sync::Arc<Mutex<String>>>, phase: &str) {
+    if let Some(ref state) = phase_state {
+        if let Ok(mut guard) = state.lock() {
+            *guard = phase.to_string();
+        }
+    }
+}
+
+fn spawn_backend_inner(
+    api_dir: &PathBuf,
+    phase_state: &Option<std::sync::Arc<Mutex<String>>>,
+) -> Result<Child, String> {
+    set_phase(phase_state, "preparing");
+
     // Ensure .env file exists (equivalent to start.sh's auto-generation)
     ensure_env_file(api_dir);
 
@@ -492,6 +504,7 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Result<Child, String> {
         }
     }
 
+    set_phase(phase_state, "python");
     let (python, did_auto_setup) = find_python(api_dir);
 
     // Check if Python was found
@@ -503,6 +516,7 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Result<Child, String> {
                 .to_string(),
         );
     }
+    set_phase(phase_state, "starting");
     eprintln!(
         "[sidecar] starting backend: python={}, dir={}, auto_setup={}",
         python,
@@ -591,14 +605,18 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Result<Child, String> {
             }
             // Wait for backend to respond. Don't block too long —
             // the frontend BackendGuard will continue polling and retrying.
+            set_phase(phase_state, "health_check");
             let max_wait = if did_auto_setup { 30 } else { 15 };
             let ready = wait_for_backend(max_wait);
-            if !ready {
+            if ready {
+                set_phase(phase_state, "ready");
+            } else {
                 eprintln!(
                     "[sidecar] backend not yet ready after {}s, \
                      frontend will continue polling",
                     max_wait
                 );
+                set_phase(phase_state, "waiting");
             }
             Ok(c)
         }
@@ -610,10 +628,14 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Result<Child, String> {
     }
 }
 
-fn spawn_backend() -> (Option<Child>, Option<PathBuf>, Option<String>) {
+fn spawn_backend(
+    phase_state: &Option<std::sync::Arc<Mutex<String>>>,
+) -> (Option<Child>, Option<PathBuf>, Option<String>) {
+    set_phase(phase_state, "finding_api");
     let api_dir = match find_api_dir() {
         Some(d) => d,
         None => {
+            set_phase(phase_state, "failed");
             return (
                 None,
                 None,
@@ -622,9 +644,12 @@ fn spawn_backend() -> (Option<Child>, Option<PathBuf>, Option<String>) {
         }
     };
 
-    match spawn_backend_inner(&api_dir) {
+    match spawn_backend_inner(&api_dir, phase_state) {
         Ok(child) => (Some(child), Some(api_dir), None),
-        Err(err) => (None, Some(api_dir), Some(err)),
+        Err(err) => {
+            set_phase(phase_state, "failed");
+            (None, Some(api_dir), Some(err))
+        }
     }
 }
 
@@ -634,6 +659,7 @@ fn restart_backend(
     backend: tauri::State<'_, BackendProcess>,
     api_dir_state: tauri::State<'_, ApiDir>,
     error_state: tauri::State<'_, BackendError>,
+    phase_state: tauri::State<'_, StartupPhase>,
 ) -> Result<String, String> {
     // Kill existing process if any
     if let Ok(mut guard) = backend.0.lock() {
@@ -657,7 +683,19 @@ fn restart_backend(
         None => return Err("API directory not found. / API ディレクトリが見つかりません。".to_string()),
     };
 
-    match spawn_backend_inner(&api_dir) {
+    let phase_arc = std::sync::Arc::new(Mutex::new(String::new()));
+    {
+        let phase = phase_arc.clone();
+        if let Ok(mut guard) = phase_state.0.lock() {
+            // We'll update via the Arc
+            *guard = "preparing".to_string();
+        }
+        // Sync phase_arc changes back to phase_state
+        let _ = phase;
+    }
+    let phase_opt = Some(phase_arc.clone());
+
+    match spawn_backend_inner(&api_dir, &phase_opt) {
         Ok(child) => {
             if let Ok(mut guard) = backend.0.lock() {
                 *guard = Some(child);
@@ -665,11 +703,20 @@ fn restart_backend(
             if let Ok(mut err) = error_state.0.lock() {
                 *err = None;
             }
+            // Sync final phase
+            if let Ok(p) = phase_arc.lock() {
+                if let Ok(mut guard) = phase_state.0.lock() {
+                    *guard = p.clone();
+                }
+            }
             Ok("started".to_string())
         }
         Err(e) => {
             if let Ok(mut err) = error_state.0.lock() {
                 *err = Some(e.clone());
+            }
+            if let Ok(mut guard) = phase_state.0.lock() {
+                *guard = "failed".to_string();
             }
             Err(e)
         }
@@ -677,23 +724,38 @@ fn restart_backend(
 }
 
 /// Tauri command: check if the backend health endpoint is reachable.
+/// Returns "ok" on success, "unreachable" if not connectable, or "not_ready"
+/// if TCP connects but HTTP response is not 200.
 #[tauri::command]
-fn check_backend_health() -> bool {
+fn check_backend_health() -> String {
     let addr: std::net::SocketAddr = "127.0.0.1:18234".parse().unwrap();
     if let Ok(mut stream) = std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(2)) {
         use std::io::{Read, Write as IoWrite};
-        let _ = stream.set_read_timeout(Some(Duration::from_secs(2)));
+        let _ = stream.set_read_timeout(Some(Duration::from_secs(3)));
         let req = b"GET /healthz HTTP/1.0\r\nHost: 127.0.0.1\r\n\r\n";
         if stream.write_all(req).is_ok() {
-            let mut buf = [0u8; 256];
+            let mut buf = [0u8; 512];
             if let Ok(n) = stream.read(&mut buf) {
-                return String::from_utf8_lossy(&buf[..n]).contains("200");
+                let response = String::from_utf8_lossy(&buf[..n]);
+                if response.contains("200") {
+                    return "ok".to_string();
+                }
             }
         }
-        // TCP connected but couldn't read — still alive
-        return true;
+        // TCP connected but HTTP not ready — server is still initializing
+        return "not_ready".to_string();
     }
-    false
+    "unreachable".to_string()
+}
+
+/// Tauri command: get the current startup phase for progress display.
+#[tauri::command]
+fn get_startup_phase(phase_state: tauri::State<'_, StartupPhase>) -> String {
+    phase_state
+        .0
+        .lock()
+        .map(|g| g.clone())
+        .unwrap_or_else(|_| "unknown".to_string())
 }
 
 /// Tauri command: get the last backend startup error (if any).
@@ -738,13 +800,48 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             restart_backend,
             check_backend_health,
-            get_backend_error
+            get_backend_error,
+            get_startup_phase
         ])
         .setup(|app| {
-            let (child, api_dir, error) = spawn_backend();
-            app.manage(BackendProcess(Mutex::new(child)));
-            app.manage(ApiDir(Mutex::new(api_dir)));
-            app.manage(BackendError(Mutex::new(error)));
+            // Initialize states with empty values — backend spawns in background
+            let phase_arc = std::sync::Arc::new(Mutex::new("initializing".to_string()));
+            app.manage(BackendProcess(Mutex::new(None)));
+            app.manage(ApiDir(Mutex::new(None)));
+            app.manage(BackendError(Mutex::new(None)));
+            app.manage(StartupPhase(Mutex::new("initializing".to_string())));
+
+            // Spawn backend in a background thread so the window renders immediately
+            let app_handle = app.handle().clone();
+            let phase_for_thread = Some(phase_arc.clone());
+            std::thread::spawn(move || {
+                let (child, api_dir, error) = spawn_backend(&phase_for_thread);
+
+                // Sync phase to the managed state
+                if let Ok(phase) = phase_arc.lock() {
+                    if let Some(state) = app_handle.try_state::<StartupPhase>() {
+                        if let Ok(mut guard) = state.0.lock() {
+                            *guard = phase.clone();
+                        }
+                    }
+                }
+
+                if let Some(state) = app_handle.try_state::<BackendProcess>() {
+                    if let Ok(mut guard) = state.0.lock() {
+                        *guard = child;
+                    }
+                }
+                if let Some(state) = app_handle.try_state::<ApiDir>() {
+                    if let Ok(mut guard) = state.0.lock() {
+                        *guard = api_dir;
+                    }
+                }
+                if let Some(state) = app_handle.try_state::<BackendError>() {
+                    if let Ok(mut guard) = state.0.lock() {
+                        *guard = error;
+                    }
+                }
+            });
             Ok(())
         })
         .on_window_event(|window, event| {
