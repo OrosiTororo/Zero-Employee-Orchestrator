@@ -109,7 +109,9 @@ async def list_models(
 
     registry = get_model_registry()
     models = registry.list_models(
-        provider=provider, include_deprecated=include_deprecated, tag=tag,
+        provider=provider,
+        include_deprecated=include_deprecated,
+        tag=tag,
     )
 
     return ModelListResponse(
