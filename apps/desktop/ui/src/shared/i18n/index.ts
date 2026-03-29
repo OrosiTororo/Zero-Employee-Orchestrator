@@ -8,7 +8,10 @@ import trLocale from "./locales/tr.json"
 
 export type Locale = "ja" | "en" | "zh" | "ko" | "pt" | "tr"
 
-export const LOCALE_LABELS: Record<Locale, string> = {
+/** Built-in locale codes that ship with the application */
+export const BUILTIN_LOCALES: ReadonlySet<string> = new Set<string>(["en", "ja", "zh", "ko", "pt", "tr"])
+
+export const LOCALE_LABELS: Record<string, string> = {
   ja: "日本語",
   en: "English",
   zh: "中文",
@@ -19,7 +22,7 @@ export const LOCALE_LABELS: Record<Locale, string> = {
 
 type Messages = typeof jaLocale
 
-export const locales: Record<Locale, Messages> = {
+export const locales: Record<string, Messages> = {
   ja: jaLocale,
   en: enLocale as unknown as Messages,
   zh: zhLocale as unknown as Messages,
@@ -28,11 +31,14 @@ export const locales: Record<Locale, Messages> = {
   tr: trLocale as unknown as Messages,
 }
 
-/** All known locale codes for validation */
-const KNOWN_LOCALES = new Set<string>(Object.keys(locales))
+/**
+ * Set of locale codes currently available (built-in + dynamically loaded).
+ * Starts with the 6 built-in locales; grows when loadLanguagePack() succeeds.
+ */
+export const availableLocales = new Set<string>(Object.keys(locales))
 
 function isValidLocale(s: string): s is Locale {
-  return KNOWN_LOCALES.has(s)
+  return availableLocales.has(s)
 }
 
 interface I18nState {
@@ -73,12 +79,53 @@ export const useI18n = create<I18nState>((set) => {
     locale: initial,
     messages: locales[initial],
     setLocale: (locale: Locale) => {
+      if (!availableLocales.has(locale)) {
+        console.warn(`Locale "${locale}" is not available. Load it first with loadLanguagePack().`)
+        return
+      }
       try { localStorage.setItem("locale", locale) } catch { /* noop */ }
       document.documentElement.lang = locale
       set({ locale, messages: locales[locale] })
     },
   }
 })
+
+/**
+ * Load a language pack from the API for a non-builtin language.
+ *
+ * Built-in locales (en, ja, zh, ko, pt, tr) are already bundled and do not
+ * need loading. This function is for truly new languages added via extensions
+ * or the marketplace.
+ *
+ * @param code - BCP 47 language code (e.g. "fr", "de", "es")
+ * @param apiBase - Base URL for the API (defaults to current origin)
+ * @returns true if the language pack was loaded successfully
+ */
+export async function loadLanguagePack(
+  code: string,
+  apiBase = "/api/v1",
+): Promise<boolean> {
+  if (availableLocales.has(code)) {
+    // Already available (built-in or previously loaded)
+    return true
+  }
+
+  try {
+    const resp = await fetch(`${apiBase}/language-packs/${code}/messages`)
+    if (!resp.ok) {
+      console.warn(`Failed to load language pack "${code}": ${resp.status}`)
+      return false
+    }
+    const messages = (await resp.json()) as Messages
+    locales[code] = messages
+    availableLocales.add(code)
+    LOCALE_LABELS[code] = messages.common?.appName ?? code
+    return true
+  } catch (err) {
+    console.warn(`Failed to load language pack "${code}":`, err)
+    return false
+  }
+}
 
 /**
  * On Tauri (desktop), try to read the installer-selected locale and apply it

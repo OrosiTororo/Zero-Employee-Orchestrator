@@ -165,6 +165,18 @@ See [docs/ja-JP/AI_SELF_IMPROVEMENT_ROADMAP.md](../AI_SELF_IMPROVEMENT_ROADMAP.m
 | `google-workspace` | Google Docs / Sheets / Drive / Calendar / Gmail | manifest available |
 | `microsoft-365` | Word / Excel / OneDrive / Outlook / Teams | manifest available |
 
+### Localization
+
+| Extension | Purpose | Status |
+|-----------|---------|--------|
+| `language-pack` | UI and AI agent output language packs | manifest available |
+
+> **Language Extension Design**: The installer offers 6 language choices (en, ja, zh, ko, pt, tr).
+> Only the selected language is active by default. Other languages (including the remaining built-in 5
+> and any new languages) can be enabled via the language-pack extension system in Settings.
+> Language changes affect both UI display and AI agent output language. Some features require
+> app restart to fully apply language changes.
+
 ### General-Purpose App Connector Hub
 
 A general-purpose application connector hub is implemented in `integrations/app_connector.py`.
@@ -225,8 +237,10 @@ By providing a mechanism for users to share and publish Plugins, external servic
 
 ### Safety Assurance
 
-- Automatic safety checks at import time (detection of 16 types of dangerous patterns)
+- **Mandatory safety checks on ALL install/import/create operations** — `analyze_code_safety()` runs on every skill, plugin, and extension that contains code (executor_code, script, source_code)
+- Detection of 17+ dangerous code patterns: eval, exec, subprocess, file writes, external HTTP, socket, credentials, destructive SQL, etc.
 - Detection and warning of external communication, credential access, and destructive operations
+- **HIGH risk items are blocked by default** — requires explicit `?force=true` parameter to override
 - Creation, sharing, and publication of offensive or harmful plugins is prohibited
 - Risk level is displayed and confirmation is requested from the user before installation
 

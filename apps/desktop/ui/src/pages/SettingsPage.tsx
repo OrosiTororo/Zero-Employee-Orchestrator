@@ -16,7 +16,7 @@ import {
   X,
 } from "lucide-react"
 import { api } from "../shared/api/client"
-import { useT, useI18n, LOCALE_LABELS, type Locale } from "@/shared/i18n"
+import { useT, useI18n, LOCALE_LABELS, BUILTIN_LOCALES, type Locale } from "@/shared/i18n"
 
 interface ProviderInfo {
   name: string
@@ -71,6 +71,9 @@ export function SettingsPage() {
   const [autoApprove, setAutoApprove] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState("")
+
+  // Language change tracking
+  const [languageChanged, setLanguageChanged] = useState(false)
 
   // API Key states
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({})
@@ -157,6 +160,7 @@ export function SettingsPage() {
 
   const handleLanguageChange = async (newLocale: Locale) => {
     setLocale(newLocale)
+    setLanguageChanged(true)
     try {
       await api.put("/config", { key: "LANGUAGE", value: newLocale })
     } catch {
@@ -256,7 +260,7 @@ export function SettingsPage() {
                   <button
                     key={loc}
                     onClick={() => handleLanguageChange(loc)}
-                    className="px-4 py-2 rounded text-[12px] border transition-colors"
+                    className="px-4 py-2 rounded text-[12px] border transition-colors relative"
                     style={{
                       background: locale === loc ? "#007acc" : "transparent",
                       color: locale === loc ? "#ffffff" : "#cccccc",
@@ -264,6 +268,11 @@ export function SettingsPage() {
                     }}
                   >
                     {LOCALE_LABELS[loc]}
+                    {BUILTIN_LOCALES.has(loc) && (
+                      <span className="ml-1.5 text-[9px] opacity-60">
+                        ({t.settings.languageBuiltin})
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -276,6 +285,15 @@ export function SettingsPage() {
                 {t.settings.aiLanguageDesc}
               </div>
             </div>
+            <div className="text-[11px] text-[#6a6a6a] flex items-start gap-1.5">
+              <Globe size={12} className="mt-0.5 shrink-0" />
+              {t.settings.languageAiNote}
+            </div>
+            {languageChanged && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded border border-[#cca700] bg-[#3a3000] text-[11px] text-[#cca700]">
+                {t.settings.languageRestartHint}
+              </div>
+            )}
           </div>
         </SettingsSection>
 

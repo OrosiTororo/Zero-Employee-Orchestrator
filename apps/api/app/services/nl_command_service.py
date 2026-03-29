@@ -44,6 +44,7 @@ class CommandCategory(str, Enum):
     MEDIA = "media"
     BROWSER = "browser"
     SYSTEM = "system"
+    FILE = "file"
     CONVERSATION = "conversation"  # Normal conversation (not a command)
 
 
@@ -308,6 +309,62 @@ _INTENT_PATTERNS: list[tuple[CommandCategory, CommandAction, list[str]]] = [
             r"(?:ページ|page|サイト|site).*(?:開いて|表示|確認|チェック)",
         ],
     ),
+    # ── File ──
+    (
+        CommandCategory.FILE,
+        CommandAction.GET,
+        [
+            r"(?:read|show|cat|display|open)\s+(?:file|ファイル)?\s*\S+",
+            r"(?:ファイル|file).*(?:読み込む|読んで|表示|見せて|read|show|open)",
+            r"(?:読取|读取|查看)\s*(?:文件|ファイル)",
+        ],
+    ),
+    (
+        CommandCategory.FILE,
+        CommandAction.CREATE,
+        [
+            r"(?:write|save|create)\s+(?:to\s+)?(?:file|ファイル)?\s*\S+",
+            r"(?:ファイル|file).*(?:書き込む|作成|保存|write|save|create)",
+            r"(?:写入|保存|创建)\s*(?:文件|ファイル)",
+        ],
+    ),
+    (
+        CommandCategory.FILE,
+        CommandAction.UPDATE,
+        [
+            r"(?:edit|modify|change|update)\s+(?:file|ファイル)?\s*\S+",
+            r"(?:ファイル|file).*(?:編集|修正|変更|edit|modify)",
+            r"(?:编辑|修改)\s*(?:文件|ファイル)",
+        ],
+    ),
+    (
+        CommandCategory.FILE,
+        CommandAction.DELETE,
+        [
+            r"(?:delete|remove)\s+(?:file|ファイル)?\s*\S+",
+            r"(?:ファイル|file).*(?:削除|消して|delete|remove)",
+            r"(?:删除|移除)\s*(?:文件|ファイル)",
+        ],
+    ),
+    (
+        CommandCategory.FILE,
+        CommandAction.LIST,
+        [
+            r"(?:list|show)\s+(?:files|directory|dir|ディレクトリ|フォルダ)",
+            r"(?:ファイル|ディレクトリ|フォルダ).*(?:一覧|list|表示|確認)",
+            r"(?:列出|显示)\s*(?:文件|目录)",
+            r"^ls\b",
+        ],
+    ),
+    (
+        CommandCategory.SYSTEM,
+        CommandAction.EXECUTE,
+        [
+            r"(?:run|execute|実行)\s+(?:command|コマンド|shell|シェル)?\s*\S+",
+            r"(?:コマンド|command|シェル|shell).*(?:実行|run|execute)",
+            r"(?:执行|运行)\s*(?:命令|shell)",
+        ],
+    ),
     # ── System ──
     (
         CommandCategory.SYSTEM,
@@ -459,6 +516,15 @@ class NLCommandProcessor:
         if sandbox_match:
             params["sandbox_level"] = sandbox_match.group(0).lower()
 
+        # File path
+        if category == CommandCategory.FILE:
+            path_match = re.search(
+                r"(?:^|[\s])([~/.][\w./\-]+|[\w][\w./\-]*\.[\w]+)",
+                text,
+            )
+            if path_match:
+                params["target"] = path_match.group(1).strip()
+
         # Skill/plugin name
         if category == CommandCategory.SKILL:
             # Extract name from "add ~" pattern
@@ -492,6 +558,7 @@ class NLCommandProcessor:
             CommandCategory.KNOWLEDGE: self._handle_knowledge,
             CommandCategory.MEDIA: self._handle_media,
             CommandCategory.AGENT: self._handle_agent,
+            CommandCategory.FILE: self._handle_file,
         }
 
         handler = handler_map.get(command.category)
@@ -881,6 +948,53 @@ class NLCommandProcessor:
                 "raw_text": cmd.raw_text,
                 "api_endpoint": "POST /api/v1/media/generate",
             },
+        )
+
+    async def _handle_file(self, cmd: ParsedCommand) -> CommandResult:
+        """File operation handler."""
+        if cmd.action == CommandAction.GET:
+            return CommandResult(
+                success=True,
+                message="Use /read <path> to read a file.",
+                suggestions=["/read <filepath>"],
+                data={"delegate_to_llm": True, "raw_text": cmd.raw_text},
+            )
+
+        if cmd.action == CommandAction.CREATE:
+            return CommandResult(
+                success=True,
+                message="Use /write <path> to write to a file.",
+                suggestions=["/write <filepath>"],
+                data={"delegate_to_llm": True, "raw_text": cmd.raw_text},
+            )
+
+        if cmd.action == CommandAction.UPDATE:
+            return CommandResult(
+                success=True,
+                message="Use /edit <path> to view a file, then /write <path> to modify it.",
+                suggestions=["/edit <filepath>", "/write <filepath>"],
+                data={"delegate_to_llm": True, "raw_text": cmd.raw_text},
+            )
+
+        if cmd.action == CommandAction.DELETE:
+            return CommandResult(
+                success=False,
+                message="File deletion requires explicit confirmation. Use /run rm <path>.",
+                suggestions=["/run rm <filepath>"],
+            )
+
+        if cmd.action == CommandAction.LIST:
+            return CommandResult(
+                success=True,
+                message="Use /ls [path] to list directory contents.",
+                suggestions=["/ls", "/ls <directory>"],
+                data={"delegate_to_llm": True, "raw_text": cmd.raw_text},
+            )
+
+        return CommandResult(
+            success=True,
+            message="",
+            data={"delegate_to_llm": True, "raw_text": cmd.raw_text},
         )
 
     async def _handle_agent(self, cmd: ParsedCommand) -> CommandResult:
