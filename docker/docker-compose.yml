@@ -15,7 +15,7 @@ services:
       - DATABASE_URL=sqlite+aiosqlite:///./data/zero_employee_orchestrator.db
       - SECRET_KEY=${SECRET_KEY:-auto-generated-change-me}
       - DEBUG=${DEBUG:-false}
-      - CORS_ORIGINS=["http://localhost:5173","http://localhost:3000","tauri://localhost","https://tauri.localhost"]
+      - CORS_ORIGINS=["http://localhost:5173","http://localhost:3000","tauri://localhost","https://tauri.localhost","http://tauri.localhost"]
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}

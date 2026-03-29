@@ -61,7 +61,7 @@ def _ensure_env_file() -> None:
         f"SECRET_KEY={secret}\n"
         f"DEBUG=true\n"
         f'CORS_ORIGINS=["http://localhost:5173","http://localhost:3000",'
-        f'"tauri://localhost","https://tauri.localhost"]\n'
+        f'"tauri://localhost","https://tauri.localhost","http://tauri.localhost"]\n'
         f"DEFAULT_EXECUTION_MODE=subscription\n"
         f"USE_G4F=true\n"
     )
