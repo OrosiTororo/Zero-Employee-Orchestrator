@@ -13,9 +13,9 @@ services:
       - "18234:18234"
     environment:
       - DATABASE_URL=sqlite+aiosqlite:///./data/zero_employee_orchestrator.db
-      - SECRET_KEY=${SECRET_KEY:-auto-generated-change-me}
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set. Generate with: python -c \"import secrets; print(secrets.token_urlsafe(32))\"}
       - DEBUG=${DEBUG:-false}
-      - CORS_ORIGINS=["http://localhost:5173","http://localhost:3000","tauri://localhost","https://tauri.localhost","http://tauri.localhost"]
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000,tauri://localhost,https://tauri.localhost,http://tauri.localhost}
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
@@ -23,6 +23,8 @@ services:
     volumes:
       - api-data:/app/data
       - rag-store:/app/.zero_employee
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:18234/healthz"]
       interval: 30s
@@ -49,7 +51,7 @@ services:
     command: ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "18235"]
     environment:
       - DATABASE_URL=sqlite+aiosqlite:///./data/zero_employee_orchestrator.db
-      - SECRET_KEY=${SECRET_KEY:-auto-generated-change-me}
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set}
     volumes:
       - api-data:/app/data
     depends_on:

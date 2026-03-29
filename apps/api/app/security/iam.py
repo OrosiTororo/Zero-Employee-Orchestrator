@@ -122,7 +122,9 @@ class IAMManager:
     """IAM access control manager."""
 
     def __init__(self) -> None:
-        self._credential_dir = os.environ.get("CREDENTIAL_DIR", "/etc/zero-employee/credentials")
+        from app.core.config import settings
+
+        self._credential_dir = settings.CREDENTIAL_DIR
 
     async def create_ai_account(
         self,
