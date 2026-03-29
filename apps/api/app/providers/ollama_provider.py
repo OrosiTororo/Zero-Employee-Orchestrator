@@ -389,10 +389,11 @@ class OllamaProvider:
             "qwen3",
             "deepseek-coder-v2",
             "codellama",
+            "llama4",
             "llama3.2",
-            "llama3.1",
             "llama3",
             "mistral",
+            "phi4",
             "phi3",
             "gemma2",
         ]
