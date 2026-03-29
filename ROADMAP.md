@@ -1,7 +1,7 @@
 # Roadmap
 
-> Last updated: 2026-03-26
-> Current version: v0.1
+> Last updated: 2026-03-29
+> Current version: v0.1.1
 
 ---
 
@@ -12,76 +12,96 @@ v0.1 includes all features originally planned for v0.2 through v1.0, implemented
 ### Implemented in v0.1
 
 **Foundation:**
-- Full 9-layer architecture, ZEO-Bench, Self-Healing DAG, Experience Memory, AI Self-Improvement Plugin
+- Full 9-layer architecture (23 orchestration modules, 26 services)
+- ZEO-Bench, Self-Healing DAG, Experience Memory, AI Self-Improvement
+- 41 API route modules, 350+ endpoints
+- 14 security defense layers
 
-**Connectivity (formerly v0.2):**
-- Tool Connector (REST/MCP/GraphQL/CLI/Webhook), iPaaS (n8n/Zapier/Make), Artifact Export, User Input Requests, Resource Import, File Upload API, E2E Test Framework, LLM Response Mocking
+**Connectivity:**
+- Tool Connector (REST/MCP/GraphQL/CLI/Webhook), iPaaS (n8n/Zapier/Make)
+- Artifact Export, User Input Requests, Resource Import, File Upload API
+- E2E Test Framework, LLM Response Mocking
 
-**Advanced AI Organization (formerly v0.3):**
-- Meta-Skills (Feeling/Seeing/Dreaming/Making/Learning), AI Repurpose Engine, RSS/ToS Monitor, Red-team Security, A2A Communication, Avatar Co-evolution
+**AI Organization:**
+- Meta-Skills (Feeling/Seeing/Dreaming/Making/Learning)
+- AI Repurpose Engine, RSS/ToS Monitor, A2A Communication, Avatar Co-evolution
+- Secretary AI, Browser Assist, Media Generation (5 types)
+- 45+ AI tool integrations across 19 categories
 
-**Ecosystem (formerly v0.4):**
-- Skill Marketplace, Multi-user/Team, Browser Automation, Obsidian Integration, LSP Integration
+**Ecosystem:**
+- Skill/Plugin/Extension Registry with marketplace service
+- Natural language skill generation (16 safety checks)
+- Browser Automation (Playwright + plugin adapters)
+- 34+ app integrations via App Connector Hub
 
-**App Connector Hub:**
-- 34+ app integrations (Obsidian, Notion, Logseq, Joplin, Anytype, Roam Research, Google Workspace, Microsoft 365, Jira, Linear, Asana, Trello, ClickUp, HubSpot, Salesforce, etc.)
-- Per-connection permission control (read/write/delete/sync/export + path restrictions)
-- Custom app registration
+**Desktop UI (Tauri v2 + React):**
+- VSCode/Cursor-inspired IDE layout
+- 3 themes (Dark/Light/High Contrast)
+- Command Palette (Ctrl/Cmd+K)
+- Marketplace page (Skills/Plugins/Extensions unified view)
+- Agent behavior settings (autonomy, browser, workspace access)
+- 6 built-in languages (ja/en/zh/ko/pt/tr), extension language packs
+- All pages use i18n and CSS variables for full theme/language support
 
-**Production Quality (formerly v1.0):**
-- Governance & Compliance (GDPR/HIPAA/SOC2/ISO27001/CCPA/APPI), 24/365 Scheduler, Cloud Native Integration (AWS/GCP/Azure), Smart Device & VR/AR Hub
-
-**Quality & Insights:**
-- Prerequisite change monitoring, Spec contradiction detection, Task replay & comparison, Judgment review reports, Plan quality verification (MECE)
-
-**Workspace Isolation & Privacy:**
-- Isolated workspace (no local/cloud access by default), internal storage only, gradual access permission, per-task environment customization, chat instruction vs. settings consistency check, flexible storage location selection
+**Production Quality:**
+- Governance & Compliance (GDPR/HIPAA/SOC2/ISO27001/CCPA/APPI)
+- 24/365 Scheduler, Cloud Native Integration (AWS/GCP/Azure/Cloudflare)
+- Workspace Isolation (default-deny, gradual access permission)
 
 ---
 
-## Future Roadmap
+## v0.1.x — In Progress (Developer Team)
 
-The following items require community growth and resource allocation.
+Items that can be implemented by the development team without large-scale community or funding.
 
-### Features Requiring Community, Funding, or Large-Scale Infrastructure
+| Status | Feature | Description |
+|:------:|---------|-------------|
+| Done | **UI i18n completion** | All pages use i18n keys, no hardcoded strings |
+| Done | **Theme system** | Dark/Light/High Contrast via CSS variables |
+| Done | **Command Palette** | Ctrl/Cmd+K quick navigation |
+| Done | **Marketplace UI** | Unified Skills/Plugins/Extensions view |
+| Done | **Agent behavior settings** | Autonomy level, browser automation, workspace access |
+| Done | **Provider expansion** | 11 LLM providers, 12 service connections with categories |
+| TODO | **Frontend data connection** | Connect all UI pages to backend API endpoints |
+| TODO | **features/ module separation** | Extract business logic from pages to features/ |
+| TODO | **Plugin Loader UI** | Manifest-based dynamic loading in frontend |
+| TODO | **E2E flow integration** | Natural language input → interview → plan → execution |
+| TODO | **Worker core logic** | Strengthen TaskRunner / HeartbeatRunner |
+| TODO | **Template Gallery** | Quick-start workflow templates for common tasks |
+| TODO | **Execution Logs view** | Real-time task execution monitoring (n8n pattern) |
+| TODO | **Tool Connector UI** | Register/manage external tools from the UI |
+| TODO | **Knowledge Feed UI** | RSS/web monitoring dashboard, org-wide sharing |
+| TODO | **Contributor Guide** | CONTRIBUTING.md and Skill development tutorials |
 
-The following features have code foundations implemented in v0.1, but require user base, hardware, or legal costs for production operation:
+---
 
-| Feature | Required Resources | Current State |
-|---------|-------------------|---------------|
-| **Marketplace production operation** | User base needed for reviews/install counts | API & UI implemented, awaiting community |
-| **VR/AR & IoT integration** | Hardware dependent, device diversity | Protocol abstraction layer implemented |
-| **Enterprise governance** | HIPAA/SOC2 certification costs and legal | Policy framework implemented |
-| **Large-scale multi-tenant operation** | Infrastructure scaling, operations team | Team & permission models implemented |
+## v0.2 — Community & Ecosystem (Requires Community)
 
-### v0.2 — Frontend Completion & Community
+These features require a user base and community participation.
 
 | Priority | Feature | Description |
 |:--------:|---------|-------------|
-| High | **Frontend Data Connection** | Complete 12 screens' backend connections |
-| High | **features/ Module Separation** | Extract logic from pages to features/ |
-| High | **packages/ Shared Libraries** | Extract and package shared code |
-| High | **Plugin Loader Implementation** | Manifest-based dynamic loading |
-| Medium | **E2E Flow Integration** | Natural language input to artifact generation |
-| Medium | **Playwright Frontend E2E Tests** | Browser UI automated testing |
-| Medium | **Worker Core Logic Enhancement** | Strengthen TaskRunner / HeartbeatRunner |
-
-### v0.3 — Accelerating AI Self-Improvement
-
-| Priority | Feature | Description |
-|:--------:|---------|-------------|
-| High | **Community Skill Ecosystem** | Large-scale Skill/Plugin sharing |
+| High | **Community Skill Ecosystem** | Large-scale Skill/Plugin sharing, reviews, ratings |
+| High | **Marketplace production operation** | User-submitted content, moderation, install counts |
 | High | **Anonymous Feedback Aggregation** | Privacy-preserving Experience Memory sharing |
-| Medium | **Cross-Model Large-scale Verification** | Massive verification data accumulation |
-| Medium | **Multilingual Experience Memory** | Knowledge accumulation in Japanese, English, Chinese, etc. |
-| Medium | **Contributor Guide** | CONTRIBUTING.md and Skill development tutorials |
+| Medium | **Cross-Model Large-scale Verification** | Community-contributed verification datasets |
+| Medium | **Multilingual Experience Memory** | Shared knowledge across language boundaries |
 
-### v1.0 — True AI Self-Improvement
+## v0.3 — Enterprise & Scale (Requires Funding/Infrastructure)
 
 | Priority | Feature | Description |
 |:--------:|---------|-------------|
-| High | **Self-Improvement Loop** | Auto-cycle: propose -> test -> verify -> apply |
+| High | **Self-Improvement Loop** | Auto-cycle: propose → test → verify → apply |
 | High | **Cross-Orchestrator Learning** | Knowledge sharing between ZEO instances |
 | Medium | **Fine-tuning Infrastructure** | Auto-create specialized domain models |
-| Medium | **AI Architecture Self-Improvement** | AI proposes system-design-level improvements |
-| Low | **Meta-Learning** | Learning "how to improve efficiently" itself |
+| Medium | **Enterprise governance certification** | HIPAA/SOC2 actual certification (legal costs) |
+| Medium | **Large-scale multi-tenant operation** | Infrastructure scaling, operations team |
+
+## v1.0 — AI Singularity Platform
+
+| Priority | Feature | Description |
+|:--------:|---------|-------------|
+| High | **AI Architecture Self-Improvement** | AI proposes system-design-level improvements |
+| High | **Meta-Learning** | Learning "how to improve efficiently" itself |
+| Medium | **VR/AR & IoT production** | Hardware integration at scale |
+| Medium | **Cross-platform agent federation** | Interop with CrewAI, AutoGen, LangChain, etc. |

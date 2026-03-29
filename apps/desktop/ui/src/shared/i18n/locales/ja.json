@@ -476,6 +476,48 @@
     "hiragana": "ひらがな",
     "katakana": "カタカナ"
   },
+  "approvals": {
+    "title": "承認待ち",
+    "emptyState": "承認待ちのリクエストはありません。",
+    "risk": "リスク",
+    "approve": "承認",
+    "reject": "却下"
+  },
+  "audit": {
+    "title": "監査ログ",
+    "searchPlaceholder": "アクター、対象、トレースIDで検索...",
+    "filterLabel": "イベントフィルター",
+    "allEvents": "すべてのイベント",
+    "dateTime": "日時",
+    "actor": "アクター",
+    "event": "イベント",
+    "target": "対象",
+    "traceId": "トレースID",
+    "detail": "詳細",
+    "emptyState": "監査ログはまだありません。システム操作が記録されるとここに表示されます。"
+  },
+  "costs": {
+    "title": "コスト管理",
+    "budgetPolicies": "予算ポリシー",
+    "dailyLimit": "日次上限",
+    "weeklyLimit": "週次上限",
+    "monthlyLimit": "月次上限",
+    "notSet": "未設定",
+    "budgetDesc": "予算上限を設定すると、コストが閾値に達した際に自動的にタスクを一時停止します。",
+    "spending": "支出内訳",
+    "today": "今日",
+    "thisWeek": "今週",
+    "thisMonth": "今月",
+    "total": "累計",
+    "breakdownHint": "モデル別・チケット別のコスト内訳はタスク実行後に表示されます。",
+    "ledger": "コスト台帳",
+    "dateTime": "日時",
+    "ticket": "チケット",
+    "model": "モデル",
+    "tokens": "トークン",
+    "cost": "コスト",
+    "emptyState": "コスト記録はまだありません。"
+  },
   "marketplace": {
     "title": "マーケットプレイス",
     "subtitle": "コミュニティが作成したスキル、プラグイン、拡張機能を検索・インストールできます。",

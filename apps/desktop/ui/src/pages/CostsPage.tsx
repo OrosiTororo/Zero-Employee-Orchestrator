@@ -1,116 +1,87 @@
 import { Coins, TrendingUp, ShieldAlert, Receipt } from "lucide-react"
+import { useT } from "@/shared/i18n"
 
 export function CostsPage() {
+  const t = useT()
+
   return (
     <div className="h-full overflow-auto">
       <div className="max-w-[900px] mx-auto px-6 py-6">
         <div className="flex items-center gap-2 mb-6">
-          <Coins size={18} className="text-[#dcdcaa]" />
-          <h2 className="text-[14px] font-medium text-[#cccccc]">コスト管理</h2>
+          <Coins size={18} className="text-[var(--warning)]" />
+          <h2 className="text-[14px] font-medium text-[var(--text-primary)]">{t.costs.title}</h2>
         </div>
 
         {/* Budget Policies */}
-        <div className="mb-6 rounded border border-[#3e3e42] bg-[#252526]">
-          <div className="flex items-center gap-2 px-4 py-2 border-b border-[#3e3e42]">
-            <ShieldAlert size={14} className="text-[#dcdcaa]" />
-            <span className="text-[12px] font-medium text-[#cccccc]">
-              予算ポリシー
-            </span>
+        <section className="mb-6 rounded border border-[var(--border)] bg-[var(--bg-surface)]">
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border)]">
+            <ShieldAlert size={14} className="text-[var(--warning)]" />
+            <span className="text-[12px] font-medium text-[var(--text-primary)]">{t.costs.budgetPolicies}</span>
           </div>
           <div className="px-4 py-4">
             <div className="grid grid-cols-3 gap-4 mb-4">
-              <div className="rounded p-3 border border-[#3e3e42] bg-[#1e1e1e]">
-                <div className="text-[11px] text-[#6a6a6a] mb-1">日次上限</div>
-                <div className="text-[16px] font-semibold text-[#cccccc]">
-                  未設定
-                </div>
+              <div className="rounded p-3 border border-[var(--border)] bg-[var(--bg-base)]">
+                <div className="text-[11px] text-[var(--text-muted)] mb-1">{t.costs.dailyLimit}</div>
+                <div className="text-[16px] font-semibold text-[var(--text-primary)]">{t.costs.notSet}</div>
               </div>
-              <div className="rounded p-3 border border-[#3e3e42] bg-[#1e1e1e]">
-                <div className="text-[11px] text-[#6a6a6a] mb-1">
-                  週次上限
-                </div>
-                <div className="text-[16px] font-semibold text-[#cccccc]">
-                  未設定
-                </div>
+              <div className="rounded p-3 border border-[var(--border)] bg-[var(--bg-base)]">
+                <div className="text-[11px] text-[var(--text-muted)] mb-1">{t.costs.weeklyLimit}</div>
+                <div className="text-[16px] font-semibold text-[var(--text-primary)]">{t.costs.notSet}</div>
               </div>
-              <div className="rounded p-3 border border-[#3e3e42] bg-[#1e1e1e]">
-                <div className="text-[11px] text-[#6a6a6a] mb-1">
-                  月次上限
-                </div>
-                <div className="text-[16px] font-semibold text-[#cccccc]">
-                  未設定
-                </div>
+              <div className="rounded p-3 border border-[var(--border)] bg-[var(--bg-base)]">
+                <div className="text-[11px] text-[var(--text-muted)] mb-1">{t.costs.monthlyLimit}</div>
+                <div className="text-[16px] font-semibold text-[var(--text-primary)]">{t.costs.notSet}</div>
               </div>
             </div>
-            <div className="text-[12px] text-[#6a6a6a]">
-              予算上限を設定すると、コストが閾値に達した際に自動的にタスクを一時停止します。
-            </div>
+            <div className="text-[12px] text-[var(--text-muted)]">{t.costs.budgetDesc}</div>
           </div>
-        </div>
+        </section>
 
         {/* Spending Breakdown */}
-        <div className="mb-6 rounded border border-[#3e3e42] bg-[#252526]">
-          <div className="flex items-center gap-2 px-4 py-2 border-b border-[#3e3e42]">
-            <TrendingUp size={14} className="text-[#007acc]" />
-            <span className="text-[12px] font-medium text-[#cccccc]">
-              支出内訳
-            </span>
+        <section className="mb-6 rounded border border-[var(--border)] bg-[var(--bg-surface)]">
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border)]">
+            <TrendingUp size={14} className="text-[var(--accent)]" />
+            <span className="text-[12px] font-medium text-[var(--text-primary)]">{t.costs.spending}</span>
           </div>
           <div className="px-4 py-4">
             <div className="grid grid-cols-4 gap-4 mb-4">
-              <div>
-                <div className="text-[11px] text-[#6a6a6a]">今日</div>
-                <div className="text-[18px] font-semibold text-[#cccccc]">
-                  $0.00
+              {[
+                { label: t.costs.today, value: "$0.00" },
+                { label: t.costs.thisWeek, value: "$0.00" },
+                { label: t.costs.thisMonth, value: "$0.00" },
+                { label: t.costs.total, value: "$0.00" },
+              ].map((item, i) => (
+                <div key={i}>
+                  <div className="text-[11px] text-[var(--text-muted)]">{item.label}</div>
+                  <div className="text-[18px] font-semibold text-[var(--text-primary)]">{item.value}</div>
                 </div>
-              </div>
-              <div>
-                <div className="text-[11px] text-[#6a6a6a]">今週</div>
-                <div className="text-[18px] font-semibold text-[#cccccc]">
-                  $0.00
-                </div>
-              </div>
-              <div>
-                <div className="text-[11px] text-[#6a6a6a]">今月</div>
-                <div className="text-[18px] font-semibold text-[#cccccc]">
-                  $0.00
-                </div>
-              </div>
-              <div>
-                <div className="text-[11px] text-[#6a6a6a]">累計</div>
-                <div className="text-[18px] font-semibold text-[#cccccc]">
-                  $0.00
-                </div>
-              </div>
+              ))}
             </div>
-            <div className="text-center text-[12px] text-[#6a6a6a] py-4 border-t border-[#3e3e42]">
-              モデル別・チケット別のコスト内訳はタスク実行後に表示されます。
+            <div className="text-center text-[12px] text-[var(--text-muted)] py-4 border-t border-[var(--border)]">
+              {t.costs.breakdownHint}
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Cost Ledger */}
-        <div className="rounded border border-[#3e3e42] bg-[#252526]">
-          <div className="flex items-center gap-2 px-4 py-2 border-b border-[#3e3e42]">
-            <Receipt size={14} className="text-[#007acc]" />
-            <span className="text-[12px] font-medium text-[#cccccc]">
-              コスト台帳
-            </span>
+        <section className="rounded border border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden">
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border)]">
+            <Receipt size={14} className="text-[var(--accent)]" />
+            <span className="text-[12px] font-medium text-[var(--text-primary)]">{t.costs.ledger}</span>
           </div>
           <div className="px-4">
-            {/* Table Header */}
-            <div className="grid grid-cols-5 gap-2 py-2 text-[11px] text-[#6a6a6a] border-b border-[#3e3e42]">
-              <span>日時</span>
-              <span>チケット</span>
-              <span>モデル</span>
-              <span>トークン</span>
-              <span className="text-right">コスト</span>
+            <div className="grid grid-cols-5 gap-2 py-2 text-[11px] text-[var(--text-muted)] border-b border-[var(--border)] font-medium">
+              <span>{t.costs.dateTime}</span>
+              <span>{t.costs.ticket}</span>
+              <span>{t.costs.model}</span>
+              <span>{t.costs.tokens}</span>
+              <span className="text-right">{t.costs.cost}</span>
             </div>
-            <div className="py-6 text-center text-[12px] text-[#6a6a6a]">
-              コスト記録はまだありません。
+            <div className="py-6 text-center text-[12px] text-[var(--text-muted)]">
+              {t.costs.emptyState}
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   )

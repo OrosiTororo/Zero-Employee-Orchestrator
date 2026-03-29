@@ -476,6 +476,48 @@
     "hiragana": "Hiragana",
     "katakana": "Katakana"
   },
+  "approvals": {
+    "title": "Pending Approvals",
+    "emptyState": "No pending approval requests.",
+    "risk": "Risk",
+    "approve": "Approve",
+    "reject": "Reject"
+  },
+  "audit": {
+    "title": "Audit Log",
+    "searchPlaceholder": "Search by actor, target, trace ID...",
+    "filterLabel": "Event filter",
+    "allEvents": "All Events",
+    "dateTime": "Date/Time",
+    "actor": "Actor",
+    "event": "Event",
+    "target": "Target",
+    "traceId": "Trace ID",
+    "detail": "Details",
+    "emptyState": "No audit logs yet. System operations will appear here as they are recorded."
+  },
+  "costs": {
+    "title": "Cost Management",
+    "budgetPolicies": "Budget Policies",
+    "dailyLimit": "Daily Limit",
+    "weeklyLimit": "Weekly Limit",
+    "monthlyLimit": "Monthly Limit",
+    "notSet": "Not Set",
+    "budgetDesc": "Set a budget limit to automatically pause tasks when costs reach the threshold.",
+    "spending": "Spending Breakdown",
+    "today": "Today",
+    "thisWeek": "This Week",
+    "thisMonth": "This Month",
+    "total": "Total",
+    "breakdownHint": "Cost breakdown by model and ticket will appear after task execution.",
+    "ledger": "Cost Ledger",
+    "dateTime": "Date/Time",
+    "ticket": "Ticket",
+    "model": "Model",
+    "tokens": "Tokens",
+    "cost": "Cost",
+    "emptyState": "No cost records yet."
+  },
   "marketplace": {
     "title": "Marketplace",
     "subtitle": "Discover and install community-created skills, plugins, and extensions.",
