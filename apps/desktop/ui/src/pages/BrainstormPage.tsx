@@ -9,8 +9,11 @@ import {
   Users,
   Settings,
   Type,
+  ChevronDown,
+  X,
 } from "lucide-react"
 import { api } from "@/shared/api/client"
+import { useT } from "@/shared/i18n"
 
 interface BrainstormSession {
   id: string
@@ -63,14 +66,6 @@ interface TextAnalysis {
     other: number
     words_estimate: number
   }
-  validation?: {
-    length: number
-    min_required: number
-    max_allowed: number | null
-    is_valid: boolean
-    over_by: number
-    under_by: number
-  }
 }
 
 interface RoleModelConfig {
@@ -92,14 +87,14 @@ interface AvailableRole {
 }
 
 const SESSION_TYPES = [
-  { key: "brainstorm", label: "ブレインストーミング", labelEn: "Brainstorm" },
-  { key: "debate", label: "ディベート", labelEn: "Debate" },
-  { key: "review", label: "レビュー", labelEn: "Review" },
-  { key: "ideation", label: "アイデア出し", labelEn: "Ideation" },
-  { key: "strategy", label: "戦略検討", labelEn: "Strategy" },
+  { key: "brainstorm", labelKey: "typeBrainstorm" as const },
+  { key: "debate", labelKey: "typeDebate" as const },
+  { key: "review", labelKey: "typeReview" as const },
+  { key: "ideation", labelKey: "typeIdeation" as const },
+  { key: "strategy", labelKey: "typeStrategy" as const },
 ]
 
-const AVAILABLE_MODELS = [
+const PRESET_MODELS = [
   "anthropic/claude-opus-4-6",
   "anthropic/claude-sonnet-4-6",
   "openai/gpt-5.4",
@@ -111,8 +106,8 @@ const AVAILABLE_MODELS = [
 
 export default function BrainstormPage() {
   const companyId = localStorage.getItem("company_id") || "default"
+  const t = useT()
 
-  // Tabs
   const [activeTab, setActiveTab] = useState<"brainstorm" | "compare" | "roles" | "agents">("brainstorm")
 
   // Brainstorm state
@@ -127,12 +122,14 @@ export default function BrainstormPage() {
   const [newType, setNewType] = useState("brainstorm")
   const [selectedModels, setSelectedModels] = useState<string[]>([])
   const [isMultiModel, setIsMultiModel] = useState(false)
+  const [customModelInput, setCustomModelInput] = useState("")
 
   // Compare state
   const [compareInput, setCompareInput] = useState("")
   const [compareModels, setCompareModels] = useState<string[]>([])
   const [compareResult, setCompareResult] = useState<ComparisonResult | null>(null)
   const [comparing, setComparing] = useState(false)
+  const [compareCustomModel, setCompareCustomModel] = useState("")
 
   // Text analysis
   const [textAnalysis, setTextAnalysis] = useState<TextAnalysis | null>(null)
@@ -158,638 +155,467 @@ export default function BrainstormPage() {
 
   async function loadSessions() {
     try {
-      const data = await api.get<BrainstormSession[]>(
-        `/companies/${companyId}/brainstorm/sessions`
-      )
+      const data = await api.get<BrainstormSession[]>(`/companies/${companyId}/brainstorm/sessions`)
       setSessions(data)
-    } catch {
-      setSessions([])
-    }
+    } catch { setSessions([]) }
   }
 
   async function loadRoleModels() {
     try {
-      const data = await api.get<RoleModelConfig[]>(
-        `/companies/${companyId}/role-models`
-      )
+      const data = await api.get<RoleModelConfig[]>(`/companies/${companyId}/role-models`)
       setRoleModels(data)
-    } catch {
-      setRoleModels([])
-    }
+    } catch { setRoleModels([]) }
   }
 
   async function loadAvailableRoles() {
     try {
-      const data = await api.get<AvailableRole[]>(
-        `/companies/${companyId}/available-roles`
-      )
+      const data = await api.get<AvailableRole[]>(`/companies/${companyId}/available-roles`)
       setAvailableRoles(data)
-    } catch {
-      setAvailableRoles([])
-    }
+    } catch { setAvailableRoles([]) }
   }
 
   async function createSession() {
     try {
-      const data = await api.post<BrainstormSession>(
-        `/companies/${companyId}/brainstorm`,
-        {
-          title: newTitle || undefined,
-          topic: newTopic || undefined,
-          session_type: newType,
-          model_ids: selectedModels.length > 0 ? selectedModels : undefined,
-          is_multi_model: isMultiModel,
-        }
-      )
+      const data = await api.post<BrainstormSession>(`/companies/${companyId}/brainstorm`, {
+        title: newTitle || undefined,
+        topic: newTopic || undefined,
+        session_type: newType,
+        model_ids: selectedModels.length > 0 ? selectedModels : undefined,
+        is_multi_model: isMultiModel,
+      })
       setSessions([data, ...sessions])
       setCurrentSession(data)
       setMessages([])
       setShowNewSession(false)
       setNewTitle("")
       setNewTopic("")
-    } catch (e) {
-      console.error("Failed to create session:", e)
-    }
+    } catch (e) { console.error("Failed to create session:", e) }
   }
 
   async function loadSessionMessages(sessionId: string) {
     try {
-      const data = await api.get<{
-        conversation_history: { messages: Message[] } | null
-      }>(`/brainstorm/${sessionId}`)
+      const data = await api.get<{ conversation_history: { messages: Message[] } | null }>(`/brainstorm/${sessionId}`)
       setMessages(data.conversation_history?.messages || [])
-    } catch {
-      setMessages([])
-    }
+    } catch { setMessages([]) }
   }
 
   async function sendMessage() {
     if (!input.trim() || !currentSession) return
     setLoading(true)
     try {
-      const data = await api.post<{
-        latest_messages: Message[]
-        message_count: number
-        total_chars: number
-      }>(`/brainstorm/${currentSession.id}/message`, {
-        role: "user",
-        content: input,
-      })
+      const data = await api.post<{ latest_messages: Message[]; message_count: number; total_chars: number }>(
+        `/brainstorm/${currentSession.id}/message`, { role: "user", content: input }
+      )
       setInput("")
-      // Reload full conversation to show AI response
       await loadSessionMessages(currentSession.id)
-      // Update session stats from response
       if (data.message_count !== undefined) {
-        setCurrentSession(prev =>
-          prev ? { ...prev, message_count: data.message_count, total_chars: data.total_chars } : null
-        )
+        setCurrentSession(prev => prev ? { ...prev, message_count: data.message_count, total_chars: data.total_chars } : null)
       }
-
-      // Auto-analyze text
       analyzeText(input)
-    } catch (e) {
-      console.error("Failed to send message:", e)
-    } finally {
-      setLoading(false)
-    }
+    } catch (e) { console.error("Failed to send message:", e) }
+    finally { setLoading(false) }
   }
 
   async function analyzeText(text: string) {
     try {
       const data = await api.post<TextAnalysis>("/text/analyze", { text })
       setTextAnalysis(data)
-    } catch {
-      // ignore
-    }
+    } catch { /* ignore */ }
   }
 
   async function runMultiModelComparison() {
     if (!compareInput.trim() || compareModels.length < 2) return
     setComparing(true)
     try {
-      const data = await api.post<ComparisonResult>(
-        `/companies/${companyId}/multi-model/compare`,
-        {
-          input_text: compareInput,
-          model_ids: compareModels,
-        }
-      )
+      const data = await api.post<ComparisonResult>(`/companies/${companyId}/multi-model/compare`, {
+        input_text: compareInput, model_ids: compareModels,
+      })
       setCompareResult(data)
-    } catch (e) {
-      console.error("Failed to compare:", e)
-    } finally {
-      setComparing(false)
-    }
+    } catch (e) { console.error("Failed to compare:", e) }
+    finally { setComparing(false) }
   }
 
   async function submitFeatureRequest() {
     if (!featureRequest.trim()) return
     try {
-      await api.post(`/companies/${companyId}/feature-requests`, {
-        request_text: featureRequest,
-        auto_execute: true,
-      })
+      await api.post(`/companies/${companyId}/feature-requests`, { request_text: featureRequest, auto_execute: true })
       setFeatureRequest("")
       loadAvailableRoles()
-    } catch (e) {
-      console.error("Failed to submit request:", e)
-    }
+    } catch (e) { console.error("Failed to submit request:", e) }
   }
 
   async function addAgentByRole(role: string) {
-    try {
-      await api.post(`/companies/${companyId}/agents/by-role`, { role })
-    } catch (e) {
-      console.error("Failed to add agent:", e)
+    try { await api.post(`/companies/${companyId}/agents/by-role`, { role }) }
+    catch (e) { console.error("Failed to add agent:", e) }
+  }
+
+  function addCustomModel(modelId: string, target: "session" | "compare") {
+    const trimmed = modelId.trim()
+    if (!trimmed) return
+    if (target === "session") {
+      if (!selectedModels.includes(trimmed)) setSelectedModels([...selectedModels, trimmed])
+      setCustomModelInput("")
+    } else {
+      if (!compareModels.includes(trimmed)) setCompareModels([...compareModels, trimmed])
+      setCompareCustomModel("")
     }
   }
 
+  function toggleModel(modelId: string, target: "session" | "compare") {
+    if (target === "session") {
+      setSelectedModels(prev => prev.includes(modelId) ? prev.filter(m => m !== modelId) : [...prev, modelId])
+    } else {
+      setCompareModels(prev => prev.includes(modelId) ? prev.filter(m => m !== modelId) : [...prev, modelId])
+    }
+  }
+
+  const tabs = [
+    { key: "brainstorm" as const, icon: MessageSquare, label: t.brainstorm.tabBrainstorm },
+    { key: "compare" as const, icon: GitCompare, label: t.brainstorm.tabCompare },
+    { key: "roles" as const, icon: Settings, label: t.brainstorm.tabRoles },
+    { key: "agents" as const, icon: Users, label: t.brainstorm.tabAgents },
+  ]
+
   return (
-    <div style={{ padding: 24, maxWidth: 1200, margin: "0 auto" }}>
-      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>
-        <Sparkles size={24} style={{ display: "inline", marginRight: 8 }} />
-        壁打ち・マルチモデル比較 / Brainstorm & Multi-Model Compare
-      </h1>
-      <p style={{ color: "#6b7280", marginBottom: 24 }}>
-        AI と壁打ちし、複数モデルの回答を比較。エージェントの役割とモデルを自由に設定。
-      </p>
+    <div className="h-full overflow-auto">
+      <div className="max-w-[1100px] mx-auto px-6 py-6">
+        <div className="flex items-center gap-2 mb-1">
+          <Sparkles size={18} className="text-[var(--accent)]" />
+          <h2 className="text-[14px] font-medium text-[var(--text-primary)]">{t.brainstorm.title}</h2>
+        </div>
+        <p className="text-[12px] text-[var(--text-muted)] mb-5">{t.brainstorm.subtitle}</p>
 
-      {/* Tabs */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 24, borderBottom: "1px solid #e5e7eb", paddingBottom: 8 }}>
-        {[
-          { key: "brainstorm" as const, icon: MessageSquare, label: "壁打ち" },
-          { key: "compare" as const, icon: GitCompare, label: "モデル比較" },
-          { key: "roles" as const, icon: Settings, label: "役割設定" },
-          { key: "agents" as const, icon: Users, label: "組織管理" },
-        ].map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            style={{
-              padding: "8px 16px",
-              borderRadius: 8,
-              border: "none",
-              background: activeTab === tab.key ? "#3b82f6" : "transparent",
-              color: activeTab === tab.key ? "#fff" : "#6b7280",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              fontWeight: activeTab === tab.key ? 600 : 400,
-            }}
-          >
-            <tab.icon size={16} />
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Brainstorm Tab */}
-      {activeTab === "brainstorm" && (
-        <div style={{ display: "flex", gap: 16 }}>
-          {/* Session list */}
-          <div style={{ width: 280, flexShrink: 0 }}>
+        {/* Tabs */}
+        <div className="flex gap-1 mb-5 border-b border-[var(--border)]">
+          {tabs.map(tab => (
             <button
-              onClick={() => setShowNewSession(true)}
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className="flex items-center gap-1.5 px-4 py-2 text-[12px] transition-colors"
               style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: 8,
-                border: "1px dashed #d1d5db",
-                background: "#f9fafb",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-                marginBottom: 12,
+                color: activeTab === tab.key ? "var(--text-primary)" : "var(--text-muted)",
+                borderBottom: activeTab === tab.key ? "2px solid var(--accent)" : "2px solid transparent",
               }}
             >
-              <Plus size={16} /> 新しい壁打ち
+              <tab.icon size={14} />
+              {tab.label}
             </button>
+          ))}
+        </div>
 
-            {showNewSession && (
-              <div style={{ padding: 12, border: "1px solid #e5e7eb", borderRadius: 8, marginBottom: 12, background: "#fff" }}>
-                <input
-                  value={newTitle}
-                  onChange={e => setNewTitle(e.target.value)}
-                  placeholder="タイトル"
-                  style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #d1d5db", marginBottom: 8 }}
-                />
-                <textarea
-                  value={newTopic}
-                  onChange={e => setNewTopic(e.target.value)}
-                  placeholder="トピック（任意）"
-                  rows={2}
-                  style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #d1d5db", marginBottom: 8, resize: "vertical" }}
-                />
-                <select
-                  value={newType}
-                  onChange={e => setNewType(e.target.value)}
-                  style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #d1d5db", marginBottom: 8 }}
-                >
-                  {SESSION_TYPES.map(t => (
-                    <option key={t.key} value={t.key}>{t.label}</option>
-                  ))}
-                </select>
-                <label style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, fontSize: 14 }}>
-                  <input
-                    type="checkbox"
-                    checked={isMultiModel}
-                    onChange={e => setIsMultiModel(e.target.checked)}
-                  />
-                  マルチモデル壁打ち
-                </label>
-                {isMultiModel && (
-                  <div style={{ marginBottom: 8 }}>
-                    <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>使用モデルを選択:</div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      {AVAILABLE_MODELS.map(m => (
-                        <label key={m} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, cursor: "pointer" }}>
-                          <input
-                            type="checkbox"
-                            checked={selectedModels.includes(m)}
-                            onChange={e => {
-                              if (e.target.checked) setSelectedModels([...selectedModels, m])
-                              else setSelectedModels(selectedModels.filter(x => x !== m))
-                            }}
-                          />
-                          {m.split("/")[1]}
-                        </label>
-                      ))}
-                    </div>
+        {/* Brainstorm Tab */}
+        {activeTab === "brainstorm" && (
+          <div className="flex gap-4" style={{ minHeight: 500 }}>
+            {/* Session list */}
+            <div className="w-[260px] shrink-0 flex flex-col gap-2">
+              <button
+                onClick={() => setShowNewSession(true)}
+                className="w-full px-3 py-2 rounded text-[12px] border border-dashed border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--text-primary)] flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <Plus size={14} /> {t.brainstorm.newSession}
+              </button>
+
+              {showNewSession && (
+                <div className="p-3 border border-[var(--border)] rounded bg-[var(--bg-surface)]">
+                  <input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder={t.brainstorm.sessionTitle}
+                    className="w-full px-3 py-1.5 rounded text-[12px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)] mb-2" />
+                  <textarea value={newTopic} onChange={e => setNewTopic(e.target.value)} placeholder={t.brainstorm.sessionTopic} rows={2}
+                    className="w-full px-3 py-1.5 rounded text-[12px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)] resize-none mb-2" />
+                  <select value={newType} onChange={e => setNewType(e.target.value)}
+                    className="w-full px-3 py-1.5 rounded text-[12px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)] mb-2">
+                    {SESSION_TYPES.map(st => <option key={st.key} value={st.key}>{t.brainstorm[st.labelKey]}</option>)}
+                  </select>
+                  <label className="flex items-center gap-2 text-[12px] text-[var(--text-secondary)] mb-2 cursor-pointer">
+                    <input type="checkbox" checked={isMultiModel} onChange={e => setIsMultiModel(e.target.checked)}
+                      className="accent-[var(--accent)]" />
+                    {t.brainstorm.multiModel}
+                  </label>
+                  {isMultiModel && (
+                    <ModelSelector models={selectedModels} onToggle={m => toggleModel(m, "session")}
+                      customValue={customModelInput} onCustomChange={setCustomModelInput}
+                      onCustomAdd={() => addCustomModel(customModelInput, "session")} t={t} />
+                  )}
+                  <div className="flex gap-2 mt-2">
+                    <button onClick={createSession}
+                      className="flex-1 px-3 py-1.5 rounded text-[12px] bg-[var(--accent)] text-white">{t.common.create}</button>
+                    <button onClick={() => setShowNewSession(false)}
+                      className="px-3 py-1.5 rounded text-[12px] text-[var(--text-muted)] border border-[var(--border)]">{t.common.cancel}</button>
                   </div>
-                )}
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button
-                    onClick={createSession}
-                    style={{ flex: 1, padding: 8, borderRadius: 4, border: "none", background: "#3b82f6", color: "#fff", cursor: "pointer" }}
-                  >
-                    作成
-                  </button>
-                  <button
-                    onClick={() => setShowNewSession(false)}
-                    style={{ padding: 8, borderRadius: 4, border: "1px solid #d1d5db", background: "#fff", cursor: "pointer" }}
-                  >
-                    キャンセル
-                  </button>
                 </div>
-              </div>
-            )}
+              )}
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               {sessions.map(s => (
-                <button
-                  key={s.id}
-                  onClick={() => {
-                    setCurrentSession(s)
-                    loadSessionMessages(s.id)
-                  }}
+                <button key={s.id} onClick={() => { setCurrentSession(s); loadSessionMessages(s.id) }}
+                  className="px-3 py-2.5 rounded text-left border transition-colors"
                   style={{
-                    padding: 10,
-                    borderRadius: 8,
-                    border: currentSession?.id === s.id ? "2px solid #3b82f6" : "1px solid #e5e7eb",
-                    background: currentSession?.id === s.id ? "#eff6ff" : "#fff",
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                >
-                  <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>
-                    {s.title || "無題"}
-                  </div>
-                  <div style={{ fontSize: 12, color: "#6b7280" }}>
-                    {s.session_type} · {s.message_count} msgs · {s.total_chars.toLocaleString()} chars
+                    borderColor: currentSession?.id === s.id ? "var(--accent)" : "var(--border)",
+                    background: currentSession?.id === s.id ? "var(--bg-active)" : "var(--bg-surface)",
+                  }}>
+                  <div className="text-[13px] font-medium text-[var(--text-primary)] truncate">{s.title || t.brainstorm.untitled}</div>
+                  <div className="text-[11px] text-[var(--text-muted)] mt-0.5">
+                    {s.session_type} · {s.message_count} msg · {s.total_chars.toLocaleString()} chars
                   </div>
                 </button>
               ))}
             </div>
-          </div>
 
-          {/* Chat area */}
-          <div style={{ flex: 1 }}>
-            {currentSession ? (
-              <>
-                <div style={{ padding: 12, background: "#f9fafb", borderRadius: 8, marginBottom: 12 }}>
-                  <strong>{currentSession.title}</strong>
-                  {currentSession.topic && (
-                    <span style={{ color: "#6b7280", marginLeft: 12 }}>
-                      トピック: {currentSession.topic}
-                    </span>
-                  )}
-                  {currentSession.is_multi_model && (
-                    <span style={{ marginLeft: 12, padding: "2px 8px", background: "#dbeafe", borderRadius: 12, fontSize: 12 }}>
-                      マルチモデル
-                    </span>
-                  )}
-                </div>
-
-                <div style={{
-                  height: 400,
-                  overflowY: "auto",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: 8,
-                  padding: 16,
-                  marginBottom: 12,
-                  background: "#fff",
-                }}>
-                  {messages.map((msg, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        marginBottom: 12,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: msg.role === "user" ? "flex-end" : "flex-start",
-                      }}
-                    >
-                      <div style={{ fontSize: 11, color: "#9ca3af", marginBottom: 2 }}>
-                        {msg.role.startsWith("model:") ? msg.role.replace("model:", "") : msg.role}
-                        {msg.char_count ? ` (${msg.char_count.toLocaleString()} chars)` : ""}
-                      </div>
-                      <div
-                        style={{
-                          padding: "10px 14px",
-                          borderRadius: 12,
-                          background: msg.role === "user" ? "#3b82f6" : "#f3f4f6",
-                          color: msg.role === "user" ? "#fff" : "#1f2937",
-                          maxWidth: "80%",
-                          whiteSpace: "pre-wrap",
-                        }}
-                      >
-                        {msg.content}
-                      </div>
-                    </div>
-                  ))}
-                  <div ref={chatEndRef} />
-                </div>
-
-                {/* Text analysis display */}
-                {textAnalysis && (
-                  <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8, display: "flex", gap: 12, flexWrap: "wrap" }}>
-                    <span><Type size={12} style={{ display: "inline" }} /> 合計: {textAnalysis.analysis.total}</span>
-                    <span>漢字: {textAnalysis.analysis.kanji}</span>
-                    <span>ひらがな: {textAnalysis.analysis.hiragana}</span>
-                    <span>カタカナ: {textAnalysis.analysis.katakana}</span>
-                    <span>英字: {textAnalysis.analysis.ascii}</span>
+            {/* Chat area */}
+            <div className="flex-1 flex flex-col">
+              {currentSession ? (
+                <>
+                  <div className="px-3 py-2 bg-[var(--bg-surface)] border border-[var(--border)] rounded mb-3">
+                    <span className="text-[13px] font-medium text-[var(--text-primary)]">{currentSession.title}</span>
+                    {currentSession.is_multi_model && (
+                      <span className="ml-2 px-2 py-0.5 text-[10px] rounded bg-[var(--accent)] text-white">{t.brainstorm.multiModel}</span>
+                    )}
                   </div>
-                )}
 
-                <div style={{ display: "flex", gap: 8 }}>
-                  <textarea
-                    value={input}
-                    onChange={e => {
-                      setInput(e.target.value)
-                      if (e.target.value.length > 0) analyzeText(e.target.value)
-                    }}
-                    onKeyDown={e => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault()
-                        sendMessage()
-                      }
-                    }}
-                    placeholder="メッセージを入力... (Shift+Enter で改行)"
-                    rows={3}
-                    style={{
-                      flex: 1,
-                      padding: 12,
-                      borderRadius: 8,
-                      border: "1px solid #d1d5db",
-                      resize: "vertical",
-                    }}
-                  />
-                  <button
-                    onClick={sendMessage}
-                    disabled={loading || !input.trim()}
-                    style={{
-                      padding: "12px 20px",
-                      borderRadius: 8,
-                      border: "none",
-                      background: "#3b82f6",
-                      color: "#fff",
-                      cursor: loading ? "wait" : "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                    }}
-                  >
-                    {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-                  </button>
+                  <div className="flex-1 overflow-auto border border-[var(--border)] rounded p-4 mb-3 bg-[var(--bg-base)]" style={{ minHeight: 300 }}>
+                    {messages.map((msg, i) => (
+                      <div key={i} className="mb-3 flex flex-col" style={{ alignItems: msg.role === "user" ? "flex-end" : "flex-start" }}>
+                        <div className="text-[10px] text-[var(--text-muted)] mb-1">
+                          {msg.role.startsWith("model:") ? msg.role.replace("model:", "") : msg.role}
+                        </div>
+                        <div className="px-3 py-2 rounded-lg max-w-[80%] text-[13px] whitespace-pre-wrap"
+                          style={{
+                            background: msg.role === "user" ? "var(--accent)" : "var(--bg-surface)",
+                            color: msg.role === "user" ? "#fff" : "var(--text-primary)",
+                          }}>
+                          {msg.content}
+                        </div>
+                      </div>
+                    ))}
+                    <div ref={chatEndRef} />
+                  </div>
+
+                  {textAnalysis && (
+                    <div className="flex gap-3 text-[11px] text-[var(--text-muted)] mb-2 flex-wrap">
+                      <span><Type size={11} className="inline" /> {textAnalysis.analysis.total}</span>
+                      <span>{t.brainstorm.kanji}: {textAnalysis.analysis.kanji}</span>
+                      <span>{t.brainstorm.hiragana}: {textAnalysis.analysis.hiragana}</span>
+                      <span>{t.brainstorm.katakana}: {textAnalysis.analysis.katakana}</span>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <textarea value={input}
+                      onChange={e => { setInput(e.target.value); if (e.target.value.length > 0) analyzeText(e.target.value) }}
+                      onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage() } }}
+                      placeholder={t.brainstorm.inputPlaceholder} rows={3}
+                      className="flex-1 px-3 py-2 rounded text-[13px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)] resize-none" />
+                    <button onClick={sendMessage} disabled={loading || !input.trim()}
+                      className="px-4 rounded bg-[var(--accent)] text-white disabled:opacity-40 flex items-center">
+                      {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="flex-1 flex flex-col items-center justify-center text-[var(--text-muted)]">
+                  <MessageSquare size={40} className="mb-3 opacity-40" />
+                  <p className="text-[12px]">{t.brainstorm.selectOrCreate}</p>
                 </div>
-              </>
-            ) : (
-              <div style={{ textAlign: "center", padding: 60, color: "#9ca3af" }}>
-                <MessageSquare size={48} style={{ margin: "0 auto 16px" }} />
-                <p>壁打ちセッションを選択または作成してください</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Multi-Model Comparison Tab */}
-      {activeTab === "compare" && (
-        <div>
-          <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>
-            <GitCompare size={20} style={{ display: "inline", marginRight: 8 }} />
-            マルチモデル比較 / Multi-Model Compare
-          </h2>
-          <p style={{ color: "#6b7280", marginBottom: 16, fontSize: 14 }}>
-            同じ入力を複数のモデル（GPT / Gemini / Claude 等）に送信し、回答を見比べることができます。
-          </p>
-
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>比較するモデルを選択（2つ以上）</label>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {AVAILABLE_MODELS.map(m => (
-                <label key={m} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 14, padding: "4px 8px", border: "1px solid #d1d5db", borderRadius: 6, cursor: "pointer", background: compareModels.includes(m) ? "#dbeafe" : "#fff" }}>
-                  <input
-                    type="checkbox"
-                    checked={compareModels.includes(m)}
-                    onChange={e => {
-                      if (e.target.checked) setCompareModels([...compareModels, m])
-                      else setCompareModels(compareModels.filter(x => x !== m))
-                    }}
-                  />
-                  {m.split("/")[1]}
-                </label>
-              ))}
+              )}
             </div>
           </div>
+        )}
 
-          <textarea
-            value={compareInput}
-            onChange={e => setCompareInput(e.target.value)}
-            placeholder="比較したい入力テキストを入力..."
-            rows={5}
-            style={{ width: "100%", padding: 12, borderRadius: 8, border: "1px solid #d1d5db", marginBottom: 12, resize: "vertical" }}
-          />
+        {/* Compare Tab */}
+        {activeTab === "compare" && (
+          <div>
+            <p className="text-[12px] text-[var(--text-muted)] mb-4">{t.brainstorm.compareDesc}</p>
 
-          <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
-            <button
-              onClick={runMultiModelComparison}
-              disabled={comparing || compareModels.length < 2 || !compareInput.trim()}
-              style={{ padding: "10px 20px", borderRadius: 8, border: "none", background: "#3b82f6", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
-            >
-              {comparing ? <Loader2 size={16} className="animate-spin" /> : <GitCompare size={16} />}
-              比較実行
-            </button>
-            <span style={{ fontSize: 14, color: "#6b7280", alignSelf: "center" }}>
-              文字数: {compareInput.length.toLocaleString()}
-            </span>
-          </div>
+            <div className="mb-4">
+              <label className="text-[12px] text-[var(--text-secondary)] block mb-2">{t.brainstorm.selectModels}</label>
+              <ModelSelector models={compareModels} onToggle={m => toggleModel(m, "compare")}
+                customValue={compareCustomModel} onCustomChange={setCompareCustomModel}
+                onCustomAdd={() => addCustomModel(compareCustomModel, "compare")} t={t} />
+            </div>
 
-          {compareResult && (
-            <div>
-              <h3 style={{ fontWeight: 600, marginBottom: 12 }}>比較結果 (ID: {compareResult.id.slice(0, 8)}...)</h3>
-              <div style={{ fontSize: 14, color: "#6b7280", marginBottom: 12 }}>
-                入力文字数: {compareResult.input_char_count.toLocaleString()} · ステータス: {compareResult.status}
-              </div>
-              {compareResult.responses && (
-                <div style={{ display: "grid", gridTemplateColumns: `repeat(${Object.keys(compareResult.responses).length}, 1fr)`, gap: 12 }}>
+            <textarea value={compareInput} onChange={e => setCompareInput(e.target.value)}
+              placeholder={t.brainstorm.compareInputPlaceholder} rows={5}
+              className="w-full px-3 py-2 rounded text-[13px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)] resize-none mb-3" />
+
+            <div className="flex gap-3 items-center mb-6">
+              <button onClick={runMultiModelComparison} disabled={comparing || compareModels.length < 2 || !compareInput.trim()}
+                className="flex items-center gap-1.5 px-4 py-2 rounded text-[12px] bg-[var(--accent)] text-white disabled:opacity-40">
+                {comparing ? <Loader2 size={14} className="animate-spin" /> : <GitCompare size={14} />}
+                {t.brainstorm.runCompare}
+              </button>
+              <span className="text-[11px] text-[var(--text-muted)]">{compareInput.length.toLocaleString()} chars</span>
+            </div>
+
+            {compareResult?.responses && (
+              <div>
+                <div className="text-[11px] text-[var(--text-muted)] mb-3">
+                  {t.brainstorm.compareStatus}: {compareResult.status}
+                </div>
+                <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(Object.keys(compareResult.responses).length, 3)}, 1fr)` }}>
                   {Object.entries(compareResult.responses).map(([modelId, resp]) => (
-                    <div key={modelId} style={{ border: "1px solid #e5e7eb", borderRadius: 8, padding: 16, background: "#fff" }}>
-                      <div style={{ fontWeight: 600, marginBottom: 8, fontSize: 14 }}>{modelId.split("/")[1] || modelId}</div>
+                    <div key={modelId} className="border border-[var(--border)] rounded p-3 bg-[var(--bg-surface)]">
+                      <div className="text-[13px] font-mono font-medium text-[var(--info)] mb-2">{modelId.split("/")[1] || modelId}</div>
                       {resp.error ? (
-                        <div style={{ color: "#ef4444" }}>エラー: {resp.error}</div>
+                        <div className="text-[12px] text-[var(--error)]">{resp.error}</div>
                       ) : (
                         <>
-                          <div style={{ whiteSpace: "pre-wrap", fontSize: 14, marginBottom: 8, maxHeight: 300, overflowY: "auto" }}>
-                            {resp.text}
-                          </div>
-                          <div style={{ fontSize: 12, color: "#6b7280", borderTop: "1px solid #f3f4f6", paddingTop: 8 }}>
-                            文字数: {resp.char_count.toLocaleString()} · トークン: {resp.tokens} · レイテンシ: {resp.latency_ms}ms
+                          <div className="text-[13px] text-[var(--text-primary)] whitespace-pre-wrap mb-2 max-h-[300px] overflow-auto">{resp.text}</div>
+                          <div className="text-[11px] text-[var(--text-muted)] border-t border-[var(--border)] pt-2">
+                            {resp.char_count.toLocaleString()} chars · {resp.tokens} tokens · {resp.latency_ms}ms
                           </div>
                         </>
                       )}
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+              </div>
+            )}
+          </div>
+        )}
 
-      {/* Role Model Settings Tab */}
-      {activeTab === "roles" && (
-        <div>
-          <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>
-            <Settings size={20} style={{ display: "inline", marginRight: 8 }} />
-            役割別モデル設定 / Role Model Settings
-          </h2>
-          <p style={{ color: "#6b7280", marginBottom: 16, fontSize: 14 }}>
-            エージェントの役割ごとに使用する AI モデルを設定できます。
-          </p>
+        {/* Roles Tab */}
+        {activeTab === "roles" && (
+          <div>
+            <p className="text-[12px] text-[var(--text-muted)] mb-4">{t.brainstorm.rolesDesc}</p>
 
-          {roleModels.length > 0 ? (
-            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 24 }}>
-              <thead>
-                <tr style={{ borderBottom: "2px solid #e5e7eb" }}>
-                  <th style={{ textAlign: "left", padding: 8 }}>役割</th>
-                  <th style={{ textAlign: "left", padding: 8 }}>モデル</th>
-                  <th style={{ textAlign: "left", padding: 8 }}>フォールバック</th>
-                  <th style={{ textAlign: "left", padding: 8 }}>Max Tokens</th>
-                  <th style={{ textAlign: "left", padding: 8 }}>状態</th>
-                </tr>
-              </thead>
-              <tbody>
-                {roleModels.map(rm => (
-                  <tr key={rm.id} style={{ borderBottom: "1px solid #f3f4f6" }}>
-                    <td style={{ padding: 8 }}>{rm.role_name}</td>
-                    <td style={{ padding: 8, fontFamily: "monospace", fontSize: 13 }}>{rm.model_id}</td>
-                    <td style={{ padding: 8, fontFamily: "monospace", fontSize: 13 }}>{rm.fallback_model_id || "-"}</td>
-                    <td style={{ padding: 8 }}>{rm.max_tokens || "default"}</td>
-                    <td style={{ padding: 8 }}>
-                      <span style={{ padding: "2px 8px", borderRadius: 12, fontSize: 12, background: rm.is_active ? "#d1fae5" : "#fee2e2", color: rm.is_active ? "#065f46" : "#991b1b" }}>
-                        {rm.is_active ? "有効" : "無効"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <div style={{ textAlign: "center", padding: 32, color: "#9ca3af", border: "1px dashed #d1d5db", borderRadius: 8, marginBottom: 24 }}>
-              モデル設定はまだありません。API 経由で設定してください。
-            </div>
-          )}
+            {roleModels.length > 0 ? (
+              <div className="border border-[var(--border)] rounded overflow-hidden mb-6">
+                <table className="w-full text-[12px]">
+                  <thead>
+                    <tr className="bg-[var(--bg-surface)] border-b border-[var(--border)]">
+                      <th className="text-left px-3 py-2 text-[var(--text-secondary)] font-medium">{t.brainstorm.role}</th>
+                      <th className="text-left px-3 py-2 text-[var(--text-secondary)] font-medium">{t.brainstorm.model}</th>
+                      <th className="text-left px-3 py-2 text-[var(--text-secondary)] font-medium">{t.brainstorm.fallback}</th>
+                      <th className="text-left px-3 py-2 text-[var(--text-secondary)] font-medium">{t.brainstorm.status}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {roleModels.map(rm => (
+                      <tr key={rm.id} className="border-b border-[var(--border)]">
+                        <td className="px-3 py-2 text-[var(--text-primary)]">{rm.role_name}</td>
+                        <td className="px-3 py-2 font-mono text-[var(--info)]">{rm.model_id}</td>
+                        <td className="px-3 py-2 font-mono text-[var(--text-muted)]">{rm.fallback_model_id || "-"}</td>
+                        <td className="px-3 py-2">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded" style={{
+                            background: rm.is_active ? "#16825d30" : "#f4474730",
+                            color: rm.is_active ? "var(--success-fg)" : "var(--error)",
+                          }}>{rm.is_active ? t.brainstorm.enabled : t.brainstorm.disabled}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="rounded px-4 py-8 text-center text-[12px] border border-[var(--border)] text-[var(--text-muted)] mb-6">
+                {t.brainstorm.noRoleModels}
+              </div>
+            )}
 
-          <h3 style={{ fontWeight: 600, marginBottom: 12 }}>利用可能な役割</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: 12 }}>
-            {availableRoles.map(r => (
-              <div key={r.role_key} style={{ padding: 16, border: "1px solid #e5e7eb", borderRadius: 8, background: "#fff" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                  <strong>{r.name}</strong>
-                  <span style={{ fontSize: 11, padding: "2px 6px", borderRadius: 8, background: r.is_preset ? "#dbeafe" : "#fef3c7" }}>
-                    {r.is_preset ? "プリセット" : "カスタム"}
-                  </span>
+            <h3 className="text-[13px] font-medium text-[var(--text-primary)] mb-3">{t.brainstorm.availableRoles}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {availableRoles.map(r => (
+                <div key={r.role_key} className="p-3 border border-[var(--border)] rounded bg-[var(--bg-surface)]">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-[13px] font-medium text-[var(--text-primary)]">{r.name}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded" style={{
+                      background: r.is_preset ? "var(--accent)" + "20" : "#dcdcaa20",
+                      color: r.is_preset ? "var(--accent)" : "var(--warning)",
+                    }}>{r.is_preset ? t.brainstorm.preset : t.brainstorm.custom}</span>
+                  </div>
+                  <div className="text-[11px] text-[var(--text-muted)] mb-2">{r.description.slice(0, 120)}{r.description.length > 120 ? "..." : ""}</div>
+                  <button onClick={() => addAgentByRole(r.role_key)}
+                    className="flex items-center gap-1 text-[11px] px-2 py-1 rounded border border-[var(--accent)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white transition-colors">
+                    <Plus size={12} /> {t.brainstorm.addAgent}
+                  </button>
                 </div>
-                <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>{r.title}</div>
-                <div style={{ fontSize: 13, color: "#4b5563" }}>{r.description.slice(0, 100)}{r.description.length > 100 ? "..." : ""}</div>
-                <button
-                  onClick={() => addAgentByRole(r.role_key)}
-                  style={{ marginTop: 8, padding: "4px 12px", borderRadius: 4, border: "1px solid #3b82f6", background: "#fff", color: "#3b82f6", cursor: "pointer", fontSize: 12 }}
-                >
-                  <Plus size={12} style={{ display: "inline" }} /> エージェント追加
-                </button>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Agent Management Tab */}
-      {activeTab === "agents" && (
-        <div>
-          <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>
-            <Users size={20} style={{ display: "inline", marginRight: 8 }} />
-            AI 組織管理 / AI Organization Management
-          </h2>
-          <p style={{ color: "#6b7280", marginBottom: 16, fontSize: 14 }}>
-            自然言語で AI 組織に要望を伝えるだけで、エージェントの追加・削除・役割変更ができます。
-          </p>
+        {/* Agents Tab */}
+        {activeTab === "agents" && (
+          <div>
+            <p className="text-[12px] text-[var(--text-muted)] mb-4">{t.brainstorm.agentsDesc}</p>
 
-          <div style={{ padding: 20, background: "#f9fafb", borderRadius: 12, marginBottom: 24 }}>
-            <label style={{ display: "block", fontWeight: 600, marginBottom: 8 }}>
-              <Sparkles size={16} style={{ display: "inline", marginRight: 6 }} />
-              AI 組織への要望（自然言語）
+            <div className="p-4 bg-[var(--bg-surface)] border border-[var(--border)] rounded mb-6">
+              <label className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--text-primary)] mb-2">
+                <Sparkles size={14} className="text-[var(--accent)]" />
+                {t.brainstorm.orgRequest}
+              </label>
+              <textarea value={featureRequest} onChange={e => setFeatureRequest(e.target.value)}
+                placeholder={t.brainstorm.orgRequestPlaceholder} rows={3}
+                className="w-full px-3 py-2 rounded text-[13px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)] resize-none mb-3" />
+              <button onClick={submitFeatureRequest} disabled={!featureRequest.trim()}
+                className="flex items-center gap-1.5 px-4 py-2 rounded text-[12px] bg-[var(--accent)] text-white disabled:opacity-40">
+                <Send size={14} /> {t.brainstorm.submitRequest}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="p-3 border border-[var(--border)] rounded bg-[var(--bg-surface)]">
+                <h3 className="text-[13px] font-medium text-[var(--text-primary)] mb-2">{t.brainstorm.secretaryRole}</h3>
+                <p className="text-[12px] text-[var(--text-secondary)]">{t.brainstorm.secretaryDesc}</p>
+              </div>
+              <div className="p-3 border border-[var(--border)] rounded bg-[var(--bg-surface)]">
+                <h3 className="text-[13px] font-medium text-[var(--text-primary)] mb-2">{t.brainstorm.consultantRole}</h3>
+                <p className="text-[12px] text-[var(--text-secondary)]">{t.brainstorm.consultantDesc}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/** Reusable model selector with presets + custom input */
+function ModelSelector({ models, onToggle, customValue, onCustomChange, onCustomAdd, t }: {
+  models: string[]
+  onToggle: (m: string) => void
+  customValue: string
+  onCustomChange: (v: string) => void
+  onCustomAdd: () => void
+  t: ReturnType<typeof useT>
+}) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div>
+      {/* Selected models display */}
+      <div className="flex flex-wrap gap-1.5 mb-2">
+        {models.map(m => (
+          <span key={m} className="flex items-center gap-1 px-2 py-0.5 rounded text-[11px] bg-[var(--bg-active)] text-[var(--text-primary)] border border-[var(--border)]">
+            {m.split("/").pop()}
+            <button onClick={() => onToggle(m)} className="text-[var(--text-muted)] hover:text-[var(--error)]"><X size={10} /></button>
+          </span>
+        ))}
+      </div>
+
+      {/* Dropdown toggle */}
+      <button onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[12px] border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)] transition-colors w-full justify-between">
+        <span>{t.brainstorm.selectModelsBtn}</span>
+        <ChevronDown size={14} style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 150ms" }} />
+      </button>
+
+      {open && (
+        <div className="mt-1 border border-[var(--border)] rounded bg-[var(--bg-surface)] p-2 max-h-[200px] overflow-auto">
+          {PRESET_MODELS.map(m => (
+            <label key={m} className="flex items-center gap-2 px-2 py-1.5 rounded text-[12px] cursor-pointer hover:bg-[var(--bg-hover)] text-[var(--text-primary)]">
+              <input type="checkbox" checked={models.includes(m)} onChange={() => onToggle(m)} className="accent-[var(--accent)]" />
+              <span className="font-mono">{m}</span>
             </label>
-            <textarea
-              value={featureRequest}
-              onChange={e => setFeatureRequest(e.target.value)}
-              placeholder="例: 「相談役のエージェントを追加して」「秘書のモデルをClaude Opusに変更して」「マーケティング担当を削除して」"
-              rows={3}
-              style={{ width: "100%", padding: 12, borderRadius: 8, border: "1px solid #d1d5db", marginBottom: 12, resize: "vertical" }}
-            />
-            <button
-              onClick={submitFeatureRequest}
-              disabled={!featureRequest.trim()}
-              style={{ padding: "10px 20px", borderRadius: 8, border: "none", background: "#3b82f6", color: "#fff", cursor: "pointer" }}
-            >
-              <Send size={16} style={{ display: "inline", marginRight: 6 }} />
-              要望を送信
+          ))}
+          {/* Custom model input */}
+          <div className="flex gap-1.5 mt-2 pt-2 border-t border-[var(--border)]">
+            <input value={customValue} onChange={e => onCustomChange(e.target.value)}
+              placeholder={t.brainstorm.customModelPlaceholder}
+              onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); onCustomAdd() } }}
+              className="flex-1 px-2 py-1 rounded text-[11px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)] font-mono" />
+            <button onClick={onCustomAdd} disabled={!customValue.trim()}
+              className="px-2 py-1 rounded text-[11px] bg-[var(--accent)] text-white disabled:opacity-40">
+              <Plus size={12} />
             </button>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
-            <div>
-              <h3 style={{ fontWeight: 600, marginBottom: 12 }}>秘書の役割</h3>
-              <div style={{ padding: 16, border: "1px solid #e5e7eb", borderRadius: 8, background: "#fff" }}>
-                <p style={{ fontSize: 14, color: "#4b5563" }}>
-                  AI組織とユーザーの繋ぎ役。システムの情報の保管庫やファイル、
-                  ユーザーとAI組織との会話からナレッジを貯め、ユーザーのお手伝いをする。
-                </p>
-              </div>
-            </div>
-            <div>
-              <h3 style={{ fontWeight: 600, marginBottom: 12 }}>相談役の役割</h3>
-              <div style={{ padding: 16, border: "1px solid #e5e7eb", borderRadius: 8, background: "#fff" }}>
-                <p style={{ fontSize: 14, color: "#4b5563" }}>
-                  ユーザーが困った時にサポートしたり壁打ち相手になり、
-                  秘書とユーザーを繋ぐ。多角的な視点からアドバイスを提供。
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       )}

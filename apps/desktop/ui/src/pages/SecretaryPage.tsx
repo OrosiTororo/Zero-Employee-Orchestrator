@@ -238,7 +238,7 @@ export function SecretaryPage() {
               onClick={handleSubmit}
               disabled={isSubmitting || !inputText.trim()}
               className="flex items-center gap-2 px-4 py-2 rounded-md text-[13px] font-medium text-white disabled:opacity-50"
-              style={{ background: "linear-gradient(135deg, #0078d4, #6d28d9)" }}
+              style={{ background: "var(--gradient-primary)" }}
             >
               {isSubmitting ? (
                 <><Loader2 size={14} className="animate-spin" />{isJa ? "\u6574\u7406\u4E2D..." : "Organizing..."}</>

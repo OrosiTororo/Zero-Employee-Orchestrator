@@ -27,6 +27,12 @@ from app.schemas.registry import (
     SkillUpdate,
 )
 from app.services import registry_service, skill_service
+from app.services.marketplace_service import (
+    ListingStatus,
+    MarketplaceCategory,
+    MarketplaceListing,
+    marketplace_service,
+)
 from app.services.skill_service import analyze_code_safety
 
 router = APIRouter()
@@ -449,6 +455,104 @@ async def delete_extension(
         raise HTTPException(status_code=403, detail=message)
     await db.commit()
     return RegistryDeleteResponse(deleted=True, message=message)
+
+
+# ===================================================================
+# Publish to Marketplace — Users can publish their created items
+# ===================================================================
+
+
+class PublishToMarketplaceRequest:
+    """Common publish request (built dynamically from DB record)."""
+
+    pass
+
+
+@router.post("/skills/{skill_id}/publish")
+async def publish_skill_to_marketplace(
+    skill_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Publish a user-created skill to the marketplace."""
+    skill = await registry_service.get_skill(db, skill_id)
+    if skill is None:
+        raise HTTPException(status_code=404, detail="Skill not found")
+    if skill.is_system_protected:
+        raise HTTPException(status_code=403, detail="System skills cannot be published")
+
+    listing = MarketplaceListing(
+        id="",
+        name=skill.name,
+        description=skill.description or "",
+        author=user.display_name or user.email or "anonymous",
+        version=skill.version or "0.1.0",
+        category=MarketplaceCategory.OTHER,
+        status=ListingStatus.DRAFT,
+        skill_type="skill",
+        manifest=skill.manifest_json or {},
+        tags=[skill.skill_type] if skill.skill_type else [],
+    )
+    result = await marketplace_service.publish(listing)
+    return {"listing_id": result.id, "status": result.status.value, "name": result.name}
+
+
+@router.post("/plugins/{plugin_id}/publish")
+async def publish_plugin_to_marketplace(
+    plugin_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Publish a user-created plugin to the marketplace."""
+    plugin = await registry_service.get_plugin(db, plugin_id)
+    if plugin is None:
+        raise HTTPException(status_code=404, detail="Plugin not found")
+    if plugin.is_system_protected:
+        raise HTTPException(status_code=403, detail="System plugins cannot be published")
+
+    listing = MarketplaceListing(
+        id="",
+        name=plugin.name,
+        description=plugin.description or "",
+        author=user.display_name or user.email or "anonymous",
+        version=plugin.version or "0.1.0",
+        category=MarketplaceCategory.OTHER,
+        status=ListingStatus.DRAFT,
+        skill_type="plugin",
+        manifest=plugin.manifest_json or {},
+        tags=[],
+    )
+    result = await marketplace_service.publish(listing)
+    return {"listing_id": result.id, "status": result.status.value, "name": result.name}
+
+
+@router.post("/extensions/{ext_id}/publish")
+async def publish_extension_to_marketplace(
+    ext_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Publish a user-created extension to the marketplace."""
+    ext = await registry_service.get_extension(db, ext_id)
+    if ext is None:
+        raise HTTPException(status_code=404, detail="Extension not found")
+    if ext.is_system_protected:
+        raise HTTPException(status_code=403, detail="System extensions cannot be published")
+
+    listing = MarketplaceListing(
+        id="",
+        name=ext.name,
+        description=ext.description or "",
+        author=user.display_name or user.email or "anonymous",
+        version=ext.version or "0.1.0",
+        category=MarketplaceCategory.OTHER,
+        status=ListingStatus.DRAFT,
+        skill_type="extension",
+        manifest=ext.manifest_json or {},
+        tags=[],
+    )
+    result = await marketplace_service.publish(listing)
+    return {"listing_id": result.id, "status": result.status.value, "name": result.name}
 
 
 # ===================================================================

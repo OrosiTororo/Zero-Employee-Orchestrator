@@ -18,9 +18,9 @@ import { SkillsPage } from '@/pages/SkillsPage'
 import { SkillCreatePage } from '@/pages/SkillCreatePage'
 import { SkillDetailPage } from '@/pages/SkillDetailPage'
 import { PluginsPage } from '@/pages/PluginsPage'
+import { ExtensionsPage } from '@/pages/ExtensionsPage'
+import { MarketplacePage } from '@/pages/MarketplacePage'
 import { SettingsPage } from '@/pages/SettingsPage'
-import { ReleasesPage } from '@/pages/ReleasesPage'
-import { DownloadPage } from '@/pages/DownloadPage'
 import { PermissionsPage } from '@/pages/PermissionsPage'
 import { AgentMonitorPage } from '@/pages/AgentMonitorPage'
 import BrainstormPage from '@/pages/BrainstormPage'
@@ -55,9 +55,9 @@ export const router = createBrowserRouter([
       { path: 'skills/create', element: <SkillCreatePage /> },
       { path: 'skills/:id', element: <SkillDetailPage /> },
       { path: 'plugins', element: <PluginsPage /> },
+      { path: 'extensions', element: <ExtensionsPage /> },
+      { path: 'marketplace', element: <MarketplacePage /> },
       { path: 'settings', element: <SettingsPage /> },
-      { path: 'releases', element: <ReleasesPage /> },
-      { path: 'download', element: <DownloadPage /> },
       { path: 'permissions', element: <PermissionsPage /> },
       { path: 'monitor', element: <AgentMonitorPage /> },
       { path: 'brainstorm', element: <BrainstormPage /> },

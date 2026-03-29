@@ -47,7 +47,7 @@ apps/
 ├── api/              # FastAPI backend (Python 3.12+)
 │   ├── app/
 │   │   ├── core/           # Config, DB, rate limiting, i18n
-│   │   ├── api/routes/     # REST API endpoints (40 route modules, 350+ endpoints)
+│   │   ├── api/routes/     # REST API endpoints (41 route modules, 350+ endpoints)
 │   │   ├── api/ws/         # WebSocket (events, browser_assist_ws)
 │   │   ├── api/deps/       # Dependency injection
 │   │   ├── models/         # SQLAlchemy ORM
@@ -237,6 +237,19 @@ WebSocket endpoint: `ws://localhost:18234/ws/browser-assist`
 
 Supports file and image attachments (both Chrome extension and REST API).
 
+## External Agent Framework Integration (Agent Adapter)
+
+Like the browser adapter, external AI agent frameworks can be added/switched as plugins.
+ZEO's AI organization can delegate sub-tasks to external frameworks while maintaining
+approval gates, audit logging, and transparency.
+
+- Agent adapter registry: `apps/api/app/tools/agent_adapter.py`
+- Supported frameworks: CrewAI, AutoGen (Microsoft), LangChain, OpenClaw, Dify
+- Plugin templates: `crewai-orchestrator`, `autogen-orchestrator`, `langchain-agent`, `openclaw-agent`, `dify-workflow`
+- Installation: Natural language ("add CrewAI") or `POST /api/v1/browser-automation/plugins`
+- Integration: External agents register with A2A communication hub
+- Safety: All delegated tasks go through approval gates and audit logging
+
 ## Plugin-based Browser Automation (Browser Adapter)
 
 Like VS Code extensions, browser automation tools can be added/switched as plugins.
@@ -350,6 +363,49 @@ All formerly planned v0.2-v1.0 features are implemented in v0.1. Remaining tasks
 - **v1.0**: Self-Improvement Loop automation, Cross-Orchestrator Learning
 
 See `ROADMAP.md` for details.
+
+## Desktop UI (Tauri v2 + React)
+
+The desktop app follows a VSCode/Cursor-inspired IDE layout for AI orchestration.
+
+### Layout Structure
+- **Title Bar** -- App name, current page, version
+- **Activity Bar** (left sidebar) -- Icon navigation with tooltips
+- **Tab Bar** -- Current page tab
+- **Main Content** -- Page content
+- **Status Bar** -- App info
+- **Command Palette** (`Ctrl/Cmd+K`) -- Quick search across all pages and actions
+
+### Navigation (Activity Bar)
+Dashboard, Org Chart, Secretary, Tickets, Approvals, Artifacts,
+Health Monitor, Costs, Audit, Skills, Plugins, Extensions,
+Marketplace, Brainstorm, Agent Monitor, Permissions, Settings
+
+### Theme System
+- 3 built-in themes: Dark (default), Light, High Contrast
+- Theme selector in Settings
+- All colors via CSS variables (`--bg-base`, `--accent`, etc.)
+- Custom themes can be added via extensions
+
+### Key Pages
+- **Dashboard**: Command center with natural language input, quick actions, status grid
+- **Settings**: Theme, Language, LLM API Keys (11+ providers with dropdown selector),
+  Agent Behavior (autonomy level, browser automation, workspace access),
+  Execution Mode, Company, Provider Connections (12+ with category filter), Policies
+- **Skills/Plugins/Extensions**: Installed + Marketplace tabs, search, CRUD
+- **Marketplace**: Unified view for community-created skills/plugins/extensions
+- **Brainstorm**: Multi-model comparison with dropdown model selector + custom model input
+
+### Agent Behavior (Settings)
+- **Autonomy levels**: Observe / Assist / Semi-Auto / Autonomous
+- **Browser automation**: Chrome control, Web AI sessions (API-free GPT/Gemini/Claude), site interaction (approval-gated)
+- **Workspace access**: Local file access (opt-in), Cloud storage connections (opt-in)
+- Default: Semi-Auto autonomy, internal storage only, all dangerous ops require approval
+
+### i18n
+- 6 built-in languages: ja, en, zh, ko, pt, tr
+- Additional languages via extension language packs
+- All UI strings use i18n keys (no hardcoded strings)
 
 ## Release Notes Guidelines
 

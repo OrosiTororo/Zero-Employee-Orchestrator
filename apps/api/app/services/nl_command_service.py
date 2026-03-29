@@ -15,6 +15,7 @@ Supported categories:
 - Approval (approval): Pending approvals list, approve, reject
 - Knowledge (knowledge): Search, add knowledge
 - Media generation (media): Image, video, audio generation
+- Social media (social_media): SNS posting (Twitter/X, Instagram, TikTok, YouTube, etc.)
 - Browser automation (browser): Web automation
 - System (system): Health check, update, restart
 """
@@ -45,6 +46,7 @@ class CommandCategory(str, Enum):
     BROWSER = "browser"
     SYSTEM = "system"
     FILE = "file"
+    SOCIAL_MEDIA = "social_media"
     CONVERSATION = "conversation"  # Normal conversation (not a command)
 
 
@@ -298,6 +300,21 @@ _INTENT_PATTERNS: list[tuple[CommandCategory, CommandAction, list[str]]] = [
             r"(?:画像|image|イメージ).*(?:生成|作成|作って|generate|create)",
             r"(?:動画|video|ビデオ).*(?:生成|作成|作って|generate|create)",
             r"(?:音声|audio|音楽|music).*(?:生成|作成|作って|generate|create)",
+        ],
+    ),
+    # ── Social Media ──
+    (
+        CommandCategory.SOCIAL_MEDIA,
+        CommandAction.EXECUTE,
+        [
+            r"(?:SNS|Twitter|ツイート|tweet|ポスト|post).*(?:投稿|作成|予約|送信|publish|schedule)",
+            r"(?:Instagram|インスタ).*(?:投稿|アップ|post|upload|リール|reel|ストーリー|story)",
+            r"(?:TikTok|ティックトック).*(?:投稿|アップ|post|upload)",
+            r"(?:YouTube|ユーチューブ).*(?:アップ|投稿|upload|publish)",
+            r"(?:LinkedIn|リンクドイン).*(?:投稿|共有|post|share)",
+            r"(?:Threads|スレッズ).*(?:投稿|post)",
+            r"(?:投稿|post|publish).*(?:SNS|ソーシャル|social|Twitter|Instagram|TikTok|YouTube)",
+            r"(?:コンテンツ|content).*(?:投稿|配信|発信|post|distribute)",
         ],
     ),
     # ── Browser ──
@@ -557,6 +574,7 @@ class NLCommandProcessor:
             CommandCategory.SYSTEM: self._handle_system,
             CommandCategory.KNOWLEDGE: self._handle_knowledge,
             CommandCategory.MEDIA: self._handle_media,
+            CommandCategory.SOCIAL_MEDIA: self._handle_social_media,
             CommandCategory.AGENT: self._handle_agent,
             CommandCategory.FILE: self._handle_file,
         }
@@ -947,6 +965,31 @@ class NLCommandProcessor:
                 "context": "media_generation",
                 "raw_text": cmd.raw_text,
                 "api_endpoint": "POST /api/v1/media/generate",
+            },
+        )
+
+    async def _handle_social_media(self, cmd: ParsedCommand) -> CommandResult:
+        """Social media posting handler.
+
+        Delegates to LLM with social media context so the AI organization
+        can plan and execute SNS operations (content creation, approval, posting).
+        """
+        return CommandResult(
+            success=True,
+            message="",
+            data={
+                "delegate_to_llm": True,
+                "context": "social_media",
+                "raw_text": cmd.raw_text,
+                "capabilities": [
+                    "twitter_x",
+                    "instagram",
+                    "tiktok",
+                    "youtube",
+                    "linkedin",
+                    "threads",
+                ],
+                "note": "SNS posting requires approval. Content will be reviewed before publishing.",
             },
         )
 

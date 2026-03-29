@@ -8,7 +8,6 @@ import {
   Key,
   Sparkles,
   Check,
-  Globe,
   Info,
   CheckCircle,
   ClipboardList,
@@ -16,12 +15,11 @@ import {
   Loader2,
 } from "lucide-react"
 import { Logo } from "@/shared/ui/Logo"
-import { useT, useI18n, LOCALE_LABELS, type Locale } from "@/shared/i18n"
+import { useT, useI18n } from "@/shared/i18n"
 import { api } from "@/shared/api/client"
 import { useAuthStore } from "@/shared/hooks/use-auth"
 
 type Step =
-  | "language"
   | "welcome"
   | "organization"
   | "business_interview"
@@ -30,7 +28,6 @@ type Step =
   | "complete"
 
 const STEP_IDS: Step[] = [
-  "language",
   "welcome",
   "organization",
   "business_interview",
@@ -38,15 +35,6 @@ const STEP_IDS: Step[] = [
   "org_preview",
   "complete",
 ]
-
-const LOCALE_FLAGS: Record<Locale, string> = {
-  ja: "\u{1F1EF}\u{1F1F5}",
-  en: "\u{1F1EC}\u{1F1E7}",
-  zh: "\u{1F1E8}\u{1F1F3}",
-  ko: "\u{1F1F0}\u{1F1F7}",
-  pt: "\u{1F1E7}\u{1F1F7}",
-  tr: "\u{1F1F9}\u{1F1F7}",
-}
 
 interface OrgPreview {
   departments: Array<{
@@ -95,9 +83,9 @@ const TEAM_SIZES = [
 export function SetupPage() {
   const navigate = useNavigate()
   const t = useT()
-  const { locale, setLocale } = useI18n()
+  const { locale } = useI18n()
 
-  const [currentStep, setCurrentStep] = useState<Step>("language")
+  const [currentStep, setCurrentStep] = useState<Step>("welcome")
   const [orgName, setOrgName] = useState("")
   const [orgMission, setOrgMission] = useState("")
   const [providerType, setProviderType] = useState("openrouter")
@@ -115,17 +103,7 @@ export function SetupPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isGenerated, setIsGenerated] = useState(false)
 
-  const handleLocaleChange = async (newLocale: Locale) => {
-    setLocale(newLocale)
-    try {
-      await api.put("/config", { key: "LANGUAGE", value: newLocale })
-    } catch {
-      // Backend may not be available during initial setup
-    }
-  }
-
   const stepLabels: Record<Step, string> = {
-    language: t.setup.steps.language,
     welcome: t.setup.steps.welcome,
     organization: t.setup.steps.organization,
     business_interview: t.setup.steps.businessInterview,
@@ -257,48 +235,6 @@ export function SetupPage() {
 
         {/* Step Content */}
         <div className="min-h-[300px] max-h-[calc(100vh-200px)] overflow-auto">
-          {/* Language Step */}
-          {currentStep === "language" && (
-            <div className="flex flex-col items-center gap-6 text-center">
-              <Globe size={48} className="text-[var(--accent)]" />
-              <h2 className="text-2xl font-semibold text-[var(--text-primary)]">
-                {t.setup.language.title}
-              </h2>
-              <p className="text-[14px] text-[var(--text-secondary)] leading-relaxed max-w-[450px]">
-                {t.setup.language.description}
-              </p>
-              <div className="flex gap-6 mt-2">
-                {(Object.keys(LOCALE_LABELS) as Locale[]).map((loc) => (
-                  <button
-                    key={loc}
-                    onClick={() => handleLocaleChange(loc)}
-                    className="relative flex flex-col items-center gap-3 px-8 py-6 rounded-md border-2 transition-colors cursor-pointer"
-                    style={{
-                      background:
-                        locale === loc
-                          ? "rgba(0, 120, 212, 0.08)"
-                          : "var(--bg-surface)",
-                      borderColor:
-                        locale === loc ? "var(--accent)" : "var(--border)",
-                    }}
-                  >
-                    <span className="text-4xl">{LOCALE_FLAGS[loc]}</span>
-                    <span className="text-[14px] font-medium text-[var(--text-primary)]">
-                      {LOCALE_LABELS[loc]}
-                    </span>
-                    {locale === loc && (
-                      <CheckCircle
-                        size={20}
-                        className="absolute top-2 right-2"
-                        style={{ color: "var(--accent)" }}
-                      />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Welcome Step */}
           {currentStep === "welcome" && (
             <div className="flex flex-col items-center gap-6 text-center">
@@ -591,7 +527,7 @@ export function SetupPage() {
                       <button
                         onClick={handlePreview}
                         className="px-6 py-2.5 rounded-md text-[13px] font-medium text-white"
-                        style={{ background: "linear-gradient(135deg, #0078d4, #6d28d9)" }}
+                        style={{ background: "var(--gradient-primary)" }}
                       >
                         {t.orgSetup.previewStructure}
                       </button>
@@ -643,7 +579,7 @@ export function SetupPage() {
                         onClick={handleGenerate}
                         disabled={isGenerating}
                         className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-md text-[13px] font-medium text-white disabled:opacity-60"
-                        style={{ background: "linear-gradient(135deg, #0078d4, #6d28d9)" }}
+                        style={{ background: "var(--gradient-primary)" }}
                       >
                         {isGenerating ? (
                           <>
@@ -732,7 +668,7 @@ export function SetupPage() {
             <button
               onClick={finishSetup}
               className="flex items-center gap-2 px-6 py-2.5 rounded-md text-[13px] font-medium text-white"
-              style={{ background: "linear-gradient(135deg, #0078d4, #6d28d9)" }}
+              style={{ background: "var(--gradient-primary)" }}
             >
               <Sparkles size={16} />
               {t.setup.complete.goToDashboard}
@@ -746,7 +682,7 @@ export function SetupPage() {
                 next()
               }}
               className="flex items-center gap-1 px-6 py-2.5 rounded-md text-[13px] font-medium text-white"
-              style={{ background: "linear-gradient(135deg, #0078d4, #6d28d9)" }}
+              style={{ background: "var(--gradient-primary)" }}
             >
               {t.common.next}
               <ChevronRight size={16} />

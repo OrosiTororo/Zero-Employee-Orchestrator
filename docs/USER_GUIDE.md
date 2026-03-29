@@ -2,7 +2,7 @@
 
 # English User Guide
 
-> **v0.1** | Last updated: 2026-03-10
+> **v0.1.1** | Last updated: 2026-03-29
 
 ## 1. What is this software?
 
@@ -373,6 +373,56 @@ pip install -e "."
 ### Q: Can I access it from mobile?
 
 **A:** Since it's web browser compatible, you can access it from a smartphone browser (responsive design). You can also operate via the Discord / Slack / LINE Bot Plugin from mobile chat apps.
+
+---
+
+## 13. v0.1.1 New Features
+
+### Theme System
+Three built-in themes are available from Settings:
+- **Dark** (default) — Low eye strain for extended use
+- **Light** — Bright theme for well-lit environments
+- **High Contrast** — Maximum readability
+
+### Command Palette (Ctrl/Cmd+K)
+Press `Ctrl+K` (or `Cmd+K` on Mac) to open the command palette. Search across all pages and actions instantly.
+
+### Agent Behavior Settings
+Configure how AI agents operate from Settings → Agent Behavior:
+- **Autonomy Level**: Observe / Assist / Semi-Auto / Autonomous
+- **Browser Automation**: AI can control web browsers (Chrome, etc.)
+- **Web AI Sessions**: Use GPT, Gemini, Claude without API keys via browser automation
+- **Workspace Access**: Enable local file or cloud storage access (off by default)
+
+### Social Media Auto-Posting
+AI can create and post content to 6 platforms (requires approval):
+- Twitter/X, Instagram, TikTok, YouTube, LinkedIn, Threads
+
+Example: "Create a weekly social media plan and draft posts for Twitter and Instagram"
+
+### Media Creation Tools
+- **Music**: Suno, Udio, MusicGen
+- **Video**: Runway ML, Pika, CapCut, Descript
+- **Image**: DALL-E 3, Stable Diffusion, Flux
+- **Audio**: OpenAI TTS, ElevenLabs, VOICEVOX
+- **3D**: TripoSR
+
+### External Agent Framework Integration
+Integrate other AI agent systems as plugins:
+- CrewAI, AutoGen (Microsoft), LangChain, OpenClaw, Dify
+- Install via: "Add CrewAI" in natural language or Settings → Plugins
+
+### Marketplace
+Browse and install community-created skills, plugins, and extensions from the Marketplace page.
+
+### Creating Your Own Skills/Plugins
+Users can create and share without developer intervention:
+1. **Natural language skill creation**: Describe what you need → AI generates the code
+2. **Plugin import from GitHub**: Search and install from any repository
+3. **Publish to marketplace**: Share your creations with the community
+
+### Extensions Page
+Manage extensions (language packs, themes, tool integrations) from a dedicated Extensions page with Installed/Marketplace tabs.
 
 ---
 
