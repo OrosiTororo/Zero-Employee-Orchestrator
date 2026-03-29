@@ -18,6 +18,7 @@ import { SkillsPage } from '@/pages/SkillsPage'
 import { SkillCreatePage } from '@/pages/SkillCreatePage'
 import { SkillDetailPage } from '@/pages/SkillDetailPage'
 import { PluginsPage } from '@/pages/PluginsPage'
+import { ExtensionsPage } from '@/pages/ExtensionsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { PermissionsPage } from '@/pages/PermissionsPage'
 import { AgentMonitorPage } from '@/pages/AgentMonitorPage'
@@ -53,6 +54,7 @@ export const router = createBrowserRouter([
       { path: 'skills/create', element: <SkillCreatePage /> },
       { path: 'skills/:id', element: <SkillDetailPage /> },
       { path: 'plugins', element: <PluginsPage /> },
+      { path: 'extensions', element: <ExtensionsPage /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: 'permissions', element: <PermissionsPage /> },
       { path: 'monitor', element: <AgentMonitorPage /> },
