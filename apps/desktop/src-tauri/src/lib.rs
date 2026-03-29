@@ -224,7 +224,8 @@ fn ensure_uv() -> bool {
 }
 
 /// Find a system Python interpreter, trying multiple common names.
-fn find_system_python() -> String {
+/// Returns None if no Python is found.
+fn find_system_python() -> Option<String> {
     let candidates = if cfg!(windows) {
         vec!["python", "python3"]
     } else {
@@ -237,11 +238,10 @@ fn find_system_python() -> String {
             .map(|o| o.status.success())
             .unwrap_or(false)
         {
-            return cmd.to_string();
+            return Some(cmd.to_string());
         }
     }
-    // Last resort
-    if cfg!(windows) { "python".to_string() } else { "python3".to_string() }
+    None
 }
 
 /// Find a working Python interpreter (prefer .venv inside api dir).
@@ -259,13 +259,21 @@ fn find_python(api_dir: &PathBuf) -> (String, bool) {
 
     if !ensure_uv() {
         eprintln!("[sidecar] warning: could not install uv, falling back to system python");
-        let python = find_system_python();
-        // Try installing uvicorn into the system Python as a last resort
-        let _ = hidden_command(&python)
-            .args(["-m", "pip", "install", "--user", "uvicorn"])
-            .current_dir(api_dir)
-            .output();
-        return (python, false);
+        match find_system_python() {
+            Some(python) => {
+                // Try installing uvicorn into the system Python as a last resort
+                let _ = hidden_command(&python)
+                    .args(["-m", "pip", "install", "--user", "uvicorn"])
+                    .current_dir(api_dir)
+                    .output();
+                return (python, false);
+            }
+            None => {
+                eprintln!("[sidecar] ERROR: Python is not installed on this system");
+                // Return a descriptive error — spawn will fail with a clear message
+                return ("python-not-found".to_string(), false);
+            }
+        }
     }
 
     eprintln!("[sidecar] .venv not found, auto-setup with uv...");
@@ -320,7 +328,21 @@ fn find_python(api_dir: &PathBuf) -> (String, bool) {
     } else {
         eprintln!("[sidecar] uv venv creation failed for all Python versions");
     }
-    ("uv".to_string(), true)
+    // venv creation failed — try uv run (if uv works) or system python
+    if has_uv() {
+        ("uv".to_string(), true)
+    } else {
+        match find_system_python() {
+            Some(python) => {
+                let _ = hidden_command(&python)
+                    .args(["-m", "pip", "install", "--user", "uvicorn"])
+                    .current_dir(api_dir)
+                    .output();
+                (python, false)
+            }
+            None => ("python-not-found".to_string(), false),
+        }
+    }
 }
 
 /// Wait until the backend health endpoint responds.
@@ -371,7 +393,7 @@ fn ensure_env_file(api_dir: &PathBuf) {
     eprintln!("[sidecar] .env not found, generating default configuration...");
 
     // Generate a random secret key using Python or a fallback
-    let python_cmd = find_system_python();
+    let python_cmd = find_system_python().unwrap_or_else(|| "python3".to_string());
     let secret = hidden_command(&python_cmd)
         .args(["-c", "import secrets; print(secrets.token_urlsafe(32))"])
         .output()
@@ -463,14 +485,24 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Result<Child, String> {
         kill_port_18234();
         if is_port_in_use() {
             return Err(
-                "ポート 18234 が他のプロセスに使用されています。\
-                 前回のプロセスが残っている可能性があります。"
+                "Port 18234 is already in use. / ポート 18234 が使用中です。\n\
+                 A previous process may still be running. / 前回のプロセスが残っている可能性があります。"
                     .to_string(),
             );
         }
     }
 
     let (python, did_auto_setup) = find_python(api_dir);
+
+    // Check if Python was found
+    if python == "python-not-found" {
+        return Err(
+            "Python is not installed. / Python がインストールされていません。\n\
+             Please install Python 3.12 or later: https://www.python.org/downloads/\n\
+             Python 3.12 以降をインストールしてください。"
+                .to_string(),
+        );
+    }
     eprintln!(
         "[sidecar] starting backend: python={}, dir={}, auto_setup={}",
         python,
@@ -544,7 +576,7 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Result<Child, String> {
             match c.try_wait() {
                 Ok(Some(status)) => {
                     // Process crashed immediately — read the log file for the reason
-                    let mut error_msg = format!("バックエンドが起動直後にクラッシュしました (exit {status})");
+                    let mut error_msg = format!("Backend crashed on startup / バックエンドが起動直後にクラッシュしました (exit {status})");
                     if let Ok(log_content) = std::fs::read_to_string(&log_path) {
                         if !log_content.is_empty() {
                             let tail: String = log_content.chars().rev().take(500).collect::<Vec<_>>().into_iter().rev().collect();
@@ -572,7 +604,7 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Result<Child, String> {
         }
         Err(e) => {
             Err(format!(
-                "バックエンドプロセスの起動に失敗しました: {e}"
+                "Failed to start backend process / バックエンドプロセスの起動に失敗しました: {e}"
             ))
         }
     }
@@ -585,7 +617,7 @@ fn spawn_backend() -> (Option<Child>, Option<PathBuf>, Option<String>) {
             return (
                 None,
                 None,
-                Some("API ディレクトリが見つかりません。".to_string()),
+                Some("API directory not found. / API ディレクトリが見つかりません。".to_string()),
             );
         }
     };
@@ -622,7 +654,7 @@ fn restart_backend(
 
     let api_dir = match api_dir.or_else(find_api_dir) {
         Some(d) => d,
-        None => return Err("API ディレクトリが見つかりません。".to_string()),
+        None => return Err("API directory not found. / API ディレクトリが見つかりません。".to_string()),
     };
 
     match spawn_backend_inner(&api_dir) {

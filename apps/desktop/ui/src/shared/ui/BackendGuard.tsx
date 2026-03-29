@@ -47,7 +47,8 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
         )
       }
 
-      const attempts = isTauri ? 45 : 15
+      // Initial wait: 30s (Tauri) or 15s (browser)
+      const attempts = isTauri ? 15 : 15
       const interval = 2000
       const ok = await waitForBackend(attempts, interval)
 
@@ -73,14 +74,16 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
         const attempt = retryCount.current
 
         if (attempt <= 2) {
+          // Extra wait: 20s per retry
           setSetupMessage(t.backend.takingLonger)
-          const retryOk = await waitForBackend(30, 2000)
+          const retryOk = await waitForBackend(10, 2000)
           if (retryOk) {
             setStatus("connected")
             retryCount.current = 0
             return
           }
         } else {
+          // Restart backend and wait 30s
           setSetupMessage(t.backend.restartingBackend)
           try {
             await tauriInvoke("restart_backend")
@@ -90,7 +93,7 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
             setErrorDetail(msg)
             console.error("[BackendGuard] restart_backend failed:", msg)
           }
-          const retryOk = await waitForBackend(45, 2000)
+          const retryOk = await waitForBackend(15, 2000)
           if (retryOk) {
             setStatus("connected")
             retryCount.current = 0
