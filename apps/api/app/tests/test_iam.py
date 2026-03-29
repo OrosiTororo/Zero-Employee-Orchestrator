@@ -192,9 +192,9 @@ class TestResourceAccess:
             agent_id="res-test",
             account_name="Test",
             account_type=AccountType.AI_AGENT.value,
-            denied_resources={"paths": ["/etc/zero-employee/credentials"]},
+            denied_resources={"paths": ["/app/data/credentials"]},
         )
-        assert iam.check_resource_access(account, "/etc/zero-employee/credentials/key") is False
+        assert iam.check_resource_access(account, "/app/data/credentials/key") is False
 
     def test_allowed_resource_path(self, iam: IAMManager):
         account = AIServiceAccount(
@@ -202,7 +202,7 @@ class TestResourceAccess:
             agent_id="res-test",
             account_name="Test",
             account_type=AccountType.AI_AGENT.value,
-            denied_resources={"paths": ["/etc/zero-employee/credentials"]},
+            denied_resources={"paths": ["/app/data/credentials"]},
         )
         assert iam.check_resource_access(account, "/home/user/workspace/file.txt") is True
 
