@@ -120,21 +120,13 @@ class TestCreateAIAccount:
 class TestVerifyToken:
     @pytest.mark.asyncio
     async def test_verify_valid_token(self, iam: IAMManager, db_session: AsyncSession):
-        """Token verification uses hash_sha256 (now bcrypt-backed).
-
-        Because bcrypt is non-deterministic, the == comparison in
-        verify_ai_token cannot match. This documents the limitation.
-        When iam.py is updated to use verify_password(), change this test.
-        """
         _, token = await iam.create_ai_account(db_session, agent_id="v-001", account_name="V Agent")
         await db_session.commit()
 
         verified = await iam.verify_ai_token(db_session, token)
-        # bcrypt-based hash_sha256 is non-deterministic, so == fails.
-        # This is expected until verify_ai_token uses verify_password().
-        if verified is not None:
-            assert verified.agent_id == "v-001"
-            assert verified.last_used_at is not None
+        assert verified is not None
+        assert verified.agent_id == "v-001"
+        assert verified.last_used_at is not None
 
     @pytest.mark.asyncio
     async def test_verify_invalid_token(self, iam: IAMManager, db_session: AsyncSession):

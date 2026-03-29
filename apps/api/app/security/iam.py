@@ -163,21 +163,28 @@ class IAMManager:
         return account, token
 
     async def verify_ai_token(self, db: AsyncSession, token: str) -> AIServiceAccount | None:
-        """Verify an AI token."""
-        from app.core.security import hash_sha256
+        """Verify an AI token.
 
-        token_hash = hash_sha256(token)
+        Uses ``verify_password`` (bcrypt-safe) to compare the supplied
+        token against every active account's stored hash.  This is
+        necessary because ``hash_sha256`` now delegates to bcrypt which
+        produces non-deterministic hashes (a different salt each time),
+        making simple ``==`` comparison impossible.
+        """
+        from app.core.security import verify_password
+
         result = await db.execute(
             select(AIServiceAccount).where(
-                AIServiceAccount.token_hash == token_hash,
                 AIServiceAccount.is_active.is_(True),
             )
         )
-        account = result.scalar_one_or_none()
-        if account:
-            account.last_used_at = datetime.now(UTC)
-            await db.flush()
-        return account
+        accounts = result.scalars().all()
+        for account in accounts:
+            if account.token_hash and verify_password(token, account.token_hash):
+                account.last_used_at = datetime.now(UTC)
+                await db.flush()
+                return account
+        return None
 
     def check_permission(
         self,
