@@ -330,7 +330,7 @@
     "quickDownload": "Download Rápido",
     "quickDownloadDesc": "Baixe o instalador para o seu sistema operacional",
     "windows": "Windows",
-    "windowsDesc": "Instalador .msi",
+    "windowsDesc": "Instalador .exe",
     "macos": "macOS",
     "macosDesc": "Imagem de disco .dmg",
     "linux": "Linux",

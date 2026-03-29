@@ -330,7 +330,7 @@
     "quickDownload": "Hızlı İndirme",
     "quickDownloadDesc": "İşletim sisteminiz için yükleyiciyi indirin",
     "windows": "Windows",
-    "windowsDesc": ".msi yükleyici",
+    "windowsDesc": ".exe yükleyici",
     "macos": "macOS",
     "macosDesc": ".dmg disk kalıbı",
     "linux": "Linux",

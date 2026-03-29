@@ -330,7 +330,7 @@
     "quickDownload": "Quick Download",
     "quickDownloadDesc": "Download the installer for your OS",
     "windows": "Windows",
-    "windowsDesc": ".msi installer",
+    "windowsDesc": ".exe installer",
     "macos": "macOS",
     "macosDesc": ".dmg disk image",
     "linux": "Linux",

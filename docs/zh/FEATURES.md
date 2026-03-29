@@ -924,9 +924,9 @@ npx wrangler pages deploy dist --project-name=zeo-ui
 
 | 操作系统 | 格式 |
 |---------|------|
-| Windows | `.msi` / `.exe` |
+| Windows | `.exe` |
 | macOS | `.dmg` |
-| Linux | `.AppImage` / `.deb` |
+| Linux | `.AppImage` / `.deb` / `.rpm` |
 
 - Python 后端作为 Sidecar 捆绑
 - 本地文件访问、会话管理和 UI 在本地运行

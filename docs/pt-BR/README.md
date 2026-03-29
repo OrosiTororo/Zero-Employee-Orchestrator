@@ -45,10 +45,10 @@ Instaladores desktop pré-compilados estão disponíveis na página de [Releases
 
 | SO | Arquivo | Descrição |
 |---|---|---|
-| **Windows** | `.msi` / `-setup.exe` | Instalador Windows |
-| **macOS** | `.dmg` | macOS (Intel / Apple Silicon) |
-| **Linux** | `.AppImage` | Portátil (sem necessidade de instalação) |
-| **Linux** | `.deb` / `.rpm` | Debian/Ubuntu / Fedora/RHEL |
+| **Windows** | `-setup.exe` | Instalador Windows (x64) |
+| **macOS** | `.dmg` | macOS Universal (Intel + Apple Silicon) |
+| **Linux** | `.AppImage` | Portátil (sem necessidade de instalação, amd64) |
+| **Linux** | `.deb` / `.rpm` | Debian/Ubuntu / Fedora/RHEL (amd64/x86_64) |
 
 Após a instalação, um **assistente de configuração** guiará você por:
 1. **Idioma** — Escolha English, 日本語, 中文, 한국어, Português ou Türkçe (alterável depois em Configurações)

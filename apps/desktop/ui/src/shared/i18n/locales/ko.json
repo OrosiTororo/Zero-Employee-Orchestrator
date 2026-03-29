@@ -330,7 +330,7 @@
     "quickDownload": "빠른 다운로드",
     "quickDownloadDesc": "사용 중인 OS에 맞는 설치 프로그램을 다운로드하세요",
     "windows": "Windows",
-    "windowsDesc": ".msi 설치 프로그램",
+    "windowsDesc": ".exe 설치 프로그램",
     "macos": "macOS",
     "macosDesc": ".dmg 디스크 이미지",
     "linux": "Linux",
