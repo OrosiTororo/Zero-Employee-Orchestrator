@@ -6,8 +6,9 @@ RUN groupadd -r zeapp -g 1000 && \
 
 WORKDIR /app
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@9 --activate
+# Install pnpm and serve
+RUN corepack enable && corepack prepare pnpm@9 --activate && \
+    npm install -g serve
 
 # Copy package files
 COPY apps/desktop/ui/package.json apps/desktop/ui/pnpm-lock.yaml* ./
@@ -25,8 +26,6 @@ RUN chown -R zeapp:zeapp /app
 
 USER zeapp
 
-# Serve with lightweight server
-RUN npm install -g serve
 EXPOSE 5173
 
 CMD ["serve", "-s", "dist", "-l", "5173"]

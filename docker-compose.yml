@@ -53,7 +53,6 @@ services:
         max-file: "3"
     security_opt:
       - no-new-privileges:true
-    read_only: true
     tmpfs:
       - /tmp:size=100M
 
