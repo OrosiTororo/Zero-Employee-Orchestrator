@@ -331,22 +331,9 @@ provisioning -> idle -> busy -> idle
 按模型系列的 Token 单价在 `model_catalog.json` 中管理，并在执行前进行成本估算。
 成本信息从模型目录动态加载，因此模型变更时无需修改代码。
 
-| 模型 | 输入 ($/1K tokens) | 输出 ($/1K tokens) |
-|------|-------------------|-------------------|
-| Claude Opus | 0.015 | 0.075 |
-| Claude Sonnet | 0.003 | 0.015 |
-| Claude Haiku | 0.001 | 0.005 |
-| GPT | 0.005 | 0.015 |
-| GPT Mini | 0.00015 | 0.0006 |
-| Gemini Pro | 0.002 | 0.018 |
-| Gemini Flash | 0.00025 | 0.0015 |
-| Gemini Flash Lite | 0.00025 | 0.0015 |
-| DeepSeek Chat | 0.00014 | 0.00028 |
-| Ollama（本地） | 0.0 | 0.0 |
-| g4f（免费供应商） | 0.0 | 0.0 |
-
-> **注意**：以上为 `model_catalog.json` 中的默认值。可以通过
-> API（`POST /api/v1/models/update-cost`）或直接编辑文件来根据供应商价格变动进行更新。
+> **价格在 `model_catalog.json` 中动态管理，并通过 RSS/ToS 监控管道自动更新。**
+> 当前价格可通过 `GET /api/v1/models` 查看，或直接参考 `model_catalog.json`。
+> 也可通过 API（`POST /api/v1/models/update-cost`）或直接编辑文件手动更新。
 
 ### 预算检查
 

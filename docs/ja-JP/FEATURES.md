@@ -353,22 +353,9 @@ provisioning → idle → busy → idle
 モデルファミリー別のトークン単価テーブルを `model_catalog.json` で管理し、実行前にコストを見積もります。
 コスト情報はモデルカタログから動的に読み込まれるため、モデル変更時もコード修正は不要です。
 
-| モデル | 入力 ($/1K tokens) | 出力 ($/1K tokens) |
-|--------|-------------------|-------------------|
-| Claude Opus | 0.015 | 0.075 |
-| Claude Sonnet | 0.003 | 0.015 |
-| Claude Haiku | 0.001 | 0.005 |
-| GPT | 0.005 | 0.015 |
-| GPT Mini | 0.00015 | 0.0006 |
-| Gemini Pro | 0.002 | 0.018 |
-| Gemini Flash | 0.00025 | 0.0015 |
-| Gemini Flash Lite | 0.00025 | 0.0015 |
-| DeepSeek Chat | 0.00014 | 0.00028 |
-| Ollama (ローカル) | 0.0 | 0.0 |
-| g4f (無料プロバイダー) | 0.0 | 0.0 |
-
-> **注意**: 上記は `model_catalog.json` のデフォルト値です。プロバイダーの料金改定に合わせて
-> API (`POST /api/v1/models/update-cost`) またはファイル直接編集で更新できます。
+> **料金は `model_catalog.json` で動的に管理され、RSS/ToS モニターパイプラインで自動更新されます。**
+> 現在の料金は `GET /api/v1/models` で確認するか、`model_catalog.json` を直接参照してください。
+> API (`POST /api/v1/models/update-cost`) またはファイル直接編集による手動更新も可能です。
 
 ### 予算チェック
 

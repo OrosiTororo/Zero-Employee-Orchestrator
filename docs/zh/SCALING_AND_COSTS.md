@@ -23,20 +23,15 @@
 
 本系统的主要成本是 LLM API 的使用费用。
 
-| 提供商 | 大致费用（每 1,000 token） | 备注 |
-|---|---|---|
-| Claude Opus | 输入 $0.015 / 输出 $0.075 | 最高品质・高成本 |
-| Claude Sonnet | 输入 $0.003 / 输出 $0.015 | 品质与成本的平衡 |
-| Claude Haiku | 输入 $0.001 / 输出 $0.005 | 快速・低成本 |
-| GPT | 输入 $0.005 / 输出 $0.015 | OpenAI 的高性能模型 |
-| GPT Mini | 输入 $0.00015 / 输出 $0.0006 | OpenAI 的轻量模型 |
-| Gemini Pro | 输入 $0.002 / 输出 $0.018 | Google 的高性能模型 |
-| Gemini Flash | 输入 $0.00025 / 输出 $0.0015 | 有免费额度 |
-| DeepSeek Chat | 输入 $0.00014 / 输出 $0.00028 | 低成本 |
-| Ollama（本地） | **免费** | 仅需电费 |
-| g4f（免费提供商） | **免费** | 请注意稳定性和使用条款 |
+> **价格在 `model_catalog.json` 中动态管理，并通过 RSS/ToS 监控管道自动更新。**
+> 当前价格可通过 `GET /api/v1/models` 查看，或直接参考 `model_catalog.json`。
+> 也可通过 API（`POST /api/v1/models/update-cost`）或直接编辑文件手动更新。
 
-> 费用信息通过 `model_catalog.json` 管理，当提供商调整价格时，可通过 API 或编辑文件进行更新。
+主要价格层级:
+- **高级**（Claude Opus, GPT, Gemini Pro）: 最高品质、高成本
+- **标准**（Claude Sonnet）: 品质与成本的平衡
+- **经济**（Claude Haiku, GPT Mini, Gemini Flash, DeepSeek）: 快速、低成本
+- **免费**（Ollama 本地, g4f, Gemini 免费额度）: 无 API 费用
 
 ### 云基础设施
 

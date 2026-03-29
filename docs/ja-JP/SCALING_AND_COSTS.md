@@ -23,20 +23,15 @@
 
 本システムの主要なコストは LLM API の利用料金です。
 
-| プロバイダー | 概算コスト（1,000 トークンあたり） | 備考 |
-|---|---|---|
-| Claude Opus | 入力 $0.015 / 出力 $0.075 | 最高品質・高コスト |
-| Claude Sonnet | 入力 $0.003 / 出力 $0.015 | 品質とコストのバランス |
-| Claude Haiku | 入力 $0.001 / 出力 $0.005 | 高速・低コスト |
-| GPT | 入力 $0.005 / 出力 $0.015 | OpenAI の高性能モデル |
-| GPT Mini | 入力 $0.00015 / 出力 $0.0006 | OpenAI の軽量モデル |
-| Gemini Pro | 入力 $0.002 / 出力 $0.018 | Google の高性能モデル |
-| Gemini Flash | 入力 $0.00025 / 出力 $0.0015 | 無料枠あり |
-| DeepSeek Chat | 入力 $0.00014 / 出力 $0.00028 | 低コスト |
-| Ollama (ローカル) | **無料** | 電気代のみ |
-| g4f (無料プロバイダー) | **無料** | 安定性・利用規約に注意 |
+> **料金は `model_catalog.json` で動的に管理され、RSS/ToS モニターパイプラインで自動更新されます。**
+> 現在の料金は `GET /api/v1/models` で確認するか、`model_catalog.json` を直接参照してください。
+> API (`POST /api/v1/models/update-cost`) またはファイル直接編集による手動更新も可能です。
 
-> コスト情報は `model_catalog.json` で管理されており、プロバイダーの料金改定時は API またはファイル編集で更新可能です。
+主なコストティア:
+- **プレミアム**（Claude Opus, GPT, Gemini Pro）: 最高品質・高コスト
+- **スタンダード**（Claude Sonnet）: 品質とコストのバランス
+- **エコノミー**（Claude Haiku, GPT Mini, Gemini Flash, DeepSeek）: 高速・低コスト
+- **無料**（Ollama ローカル, g4f, Gemini 無料枠）: API 費用なし
 
 ### クラウドインフラ
 

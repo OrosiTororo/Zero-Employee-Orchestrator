@@ -333,23 +333,10 @@ A 3-stage quality verification mechanism is implemented.
 Token unit prices by model family are managed in `model_catalog.json`, and costs are estimated before execution.
 Cost information is dynamically loaded from the model catalog, so no code changes are needed when models change.
 
-| Model | Input ($/1K tokens) | Output ($/1K tokens) |
-|-------|---------------------|----------------------|
-| Claude Opus | 0.015 | 0.075 |
-| Claude Sonnet | 0.003 | 0.015 |
-| Claude Haiku | 0.001 | 0.005 |
-| GPT | 0.005 | 0.015 |
-| GPT Mini | 0.00015 | 0.0006 |
-| Gemini Pro | 0.002 | 0.018 |
-| Gemini Flash | 0.00025 | 0.0015 |
-| Gemini Flash Lite | 0.00025 | 0.0015 |
-| DeepSeek Chat | 0.00014 | 0.00028 |
-| Ollama (Local) | 0.0 | 0.0 |
-| g4f (Free provider) | 0.0 | 0.0 |
-
-> **Note**: The above are default values from `model_catalog.json`. They can be updated
-> via the API (`POST /api/v1/models/update-cost`) or by directly editing the file
-> to match provider pricing changes.
+> **Pricing is managed dynamically in `model_catalog.json` and auto-updated via the
+> RSS/ToS monitor pipeline.** View current prices via `GET /api/v1/models` or check
+> `model_catalog.json` directly. Prices can also be updated manually via the API
+> (`POST /api/v1/models/update-cost`) or by editing the file.
 
 ### Budget Check
 

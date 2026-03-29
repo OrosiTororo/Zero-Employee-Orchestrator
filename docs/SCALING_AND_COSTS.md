@@ -23,20 +23,16 @@
 
 The primary cost of this system is LLM API usage fees.
 
-| Provider | Approximate Cost (per 1,000 tokens) | Notes |
-|---|---|---|
-| Claude Opus | Input $0.015 / Output $0.075 | Highest quality, high cost |
-| Claude Sonnet | Input $0.003 / Output $0.015 | Balance of quality and cost |
-| Claude Haiku | Input $0.001 / Output $0.005 | Fast, low cost |
-| GPT | Input $0.005 / Output $0.015 | OpenAI's high-performance model |
-| GPT Mini | Input $0.00015 / Output $0.0006 | OpenAI's lightweight model |
-| Gemini Pro | Input $0.002 / Output $0.018 | Google's high-performance model |
-| Gemini Flash | Input $0.00025 / Output $0.0015 | Free tier available |
-| DeepSeek Chat | Input $0.00014 / Output $0.00028 | Low cost |
-| Ollama (Local) | **Free** | Electricity cost only |
-| g4f (Free provider) | **Free** | Note stability and terms of service |
+> **Pricing is dynamically managed in `model_catalog.json` and auto-updated via the
+> RSS/ToS monitor pipeline.** View current prices via `GET /api/v1/models` or check
+> `model_catalog.json` directly. Manual updates are also available via the API
+> (`POST /api/v1/models/update-cost`) or by editing the file.
 
-> Cost information is managed in `model_catalog.json` and can be updated via the API or by editing the file when providers change their pricing.
+Key cost tiers:
+- **Premium** (Claude Opus, GPT, Gemini Pro): Highest quality, highest cost
+- **Standard** (Claude Sonnet): Good balance of quality and cost
+- **Economy** (Claude Haiku, GPT Mini, Gemini Flash, DeepSeek): Fast, low cost
+- **Free** (Ollama local, g4f, Gemini free tier): No API cost
 
 ### Cloud Infrastructure
 
