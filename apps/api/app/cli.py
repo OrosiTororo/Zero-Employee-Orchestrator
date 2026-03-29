@@ -36,8 +36,8 @@ def _find_and_chdir_api() -> None:
 
     # Check common relative locations
     for candidate in [
-        pathlib.Path(__file__).resolve().parents[1],        # apps/api (from app/cli.py)
-        pathlib.Path.cwd() / "apps" / "api",                # project root
+        pathlib.Path(__file__).resolve().parents[1],  # apps/api (from app/cli.py)
+        pathlib.Path.cwd() / "apps" / "api",  # project root
     ]:
         if (candidate / "app" / "main.py").exists():
             os.chdir(candidate)
@@ -673,8 +673,12 @@ def _handle_command(cmd: str, language: str) -> str | None:
         if new_lang in supported:
             set_language(new_lang)
             names = {
-                "ja": "日本語", "en": "English", "zh": "中文",
-                "ko": "한국어", "pt": "Português", "tr": "Türkçe",
+                "ja": "日本語",
+                "en": "English",
+                "zh": "中文",
+                "ko": "한국어",
+                "pt": "Português",
+                "tr": "Türkçe",
             }
             print(f"  Language: {names[new_lang]}")
         else:
