@@ -81,9 +81,16 @@ export function useWebSocket(companyId?: string) {
         setConnected(true)
         reconnectAttempt.current = 0 // Reset on successful connection
       }
-      ws.onclose = () => {
+      ws.onerror = (e) => {
+        console.error("[WebSocket] connection error:", e)
+      }
+      ws.onclose = (event) => {
         setConnected(false)
         if (disposed) return
+
+        if (event.code !== 1000) {
+          console.warn(`[WebSocket] closed unexpectedly (code=${event.code}, reason=${event.reason})`)
+        }
 
         // Exponential backoff with jitter: 1s, 2s, 4s, 8s, 16s, 32s, ...
         if (reconnectAttempt.current < MAX_RECONNECT_ATTEMPTS) {
@@ -91,6 +98,8 @@ export function useWebSocket(companyId?: string) {
           const jitter = Math.random() * 1000
           reconnectAttempt.current++
           reconnectTimer.current = setTimeout(connect, baseDelay + jitter)
+        } else {
+          console.error("[WebSocket] max reconnect attempts reached, giving up")
         }
       }
       ws.onmessage = (event) => {
@@ -98,7 +107,7 @@ export function useWebSocket(companyId?: string) {
           const data = JSON.parse(event.data) as WSEvent
           setLastEvent(data)
         } catch {
-          // ignore non-JSON messages
+          console.warn("[WebSocket] received non-JSON message:", event.data)
         }
       }
     }

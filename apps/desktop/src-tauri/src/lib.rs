@@ -269,40 +269,56 @@ fn find_python(api_dir: &PathBuf) -> (String, bool) {
     }
 
     eprintln!("[sidecar] .venv not found, auto-setup with uv...");
-    let venv_result = hidden_command("uv")
-        .args(["venv", "--python", "3.12", ".venv"])
-        .current_dir(api_dir)
-        .output();
-    match venv_result {
-        Ok(out) if out.status.success() => {
-            eprintln!("[sidecar] created .venv with Python 3.12");
-            let install_result = hidden_command("uv")
-                .args(["pip", "install", "-e", "."])
-                .current_dir(api_dir)
-                .output();
-            match install_result {
-                Ok(out) if out.status.success() => {
-                    eprintln!("[sidecar] dependencies installed successfully");
-                }
-                Ok(out) => {
-                    eprintln!(
-                        "[sidecar] dependency install failed: {}",
-                        String::from_utf8_lossy(&out.stderr)
-                    );
-                }
-                Err(e) => eprintln!("[sidecar] failed to run uv pip install: {e}"),
-            }
-            if venv_python.exists() {
-                return (venv_python.to_string_lossy().to_string(), true);
+    // Try Python 3.13 first, then 3.12 (matching start.sh behavior)
+    let mut venv_ok = false;
+    for py_ver in ["3.13", "3.12"] {
+        let result = hidden_command("uv")
+            .args(["venv", "--python", py_ver, ".venv"])
+            .current_dir(api_dir)
+            .output();
+        if let Ok(out) = result {
+            if out.status.success() {
+                eprintln!("[sidecar] created .venv with Python {py_ver}");
+                venv_ok = true;
+                break;
             }
         }
-        Ok(out) => {
-            eprintln!(
-                "[sidecar] uv venv creation failed: {}",
-                String::from_utf8_lossy(&out.stderr)
-            );
+    }
+    // Fallback: try without specifying a version (use whatever uv finds)
+    if !venv_ok {
+        if let Ok(out) = hidden_command("uv")
+            .args(["venv", ".venv"])
+            .current_dir(api_dir)
+            .output()
+        {
+            if out.status.success() {
+                eprintln!("[sidecar] created .venv with default Python");
+                venv_ok = true;
+            }
         }
-        Err(e) => eprintln!("[sidecar] failed to run uv: {e}"),
+    }
+    if venv_ok {
+        let install_result = hidden_command("uv")
+            .args(["pip", "install", "-e", "."])
+            .current_dir(api_dir)
+            .output();
+        match install_result {
+            Ok(out) if out.status.success() => {
+                eprintln!("[sidecar] dependencies installed successfully");
+            }
+            Ok(out) => {
+                eprintln!(
+                    "[sidecar] dependency install failed: {}",
+                    String::from_utf8_lossy(&out.stderr)
+                );
+            }
+            Err(e) => eprintln!("[sidecar] failed to run uv pip install: {e}"),
+        }
+        if venv_python.exists() {
+            return (venv_python.to_string_lossy().to_string(), true);
+        }
+    } else {
+        eprintln!("[sidecar] uv venv creation failed for all Python versions");
     }
     ("uv".to_string(), true)
 }
@@ -478,6 +494,16 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Result<Child, String> {
         }
     };
 
+    // Also redirect stdout to prevent pipe buffer issues (same as stderr)
+    let stdout_target = match std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&log_dir)
+    {
+        Ok(f) => Stdio::from(f),
+        Err(_) => Stdio::null(),
+    };
+
     let child = if python == "uv" {
         hidden_command("uv")
             .args([
@@ -490,6 +516,7 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Result<Child, String> {
                 "18234",
             ])
             .current_dir(api_dir)
+            .stdout(stdout_target)
             .stderr(stderr_target)
             .spawn()
     } else {
@@ -504,6 +531,7 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Result<Child, String> {
                 "18234",
             ])
             .current_dir(api_dir)
+            .stdout(stdout_target)
             .stderr(stderr_target)
             .spawn()
     };
