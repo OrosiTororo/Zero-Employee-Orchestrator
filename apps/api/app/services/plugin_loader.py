@@ -23,6 +23,9 @@ Tool categories:
 - data-analysis: Data analysis (pandas-ai, ...)
 - document-processing: Document processing (OCR, PDF, ...)
 - communication: Communication (Slack, Discord, ...)
+- social-media: Social media (Twitter/X, Instagram, TikTok, YouTube, ...)
+- video-generation: Video generation (Runway ML, Pika, ...)
+- agent-framework: External AI agents (CrewAI, AutoGen, LangChain, OpenClaw, Dify, ...)
 - search: Search (Perplexity, Tavily, ...)
 - three-d: 3D models (Meshy, TripoSR, ...)
 - custom: User-defined
@@ -601,6 +604,97 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         ],
         "adapter": {"type": "rest_api", "module": None, "class": None},
     },
+    # ── Agent Frameworks ────────────────────────────────────────────────
+    "crewai-orchestrator": {
+        "slug": "crewai-orchestrator",
+        "name": "CrewAI Orchestrator",
+        "name_ja": "CrewAI オーケストレーター",
+        "description": "Multi-agent AI orchestration. Define crews with roles, goals, and tools.",
+        "description_ja": "マルチエージェント AI オーケストレーション。役割・目標・ツールを定義。",
+        "version": "latest",
+        "source_uri": "https://github.com/crewAIInc/crewAI",
+        "pypi_package": "crewai",
+        "category": "agent-framework",
+        "license": "MIT",
+        "requirements": [
+            {"type": "pip_package", "name": "crewai", "required": True,
+             "install_hint": "pip install crewai"},
+            {"type": "llm_provider", "name": "LLM provider", "required": True,
+             "description": "LLM required for agent operations",
+             "alternatives": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "ollama"]},
+        ],
+        "adapter": {"type": "agent_framework", "framework": "crewai",
+                     "module": "apps.api.app.tools.agent_adapter", "class": "CrewAIAdapter"},
+    },
+    "autogen-orchestrator": {
+        "slug": "autogen-orchestrator",
+        "name": "AutoGen (Microsoft)",
+        "name_ja": "AutoGen (Microsoft)",
+        "description": "Microsoft's multi-agent conversation framework.",
+        "description_ja": "Microsoft のマルチエージェント会話フレームワーク。",
+        "version": "latest",
+        "source_uri": "https://github.com/microsoft/autogen",
+        "pypi_package": "autogen-agentchat",
+        "category": "agent-framework",
+        "license": "MIT",
+        "requirements": [
+            {"type": "pip_package", "name": "autogen-agentchat", "required": True,
+             "install_hint": "pip install autogen-agentchat"},
+        ],
+        "adapter": {"type": "agent_framework", "framework": "autogen",
+                     "module": "apps.api.app.tools.agent_adapter", "class": "AutoGenAdapter"},
+    },
+    "langchain-agent": {
+        "slug": "langchain-agent",
+        "name": "LangChain Agent",
+        "name_ja": "LangChain エージェント",
+        "description": "LangChain agent executor with tool use and memory.",
+        "description_ja": "LangChain エージェントエグゼキューター。ツール使用・メモリ対応。",
+        "version": "latest",
+        "source_uri": "https://github.com/langchain-ai/langchain",
+        "pypi_package": "langchain",
+        "category": "agent-framework",
+        "license": "MIT",
+        "requirements": [
+            {"type": "pip_package", "name": "langchain", "required": True,
+             "install_hint": "pip install langchain langchain-openai"},
+        ],
+        "adapter": {"type": "agent_framework", "framework": "langchain",
+                     "module": "apps.api.app.tools.agent_adapter", "class": "LangChainAdapter"},
+    },
+    "openclaw-agent": {
+        "slug": "openclaw-agent",
+        "name": "OpenClaw Agent",
+        "name_ja": "OpenClaw エージェント",
+        "description": "OpenClaw AI agent integration.",
+        "description_ja": "OpenClaw AI エージェント連携。",
+        "version": "latest",
+        "source_uri": "https://github.com/openclaw",
+        "pypi_package": None,
+        "category": "agent-framework",
+        "license": "MIT",
+        "requirements": [],
+        "adapter": {"type": "agent_framework", "framework": "openclaw",
+                     "module": "apps.api.app.tools.agent_adapter", "class": "OpenClawAdapter"},
+    },
+    "dify-workflow": {
+        "slug": "dify-workflow",
+        "name": "Dify Workflow",
+        "name_ja": "Dify ワークフロー",
+        "description": "Execute Dify workflows and chatflows from ZEO.",
+        "description_ja": "ZEO から Dify ワークフロー・チャットフローを実行。",
+        "version": "latest",
+        "source_uri": "https://github.com/langgenius/dify",
+        "pypi_package": None,
+        "category": "agent-framework",
+        "license": "MIT",
+        "requirements": [
+            {"type": "api_key", "name": "DIFY_API_KEY", "required": True,
+             "install_hint": "Get API key from your Dify instance"},
+        ],
+        "adapter": {"type": "agent_framework", "framework": "dify",
+                     "module": "apps.api.app.tools.agent_adapter", "class": "AgentFrameworkAdapter"},
+    },
 }
 
 
@@ -848,6 +942,21 @@ class ToolRegistry:
                 "tweet",
                 "ソーシャル",
                 "social",
+            ],
+            "agent-framework": [
+                "エージェント",
+                "agent",
+                "CrewAI",
+                "AutoGen",
+                "LangChain",
+                "OpenClaw",
+                "Dify",
+                "マルチエージェント",
+                "multi-agent",
+                "オーケストレーション",
+                "orchestration",
+                "フレームワーク",
+                "framework",
             ],
         }
 

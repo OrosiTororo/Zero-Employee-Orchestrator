@@ -237,6 +237,19 @@ WebSocket endpoint: `ws://localhost:18234/ws/browser-assist`
 
 Supports file and image attachments (both Chrome extension and REST API).
 
+## External Agent Framework Integration (Agent Adapter)
+
+Like the browser adapter, external AI agent frameworks can be added/switched as plugins.
+ZEO's AI organization can delegate sub-tasks to external frameworks while maintaining
+approval gates, audit logging, and transparency.
+
+- Agent adapter registry: `apps/api/app/tools/agent_adapter.py`
+- Supported frameworks: CrewAI, AutoGen (Microsoft), LangChain, OpenClaw, Dify
+- Plugin templates: `crewai-orchestrator`, `autogen-orchestrator`, `langchain-agent`, `openclaw-agent`, `dify-workflow`
+- Installation: Natural language ("add CrewAI") or `POST /api/v1/browser-automation/plugins`
+- Integration: External agents register with A2A communication hub
+- Safety: All delegated tasks go through approval gates and audit logging
+
 ## Plugin-based Browser Automation (Browser Adapter)
 
 Like VS Code extensions, browser automation tools can be added/switched as plugins.
