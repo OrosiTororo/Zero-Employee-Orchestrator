@@ -94,8 +94,9 @@ zero-employee config set OPENROUTER_API_KEY <your-key>  # or GEMINI_API_KEY, etc
 ### Step 3: Start
 
 ```bash
-# Option A: start.sh (starts both backend + frontend automatically)
-./start.sh
+# Option A: start script (starts both backend + frontend automatically)
+./start.sh                       # macOS / Linux
+.\start.ps1                      # Windows (PowerShell)
 # → Open http://localhost:5173
 
 # Option B: Manual start
@@ -108,7 +109,7 @@ zero-employee chat               # Default settings
 zero-employee local --model qwen3:8b  # Ollama
 ```
 
-> **Note:** `zero-employee serve` starts the API server only. The Web UI runs separately on port 5173. Use `start.sh` for the easiest setup.
+> **Note:** `zero-employee serve` starts the API server only. The Web UI runs separately on port 5173. Use `start.sh` (or `start.ps1` on Windows) for the easiest setup.
 
 ### Step 4: Verify
 
