@@ -225,7 +225,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # Background workers
 ├── skills/                   # 8 built-in skills
 ├── plugins/                  # 10 plugin manifests
-├── extensions/               # 10 extension manifests
+├── extensions/               # 11 extension manifests
 │   └── browser-assist/
 │       └── chrome-extension/ # Chrome extension for Browser Assist
 ├── packages/                 # Shared NPM packages

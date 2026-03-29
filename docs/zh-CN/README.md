@@ -200,7 +200,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # 后台工作进程
 ├── skills/                   # 8 个内置技能
 ├── plugins/                  # 10 个插件清单
-├── extensions/               # 10 个扩展清单
+├── extensions/               # 11 个扩展清单
 │   └── browser-assist/
 │       └── chrome-extension/ # 浏览器辅助 Chrome 扩展程序
 ├── packages/                 # 共享 NPM 包

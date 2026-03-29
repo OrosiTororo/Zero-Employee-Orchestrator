@@ -200,7 +200,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # Arka plan çalışanları
 ├── skills/                   # 8 yerleşik beceri
 ├── plugins/                  # 10 eklenti bildirimi
-├── extensions/               # 10 uzantı bildirimi
+├── extensions/               # 11 uzantı bildirimi
 │   └── browser-assist/
 │       └── chrome-extension/ # Tarayıcı Asistanı Chrome uzantısı
 ├── packages/                 # Paylaşılan NPM paketleri

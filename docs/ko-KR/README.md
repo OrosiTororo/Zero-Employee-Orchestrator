@@ -200,7 +200,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # 백그라운드 워커
 ├── skills/                   # 내장 스킬 (8개)
 ├── plugins/                  # 플러그인 매니페스트 (10개)
-├── extensions/               # 익스텐션 매니페스트 (10개)
+├── extensions/               # 익스텐션 매니페스트 (11개)
 │   └── browser-assist/
 │       └── chrome-extension/ # 브라우저 어시스트용 Chrome 확장 프로그램
 ├── packages/                 # 공유 NPM 패키지

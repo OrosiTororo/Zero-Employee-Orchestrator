@@ -200,7 +200,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # バックグラウンドワーカー
 ├── skills/                   # ビルトインスキル（8 個）
 ├── plugins/                  # プラグインマニフェスト（10 個）
-├── extensions/               # エクステンションマニフェスト（10 個）
+├── extensions/               # エクステンションマニフェスト（11 個）
 │   └── browser-assist/
 │       └── chrome-extension/ # ブラウザアシスト用 Chrome 拡張機能
 ├── packages/                 # 共有 NPM パッケージ

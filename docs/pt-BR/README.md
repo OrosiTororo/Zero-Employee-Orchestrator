@@ -200,7 +200,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # Workers em segundo plano
 ├── skills/                   # 8 skills integradas
 ├── plugins/                  # 10 manifestos de plugins
-├── extensions/               # 10 manifestos de extensões
+├── extensions/               # 11 manifestos de extensões
 │   └── browser-assist/
 │       └── chrome-extension/ # Extensão Chrome para Browser Assist
 ├── packages/                 # Pacotes NPM compartilhados
