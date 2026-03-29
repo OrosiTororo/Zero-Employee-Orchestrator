@@ -59,8 +59,11 @@
   },
   "backend": {
     "connecting": "Conectando ao backend...",
-    "waitingForServer": "Aguardando o servidor iniciar",
+    "waitingForServer": "Aguardando resposta do servidor...",
     "startingBackend": "Iniciando o backend...",
+    "preparingEnv": "Preparando o ambiente...",
+    "settingUpPython": "Configurando o ambiente Python...",
+    "launchingServer": "Iniciando o servidor...",
     "waitingForStartup": "Aguardando inicialização...",
     "takingLonger": "A inicialização está demorando mais que o esperado. Aguarde...",
     "restartingBackend": "Reiniciando o backend...",

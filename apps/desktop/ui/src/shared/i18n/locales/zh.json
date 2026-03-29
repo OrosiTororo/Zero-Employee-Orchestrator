@@ -59,8 +59,11 @@
   },
   "backend": {
     "connecting": "正在连接后端...",
-    "waitingForServer": "正在等待服务器启动",
+    "waitingForServer": "正在等待服务器响应...",
     "startingBackend": "正在启动后端...",
+    "preparingEnv": "正在准备环境...",
+    "settingUpPython": "正在设置Python环境...",
+    "launchingServer": "正在启动服务器...",
     "waitingForStartup": "等待启动中...",
     "takingLonger": "启动时间比预期更长，请稍候...",
     "restartingBackend": "正在重启后端...",

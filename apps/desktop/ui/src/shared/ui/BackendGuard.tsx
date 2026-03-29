@@ -15,6 +15,59 @@ function tauriInvoke<T>(cmd: string, args?: Record<string, unknown>): Promise<T>
   return internals.invoke(cmd, args)
 }
 
+/** Phase labels mapped from the Rust sidecar's startup phases. */
+const PHASE_ORDER = [
+  "initializing",
+  "finding_api",
+  "preparing",
+  "python",
+  "starting",
+  "health_check",
+  "ready",
+] as const
+
+/** Convert a phase string to a progress percentage (0–100). */
+function phaseToProgress(phase: string): number {
+  const idx = PHASE_ORDER.indexOf(phase as (typeof PHASE_ORDER)[number])
+  if (phase === "ready") return 100
+  if (phase === "waiting") return 85
+  if (idx < 0) return 10
+  return Math.round(((idx + 1) / PHASE_ORDER.length) * 90)
+}
+
+/**
+ * Check backend health via Tauri native command (bypasses CORS).
+ * Returns true if the backend HTTP endpoint responds with 200.
+ */
+async function checkHealthViaTauri(): Promise<boolean> {
+  try {
+    const result = await tauriInvoke<string>("check_backend_health")
+    return result === "ok"
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Poll until the backend is ready, using the Tauri native command when available.
+ * This avoids CORS issues that can cause fetch() to fail in the webview.
+ */
+async function waitForBackendSmart(
+  maxAttempts: number,
+  intervalMs: number,
+): Promise<boolean> {
+  if (!isTauri) {
+    return waitForBackend(maxAttempts, intervalMs)
+  }
+  for (let i = 0; i < maxAttempts; i++) {
+    if (await checkHealthViaTauri()) return true
+    if (i < maxAttempts - 1) {
+      await new Promise((r) => setTimeout(r, intervalMs))
+    }
+  }
+  return false
+}
+
 /**
  * Wraps the entire app and shows a "connecting" screen while the backend is unavailable.
  * In Tauri (Desktop App) mode, auto-setup and restart are handled automatically.
@@ -24,36 +77,83 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<"checking" | "connected" | "failed">(
     "checking",
   )
-  const [setupMessage, setSetupMessage] = useState("")
+  const [phase, setPhase] = useState("initializing")
+  const [progress, setProgress] = useState(5)
+  const [elapsedSec, setElapsedSec] = useState(0)
   const [errorDetail, setErrorDetail] = useState<string | null>(null)
   const retryCount = useRef(0)
   const checkingRef = useRef(false)
   const maxAutoRetries = isTauri ? 5 : 0
+  const startTimeRef = useRef(Date.now())
+
+  // Elapsed time timer
+  useEffect(() => {
+    if (status !== "checking") return
+    const timer = setInterval(() => {
+      setElapsedSec(Math.floor((Date.now() - startTimeRef.current) / 1000))
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [status])
+
+  // Poll startup phase from Tauri sidecar for progress display
+  useEffect(() => {
+    if (!isTauri || status !== "checking") return
+    const timer = setInterval(async () => {
+      try {
+        const p = await tauriInvoke<string>("get_startup_phase")
+        if (p) {
+          setPhase(p)
+          setProgress(phaseToProgress(p))
+        }
+      } catch {
+        // Tauri command not ready yet — ignore
+      }
+    }, 500)
+    return () => clearInterval(timer)
+  }, [status])
+
+  /** Get a user-friendly message for the current phase. */
+  const getPhaseMessage = useCallback(
+    (p: string): string => {
+      switch (p) {
+        case "initializing":
+        case "finding_api":
+          return t.backend.startingBackend
+        case "preparing":
+          return t.backend.preparingEnv
+        case "python":
+          return t.backend.settingUpPython
+        case "starting":
+          return t.backend.launchingServer
+        case "health_check":
+        case "waiting":
+          return t.backend.waitingForServer
+        default:
+          return t.backend.startingBackend
+      }
+    },
+    [t],
+  )
 
   const check = useCallback(async () => {
     // Prevent concurrent check() calls from racing
     if (checkingRef.current) return
     checkingRef.current = true
+    startTimeRef.current = Date.now()
 
     try {
       setStatus("checking")
       setErrorDetail(null)
+      setElapsedSec(0)
 
-      if (isTauri) {
-        setSetupMessage(
-          retryCount.current === 0
-            ? t.backend.startingBackend
-            : t.backend.waitingForStartup,
-        )
-      }
-
-      // Initial wait: 30s (Tauri) or 15s (browser)
-      const attempts = isTauri ? 15 : 15
+      // Initial wait: 60s (Tauri) or 30s (browser)
+      const attempts = isTauri ? 30 : 15
       const interval = 2000
-      const ok = await waitForBackend(attempts, interval)
+      const ok = await waitForBackendSmart(attempts, interval)
 
       if (ok) {
         setStatus("connected")
+        setProgress(100)
         retryCount.current = 0
         return
       }
@@ -75,16 +175,17 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
 
         if (attempt <= 2) {
           // Extra wait: 20s per retry
-          setSetupMessage(t.backend.takingLonger)
-          const retryOk = await waitForBackend(10, 2000)
+          const retryOk = await waitForBackendSmart(10, 2000)
           if (retryOk) {
             setStatus("connected")
+            setProgress(100)
             retryCount.current = 0
             return
           }
         } else {
           // Restart backend and wait 30s
-          setSetupMessage(t.backend.restartingBackend)
+          setPhase("starting")
+          setProgress(phaseToProgress("starting"))
           try {
             await tauriInvoke("restart_backend")
             setErrorDetail(null)
@@ -93,9 +194,10 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
             setErrorDetail(msg)
             console.error("[BackendGuard] restart_backend failed:", msg)
           }
-          const retryOk = await waitForBackend(15, 2000)
+          const retryOk = await waitForBackendSmart(15, 2000)
           if (retryOk) {
             setStatus("connected")
+            setProgress(100)
             retryCount.current = 0
             return
           }
@@ -119,12 +221,17 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
 
   const handleRetry = useCallback(async () => {
     retryCount.current = 0
+    setPhase("initializing")
+    setProgress(5)
     await check()
   }, [check])
 
   if (status === "connected") {
     return <>{children}</>
   }
+
+  const phaseMessage = getPhaseMessage(phase)
+  const showFirstRunNote = isTauri && (phase === "python" || elapsedSec > 15)
 
   return (
     <div className="h-screen w-screen flex items-center justify-center bg-[var(--bg-base)]">
@@ -139,17 +246,24 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
               {t.backend.connecting}
             </p>
             <p className="text-[12px] text-[var(--text-muted)]">
-              {isTauri && setupMessage
-                ? setupMessage
-                : t.backend.waitingForServer}
+              {phaseMessage}
             </p>
-            {isTauri && retryCount.current > 0 && (
+            {showFirstRunNote && (
               <p className="text-[11px] text-[var(--text-muted)]">
                 {t.backend.firstRunNote}
               </p>
             )}
-            <div className="w-32 h-1 rounded-full bg-[var(--border)] overflow-hidden">
-              <div className="h-full bg-[var(--accent)] rounded-full animate-[loading_2s_ease-in-out_infinite]" />
+            {/* Progress bar with real percentage */}
+            <div className="w-48 flex flex-col items-center gap-1.5">
+              <div className="w-full h-1.5 rounded-full bg-[var(--border)] overflow-hidden">
+                <div
+                  className="h-full bg-[var(--accent)] rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <p className="text-[10px] text-[var(--text-muted)] tabular-nums">
+                {elapsedSec > 0 && `${elapsedSec}s`}
+              </p>
             </div>
           </>
         )}
