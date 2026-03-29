@@ -33,7 +33,7 @@ O ZEO em si é gratuito e de código aberto. Os custos de API dos LLMs são pago
 |--------|-----------|-------|--------------------------|
 | **[Aplicativo Desktop](#️-baixar-aplicativo-desktop)** | Usuários não técnicos | 2 min | Não (modo assinatura) |
 | **[CLI (pip install)](#-início-rápido-cli)** | Desenvolvedores | 2 min | Não (assinatura ou Ollama) |
-| **[Docker](#-início-rápido-cli)** | Auto-hospedagem / produção | 5 min | Não (assinatura ou Ollama) |
+| **[Docker](#-docker)** | Auto-hospedagem / produção | 5 min | Não (assinatura ou Ollama) |
 
 **Requisitos do Sistema:** Python 3.12+ (CLI), Node.js 22+ (desenvolvimento frontend), 4 GB de RAM mínimo. Modelos locais Ollama precisam de 8 GB+ de RAM.
 
@@ -69,8 +69,8 @@ pip install zero-employee-orchestrator
 git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
 cd Zero-Employee-Orchestrator && pip install .
 
-# Ou Docker
-docker compose up -d
+# Ou Docker (veja a seção Docker abaixo para detalhes)
+docker compose -f docker/docker-compose.yml up -d
 ```
 
 ### Passo 2: Configuração
@@ -94,13 +94,21 @@ zero-employee config set OPENROUTER_API_KEY <your-key>  # or GEMINI_API_KEY, etc
 ### Passo 3: Iniciar
 
 ```bash
-# Iniciar Web UI + servidor API
-zero-employee serve
-# → Abra http://localhost:18234
+# Opção A: start.sh (inicia backend + frontend automaticamente)
+./start.sh
+# → Abra http://localhost:5173
 
-# Ou use o modo de chat local (Ollama)
-zero-employee local --model qwen3:8b
+# Opção B: Início manual
+zero-employee serve              # Iniciar o servidor API (porta 18234)
+cd apps/desktop/ui && pnpm dev   # Iniciar o frontend em outro terminal (porta 5173)
+# → Abra http://localhost:5173
+
+# Opção C: Apenas modo chat (sem necessidade de Web UI)
+zero-employee chat               # Configurações padrão
+zero-employee local --model qwen3:8b  # Ollama
 ```
+
+> **Nota:** `zero-employee serve` inicia apenas o servidor API. A Web UI roda separadamente na porta 5173. Use `start.sh` para a configuração mais fácil.
 
 ### Passo 4: Verificar
 

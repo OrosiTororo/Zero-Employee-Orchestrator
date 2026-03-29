@@ -179,3 +179,16 @@ async def health_check():
 async def readiness_check():
     """Readiness probe."""
     return {"status": "ok"}
+
+
+@app.get("/", tags=["health"])
+async def root():
+    """Root endpoint — guide users to the correct URL."""
+    return {
+        "service": settings.PROJECT_NAME,
+        "status": "running",
+        "api_docs": f"http://localhost:18234{settings.API_V1_PREFIX}/openapi.json",
+        "frontend": "http://localhost:5173",
+        "note": "This is the API server. Open the frontend URL above for the Web UI, "
+        "or use the Desktop App.",
+    }

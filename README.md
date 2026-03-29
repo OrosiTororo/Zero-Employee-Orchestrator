@@ -33,7 +33,7 @@ ZEO itself is free and open source. LLM API costs are paid directly by users to 
 |--------|----------|------|-----------------|
 | **[Desktop App](#-download-desktop-app)** | Non-technical users | 2 min | No (subscription mode) |
 | **[CLI (pip install)](#-quick-start-cli)** | Developers | 2 min | No (subscription or Ollama) |
-| **[Docker](#-quick-start-cli)** | Self-hosting / production | 5 min | No (subscription or Ollama) |
+| **[Docker](#-docker)** | Self-hosting / production | 5 min | No (subscription or Ollama) |
 
 **System Requirements:** Python 3.12+ (CLI), Node.js 22+ (frontend dev), 4 GB RAM minimum. Ollama local models need 8 GB+ RAM.
 
@@ -69,8 +69,8 @@ pip install zero-employee-orchestrator
 git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
 cd Zero-Employee-Orchestrator && pip install .
 
-# or Docker
-docker compose up -d
+# or Docker (see Docker section below for details)
+docker compose -f docker/docker-compose.yml up -d
 ```
 
 ### Step 2: Configure
@@ -94,13 +94,21 @@ zero-employee config set OPENROUTER_API_KEY <your-key>  # or GEMINI_API_KEY, etc
 ### Step 3: Start
 
 ```bash
-# Start the Web UI + API server
-zero-employee serve
-# → Open http://localhost:18234
+# Option A: start.sh (starts both backend + frontend automatically)
+./start.sh
+# → Open http://localhost:5173
 
-# Or use local chat mode (Ollama)
-zero-employee local --model qwen3:8b
+# Option B: Manual start
+zero-employee serve              # Start the API server (port 18234)
+cd apps/desktop/ui && pnpm dev   # Start the frontend (port 5173) in another terminal
+# → Open http://localhost:5173
+
+# Option C: Chat mode only (no Web UI needed)
+zero-employee chat               # Default settings
+zero-employee local --model qwen3:8b  # Ollama
 ```
+
+> **Note:** `zero-employee serve` starts the API server only. The Web UI runs separately on port 5173. Use `start.sh` for the easiest setup.
 
 ### Step 4: Verify
 
@@ -135,6 +143,30 @@ zero-employee config set LANGUAGE ja
 ```
 
 In the desktop app, change language anytime via **Settings**.
+
+---
+
+## 🐳 Docker
+
+### API + Frontend (recommended)
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+# → Open http://localhost:5173
+```
+
+This starts three services: API server (port 18234), Frontend (port 5173), and a background worker.
+
+> **Note:** Requires `SECRET_KEY` environment variable. Generate one: `python -c "import secrets; print(secrets.token_urlsafe(32))"`
+
+### API only
+
+```bash
+docker compose up -d
+# → API available at http://localhost:18234/api/v1/
+```
+
+This starts only the API server. Use this with the Desktop App or your own frontend.
 
 ---
 
