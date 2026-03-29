@@ -146,6 +146,30 @@ zero-employee config set LANGUAGE ja
 
 ---
 
+## 🐳 Docker
+
+### API + フロントエンド（推奨）
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+# → http://localhost:5173 を開く
+```
+
+API サーバー（ポート 18234）、フロントエンド（ポート 5173）、バックグラウンドワーカーの 3 つのサービスが起動します。
+
+> **注意:** `SECRET_KEY` 環境変数が必要です。生成方法: `python -c "import secrets; print(secrets.token_urlsafe(32))"`
+
+### API のみ
+
+```bash
+docker compose up -d
+# → API は http://localhost:18234/api/v1/ で利用可能
+```
+
+API サーバーのみを起動します。デスクトップアプリまたは独自のフロントエンドと組み合わせて使用してください。
+
+---
+
 ## ガイド
 
 <table>
@@ -200,7 +224,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # バックグラウンドワーカー
 ├── skills/                   # ビルトインスキル（8 個）
 ├── plugins/                  # プラグインマニフェスト（10 個）
-├── extensions/               # エクステンションマニフェスト（11 個）
+├── extensions/               # エクステンションマニフェスト（12 個）
 │   └── browser-assist/
 │       └── chrome-extension/ # ブラウザアシスト用 Chrome 拡張機能
 ├── packages/                 # 共有 NPM パッケージ

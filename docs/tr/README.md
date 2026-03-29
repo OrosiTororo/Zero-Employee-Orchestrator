@@ -146,6 +146,30 @@ Masaüstü uygulamasında, dili istediğiniz zaman **Ayarlar**'dan değiştirebi
 
 ---
 
+## 🐳 Docker
+
+### API + Frontend (önerilen)
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+# → http://localhost:5173 adresini açın
+```
+
+Bu, üç hizmeti başlatır: API sunucusu (port 18234), Frontend (port 5173) ve bir arka plan çalışanı.
+
+> **Not:** `SECRET_KEY` ortam değişkeni gereklidir. Oluşturma: `python -c "import secrets; print(secrets.token_urlsafe(32))"`
+
+### Yalnızca API
+
+```bash
+docker compose up -d
+# → API http://localhost:18234/api/v1/ adresinde mevcut
+```
+
+Yalnızca API sunucusunu başlatır. Masaüstü Uygulaması veya kendi frontend'iniz ile kullanın.
+
+---
+
 ## Kılavuzlar
 
 <table>
@@ -200,7 +224,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # Arka plan çalışanları
 ├── skills/                   # 8 yerleşik beceri
 ├── plugins/                  # 10 eklenti bildirimi
-├── extensions/               # 11 uzantı bildirimi
+├── extensions/               # 12 uzantı bildirimi
 │   └── browser-assist/
 │       └── chrome-extension/ # Tarayıcı Asistanı Chrome uzantısı
 ├── packages/                 # Paylaşılan NPM paketleri

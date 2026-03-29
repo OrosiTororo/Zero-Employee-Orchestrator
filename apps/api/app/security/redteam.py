@@ -976,6 +976,185 @@ class RedTeamService:
 
         return recommendations
 
+    # ------------------------------------------------------------------
+    # Scheduling and automated execution
+    # ------------------------------------------------------------------
+
+    async def schedule_periodic_run(
+        self,
+        interval_hours: int = 24,
+        categories: list[VulnerabilityType] | None = None,
+    ) -> dict:
+        """Configure periodic red-team test execution.
+
+        Args:
+            interval_hours: Hours between automated runs (default: 24).
+            categories: Specific vulnerability categories to test.
+                        If None, all tests are run.
+
+        Returns:
+            Schedule configuration summary.
+        """
+        self._schedule_config = {
+            "enabled": True,
+            "interval_hours": interval_hours,
+            "categories": [c.value for c in categories] if categories else None,
+            "configured_at": self._now(),
+        }
+        logger.info(
+            "Red-team periodic run scheduled: interval=%dh categories=%s",
+            interval_hours,
+            self._schedule_config["categories"] or "all",
+        )
+        return self._schedule_config
+
+    async def run_scheduled(self) -> RedTeamReport | list[TestResult]:
+        """Execute scheduled tests based on the configured schedule.
+
+        If specific categories are configured, runs only those categories.
+        Otherwise, runs the full test suite.
+
+        Returns:
+            RedTeamReport if running all tests, or list[TestResult] for
+            category-specific runs.
+        """
+        config = getattr(self, "_schedule_config", None)
+        if config is None or not config.get("enabled"):
+            return await self.run_all_tests()
+
+        categories = config.get("categories")
+        if categories:
+            all_results: list[TestResult] = []
+            for cat_value in categories:
+                vtype = VulnerabilityType(cat_value)
+                results = await self.run_category(vtype)
+                all_results.extend(results)
+            return all_results
+
+        return await self.run_all_tests()
+
+    def get_schedule_config(self) -> dict | None:
+        """Return the current schedule configuration, or None if not configured."""
+        return getattr(self, "_schedule_config", None)
+
+    def disable_schedule(self) -> None:
+        """Disable periodic scheduling."""
+        if hasattr(self, "_schedule_config"):
+            self._schedule_config["enabled"] = False
+            logger.info("Red-team periodic schedule disabled")
+
+    # ------------------------------------------------------------------
+    # Reporting
+    # ------------------------------------------------------------------
+
+    async def get_latest_report(self) -> RedTeamReport | None:
+        """Return the most recent test report, or None if no tests have been run."""
+        if not self._reports:
+            return None
+        return sorted(self._reports, key=lambda r: r.generated_at, reverse=True)[0]
+
+    async def get_findings_summary(self) -> dict:
+        """Generate a summary of all findings across all reports.
+
+        Returns:
+            Dictionary with aggregated statistics and trends.
+        """
+        total_runs = len(self._reports)
+        if total_runs == 0:
+            return {
+                "total_runs": 0,
+                "status": "no_data",
+                "message": "No red-team tests have been run yet.",
+            }
+
+        all_results = [r for report in self._reports for r in report.results]
+        total_tests = len(all_results)
+        total_passed = sum(1 for r in all_results if r.passed)
+        total_failed = total_tests - total_passed
+        vulnerabilities = sum(1 for r in all_results if r.vulnerability_found)
+
+        # Count by vulnerability type
+        type_counts: dict[str, int] = {}
+        for result in all_results:
+            if result.vulnerability_found:
+                test = self._get_test(result.test_id)
+                if test:
+                    vtype = test.vulnerability_type.value
+                    type_counts[vtype] = type_counts.get(vtype, 0) + 1
+
+        latest = self._reports[-1]
+        return {
+            "total_runs": total_runs,
+            "total_tests_executed": total_tests,
+            "total_passed": total_passed,
+            "total_failed": total_failed,
+            "vulnerabilities_found": vulnerabilities,
+            "pass_rate": round(total_passed / total_tests * 100, 1) if total_tests else 0,
+            "vulnerability_types": type_counts,
+            "latest_run": latest.generated_at,
+            "latest_critical": latest.critical_findings,
+            "latest_high": latest.high_findings,
+            "status": "healthy" if latest.failed == 0 else "attention_needed",
+        }
+
+    async def export_report(self, report_id: str | None = None, fmt: str = "dict") -> dict | str:
+        """Export a specific report or the latest one.
+
+        Args:
+            report_id: Specific report ID, or None for the latest.
+            fmt: Output format -- "dict" or "text".
+
+        Returns:
+            Report data in the specified format.
+        """
+        report: RedTeamReport | None = None
+        if report_id:
+            for r in self._reports:
+                if r.id == report_id:
+                    report = r
+                    break
+        else:
+            report = await self.get_latest_report()
+
+        if report is None:
+            return {"error": "No report found"}
+
+        data = {
+            "id": report.id,
+            "generated_at": report.generated_at,
+            "total_tests": report.total_tests,
+            "passed": report.passed,
+            "failed": report.failed,
+            "critical_findings": report.critical_findings,
+            "high_findings": report.high_findings,
+            "summary": report.summary,
+            "results": [
+                {
+                    "test_id": r.test_id,
+                    "passed": r.passed,
+                    "vulnerability_found": r.vulnerability_found,
+                    "actual_behavior": r.actual_behavior,
+                    "tested_at": r.tested_at,
+                }
+                for r in report.results
+            ],
+        }
+
+        if fmt == "text":
+            lines = [
+                f"Red-Team Security Report: {report.id}",
+                f"Generated: {report.generated_at}",
+                f"Summary: {report.summary}",
+                "",
+                "Results:",
+            ]
+            for r in report.results:
+                status = "PASS" if r.passed else "FAIL"
+                lines.append(f"  [{status}] {r.test_id}: {r.actual_behavior[:80]}")
+            return "\n".join(lines)
+
+        return data
+
 
 # Global instance
 redteam_service = RedTeamService()
