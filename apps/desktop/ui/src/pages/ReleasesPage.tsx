@@ -395,12 +395,11 @@ interface BuiltinAsset {
 }
 
 const EXPECTED_ASSETS: BuiltinAsset[] = [
-  { name: `Zero-Employee-Orchestrator_0.1.0_x64_en-US.msi`, os: "Windows", description: "Windows インストーラー (.msi)" },
-  { name: `Zero-Employee-Orchestrator_0.1.0_x64-setup.exe`, os: "Windows", description: "Windows インストーラー (.exe / NSIS)" },
-  { name: `Zero-Employee-Orchestrator_0.1.0_aarch64.dmg`, os: "macOS", description: "macOS (Apple Silicon)" },
-  { name: `Zero-Employee-Orchestrator_0.1.0_amd64.AppImage`, os: "Linux", description: "Portable (インストール不要)" },
-  { name: `Zero-Employee-Orchestrator_0.1.0_amd64.deb`, os: "Linux", description: "Debian / Ubuntu" },
-  { name: `Zero-Employee-Orchestrator_0.1.0_x86_64.rpm`, os: "Linux", description: "Fedora / RHEL" },
+  { name: `Zero-Employee.Orchestrator_0.1.1_x64-setup.exe`, os: "Windows", description: "Windows インストーラー (.exe)" },
+  { name: `Zero-Employee.Orchestrator_0.1.1_universal.dmg`, os: "macOS", description: "macOS Universal (Intel + Apple Silicon)" },
+  { name: `Zero-Employee.Orchestrator_0.1.1_amd64.AppImage`, os: "Linux", description: "Portable (インストール不要)" },
+  { name: `Zero-Employee.Orchestrator_0.1.1_amd64.deb`, os: "Linux", description: "Debian / Ubuntu" },
+  { name: `Zero-Employee.Orchestrator-0.1.1-1.x86_64.rpm`, os: "Linux", description: "Fedora / RHEL" },
 ]
 
 const LANG_TABS: Array<{ key: Lang; label: string }> = [
@@ -539,7 +538,7 @@ export function ReleasesPage() {
             <DownloadCard
               icon={Monitor}
               os="Windows"
-              format=".msi / .exe"
+              format=".exe"
               description={t[lang].downloadInstaller}
               href={findLatestAssetUrl(releases, "windows")}
               lang={lang}

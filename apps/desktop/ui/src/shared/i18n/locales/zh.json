@@ -330,7 +330,7 @@
     "quickDownload": "快速下载",
     "quickDownloadDesc": "下载适合您操作系统的安装包",
     "windows": "Windows",
-    "windowsDesc": ".msi 安装包",
+    "windowsDesc": ".exe 安装包",
     "macos": "macOS",
     "macosDesc": ".dmg 磁盘映像",
     "linux": "Linux",

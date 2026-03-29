@@ -330,7 +330,7 @@
     "quickDownload": "クイックダウンロード",
     "quickDownloadDesc": "お使いのOSに合ったインストーラーをダウンロード",
     "windows": "Windows",
-    "windowsDesc": ".msi インストーラー",
+    "windowsDesc": ".exe インストーラー",
     "macos": "macOS",
     "macosDesc": ".dmg ディスクイメージ",
     "linux": "Linux",

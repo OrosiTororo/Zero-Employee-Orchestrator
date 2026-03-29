@@ -927,9 +927,9 @@ A cross-platform desktop application based on Tauri v2 (Rust) is provided.
 
 | OS | Format |
 |----|--------|
-| Windows | `.msi` / `.exe` |
+| Windows | `.exe` |
 | macOS | `.dmg` |
-| Linux | `.AppImage` / `.deb` |
+| Linux | `.AppImage` / `.deb` / `.rpm` |
 
 - Python backend bundled as a sidecar
 - Local file access, session management, and UI run locally

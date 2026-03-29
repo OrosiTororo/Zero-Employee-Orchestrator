@@ -179,7 +179,7 @@ export function DownloadPage() {
               <PlatformCard
                 icon={Monitor}
                 os="Windows"
-                format=".msi / .exe"
+                format=".exe"
                 href={winHref}
               />
               <PlatformCard

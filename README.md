@@ -45,10 +45,10 @@ Pre-built desktop installers are available on the [Releases](https://github.com/
 
 | OS | File | Description |
 |---|---|---|
-| **Windows** | `.msi` / `-setup.exe` | Windows installer |
-| **macOS** | `.dmg` | macOS (Intel / Apple Silicon) |
-| **Linux** | `.AppImage` | Portable (no install needed) |
-| **Linux** | `.deb` / `.rpm` | Debian/Ubuntu / Fedora/RHEL |
+| **Windows** | `-setup.exe` | Windows installer (x64) |
+| **macOS** | `.dmg` | macOS Universal (Intel + Apple Silicon) |
+| **Linux** | `.AppImage` | Portable (no install needed, amd64) |
+| **Linux** | `.deb` / `.rpm` | Debian/Ubuntu / Fedora/RHEL (amd64/x86_64) |
 
 After installation, a **setup wizard** will guide you through:
 1. **Language** — Choose English, 日本語, 中文, 한국어, Português, or Türkçe (changeable later in Settings)
