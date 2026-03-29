@@ -325,8 +325,10 @@ async def import_plugin(
         )
 
     # Safety check on the fetched manifest
-    manifest_dict = manifest.model_dump() if hasattr(manifest, "model_dump") else (
-        manifest.dict() if hasattr(manifest, "dict") else None
+    manifest_dict = (
+        manifest.model_dump()
+        if hasattr(manifest, "model_dump")
+        else (manifest.dict() if hasattr(manifest, "dict") else None)
     )
     _check_manifest_safety(manifest_dict, force)
 

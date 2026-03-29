@@ -6,7 +6,7 @@ import { LogoMark } from "@/shared/ui/Logo"
  * Not used in the main startup flow (language is auto-detected from OS/installer).
  * Available for use in Settings or other contexts where manual language selection is needed.
  */
-export function LanguageGate({ children }: { children: React.ReactNode }) {
+export function LanguageGate() {
   const { setLocale } = useI18n()
 
   const languages: { locale: Locale; native: string }[] = (
