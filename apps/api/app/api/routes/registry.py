@@ -27,6 +27,12 @@ from app.schemas.registry import (
     SkillUpdate,
 )
 from app.services import registry_service, skill_service
+from app.services.marketplace_service import (
+    ListingStatus,
+    MarketplaceCategory,
+    MarketplaceListing,
+    marketplace_service,
+)
 from app.services.skill_service import analyze_code_safety
 
 router = APIRouter()
@@ -454,13 +460,6 @@ async def delete_extension(
 # ===================================================================
 # Publish to Marketplace — Users can publish their created items
 # ===================================================================
-
-from app.services.marketplace_service import (
-    ListingStatus,
-    MarketplaceCategory,
-    MarketplaceListing,
-    marketplace_service,
-)
 
 
 class PublishToMarketplaceRequest:

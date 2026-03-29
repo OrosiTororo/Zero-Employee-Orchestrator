@@ -8,7 +8,6 @@ import {
   Shield,
   RefreshCw,
   Plus,
-  Download,
   Star,
 } from "lucide-react"
 import { useT } from "@/shared/i18n"

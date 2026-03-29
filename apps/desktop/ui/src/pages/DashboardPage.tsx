@@ -224,7 +224,7 @@ export function DashboardPage() {
 }
 
 function StatusCard({ icon: Icon, label, value, accent, onClick }: {
-  icon: React.ComponentType<{ size?: number; className?: string }>
+  icon: React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>
   label: string; value: string; accent: string; onClick?: () => void
 }) {
   return (

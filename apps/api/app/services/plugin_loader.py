@@ -864,6 +864,8 @@ class ToolRegistry:
                 "video",
                 "movie",
                 "animation",
+                "Runway",
+                "Pika",
             ],
             "audio-generation": [
                 "音声",
@@ -921,14 +923,6 @@ class ToolRegistry:
                 "通知",
                 "message",
                 "notify",
-            ],
-            "video-generation": [
-                "動画",
-                "ビデオ",
-                "video",
-                "movie",
-                "Runway",
-                "Pika",
             ],
             "social-media": [
                 "SNS",

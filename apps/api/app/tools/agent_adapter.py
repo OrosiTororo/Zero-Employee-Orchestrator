@@ -168,7 +168,8 @@ class CrewAIAdapter(AgentFrameworkAdapter):
 
     async def execute_task(self, task: AgentTask) -> dict:
         try:
-            from crewai import Agent, Crew, Task as CrewTask
+            from crewai import Agent, Crew
+            from crewai import Task as CrewTask
 
             # Map ZEO task to CrewAI task
             agent = Agent(
@@ -262,8 +263,7 @@ class LangChainAdapter(AgentFrameworkAdapter):
 
     async def execute_task(self, task: AgentTask) -> dict:
         try:
-            from langchain.agents import AgentExecutor, create_react_agent
-            from langchain_core.prompts import ChatPromptTemplate
+            from langchain.agents import AgentExecutor as _AgentExecutor  # noqa: F401
 
             # Minimal agent creation — full config via task.context
             return {
