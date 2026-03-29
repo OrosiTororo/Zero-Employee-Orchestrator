@@ -40,10 +40,10 @@ COPY skills/ ./skills/
 RUN mkdir -p /app/data /app/.zero_employee /home/zeapp/.zero_employee && \
     chown -R zeapp:zeapp /app /home/zeapp
 
-# Credential store (not accessible by AI agents)
-RUN mkdir -p /etc/zero-employee/credentials && \
-    chmod 700 /etc/zero-employee/credentials && \
-    chown root:root /etc/zero-employee/credentials
+# Credential store (protected from AI agents at application layer via IAM)
+RUN mkdir -p /app/data/credentials && \
+    chmod 700 /app/data/credentials && \
+    chown zeapp:zeapp /app/data/credentials
 
 # Switch to non-root user
 USER zeapp
@@ -53,7 +53,7 @@ ENV PYTHONPATH=/app/apps/api \
     DATABASE_URL=sqlite+aiosqlite:///./data/zero_employee_orchestrator.db \
     DEBUG=${DEBUG:-false} \
     RAG_STORE_DIR=/app/.zero_employee/rag_store \
-    CREDENTIAL_DIR=/etc/zero-employee/credentials
+    CREDENTIAL_DIR=/app/data/credentials
 
 EXPOSE 18234
 

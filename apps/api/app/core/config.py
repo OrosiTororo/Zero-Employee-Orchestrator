@@ -100,8 +100,13 @@ class Settings(BaseSettings):
     # Cloudflare account ID (for Workers deployment)
     CLOUDFLARE_ACCOUNT_ID: str = ""
 
-    # Credential store directory (AI agents cannot access this)
-    CREDENTIAL_DIR: str = "/etc/zero-employee/credentials"
+    # Credential store directory (AI agents cannot access this via IAM)
+    # In Docker, overridden by ENV to /app/data/credentials
+    CREDENTIAL_DIR: str = os.path.join(
+        os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")),
+        "zero-employee",
+        "credentials",
+    )
 
 
 settings = Settings()

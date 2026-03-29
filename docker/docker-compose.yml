@@ -23,6 +23,8 @@ services:
     volumes:
       - api-data:/app/data
       - rag-store:/app/.zero_employee
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:18234/healthz"]
       interval: 30s
