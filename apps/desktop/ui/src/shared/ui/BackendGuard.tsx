@@ -86,11 +86,16 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
   const maxAutoRetries = isTauri ? 5 : 0
   const startTimeRef = useRef(Date.now())
 
-  // Elapsed time timer
+  // Elapsed time timer (used for firstRunNote threshold)
   useEffect(() => {
     if (status !== "checking") return
     const timer = setInterval(() => {
-      setElapsedSec(Math.floor((Date.now() - startTimeRef.current) / 1000))
+      const sec = Math.floor((Date.now() - startTimeRef.current) / 1000)
+      setElapsedSec(sec)
+      // Non-Tauri: simulate smooth progress based on elapsed time (caps at 85%)
+      if (!isTauri) {
+        setProgress(Math.min(85, Math.round(10 + sec * 2.5)))
+      }
     }, 1000)
     return () => clearInterval(timer)
   }, [status])
@@ -262,7 +267,7 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
                 />
               </div>
               <p className="text-[10px] text-[var(--text-muted)] tabular-nums">
-                {elapsedSec > 0 && `${elapsedSec}s`}
+                {progress}%
               </p>
             </div>
           </>
