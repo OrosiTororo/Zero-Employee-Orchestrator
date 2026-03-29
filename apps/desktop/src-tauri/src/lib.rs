@@ -10,6 +10,20 @@ use std::sync::Mutex;
 use std::time::Duration;
 use tauri::Manager;
 
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
+
+#[cfg(windows)]
+const CREATE_NO_WINDOW: u32 = 0x08000000;
+
+/// Create a Command that hides the console window on Windows.
+fn hidden_command(program: &str) -> Command {
+    let mut cmd = Command::new(program);
+    #[cfg(windows)]
+    cmd.creation_flags(CREATE_NO_WINDOW);
+    cmd
+}
+
 struct BackendProcess(Mutex<Option<Child>>);
 
 /// Cached API directory so we can re-use it for restarts.
@@ -22,20 +36,34 @@ struct BackendError(Mutex<Option<String>>);
 /// GUI apps (macOS .app, Linux desktop launchers) don't load shell profiles,
 /// so tools like `uv`, `python3`, and `cargo` may not be found.
 fn ensure_path() {
-    let home = match std::env::var("HOME") {
-        Ok(h) => h,
-        Err(_) => return,
+    // On Windows use USERPROFILE, on Unix use HOME
+    let home = std::env::var("USERPROFILE")
+        .or_else(|_| std::env::var("HOME"))
+        .unwrap_or_default();
+    if home.is_empty() {
+        return;
+    }
+
+    let extra_dirs = if cfg!(windows) {
+        vec![
+            format!(r"{}\AppData\Local\Programs\uv", home),
+            format!(r"{}\.local\bin", home),
+            format!(r"{}\.cargo\bin", home),
+            format!(r"{}\AppData\Local\uv\bin", home),
+            format!(r"{}\AppData\Roaming\Python\Scripts", home),
+        ]
+    } else {
+        vec![
+            format!("{}/.local/bin", home),
+            format!("{}/.cargo/bin", home),
+            "/usr/local/bin".to_string(),
+            "/opt/homebrew/bin".to_string(),
+            "/opt/homebrew/sbin".to_string(),
+            format!("{}/Library/Application Support/uv/bin", home),
+        ]
     };
 
-    let extra_dirs = [
-        format!("{}/.local/bin", home),
-        format!("{}/.cargo/bin", home),
-        "/usr/local/bin".to_string(),
-        "/opt/homebrew/bin".to_string(),     // macOS Apple Silicon
-        "/opt/homebrew/sbin".to_string(),
-        format!("{}/Library/Application Support/uv/bin", home), // macOS uv location
-    ];
-
+    let path_sep = if cfg!(windows) { ";" } else { ":" };
     let current_path = std::env::var("PATH").unwrap_or_default();
     let mut new_parts: Vec<String> = Vec::new();
 
@@ -46,7 +74,7 @@ fn ensure_path() {
     }
 
     if !new_parts.is_empty() {
-        let new_path = format!("{}:{}", new_parts.join(":"), current_path);
+        let new_path = format!("{}{}{}", new_parts.join(path_sep), path_sep, current_path);
         eprintln!("[sidecar] PATH supplemented with: {}", new_parts.join(", "));
         std::env::set_var("PATH", new_path);
     }
@@ -78,7 +106,9 @@ fn find_api_dir() -> Option<PathBuf> {
             candidates.push(exe_dir.join("apps/api"));
             candidates.push(exe_dir.join("../../apps/api"));
             // Data directory: ~/.local/share/<app>/api (fallback for cloned repo)
-            if let Ok(home) = std::env::var("HOME") {
+            let home = std::env::var("USERPROFILE")
+                .or_else(|_| std::env::var("HOME"));
+            if let Ok(home) = home {
                 candidates.push(PathBuf::from(format!(
                     "{}/.local/share/zero-employee-orchestrator/api",
                     home
@@ -113,7 +143,7 @@ fn find_api_dir() -> Option<PathBuf> {
 
 /// Check if `uv` is available on the system.
 fn has_uv() -> bool {
-    Command::new("uv").arg("--version").output().is_ok()
+    hidden_command("uv").arg("--version").output().is_ok()
 }
 
 /// Install `uv` automatically if not present.
@@ -125,7 +155,7 @@ fn ensure_uv() -> bool {
     eprintln!("[sidecar] uv not found, installing automatically...");
 
     let result = if cfg!(windows) {
-        Command::new("powershell")
+        hidden_command("powershell")
             .args([
                 "-ExecutionPolicy",
                 "ByPass",
@@ -134,7 +164,7 @@ fn ensure_uv() -> bool {
             ])
             .output()
     } else {
-        Command::new("sh")
+        hidden_command("sh")
             .args(["-c", "curl -LsSf https://astral.sh/uv/install.sh | sh"])
             .output()
     };
@@ -142,10 +172,27 @@ fn ensure_uv() -> bool {
     match result {
         Ok(out) if out.status.success() => {
             eprintln!("[sidecar] uv installed successfully");
-            if let Ok(home) = std::env::var("HOME") {
+            // Add uv install paths to PATH
+            let home = std::env::var("USERPROFILE")
+                .or_else(|_| std::env::var("HOME"))
+                .unwrap_or_default();
+            if !home.is_empty() {
                 if let Ok(path) = std::env::var("PATH") {
-                    let extra = format!("{}/.local/bin:{}/.cargo/bin", home, home);
-                    std::env::set_var("PATH", format!("{}:{}", extra, path));
+                    let (extra, sep) = if cfg!(windows) {
+                        (
+                            format!(
+                                r"{}\AppData\Local\Programs\uv;{}\.cargo\bin;{}\.local\bin",
+                                home, home, home
+                            ),
+                            ";",
+                        )
+                    } else {
+                        (
+                            format!("{}/.local/bin:{}/.cargo/bin", home, home),
+                            ":",
+                        )
+                    };
+                    std::env::set_var("PATH", format!("{}{}{}", extra, sep, path));
                 }
             }
             if has_uv() {
@@ -191,14 +238,14 @@ fn find_python(api_dir: &PathBuf) -> (String, bool) {
     }
 
     eprintln!("[sidecar] .venv not found, auto-setup with uv...");
-    let venv_result = Command::new("uv")
+    let venv_result = hidden_command("uv")
         .args(["venv", "--python", "3.12", ".venv"])
         .current_dir(api_dir)
         .output();
     match venv_result {
         Ok(out) if out.status.success() => {
             eprintln!("[sidecar] created .venv with Python 3.12");
-            let install_result = Command::new("uv")
+            let install_result = hidden_command("uv")
                 .args(["pip", "install", "-e", "."])
                 .current_dir(api_dir)
                 .output();
@@ -230,27 +277,36 @@ fn find_python(api_dir: &PathBuf) -> (String, bool) {
 }
 
 /// Wait until the backend health endpoint responds.
+/// Uses pure TCP connection instead of spawning curl (which opens visible
+/// console windows on Windows).
 fn wait_for_backend(max_attempts: u32) -> bool {
+    let addr: std::net::SocketAddr = "127.0.0.1:18234".parse().unwrap();
     for i in 0..max_attempts {
         let delay = if i == 0 { 500 } else { 1000 };
         std::thread::sleep(Duration::from_millis(delay));
 
-        if let Ok(output) = Command::new("curl")
-            .args(["-sf", "http://127.0.0.1:18234/healthz"])
-            .output()
+        // Try TCP connect — once the server accepts connections, it's ready
+        if let Ok(mut stream) =
+            std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(2))
         {
-            if output.status.success() {
+            // Send a minimal HTTP GET to /healthz and check for 200
+            use std::io::{Read, Write as IoWrite};
+            let _ = stream.set_read_timeout(Some(Duration::from_secs(2)));
+            let req = b"GET /healthz HTTP/1.0\r\nHost: 127.0.0.1\r\n\r\n";
+            if stream.write_all(req).is_ok() {
+                let mut buf = [0u8; 256];
+                if let Ok(n) = stream.read(&mut buf) {
+                    let response = String::from_utf8_lossy(&buf[..n]);
+                    if response.contains("200") {
+                        return true;
+                    }
+                }
+            }
+            // TCP connected but HTTP not ready yet — server is starting
+            if i > 2 {
+                // After a few attempts, accept TCP connect as "ready enough"
                 return true;
             }
-        }
-
-        if std::net::TcpStream::connect_timeout(
-            &"127.0.0.1:18234".parse().unwrap(),
-            Duration::from_secs(1),
-        )
-        .is_ok()
-        {
-            return true;
         }
     }
     eprintln!("[sidecar] backend did not become ready within timeout");
@@ -268,7 +324,8 @@ fn ensure_env_file(api_dir: &PathBuf) {
     eprintln!("[sidecar] .env not found, generating default configuration...");
 
     // Generate a random secret key using Python or a fallback
-    let secret = Command::new("python3")
+    let python_cmd = if cfg!(windows) { "python" } else { "python3" };
+    let secret = hidden_command(python_cmd)
         .args(["-c", "import secrets; print(secrets.token_urlsafe(32))"])
         .output()
         .ok()
@@ -318,7 +375,7 @@ fn dirs_for_log(api_dir: &PathBuf) -> PathBuf {
 fn kill_port_18234() {
     if cfg!(windows) {
         // netstat -ano | findstr :18234 → taskkill /PID ... /F
-        if let Ok(output) = Command::new("cmd")
+        if let Ok(output) = hidden_command("cmd")
             .args(["/C", "for /f \"tokens=5\" %a in ('netstat -ano ^| findstr :18234 ^| findstr LISTENING') do taskkill /PID %a /F"])
             .output()
         {
@@ -328,7 +385,7 @@ fn kill_port_18234() {
         }
     } else {
         // lsof -ti :18234 | xargs kill -9
-        if let Ok(output) = Command::new("sh")
+        if let Ok(output) = hidden_command("sh")
             .args(["-c", "lsof -ti :18234 | xargs kill -9 2>/dev/null"])
             .output()
         {
@@ -391,7 +448,7 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Result<Child, String> {
     };
 
     let child = if python == "uv" {
-        Command::new("uv")
+        hidden_command("uv")
             .args([
                 "run",
                 "uvicorn",
@@ -405,7 +462,7 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Result<Child, String> {
             .stderr(stderr_target)
             .spawn()
     } else {
-        Command::new(&python)
+        hidden_command(&python)
             .args([
                 "-m",
                 "uvicorn",
@@ -530,19 +587,21 @@ fn restart_backend(
 /// Tauri command: check if the backend health endpoint is reachable.
 #[tauri::command]
 fn check_backend_health() -> bool {
-    if let Ok(output) = Command::new("curl")
-        .args(["-sf", "http://127.0.0.1:18234/healthz"])
-        .output()
-    {
-        if output.status.success() {
-            return true;
+    let addr: std::net::SocketAddr = "127.0.0.1:18234".parse().unwrap();
+    if let Ok(mut stream) = std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(2)) {
+        use std::io::{Read, Write as IoWrite};
+        let _ = stream.set_read_timeout(Some(Duration::from_secs(2)));
+        let req = b"GET /healthz HTTP/1.0\r\nHost: 127.0.0.1\r\n\r\n";
+        if stream.write_all(req).is_ok() {
+            let mut buf = [0u8; 256];
+            if let Ok(n) = stream.read(&mut buf) {
+                return String::from_utf8_lossy(&buf[..n]).contains("200");
+            }
         }
+        // TCP connected but couldn't read — still alive
+        return true;
     }
-    std::net::TcpStream::connect_timeout(
-        &"127.0.0.1:18234".parse().unwrap(),
-        Duration::from_secs(2),
-    )
-    .is_ok()
+    false
 }
 
 /// Tauri command: get the last backend startup error (if any).
