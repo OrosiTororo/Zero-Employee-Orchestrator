@@ -11,6 +11,7 @@ _INSECURE_DEFAULT_KEYS = frozenset(
     {
         "change-me-in-production",
         "change-this-to-a-random-secret-key",
+        "auto-generated-change-me",
     }
 )
 

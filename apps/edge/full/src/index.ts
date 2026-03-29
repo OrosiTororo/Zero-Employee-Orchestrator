@@ -21,6 +21,7 @@ import health from "./routes/health";
 const INSECURE_DEFAULTS = new Set([
   "change-me-in-production",
   "change-this-to-a-random-secret-key",
+  "auto-generated-change-me",
 ]);
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
