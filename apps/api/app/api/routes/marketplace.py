@@ -190,9 +190,7 @@ async def get_reviews(listing_id: str) -> list[dict]:
 
 
 @router.post("/{listing_id}/approve")
-async def approve_listing(
-    listing_id: str, user: User = Depends(get_current_user)
-) -> dict:
+async def approve_listing(listing_id: str, user: User = Depends(get_current_user)) -> dict:
     """Approve a pending listing for publication."""
     try:
         listing = await marketplace_service.approve(listing_id)

@@ -79,9 +79,7 @@ class AgentTask:
     result: dict | None = None
     error: str | None = None
     framework: str = ""
-    created_at: str = field(
-        default_factory=lambda: datetime.now(UTC).isoformat()
-    )
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     completed_at: str | None = None
     token_usage: int = 0
     cost_estimate: float = 0.0
@@ -199,14 +197,18 @@ class CrewAIAdapter(AgentFrameworkAdapter):
     async def health_check(self) -> dict:
         try:
             import crewai  # noqa: F401
+
             return {"ok": True, "version": getattr(crewai, "__version__", "unknown")}
         except ImportError:
             return {"ok": False, "error": "crewai not installed"}
 
     def get_capabilities(self) -> AdapterCapabilities:
         return AdapterCapabilities(
-            multi_agent=True, tool_use=True, memory=True,
-            code_execution=True, web_browsing=True,
+            multi_agent=True,
+            tool_use=True,
+            memory=True,
+            code_execution=True,
+            web_browsing=True,
         )
 
 
@@ -236,21 +238,28 @@ class AutoGenAdapter(AgentFrameworkAdapter):
                 "framework": "autogen",
             }
         except ImportError:
-            return {"success": False, "error": "autogen not installed. Run: pip install autogen-agentchat"}
+            return {
+                "success": False,
+                "error": "autogen not installed. Run: pip install autogen-agentchat",
+            }
         except Exception as e:
             return {"success": False, "error": str(e)}
 
     async def health_check(self) -> dict:
         try:
             import autogen  # noqa: F401
+
             return {"ok": True, "version": getattr(autogen, "__version__", "unknown")}
         except ImportError:
             return {"ok": False, "error": "autogen not installed"}
 
     def get_capabilities(self) -> AdapterCapabilities:
         return AdapterCapabilities(
-            multi_agent=True, tool_use=True, memory=True,
-            code_execution=True, max_concurrent_tasks=5,
+            multi_agent=True,
+            tool_use=True,
+            memory=True,
+            code_execution=True,
+            max_concurrent_tasks=5,
         )
 
 
@@ -274,20 +283,26 @@ class LangChainAdapter(AgentFrameworkAdapter):
                 "context": task.instruction,
             }
         except ImportError:
-            return {"success": False, "error": "langchain not installed. Run: pip install langchain"}
+            return {
+                "success": False,
+                "error": "langchain not installed. Run: pip install langchain",
+            }
         except Exception as e:
             return {"success": False, "error": str(e)}
 
     async def health_check(self) -> dict:
         try:
             import langchain  # noqa: F401
+
             return {"ok": True, "version": getattr(langchain, "__version__", "unknown")}
         except ImportError:
             return {"ok": False, "error": "langchain not installed"}
 
     def get_capabilities(self) -> AdapterCapabilities:
         return AdapterCapabilities(
-            tool_use=True, memory=True, streaming=True,
+            tool_use=True,
+            memory=True,
+            streaming=True,
         )
 
 
@@ -315,7 +330,9 @@ class OpenClawAdapter(AgentFrameworkAdapter):
 
     def get_capabilities(self) -> AdapterCapabilities:
         return AdapterCapabilities(
-            tool_use=True, web_browsing=True, code_execution=True,
+            tool_use=True,
+            web_browsing=True,
+            code_execution=True,
         )
 
 
@@ -429,7 +446,10 @@ class AgentAdapterRegistry:
         task.status = AgentTaskStatus.DELEGATED
         logger.info(
             "Delegating task %s to %s (max_steps=%d, timeout=%ds)",
-            task.id, framework, task.max_steps, task.timeout_seconds,
+            task.id,
+            framework,
+            task.max_steps,
+            task.timeout_seconds,
         )
 
         try:

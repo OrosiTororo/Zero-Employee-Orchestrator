@@ -509,8 +509,12 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         "category": "video-generation",
         "license": "Proprietary",
         "requirements": [
-            {"type": "api_key", "name": "RUNWAY_API_KEY", "required": True,
-             "install_hint": "Get API key at https://app.runwayml.com/"},
+            {
+                "type": "api_key",
+                "name": "RUNWAY_API_KEY",
+                "required": True,
+                "install_hint": "Get API key at https://app.runwayml.com/",
+            },
         ],
         "adapter": {"type": "rest_api", "module": None, "class": None},
     },
@@ -526,8 +530,12 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         "category": "video-generation",
         "license": "Proprietary",
         "requirements": [
-            {"type": "api_key", "name": "PIKA_API_KEY", "required": True,
-             "install_hint": "Get API key at https://pika.art"},
+            {
+                "type": "api_key",
+                "name": "PIKA_API_KEY",
+                "required": True,
+                "install_hint": "Get API key at https://pika.art",
+            },
         ],
         "adapter": {"type": "rest_api", "module": None, "class": None},
     },
@@ -544,10 +552,18 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         "category": "social-media",
         "license": "MIT",
         "requirements": [
-            {"type": "pip_package", "name": "tweepy", "required": True,
-             "install_hint": "pip install tweepy"},
-            {"type": "api_key", "name": "TWITTER_API_KEY", "required": True,
-             "install_hint": "Get API key at https://developer.x.com"},
+            {
+                "type": "pip_package",
+                "name": "tweepy",
+                "required": True,
+                "install_hint": "pip install tweepy",
+            },
+            {
+                "type": "api_key",
+                "name": "TWITTER_API_KEY",
+                "required": True,
+                "install_hint": "Get API key at https://developer.x.com",
+            },
         ],
         "adapter": {"type": "python_module", "module": None, "class": None},
     },
@@ -563,8 +579,12 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         "category": "social-media",
         "license": "Proprietary",
         "requirements": [
-            {"type": "api_key", "name": "INSTAGRAM_ACCESS_TOKEN", "required": True,
-             "install_hint": "Get access token via Meta Business Suite"},
+            {
+                "type": "api_key",
+                "name": "INSTAGRAM_ACCESS_TOKEN",
+                "required": True,
+                "install_hint": "Get access token via Meta Business Suite",
+            },
         ],
         "adapter": {"type": "rest_api", "module": None, "class": None},
     },
@@ -580,10 +600,18 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         "category": "social-media",
         "license": "Apache-2.0",
         "requirements": [
-            {"type": "pip_package", "name": "google-api-python-client", "required": True,
-             "install_hint": "pip install google-api-python-client"},
-            {"type": "api_key", "name": "YOUTUBE_API_KEY", "required": True,
-             "install_hint": "Get API key at https://console.cloud.google.com"},
+            {
+                "type": "pip_package",
+                "name": "google-api-python-client",
+                "required": True,
+                "install_hint": "pip install google-api-python-client",
+            },
+            {
+                "type": "api_key",
+                "name": "YOUTUBE_API_KEY",
+                "required": True,
+                "install_hint": "Get API key at https://console.cloud.google.com",
+            },
         ],
         "adapter": {"type": "python_module", "module": None, "class": None},
     },
@@ -599,8 +627,12 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         "category": "social-media",
         "license": "Proprietary",
         "requirements": [
-            {"type": "api_key", "name": "TIKTOK_ACCESS_TOKEN", "required": True,
-             "install_hint": "Get access token at https://developers.tiktok.com"},
+            {
+                "type": "api_key",
+                "name": "TIKTOK_ACCESS_TOKEN",
+                "required": True,
+                "install_hint": "Get access token at https://developers.tiktok.com",
+            },
         ],
         "adapter": {"type": "rest_api", "module": None, "class": None},
     },
@@ -617,14 +649,26 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         "category": "agent-framework",
         "license": "MIT",
         "requirements": [
-            {"type": "pip_package", "name": "crewai", "required": True,
-             "install_hint": "pip install crewai"},
-            {"type": "llm_provider", "name": "LLM provider", "required": True,
-             "description": "LLM required for agent operations",
-             "alternatives": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "ollama"]},
+            {
+                "type": "pip_package",
+                "name": "crewai",
+                "required": True,
+                "install_hint": "pip install crewai",
+            },
+            {
+                "type": "llm_provider",
+                "name": "LLM provider",
+                "required": True,
+                "description": "LLM required for agent operations",
+                "alternatives": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "ollama"],
+            },
         ],
-        "adapter": {"type": "agent_framework", "framework": "crewai",
-                     "module": "apps.api.app.tools.agent_adapter", "class": "CrewAIAdapter"},
+        "adapter": {
+            "type": "agent_framework",
+            "framework": "crewai",
+            "module": "apps.api.app.tools.agent_adapter",
+            "class": "CrewAIAdapter",
+        },
     },
     "autogen-orchestrator": {
         "slug": "autogen-orchestrator",
@@ -638,11 +682,19 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         "category": "agent-framework",
         "license": "MIT",
         "requirements": [
-            {"type": "pip_package", "name": "autogen-agentchat", "required": True,
-             "install_hint": "pip install autogen-agentchat"},
+            {
+                "type": "pip_package",
+                "name": "autogen-agentchat",
+                "required": True,
+                "install_hint": "pip install autogen-agentchat",
+            },
         ],
-        "adapter": {"type": "agent_framework", "framework": "autogen",
-                     "module": "apps.api.app.tools.agent_adapter", "class": "AutoGenAdapter"},
+        "adapter": {
+            "type": "agent_framework",
+            "framework": "autogen",
+            "module": "apps.api.app.tools.agent_adapter",
+            "class": "AutoGenAdapter",
+        },
     },
     "langchain-agent": {
         "slug": "langchain-agent",
@@ -656,11 +708,19 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         "category": "agent-framework",
         "license": "MIT",
         "requirements": [
-            {"type": "pip_package", "name": "langchain", "required": True,
-             "install_hint": "pip install langchain langchain-openai"},
+            {
+                "type": "pip_package",
+                "name": "langchain",
+                "required": True,
+                "install_hint": "pip install langchain langchain-openai",
+            },
         ],
-        "adapter": {"type": "agent_framework", "framework": "langchain",
-                     "module": "apps.api.app.tools.agent_adapter", "class": "LangChainAdapter"},
+        "adapter": {
+            "type": "agent_framework",
+            "framework": "langchain",
+            "module": "apps.api.app.tools.agent_adapter",
+            "class": "LangChainAdapter",
+        },
     },
     "openclaw-agent": {
         "slug": "openclaw-agent",
@@ -674,8 +734,12 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         "category": "agent-framework",
         "license": "MIT",
         "requirements": [],
-        "adapter": {"type": "agent_framework", "framework": "openclaw",
-                     "module": "apps.api.app.tools.agent_adapter", "class": "OpenClawAdapter"},
+        "adapter": {
+            "type": "agent_framework",
+            "framework": "openclaw",
+            "module": "apps.api.app.tools.agent_adapter",
+            "class": "OpenClawAdapter",
+        },
     },
     "dify-workflow": {
         "slug": "dify-workflow",
@@ -689,11 +753,19 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         "category": "agent-framework",
         "license": "MIT",
         "requirements": [
-            {"type": "api_key", "name": "DIFY_API_KEY", "required": True,
-             "install_hint": "Get API key from your Dify instance"},
+            {
+                "type": "api_key",
+                "name": "DIFY_API_KEY",
+                "required": True,
+                "install_hint": "Get API key from your Dify instance",
+            },
         ],
-        "adapter": {"type": "agent_framework", "framework": "dify",
-                     "module": "apps.api.app.tools.agent_adapter", "class": "AgentFrameworkAdapter"},
+        "adapter": {
+            "type": "agent_framework",
+            "framework": "dify",
+            "module": "apps.api.app.tools.agent_adapter",
+            "class": "AgentFrameworkAdapter",
+        },
     },
 }
 
