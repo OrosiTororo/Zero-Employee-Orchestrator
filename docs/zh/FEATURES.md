@@ -627,6 +627,8 @@ provisioning -> idle -> busy -> idle
 ### 功能
 
 - **动态模型目录**（`model_catalog.json`）— 添加、废弃或更新模型成本无需修改代码
+- **自定义模型注册** — 通过 `POST /api/v1/models/add` 添加默认目录中没有的任何 LLM 模型（支持 LiteLLM、OpenRouter、Ollama、vLLM、自定义端点）
+- **旧版模型支持** — 已废弃但仍在运行的模型（如 GPT-4o、Gemini 2.5）可通过 `?tag=legacy&include_deprecated=true` 使用
 - **模型废弃时的自动回退** — 通过 deprecated 标志 + successor 自动切换到后继模型
 - **供应商健康检查** — 定期确认 API 可用性，避免使用不可用的模型
 - 自动模型选择（基于执行模式）
@@ -635,6 +637,7 @@ provisioning -> idle -> busy -> idle
 - 视觉（图像输入）支持标志
 - 回退（LiteLLM 未部署时的模拟响应）
 - Ollama 模型自动检测
+- 模型删除：`DELETE /api/v1/models/{model_id}`
 
 ---
 
