@@ -478,30 +478,31 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Result<Child, String> {
         did_auto_setup,
     );
 
-    // Redirect stderr to a log file instead of Stdio::piped().
+    // Redirect stdout and stderr to a log file instead of Stdio::piped().
     // IMPORTANT: piped() causes the backend to HANG once the pipe buffer (64KB)
     // fills up, because the backend outputs massive DEBUG logs (SQLAlchemy etc.)
     // and nobody is reading from the pipe. A log file avoids this entirely.
-    let log_dir = dirs_for_log(api_dir);
-    let stderr_target = match std::fs::File::create(&log_dir) {
+    // We clone the file handle so both stdout and stderr share the same
+    // underlying file descriptor, preventing interleaved writes.
+    let log_path = dirs_for_log(api_dir);
+    let (stdout_target, stderr_target) = match std::fs::File::create(&log_path) {
         Ok(f) => {
-            eprintln!("[sidecar] backend stderr → {}", log_dir.display());
-            Stdio::from(f)
+            eprintln!("[sidecar] backend output → {}", log_path.display());
+            let stdout_file = f.try_clone().unwrap_or_else(|_| {
+                std::fs::OpenOptions::new()
+                    .append(true)
+                    .open(&log_path)
+                    .expect("failed to reopen log file")
+            });
+            (Stdio::from(stdout_file), Stdio::from(f))
         }
         Err(e) => {
-            eprintln!("[sidecar] could not create log file ({}), using inherit: {e}", log_dir.display());
-            Stdio::inherit()
+            eprintln!(
+                "[sidecar] could not create log file ({}), using inherit: {e}",
+                log_path.display()
+            );
+            (Stdio::inherit(), Stdio::inherit())
         }
-    };
-
-    // Also redirect stdout to prevent pipe buffer issues (same as stderr)
-    let stdout_target = match std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(&log_dir)
-    {
-        Ok(f) => Stdio::from(f),
-        Err(_) => Stdio::null(),
     };
 
     let child = if python == "uv" {
@@ -544,7 +545,7 @@ fn spawn_backend_inner(api_dir: &PathBuf) -> Result<Child, String> {
                 Ok(Some(status)) => {
                     // Process crashed immediately — read the log file for the reason
                     let mut error_msg = format!("バックエンドが起動直後にクラッシュしました (exit {status})");
-                    if let Ok(log_content) = std::fs::read_to_string(&log_dir) {
+                    if let Ok(log_content) = std::fs::read_to_string(&log_path) {
                         if !log_content.is_empty() {
                             let tail: String = log_content.chars().rev().take(500).collect::<Vec<_>>().into_iter().rev().collect();
                             eprintln!("[sidecar] backend stderr:\n{}", tail);

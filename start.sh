@@ -138,17 +138,34 @@ echo ""
 # ---------------------------------------------------------------------------
 info "Starting backend API server (port 18234)..."
 cd "$ROOT_DIR/apps/api"
-source .venv/bin/activate
-uvicorn app.main:app --reload --host 0.0.0.0 --port 18234 &
+# Use the venv Python directly to ensure correct environment
+.venv/bin/python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 18234 &
 PIDS+=($!)
 cd "$ROOT_DIR"
+
+# Wait for backend to be ready before starting frontend
+info "Waiting for backend to be ready..."
+for i in $(seq 1 30); do
+    if curl -sf http://127.0.0.1:18234/healthz > /dev/null 2>&1; then
+        ok "Backend is ready"
+        break
+    fi
+    if [ "$i" -eq 30 ]; then
+        warn "Backend not yet ready after 30s, continuing anyway..."
+    fi
+    sleep 1
+done
 
 # ---------------------------------------------------------------------------
 # Start frontend
 # ---------------------------------------------------------------------------
 info "Starting frontend dev server (port 5173)..."
 cd "$ROOT_DIR/apps/desktop/ui"
-pnpm dev &
+if command -v pnpm &> /dev/null; then
+    pnpm dev &
+else
+    npm run dev &
+fi
 PIDS+=($!)
 cd "$ROOT_DIR"
 
