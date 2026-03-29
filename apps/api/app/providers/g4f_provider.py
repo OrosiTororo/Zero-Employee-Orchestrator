@@ -87,7 +87,7 @@ _G4F_MODEL_MAP: dict[str, dict] = {
     # ── Subscription / authenticated providers ──────────────────────────────
     "g4f/Gemini": {
         "provider": "Gemini",
-        "model": "gemini-2.5-flash",  # authenticated Gemini; g4f uses this identifier
+        "model": "gemini-3.1-flash-lite",  # authenticated Gemini; g4f uses this identifier
         "needs_auth": True,
         "description": "Google Gemini with Google account (Gemini Advanced subscription)",
     },
