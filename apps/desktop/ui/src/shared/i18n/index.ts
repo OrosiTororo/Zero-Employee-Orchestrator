@@ -28,11 +28,16 @@ export const locales: Record<Locale, Messages> = {
   tr: trLocale as unknown as Messages,
 }
 
+/** All known locale codes for validation */
+const KNOWN_LOCALES = new Set<string>(Object.keys(locales))
+
+function isValidLocale(s: string): s is Locale {
+  return KNOWN_LOCALES.has(s)
+}
+
 interface I18nState {
   locale: Locale
   messages: Messages
-  /** True once the user has explicitly chosen a language (or it was restored from storage). */
-  localeChosen: boolean
   setLocale: (locale: Locale) => void
 }
 
@@ -46,31 +51,64 @@ function detectLocaleFromOS(): Locale {
   return "en"
 }
 
-function getInitialLocale(): { locale: Locale; chosen: boolean } {
+/**
+ * Determine initial locale. Priority:
+ * 1. User preference saved in localStorage (from Settings)
+ * 2. OS language detection (matches installer language on first launch)
+ */
+function getInitialLocale(): Locale {
   try {
     const stored = localStorage.getItem("locale")
-    if (stored && stored in locales) return { locale: stored as Locale, chosen: true }
+    if (stored && isValidLocale(stored)) return stored
   } catch {
     // localStorage unavailable
   }
-  // No stored preference — detect from OS language for initial display,
-  // but still show the LanguageGate so the user can confirm or change.
-  return { locale: detectLocaleFromOS(), chosen: false }
+  return detectLocaleFromOS()
 }
 
 export const useI18n = create<I18nState>((set) => {
-  const { locale: initial, chosen } = getInitialLocale()
+  const initial = getInitialLocale()
+  document.documentElement.lang = initial
   return {
     locale: initial,
     messages: locales[initial],
-    localeChosen: chosen,
     setLocale: (locale: Locale) => {
       try { localStorage.setItem("locale", locale) } catch { /* noop */ }
       document.documentElement.lang = locale
-      set({ locale, messages: locales[locale], localeChosen: true })
+      set({ locale, messages: locales[locale] })
     },
   }
 })
+
+/**
+ * On Tauri (desktop), try to read the installer-selected locale and apply it
+ * if the user hasn't already set a preference via Settings.
+ * This runs once at startup and is a no-op on non-Tauri environments.
+ */
+export async function applyInstallerLocale(): Promise<void> {
+  // Skip if user already has a saved preference
+  try {
+    if (localStorage.getItem("locale")) return
+  } catch {
+    return
+  }
+
+  const isTauri =
+    typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
+  if (!isTauri) return
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const internals = (window as any).__TAURI_INTERNALS__
+    if (!internals?.invoke) return
+    const installerLocale = await internals.invoke("get_installer_locale")
+    if (installerLocale && isValidLocale(installerLocale)) {
+      useI18n.getState().setLocale(installerLocale)
+    }
+  } catch {
+    // Not critical — OS detection already applied
+  }
+}
 
 /** Convenience hook that returns only the messages object */
 export function useT() {

@@ -59,7 +59,8 @@
           "Korean",
           "PortugueseBR",
           "Turkish"
-        ]
+        ],
+        "installerHooks": "nsis/hooks.nsh"
       }
     }
   },

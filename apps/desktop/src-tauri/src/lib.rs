@@ -739,6 +739,26 @@ fn check_backend_health() -> String {
     "unreachable".to_string()
 }
 
+/// Tauri command: read the locale selected during NSIS installation.
+/// Returns a locale code (e.g. "ja", "en") or null if not found.
+/// The installer writes `installer_locale.txt` next to the executable.
+#[tauri::command]
+fn get_installer_locale() -> Option<String> {
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(exe_dir) = exe.parent() {
+            let locale_file = exe_dir.join("installer_locale.txt");
+            if let Ok(content) = std::fs::read_to_string(&locale_file) {
+                let locale = content.trim().to_string();
+                if !locale.is_empty() {
+                    eprintln!("[sidecar] installer locale: {}", locale);
+                    return Some(locale);
+                }
+            }
+        }
+    }
+    None
+}
+
 /// Tauri command: get the current startup phase for progress display.
 #[tauri::command]
 fn get_startup_phase(phase_state: tauri::State<'_, StartupPhase>) -> String {
@@ -792,7 +812,8 @@ pub fn run() {
             restart_backend,
             check_backend_health,
             get_backend_error,
-            get_startup_phase
+            get_startup_phase,
+            get_installer_locale
         ])
         .setup(|app| {
             // Initialize states with empty values — backend spawns in background.
