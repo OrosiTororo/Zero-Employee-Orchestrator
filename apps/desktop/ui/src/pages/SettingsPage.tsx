@@ -16,6 +16,10 @@ import {
   X,
   Palette,
   ChevronDown,
+  Bot,
+  Monitor,
+  FolderOpen,
+  Cloud,
 } from "lucide-react"
 import { api } from "../shared/api/client"
 import { useT, useI18n, LOCALE_LABELS, BUILTIN_LOCALES, type Locale } from "@/shared/i18n"
@@ -473,6 +477,75 @@ export function SettingsPage() {
               {EXECUTION_MODES.find((m) => m.value === executionMode)
                 ? t.settings[EXECUTION_MODES.find((m) => m.value === executionMode)!.descKey]
                 : ""}
+            </div>
+          </div>
+        </SettingsSection>
+
+        {/* Agent Behavior */}
+        <SettingsSection icon={Bot} title={t.settings.agentBehavior}>
+          <div className="flex flex-col gap-4">
+            {/* Autonomy Level */}
+            <div>
+              <label className="text-[11px] text-[var(--text-muted)] block mb-2">{t.settings.autonomyLevel}</label>
+              <div className="flex flex-wrap gap-2">
+                {(["observe", "assist", "semi_auto", "autonomous"] as const).map(level => (
+                  <button key={level}
+                    className="px-3 py-1.5 rounded text-[12px] border transition-colors"
+                    style={{
+                      background: level === "semi_auto" ? "var(--accent)" : "transparent",
+                      color: level === "semi_auto" ? "var(--accent-fg)" : "var(--text-primary)",
+                      borderColor: level === "semi_auto" ? "var(--accent)" : "var(--border)",
+                    }}>
+                    {t.settings[`autonomy_${level}` as keyof typeof t.settings] as string}
+                  </button>
+                ))}
+              </div>
+              <div className="text-[11px] text-[var(--text-muted)] mt-1">{t.settings.autonomyDesc}</div>
+            </div>
+
+            {/* Browser Automation */}
+            <div className="rounded border border-[var(--border)] bg-[var(--bg-base)] p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Monitor size={14} className="text-[var(--accent)]" />
+                <span className="text-[12px] font-medium text-[var(--text-primary)]">{t.settings.browserAutomation}</span>
+              </div>
+              <div className="flex flex-col gap-2 text-[12px]">
+                <label className="flex items-center justify-between">
+                  <span className="text-[var(--text-secondary)]">{t.settings.browserEnabled}</span>
+                  <span className="text-[var(--success-fg)] text-[11px]">ON</span>
+                </label>
+                <label className="flex items-center justify-between">
+                  <span className="text-[var(--text-secondary)]">{t.settings.webAiSession}</span>
+                  <span className="text-[var(--success-fg)] text-[11px]">ON</span>
+                </label>
+                <label className="flex items-center justify-between">
+                  <span className="text-[var(--text-secondary)]">{t.settings.siteInteraction}</span>
+                  <span className="text-[var(--text-muted)] text-[11px]">{t.settings.requiresApproval}</span>
+                </label>
+              </div>
+              <div className="text-[11px] text-[var(--text-muted)] mt-2">{t.settings.browserDesc}</div>
+            </div>
+
+            {/* Workspace Access */}
+            <div className="rounded border border-[var(--border)] bg-[var(--bg-base)] p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <FolderOpen size={14} className="text-[var(--accent)]" />
+                <span className="text-[12px] font-medium text-[var(--text-primary)]">{t.settings.workspaceAccess}</span>
+              </div>
+              <div className="flex flex-col gap-2 text-[12px]">
+                <label className="flex items-center justify-between">
+                  <span className="text-[var(--text-secondary)]">{t.settings.localFileAccess}</span>
+                  <span className="text-[var(--text-muted)] text-[11px]">OFF</span>
+                </label>
+                <label className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Cloud size={12} className="text-[var(--text-muted)]" />
+                    <span className="text-[var(--text-secondary)]">{t.settings.cloudAccess}</span>
+                  </div>
+                  <span className="text-[var(--text-muted)] text-[11px]">OFF</span>
+                </label>
+              </div>
+              <div className="text-[11px] text-[var(--text-muted)] mt-2">{t.settings.workspaceDesc}</div>
             </div>
           </div>
         </SettingsSection>

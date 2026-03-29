@@ -107,6 +107,7 @@
     "brainstorm": "壁打ち・モデル比較",
     "monitor": "エージェント監視",
     "extensions": "拡張機能",
+    "marketplace": "マーケットプレイス",
     "permissions": "権限管理",
     "settings": "設定"
   },
@@ -277,7 +278,24 @@
     "catProductivity": "生産性",
     "catDev": "開発",
     "catCommunication": "コミュニケーション",
-    "catAutomation": "自動化"
+    "catAutomation": "自動化",
+    "agentBehavior": "エージェント挙動",
+    "autonomyLevel": "自律レベル",
+    "autonomy_observe": "監視のみ",
+    "autonomy_assist": "アシスト",
+    "autonomy_semi_auto": "半自動",
+    "autonomy_autonomous": "自律",
+    "autonomyDesc": "監視のみ: 読み取り専用 / アシスト: 提案のみ / 半自動: 承認後に実行 / 自律: 安全な範囲で自動実行",
+    "browserAutomation": "ブラウザ操作",
+    "browserEnabled": "ブラウザ自動操作",
+    "webAiSession": "Web AI セッション（API不要でAIを使用）",
+    "siteInteraction": "サイト操作（アカウント登録・フォーム入力等）",
+    "requiresApproval": "承認が必要",
+    "browserDesc": "AIがChrome等のブラウザを操作し、Web版GPT/Gemini/Claudeの利用、サイトでのタスク実行、情報収集を行えます。危険な操作は承認が必要です。",
+    "workspaceAccess": "ワークスペースアクセス",
+    "localFileAccess": "ローカルファイルアクセス",
+    "cloudAccess": "クラウドストレージ接続",
+    "workspaceDesc": "デフォルトでは内部ストレージのみ使用。ローカルファイルやクラウドへのアクセスはここで許可できます。"
   },
   "heartbeats": {
     "title": "ヘルスモニター",
@@ -448,6 +466,22 @@
     "kanji": "漢字",
     "hiragana": "ひらがな",
     "katakana": "カタカナ"
+  },
+  "marketplace": {
+    "title": "マーケットプレイス",
+    "subtitle": "コミュニティが作成したスキル、プラグイン、拡張機能を検索・インストールできます。",
+    "searchPlaceholder": "スキル、プラグイン、拡張機能を検索...",
+    "comingSoon": "マーケットプレイス準備中",
+    "comingSoonDesc": "ユーザーが作成したスキル・プラグイン・拡張機能を公開・ダウンロードできるマーケットプレイスを準備中です。テーマ、言語パック、ツール連携、AIスキルなどが公開予定です。",
+    "install": "インストール"
+  },
+  "commandPalette": {
+    "placeholder": "コマンドを検索... (ページ移動、アクション)",
+    "noResults": "一致するコマンドが見つかりませんでした",
+    "catNavigation": "ページ移動",
+    "catActions": "アクション",
+    "newSkill": "新規スキルを作成",
+    "newTicket": "新規チケットを作成"
   },
   "releases": {
     "title": "ダウンロード",

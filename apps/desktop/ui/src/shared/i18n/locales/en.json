@@ -107,6 +107,7 @@
     "brainstorm": "Brainstorm",
     "monitor": "Agent Monitor",
     "extensions": "Extensions",
+    "marketplace": "Marketplace",
     "permissions": "Permissions",
     "settings": "Settings"
   },
@@ -277,7 +278,24 @@
     "catProductivity": "Productivity",
     "catDev": "Development",
     "catCommunication": "Communication",
-    "catAutomation": "Automation"
+    "catAutomation": "Automation",
+    "agentBehavior": "Agent Behavior",
+    "autonomyLevel": "Autonomy Level",
+    "autonomy_observe": "Observe",
+    "autonomy_assist": "Assist",
+    "autonomy_semi_auto": "Semi-Auto",
+    "autonomy_autonomous": "Autonomous",
+    "autonomyDesc": "Observe: Read-only / Assist: Suggestions only / Semi-Auto: Execute after approval / Autonomous: Auto-execute within safe boundaries",
+    "browserAutomation": "Browser Automation",
+    "browserEnabled": "Browser automation",
+    "webAiSession": "Web AI sessions (use AI without API keys)",
+    "siteInteraction": "Site interaction (account registration, form filling, etc.)",
+    "requiresApproval": "Requires approval",
+    "browserDesc": "AI can control Chrome and other browsers to use web-based GPT/Gemini/Claude, execute site tasks, and gather information. Dangerous operations require approval.",
+    "workspaceAccess": "Workspace Access",
+    "localFileAccess": "Local file access",
+    "cloudAccess": "Cloud storage connections",
+    "workspaceDesc": "By default, only internal storage is used. Enable local file or cloud access here."
   },
   "heartbeats": {
     "title": "Health Monitor",
@@ -448,6 +466,22 @@
     "kanji": "Kanji",
     "hiragana": "Hiragana",
     "katakana": "Katakana"
+  },
+  "marketplace": {
+    "title": "Marketplace",
+    "subtitle": "Discover and install community-created skills, plugins, and extensions.",
+    "searchPlaceholder": "Search skills, plugins, extensions...",
+    "comingSoon": "Marketplace Coming Soon",
+    "comingSoonDesc": "A marketplace for publishing and downloading user-created skills, plugins, and extensions is in development. Themes, language packs, tool integrations, and AI skills will be available.",
+    "install": "Install"
+  },
+  "commandPalette": {
+    "placeholder": "Search commands... (navigation, actions)",
+    "noResults": "No matching commands found",
+    "catNavigation": "Navigation",
+    "catActions": "Actions",
+    "newSkill": "Create New Skill",
+    "newTicket": "Create New Ticket"
   },
   "releases": {
     "title": "Downloads",

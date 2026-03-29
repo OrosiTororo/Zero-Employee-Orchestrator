@@ -11,6 +11,7 @@ import {
   ScrollText,
   Blocks,
   Puzzle,
+  Store,
   Settings as SettingsIcon,
   LogOut,
   Activity,
@@ -20,6 +21,7 @@ import {
 import { useAuthStore } from "@/shared/hooks/use-auth"
 import { LogoMark } from "@/shared/ui/Logo"
 import { UpdateBanner } from "@/shared/ui/UpdateBanner"
+import { CommandPalette } from "@/shared/ui/CommandPalette"
 import { useT } from "@/shared/i18n"
 
 interface LayoutProps {
@@ -45,6 +47,7 @@ export function Layout({ children }: LayoutProps) {
     { icon: Blocks, path: "/skills", label: t.nav.skills },
     { icon: Puzzle, path: "/plugins", label: t.nav.plugins },
     { icon: Blocks, path: "/extensions", label: t.nav.extensions },
+    { icon: Store, path: "/marketplace", label: t.nav.marketplace },
     { icon: Sparkles, path: "/brainstorm", label: t.nav.brainstorm },
     { icon: Activity, path: "/monitor", label: t.nav.monitor },
     { icon: Shield, path: "/permissions", label: t.nav.permissions },
@@ -65,6 +68,7 @@ export function Layout({ children }: LayoutProps) {
     "/skills/create": t.nav.skillCreate,
     "/plugins": t.nav.plugins,
     "/extensions": t.nav.extensions,
+    "/marketplace": t.nav.marketplace,
     "/brainstorm": t.nav.brainstorm,
     "/monitor": t.nav.monitor,
     "/permissions": t.nav.permissions,
@@ -170,6 +174,7 @@ export function Layout({ children }: LayoutProps) {
         <span className="text-[var(--text-muted)]">{t.common.typescriptReact}</span>
       </footer>
 
+      <CommandPalette />
       <UpdateBanner />
     </div>
   )
