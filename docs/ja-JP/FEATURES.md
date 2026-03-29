@@ -360,9 +360,9 @@ provisioning → idle → busy → idle
 | Claude Haiku | 0.001 | 0.005 |
 | GPT | 0.005 | 0.015 |
 | GPT Mini | 0.00015 | 0.0006 |
-| Gemini Pro | 0.00125 | 0.005 |
-| Gemini Flash | 0.0001 | 0.0004 |
-| Gemini Flash Lite | 0.00005 | 0.0002 |
+| Gemini Pro | 0.002 | 0.018 |
+| Gemini Flash | 0.00025 | 0.0015 |
+| Gemini Flash Lite | 0.00025 | 0.0015 |
 | DeepSeek Chat | 0.00014 | 0.00028 |
 | Ollama (ローカル) | 0.0 | 0.0 |
 | g4f (無料プロバイダー) | 0.0 | 0.0 |

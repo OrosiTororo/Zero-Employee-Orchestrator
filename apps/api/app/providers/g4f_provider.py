@@ -50,7 +50,7 @@ _G4F_MODEL_MAP: dict[str, dict] = {
     # ── Free providers (no account needed) ─────────────────────────────────
     "g4f/GeminiPro": {
         "provider": "GeminiPro",
-        "model": "models/gemini-2.5-flash",
+        "model": "models/gemini-3.1-flash-lite",
         "needs_auth": False,
         "description": "Google Gemini Flash (free, no API key)",
     },
