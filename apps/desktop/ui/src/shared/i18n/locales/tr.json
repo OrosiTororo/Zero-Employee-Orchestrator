@@ -104,7 +104,9 @@
     "skills": "Beceriler",
     "skillCreate": "Beceri Oluştur",
     "plugins": "Eklentiler",
-    "releases": "İndirmeler",
+    "brainstorm": "Beyin Fırtınası",
+    "monitor": "Ajan İzleme",
+    "permissions": "İzin Yönetimi",
     "settings": "Ayarlar"
   },
   "setup": {

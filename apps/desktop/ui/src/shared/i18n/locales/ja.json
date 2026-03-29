@@ -104,7 +104,9 @@
     "skills": "スキル",
     "skillCreate": "スキル作成",
     "plugins": "プラグイン",
-    "releases": "ダウンロード",
+    "brainstorm": "壁打ち・モデル比較",
+    "monitor": "エージェント監視",
+    "permissions": "権限管理",
     "settings": "設定"
   },
   "setup": {

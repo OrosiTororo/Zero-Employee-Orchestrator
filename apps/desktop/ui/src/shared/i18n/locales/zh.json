@@ -104,7 +104,9 @@
     "skills": "技能",
     "skillCreate": "创建技能",
     "plugins": "插件",
-    "releases": "下载",
+    "brainstorm": "头脑风暴",
+    "monitor": "代理监控",
+    "permissions": "权限管理",
     "settings": "设置"
   },
   "setup": {

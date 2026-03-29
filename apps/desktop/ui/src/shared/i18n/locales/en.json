@@ -104,7 +104,9 @@
     "skills": "Skills",
     "skillCreate": "Create Skill",
     "plugins": "Plugins",
-    "releases": "Downloads",
+    "brainstorm": "Brainstorm",
+    "monitor": "Agent Monitor",
+    "permissions": "Permissions",
     "settings": "Settings"
   },
   "setup": {

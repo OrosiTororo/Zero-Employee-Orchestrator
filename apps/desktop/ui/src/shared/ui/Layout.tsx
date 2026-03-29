@@ -11,9 +11,7 @@ import {
   ScrollText,
   Blocks,
   Puzzle,
-  Settings,
-  Download,
-  ChevronRight,
+  Settings as SettingsIcon,
   LogOut,
   Activity,
   Shield,
@@ -46,11 +44,10 @@ export function Layout({ children }: LayoutProps) {
     { icon: ScrollText, path: "/audit", label: t.nav.audit },
     { icon: Blocks, path: "/skills", label: t.nav.skills },
     { icon: Puzzle, path: "/plugins", label: t.nav.plugins },
-    { icon: Sparkles, path: "/brainstorm", label: "壁打ち・モデル比較" },
-    { icon: Activity, path: "/monitor", label: "エージェント監視" },
-    { icon: Shield, path: "/permissions", label: "権限管理" },
-    { icon: Download, path: "/releases", label: t.nav.releases },
-    { icon: Settings, path: "/settings", label: t.nav.settings },
+    { icon: Sparkles, path: "/brainstorm", label: t.nav.brainstorm },
+    { icon: Activity, path: "/monitor", label: t.nav.monitor },
+    { icon: Shield, path: "/permissions", label: t.nav.permissions },
+    { icon: SettingsIcon, path: "/settings", label: t.nav.settings },
   ]
 
   const pageTitles: Record<string, string> = {
@@ -66,11 +63,9 @@ export function Layout({ children }: LayoutProps) {
     "/skills": t.nav.skills,
     "/skills/create": t.nav.skillCreate,
     "/plugins": t.nav.plugins,
-    "/download": t.nav.releases,
-    "/releases": t.nav.releases,
-    "/brainstorm": "壁打ち・モデル比較",
-    "/monitor": "エージェント監視",
-    "/permissions": "権限管理",
+    "/brainstorm": t.nav.brainstorm,
+    "/monitor": t.nav.monitor,
+    "/permissions": t.nav.permissions,
     "/settings": t.nav.settings,
   }
 
@@ -87,12 +82,8 @@ export function Layout({ children }: LayoutProps) {
       >
         <div className="flex items-center gap-2 px-3">
           <LogoMark size={14} />
-          <span className="text-[12px] text-[var(--text-secondary)]">
-            Zero-Employee Orchestrator
-          </span>
-          <ChevronRight size={11} className="text-[var(--text-muted)]" />
-          <span className="text-[12px] text-[var(--text-primary)]">
-            {currentTitle}
+          <span className="text-[12px] text-[var(--text-muted)]">
+            {currentTitle} — {t.common.appName}
           </span>
         </div>
         <div className="flex-1" />
@@ -138,7 +129,7 @@ export function Layout({ children }: LayoutProps) {
               navigate("/login")
             }}
             className="w-[48px] h-[40px] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-            title="ログアウト"
+            title={t.auth.logout}
           >
             <LogOut size={20} />
           </button>

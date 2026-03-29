@@ -104,7 +104,9 @@
     "skills": "스킬",
     "skillCreate": "스킬 생성",
     "plugins": "플러그인",
-    "releases": "다운로드",
+    "brainstorm": "브레인스토밍",
+    "monitor": "에이전트 모니터",
+    "permissions": "권한 관리",
     "settings": "설정"
   },
   "setup": {
