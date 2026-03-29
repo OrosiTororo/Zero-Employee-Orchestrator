@@ -146,6 +146,30 @@ No aplicativo desktop, altere o idioma a qualquer momento em **Configurações**
 
 ---
 
+## 🐳 Docker
+
+### API + Frontend (recomendado)
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+# → Abra http://localhost:5173
+```
+
+Isso inicia três serviços: servidor API (porta 18234), Frontend (porta 5173) e um worker em segundo plano.
+
+> **Nota:** Requer a variável de ambiente `SECRET_KEY`. Gere uma: `python -c "import secrets; print(secrets.token_urlsafe(32))"`
+
+### Apenas API
+
+```bash
+docker compose up -d
+# → API disponível em http://localhost:18234/api/v1/
+```
+
+Inicia apenas o servidor API. Use com o Aplicativo Desktop ou seu próprio frontend.
+
+---
+
 ## Guias
 
 <table>
@@ -200,7 +224,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # Workers em segundo plano
 ├── skills/                   # 8 skills integradas
 ├── plugins/                  # 10 manifestos de plugins
-├── extensions/               # 11 manifestos de extensões
+├── extensions/               # 12 manifestos de extensões
 │   └── browser-assist/
 │       └── chrome-extension/ # Extensão Chrome para Browser Assist
 ├── packages/                 # Pacotes NPM compartilhados

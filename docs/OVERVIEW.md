@@ -250,7 +250,7 @@ ZEO is composed of 9 layers. Each layer has independent responsibilities.
 | Approval Gate | `policies/approval_gate.py` | 109 | Implemented |
 | Sanitizer | `security/sanitizer.py` | 83 | Implemented |
 
-### API Endpoints (Implemented — 24 Route Modules)
+### API Endpoints (Implemented — 41 Route Modules)
 
 | Endpoint Group | Key Features |
 |---------------|-------------|
@@ -592,7 +592,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                    # FastAPI backend
 │   │   ├── app/
 │   │   │   ├── core/           # Configuration, DB, security, i18n
-│   │   │   ├── api/routes/     # REST API (24 routes)
+│   │   │   ├── api/routes/     # REST API (41 routes)
 │   │   │   ├── api/ws/         # WebSocket
 │   │   │   ├── models/         # ORM models (29 tables / 18 files)
 │   │   │   ├── schemas/        # Pydantic DTO

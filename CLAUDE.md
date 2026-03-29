@@ -54,7 +54,7 @@ apps/
 │   │   ├── schemas/        # Pydantic DTO
 │   │   ├── services/       # Business logic (25 services)
 │   │   ├── repositories/   # DB I/O abstraction
-│   │   ├── orchestration/  # DAG, Judge, state machine, Knowledge, Memory, MetaSkill, A2A, Transparency (23 modules)
+│   │   ├── orchestration/  # DAG, Judge, state machine, Knowledge, Memory, MetaSkill, A2A, Transparency (22 modules)
 │   │   ├── heartbeat/      # Heartbeat scheduler
 │   │   ├── providers/      # LLM gateway, Ollama, g4f, RAG, ModelRegistry, WebSession
 │   │   ├── tools/          # External tool connectors (MCP/Webhook/API/CLI/GraphQL/Browser/BrowserAdapter/LSP)

@@ -146,6 +146,30 @@ zero-employee config set LANGUAGE ko
 
 ---
 
+## 🐳 Docker
+
+### API + 프론트엔드 (권장)
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+# → http://localhost:5173 열기
+```
+
+API 서버(포트 18234), 프론트엔드(포트 5173), 백그라운드 워커의 세 가지 서비스가 시작됩니다.
+
+> **참고:** `SECRET_KEY` 환경 변수가 필요합니다. 생성 방법: `python -c "import secrets; print(secrets.token_urlsafe(32))"`
+
+### API만
+
+```bash
+docker compose up -d
+# → API는 http://localhost:18234/api/v1/ 에서 사용 가능
+```
+
+API 서버만 시작합니다. 데스크톱 앱 또는 자체 프론트엔드와 함께 사용하세요.
+
+---
+
 ## 가이드
 
 <table>
@@ -200,7 +224,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # 백그라운드 워커
 ├── skills/                   # 내장 스킬 (8개)
 ├── plugins/                  # 플러그인 매니페스트 (10개)
-├── extensions/               # 익스텐션 매니페스트 (11개)
+├── extensions/               # 익스텐션 매니페스트 (12개)
 │   └── browser-assist/
 │       └── chrome-extension/ # 브라우저 어시스트용 Chrome 확장 프로그램
 ├── packages/                 # 공유 NPM 패키지

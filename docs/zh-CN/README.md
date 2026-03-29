@@ -146,6 +146,30 @@ zero-employee config set LANGUAGE zh
 
 ---
 
+## 🐳 Docker
+
+### API + 前端（推荐）
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+# → 打开 http://localhost:5173
+```
+
+将启动三个服务：API 服务器（端口 18234）、前端（端口 5173）和后台工作进程。
+
+> **注意：** 需要 `SECRET_KEY` 环境变量。生成方式：`python -c "import secrets; print(secrets.token_urlsafe(32))"`
+
+### 仅 API
+
+```bash
+docker compose up -d
+# → API 可在 http://localhost:18234/api/v1/ 访问
+```
+
+仅启动 API 服务器。可与桌面应用或自定义前端配合使用。
+
+---
+
 ## 指南
 
 <table>
@@ -200,7 +224,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # 后台工作进程
 ├── skills/                   # 8 个内置技能
 ├── plugins/                  # 10 个插件清单
-├── extensions/               # 11 个扩展清单
+├── extensions/               # 12 个扩展清单
 │   └── browser-assist/
 │       └── chrome-extension/ # 浏览器辅助 Chrome 扩展程序
 ├── packages/                 # 共享 NPM 包
