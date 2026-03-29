@@ -10,7 +10,7 @@ web/app services and do **not** grant programmatic API access.  API access is a
 separate paid product billed per token.
 
 To use this system without spending money you have two options:
-  1. **Ollama** – run open-weight LLMs locally (Llama 3, Mistral, etc.).
+  1. **Ollama** – run open-weight LLMs locally (Llama, Mistral, etc.).
      Set OLLAMA_BASE_URL and choose ``ExecutionMode.FREE``.
   2. **Google Gemini free tier** – Google AI Studio provides a free API key
      with generous rate limits.  Set GEMINI_API_KEY.

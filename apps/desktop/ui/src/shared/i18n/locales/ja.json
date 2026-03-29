@@ -156,7 +156,7 @@
       "openrouter": "OpenRouter",
       "openrouterDesc": "多数のAIモデルを一括利用",
       "openai": "OpenAI",
-      "openaiDesc": "GPT-4o等を直接利用",
+      "openaiDesc": "GPT等を直接利用",
       "anthropic": "Anthropic",
       "anthropicDesc": "Claude等を直接利用",
       "local": "ローカルモデル",

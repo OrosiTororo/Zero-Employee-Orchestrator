@@ -169,7 +169,7 @@ GEMINI_API_KEY=<Google AI Studio で取得したキー>
 DEFAULT_EXECUTION_MODE=free
 ```
 
-本格運用には、OpenRouter / OpenAI / Anthropic の API キーを設定することで、Claude Opus 4.6、GPT-5.4、Gemini 2.5 Pro などの高品質モデルが利用可能です。対応モデルは `model_catalog.json` で動的に管理されており、コード変更なしにモデルを追加・切替できます。
+本格運用には、OpenRouter / OpenAI / Anthropic の API キーを設定することで、Claude Opus、GPT、Gemini Pro などの高品質モデルが利用可能です。対応モデルは `model_catalog.json` で動的に管理されており、コード変更なしにモデルを追加・切替できます。具体的なモデルバージョンは最新版に自動解決されます。
 
 ---
 

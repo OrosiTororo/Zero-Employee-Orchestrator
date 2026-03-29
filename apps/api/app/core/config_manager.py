@@ -35,8 +35,8 @@ CONFIGURABLE_KEYS: dict[str, dict[str, str]] = {
         "sensitive": "true",
     },
     "OPENAI_API_KEY": {
-        "description": "OpenAI API key (GPT-5.4 etc.)",
-        "description_ja": "OpenAI API キー（GPT-5.4等）",
+        "description": "OpenAI API key (GPT etc.)",
+        "description_ja": "OpenAI API キー（GPT等）",
         "category": "provider",
         "sensitive": "true",
     },
@@ -451,17 +451,17 @@ def get_provider_status() -> dict[str, dict[str, Any]]:
         "openai": {
             "name": "OpenAI",
             "key": "OPENAI_API_KEY",
-            "description": "GPT-5.4, GPT-5 Mini, etc.",
+            "description": "GPT, GPT Mini, etc.",
         },
         "anthropic": {
             "name": "Anthropic",
             "key": "ANTHROPIC_API_KEY",
-            "description": "Claude Opus 4.6, Sonnet 4.6, Haiku 4.5, etc.",
+            "description": "Claude Opus, Sonnet, Haiku, etc.",
         },
         "gemini": {
             "name": "Google Gemini",
             "key": "GEMINI_API_KEY",
-            "description": "Gemini 2.5 Pro/Flash (free tier available)",
+            "description": "Gemini Pro/Flash (free tier available)",
         },
         "ollama": {
             "name": "Ollama (Local)",

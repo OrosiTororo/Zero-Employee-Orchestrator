@@ -5,10 +5,10 @@ key** by routing requests through free and subscription-based AI services.
 
 Free tier (no account needed)
 ------------------------------
-* ``g4f/GeminiPro``    — Google Gemini 2.5 Flash via a free web endpoint
-* ``g4f/Copilot``      — Microsoft Copilot (GPT-5.4 backbone)
-* ``g4f/OpenaiChat``   — ChatGPT web interface (free tier, GPT-5-mini)
-* ``g4f/Claude``       — Anthropic Claude via a free relay (Claude Haiku 4.5)
+* ``g4f/GeminiPro``    — Google Gemini Flash via a free web endpoint
+* ``g4f/Copilot``      — Microsoft Copilot (GPT backbone)
+* ``g4f/OpenaiChat``   — ChatGPT web interface (free tier, GPT Mini)
+* ``g4f/Claude``       — Anthropic Claude via a free relay (Claude Haiku)
 * ``g4f/DeepInfra``    — Various open-weight models (Llama, Mistral, …)
 * ``g4f/ApiAirforce``  — Multi-model free relay
 
@@ -52,31 +52,31 @@ _G4F_MODEL_MAP: dict[str, dict] = {
         "provider": "GeminiPro",
         "model": "models/gemini-2.5-flash",
         "needs_auth": False,
-        "description": "Google Gemini 2.5 Flash (free, no API key)",
+        "description": "Google Gemini Flash (free, no API key)",
     },
     "g4f/Copilot": {
         "provider": "Copilot",
         "model": "gpt-5.4",
         "needs_auth": False,
-        "description": "Microsoft Copilot / GPT-5.4 (free, no API key)",
+        "description": "Microsoft Copilot / GPT (free, no API key)",
     },
     "g4f/OpenaiChat": {
         "provider": "OpenaiChat",
         "model": "gpt-5-mini",
         "needs_auth": False,
-        "description": "ChatGPT web interface (free tier, GPT-5-mini, no API key)",
+        "description": "ChatGPT web interface (free tier, GPT Mini, no API key)",
     },
     "g4f/Claude": {
         "provider": "Claude",
         "model": "claude-haiku-4-5-20251001",
         "needs_auth": False,
-        "description": "Anthropic Claude Haiku 4.5 via free relay (no API key)",
+        "description": "Anthropic Claude Haiku via free relay (no API key)",
     },
     "g4f/DeepInfra": {
         "provider": "DeepInfra",
         "model": "meta-llama/Meta-Llama-3.1-70B-Instruct",
         "needs_auth": False,
-        "description": "Llama 3.1 70B via DeepInfra free relay (no API key)",
+        "description": "Llama 70B via DeepInfra free relay (no API key)",
     },
     "g4f/ApiAirforce": {
         "provider": "ApiAirforce",
@@ -95,7 +95,7 @@ _G4F_MODEL_MAP: dict[str, dict] = {
         "provider": "CopilotAccount",
         "model": "gpt-5.4",
         "needs_auth": True,
-        "description": "Microsoft Copilot Pro subscription (GPT-5.4)",
+        "description": "Microsoft Copilot Pro subscription (GPT)",
     },
 }
 

@@ -23,7 +23,7 @@ This document provides a comprehensive summary of currently implemented features
 | **CI Security** | Trivy container scanning, blocking pip-audit, red-team test job added |
 | **Red-team Tests** | All 22 tests now exercise actual security modules with real payloads |
 | **i18n** | 65+ translation keys across 6 languages (EN/JA/ZH/KO/PT/TR); default language changed to English |
-| **Model Catalog** | Updated to GPT-5.4, GPT-5.4 Mini, Llama 4, Phi-4, Claude Haiku latest |
+| **Model Catalog** | Updated to latest GPT, Llama, Phi, Claude Haiku versions |
 | **PII Guard** | All 13 categories now have detection patterns (added driver's license, Japanese name) |
 | **Documentation** | Corrected all inflated metrics; consistent across 7 language versions |
 
@@ -335,14 +335,14 @@ Cost information is dynamically loaded from the model catalog, so no code change
 
 | Model | Input ($/1K tokens) | Output ($/1K tokens) |
 |-------|---------------------|----------------------|
-| Claude Opus 4.6 | 0.015 | 0.075 |
-| Claude Sonnet 4.6 | 0.003 | 0.015 |
-| Claude Haiku 4.5 | 0.001 | 0.005 |
-| GPT-5.4 | 0.005 | 0.015 |
-| GPT-5.4 Mini | 0.00015 | 0.0006 |
-| Gemini 2.5 Pro | 0.00125 | 0.005 |
-| Gemini 2.5 Flash | 0.0001 | 0.0004 |
-| Gemini 2.5 Flash Lite | 0.00005 | 0.0002 |
+| Claude Opus | 0.015 | 0.075 |
+| Claude Sonnet | 0.003 | 0.015 |
+| Claude Haiku | 0.001 | 0.005 |
+| GPT | 0.005 | 0.015 |
+| GPT Mini | 0.00015 | 0.0006 |
+| Gemini Pro | 0.00125 | 0.005 |
+| Gemini Flash | 0.0001 | 0.0004 |
+| Gemini Flash Lite | 0.00005 | 0.0002 |
 | DeepSeek Chat | 0.00014 | 0.00028 |
 | Ollama (Local) | 0.0 | 0.0 |
 | g4f (Free provider) | 0.0 | 0.0 |
@@ -373,10 +373,10 @@ Cost information is dynamically loaded from the model catalog, so no code change
 
 | Mode | Recommended Models | Max Retries | Judge Threshold | Human Review | Cross-Model Verification |
 |------|-------------------|-------------|-----------------|--------------|------------------------|
-| **DRAFT** | GPT-5.4 Mini, Claude Haiku 4.5 | 1 | 50% | Not required | None |
-| **STANDARD** | GPT-5.4, Claude Sonnet 4.6 | 2 | 70% | Not required | None |
-| **HIGH** | GPT-5.4, Claude Sonnet 4.6 | 3 | 85% | Not required | **Enabled** |
-| **CRITICAL** | Claude Opus 4.6, GPT-5.4 | 5 | 95% | **Required** | **Enabled** |
+| **DRAFT** | GPT Mini, Claude Haiku | 1 | 50% | Not required | None |
+| **STANDARD** | GPT, Claude Sonnet | 2 | 70% | Not required | None |
+| **HIGH** | GPT, Claude Sonnet | 3 | 85% | Not required | **Enabled** |
+| **CRITICAL** | Claude Opus, GPT | 5 | 95% | **Required** | **Enabled** |
 
 Model selection, retry strategy, and verification level are automatically adjusted based on the quality mode.
 Recommended models are loaded from `model_catalog.json`, so only file editing is needed when updating models.
@@ -619,11 +619,11 @@ A unified LLM gateway based on LiteLLM supports multiple providers.
 | Provider | Example Models |
 |----------|---------------|
 | **OpenRouter** | Access multiple models with a single API key |
-| **OpenAI** | GPT-5.4, GPT-5.4 Mini |
-| **Anthropic** | Claude Opus 4.6, Sonnet 4.6, Haiku 4.5 |
-| **Google** | Gemini 2.5 Pro, Flash, Flash Lite |
+| **OpenAI** | GPT, GPT Mini |
+| **Anthropic** | Claude Opus, Sonnet, Haiku |
+| **Google** | Gemini Pro, Flash, Flash Lite |
 | **DeepSeek** | DeepSeek Chat |
-| **Ollama** | Llama 4, Mistral, Phi-4, Qwen3, etc. (local, free) |
+| **Ollama** | Llama, Mistral, Phi, Qwen, etc. (local, free) |
 | **g4f** | Via free providers (no API key required) |
 
 > **Supported models are managed in `model_catalog.json`.**
@@ -634,9 +634,9 @@ A unified LLM gateway based on LiteLLM supports multiple providers.
 
 | Mode | Description | Recommended Models |
 |------|-------------|-------------------|
-| `QUALITY` | Highest quality | Claude Opus 4.6, GPT-5.4 |
-| `SPEED` | Fast response | Claude Haiku 4.5, GPT-5.4 Mini |
-| `COST` | Low cost | Claude Haiku 4.5, GPT-5.4 Mini, DeepSeek |
+| `QUALITY` | Highest quality | Claude Opus, GPT |
+| `SPEED` | Fast response | Claude Haiku, GPT Mini |
+| `COST` | Low cost | Claude Haiku, GPT Mini, DeepSeek |
 | `FREE` | Free (local + free APIs) | Ollama, Gemini free tier, g4f |
 | `SUBSCRIPTION` | Free (no API key required) | Various models via g4f |
 

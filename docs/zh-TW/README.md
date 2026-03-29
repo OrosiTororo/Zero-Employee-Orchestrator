@@ -356,8 +356,8 @@ zero-employee update             # 更新至最新版本
 
 | 模式 | 描述 | 範例 |
 |------|------|------|
-| **Quality** | 最高品質 | Claude Opus, GPT-5.4, Gemini 2.5 Pro |
-| **Speed** | 快速回應 | Claude Haiku, GPT-5.4 Mini, Gemini 2.5 Flash |
+| **Quality** | 最高品質 | Claude Opus, GPT, Gemini Pro |
+| **Speed** | 快速回應 | Claude Haiku, GPT Mini, Gemini Flash |
 | **Cost** | 低成本 | Haiku, Mini, Flash Lite, DeepSeek |
 | **Free** | 免費 | Gemini 免費額度, Ollama 本地 |
 | **Subscription** | 無需 API 金鑰 | 透過 g4f |

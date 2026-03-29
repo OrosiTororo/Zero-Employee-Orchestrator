@@ -218,11 +218,11 @@ USE_G4F=true
 
 | プロバイダー名 | 経由サービス | 利用される AI モデル | 備考 |
 |--------------|------------|-------------------|------|
-| `g4f/GeminiPro` | Google Gemini 無料枠 | Gemini 2.5 Flash | 比較的安定 |
-| `g4f/Copilot` | Microsoft Copilot | GPT-4o 相当（変動あり） | 応答速度にばらつきあり |
-| `g4f/OpenaiChat` | ChatGPT Web 無料版 | GPT-4o Mini 相当（変動あり） | 制限が厳しい場合あり |
-| `g4f/DeepInfra` | DeepInfra 無料枠 | Llama 3.1 70B | オープンモデル |
-| `g4f/AirForce` | マルチモデルリレー | GPT-4o Mini 相当（変動あり） | 複数プロバイダーに自動切替 |
+| `g4f/GeminiPro` | Google Gemini 無料枠 | Gemini Flash | 比較的安定 |
+| `g4f/Copilot` | Microsoft Copilot | GPT 相当（変動あり） | 応答速度にばらつきあり |
+| `g4f/OpenaiChat` | ChatGPT Web 無料版 | GPT Mini 相当（変動あり） | 制限が厳しい場合あり |
+| `g4f/DeepInfra` | DeepInfra 無料枠 | Llama（最新） | オープンモデル |
+| `g4f/AirForce` | マルチモデルリレー | GPT Mini 相当（変動あり） | 複数プロバイダーに自動切替 |
 
 > **ヒント**: エラーが出た場合は別のプロバイダーに切り替えてください。
 > 最も安定しているのは `g4f/GeminiPro` です。
@@ -231,8 +231,8 @@ USE_G4F=true
 
 | プロバイダー名 | 必要なアカウント | 利用される AI モデル |
 |--------------|----------------|-------------------|
-| `g4f/Gemini` | Google アカウント（Gemini Advanced 推奨） | Gemini 2.5 Flash |
-| `g4f/CopilotAccount` | Microsoft アカウント（Copilot Pro 推奨） | GPT-4o 相当（変動あり） |
+| `g4f/Gemini` | Google アカウント（Gemini Advanced 推奨） | Gemini Flash |
+| `g4f/CopilotAccount` | Microsoft アカウント（Copilot Pro 推奨） | GPT 相当（変動あり） |
 
 ---
 
@@ -275,13 +275,13 @@ zero-employee config set GEMINI_API_KEY
 
 **.env ファイルを直接編集:**
 ```env
-# OpenAI（GPT-5.4, GPT-5.4 Mini 等）
+# OpenAI（GPT 等 — 利用可能なモデルは model_catalog.json で管理）
 OPENAI_API_KEY=sk-xxxxxxxxxxxx
 
-# Anthropic（Claude Opus 4.6, Sonnet 4.6, Haiku 4.5 等）
+# Anthropic（Claude Opus, Sonnet, Haiku 等）
 ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxx
 
-# Google Gemini（Gemini 2.5 Pro, Flash, Flash Lite 等）
+# Google Gemini（Gemini Pro, Flash, Flash Lite 等）
 GEMINI_API_KEY=AIzaSy-xxxxxxxxxxxx
 ```
 
@@ -516,8 +516,8 @@ Discord / Slack / LINE の Bot Plugin をインストールすると、普段使
 
 | モード | 説明 | 推奨用途 |
 |--------|------|---------|
-| `quality` | 最高品質モデル（Claude Opus 4.6, GPT-5.4, Gemini 2.5 Pro） | 重要な成果物 |
-| `speed` | 高速モデル（Claude Haiku 4.5, GPT-5.4 Mini, Gemini 2.5 Flash） | 簡単なタスク |
+| `quality` | 最高品質モデル（Claude Opus, GPT, Gemini Pro） | 重要な成果物 |
+| `speed` | 高速モデル（Claude Haiku, GPT Mini, Gemini Flash） | 簡単なタスク |
 | `cost` | 低コストモデル（Haiku, Mini, Flash Lite, DeepSeek） | 大量処理 |
 | `free` | 無料モデル（Gemini 無料枠 / Ollama ローカル） | テスト・開発 |
 | `subscription` | 無料（g4f 経由・API キー不要） | 試用向け |

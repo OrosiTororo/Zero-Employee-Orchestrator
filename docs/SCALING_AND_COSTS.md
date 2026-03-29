@@ -25,13 +25,13 @@ The primary cost of this system is LLM API usage fees.
 
 | Provider | Approximate Cost (per 1,000 tokens) | Notes |
 |---|---|---|
-| Claude Opus 4.6 | Input $0.015 / Output $0.075 | Highest quality, high cost |
-| Claude Sonnet 4.6 | Input $0.003 / Output $0.015 | Balance of quality and cost |
-| Claude Haiku 4.5 | Input $0.001 / Output $0.005 | Fast, low cost |
-| GPT-5.4 | Input $0.005 / Output $0.015 | OpenAI's high-performance model |
-| GPT-5.4 Mini | Input $0.00015 / Output $0.0006 | OpenAI's lightweight model |
-| Gemini 2.5 Pro | Input $0.00125 / Output $0.005 | Google's high-performance model |
-| Gemini 2.5 Flash | Input $0.0001 / Output $0.0004 | Free tier available |
+| Claude Opus | Input $0.015 / Output $0.075 | Highest quality, high cost |
+| Claude Sonnet | Input $0.003 / Output $0.015 | Balance of quality and cost |
+| Claude Haiku | Input $0.001 / Output $0.005 | Fast, low cost |
+| GPT | Input $0.005 / Output $0.015 | OpenAI's high-performance model |
+| GPT Mini | Input $0.00015 / Output $0.0006 | OpenAI's lightweight model |
+| Gemini Pro | Input $0.00125 / Output $0.005 | Google's high-performance model |
+| Gemini Flash | Input $0.0001 / Output $0.0004 | Free tier available |
 | DeepSeek Chat | Input $0.00014 / Output $0.00028 | Low cost |
 | Ollama (Local) | **Free** | Electricity cost only |
 | g4f (Free provider) | **Free** | Note stability and terms of service |
@@ -219,7 +219,7 @@ The following features have been designed but are not implemented or only partia
 - Parallel hypothesis verification (using Hypothesis Engine)
 - Automatic knowledge base construction
 
-**Estimated cost**: $200–$1,000/month (high-quality mode primarily using Opus / GPT-5.4)
+**Estimated cost**: $200–$1,000/month (high-quality mode primarily using Opus / GPT)
 
 **Required environment**:
 - Large-capacity storage
@@ -260,7 +260,7 @@ The following features have been designed but are not implemented or only partia
 ### Recommended Strategies
 
 1. **Use `cost` mode for daily tasks**: Haiku / Flash / Mini provides sufficient quality
-2. **Use `quality` mode only for important deliverables**: Final review with Opus / GPT-5.4
+2. **Use `quality` mode only for important deliverables**: Final review with Opus / GPT
 3. **Use `speed` mode for Judge Layer**: Prioritize speed for verification
 4. **Set budget policies**: Prevent unexpected costs with daily / monthly limits
 5. **Combine local models with cloud**: Drafts locally, finishing touches in the cloud

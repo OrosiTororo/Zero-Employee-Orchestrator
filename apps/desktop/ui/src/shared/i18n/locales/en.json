@@ -156,7 +156,7 @@
       "openrouter": "OpenRouter",
       "openrouterDesc": "Access many AI models with one key",
       "openai": "OpenAI",
-      "openaiDesc": "Use GPT-4o and others directly",
+      "openaiDesc": "Use GPT and others directly",
       "anthropic": "Anthropic",
       "anthropicDesc": "Use Claude and others directly",
       "local": "Local Model",

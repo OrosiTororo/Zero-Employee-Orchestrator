@@ -156,7 +156,7 @@
       "openrouter": "OpenRouter",
       "openrouterDesc": "一个密钥访问多种 AI 模型",
       "openai": "OpenAI",
-      "openaiDesc": "直接使用 GPT-4o 等模型",
+      "openaiDesc": "直接使用 GPT 等模型",
       "anthropic": "Anthropic",
       "anthropicDesc": "直接使用 Claude 等模型",
       "local": "本地模型",
