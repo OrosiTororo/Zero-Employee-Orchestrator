@@ -172,6 +172,51 @@ async def add_review(
     }
 
 
+@router.get("/{listing_id}/reviews")
+async def get_reviews(listing_id: str) -> list[dict]:
+    """Get reviews for a listing."""
+    reviews = await marketplace_service.get_reviews(listing_id)
+    return [
+        {
+            "id": r.id,
+            "listing_id": r.listing_id,
+            "user_id": r.user_id,
+            "rating": r.rating,
+            "comment": r.comment,
+            "created_at": r.created_at,
+        }
+        for r in reviews
+    ]
+
+
+@router.post("/{listing_id}/approve")
+async def approve_listing(
+    listing_id: str, user: User = Depends(get_current_user)
+) -> dict:
+    """Approve a pending listing for publication."""
+    try:
+        listing = await marketplace_service.approve(listing_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return _listing_to_dict(listing)
+
+
+class RejectRequest(BaseModel):
+    reason: str = Field(..., min_length=1, max_length=1000)
+
+
+@router.post("/{listing_id}/reject")
+async def reject_listing(
+    listing_id: str, req: RejectRequest, user: User = Depends(get_current_user)
+) -> dict:
+    """Reject a pending listing."""
+    try:
+        listing = await marketplace_service.reject(listing_id, req.reason)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return _listing_to_dict(listing)
+
+
 # ---------- Helpers ----------
 
 
