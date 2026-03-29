@@ -57,9 +57,14 @@ fn ensure_path() {
             format!("{}/.local/bin", home),
             format!("{}/.cargo/bin", home),
             "/usr/local/bin".to_string(),
-            "/opt/homebrew/bin".to_string(),
+            "/usr/bin".to_string(),
+            "/opt/homebrew/bin".to_string(),          // macOS Apple Silicon
             "/opt/homebrew/sbin".to_string(),
-            format!("{}/Library/Application Support/uv/bin", home),
+            format!("{}/Library/Application Support/uv/bin", home), // macOS uv
+            format!("{}/.local/share/uv/bin", home),  // Linux uv (XDG)
+            format!("{}/.pyenv/shims", home),          // pyenv
+            format!("{}/.pyenv/bin", home),
+            "/snap/bin".to_string(),                   // Ubuntu snap
         ]
     };
 
@@ -188,7 +193,10 @@ fn ensure_uv() -> bool {
                         )
                     } else {
                         (
-                            format!("{}/.local/bin:{}/.cargo/bin", home, home),
+                            format!(
+                                "{}/.local/bin:{}/.cargo/bin:{}/Library/Application Support/uv/bin:{}/.local/share/uv/bin",
+                                home, home, home, home
+                            ),
                             ":",
                         )
                     };
@@ -215,6 +223,27 @@ fn ensure_uv() -> bool {
     }
 }
 
+/// Find a system Python interpreter, trying multiple common names.
+fn find_system_python() -> String {
+    let candidates = if cfg!(windows) {
+        vec!["python", "python3"]
+    } else {
+        vec!["python3", "python"]
+    };
+    for cmd in &candidates {
+        if hidden_command(cmd)
+            .args(["--version"])
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false)
+        {
+            return cmd.to_string();
+        }
+    }
+    // Last resort
+    if cfg!(windows) { "python".to_string() } else { "python3".to_string() }
+}
+
 /// Find a working Python interpreter (prefer .venv inside api dir).
 /// Automatically installs `uv` if needed, then creates venv and installs deps.
 /// Returns (python_path, did_auto_setup).
@@ -230,11 +259,13 @@ fn find_python(api_dir: &PathBuf) -> (String, bool) {
 
     if !ensure_uv() {
         eprintln!("[sidecar] warning: could not install uv, falling back to system python");
-        if cfg!(windows) {
-            return ("python".to_string(), false);
-        } else {
-            return ("python3".to_string(), false);
-        }
+        let python = find_system_python();
+        // Try installing uvicorn into the system Python as a last resort
+        let _ = hidden_command(&python)
+            .args(["-m", "pip", "install", "--user", "uvicorn"])
+            .current_dir(api_dir)
+            .output();
+        return (python, false);
     }
 
     eprintln!("[sidecar] .venv not found, auto-setup with uv...");
@@ -324,8 +355,8 @@ fn ensure_env_file(api_dir: &PathBuf) {
     eprintln!("[sidecar] .env not found, generating default configuration...");
 
     // Generate a random secret key using Python or a fallback
-    let python_cmd = if cfg!(windows) { "python" } else { "python3" };
-    let secret = hidden_command(python_cmd)
+    let python_cmd = find_system_python();
+    let secret = hidden_command(&python_cmd)
         .args(["-c", "import secrets; print(secrets.token_urlsafe(32))"])
         .output()
         .ok()
