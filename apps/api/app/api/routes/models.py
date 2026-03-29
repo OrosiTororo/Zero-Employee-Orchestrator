@@ -88,6 +88,27 @@ class DeprecatedModelsResponse(BaseModel):
     total: int
 
 
+class AddModelRequest(BaseModel):
+    """Register a custom model that is not in the default catalog."""
+
+    id: str = Field(
+        ...,
+        description="Family ID (e.g. 'mistral/mistral-large' or 'custom/my-model')",
+    )
+    provider: str = Field(..., description="Provider name (e.g. 'openrouter', 'ollama')")
+    display_name: str = Field(..., description="Human-readable display name")
+    latest_model_id: str = Field(
+        "",
+        description="Actual model ID for API calls (e.g. 'mistral-large-latest')",
+    )
+    cost_per_1k_input: float = Field(0.0, description="Cost per 1K input tokens (USD)")
+    cost_per_1k_output: float = Field(0.0, description="Cost per 1K output tokens (USD)")
+    max_tokens: int = Field(4096, description="Maximum output tokens")
+    supports_tools: bool = False
+    supports_vision: bool = False
+    tags: list[str] = Field(default_factory=list, description="Tags (e.g. ['quality', 'custom'])")
+
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -274,6 +295,77 @@ async def reload_catalog():
         catalog_version=registry.catalog_version,
         message="Model catalog reloaded successfully",
     )
+
+
+@router.post("/models/add", response_model=ModelEntryResponse)
+async def add_custom_model(req: AddModelRequest):
+    """Register a custom LLM model not in the default catalog.
+
+    Use this to add any model accessible via LiteLLM, OpenRouter, or a
+    custom OpenAI-compatible endpoint.  The model is persisted to
+    ``model_catalog.json`` and available immediately.
+
+    Example: add ``mistral/mistral-large``, ``cohere/command-r-plus``,
+    or a self-hosted model reachable through Ollama / vLLM.
+    """
+    from app.providers.model_registry import ModelEntry, get_model_registry
+
+    registry = get_model_registry()
+
+    if registry.get_model(req.id) is not None:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Model already exists: {req.id}. Use update-cost or update-version instead.",
+        )
+
+    entry = ModelEntry(
+        id=req.id,
+        provider=req.provider,
+        display_name=req.display_name,
+        latest_model_id=req.latest_model_id or req.id,
+        cost_per_1k_input=req.cost_per_1k_input,
+        cost_per_1k_output=req.cost_per_1k_output,
+        max_tokens=req.max_tokens,
+        supports_tools=req.supports_tools,
+        supports_vision=req.supports_vision,
+        tags=req.tags,
+    )
+    registry.add_model(entry)
+    registry.save_catalog()
+
+    return ModelEntryResponse(
+        id=entry.id,
+        provider=entry.provider,
+        display_name=entry.display_name,
+        latest_model_id=entry.latest_model_id,
+        cost_per_1k_input=entry.cost_per_1k_input,
+        cost_per_1k_output=entry.cost_per_1k_output,
+        max_tokens=entry.max_tokens,
+        supports_tools=entry.supports_tools,
+        supports_vision=entry.supports_vision,
+        deprecated=entry.deprecated,
+        successor=entry.successor,
+        tags=entry.tags,
+    )
+
+
+@router.delete("/models/{model_id}")
+async def remove_custom_model(model_id: str):
+    """Remove a custom model from the catalog.
+
+    Only user-added (custom/legacy) models should be removed.
+    Built-in models can be deprecated instead.
+    """
+    from app.providers.model_registry import get_model_registry
+
+    registry = get_model_registry()
+    ok = registry.remove_model(model_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail=f"Model not found: {model_id}")
+
+    registry.save_catalog()
+
+    return {"model_id": model_id, "message": "Model removed from catalog"}
 
 
 @router.post("/models/auto-update")
