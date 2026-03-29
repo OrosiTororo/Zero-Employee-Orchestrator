@@ -286,6 +286,62 @@
       "deprecated": false,
       "successor": null,
       "tags": ["subscription"]
+    },
+    {
+      "id": "openai/gpt-4o",
+      "provider": "openai",
+      "display_name": "GPT-4o (Legacy)",
+      "latest_model_id": "gpt-4o",
+      "cost_per_1k_input": 0.0025,
+      "cost_per_1k_output": 0.01,
+      "max_tokens": 16000,
+      "supports_tools": true,
+      "supports_vision": true,
+      "deprecated": true,
+      "successor": "openai/gpt",
+      "tags": ["legacy"]
+    },
+    {
+      "id": "openai/gpt-4o-mini",
+      "provider": "openai",
+      "display_name": "GPT-4o Mini (Legacy)",
+      "latest_model_id": "gpt-4o-mini",
+      "cost_per_1k_input": 0.00015,
+      "cost_per_1k_output": 0.0006,
+      "max_tokens": 8000,
+      "supports_tools": true,
+      "supports_vision": true,
+      "deprecated": true,
+      "successor": "openai/gpt-mini",
+      "tags": ["legacy"]
+    },
+    {
+      "id": "gemini/gemini-2.5-pro",
+      "provider": "gemini",
+      "display_name": "Gemini 2.5 Pro (Legacy)",
+      "latest_model_id": "gemini-2.5-pro",
+      "cost_per_1k_input": 0.00125,
+      "cost_per_1k_output": 0.005,
+      "max_tokens": 32000,
+      "supports_tools": true,
+      "supports_vision": true,
+      "deprecated": true,
+      "successor": "gemini/gemini-pro",
+      "tags": ["legacy"]
+    },
+    {
+      "id": "gemini/gemini-2.5-flash",
+      "provider": "gemini",
+      "display_name": "Gemini 2.5 Flash (Legacy)",
+      "latest_model_id": "gemini-2.5-flash",
+      "cost_per_1k_input": 0.0001,
+      "cost_per_1k_output": 0.0004,
+      "max_tokens": 16000,
+      "supports_tools": true,
+      "supports_vision": true,
+      "deprecated": true,
+      "successor": "gemini/gemini-flash",
+      "tags": ["legacy"]
     }
   ],
   "mode_catalog": {

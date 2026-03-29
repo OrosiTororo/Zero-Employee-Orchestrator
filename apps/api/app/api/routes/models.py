@@ -96,16 +96,21 @@ class DeprecatedModelsResponse(BaseModel):
 @router.get("/models", response_model=ModelListResponse)
 async def list_models(
     provider: str | None = None,
+    tag: str | None = None,
     include_deprecated: bool = False,
 ):
     """Get a list of all registered models.
 
-    Filterable to specific provider models via the provider parameter.
+    Filterable by provider and/or tag (e.g. ``tag=legacy`` to list older but
+    still operational models).  Set ``include_deprecated=true`` to include
+    deprecated models in the response.
     """
     from app.providers.model_registry import get_model_registry
 
     registry = get_model_registry()
-    models = registry.list_models(provider=provider, include_deprecated=include_deprecated)
+    models = registry.list_models(
+        provider=provider, include_deprecated=include_deprecated, tag=tag,
+    )
 
     return ModelListResponse(
         models=[

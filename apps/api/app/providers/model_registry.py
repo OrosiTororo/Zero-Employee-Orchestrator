@@ -239,12 +239,19 @@ class ModelRegistry:
         """Get an entry by model ID."""
         return self._models.get(model_id)
 
-    def get_active_model(self, model_id: str) -> ModelEntry | None:
-        """Get a non-deprecated model. Returns the successor if deprecated."""
+    def get_active_model(
+        self, model_id: str, *, allow_deprecated: bool = False
+    ) -> ModelEntry | None:
+        """Get a model entry, optionally allowing deprecated/legacy models.
+
+        By default, deprecated models are auto-replaced with their successor.
+        Set ``allow_deprecated=True`` to explicitly use a legacy model that is
+        still operational (e.g. GPT-4o on Azure until its sunset date).
+        """
         entry = self._models.get(model_id)
         if entry is None:
             return None
-        if entry.deprecated and entry.successor:
+        if entry.deprecated and entry.successor and not allow_deprecated:
             successor = self._models.get(entry.successor)
             if successor and not successor.deprecated:
                 logger.info(
@@ -256,14 +263,23 @@ class ModelRegistry:
         return entry
 
     def list_models(
-        self, provider: str | None = None, include_deprecated: bool = False
+        self,
+        provider: str | None = None,
+        include_deprecated: bool = False,
+        tag: str | None = None,
     ) -> list[ModelEntry]:
-        """Get a list of models."""
+        """Get a list of models.
+
+        Use ``tag="legacy"`` with ``include_deprecated=True`` to list older
+        models that are still operational and available for explicit selection.
+        """
         result = []
         for m in self._models.values():
             if not include_deprecated and m.deprecated:
                 continue
             if provider and m.provider != provider:
+                continue
+            if tag and tag not in m.tags:
                 continue
             result.append(m)
         return result
