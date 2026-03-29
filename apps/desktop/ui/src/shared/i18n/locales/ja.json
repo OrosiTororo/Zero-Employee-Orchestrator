@@ -74,7 +74,11 @@
     "checkBackend": "バックエンド API (port 18234) が起動しているか確認してください。",
     "firstSetup": "初回セットアップ:",
     "startServer": "サーバー起動:",
-    "retry": "再試行"
+    "retry": "再試行",
+    "installingDeps": "依存関係をインストール中...",
+    "checkingHealth": "ヘルスチェック実行中...",
+    "stepOf": "ステップ {current}/{total}",
+    "elapsedTime": "{seconds}秒経過"
   },
   "brand": {
     "feature1Title": "自然言語で業務を設計",

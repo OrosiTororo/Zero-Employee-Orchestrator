@@ -74,7 +74,11 @@
     "checkBackend": "请检查后端 API（端口 18234）是否正在运行。",
     "firstSetup": "首次设置：",
     "startServer": "启动服务器：",
-    "retry": "重试"
+    "retry": "重试",
+    "installingDeps": "正在安装依赖...",
+    "checkingHealth": "正在运行健康检查...",
+    "stepOf": "步骤 {current}/{total}",
+    "elapsedTime": "已经过 {seconds} 秒"
   },
   "brand": {
     "feature1Title": "用自然语言设计工作流",

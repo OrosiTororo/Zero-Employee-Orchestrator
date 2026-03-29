@@ -74,7 +74,11 @@
     "checkBackend": "Please check if the backend API (port 18234) is running.",
     "firstSetup": "First-time setup:",
     "startServer": "Start server:",
-    "retry": "Retry"
+    "retry": "Retry",
+    "installingDeps": "Installing dependencies...",
+    "checkingHealth": "Running health check...",
+    "stepOf": "Step {current} of {total}",
+    "elapsedTime": "{seconds}s elapsed"
   },
   "brand": {
     "feature1Title": "Design workflows in natural language",

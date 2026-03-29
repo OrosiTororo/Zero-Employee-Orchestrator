@@ -74,7 +74,11 @@
     "checkBackend": "Verifique se a API do backend (porta 18234) está em execução.",
     "firstSetup": "Configuração inicial:",
     "startServer": "Iniciar servidor:",
-    "retry": "Tentar novamente"
+    "retry": "Tentar novamente",
+    "installingDeps": "Instalando dependências...",
+    "checkingHealth": "Executando verificação de integridade...",
+    "stepOf": "Passo {current} de {total}",
+    "elapsedTime": "{seconds}s decorridos"
   },
   "brand": {
     "feature1Title": "Defina fluxos de trabalho em linguagem natural",

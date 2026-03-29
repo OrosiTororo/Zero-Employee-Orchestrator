@@ -26,9 +26,24 @@ const PHASE_ORDER = [
   "ready",
 ] as const
 
-/** Convert a phase string to a progress percentage (0–100). */
+type Phase = (typeof PHASE_ORDER)[number]
+
+/** Step number (1-based) for each phase, for "Step X of Y" display. */
+const PHASE_STEP: Record<string, number> = {
+  initializing: 1,
+  finding_api: 1,
+  preparing: 2,
+  python: 3,
+  starting: 4,
+  health_check: 5,
+  waiting: 5,
+  ready: 5,
+}
+const TOTAL_STEPS = 5
+
+/** Convert a phase string to a progress percentage (0-100). */
 function phaseToProgress(phase: string): number {
-  const idx = PHASE_ORDER.indexOf(phase as (typeof PHASE_ORDER)[number])
+  const idx = PHASE_ORDER.indexOf(phase as Phase)
   if (phase === "ready") return 100
   if (phase === "waiting") return 85
   if (idx < 0) return 10
@@ -81,12 +96,14 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
   const [progress, setProgress] = useState(5)
   const [elapsedSec, setElapsedSec] = useState(0)
   const [errorDetail, setErrorDetail] = useState<string | null>(null)
+  // Micro-progress: smoothly interpolate between phase progress targets
+  const [targetProgress, setTargetProgress] = useState(5)
   const retryCount = useRef(0)
   const checkingRef = useRef(false)
   const maxAutoRetries = isTauri ? 5 : 0
   const startTimeRef = useRef(Date.now())
 
-  // Elapsed time timer (used for firstRunNote threshold)
+  // Elapsed time timer
   useEffect(() => {
     if (status !== "checking") return
     const timer = setInterval(() => {
@@ -100,6 +117,21 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
     return () => clearInterval(timer)
   }, [status])
 
+  // Smooth progress interpolation for Tauri mode:
+  // Gradually increase progress toward targetProgress so it doesn't look frozen.
+  useEffect(() => {
+    if (!isTauri || status !== "checking") return
+    const timer = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= targetProgress) return prev
+        // Move ~20% of remaining distance each tick (ease-out feel)
+        const step = Math.max(1, Math.ceil((targetProgress - prev) * 0.2))
+        return Math.min(targetProgress, prev + step)
+      })
+    }, 300)
+    return () => clearInterval(timer)
+  }, [targetProgress, status])
+
   // Poll startup phase from Tauri sidecar for progress display
   useEffect(() => {
     if (!isTauri || status !== "checking") return
@@ -108,7 +140,7 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
         const p = await tauriInvoke<string>("get_startup_phase")
         if (p) {
           setPhase(p)
-          setProgress(phaseToProgress(p))
+          setTargetProgress(phaseToProgress(p))
         }
       } catch {
         // Tauri command not ready yet — ignore
@@ -131,6 +163,7 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
         case "starting":
           return t.backend.launchingServer
         case "health_check":
+          return t.backend.checkingHealth
         case "waiting":
           return t.backend.waitingForServer
         default:
@@ -190,7 +223,7 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
         } else {
           // Restart backend and wait 30s
           setPhase("starting")
-          setProgress(phaseToProgress("starting"))
+          setTargetProgress(phaseToProgress("starting"))
           try {
             await tauriInvoke("restart_backend")
             setErrorDetail(null)
@@ -228,6 +261,7 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
     retryCount.current = 0
     setPhase("initializing")
     setProgress(5)
+    setTargetProgress(5)
     await check()
   }, [check])
 
@@ -237,6 +271,14 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
 
   const phaseMessage = getPhaseMessage(phase)
   const showFirstRunNote = isTauri && (phase === "python" || elapsedSec > 15)
+  const currentStep = PHASE_STEP[phase] ?? 1
+  const stepLabel = t.backend.stepOf
+    .replace("{current}", String(currentStep))
+    .replace("{total}", String(TOTAL_STEPS))
+  const elapsedLabel = t.backend.elapsedTime.replace(
+    "{seconds}",
+    String(elapsedSec),
+  )
 
   return (
     <div className="h-screen w-screen flex items-center justify-center bg-[var(--bg-base)]">
@@ -258,17 +300,22 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
                 {t.backend.firstRunNote}
               </p>
             )}
-            {/* Progress bar with real percentage */}
-            <div className="w-48 flex flex-col items-center gap-1.5">
+            {/* Progress bar with phase description */}
+            <div className="w-56 flex flex-col items-center gap-1.5">
               <div className="w-full h-1.5 rounded-full bg-[var(--border)] overflow-hidden">
                 <div
                   className="h-full bg-[var(--accent)] rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${progress}%` }}
                 />
               </div>
-              <p className="text-[10px] text-[var(--text-muted)] tabular-nums">
-                {progress}%
-              </p>
+              <div className="w-full flex items-center justify-between">
+                <p className="text-[10px] text-[var(--text-muted)] tabular-nums">
+                  {isTauri ? stepLabel : `${progress}%`}
+                </p>
+                <p className="text-[10px] text-[var(--text-muted)] tabular-nums">
+                  {elapsedSec > 0 ? elapsedLabel : `${progress}%`}
+                </p>
+              </div>
             </div>
           </>
         )}

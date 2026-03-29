@@ -74,7 +74,11 @@
     "checkBackend": "Lütfen arka uç API'nin (port 18234) çalışıp çalışmadığını kontrol edin.",
     "firstSetup": "İlk kurulum:",
     "startServer": "Sunucuyu başlat:",
-    "retry": "Tekrar dene"
+    "retry": "Tekrar dene",
+    "installingDeps": "Bağımlılıklar yükleniyor...",
+    "checkingHealth": "Sağlık kontrolü yapılıyor...",
+    "stepOf": "Adım {current}/{total}",
+    "elapsedTime": "{seconds}sn geçti"
   },
   "brand": {
     "feature1Title": "Doğal dilde iş akışları tasarlayın",

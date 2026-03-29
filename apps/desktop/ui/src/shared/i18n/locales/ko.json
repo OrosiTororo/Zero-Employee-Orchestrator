@@ -74,7 +74,11 @@
     "checkBackend": "백엔드 API(포트 18234)가 실행 중인지 확인해 주세요.",
     "firstSetup": "최초 설정:",
     "startServer": "서버 시작:",
-    "retry": "재시도"
+    "retry": "재시도",
+    "installingDeps": "종속성 설치 중...",
+    "checkingHealth": "상태 확인 실행 중...",
+    "stepOf": "단계 {current}/{total}",
+    "elapsedTime": "{seconds}초 경과"
   },
   "brand": {
     "feature1Title": "자연어로 워크플로우를 설계",

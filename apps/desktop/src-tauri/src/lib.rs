@@ -33,7 +33,9 @@ struct ApiDir(Mutex<Option<PathBuf>>);
 struct BackendError(Mutex<Option<String>>);
 
 /// Current startup phase, polled by frontend for progress display.
-struct StartupPhase(Mutex<String>);
+/// Wraps an Arc<Mutex<String>> so the same lock is shared with the
+/// background thread that actually updates the phase.
+struct StartupPhase(std::sync::Arc<Mutex<String>>);
 
 /// Ensure common tool directories are in PATH.
 /// GUI apps (macOS .app, Linux desktop launchers) don't load shell profiles,
@@ -480,6 +482,7 @@ fn set_phase(phase_state: &Option<std::sync::Arc<Mutex<String>>>, phase: &str) {
             *guard = phase.to_string();
         }
     }
+    eprintln!("[sidecar] phase → {}", phase);
 }
 
 fn spawn_backend_inner(
@@ -590,7 +593,10 @@ fn spawn_backend_inner(
             match c.try_wait() {
                 Ok(Some(status)) => {
                     // Process crashed immediately — read the log file for the reason
-                    let mut error_msg = format!("Backend crashed on startup / バックエンドが起動直後にクラッシュしました (exit {status})");
+                    let exit_info = status.code()
+                        .map(|c| format!("exit code: {c}"))
+                        .unwrap_or_else(|| format!("{status}"));
+                    let mut error_msg = format!("Backend crashed on startup / バックエンドが起動直後にクラッシュしました ({exit_info})");
                     if let Ok(log_content) = std::fs::read_to_string(&log_path) {
                         if !log_content.is_empty() {
                             let tail: String = log_content.chars().rev().take(500).collect::<Vec<_>>().into_iter().rev().collect();
@@ -683,17 +689,8 @@ fn restart_backend(
         None => return Err("API directory not found. / API ディレクトリが見つかりません。".to_string()),
     };
 
-    let phase_arc = std::sync::Arc::new(Mutex::new(String::new()));
-    {
-        let phase = phase_arc.clone();
-        if let Ok(mut guard) = phase_state.0.lock() {
-            // We'll update via the Arc
-            *guard = "preparing".to_string();
-        }
-        // Sync phase_arc changes back to phase_state
-        let _ = phase;
-    }
-    let phase_opt = Some(phase_arc.clone());
+    // Reuse the managed Arc so phase updates are visible to the frontend immediately
+    let phase_opt = Some(phase_state.0.clone());
 
     match spawn_backend_inner(&api_dir, &phase_opt) {
         Ok(child) => {
@@ -702,12 +699,6 @@ fn restart_backend(
             }
             if let Ok(mut err) = error_state.0.lock() {
                 *err = None;
-            }
-            // Sync final phase
-            if let Ok(p) = phase_arc.lock() {
-                if let Ok(mut guard) = phase_state.0.lock() {
-                    *guard = p.clone();
-                }
             }
             Ok("started".to_string())
         }
@@ -804,27 +795,22 @@ pub fn run() {
             get_startup_phase
         ])
         .setup(|app| {
-            // Initialize states with empty values — backend spawns in background
+            // Initialize states with empty values — backend spawns in background.
+            // IMPORTANT: The phase Arc is shared between the managed state and the
+            // background thread so that get_startup_phase() returns live updates.
             let phase_arc = std::sync::Arc::new(Mutex::new("initializing".to_string()));
             app.manage(BackendProcess(Mutex::new(None)));
             app.manage(ApiDir(Mutex::new(None)));
             app.manage(BackendError(Mutex::new(None)));
-            app.manage(StartupPhase(Mutex::new("initializing".to_string())));
+            app.manage(StartupPhase(phase_arc.clone()));
 
             // Spawn backend in a background thread so the window renders immediately
             let app_handle = app.handle().clone();
-            let phase_for_thread = Some(phase_arc.clone());
+            let phase_for_thread = Some(phase_arc);
             std::thread::spawn(move || {
                 let (child, api_dir, error) = spawn_backend(&phase_for_thread);
 
-                // Sync phase to the managed state
-                if let Ok(phase) = phase_arc.lock() {
-                    if let Some(state) = app_handle.try_state::<StartupPhase>() {
-                        if let Ok(mut guard) = state.0.lock() {
-                            *guard = phase.clone();
-                        }
-                    }
-                }
+                // Phase is already synced via the shared Arc — no manual sync needed.
 
                 if let Some(state) = app_handle.try_state::<BackendProcess>() {
                     if let Ok(mut guard) = state.0.lock() {

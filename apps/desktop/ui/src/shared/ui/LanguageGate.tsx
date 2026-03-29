@@ -3,6 +3,7 @@ import { LogoMark } from "@/shared/ui/Logo"
 
 /**
  * Shows a full-screen language picker on first launch (before anything else).
+ * Title and subtitle are shown in multiple languages so all users can understand.
  * Once the user picks a language it is persisted and this gate never appears again.
  */
 export function LanguageGate({ children }: { children: React.ReactNode }) {
@@ -26,11 +27,15 @@ export function LanguageGate({ children }: { children: React.ReactNode }) {
       <div className="flex flex-col items-center gap-6 max-w-sm text-center">
         <LogoMark size={40} />
         <div>
-          <h1 className="text-[18px] font-semibold text-[var(--text-primary)]">
+          <h1 className="text-[18px] font-semibold text-[var(--text-primary)] leading-relaxed">
             Choose your language
           </h1>
-          <p className="text-[13px] text-[var(--text-muted)] mt-1">
-            Select a language to get started. You can change it later in Settings.
+          {/* Show the title in key languages so non-English speakers understand */}
+          <p className="text-[13px] text-[var(--text-muted)] mt-1 leading-relaxed">
+            言語を選択 / 选择语言 / 언어 선택
+          </p>
+          <p className="text-[12px] text-[var(--text-muted)] mt-2 opacity-75">
+            You can change this later in Settings.
           </p>
         </div>
         <div className="grid grid-cols-2 gap-2 w-full">
