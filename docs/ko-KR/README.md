@@ -183,7 +183,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI 백엔드
 │   │   └── app/
 │   │       ├── core/               # 설정, DB, 보안, i18n
-│   │       ├── api/routes/         # 40+ REST API 라우트 모듈
+│   │       ├── api/routes/         # 41 REST API 라우트 모듈
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO

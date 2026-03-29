@@ -630,6 +630,8 @@ A unified LLM gateway based on LiteLLM supports multiple providers.
 ### Features
 
 - **Dynamic Model Catalog** (`model_catalog.json`) — No code changes needed to add, deprecate, or update model costs
+- **Custom Model Registration** — Add any LLM model not in the default catalog via `POST /api/v1/models/add` (LiteLLM, OpenRouter, Ollama, vLLM, custom endpoints)
+- **Legacy Model Support** — Older but still operational models (e.g. GPT-4o, Gemini 2.5) available via `?tag=legacy&include_deprecated=true`
 - **Automatic Fallback on Model Deprecation** — Automatic switch to successor model via deprecated flag + successor
 - **Provider Health Check** — Periodically checks API availability and avoids unavailable models
 - Automatic model selection (based on execution mode)
@@ -638,6 +640,7 @@ A unified LLM gateway based on LiteLLM supports multiple providers.
 - Vision (image input) support flag
 - Fallback (mock responses when LiteLLM is not deployed)
 - Ollama model auto-detection
+- Model removal via `DELETE /api/v1/models/{model_id}`
 
 ---
 
