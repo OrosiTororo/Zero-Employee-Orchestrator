@@ -414,7 +414,7 @@ fn ensure_env_file(api_dir: &PathBuf) {
         r#"DATABASE_URL=sqlite+aiosqlite:///./zero_employee_orchestrator.db
 SECRET_KEY={}
 DEBUG=true
-CORS_ORIGINS=["http://localhost:5173","http://localhost:3000","tauri://localhost","https://tauri.localhost"]
+CORS_ORIGINS=["http://localhost:5173","http://localhost:3000","tauri://localhost","https://tauri.localhost","http://tauri.localhost"]
 DEFAULT_EXECUTION_MODE=subscription
 USE_G4F=true
 "#,
