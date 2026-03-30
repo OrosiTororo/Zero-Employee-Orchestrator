@@ -17,6 +17,10 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from app.api.deps.database import get_db
 from app.api.routes.auth import get_current_user
+# Ensure all ORM models are registered with Base before create_all
+import app.models as _models  # noqa: F401
+from app.services.multi_model_service import BrainstormSessionRecord as _BSR  # noqa: F401
+
 from app.core.database import Base
 from app.main import app
 from app.models.user import User
