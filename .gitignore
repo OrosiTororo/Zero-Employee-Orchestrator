@@ -14,6 +14,8 @@ build/
 # Lock files (keep pnpm-lock.yaml)
 uv.lock
 package-lock.json
+# Edge workers use npm (npm ci requires package-lock.json)
+!apps/edge/*/package-lock.json
 
 # IDE
 .vscode/
