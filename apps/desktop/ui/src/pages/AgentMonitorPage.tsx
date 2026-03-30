@@ -14,6 +14,7 @@ import {
   PlayCircle,
 } from "lucide-react"
 import { api } from "../shared/api/client"
+import { useT } from "@/shared/i18n"
 
 interface ActiveExecution {
   task_id: string
@@ -69,6 +70,7 @@ interface SentryStats {
 }
 
 export function AgentMonitorPage() {
+  const t = useT()
   const [summary, setSummary] = useState<MonitorSummary | null>(null)
   const [active, setActive] = useState<ActiveExecution[]>([])
   const [sessions, setSessions] = useState<Session[]>([])
@@ -103,10 +105,10 @@ export function AgentMonitorPage() {
   }, [fetchData])
 
   const tabs = [
-    { key: "monitor" as const, label: "実行監視", icon: Activity },
-    { key: "sessions" as const, label: "セッション", icon: Brain },
-    { key: "hypotheses" as const, label: "仮説検証", icon: Zap },
-    { key: "errors" as const, label: "エラー監視", icon: AlertTriangle },
+    { key: "monitor" as const, label: t.agentMonitor?.executionMonitor ?? "Execution Monitor", icon: Activity },
+    { key: "sessions" as const, label: t.agentMonitor?.sessions ?? "Sessions", icon: Brain },
+    { key: "hypotheses" as const, label: t.agentMonitor?.hypotheses ?? "Hypotheses", icon: Zap },
+    { key: "errors" as const, label: t.agentMonitor?.errorMonitor ?? "Error Monitor", icon: AlertTriangle },
   ]
 
   return (
@@ -115,10 +117,10 @@ export function AgentMonitorPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-[16px] font-semibold text-[var(--text-primary)]">
-              エージェント監視ダッシュボード
+              {t.agentMonitor?.title ?? "Agent Monitor Dashboard"}
             </h1>
             <p className="text-[12px] text-[var(--text-muted)] mt-0.5">
-              ブラウザからリアルタイムでエージェントの状態を監視
+              {t.agentMonitor?.subtitle ?? "Monitor agent status in real-time from the browser"}
             </p>
           </div>
           <button onClick={fetchData} className="p-2 rounded-md hover:bg-[var(--bg-hover)]">
@@ -129,10 +131,10 @@ export function AgentMonitorPage() {
         {/* Summary Cards */}
         {summary && (
           <div className="grid grid-cols-4 gap-3 mb-6">
-            <StatCard icon={Cpu} label="実行中タスク" value={String(summary.active_executions)} color="var(--accent)" />
-            <StatCard icon={Bot} label="アクティブエージェント" value={String(summary.active_agents.length)} color="var(--success-fg)" />
-            <StatCard icon={AlertTriangle} label="直近エラー" value={String(summary.recent_errors)} color="var(--error)" />
-            <StatCard icon={MessageSquare} label="エスカレーション" value={String(summary.recent_escalations)} color="var(--warning)" />
+            <StatCard icon={Cpu} label={t.agentMonitor?.activeTasks ?? "Active Tasks"} value={String(summary.active_executions)} color="var(--accent)" />
+            <StatCard icon={Bot} label={t.agentMonitor?.activeAgents ?? "Active Agents"} value={String(summary.active_agents.length)} color="var(--success-fg)" />
+            <StatCard icon={AlertTriangle} label={t.agentMonitor?.recentErrors ?? "Recent Errors"} value={String(summary.recent_errors)} color="var(--error)" />
+            <StatCard icon={MessageSquare} label={t.agentMonitor?.escalations ?? "Escalations"} value={String(summary.recent_escalations)} color="var(--warning)" />
           </div>
         )}
 
@@ -159,7 +161,7 @@ export function AgentMonitorPage() {
           <div className="space-y-3">
             {active.length === 0 ? (
               <div className="text-center py-8 text-[12px] text-[var(--text-muted)]">
-                現在実行中のタスクはありません
+                {t.agentMonitor?.noActiveTasks ?? "No active tasks"}
               </div>
             ) : (
               active.map(exec => (
@@ -207,7 +209,7 @@ export function AgentMonitorPage() {
           <div className="space-y-3">
             {sessions.length === 0 ? (
               <div className="text-center py-8 text-[12px] text-[var(--text-muted)]">
-                アクティブなセッションはありません
+                {t.agentMonitor?.noActiveSessions ?? "No active sessions"}
               </div>
             ) : (
               sessions.map(s => (
@@ -237,7 +239,7 @@ export function AgentMonitorPage() {
                   </div>
                   {s.idle_since && (
                     <div className="text-[11px] text-[var(--text-muted)]">
-                      Idle: {Math.round((Date.now() / 1000 - s.idle_since) / 60)}分前からコンテキスト保持中
+                      {t.agentMonitor?.idleContext ?? "Idle: context held since"} {Math.round((Date.now() / 1000 - s.idle_since) / 60)} {t.agentMonitor?.minutesAgo ?? "min ago"}
                     </div>
                   )}
                 </div>
@@ -251,7 +253,7 @@ export function AgentMonitorPage() {
           <div className="space-y-3">
             {hypotheses.length === 0 ? (
               <div className="text-center py-8 text-[12px] text-[var(--text-muted)]">
-                アクティブな仮説はありません
+                {t.agentMonitor?.noActiveHypotheses ?? "No active hypotheses"}
               </div>
             ) : (
               hypotheses.map(h => (
@@ -268,11 +270,11 @@ export function AgentMonitorPage() {
                     }`}>{h.status}</span>
                   </div>
                   <div className="flex items-center gap-4 text-[11px] text-[var(--text-muted)]">
-                    <span>支持スコア: {(h.support_score * 100).toFixed(0)}%</span>
-                    <span>コンセンサス: {h.review_consensus}</span>
-                    <span>エビデンス: {h.evidence_count}</span>
-                    <span>レビュー: {h.review_count}</span>
-                    <span>提案: {h.proposer_agent_id.slice(0, 8)}</span>
+                    <span>{t.agentMonitor?.supportScore ?? "Support"}: {(h.support_score * 100).toFixed(0)}%</span>
+                    <span>{t.agentMonitor?.consensus ?? "Consensus"}: {h.review_consensus}</span>
+                    <span>{t.agentMonitor?.evidence ?? "Evidence"}: {h.evidence_count}</span>
+                    <span>{t.agentMonitor?.reviews ?? "Reviews"}: {h.review_count}</span>
+                    <span>{t.agentMonitor?.proposer ?? "Proposer"}: {h.proposer_agent_id.slice(0, 8)}</span>
                   </div>
                 </div>
               ))
@@ -284,14 +286,14 @@ export function AgentMonitorPage() {
         {tab === "errors" && sentryStats && (
           <div>
             <div className="grid grid-cols-3 gap-3 mb-6">
-              <StatCard icon={AlertTriangle} label="直近1時間のエラー" value={String(sentryStats.errors_last_hour)} color="var(--error)" />
-              <StatCard icon={AlertTriangle} label="直近24時間のエラー" value={String(sentryStats.errors_last_24h)} color="var(--warning)" />
-              <StatCard icon={Shield} label="Sentry SDK" value={sentryStats.sdk_available ? "接続済" : "ビルトイン"} color="var(--success-fg)" />
+              <StatCard icon={AlertTriangle} label={t.agentMonitor?.errorsLastHour ?? "Errors (1h)"} value={String(sentryStats.errors_last_hour)} color="var(--error)" />
+              <StatCard icon={AlertTriangle} label={t.agentMonitor?.errorsLast24h ?? "Errors (24h)"} value={String(sentryStats.errors_last_24h)} color="var(--warning)" />
+              <StatCard icon={Shield} label="Sentry SDK" value={sentryStats.sdk_available ? (t.agentMonitor?.connected ?? "Connected") : (t.agentMonitor?.builtin ?? "Built-in")} color="var(--success-fg)" />
             </div>
 
             {Object.keys(sentryStats.error_types).length > 0 ? (
               <div className="rounded-md border border-[var(--border)] bg-[var(--bg-surface)] p-4">
-                <h3 className="text-[12px] font-medium text-[var(--text-primary)] mb-3">エラータイプ別集計</h3>
+                <h3 className="text-[12px] font-medium text-[var(--text-primary)] mb-3">{t.agentMonitor?.errorsByType ?? "Errors by Type"}</h3>
                 <div className="space-y-2">
                   {Object.entries(sentryStats.error_types).map(([type, count]) => (
                     <div key={type} className="flex items-center justify-between text-[12px]">
@@ -303,7 +305,7 @@ export function AgentMonitorPage() {
               </div>
             ) : (
               <div className="text-center py-8 text-[12px] text-[var(--text-muted)]">
-                直近のエラーはありません
+                {t.agentMonitor?.noRecentErrors ?? "No recent errors"}
               </div>
             )}
           </div>

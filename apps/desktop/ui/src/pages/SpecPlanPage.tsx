@@ -13,6 +13,7 @@ import {
   AlertTriangle,
 } from "lucide-react"
 import { api } from "../shared/api/client"
+import { useT } from "@/shared/i18n"
 
 interface Spec {
   id: string
@@ -45,6 +46,7 @@ interface TaskNode {
 export function SpecPlanPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const t = useT()
   const [spec, setSpec] = useState<Spec | null>(null)
   const [, setPlan] = useState<Plan | null>(null)
   const [tasks, setTasks] = useState<TaskNode[]>([])
@@ -117,13 +119,13 @@ export function SpecPlanPage() {
   const approvalPoints = tasks.filter((t) => t.requires_approval).length
 
   const statusColors: Record<string, string> = {
-    pending: "text-[#6a6a6a]",
-    ready: "text-[#007acc]",
-    running: "text-[#dcdcaa]",
-    succeeded: "text-[#4ec9b0]",
-    failed: "text-[#f44747]",
-    awaiting_approval: "text-[#ce9178]",
-    blocked: "text-[#f44747]",
+    pending: "text-[var(--text-muted)]",
+    ready: "text-[var(--accent)]",
+    running: "text-[var(--warning)]",
+    succeeded: "text-[var(--success-fg)]",
+    failed: "text-[var(--error)]",
+    awaiting_approval: "text-[var(--warning)]",
+    blocked: "text-[var(--error)]",
   }
 
   return (
@@ -133,63 +135,63 @@ export function SpecPlanPage() {
         <div className="flex items-center gap-3 mb-6">
           <button
             onClick={() => navigate(`/tickets/${id}`)}
-            className="text-[#6a6a6a] hover:text-[#cccccc]"
+            className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
           >
             <ArrowLeft size={18} />
           </button>
-          <FileText size={18} className="text-[#007acc]" />
-          <h2 className="text-[14px] font-medium text-[#cccccc]">
-            仕様・計画: チケット {id?.slice(0, 8)}
+          <FileText size={18} className="text-[var(--accent)]" />
+          <h2 className="text-[14px] font-medium text-[var(--text-primary)]">
+            {t.specPlan?.title ?? "Spec & Plan"}: {t.specPlan?.ticket ?? "Ticket"} {id?.slice(0, 8)}
           </h2>
           {!spec && !loading && (
             <button
               onClick={handleGenerateSpec}
               disabled={generating}
-              className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded text-[12px] bg-[#007acc] text-white hover:bg-[#1b8bd4] disabled:opacity-50"
+              className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded text-[12px] bg-[var(--accent)] text-white hover:opacity-90 disabled:opacity-50"
             >
               {generating ? (
                 <Loader2 size={14} className="animate-spin" />
               ) : (
                 <Play size={14} />
               )}
-              {generating ? "生成中..." : "仕様を生成"}
+              {generating ? (t.specPlan?.generating ?? "Generating...") : (t.specPlan?.generateSpec ?? "Generate Spec")}
             </button>
           )}
         </div>
 
         {error && (
-          <div className="mb-4 rounded border border-[#f44747]/30 bg-[#f44747]/10 px-4 py-2 text-[12px] text-[#f44747] flex items-center gap-2">
+          <div className="mb-4 rounded border border-[var(--error)]/30 bg-[var(--error)]/10 px-4 py-2 text-[12px] text-[var(--error)] flex items-center gap-2">
             <AlertTriangle size={14} />
             {error}
           </div>
         )}
 
         {loading && (
-          <div className="text-center py-12 text-[#6a6a6a]">
+          <div className="text-center py-12 text-[var(--text-muted)]">
             <Loader2 size={24} className="animate-spin mx-auto mb-2" />
-            読み込み中...
+            {t.common?.loading ?? "Loading..."}
           </div>
         )}
 
         {/* Spec Section */}
         {spec && (
-          <div className="mb-6 rounded border border-[#3e3e42] bg-[#252526]">
-            <div className="flex items-center gap-2 px-4 py-2 border-b border-[#3e3e42]">
-              <FileText size={14} className="text-[#007acc]" />
-              <span className="text-[12px] font-medium text-[#cccccc]">
-                仕様書 (v{spec.version})
+          <div className="mb-6 rounded border border-[var(--border)] bg-[var(--bg-surface)]">
+            <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border)]">
+              <FileText size={14} className="text-[var(--accent)]" />
+              <span className="text-[12px] font-medium text-[var(--text-primary)]">
+                {t.specPlan?.specification ?? "Specification"} (v{spec.version})
               </span>
-              <CheckCircle size={12} className="text-[#4ec9b0] ml-auto" />
+              <CheckCircle size={12} className="text-[var(--success-fg)] ml-auto" />
             </div>
             <div className="px-4 py-3 space-y-2">
               <div>
-                <div className="text-[11px] text-[#6a6a6a] mb-0.5">目的</div>
-                <div className="text-[12px] text-[#cccccc]">{spec.objective}</div>
+                <div className="text-[11px] text-[var(--text-muted)] mb-0.5">{t.specPlan?.objective ?? "Objective"}</div>
+                <div className="text-[12px] text-[var(--text-primary)]">{spec.objective}</div>
               </div>
               {spec.risk_notes && (
                 <div>
-                  <div className="text-[11px] text-[#6a6a6a] mb-0.5">リスク</div>
-                  <div className="text-[12px] text-[#ce9178]">{spec.risk_notes}</div>
+                  <div className="text-[11px] text-[var(--text-muted)] mb-0.5">{t.specPlan?.risk ?? "Risk"}</div>
+                  <div className="text-[12px] text-[var(--warning)]">{spec.risk_notes}</div>
                 </div>
               )}
             </div>
@@ -197,62 +199,62 @@ export function SpecPlanPage() {
         )}
 
         {/* Spec Version Comparison */}
-        <div className="mb-6 rounded border border-[#3e3e42] bg-[#252526]">
-          <div className="flex items-center gap-2 px-4 py-2 border-b border-[#3e3e42]">
-            <GitCompare size={14} className="text-[#007acc]" />
-            <span className="text-[12px] font-medium text-[#cccccc]">
-              仕様バージョン比較
+        <div className="mb-6 rounded border border-[var(--border)] bg-[var(--bg-surface)]">
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border)]">
+            <GitCompare size={14} className="text-[var(--accent)]" />
+            <span className="text-[12px] font-medium text-[var(--text-primary)]">
+              {t.specPlan?.versionComparison ?? "Spec Version Comparison"}
             </span>
           </div>
           <div className="px-4 py-4">
             <div className="flex gap-3 mb-3">
-              <select className="px-2 py-1 rounded text-[12px] bg-[#3c3c3c] text-[#cccccc] border border-[#3e3e42] outline-none">
-                <option>v{spec?.version || 1} (最新)</option>
+              <select className="px-2 py-1 rounded text-[12px] bg-[var(--bg-active)] text-[var(--text-primary)] border border-[var(--border)] outline-none">
+                <option>v{spec?.version || 1} ({t.specPlan?.latest ?? "Latest"})</option>
               </select>
-              <span className="text-[#6a6a6a] flex items-center">vs</span>
-              <select className="px-2 py-1 rounded text-[12px] bg-[#3c3c3c] text-[#cccccc] border border-[#3e3e42] outline-none">
-                <option>ベースライン</option>
+              <span className="text-[var(--text-muted)] flex items-center">vs</span>
+              <select className="px-2 py-1 rounded text-[12px] bg-[var(--bg-active)] text-[var(--text-primary)] border border-[var(--border)] outline-none">
+                <option>{t.specPlan?.baseline ?? "Baseline"}</option>
               </select>
             </div>
             {!spec && (
-              <div className="rounded p-3 text-[12px] text-[#6a6a6a] border border-[#3e3e42] bg-[#1e1e1e] text-center">
-                仕様のバージョンがまだありません。
+              <div className="rounded p-3 text-[12px] text-[var(--text-muted)] border border-[var(--border)] bg-[var(--bg-base)] text-center">
+                {t.specPlan?.noVersions ?? "No spec versions yet."}
               </div>
             )}
           </div>
         </div>
 
         {/* Plan Summary + Cost */}
-        <div className="mb-6 rounded border border-[#3e3e42] bg-[#252526]">
-          <div className="flex items-center gap-2 px-4 py-2 border-b border-[#3e3e42]">
-            <Coins size={14} className="text-[#dcdcaa]" />
-            <span className="text-[12px] font-medium text-[#cccccc]">
-              計画サマリー・コスト見積
+        <div className="mb-6 rounded border border-[var(--border)] bg-[var(--bg-surface)]">
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border)]">
+            <Coins size={14} className="text-[var(--warning)]" />
+            <span className="text-[12px] font-medium text-[var(--text-primary)]">
+              {t.specPlan?.planSummary ?? "Plan Summary & Cost Estimate"}
             </span>
           </div>
           <div className="px-4 py-4">
             <div className="grid grid-cols-4 gap-4 mb-3">
               <div>
-                <div className="text-[11px] text-[#6a6a6a]">タスク数</div>
-                <div className="text-[16px] font-semibold text-[#cccccc]">
+                <div className="text-[11px] text-[var(--text-muted)]">{t.specPlan?.taskCount ?? "Tasks"}</div>
+                <div className="text-[16px] font-semibold text-[var(--text-primary)]">
                   {tasks.length}
                 </div>
               </div>
               <div>
-                <div className="text-[11px] text-[#6a6a6a]">推定コスト</div>
-                <div className="text-[16px] font-semibold text-[#cccccc]">
+                <div className="text-[11px] text-[var(--text-muted)]">{t.specPlan?.estimatedCost ?? "Estimated Cost"}</div>
+                <div className="text-[16px] font-semibold text-[var(--text-primary)]">
                   ${totalCost.toFixed(2)}
                 </div>
               </div>
               <div>
-                <div className="text-[11px] text-[#6a6a6a]">推定所要時間</div>
-                <div className="text-[16px] font-semibold text-[#cccccc]">
-                  {totalMinutes > 0 ? `${totalMinutes}分` : "--"}
+                <div className="text-[11px] text-[var(--text-muted)]">{t.specPlan?.estimatedTime ?? "Estimated Time"}</div>
+                <div className="text-[16px] font-semibold text-[var(--text-primary)]">
+                  {totalMinutes > 0 ? `${totalMinutes} ${t.specPlan?.minutes ?? "min"}` : "--"}
                 </div>
               </div>
               <div>
-                <div className="text-[11px] text-[#6a6a6a]">承認ポイント</div>
-                <div className="text-[16px] font-semibold text-[#ce9178]">
+                <div className="text-[11px] text-[var(--text-muted)]">{t.specPlan?.approvalPoints ?? "Approval Points"}</div>
+                <div className="text-[16px] font-semibold text-[var(--warning)]">
                   {approvalPoints}
                 </div>
               </div>
@@ -261,11 +263,11 @@ export function SpecPlanPage() {
         </div>
 
         {/* Task DAG */}
-        <div className="mb-6 rounded border border-[#3e3e42] bg-[#252526]">
-          <div className="flex items-center gap-2 px-4 py-2 border-b border-[#3e3e42]">
-            <ListTree size={14} className="text-[#007acc]" />
-            <span className="text-[12px] font-medium text-[#cccccc]">
-              タスク DAG ({tasks.length} タスク)
+        <div className="mb-6 rounded border border-[var(--border)] bg-[var(--bg-surface)]">
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border)]">
+            <ListTree size={14} className="text-[var(--accent)]" />
+            <span className="text-[12px] font-medium text-[var(--text-primary)]">
+              {t.specPlan?.taskDag ?? "Task DAG"} ({tasks.length} {t.specPlan?.tasks ?? "tasks"})
             </span>
           </div>
           {tasks.length > 0 ? (
@@ -273,45 +275,45 @@ export function SpecPlanPage() {
               {tasks.map((task) => (
                 <div
                   key={task.id}
-                  className="flex items-center gap-3 px-3 py-2 rounded bg-[#1e1e1e] border border-[#3e3e42]"
+                  className="flex items-center gap-3 px-3 py-2 rounded bg-[var(--bg-base)] border border-[var(--border)]"
                 >
                   <span
-                    className={`text-[11px] font-mono ${statusColors[task.status] || "text-[#6a6a6a]"}`}
+                    className={`text-[11px] font-mono ${statusColors[task.status] || "text-[var(--text-muted)]"}`}
                   >
                     {task.status}
                   </span>
-                  <span className="text-[12px] text-[#cccccc] flex-1">
+                  <span className="text-[12px] text-[var(--text-primary)] flex-1">
                     {task.title}
                   </span>
                   {task.requires_approval && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#ce9178]/20 text-[#ce9178]">
-                      承認必要
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--warning)]/20 text-[var(--warning)]">
+                      {t.specPlan?.approvalRequired ?? "Approval Required"}
                     </span>
                   )}
                   {task.depends_on.length > 0 && (
-                    <span className="text-[10px] text-[#6a6a6a]">
-                      依存: {task.depends_on.length}
+                    <span className="text-[10px] text-[var(--text-muted)]">
+                      {t.specPlan?.dependencies ?? "Deps"}: {task.depends_on.length}
                     </span>
                   )}
-                  <span className="text-[10px] text-[#6a6a6a]">
+                  <span className="text-[10px] text-[var(--text-muted)]">
                     ${(task.estimated_cost_usd || 0).toFixed(3)}
                   </span>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="px-4 py-6 text-center text-[12px] text-[#6a6a6a]">
-              タスクの依存関係グラフはまだ生成されていません。
+            <div className="px-4 py-6 text-center text-[12px] text-[var(--text-muted)]">
+              {t.specPlan?.noDag ?? "Task dependency graph has not been generated yet."}
             </div>
           )}
         </div>
 
         {/* Dependencies */}
-        <div className="rounded border border-[#3e3e42] bg-[#252526]">
-          <div className="flex items-center gap-2 px-4 py-2 border-b border-[#3e3e42]">
-            <Link size={14} className="text-[#007acc]" />
-            <span className="text-[12px] font-medium text-[#cccccc]">
-              依存関係
+        <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)]">
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border)]">
+            <Link size={14} className="text-[var(--accent)]" />
+            <span className="text-[12px] font-medium text-[var(--text-primary)]">
+              {t.specPlan?.dependenciesTitle ?? "Dependencies"}
             </span>
           </div>
           <div className="px-4 py-4">
@@ -320,9 +322,9 @@ export function SpecPlanPage() {
                 {tasks
                   .filter((t) => t.depends_on.length > 0)
                   .map((t) => (
-                    <div key={t.id} className="text-[12px] text-[#cccccc]">
-                      <span className="text-[#007acc]">{t.title}</span>
-                      <span className="text-[#6a6a6a]"> → </span>
+                    <div key={t.id} className="text-[12px] text-[var(--text-primary)]">
+                      <span className="text-[var(--accent)]">{t.title}</span>
+                      <span className="text-[var(--text-muted)]"> → </span>
                       {t.depends_on.map((depId) => {
                         const dep = tasks.find((x) => x.id === depId)
                         return dep?.title || depId.slice(0, 8)
@@ -331,8 +333,8 @@ export function SpecPlanPage() {
                   ))}
               </div>
             ) : (
-              <div className="text-center text-[12px] text-[#6a6a6a]">
-                外部依存関係はありません。
+              <div className="text-center text-[12px] text-[var(--text-muted)]">
+                {t.specPlan?.noDependencies ?? "No external dependencies."}
               </div>
             )}
           </div>

@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   Save,
 } from "lucide-react"
+import { useT } from "@/shared/i18n"
 
 const API_BASE = "/api/v1/registry"
 
@@ -33,6 +34,7 @@ export function SkillCreatePage() {
   const [loading, setLoading] = useState(false)
   const [registering, setRegistering] = useState(false)
   const navigate = useNavigate()
+  const t = useT()
 
   const handleGenerate = async () => {
     if (!description.trim() || loading) return
@@ -56,7 +58,7 @@ export function SkillCreatePage() {
       setResult(data)
     } catch (e) {
       console.error("Generation failed:", e)
-      alert(`スキル生成に失敗しました: ${e instanceof Error ? e.message : String(e)}`)
+      alert(`${t.skillCreate?.generateFailed ?? "Skill generation failed"}: ${e instanceof Error ? e.message : String(e)}`)
     } finally {
       setLoading(false)
     }
@@ -86,7 +88,7 @@ export function SkillCreatePage() {
       }
     } catch (e) {
       console.error("Registration failed:", e)
-      alert(`スキル登録に失敗しました: ${e instanceof Error ? e.message : String(e)}`)
+      alert(`${t.skillCreate?.registerFailed ?? "Skill registration failed"}: ${e instanceof Error ? e.message : String(e)}`)
     } finally {
       setRegistering(false)
     }
@@ -99,41 +101,41 @@ export function SkillCreatePage() {
         <div className="flex items-center gap-3 mb-4">
           <button
             onClick={() => navigate("/skills")}
-            className="text-[#6a6a6a] hover:text-[#cccccc]"
+            className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
           >
             <ArrowLeft size={16} />
           </button>
-          <h2 className="text-[14px] font-medium text-[#cccccc]">
-            スキル作成
+          <h2 className="text-[14px] font-medium text-[var(--text-primary)]">
+            {t.nav.skillCreate}
           </h2>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#007acc20] text-[#007acc]">
-            自然言語生成
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--accent)]/20 text-[var(--accent)]">
+            {t.skillCreate?.naturalLanguageGen ?? "Natural Language Generation"}
           </span>
         </div>
 
-        <p className="text-[12px] mb-4 text-[#969696]">
-          自然言語でスキルの機能を説明してください。AIが自動的にスキルのマニフェストと実行コードを生成します。
-          生成されたコードは安全性チェックを通過してから登録できます。
+        <p className="text-[12px] mb-4 text-[var(--text-muted)]">
+          {t.skillCreate?.description ?? "Describe the skill's functionality in natural language. AI will automatically generate the skill manifest and execution code. Generated code can be registered after passing safety checks."}
         </p>
 
         {/* Input */}
-        <div className="rounded overflow-hidden mb-4 border border-[#3e3e42] bg-[#252526]">
+        <div className="rounded overflow-hidden mb-4 border border-[var(--border)] bg-[var(--bg-surface)]">
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder={
-              "例:\n" +
-              "- 競合他社のWebサイトを定期的にスクレイピングして価格変動をレポートするスキル\n" +
-              "- MarkdownファイルをHTMLに変換して目次を自動生成するスキル\n" +
-              "- テキストの感情分析を行い、ポジティブ/ネガティブ/ニュートラルを判定するスキル"
+              t.skillCreate?.placeholder ??
+              "Examples:\n" +
+              "- A skill that periodically scrapes competitor websites and reports price changes\n" +
+              "- A skill that converts Markdown files to HTML and auto-generates a table of contents\n" +
+              "- A skill that performs sentiment analysis on text and classifies it as positive/negative/neutral"
             }
-            className="w-full resize-none px-4 py-3 text-[13px] outline-none bg-transparent text-[#cccccc]"
+            className="w-full resize-none px-4 py-3 text-[13px] outline-none bg-transparent text-[var(--text-primary)]"
             style={{ minHeight: "120px" }}
             rows={5}
           />
-          <div className="flex items-center justify-between px-4 py-2 border-t border-[#3e3e42]">
-            <span className="text-[11px] text-[#6a6a6a]">
-              {description.length}/5000 文字
+          <div className="flex items-center justify-between px-4 py-2 border-t border-[var(--border)]">
+            <span className="text-[11px] text-[var(--text-muted)]">
+              {description.length}/5000 {t.skillCreate?.characters ?? "chars"}
             </span>
             <button
               onClick={handleGenerate}
@@ -142,13 +144,15 @@ export function SkillCreatePage() {
               style={{
                 background:
                   description.trim().length >= 10 && !loading
-                    ? "#007acc"
-                    : "#3e3e42",
-                color: "#ffffff",
+                    ? "var(--accent)"
+                    : "var(--border)",
+                color: "var(--bg-base)",
               }}
             >
               <Wand2 size={14} />
-              {loading ? "生成中..." : "スキルを生成"}
+              {loading
+                ? (t.skillCreate?.generating ?? "Generating...")
+                : (t.skillCreate?.generateSkill ?? "Generate Skill")}
             </button>
           </div>
         </div>
@@ -161,16 +165,16 @@ export function SkillCreatePage() {
               <div className="flex items-center gap-2">
                 {result.safety_passed ? (
                   <>
-                    <CheckCircle size={14} className="text-[#4ec9b0]" />
-                    <span className="text-[12px] text-[#4ec9b0]">
-                      安全性チェック合格
+                    <CheckCircle size={14} className="text-[var(--success-fg)]" />
+                    <span className="text-[12px] text-[var(--success-fg)]">
+                      {t.skillCreate?.safetyPassed ?? "Safety check passed"}
                     </span>
                   </>
                 ) : (
                   <>
-                    <AlertTriangle size={14} className="text-[#f44747]" />
-                    <span className="text-[12px] text-[#f44747]">
-                      安全性の問題が検出されました
+                    <AlertTriangle size={14} className="text-[var(--error)]" />
+                    <span className="text-[12px] text-[var(--error)]">
+                      {t.skillCreate?.safetyIssuesDetected ?? "Safety issues detected"}
                     </span>
                   </>
                 )}
@@ -179,19 +183,19 @@ export function SkillCreatePage() {
                   style={{
                     background:
                       result.safety_report.risk_level === "low"
-                        ? "#4ec9b020"
+                        ? "color-mix(in srgb, var(--success-fg) 12%, transparent)"
                         : result.safety_report.risk_level === "medium"
-                          ? "#dcdcaa20"
-                          : "#f4474720",
+                          ? "color-mix(in srgb, var(--warning-fg) 12%, transparent)"
+                          : "color-mix(in srgb, var(--error) 12%, transparent)",
                     color:
                       result.safety_report.risk_level === "low"
-                        ? "#4ec9b0"
+                        ? "var(--success-fg)"
                         : result.safety_report.risk_level === "medium"
-                          ? "#dcdcaa"
-                          : "#f44747",
+                          ? "var(--warning-fg)"
+                          : "var(--error)",
                   }}
                 >
-                  リスク: {result.safety_report.risk_level}
+                  {t.skillCreate?.risk ?? "Risk"}: {result.safety_report.risk_level}
                 </span>
               </div>
 
@@ -199,24 +203,26 @@ export function SkillCreatePage() {
                 <button
                   onClick={handleRegister}
                   disabled={registering}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[12px] bg-[#4ec9b0] text-[#1e1e1e]"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[12px] bg-[var(--success-fg)] text-[var(--bg-base)]"
                 >
                   <Save size={12} />
-                  {registering ? "登録中..." : "スキルを登録"}
+                  {registering
+                    ? (t.skillCreate?.registering ?? "Registering...")
+                    : (t.skillCreate?.registerSkill ?? "Register Skill")}
                 </button>
               )}
               {result.registered && (
-                <span className="text-[11px] px-1.5 py-0.5 rounded bg-[#1b4332] text-[#4ec9b0]">
-                  登録済
+                <span className="text-[11px] px-1.5 py-0.5 rounded bg-[color-mix(in_srgb,var(--success-fg)_20%,transparent)] text-[var(--success-fg)]">
+                  {t.skillCreate?.registered ?? "Registered"}
                 </span>
               )}
             </div>
 
             {/* Safety Issues */}
             {result.safety_issues.length > 0 && (
-              <div className="rounded p-3 bg-[#4a1a1a] border border-[#f44747]">
+              <div className="rounded p-3 bg-[color-mix(in_srgb,var(--error)_20%,transparent)] border border-[var(--error)]">
                 {result.safety_issues.map((issue: string, i: number) => (
-                  <div key={i} className="text-[12px] text-[#f44747]">
+                  <div key={i} className="text-[12px] text-[var(--error)]">
                     - {issue}
                   </div>
                 ))}
@@ -224,31 +230,31 @@ export function SkillCreatePage() {
             )}
 
             {/* Safety Report */}
-            <div className="rounded p-3 border border-[#3e3e42] bg-[#252526]">
-              <div className="text-[11px] uppercase tracking-wider mb-2 text-[#6a6a6a]">
-                安全性レポート
+            <div className="rounded p-3 border border-[var(--border)] bg-[var(--bg-surface)]">
+              <div className="text-[11px] uppercase tracking-wider mb-2 text-[var(--text-muted)]">
+                {t.skillCreate?.safetyReport ?? "Safety Report"}
               </div>
-              <div className="text-[12px] text-[#969696]">
+              <div className="text-[12px] text-[var(--text-muted)]">
                 {result.safety_report.summary}
               </div>
             </div>
 
             {/* Skill JSON */}
             <div>
-              <div className="text-[11px] uppercase tracking-wider mb-1 text-[#6a6a6a]">
+              <div className="text-[11px] uppercase tracking-wider mb-1 text-[var(--text-muted)]">
                 SKILL.json
               </div>
-              <pre className="rounded p-3 text-[12px] overflow-auto border border-[#3e3e42] bg-[#252526] text-[#9cdcfe]">
+              <pre className="rounded p-3 text-[12px] overflow-auto border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--accent-secondary)]">
                 {JSON.stringify(result.skill_json, null, 2)}
               </pre>
             </div>
 
             {/* Executor Code */}
             <div>
-              <div className="text-[11px] uppercase tracking-wider mb-1 text-[#6a6a6a]">
+              <div className="text-[11px] uppercase tracking-wider mb-1 text-[var(--text-muted)]">
                 executor.py
               </div>
-              <pre className="rounded p-3 text-[12px] overflow-auto border border-[#3e3e42] bg-[#252526] text-[#d4d4d4] max-h-[400px]">
+              <pre className="rounded p-3 text-[12px] overflow-auto border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] max-h-[400px]">
                 {result.code}
               </pre>
             </div>
