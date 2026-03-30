@@ -219,7 +219,7 @@ Defense layers:
 - Prompt injection defense (`security/prompt_guard.py`) -- 5 categories, 28+ patterns
 - Approval gates (`policies/approval_gate.py`) -- 12 categories of dangerous operations
 - Autonomy boundaries (`policies/autonomy_boundary.py`)
-- IAM (`security/iam.py`) -- AI denied secret and admin access
+- IAM (`security/iam.py`) -- AI denied secret and admin access + role-based tool permissions
 - PII guard (`security/pii_guard.py`) -- 13 categories of personal info detection and masking
 - File sandbox (`security/sandbox.py`) -- Whitelist-based folder access control
 - Data protection (`security/data_protection.py`) -- Upload/download policy control
@@ -227,6 +227,10 @@ Defense layers:
 - Secret management (`security/secret_manager.py`) -- Fernet encryption
 - Sanitization (`security/sanitizer.py`)
 - Rate limiting (`core/rate_limit.py`)
+- Kill switch (`orchestration/execution_monitor.py`) -- Emergency halt of all executions
+- Role-based tool permissions (`security/iam.py`) -- Least privilege per agent role (5 default policies)
+- Memory trust levels (`orchestration/state_machine.py`) -- Source tracking, trust scores, expiry for Experience Memory
+- Tiered Judge (`orchestration/judge.py`) -- LIGHTWEIGHT/STANDARD/HEAVY tiers to balance cost vs safety
 
 ## Browser Assist
 
@@ -389,13 +393,13 @@ Marketplace, Brainstorm, Agent Monitor, Permissions, Settings
 - Custom themes can be added via extensions
 
 ### Key Pages
-- **Dashboard**: Command center with natural language input, quick actions, status grid
-- **Settings**: Theme, Language, LLM API Keys (11+ providers with dropdown selector),
-  Agent Behavior (autonomy level, browser automation, workspace access),
-  Execution Mode, Company, Provider Connections (12+ with category filter), Policies
-- **Skills/Plugins/Extensions**: Installed + Marketplace tabs, search, CRUD
+- **Dashboard**: Command center with natural language input, quick actions, status grid, chat history, 5 quick-start business templates (Content Ops, Sales Research, FAQ/KB, Meeting→Tasks, Pre-publish Review)
+- **Settings**: VSCode-style TOC sidebar + search bar. Theme, Language, LLM API Keys (11+ providers with dropdown selector), Agent Behavior (autonomy level, browser automation, workspace access), Execution Mode, Company, Provider Connections (12+ with category filter + custom add), Policies. Integration strategy note explains ZEO's role as judgment/audit layer.
+- **Agent Monitor**: Execution monitor, Reasoning Traces (step-by-step AI decision visualization), Approvals queue (approve/reject with risk levels), Sessions, Hypotheses, Error monitor. Kill switch (Emergency Stop) button for halting all executions.
+- **Skills/Plugins/Extensions**: Installed + Marketplace tabs, search, CRUD, system/user section separation
 - **Marketplace**: Unified view for community-created skills/plugins/extensions
 - **Brainstorm**: Multi-model comparison with dropdown model selector + custom model input
+- **Setup**: Onboarding wizard with 5 quick-start business templates for 10-minute value
 
 ### Agent Behavior (Settings)
 - **Autonomy levels**: Observe / Assist / Semi-Auto / Autonomous
