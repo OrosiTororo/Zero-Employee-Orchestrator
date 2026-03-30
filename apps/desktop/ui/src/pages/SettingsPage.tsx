@@ -19,6 +19,7 @@ import {
   Monitor,
   FolderOpen,
   Cloud,
+  Search,
 } from "lucide-react"
 import { api } from "../shared/api/client"
 import { useT, useI18n, LOCALE_LABELS, availableLocales, type Locale } from "@/shared/i18n"
@@ -80,6 +81,7 @@ export function SettingsPage() {
   const { locale, setLocale } = useI18n()
   const { theme, setTheme } = useTheme()
 
+  const [settingsSearch, setSettingsSearch] = useState("")
   const [companyName, setCompanyName] = useState("")
   const [mission, setMission] = useState("")
   const [executionMode, setExecutionMode] = useState("quality")
@@ -281,12 +283,27 @@ export function SettingsPage() {
     ? ALL_CONNECTIONS
     : ALL_CONNECTIONS.filter(c => c.category === connectionFilter)
 
+  const sq = settingsSearch.toLowerCase()
+  const matchesSearch = (...terms: string[]) =>
+    !sq || terms.some(t => t.toLowerCase().includes(sq))
+
   return (
     <div className="h-full overflow-auto">
       <div className="max-w-[720px] mx-auto px-6 py-6">
-        <div className="flex items-center gap-2 mb-6">
+        <div className="flex items-center gap-2 mb-4">
           <Settings size={18} className="text-[var(--accent)]" />
           <h2 className="text-[14px] font-medium text-[var(--text-primary)]">{t.settings.title}</h2>
+        </div>
+
+        {/* Settings Search */}
+        <div className="relative mb-5">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+          <input
+            value={settingsSearch}
+            onChange={(e) => setSettingsSearch(e.target.value)}
+            placeholder={t.settings.searchPlaceholder ?? "Search settings..."}
+            className="w-full pl-9 pr-3 py-2 rounded text-[12px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)]"
+          />
         </div>
 
         {saveMessage && (
@@ -297,7 +314,7 @@ export function SettingsPage() {
         )}
 
         {/* Theme Settings */}
-        <SettingsSection icon={Palette} title={t.settings.themeSettings}>
+        <SettingsSection icon={Palette} title={t.settings.themeSettings} hidden={!matchesSearch(t.settings.themeSettings, "theme", "dark", "light")}>
           <div className="flex flex-wrap gap-2">
             {(Object.keys(THEME_LABELS) as Theme[]).map((th) => (
               <button
@@ -318,7 +335,7 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* Language Settings */}
-        <SettingsSection icon={Globe} title={t.settings.languageSettings}>
+        <SettingsSection icon={Globe} title={t.settings.languageSettings} hidden={!matchesSearch(t.settings.languageSettings, "language", "locale")}>
           <div className="flex flex-col gap-4">
             <div>
               <label className="text-[11px] text-[var(--text-muted)] block mb-2">
@@ -358,7 +375,7 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* LLM API Keys */}
-        <SettingsSection icon={Key} title={t.settings.apiKeys}>
+        <SettingsSection icon={Key} title={t.settings.apiKeys} hidden={!matchesSearch(t.settings.apiKeys, "api", "key", "llm", "provider", "openai", "anthropic", "gemini", "ollama")}>
           <div className="flex flex-col gap-1 mb-3">
             <div className="text-[11px] text-[var(--text-muted)]">{t.settings.apiKeysDesc}</div>
             <div className="text-[11px] text-[var(--text-muted)]">
@@ -499,7 +516,7 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* Execution Mode */}
-        <SettingsSection icon={Cpu} title={t.settings.executionMode}>
+        <SettingsSection icon={Cpu} title={t.settings.executionMode} hidden={!matchesSearch(t.settings.executionMode, "mode", "quality", "speed", "cost", "free")}>
           <div>
             <label className="text-[11px] text-[var(--text-muted)] block mb-2">{t.settings.executionModeDesc}</label>
             <div className="flex flex-wrap gap-2">
@@ -525,7 +542,7 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* Agent Behavior */}
-        <SettingsSection icon={Bot} title={t.settings.agentBehavior}>
+        <SettingsSection icon={Bot} title={t.settings.agentBehavior} hidden={!matchesSearch(t.settings.agentBehavior, "agent", "autonomy", "browser", "workspace")}>
           <div className="flex flex-col gap-4">
             {/* Autonomy Level */}
             <div>
@@ -599,7 +616,7 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* Company Settings */}
-        <SettingsSection icon={Building2} title={t.settings.companySettings}>
+        <SettingsSection icon={Building2} title={t.settings.companySettings} hidden={!matchesSearch(t.settings.companySettings, "company", "organization", "mission")}>
           <div className="flex flex-col gap-3">
             <div>
               <label className="text-[11px] text-[var(--text-muted)] block mb-1">{t.settings.companyName}</label>
@@ -615,7 +632,7 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* Provider Connections */}
-        <SettingsSection icon={Link2} title={t.settings.providerConnections}>
+        <SettingsSection icon={Link2} title={t.settings.providerConnections} hidden={!matchesSearch(t.settings.providerConnections, "connection", "integration", "github", "slack", "notion")}>
           {/* Category filter */}
           <div className="flex flex-wrap gap-1 mb-3">
             {connectionCategories.map(cat => (
@@ -703,7 +720,7 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* Policies */}
-        <SettingsSection icon={Shield} title={t.settings.policies}>
+        <SettingsSection icon={Shield} title={t.settings.policies} hidden={!matchesSearch(t.settings.policies, "policy", "approval", "auto")}>
           <div className="flex items-center justify-between">
             <div className="text-[13px] text-[var(--text-primary)]">{t.settings.autoApprove}</div>
             <button onClick={() => setAutoApprove(!autoApprove)}
@@ -726,11 +743,13 @@ export function SettingsPage() {
   )
 }
 
-function SettingsSection({ icon: Icon, title, children }: {
+function SettingsSection({ icon: Icon, title, children, hidden }: {
   icon: React.ComponentType<{ size?: number; className?: string }>
   title: string
   children: React.ReactNode
+  hidden?: boolean
 }) {
+  if (hidden) return null
   return (
     <section className="mb-6 rounded border border-[var(--border)] bg-[var(--bg-surface)]">
       <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border)]">
