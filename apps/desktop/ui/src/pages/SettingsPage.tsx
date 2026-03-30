@@ -666,6 +666,18 @@ export function SettingsPage() {
 
         {/* Provider Connections */}
         <SettingsSection id="settings-connections" icon={Link2} title={t.settings.providerConnections} hidden={!matchesSearch(t.settings.providerConnections, "connection", "integration", "github", "slack", "notion")}>
+          {/* Integration strategy note */}
+          <div className="flex items-start gap-2.5 px-3 py-2.5 rounded border border-[var(--accent)] bg-[rgba(0,122,204,0.06)] mb-4 text-[11px]">
+            <Shield size={14} className="text-[var(--accent)] shrink-0 mt-0.5" />
+            <div>
+              <span className="text-[var(--text-primary)] font-medium">
+                {t.settings.integrationStrategy ?? "ZEO acts as the judgment, approval, and audit layer."}
+              </span>
+              <span className="text-[var(--text-muted)] ml-1">
+                {t.settings.integrationStrategyDesc ?? "Connect external tools for execution — ZEO handles verification, approval gates, and compliance. Works with n8n, Zapier, Make, and MCP for workflow automation."}
+              </span>
+            </div>
+          </div>
           {/* Category filter */}
           <div className="flex flex-wrap gap-1 mb-3">
             {connectionCategories.map(cat => (

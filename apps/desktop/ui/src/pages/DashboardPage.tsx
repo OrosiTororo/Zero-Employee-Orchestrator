@@ -9,13 +9,15 @@ import {
   HeartPulse,
   Coins,
   AlertTriangle,
-  Lightbulb,
   Target,
   Globe,
   Terminal,
   FileText,
   Zap,
   ArrowRight,
+  Search,
+  HelpCircle,
+  ListTodo,
 } from "lucide-react"
 import { api } from "../shared/api/client"
 import { useT } from "@/shared/i18n"
@@ -215,20 +217,79 @@ export function DashboardPage() {
           </div>
         </div>
 
-        {/* Recommended Actions */}
+        {/* Quick Start Templates */}
         <div className="rounded-md px-4 py-3 border border-[var(--border)] bg-[var(--bg-surface)]">
-          <div className="flex items-center gap-2 mb-2">
-            <Lightbulb size={14} className="text-[var(--success-fg)]" />
-            <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-medium">
-              {t.dashboard.recommendedActions}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Sparkles size={14} className="text-[var(--accent)]" />
+              <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-medium">
+                {t.dashboard?.quickStartTemplates ?? "Quick Start Templates"}
+              </span>
+            </div>
+            <span className="text-[10px] text-[var(--text-muted)]">
+              {t.dashboard?.quickStartTemplatesDesc ?? "Get productive in under 10 minutes"}
             </span>
           </div>
-          <div className="flex flex-col gap-1">
-            {[t.dashboard.action1, t.dashboard.action2, t.dashboard.action3].map((action, i) => (
-              <div key={i} className="flex items-center gap-2 text-[12px] text-[var(--text-primary)] group cursor-pointer hover:text-[var(--accent)]">
-                <ArrowRight size={12} className="text-[var(--text-muted)] group-hover:text-[var(--accent)]" />
-                {action}
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
+            {[
+              {
+                icon: FileText,
+                label: t.dashboard?.templateContentOps ?? "Content Operations",
+                desc: t.dashboard?.templateContentOpsDesc ?? "Blog/SNS content pipeline with review and publish approval",
+                ticket: "Set up a content operations pipeline: blog and SNS content creation with review workflow and publish approval gate",
+              },
+              {
+                icon: Search,
+                label: t.dashboard?.templateSalesResearch ?? "Sales Research",
+                desc: t.dashboard?.templateSalesResearchDesc ?? "Competitor analysis, market research, lead scoring",
+                ticket: "Run a sales research workflow: competitor analysis, market research, and lead scoring with data verification",
+              },
+              {
+                icon: HelpCircle,
+                label: t.dashboard?.templateFaqKb ?? "FAQ / Knowledge Base",
+                desc: t.dashboard?.templateFaqKbDesc ?? "Customer support automation with human escalation",
+                ticket: "Build an internal FAQ and knowledge base for customer support automation with human escalation for complex cases",
+              },
+              {
+                icon: ListTodo,
+                label: t.dashboard?.templateMeetingTasks ?? "Meeting to Tasks",
+                desc: t.dashboard?.templateMeetingTasksDesc ?? "Meeting notes to action items to ticket creation",
+                ticket: "Extract action items from meeting notes, create tickets, and assign them to the appropriate team members",
+              },
+              {
+                icon: ShieldCheck,
+                label: t.dashboard?.templatePrePublishReview ?? "Pre-publish Review",
+                desc: t.dashboard?.templatePrePublishReviewDesc ?? "Multi-model cross-check for content, code, or docs",
+                ticket: "Set up a pre-publish review process with multi-model cross-checking for content, code, and documents using the Judge Layer",
+              },
+            ].map((tpl, i) => (
+              <button
+                key={i}
+                onClick={async () => {
+                  if (companyId) {
+                    try {
+                      const ticket = await api.post<{ id: string }>(`/companies/${companyId}/tickets`, {
+                        title: tpl.label,
+                        description: tpl.ticket,
+                        priority: "medium",
+                        source_type: "user",
+                      })
+                      navigate(`/tickets/${ticket.id}/interview`)
+                    } catch {
+                      navigate("/setup")
+                    }
+                  } else {
+                    navigate("/setup")
+                  }
+                }}
+                className="group rounded-md px-3 py-3 text-left border border-[var(--border)] hover:border-[var(--accent)] transition-colors"
+              >
+                <tpl.icon size={16} className="text-[var(--text-muted)] group-hover:text-[var(--accent)] mb-2 transition-colors" />
+                <div className="text-[12px] font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] mb-0.5 transition-colors">
+                  {tpl.label}
+                </div>
+                <div className="text-[11px] text-[var(--text-muted)] line-clamp-2">{tpl.desc}</div>
+              </button>
             ))}
           </div>
         </div>

@@ -12,6 +12,10 @@ import {
   Brain,
   PauseCircle,
   PlayCircle,
+  GitBranch,
+  CheckCircle,
+  XCircle,
+  Eye,
 } from "lucide-react"
 import { api } from "../shared/api/client"
 import { useT } from "@/shared/i18n"
@@ -69,6 +73,33 @@ interface SentryStats {
   sdk_available: boolean
 }
 
+interface ReasoningTrace {
+  trace_id: string
+  task_id: string | null
+  agent_id: string | null
+  started_at: number
+  summary: string
+  outcome: string | null
+  steps: Array<{
+    step_id: string
+    step_type: string
+    summary: string
+    confidence: string
+    timestamp: number
+    duration_ms: number | null
+  }>
+}
+
+interface PendingApproval {
+  id: string
+  operation_type: string
+  description: string
+  risk_level: string
+  requested_by: string
+  requested_at: string
+  context: Record<string, unknown>
+}
+
 export function AgentMonitorPage() {
   const t = useT()
   const [summary, setSummary] = useState<MonitorSummary | null>(null)
@@ -76,15 +107,19 @@ export function AgentMonitorPage() {
   const [sessions, setSessions] = useState<Session[]>([])
   const [hypotheses, setHypotheses] = useState<Hypothesis[]>([])
   const [sentryStats, setSentryStats] = useState<SentryStats | null>(null)
-  const [tab, setTab] = useState<"monitor" | "sessions" | "hypotheses" | "errors">("monitor")
+  const [traces, setTraces] = useState<ReasoningTrace[]>([])
+  const [approvals, setApprovals] = useState<PendingApproval[]>([])
+  const [tab, setTab] = useState<"monitor" | "traces" | "approvals" | "sessions" | "hypotheses" | "errors">("monitor")
 
   const fetchData = useCallback(async () => {
     try {
-      const [dashboard, sessionData, hypoData, sentry] = await Promise.all([
+      const [dashboard, sessionData, hypoData, sentry, traceData, approvalData] = await Promise.all([
         api.get<{ summary: MonitorSummary; active: ActiveExecution[] }>("/monitor/dashboard").catch(() => null),
         api.get<{ sessions: Session[] }>("/sessions").catch(() => ({ sessions: [] })),
         api.get<{ hypotheses: Hypothesis[] }>("/hypotheses").catch(() => ({ hypotheses: [] })),
         api.get<SentryStats>("/sentry/stats").catch(() => null),
+        api.get<{ traces: ReasoningTrace[] }>("/traces?limit=20").catch(() => ({ traces: [] })),
+        api.get<PendingApproval[]>("/approvals?status=requested").catch(() => []),
       ])
       if (dashboard) {
         setSummary(dashboard.summary)
@@ -93,6 +128,8 @@ export function AgentMonitorPage() {
       setSessions(sessionData.sessions)
       setHypotheses(hypoData.hypotheses)
       if (sentry) setSentryStats(sentry)
+      setTraces(traceData.traces)
+      setApprovals(approvalData)
     } catch { /* ignore */ }
   }, [])
 
@@ -105,10 +142,12 @@ export function AgentMonitorPage() {
   }, [fetchData])
 
   const tabs = [
-    { key: "monitor" as const, label: t.agentMonitor?.executionMonitor ?? "Execution Monitor", icon: Activity },
+    { key: "monitor" as const, label: t.agentMonitor?.executionMonitor ?? "Execution", icon: Activity },
+    { key: "traces" as const, label: t.agentMonitor?.reasoningTraces ?? "Reasoning Traces", icon: GitBranch },
+    { key: "approvals" as const, label: t.agentMonitor?.approvalQueue ?? "Approvals", icon: Shield, badge: approvals.length },
     { key: "sessions" as const, label: t.agentMonitor?.sessions ?? "Sessions", icon: Brain },
     { key: "hypotheses" as const, label: t.agentMonitor?.hypotheses ?? "Hypotheses", icon: Zap },
-    { key: "errors" as const, label: t.agentMonitor?.errorMonitor ?? "Error Monitor", icon: AlertTriangle },
+    { key: "errors" as const, label: t.agentMonitor?.errorMonitor ?? "Errors", icon: AlertTriangle },
   ]
 
   return (
@@ -140,7 +179,7 @@ export function AgentMonitorPage() {
 
         {/* Tabs */}
         <div className="flex gap-1 mb-6 border-b border-[var(--border)]">
-          {tabs.map(({ key, label, icon: Icon }) => (
+          {tabs.map(({ key, label, icon: Icon, badge }) => (
             <button
               key={key}
               onClick={() => setTab(key)}
@@ -152,6 +191,11 @@ export function AgentMonitorPage() {
             >
               <Icon size={13} />
               {label}
+              {badge !== undefined && badge > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 text-[9px] rounded-full bg-[var(--accent)] text-white font-medium">
+                  {badge}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -197,6 +241,125 @@ export function AgentMonitorPage() {
                       className="h-1.5 rounded-full bg-[var(--accent)]"
                       style={{ width: `${exec.progress_pct}%` }}
                     />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Reasoning Traces Tab */}
+        {tab === "traces" && (
+          <div className="space-y-3">
+            {traces.length === 0 ? (
+              <div className="text-center py-8 text-[12px] text-[var(--text-muted)]">
+                {t.agentMonitor?.noTraces ?? "No reasoning traces yet. Traces appear when agents execute tasks."}
+              </div>
+            ) : (
+              traces.map(trace => (
+                <div key={trace.trace_id} className="rounded-md border border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--border)]">
+                    <div className="flex items-center gap-2">
+                      <GitBranch size={14} className="text-[var(--accent)]" />
+                      <span className="text-[12px] font-medium text-[var(--text-primary)]">{trace.summary || trace.trace_id.slice(0, 8)}</span>
+                      {trace.outcome && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                          trace.outcome === "success" ? "bg-[rgba(78,201,176,0.15)] text-[var(--success-fg)]" :
+                          "bg-[rgba(244,71,71,0.15)] text-[var(--error)]"
+                        }`}>{trace.outcome}</span>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-[var(--text-muted)]">{trace.steps.length} steps</span>
+                  </div>
+                  <div className="px-4 py-2">
+                    {trace.steps.map((step, i) => (
+                      <div key={step.step_id} className="flex items-start gap-2 py-1.5 text-[11px]">
+                        <div className="flex flex-col items-center shrink-0 mt-0.5">
+                          <div className={`w-2 h-2 rounded-full ${
+                            step.step_type.includes("decision") ? "bg-[var(--accent)]" :
+                            step.step_type.includes("error") ? "bg-[var(--error)]" :
+                            step.step_type.includes("judge") ? "bg-[var(--warning)]" :
+                            "bg-[var(--text-muted)]"
+                          }`} />
+                          {i < trace.steps.length - 1 && <div className="w-px flex-1 bg-[var(--border)] min-h-[12px]" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[var(--text-primary)]">{step.summary}</span>
+                            <span className="text-[9px] px-1 py-0.5 rounded bg-[var(--bg-active)] text-[var(--text-muted)]">{step.step_type}</span>
+                            {step.confidence && (
+                              <span className="text-[9px] text-[var(--text-muted)]">{step.confidence}</span>
+                            )}
+                          </div>
+                        </div>
+                        {step.duration_ms != null && (
+                          <span className="text-[10px] text-[var(--text-muted)] shrink-0">{step.duration_ms}ms</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Approvals Tab */}
+        {tab === "approvals" && (
+          <div className="space-y-3">
+            {approvals.length === 0 ? (
+              <div className="text-center py-8 text-[12px] text-[var(--text-muted)]">
+                {t.agentMonitor?.noApprovals ?? "No pending approvals. All operations are running within approved boundaries."}
+              </div>
+            ) : (
+              approvals.map(ap => (
+                <div key={ap.id} className="rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Shield size={14} className={
+                        ap.risk_level === "high" ? "text-[var(--error)]" :
+                        ap.risk_level === "medium" ? "text-[var(--warning)]" :
+                        "text-[var(--accent)]"
+                      } />
+                      <span className="text-[12px] font-medium text-[var(--text-primary)]">{ap.operation_type}</span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                        ap.risk_level === "high" ? "bg-[rgba(244,71,71,0.15)] text-[var(--error)]" :
+                        ap.risk_level === "medium" ? "bg-[rgba(220,220,170,0.15)] text-[var(--warning)]" :
+                        "bg-[rgba(0,122,204,0.12)] text-[var(--accent)]"
+                      }`}>{ap.risk_level}</span>
+                    </div>
+                    <span className="text-[10px] text-[var(--text-muted)]">{ap.requested_at}</span>
+                  </div>
+                  <p className="text-[11px] text-[var(--text-secondary)] mb-3">{ap.description}</p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={async () => {
+                        try {
+                          await api.post(`/approvals/${ap.id}/approve`, {})
+                          fetchData()
+                        } catch { /* ignore */ }
+                      }}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded text-[11px] bg-[var(--success)] text-white hover:opacity-90"
+                    >
+                      <CheckCircle size={12} />
+                      {t.agentMonitor?.approve ?? "Approve"}
+                    </button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await api.post(`/approvals/${ap.id}/reject`, {})
+                          fetchData()
+                        } catch { /* ignore */ }
+                      }}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded text-[11px] border border-[var(--error)] text-[var(--error)] hover:bg-[rgba(244,71,71,0.1)]"
+                    >
+                      <XCircle size={12} />
+                      {t.agentMonitor?.reject ?? "Reject"}
+                    </button>
+                    <button className="flex items-center gap-1 px-3 py-1.5 rounded text-[11px] text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+                      <Eye size={12} />
+                      {t.agentMonitor?.viewDetails ?? "Details"}
+                    </button>
                   </div>
                 </div>
               ))
