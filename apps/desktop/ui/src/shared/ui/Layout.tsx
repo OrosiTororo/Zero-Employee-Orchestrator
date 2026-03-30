@@ -213,7 +213,7 @@ export function Layout({ children }: LayoutProps) {
         <div className="flex items-center h-full text-[var(--statusbar-fg)]">
           <div className="flex items-center gap-1 px-2 h-full hover:bg-[rgba(255,255,255,0.12)]">
             <Circle size={7} fill="var(--statusbar-fg)" stroke="none" style={{ opacity: 0.8 }} />
-            <span>{t.common.connected ?? "Connected"}</span>
+            <span>{t.common.connected ?? "OK"}</span>
           </div>
           <div className="flex items-center gap-1 px-2 h-full hover:bg-[rgba(255,255,255,0.12)]">
             <Briefcase size={11} />

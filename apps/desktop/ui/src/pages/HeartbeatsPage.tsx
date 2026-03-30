@@ -21,8 +21,13 @@ export function HeartbeatsPage() {
             <HeartPulse size={18} className="text-[var(--accent)]" />
             <h2 className="text-[14px] font-medium text-[var(--text-primary)]">{t.heartbeats.title}</h2>
           </div>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[12px] bg-[var(--accent)] text-[var(--accent-fg)]"
-            aria-label={t.heartbeats.addPolicy}>
+          <button
+            onClick={() => {
+              // TODO: Open add policy form when heartbeat management is implemented
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[12px] bg-[var(--accent)] text-[var(--accent-fg)]"
+            aria-label={t.heartbeats.addPolicy}
+          >
             <Plus size={14} />
             {t.heartbeats.addPolicy}
           </button>
