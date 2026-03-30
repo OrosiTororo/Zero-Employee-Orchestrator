@@ -71,7 +71,7 @@ apps/
 └── worker/           # Background workers
 skills/builtin/       # Built-in Skills (8: 7 Python modules + browser-assist manifest)
 plugins/              # Plugin manifests (10 Plugins)
-extensions/           # Extension manifests (11 Extensions + Chrome extension)
+extensions/           # Extension manifests (11 Extensions, including browser-assist Chrome extension)
 ```
 
 ## Commands
@@ -307,7 +307,7 @@ Security:
 ## Media Generation / AI Tool Integration
 
 - Media generation: `apps/api/app/integrations/media_generation.py` (image, video, audio, music, 3D; dynamic provider registration)
-- AI tool registry: `apps/api/app/integrations/ai_tools.py` (45+ external tools, 19 categories)
+- AI tool registry: `apps/api/app/integrations/ai_tools.py` (55+ external tools, 21 categories)
 - **Tools are not fixed; users freely choose and switch** -- managed by Plugin Loader's ToolRegistry
 - API: `/api/v1/media/*`, `/api/v1/ai-tools/*`
 
@@ -336,7 +336,7 @@ resources, ipaas, export, marketplace, teams, governance, quality-insights**
 
 - Built-in Skills (8): spec-writer, plan-writer, task-breakdown, review-assistant, artifact-summarizer, local-context, domain-skills, browser-assist
 - System protection Skills cannot be deleted or disabled
-- Natural language skill generation: `POST /api/v1/registry/skills/generate` (16 dangerous pattern detections)
+- Natural language skill generation: `POST /api/v1/registry/skills/generate` (18 dangerous pattern detections)
 
 ## Ports
 

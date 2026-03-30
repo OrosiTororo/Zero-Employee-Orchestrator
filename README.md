@@ -225,7 +225,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # Background workers
 ├── skills/                   # 8 built-in skills
 ├── plugins/                  # 10 plugin manifests
-├── extensions/               # 12 extension manifests
+├── extensions/               # 11 extension manifests
 │   └── browser-assist/
 │       └── chrome-extension/ # Chrome extension for Browser Assist
 ├── packages/                 # Shared NPM packages
@@ -410,7 +410,7 @@ POST /api/v1/registry/skills/generate
 }
 ```
 
-16 dangerous patterns are auto-detected. Only skills passing safety checks are registered.
+18 dangerous patterns are auto-detected. Only skills passing safety checks are registered.
 
 ---
 

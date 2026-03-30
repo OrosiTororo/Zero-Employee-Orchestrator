@@ -59,7 +59,7 @@ Please report via [Issues](https://github.com/OrosiTororo/Zero-Employee-Orchestr
 Community Skills and Plugins are welcome:
 - Skills: refer to templates in `skills/templates/`
 - Plugins: refer to existing plugins in `plugins/`
-- Must pass safety checks (16 dangerous pattern detections)
+- Must pass safety checks (18 dangerous pattern detections)
 - Do not include personal or sensitive information
 
 ## Translations

@@ -375,6 +375,8 @@ Core tables start from the following:
 
 ### 10.2 Initial API Endpoint Groups
 
+> **Note**: All endpoints use the `/api/v1/` prefix in the actual implementation (e.g., `POST /api/v1/auth/login`). The paths below show the design-level structure.
+
 #### Authentication & Session
 - `POST /api/auth/login`
 - `GET /api/auth/status`
@@ -526,7 +528,7 @@ Zero-Employee-Orchestrator/
 │  ├─ desktop/                # Tauri + React UI
 │  │  ├─ src-tauri/           # Rust (Tauri v2)
 │  │  └─ ui/src/
-│  │     ├─ pages/            # 23 screen components
+│  │     ├─ pages/            # 27 screen components
 │  │     ├─ features/         # Feature-based modules
 │  │     ├─ shared/           # Common API, types, hooks, UI
 │  │     └─ app/              # Routing, entry point

@@ -251,7 +251,7 @@ Community-driven skill ecosystem.
 | **Import** | `POST /api/v1/registry/skills/import` |
 | **Generate** | `POST /api/v1/registry/skills/generate` |
 
-Natural language skill generation includes **16 dangerous pattern checks** before registration.
+Natural language skill generation includes **18 dangerous pattern checks** before registration.
 
 ---
 
