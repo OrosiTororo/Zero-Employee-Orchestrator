@@ -293,7 +293,7 @@ Zero-Employee-Orchestrator/
 | **Tarayıcı Asistanı** | Chrome uzantısı overlay — Yapay zeka ekranınızı gerçek zamanlı görür |
 | **Medya Oluşturma** | Görüntü, video, ses, müzik, 3D — dinamik sağlayıcı kaydıyla |
 | **Uygulama Bağlayıcı Merkezi** | 34+ uygulama (Obsidian, Notion, Google Workspace, Microsoft 365 vb.) |
-| **Yapay Zeka Araç Entegrasyonu** | 19 kategori, 45+ harici araç |
+| **Yapay Zeka Araç Entegrasyonu** | 21 kategori, 55+ harici araç |
 | **A2A İletişim** | Ajanlar arası eşler arası mesajlaşma, kanallar ve müzakere |
 | **Avatar Yapay Zeka** | Karar kalıplarınızı öğrenir ve sizinle birlikte gelişir |
 | **Sekreter Yapay Zeka** | Beyin boşaltma → yapılandırılmış görevler, siz ve yapay zeka organizasyonu arasında köprü |

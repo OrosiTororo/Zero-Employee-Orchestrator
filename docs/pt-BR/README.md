@@ -293,7 +293,7 @@ Zero-Employee-Orchestrator/
 | **Browser Assist** | Overlay de extensão Chrome — IA vê sua tela em tempo real |
 | **Geração de Mídia** | Imagem, vídeo, áudio, música, 3D — com registro dinâmico de provedores |
 | **Hub de Conectores de Apps** | 34+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, etc.) |
-| **Integração de Ferramentas de IA** | 19 categorias, 45+ ferramentas externas |
+| **Integração de Ferramentas de IA** | 21 categorias, 55+ ferramentas externas |
 | **Comunicação A2A** | Mensagens peer-to-peer entre agentes, canais e negociação |
 | **IA Avatar** | Aprende seus padrões de decisão e evolui com você |
 | **IA Secretária** | Brain dump → tarefas estruturadas, ponte entre você e a organização de IA |
