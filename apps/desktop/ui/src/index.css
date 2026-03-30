@@ -20,7 +20,7 @@
   --border-focus: #007acc;
   --activity-bar-divider: rgba(255, 255, 255, 0.12);
 
-  --text-primary: #d4d4d4;
+  --text-primary: #cccccc;
   --text-secondary: #969696;
   --text-muted: #6e7681;
 
@@ -213,14 +213,16 @@ a,
 input,
 textarea {
   transition: background-color 120ms ease, border-color 120ms ease,
-    color 120ms ease, box-shadow 120ms ease, opacity 120ms ease,
-    transform 80ms ease;
+    color 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
 }
 
-/* ── Button Interaction Feedback ─────────────────────── */
+/* ── Button Interaction Feedback (VSCode-style: restrained) ── */
 button:not(:disabled):active {
-  transform: scale(0.97);
-  opacity: 0.85;
+  opacity: 0.8;
+}
+
+button:disabled {
+  opacity: 0.4;
 }
 
 /* ── Selection ─────────────────────────────────────────── */
