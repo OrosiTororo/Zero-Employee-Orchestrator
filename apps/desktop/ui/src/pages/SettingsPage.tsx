@@ -21,7 +21,7 @@ import {
   Cloud,
 } from "lucide-react"
 import { api } from "../shared/api/client"
-import { useT, useI18n, LOCALE_LABELS, BUILTIN_LOCALES, type Locale } from "@/shared/i18n"
+import { useT, useI18n, LOCALE_LABELS, availableLocales, type Locale } from "@/shared/i18n"
 import { useTheme, THEME_LABELS, type Theme } from "@/shared/hooks/use-theme"
 
 interface ProviderInfo {
@@ -278,25 +278,23 @@ export function SettingsPage() {
               <label className="text-[11px] text-[var(--text-muted)] block mb-2">
                 {t.settings.uiLanguage}
               </label>
-              <div className="flex flex-wrap gap-2">
-                {(Object.keys(LOCALE_LABELS) as Locale[]).map((loc) => (
+              <div className="flex items-center gap-3">
+                <span className="px-4 py-2 rounded text-[12px] border bg-[var(--accent)] text-[var(--accent-fg)] border-[var(--accent)]">
+                  {LOCALE_LABELS[locale] ?? locale}
+                </span>
+                {/* Show other available languages only if user has added them */}
+                {[...availableLocales].filter(loc => loc !== locale).map((loc) => (
                   <button
                     key={loc}
-                    onClick={() => handleLanguageChange(loc)}
-                    className="px-4 py-2 rounded text-[12px] border transition-colors relative"
+                    onClick={() => handleLanguageChange(loc as Locale)}
+                    className="px-4 py-2 rounded text-[12px] border transition-colors"
                     style={{
-                      background: locale === loc ? "var(--accent)" : "transparent",
-                      color: locale === loc ? "var(--accent-fg)" : "var(--text-primary)",
-                      borderColor: locale === loc ? "var(--accent)" : "var(--border)",
+                      background: "transparent",
+                      color: "var(--text-primary)",
+                      borderColor: "var(--border)",
                     }}
-                    aria-pressed={locale === loc}
                   >
-                    {LOCALE_LABELS[loc]}
-                    {BUILTIN_LOCALES.has(loc) && (
-                      <span className="ml-1.5 text-[9px] opacity-60">
-                        ({t.settings.languageBuiltin})
-                      </span>
-                    )}
+                    {LOCALE_LABELS[loc] ?? loc}
                   </button>
                 ))}
               </div>

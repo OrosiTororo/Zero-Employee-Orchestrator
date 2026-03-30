@@ -88,11 +88,10 @@ export function Layout({ children }: LayoutProps) {
         <div className="flex items-center gap-2 px-3">
           <LogoMark size={14} />
           <span className="text-[12px] text-[var(--text-muted)]">
-            {currentTitle} — {t.common.appName}
+            {currentTitle}
           </span>
         </div>
         <div className="flex-1" />
-        <div className="px-3 text-[11px] text-[var(--text-muted)]">{t.common.version}</div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
