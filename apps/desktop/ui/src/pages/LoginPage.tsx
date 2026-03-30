@@ -98,14 +98,46 @@ export function LoginPage() {
     setLoading(true)
     setError("")
     try {
-      const res = await api.get<{ url: string }>("/auth/google/authorize")
-      window.location.href = res.url
+      const res = await api.get<{ url: string; state: string }>("/auth/google/authorize")
+      // Open Google auth in a new window/tab (works in both Tauri and browser)
+      window.open(res.url, "_blank", "noopener")
+
+      // Poll for completion
+      const state = res.state
+      const maxAttempts = 120 // 2 minutes
+      for (let i = 0; i < maxAttempts; i++) {
+        await new Promise((r) => setTimeout(r, 1000))
+        try {
+          const poll = await api.get<{
+            status: string
+            access_token?: string
+            setup_completed?: boolean
+          }>(`/auth/google/poll?state=${state}`)
+          if (poll.status === "complete" && poll.access_token) {
+            setToken(poll.access_token)
+            if (poll.setup_completed) {
+              useAuthStore.getState().setSetupCompleted()
+              navigate("/")
+            } else {
+              navigate("/setup")
+            }
+            return
+          }
+        } catch {
+          // poll endpoint may 404 if state expired — stop polling
+          break
+        }
+      }
+      setError(t.auth.googleOAuthTimeout)
     } catch (e: unknown) {
       if (e instanceof NetworkError) {
         setError(t.auth.connectionFailed)
+      } else if (e instanceof Error && e.message.includes("not configured")) {
+        setError(t.auth.googleOAuthNotConfigured)
       } else {
         setError(t.auth.googleOAuthNotReady)
       }
+    } finally {
       setLoading(false)
     }
   }

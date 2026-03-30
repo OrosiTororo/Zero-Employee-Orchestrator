@@ -101,6 +101,68 @@ async def register_user(
     return user
 
 
+async def oauth_login_or_register(
+    db: AsyncSession,
+    email: str,
+    display_name: str,
+    provider: str,
+) -> tuple[User, bool]:
+    """Find existing user by email or create a new one for OAuth login.
+
+    Returns (user, is_new) where is_new indicates a freshly created account.
+    If the user already exists (regardless of auth_provider), they are logged in
+    and their last_login_at is updated.
+    """
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+
+    if user is not None:
+        user.last_login_at = datetime.now(UTC)
+        # If user originally registered via email, also allow Google login
+        if user.auth_provider == "local":
+            user.auth_provider = f"local,{provider}"
+        await db.commit()
+        return user, False
+
+    # New user — create with company (same as register_user but without password)
+    async with db.begin_nested():
+        user = User(
+            id=generate_uuid(),
+            email=email,
+            display_name=display_name,
+            role="owner",
+            status="active",
+            auth_provider=provider,
+            password_hash=None,
+            last_login_at=datetime.now(UTC),
+        )
+        db.add(user)
+
+        company = Company(
+            id=generate_uuid(),
+            slug=f"company-{str(user.id)[:8]}",
+            name=f"{display_name}'s Organization",
+            mission="",
+            description="",
+            status="active",
+        )
+        db.add(company)
+
+        member = CompanyMember(
+            id=generate_uuid(),
+            company_id=company.id,
+            user_id=user.id,
+            company_role="owner",
+            status="active",
+            joined_at=datetime.now(UTC),
+        )
+        db.add(member)
+
+    await db.commit()
+    await db.refresh(user)
+    return user, True
+
+
 async def authenticate_user(
     db: AsyncSession,
     email: str,
