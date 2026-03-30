@@ -294,7 +294,7 @@ Zero-Employee-Orchestrator/
 | **Browser Assist** | Chrome extension overlay — AI sees your screen in real-time |
 | **Media Generation** | Image, video, audio, music, 3D — with dynamic provider registration |
 | **App Connector Hub** | 34+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, etc.) |
-| **AI Tool Integration** | 45+ external tools across 19 categories |
+| **AI Tool Integration** | 55+ external tools across 21 categories |
 | **A2A Communication** | Peer-to-peer agent messaging, channels, and negotiation |
 | **Avatar AI** | Learns your decision patterns and evolves with you |
 | **Secretary AI** | Brain dump → structured tasks, bridges you and the AI org |

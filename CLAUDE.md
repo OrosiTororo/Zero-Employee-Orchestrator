@@ -55,12 +55,12 @@ apps/
 │   │   ├── schemas/        # Pydantic DTO
 │   │   ├── services/       # Business logic (25 services)
 │   │   ├── repositories/   # DB I/O abstraction
-│   │   ├── orchestration/  # DAG, Judge, state machine, Knowledge, Memory, MetaSkill, A2A, Transparency (22 modules)
+│   │   ├── orchestration/  # DAG, Judge, state machine, Knowledge, Memory, MetaSkill, A2A, Transparency, ReasoningTrace, CostGuard, QualitySLA, AvatarCoevolution, LongrunScheduler (22 modules)
 │   │   ├── heartbeat/      # Heartbeat scheduler
 │   │   ├── providers/      # LLM gateway, Ollama, g4f, RAG, ModelRegistry, WebSession
-│   │   ├── tools/          # External tool connectors (MCP/Webhook/API/CLI/GraphQL/Browser/BrowserAdapter/LSP)
+│   │   ├── tools/          # External tool connectors (MCP/Webhook/API/CLI/GraphQL/Browser/BrowserAdapter/LSP/LLMMock)
 │   │   ├── policies/       # Approval gates, autonomy boundaries
-│   │   ├── security/       # IAM, secrets, sanitize, prompt defense, PII, sandbox, data protection, red-team
+│   │   ├── security/       # IAM, secrets, sanitize, prompt defense, PII, sandbox, data protection, red-team, input sanitization
 │   │   ├── integrations/   # Sentry, MCP, external skills, browser assist, AI research, media generation, AI tools, iPaaS, export, repurpose, RSS/ToS, Obsidian, cloud, smart devices, app connector hub
 │   │   ├── audit/          # Audit logging
 │   │   └── tests/          # Tests
@@ -385,6 +385,10 @@ The desktop app follows a VSCode/Cursor-inspired IDE layout for AI orchestration
 Dashboard, Org Chart, Secretary, Tickets, Approvals, Artifacts,
 Health Monitor, Costs, Audit, Skills, Plugins, Extensions,
 Marketplace, Brainstorm, Agent Monitor, Permissions, Settings
+
+### Additional Pages (not in Activity Bar)
+Login, Setup, Ticket Detail, Ticket Interview, Spec/Plan,
+Skill Create, Skill Detail, Releases, Not Found (404)
 
 ### Theme System
 - 3 built-in themes: Dark (default), Light, High Contrast
