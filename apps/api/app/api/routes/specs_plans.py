@@ -72,10 +72,16 @@ async def create_spec(
 ):
     """Create a spec."""
     tid = parse_uuid(ticket_id, "ticket_id")
+    # Look up ticket to get company_id
+    ticket_result = await db.execute(select(Ticket).where(Ticket.id == tid))
+    ticket = ticket_result.scalar_one_or_none()
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
     existing = await db.execute(select(Spec).where(Spec.ticket_id == tid))
     count = len(existing.scalars().all())
     spec = Spec(
         id=uuid.uuid4(),
+        company_id=ticket.company_id,
         ticket_id=tid,
         version_no=count + 1,
         status="draft",
@@ -84,6 +90,7 @@ async def create_spec(
         acceptance_criteria_json=req.acceptance_criteria_json or {},
         risk_notes=req.risk_notes,
         created_by_type="user",
+        created_by_user_id=user.id,
     )
     db.add(spec)
     await db.flush()
@@ -123,10 +130,15 @@ async def create_plan(
 ):
     """Create a plan."""
     tid = parse_uuid(ticket_id, "ticket_id")
+    ticket_result = await db.execute(select(Ticket).where(Ticket.id == tid))
+    ticket = ticket_result.scalar_one_or_none()
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
     existing = await db.execute(select(Plan).where(Plan.ticket_id == tid))
     count = len(existing.scalars().all())
     plan = Plan(
         id=uuid.uuid4(),
+        company_id=ticket.company_id,
         ticket_id=tid,
         spec_id=parse_uuid(req.spec_id, "spec_id"),
         version_no=count + 1,
