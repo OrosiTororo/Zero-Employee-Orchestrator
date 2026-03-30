@@ -48,6 +48,8 @@ export function DashboardPage() {
   useEffect(() => { fetchStats() }, [fetchStats])
 
   const [nlResponse, setNlResponse] = useState("")
+  const [chatHistory, setChatHistory] = useState<Array<{ role: "user" | "system"; content: string }>>([])
+  const [showChat, setShowChat] = useState(false)
 
   const handleSubmit = async () => {
     if (!input.trim() || loading) return
@@ -60,7 +62,9 @@ export function DashboardPage() {
       }>("/command", { text: input.trim() })
 
       if (nlResult.confidence >= 0.3 && !nlResult.delegate_to_llm && nlResult.message) {
+        setChatHistory(prev => [...prev, { role: "user", content: input.trim() }, { role: "system", content: nlResult.message }])
         setNlResponse(nlResult.message)
+        setShowChat(true)
         setInput("")
         fetchStats()
         return
@@ -135,9 +139,16 @@ export function DashboardPage() {
               </button>
             </div>
           </div>
-          {nlResponse && (
-            <div className="mt-3 rounded-md px-4 py-3 border border-[var(--success-fg)]/30 bg-[var(--success)]/10 text-[12px] text-[var(--text-primary)] whitespace-pre-wrap">
-              {nlResponse}
+          {showChat && chatHistory.length > 0 && (
+            <div className="mt-3 rounded-md border border-[var(--border)] bg-[var(--bg-surface)] max-h-[200px] overflow-auto">
+              {chatHistory.map((msg, i) => (
+                <div key={i} className={`px-4 py-2 text-[12px] ${i > 0 ? "border-t border-[var(--border)]" : ""}`}>
+                  <span className="text-[10px] text-[var(--text-muted)] mr-2">{msg.role === "user" ? ">" : "ZEO"}</span>
+                  <span className={msg.role === "user" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}>
+                    {msg.content}
+                  </span>
+                </div>
+              ))}
             </div>
           )}
         </div>

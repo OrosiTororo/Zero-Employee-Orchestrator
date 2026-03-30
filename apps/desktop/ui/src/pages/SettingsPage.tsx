@@ -287,34 +287,67 @@ export function SettingsPage() {
   const matchesSearch = (...terms: string[]) =>
     !sq || terms.some(t => t.toLowerCase().includes(sq))
 
+  const tocSections = [
+    { id: "theme", label: t.settings.themeSettings, icon: Palette },
+    { id: "language", label: t.settings.languageSettings, icon: Globe },
+    { id: "apikeys", label: t.settings.apiKeys, icon: Key },
+    { id: "execution", label: t.settings.executionMode, icon: Cpu },
+    { id: "agent", label: t.settings.agentBehavior, icon: Bot },
+    { id: "company", label: t.settings.companySettings, icon: Building2 },
+    { id: "connections", label: t.settings.providerConnections, icon: Link2 },
+    { id: "policies", label: t.settings.policies, icon: Shield },
+  ]
+
+  const scrollToSection = (id: string) => {
+    document.getElementById(`settings-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
+
   return (
-    <div className="h-full overflow-auto">
-      <div className="max-w-[720px] mx-auto px-6 py-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Settings size={18} className="text-[var(--accent)]" />
-          <h2 className="text-[14px] font-medium text-[var(--text-primary)]">{t.settings.title}</h2>
+    <div className="h-full flex">
+      {/* TOC Sidebar (VSCode-style) */}
+      <nav className="w-[180px] shrink-0 border-r border-[var(--border)] bg-[var(--bg-surface)] overflow-auto py-3">
+        <div className="px-3 mb-2 text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">
+          {t.settings.title}
         </div>
+        {tocSections.map((sec) => {
+          const hidden = !matchesSearch(sec.label)
+          if (hidden) return null
+          return (
+            <button
+              key={sec.id}
+              onClick={() => scrollToSection(sec.id)}
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-[12px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors text-left"
+            >
+              <sec.icon size={13} className="shrink-0" />
+              <span className="truncate">{sec.label}</span>
+            </button>
+          )
+        })}
+      </nav>
 
-        {/* Settings Search */}
-        <div className="relative mb-5">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
-          <input
-            value={settingsSearch}
-            onChange={(e) => setSettingsSearch(e.target.value)}
-            placeholder={t.settings.searchPlaceholder ?? "Search settings..."}
-            className="w-full pl-9 pr-3 py-2 rounded text-[12px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)]"
-          />
-        </div>
-
-        {saveMessage && (
-          <div className="mb-4 flex items-center gap-2 px-3 py-2 rounded border border-[var(--success-fg)] bg-[var(--success)] text-[12px] text-white">
-            <Check size={14} />
-            {saveMessage}
+      {/* Settings Content */}
+      <div className="flex-1 overflow-auto">
+        <div className="max-w-[680px] mx-auto px-6 py-6">
+          {/* Search */}
+          <div className="relative mb-5">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+            <input
+              value={settingsSearch}
+              onChange={(e) => setSettingsSearch(e.target.value)}
+              placeholder={t.settings.searchPlaceholder ?? "Search settings..."}
+              className="w-full pl-9 pr-3 py-2 rounded text-[12px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)]"
+            />
           </div>
+
+          {saveMessage && (
+            <div className="mb-4 flex items-center gap-2 px-3 py-2 rounded border border-[var(--success-fg)] bg-[var(--success)] text-[12px] text-white">
+              <Check size={14} />
+              {saveMessage}
+            </div>
         )}
 
         {/* Theme Settings */}
-        <SettingsSection icon={Palette} title={t.settings.themeSettings} hidden={!matchesSearch(t.settings.themeSettings, "theme", "dark", "light")}>
+        <SettingsSection id="settings-theme" icon={Palette} title={t.settings.themeSettings} hidden={!matchesSearch(t.settings.themeSettings, "theme", "dark", "light")}>
           <div className="flex flex-wrap gap-2">
             {(Object.keys(THEME_LABELS) as Theme[]).map((th) => (
               <button
@@ -335,7 +368,7 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* Language Settings */}
-        <SettingsSection icon={Globe} title={t.settings.languageSettings} hidden={!matchesSearch(t.settings.languageSettings, "language", "locale")}>
+        <SettingsSection id="settings-language" icon={Globe} title={t.settings.languageSettings} hidden={!matchesSearch(t.settings.languageSettings, "language", "locale")}>
           <div className="flex flex-col gap-4">
             <div>
               <label className="text-[11px] text-[var(--text-muted)] block mb-2">
@@ -375,7 +408,7 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* LLM API Keys */}
-        <SettingsSection icon={Key} title={t.settings.apiKeys} hidden={!matchesSearch(t.settings.apiKeys, "api", "key", "llm", "provider", "openai", "anthropic", "gemini", "ollama")}>
+        <SettingsSection id="settings-apikeys" icon={Key} title={t.settings.apiKeys} hidden={!matchesSearch(t.settings.apiKeys, "api", "key", "llm", "provider", "openai", "anthropic", "gemini", "ollama")}>
           <div className="flex flex-col gap-1 mb-3">
             <div className="text-[11px] text-[var(--text-muted)]">{t.settings.apiKeysDesc}</div>
             <div className="text-[11px] text-[var(--text-muted)]">
@@ -516,7 +549,7 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* Execution Mode */}
-        <SettingsSection icon={Cpu} title={t.settings.executionMode} hidden={!matchesSearch(t.settings.executionMode, "mode", "quality", "speed", "cost", "free")}>
+        <SettingsSection id="settings-execution" icon={Cpu} title={t.settings.executionMode} hidden={!matchesSearch(t.settings.executionMode, "mode", "quality", "speed", "cost", "free")}>
           <div>
             <label className="text-[11px] text-[var(--text-muted)] block mb-2">{t.settings.executionModeDesc}</label>
             <div className="flex flex-wrap gap-2">
@@ -542,7 +575,7 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* Agent Behavior */}
-        <SettingsSection icon={Bot} title={t.settings.agentBehavior} hidden={!matchesSearch(t.settings.agentBehavior, "agent", "autonomy", "browser", "workspace")}>
+        <SettingsSection id="settings-agent" icon={Bot} title={t.settings.agentBehavior} hidden={!matchesSearch(t.settings.agentBehavior, "agent", "autonomy", "browser", "workspace")}>
           <div className="flex flex-col gap-4">
             {/* Autonomy Level */}
             <div>
@@ -616,7 +649,7 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* Company Settings */}
-        <SettingsSection icon={Building2} title={t.settings.companySettings} hidden={!matchesSearch(t.settings.companySettings, "company", "organization", "mission")}>
+        <SettingsSection id="settings-company" icon={Building2} title={t.settings.companySettings} hidden={!matchesSearch(t.settings.companySettings, "company", "organization", "mission")}>
           <div className="flex flex-col gap-3">
             <div>
               <label className="text-[11px] text-[var(--text-muted)] block mb-1">{t.settings.companyName}</label>
@@ -632,7 +665,7 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* Provider Connections */}
-        <SettingsSection icon={Link2} title={t.settings.providerConnections} hidden={!matchesSearch(t.settings.providerConnections, "connection", "integration", "github", "slack", "notion")}>
+        <SettingsSection id="settings-connections" icon={Link2} title={t.settings.providerConnections} hidden={!matchesSearch(t.settings.providerConnections, "connection", "integration", "github", "slack", "notion")}>
           {/* Category filter */}
           <div className="flex flex-wrap gap-1 mb-3">
             {connectionCategories.map(cat => (
@@ -720,7 +753,7 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* Policies */}
-        <SettingsSection icon={Shield} title={t.settings.policies} hidden={!matchesSearch(t.settings.policies, "policy", "approval", "auto")}>
+        <SettingsSection id="settings-policies" icon={Shield} title={t.settings.policies} hidden={!matchesSearch(t.settings.policies, "policy", "approval", "auto")}>
           <div className="flex items-center justify-between">
             <div className="text-[13px] text-[var(--text-primary)]">{t.settings.autoApprove}</div>
             <button onClick={() => setAutoApprove(!autoApprove)}
@@ -743,7 +776,8 @@ export function SettingsPage() {
   )
 }
 
-function SettingsSection({ icon: Icon, title, children, hidden }: {
+function SettingsSection({ id, icon: Icon, title, children, hidden }: {
+  id?: string
   icon: React.ComponentType<{ size?: number; className?: string }>
   title: string
   children: React.ReactNode
@@ -751,7 +785,7 @@ function SettingsSection({ icon: Icon, title, children, hidden }: {
 }) {
   if (hidden) return null
   return (
-    <section className="mb-6 rounded border border-[var(--border)] bg-[var(--bg-surface)]">
+    <section id={id} className="mb-6 rounded border border-[var(--border)] bg-[var(--bg-surface)] scroll-mt-4">
       <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border)]">
         <Icon size={14} className="text-[var(--accent)]" />
         <span className="text-[12px] font-medium text-[var(--text-primary)]">{title}</span>
