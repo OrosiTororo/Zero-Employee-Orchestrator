@@ -9,8 +9,8 @@ Complete all items below before deploying to production.
 - [ ] Set `JWT_SECRET` for Cloudflare Workers (`wrangler secret put JWT_SECRET`)
 - [ ] Register `CLOUDFLARE_API_TOKEN` in GitHub Secrets (if using Cloudflare deployment)
 - [ ] Register `CLOUDFLARE_ACCOUNT_ID` in GitHub Secrets (if using Cloudflare deployment)
-- [ ] Replace KV namespace `placeholder-id` with your actual value (`apps/edge/proxy/wrangler.toml`)
-- [ ] Replace D1 `database_id` `placeholder-id` with your actual value (`apps/edge/full/wrangler.toml`)
+- [x] ~~Replace KV namespace `placeholder-id` with your actual value (`apps/edge/proxy/wrangler.toml`)~~ — configured: `21e5ccb52e...`
+- [x] ~~Replace D1 `database_id` `placeholder-id` with your actual value (`apps/edge/full/wrangler.toml`)~~ — configured: `04e8c22d-...`
 - [ ] Run `scripts/security-check.sh` and pass all checks
 
 ## Recommended (Should)
