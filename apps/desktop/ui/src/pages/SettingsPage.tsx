@@ -51,8 +51,8 @@ const ALL_PROVIDER_KEYS = [
   { key: "XAI_API_KEY", name: "xAI (Grok)", placeholder: "xai-xxxxxxxxxxxx", category: "direct" },
 ]
 
-/** All known service integrations */
-const ALL_CONNECTIONS = [
+/** All known service integrations (mutable — users can add custom ones) */
+const ALL_CONNECTIONS: Array<{ id: string; name: string; description: string; category: string }> = [
   { id: "openrouter", name: "OpenRouter", description: "LLM Gateway", category: "ai" },
   { id: "google", name: "Google Workspace", description: "Docs, Sheets, Drive, Calendar, Gmail", category: "productivity" },
   { id: "github", name: "GitHub", description: "Repository & CI/CD", category: "dev" },
@@ -111,8 +111,19 @@ export function SettingsPage() {
   const [newProviderKey, setNewProviderKey] = useState("")
   const [newProviderPlaceholder, setNewProviderPlaceholder] = useState("")
 
-  // Connection filter
+  // Connection filter and state
   const [connectionFilter, setConnectionFilter] = useState("all")
+  const [connectedServices, setConnectedServices] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem("connected_services")
+      if (stored) return new Set(JSON.parse(stored))
+    } catch { /* noop */ }
+    return new Set()
+  })
+  const [showAddConnection, setShowAddConnection] = useState(false)
+  const [newConnectionName, setNewConnectionName] = useState("")
+  const [newConnectionDesc, setNewConnectionDesc] = useState("")
+  const [newConnectionCat, setNewConnectionCat] = useState("productivity")
 
   useEffect(() => {
     try {
@@ -221,6 +232,40 @@ export function SettingsPage() {
   }
 
   const isCustomProvider = (key: string) => customProviders.some((p) => p.key === key)
+
+  const handleConnect = async (id: string, name: string) => {
+    try {
+      await api.post("/app-integrations/connect", { connector_id: id, name })
+    } catch { /* API may not have this endpoint yet — still update UI */ }
+    const next = new Set(connectedServices)
+    next.add(id)
+    setConnectedServices(next)
+    try { localStorage.setItem("connected_services", JSON.stringify([...next])) } catch { /* noop */ }
+  }
+
+  const handleDisconnect = async (id: string) => {
+    try {
+      await api.post("/app-integrations/disconnect", { connector_id: id })
+    } catch { /* API may not have this endpoint yet */ }
+    const next = new Set(connectedServices)
+    next.delete(id)
+    setConnectedServices(next)
+    try { localStorage.setItem("connected_services", JSON.stringify([...next])) } catch { /* noop */ }
+  }
+
+  const handleAddCustomConnection = () => {
+    if (!newConnectionName.trim()) return
+    const id = newConnectionName.toLowerCase().replace(/[^a-z0-9]+/g, "-")
+    ALL_CONNECTIONS.push({
+      id,
+      name: newConnectionName,
+      description: newConnectionDesc || newConnectionName,
+      category: newConnectionCat,
+    })
+    setNewConnectionName("")
+    setNewConnectionDesc("")
+    setShowAddConnection(false)
+  }
 
   const connectionCategories = [
     { key: "all", label: t.common.all },
@@ -580,22 +625,75 @@ export function SettingsPage() {
           </div>
           <div className="flex flex-col gap-2">
             {filteredConnections.map((p) => (
-              <div key={p.id} className="flex items-center justify-between rounded px-3 py-2 border border-[var(--border)] bg-[var(--bg-base)]">
+              <div key={p.id} className="flex items-center justify-between rounded px-3 py-2.5 border border-[var(--border)] bg-[var(--bg-base)] hover:border-[var(--accent)] transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-[var(--text-muted)]" />
+                  <div className="w-2 h-2 rounded-full" style={{ background: connectedServices.has(p.id) ? "var(--success-fg)" : "var(--text-muted)" }} />
                   <div>
                     <div className="text-[13px] text-[var(--text-primary)]">{p.name}</div>
                     <div className="text-[11px] text-[var(--text-muted)]">{p.description}</div>
                   </div>
                 </div>
-                <button className="flex items-center gap-1 px-2 py-1 rounded text-[11px] bg-[var(--accent)] text-[var(--accent-fg)]"
-                  aria-label={`${t.settings.connect} ${p.name}`}>
-                  <Link2 size={12} />
-                  {t.settings.connect}
-                </button>
+                {connectedServices.has(p.id) ? (
+                  <button
+                    onClick={() => handleDisconnect(p.id)}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] border border-[var(--success-fg)] text-[var(--success-fg)] hover:bg-[var(--success-fg)] hover:text-white transition-colors"
+                  >
+                    <Check size={12} />
+                    {t.settings.connected ?? "Connected"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleConnect(p.id, p.name)}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] bg-[var(--accent)] text-[var(--accent-fg)] hover:bg-[var(--accent-hover)] transition-colors"
+                    aria-label={`${t.settings.connect} ${p.name}`}
+                  >
+                    <Link2 size={12} />
+                    {t.settings.connect}
+                  </button>
+                )}
               </div>
             ))}
           </div>
+
+          {/* Add custom connection */}
+          {!showAddConnection ? (
+            <button onClick={() => setShowAddConnection(true)}
+              className="mt-3 flex items-center gap-1.5 px-3 py-2 rounded text-[12px] text-[var(--text-muted)] border border-dashed border-[var(--border)] hover:border-[var(--accent)] hover:text-[var(--text-primary)] transition-colors w-full justify-center">
+              <Plus size={14} />
+              {t.settings.addCustomConnection ?? "Add Custom Connection"}
+            </button>
+          ) : (
+            <div className="mt-3 rounded border border-[var(--accent)] bg-[var(--bg-base)] px-3 py-3">
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <input value={newConnectionName} onChange={(e) => setNewConnectionName(e.target.value)}
+                    placeholder={t.settings.connectionName ?? "Service Name"}
+                    className="flex-1 px-3 py-1.5 rounded text-[12px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)]" />
+                  <input value={newConnectionDesc} onChange={(e) => setNewConnectionDesc(e.target.value)}
+                    placeholder={t.settings.connectionDesc ?? "Description"}
+                    className="flex-1 px-3 py-1.5 rounded text-[12px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)]" />
+                </div>
+                <div className="flex gap-2">
+                  <select value={newConnectionCat} onChange={(e) => setNewConnectionCat(e.target.value)}
+                    className="flex-1 px-3 py-1.5 rounded text-[12px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)]">
+                    <option value="productivity">Productivity</option>
+                    <option value="dev">Dev</option>
+                    <option value="communication">Communication</option>
+                    <option value="automation">Automation</option>
+                    <option value="ai">AI</option>
+                  </select>
+                  <button onClick={handleAddCustomConnection} disabled={!newConnectionName.trim()}
+                    className="px-3 py-1.5 rounded text-[11px] bg-[var(--accent)] text-[var(--accent-fg)] disabled:opacity-40">
+                    {t.settings.addProvider ?? "Add"}
+                  </button>
+                  <button onClick={() => setShowAddConnection(false)}
+                    className="px-3 py-1.5 rounded text-[11px] text-[var(--text-primary)] border border-[var(--border)]">
+                    {t.common.cancel}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </SettingsSection>
 
         {/* Policies */}

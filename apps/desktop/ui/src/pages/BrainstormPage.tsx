@@ -279,11 +279,10 @@ export default function BrainstormPage() {
   return (
     <div className="h-full overflow-auto">
       <div className="max-w-[1100px] mx-auto px-6 py-6">
-        <div className="flex items-center gap-2 mb-1">
-          <Sparkles size={18} className="text-[var(--accent)]" />
+        <div className="flex items-center gap-2 mb-5">
+          <MessageSquare size={16} className="text-[var(--accent)]" />
           <h2 className="text-[14px] font-medium text-[var(--text-primary)]">{t.brainstorm.title}</h2>
         </div>
-        <p className="text-[12px] text-[var(--text-muted)] mb-5">{t.brainstorm.subtitle}</p>
 
         {/* Tabs */}
         <div className="flex gap-1 mb-5 border-b border-[var(--border)]">

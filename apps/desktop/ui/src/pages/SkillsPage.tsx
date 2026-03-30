@@ -20,7 +20,7 @@ interface SkillItem {
   name: string
   skill_type: string
   description: string | null
-  version: string
+  version?: string
   status: string
   is_system_protected: boolean
   enabled: boolean

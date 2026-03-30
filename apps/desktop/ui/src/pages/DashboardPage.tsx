@@ -95,10 +95,10 @@ export function DashboardPage() {
   return (
     <div className="h-full overflow-auto">
       <div className="max-w-[960px] mx-auto px-6 py-6">
-        {/* Natural Language Input - Hero */}
+        {/* Task Input */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles size={18} className="text-[var(--accent)]" />
+            <Send size={16} className="text-[var(--accent)]" />
             <h2 className="text-[14px] font-medium text-[var(--text-primary)]">
               {t.dashboard.requestTask}
             </h2>
@@ -124,8 +124,11 @@ export function DashboardPage() {
               <button
                 onClick={handleSubmit}
                 disabled={!input.trim() || loading}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-[12px] text-[var(--accent-fg)] font-medium disabled:opacity-40"
-                style={{ background: input.trim() && !loading ? "var(--gradient-primary)" : "var(--border)" }}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-[12px] font-medium disabled:opacity-40"
+                style={{
+                  background: input.trim() && !loading ? "var(--accent)" : "var(--border)",
+                  color: input.trim() && !loading ? "var(--accent-fg)" : "var(--text-muted)",
+                }}
               >
                 <Send size={13} />
                 {loading ? t.dashboard.submitting : t.dashboard.submit}
