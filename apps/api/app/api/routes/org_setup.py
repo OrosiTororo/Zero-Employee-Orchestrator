@@ -96,7 +96,9 @@ async def get_interview_questions(request: Request):
         "questions": [
             {
                 "id": "business_description",
-                "text": q("現在の事業内容を教えてください", "Please describe your current business"),
+                "text": q(
+                    "現在の事業内容を教えてください", "Please describe your current business"
+                ),
                 "question": "現在の事業内容を教えてください",
                 "question_en": "Please describe your current business",
                 "type": "text",

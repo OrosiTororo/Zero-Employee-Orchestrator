@@ -180,10 +180,14 @@ async def google_callback(
     Returns an HTML page that tells the user to return to the app.
     """
     if error:
-        return HTMLResponse(_oauth_result_html(success=False, message=f"Google login failed: {error}"))
+        return HTMLResponse(
+            _oauth_result_html(success=False, message=f"Google login failed: {error}")
+        )
 
     if not code or not state:
-        return HTMLResponse(_oauth_result_html(success=False, message="Missing code or state parameter."))
+        return HTMLResponse(
+            _oauth_result_html(success=False, message="Missing code or state parameter.")
+        )
 
     if state not in _google_oauth_pending:
         return HTMLResponse(_oauth_result_html(success=False, message="Invalid or expired state."))
@@ -241,7 +245,9 @@ async def google_callback(
             )
 
         # Create or find user
-        user, is_new = await oauth_login_or_register(db, email=email, display_name=name, provider="google")
+        user, is_new = await oauth_login_or_register(
+            db, email=email, display_name=name, provider="google"
+        )
         token = create_access_token(str(user.id))
         setup_done = await _get_user_setup_completed(db, str(user.id))
 
@@ -303,8 +309,7 @@ def _oauth_result_html(*, success: bool, message: str | None = None) -> str:
     if success:
         title = "Login Successful"
         body = (
-            "<h2>&#10004; Login successful</h2>"
-            "<p>You can close this tab and return to the app.</p>"
+            "<h2>&#10004; Login successful</h2><p>You can close this tab and return to the app.</p>"
         )
     else:
         title = "Login Failed"
