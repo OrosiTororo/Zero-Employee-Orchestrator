@@ -79,7 +79,7 @@ jobs:
         if: inputs.mode == 'pages'
         uses: pnpm/action-setup@v5
         with:
-          version: 9
+          version: 10
 
       - name: Install dependencies (pages)
         if: inputs.mode == 'pages'
