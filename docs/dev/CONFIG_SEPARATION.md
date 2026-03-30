@@ -1,233 +1,232 @@
 # Configuration Separation Guide: Developer vs User
 
-> Zero-Employee Orchestrator (ZEO) の設定項目を「開発者が設定すべきもの」と「使用ユーザーが設定するもの」に明確に分離するガイド。
+> A guide that clearly separates ZEO configuration items into
+> "what developers should configure" and "what end users should configure."
 >
 > Last updated: 2026-03-30
 
 ---
 
-## ZEO の設定方針（前提）
+## ZEO Configuration Principles
 
-ZEO は以下の設計原則に基づいて設定体系を構築している：
+ZEO's configuration system is built on the following design principles:
 
-1. **API キー不要で開始可能** — g4f（サブスクリプション）、Ollama（ローカル）で即座に利用可能
-2. **特定のプロバイダーを推奨しない** — 全選択肢を平等に提示
-3. **ZEO 自体は無料** — LLM API コストはユーザーが各プロバイダーに直接支払う
-4. **セキュリティファースト** — デフォルトは LOCKDOWN/STRICT、ユーザーが明示的に拡張
-5. **オフライン完全動作保証** — Ollama + SQLite で全コア機能が動作
-6. **設定ゼロで使える機能が多い** — Design Interview、Judge Layer、承認フロー等は設定不要
+1. **No API key required to start** — Instantly usable via g4f (subscription) or Ollama (local)
+2. **No specific provider recommended** — All options presented equally
+3. **ZEO itself is free** — LLM API costs are paid directly by users to each provider
+4. **Security-first** — Defaults are LOCKDOWN/STRICT; users explicitly expand access
+5. **Full offline operation guaranteed** — All core features work with Ollama + SQLite
+6. **Many features work with zero configuration** — Design Interview, Judge Layer, approval flows, etc.
 
-### 設定の責任分界点
+### Responsibility Boundary
 
-- **DEVELOPER_SETUP.md** の対象: ZEO コアの開発・品質管理（Sentry、Red-team テスト）
-- **USER_SETUP.md** の対象: それ以外すべて（セキュリティ、DB、デプロイ、API キー、ワークスペース等）
+- **DEVELOPER_SETUP.md** scope: ZEO core development and quality management (Sentry, red-team testing)
+- **USER_SETUP.md** scope: Everything else (security, DB, deployment, API keys, workspace, etc.)
 
 ---
 
-## 1. 開発者（Developer）が設定する項目
+## 1. Developer-Configured Items
 
-> ZEO のコードベースを開発・保守・リリースする担当者が設定する項目。
-> 使用ユーザーは触る必要がない。
+> Items configured by those who develop, maintain, and release the ZEO codebase.
+> End users do not need to touch these.
 
 ### 1.1 CI/CD — GitHub Repository Secrets
 
-| シークレット | 用途 | 使用ワークフロー | 状態 |
+| Secret | Purpose | Workflow | Status |
 |---|---|---|---|
-| `CLAUDE_CODE_OAUTH_TOKEN` | AI コードレビュー・タスク自動化 | `claude.yml`, `claude-code-review.yml` | 必要 |
-| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Workers デプロイ | `deploy-workers.yml` | Edge 使用時のみ |
-| `CLOUDFLARE_API_TOKEN` | Cloudflare Workers 認証 | `deploy-workers.yml` | Edge 使用時のみ |
-| `TAURI_SIGNING_PRIVATE_KEY` | デスクトップアプリ署名 | `release.yml` | リリース時必要 |
-| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | 署名キーパスワード | `release.yml` | リリース時必要 |
-| `SENTRY_DSN` | エラー監視（開発チーム用） | `ci.yml`, `deploy-api.yml` | 任意 |
-| `SECRET_KEY` | デプロイ時の暗号化キー | `deploy-api.yml` | デプロイ時必要 |
+| `CLAUDE_CODE_OAUTH_TOKEN` | AI code review and task automation | `claude.yml`, `claude-code-review.yml` | Required |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Workers deployment | `deploy-workers.yml` | Edge deployment only |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare Workers authentication | `deploy-workers.yml` | Edge deployment only |
+| `TAURI_SIGNING_PRIVATE_KEY` | Desktop app code signing | `release.yml` | Required for releases |
+| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Signing key password | `release.yml` | Required for releases |
+| `SENTRY_DSN` | Error monitoring (dev team) | `ci.yml`, `deploy-api.yml` | Optional |
+| `SECRET_KEY` | Encryption key for deployment | `deploy-api.yml` | Required for deployment |
 
-### 1.2 本番デプロイ設定
+### 1.2 Production Deployment Settings
 
-| 設定項目 | デフォルト | 本番での対応 |
+| Setting | Default | Production Action |
 |---|---|---|
-| `SECRET_KEY` | 自動生成（揮発性） | 固定の強力なキーに変更必須 |
-| `DEBUG` | `true` | `false` に変更必須 |
-| `CORS_ORIGINS` | localhost 系 | 本番ドメインに変更必須 |
-| `DATABASE_URL` | SQLite | PostgreSQL 推奨 |
-| `JWT_SECRET` (Workers) | 未設定 | `wrangler secret put` で設定 |
+| `SECRET_KEY` | Auto-generated (ephemeral) | Must change to a fixed, strong key |
+| `DEBUG` | `true` | Must change to `false` |
+| `CORS_ORIGINS` | localhost origins | Must change to production domain |
+| `DATABASE_URL` | SQLite | PostgreSQL recommended |
+| `JWT_SECRET` (Workers) | Not set | Set via `wrangler secret put` |
 
-### 1.3 品質管理
+### 1.3 Quality Management
 
-| 設定項目 | 目的 | 対象 |
+| Setting | Purpose | Scope |
 |---|---|---|
-| `SENTRY_DSN` | ZEO 自体のバグ追跡・エラー監視 | 開発チームのみ |
-| Red-team テスト | ZEO の脆弱性検証 | リリース前後に実行 |
-| `scripts/security-check.sh` | セキュリティチェック | デプロイ前に実行 |
+| `SENTRY_DSN` | Bug tracking and error monitoring for ZEO itself | Dev team only |
+| Red-team testing | ZEO vulnerability verification | Run before/after releases |
+| `scripts/security-check.sh` | Security check | Run before deployment |
 
-### 1.4 リリース・配布
+### 1.4 Release and Distribution
 
-| 設定項目 | 目的 | 備考 |
+| Setting | Purpose | Notes |
 |---|---|---|
-| Tauri 署名キー | デスクトップアプリのコード署名 | minisign 公開鍵は `tauri.conf.json` に埋め込み済み |
-| PyPI 公開 | `pip install zero-employee-orchestrator` | OIDC 認証で自動化済み |
-| Cloudflare Workers | Edge デプロイ | 任意（D1/KV は設定済み） |
+| Tauri signing key | Desktop app code signing | minisign public key embedded in `tauri.conf.json` |
+| PyPI publishing | `pip install zero-employee-orchestrator` | Automated via OIDC authentication |
+| Cloudflare Workers | Edge deployment | Optional (D1/KV already configured) |
 
 ---
 
-## 2. ユーザー（User）が設定する項目
+## 2. User-Configured Items
 
-> ZEO を使用するエンドユーザーが、必要に応じて設定する項目。
-> 設定方法: UI（Settings ページ）、CLI（`zero-employee config set`）、REST API
+> Items that end users configure as needed.
+> Configuration methods: UI (Settings page), CLI (`zero-employee config set`), REST API
 
-### 2.1 設定不要で使える機能
+### 2.1 Features That Work Without Configuration
 
-以下は設定ゼロで動作する（USER_SETUP.md Section 14 参照）：
+The following work with zero configuration (see USER_SETUP.md Section 14):
 
-- Design Interview（ブレインストーミング・要件探索）
-- Task Orchestrator（DAG 分解・進捗管理）
-- Judge Layer（品質検証）
-- Self-Healing DAG（自動リプランニング）
+- Design Interview (brainstorming and requirements exploration)
+- Task Orchestrator (DAG decomposition, progress management)
+- Judge Layer (quality verification)
+- Self-Healing DAG (automatic replanning)
 - Experience Memory / Failure Taxonomy
-- 承認フロー・監査ログ
-- PII 自動検出・マスキング
-- プロンプトインジェクション防御
-- ファイルサンドボックス
+- Approval flows and audit logs
+- Automatic PII detection and masking
+- Prompt injection defense
+- File sandbox
 
-### 2.2 LLM プロバイダー
+### 2.2 LLM Providers
 
-| 設定項目 | デフォルト | 必須度 |
+| Setting | Default | Required |
 |---|---|---|
-| `DEFAULT_EXECUTION_MODE` | `quality` | 任意（変更可） |
-| `USE_G4F` | `true` | 任意（キー不要モード） |
-| 各プロバイダー API キー | 空（不要） | 任意（品質向上時） |
-| `OLLAMA_BASE_URL` | `localhost:11434` | Ollama 使用時 |
-| `OLLAMA_DEFAULT_MODEL` | 自動検出 | 任意 |
+| `DEFAULT_EXECUTION_MODE` | `quality` | Optional (changeable) |
+| `USE_G4F` | `true` | Optional (no-key mode) |
+| Provider API keys | Empty (not required) | Optional (for quality improvement) |
+| `OLLAMA_BASE_URL` | `localhost:11434` | When using Ollama |
+| `OLLAMA_DEFAULT_MODEL` | Auto-detected | Optional |
 
-### 2.3 言語
+### 2.3 Language
 
-| 設定項目 | デフォルト | 備考 |
+| Setting | Default | Notes |
 |---|---|---|
-| `LANGUAGE` | `en` | UI + AI エージェント出力言語 |
+| `LANGUAGE` | `en` | UI + AI agent output language |
 
-### 2.4 セキュリティ（ユーザー制御）
+### 2.4 Security (User-Controlled)
 
-| 設定項目 | デフォルト | 備考 |
+| Setting | Default | Notes |
 |---|---|---|
-| サンドボックスレベル | STRICT | ユーザーが緩和可能 |
-| データ転送ポリシー | LOCKDOWN | ユーザーが緩和可能 |
-| PII 自動検出 | 有効 | 無効化可能 |
-| ワークスペースアクセス | 内部ストレージのみ | ローカル/クラウド有効化可能 |
+| Sandbox level | STRICT | User can relax |
+| Data transfer policy | LOCKDOWN | User can relax |
+| PII auto-detection | Enabled | Can be disabled |
+| Workspace access | Internal storage only | Local/cloud can be enabled |
 
-### 2.5 エージェント動作
+### 2.5 Agent Behavior
 
-| 設定項目 | デフォルト | 備考 |
+| Setting | Default | Notes |
 |---|---|---|
-| 自律レベル | semi_auto | observe/assist/semi_auto/autonomous |
-| 予算上限 | なし | 日次/週次/月次で設定可能 |
-| 承認ポリシー | 危険操作は承認必須 | カスタマイズ可能 |
+| Autonomy level | semi_auto | observe/assist/semi_auto/autonomous |
+| Budget limit | None | Configurable per day/week/month |
+| Approval policy | Dangerous ops require approval | Customizable |
 
-### 2.6 外部連携（すべて任意）
+### 2.6 External Integrations (All Optional)
 
-| カテゴリ | 例 | 備考 |
+| Category | Examples | Notes |
 |---|---|---|
-| コミュニケーション | Slack, Discord, LINE | ユーザーが接続設定 |
-| プロジェクト管理 | Jira, Linear, Asana | ユーザーが接続設定 |
-| ナレッジ | Notion, Obsidian | ユーザーが接続設定 |
-| メディア生成 | Stability AI, ElevenLabs | API キーをユーザーが設定 |
-| クラウドストレージ | Google Drive, OneDrive | OAuth 認証 |
+| Communication | Slack, Discord, LINE | User configures connections |
+| Project management | Jira, Linear, Asana | User configures connections |
+| Knowledge | Notion, Obsidian | User configures connections |
+| Media generation | Stability AI, ElevenLabs | User sets API keys |
+| Cloud storage | Google Drive, OneDrive | OAuth authentication |
 
-### 2.7 テーマ・UI
+### 2.7 Theme and UI
 
-| 設定項目 | デフォルト | 備考 |
+| Setting | Default | Notes |
 |---|---|---|
-| テーマ | ダーク | ダーク/ライト/ハイコントラスト |
-| 会社名・ミッション | 空 | 任意 |
+| Theme | Dark | Dark / Light / High Contrast |
+| Company name / mission | Empty | Optional |
 
 ---
 
-## 3. 現状の Repository Secrets 監査
+## 3. Repository Secrets Audit
 
-スクリーンショット（2026-03-30 確認）に基づく現在のシークレット一覧：
+Current secrets based on screenshot (verified 2026-03-30):
 
-| シークレット | 状態 | 判定 |
+| Secret | Status | Verdict |
 |---|---|---|
-| `CLAUDE_CODE_OAUTH_TOKEN` | `claude.yml`, `claude-code-review.yml` で使用 | **適切** |
-| `CLOUDFLARE_ACCOUNT_ID` | `deploy-workers.yml` で使用 | **適切** |
-| `CLOUDFLARE_API_TOKEN` | `deploy-workers.yml` で使用 | **適切** |
-| `PYPI_API_TOKEN` | **どのワークフローでも未使用** | **削除推奨** |
-| `SENTRY_DSN` | `ci.yml`, `deploy-api.yml` で使用 | **適切**（開発チーム用） |
-| `TAURI_SIGNING_PRIVATE_KEY` | `release.yml` で使用 | **適切** |
+| `CLAUDE_CODE_OAUTH_TOKEN` | Used by `claude.yml`, `claude-code-review.yml` | **Appropriate** |
+| `CLOUDFLARE_ACCOUNT_ID` | Used by `deploy-workers.yml` | **Appropriate** |
+| `CLOUDFLARE_API_TOKEN` | Used by `deploy-workers.yml` | **Appropriate** |
+| `PYPI_API_TOKEN` | **Not used by any workflow** | **Deletion recommended** |
+| `SENTRY_DSN` | Used by `ci.yml`, `deploy-api.yml` | **Appropriate** (dev team) |
+| `TAURI_SIGNING_PRIVATE_KEY` | Used by `release.yml` | **Appropriate** |
 
 ---
 
-## 4. 注意点・改善提案
+## 4. Notes and Improvement Proposals
 
-### 4.1 PYPI_API_TOKEN — ワークフロー未使用だが手動バックアップとして保持可
+### 4.1 PYPI_API_TOKEN — Not Used by Workflows; Can Be Kept as Manual Backup
 
-**現状**: `PYPI_API_TOKEN` が Repository Secrets に登録されているが、`publish-pypi.yml` は
-OIDC (Trusted Publisher) 認証を使用しており、このトークンはワークフロー内で参照されていない。
+**Current state**: `PYPI_API_TOKEN` is registered in Repository Secrets, but `publish-pypi.yml`
+uses OIDC (Trusted Publisher) authentication and does not reference this token.
 
 ```yaml
-# publish-pypi.yml — OIDC 認証を使用
+# publish-pypi.yml — Uses OIDC authentication
 permissions:
-  id-token: write  # ← OIDC トークン自動生成
+  id-token: write  # ← OIDC token auto-generated
 steps:
-  - uses: pypa/gh-action-pypi-publish@release/v1  # ← トークン不要
+  - uses: pypa/gh-action-pypi-publish@release/v1  # ← No token needed
 ```
 
-ZEO は PyPI に公開済み（`pip install zero-employee-orchestrator`）であり、
-OIDC Trusted Publisher が正常に機能している限りトークンは不要。
+ZEO is published on PyPI (`pip install zero-employee-orchestrator`), and as long as
+OIDC Trusted Publisher is functioning correctly, the token is unnecessary.
 
-**対応（選択肢）**:
-- **削除**: 不要なシークレットの放置はセキュリティリスク（攻撃面拡大）
-- **保持**: `twine upload` による手動アップロードのバックアップとして残す
+**Options**:
+- **Delete**: Leaving unused secrets is a security risk (expanded attack surface)
+- **Keep**: Retain as backup for manual uploads via `twine upload`
 
 ---
 
-### 4.2 TAURI_SIGNING_PRIVATE_KEY_PASSWORD — パスワードなしで登録済み、対応不要
+### 4.2 TAURI_SIGNING_PRIVATE_KEY_PASSWORD — Registered Without Password; No Action Needed
 
-**現状**: `release.yml` で `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` を参照しているが、
-署名キーはパスワードなしで登録されている。
+**Current state**: `release.yml` references `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`, but the
+signing key was registered without a password.
 
 ```yaml
 # release.yml line 76
 TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 ```
 
-**判定**: Tauri のアクションはパスワードが空でもエラーにならない。
-パスワードなしの署名キーであるため、現状で問題なし。
+**Verdict**: The Tauri action does not error when the password is empty.
+Since the signing key has no password, the current state is fine.
 
-**任意対応**: `release.yml` から該当行を削除して意図を明確化することも可能だが、
-将来パスワード付きキーに変更する可能性を考慮し、残しておいてもよい。
+**Optional**: The line could be removed from `release.yml` to clarify intent, but keeping it
+allows for future migration to a password-protected key.
 
 ---
 
-### 4.3 SECURITY_SETUP_CHECKLIST.md に不整合
+### 4.3 SECURITY_SETUP_CHECKLIST.md Had Inconsistencies
 
-**現状**: チェックリストに以下の記載がある：
+**Previous state**: The checklist stated:
 
 ```markdown
 - [ ] Replace KV namespace `placeholder-id` with your actual value
 - [ ] Replace D1 `database_id` `placeholder-id` with your actual value
 ```
 
-しかし実際の `wrangler.toml` では：
-- D1 database_id: `04e8c22d-10c5-442f-bc43-5b2f2ac0ae99`（実 ID 設定済み）
-- KV namespace_id: `21e5ccb52e034b4ead2781a3f0445783`（実 ID 設定済み）
+However, the actual `wrangler.toml` files already had real IDs:
+- D1 database_id: `04e8c22d-10c5-442f-bc43-5b2f2ac0ae99` (configured)
+- KV namespace_id: `21e5ccb52e034b4ead2781a3f0445783` (configured)
 
-**対応**: `SECURITY_SETUP_CHECKLIST.md` のチェック項目を更新し、
-実 ID が設定済みであることを反映する（チェック済みにするか、項目を修正）。
+**Resolution**: Checklist items updated to reflect that real IDs are already configured. **Fixed.**
 
 ---
 
-### 4.4 Google OAuth — ユーザー設定（現在は未実装）
+### 4.4 Google OAuth — User-Configured (Currently Unimplemented)
 
-**現状**: `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` は `config_manager.py` で
-ユーザー設定可能（CONFIGURABLE_KEYS）として定義されている。
-`USER_SETUP.md` にはユーザー自身が Google Cloud Console で OAuth アプリを作成し、
-CLI で設定する手順が記載されている：
+**Current state**: `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` are defined as user-configurable
+in `config_manager.py` (CONFIGURABLE_KEYS). `USER_SETUP.md` instructs users to create their own
+OAuth app in Google Cloud Console and configure via CLI:
 
 ```bash
 zero-employee config set GOOGLE_CLIENT_ID <client-id>
 zero-employee config set GOOGLE_CLIENT_SECRET <client-secret>
 ```
 
-**ただし**: `auth.py` の Google OAuth エンドポイントは現在 501 (Not Implemented) を返す。
+**However**: The Google OAuth endpoint in `auth.py` currently returns 501 (Not Implemented):
 
 ```python
 @router.get("/google/authorize")
@@ -235,25 +234,24 @@ async def google_authorize():
     raise HTTPException(status_code=501, detail="Google OAuth is not yet available.")
 ```
 
-**判定**: 設計上はユーザー設定の方針であり、ZEO の「特定プロバイダーを推奨しない」原則に合致する。
-OAuth の実装完了時に、ユーザーが各自の Google Cloud プロジェクトで OAuth アプリを作成する
-フローを `USER_SETUP.md` に沿って案内すればよい。
+**Verdict**: The design is user-configured, which aligns with ZEO's "no specific provider recommended"
+principle. When OAuth implementation is complete, users will create their own Google Cloud project
+and OAuth app following the `USER_SETUP.md` instructions.
 
 ---
 
-### 4.5 デプロイ用シークレット — デプロイ方式に応じて追加
+### 4.5 Deployment Secrets — Add Based on Chosen Deployment Method
 
-**現状**: `deploy-api.yml` は3つのデプロイターゲットをサポートしており、
-選択した方式に応じて必要なシークレットが異なる：
+**Current state**: `deploy-api.yml` supports three deployment targets, each requiring different secrets:
 
-| デプロイ方式 | 必要なシークレット | 備考 |
+| Deployment Method | Required Secrets | Notes |
 |---|---|---|
-| **Docker (Self-Hosted VPS)** | `SECRET_KEY`, `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY` | 最も柔軟 |
-| **Fly.io** | `SECRET_KEY`, `FLY_API_TOKEN` | マネージド PaaS |
-| **Railway** | `SECRET_KEY`, `RAILWAY_TOKEN` | マネージド PaaS |
-| **共通（任意）** | `DATABASE_URL`, `CORS_ORIGINS`, `SENTRY_DSN` | 環境に応じて |
+| **Docker (Self-Hosted VPS)** | `SECRET_KEY`, `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY` | Most flexible |
+| **Fly.io** | `SECRET_KEY`, `FLY_API_TOKEN` | Managed PaaS |
+| **Railway** | `SECRET_KEY`, `RAILWAY_TOKEN` | Managed PaaS |
+| **Common (optional)** | `DATABASE_URL`, `CORS_ORIGINS`, `SENTRY_DSN` | Environment-dependent |
 
-**ローカル Docker Compose**: `SECRET_KEY` のみで起動可能（最もシンプル）：
+**Local Docker Compose**: Only `SECRET_KEY` is needed to start (simplest):
 
 ```bash
 SECRET_KEY=$(python -c "import secrets; print(secrets.token_urlsafe(32))")
@@ -261,75 +259,74 @@ export SECRET_KEY
 docker compose up -d  # → http://localhost:18234
 ```
 
-**判定**: デプロイ方式を選択してから必要なシークレットを追加する設計。
-現時点で未登録は適切。
+**Verdict**: Secrets are added after choosing a deployment method. Currently unregistered is appropriate.
 
 ---
 
-### 4.6 Sentry — ユーザー任意が最もコスト効率的
+### 4.6 Sentry — User-Optional Is Most Cost-Efficient
 
-**現状**: Sentry は以下の3箇所で異なる扱いを受けている：
+**Current state**: Sentry is described differently across three locations:
 
-| ドキュメント | 位置づけ |
+| Document | Positioning |
 |---|---|
-| `DEVELOPER_SETUP.md` | 開発チーム用（ユーザー環境ではない） |
-| `FEATURE_BOUNDARY.md` | Extension に移行すべき（コアではない） |
-| `config_manager.py` | ユーザー設定可能（CONFIGURABLE_KEYS に含まれる） |
+| `DEVELOPER_SETUP.md` | Dev team only (not for user environments) |
+| `FEATURE_BOUNDARY.md` | Should migrate to Extension (not core) |
+| `config_manager.py` | User-configurable (included in CONFIGURABLE_KEYS) |
 
-**コスト面**: Sentry は無料枠があるが、本番利用では有料（$26+/月）になりうる。
-`SENTRY_DSN` が空（デフォルト）の場合、ローカルイベントストア（5,000件上限、メモリ内）に
-フォールバックするため、**設定しなければコストゼロ**。
+**Cost**: Sentry has a free tier, but production use can become paid ($26+/month).
+When `SENTRY_DSN` is empty (default), the system falls back to a local event store
+(5,000 event limit, in-memory) at **zero cost**.
 
-**ZEO 方針との照合**: `FEATURE_BOUNDARY.md` は「承認・監査・実行制御がなくても壊れないもの
-→ コアではない」と定義しており、Sentry は Extension に分類されている。
-ユーザーが任意で設定する現在の設計が最もコスト効率的。
+**Alignment with ZEO principles**: `FEATURE_BOUNDARY.md` defines "anything that doesn't break
+approval, auditing, or execution control → not core," and Sentry is classified as an Extension.
+The current design where users optionally configure it is the most cost-efficient.
 
-**判定**:
-- `config_manager.py` の `SENTRY_DSN` は残す（開発者・ユーザー双方がランタイムで設定可能）
-- Repository Secret の `SENTRY_DSN` は CI/CD での開発品質管理用として適切
-- ユーザー環境では未設定（デフォルト）で運用し、必要な場合のみ有効化
-
----
-
-## 5. 設定の優先順位
-
-```
-1. 環境変数              （最高優先）
-   ↓
-2. ランタイム設定ファイル   (~/.zero-employee/config.json)
-   ↓
-3. .env ファイル           (プロジェクトルート)
-   ↓
-4. Settings クラスデフォルト (config.py)
-   ↓
-5. ハードコードフォールバック （最低優先）
-```
+**Verdict**:
+- Keep `SENTRY_DSN` in `config_manager.py` (configurable at runtime by both developers and users)
+- Repository Secret `SENTRY_DSN` is appropriate for CI/CD dev quality management
+- User environments should run without it (default), enabling only when needed
 
 ---
 
-## 6. 設定アクセス方法
+## 5. Configuration Priority Order
 
-| 方法 | 対象 | 備考 |
+```
+1. Environment variables              (highest priority)
+   ↓
+2. Runtime config file                (~/.zero-employee/config.json)
+   ↓
+3. .env file                          (project root)
+   ↓
+4. Settings class defaults            (config.py)
+   ↓
+5. Hardcoded fallbacks                (lowest priority)
+```
+
+---
+
+## 6. Configuration Access Methods
+
+| Method | Target | Notes |
 |---|---|---|
-| UI Settings ページ | ユーザー | デスクトップ/Web |
-| `zero-employee config set KEY VALUE` | ユーザー/開発者 | CLI |
-| `PUT /api/v1/config` | ユーザー/開発者 | REST API |
-| `.env` ファイル | 開発者 | 環境変数 |
-| GitHub Repository Secrets | 開発者 | CI/CD |
-| `wrangler secret put` | 開発者 | Cloudflare Workers |
+| UI Settings page | Users | Desktop / Web |
+| `zero-employee config set KEY VALUE` | Users / Developers | CLI |
+| `PUT /api/v1/config` | Users / Developers | REST API |
+| `.env` file | Developers | Environment variables |
+| GitHub Repository Secrets | Developers | CI/CD |
+| `wrangler secret put` | Developers | Cloudflare Workers |
 
 ---
 
-## 7. まとめ: 対応アクション一覧
+## 7. Summary: Action Items
 
-| # | アクション | 重要度 | 状態 |
+| # | Action | Priority | Status |
 |---|---|---|---|
-| 1 | `PYPI_API_TOKEN` — OIDC で不要。削除 or バックアップ保持を判断 | 中 | 開発者判断 |
-| 2 | `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` — パスワードなし、対応不要 | — | **解決済み** |
-| 3 | `SECURITY_SETUP_CHECKLIST.md` の Cloudflare ID 項目を更新 | 中 | **修正済み** |
-| 4 | Google OAuth — ユーザー設定の設計で方針合致、実装完了時に案内 | 低 | 実装待ち (501) |
-| 5 | Sentry — ユーザー任意（デフォルト無効）が最もコスト効率的 | — | **現状適切** |
-| 6 | デプロイ用シークレット — 方式選択後に追加 | — | デプロイ時 |
+| 1 | `PYPI_API_TOKEN` — Not needed for OIDC. Decide: delete or keep as backup | Medium | Developer decision |
+| 2 | `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` — No password; no action needed | — | **Resolved** |
+| 3 | `SECURITY_SETUP_CHECKLIST.md` Cloudflare ID items updated | Medium | **Fixed** |
+| 4 | Google OAuth — User-configured design aligns with policy; guide when implemented | Low | Awaiting implementation (501) |
+| 5 | Sentry — User-optional (disabled by default) is most cost-efficient | — | **Currently appropriate** |
+| 6 | Deployment secrets — Add after choosing deployment method | — | At deployment time |
 
 ---
 
