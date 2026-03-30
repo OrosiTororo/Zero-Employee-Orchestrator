@@ -629,6 +629,184 @@ class CrossModelJudge:
         )
 
 
+# ---------------------------------------------------------------------------
+# Tiered Judge Configuration
+# ---------------------------------------------------------------------------
+
+
+class JudgeTier(str, Enum):
+    """Judge evaluation tier — determines which judges run for a given operation."""
+
+    LIGHTWEIGHT = "lightweight"
+    STANDARD = "standard"
+    HEAVY = "heavy"
+
+
+# Operation types mapped to lightweight tier (read-only, informational)
+_LIGHTWEIGHT_OPERATIONS: frozenset[str] = frozenset(
+    {
+        "read",
+        "info",
+        "status",
+        "list",
+        "get",
+        "search",
+        "query",
+        "view",
+        "describe",
+        "health",
+        "ping",
+        "count",
+    }
+)
+
+# Operation types mapped to heavy tier (dangerous, external, financial)
+_HEAVY_OPERATIONS: frozenset[str] = frozenset(
+    {
+        "send",
+        "delete",
+        "billing",
+        "charge",
+        "permission_change",
+        "external_api",
+        "publish",
+        "post",
+        "git_push",
+        "git_release",
+        "credential_update",
+        "api_key_update",
+        "deploy",
+        "external_send",
+        "file_overwrite_important",
+    }
+)
+
+# Risk levels that force heavy tier regardless of operation type
+_HEAVY_RISK_LEVELS: frozenset[str] = frozenset({"high", "critical"})
+
+
+def determine_judge_tier(
+    operation_type: str,
+    risk_level: str = "low",
+) -> JudgeTier:
+    """Determine the appropriate judge tier for an operation.
+
+    Args:
+        operation_type: The type of operation being performed.
+        risk_level: The assessed risk level ("low", "medium", "high", "critical").
+
+    Returns:
+        The JudgeTier that should be used for evaluation.
+
+    Tier mapping:
+        LIGHTWEIGHT — read operations, info queries, status checks
+                      -> only RuleBasedJudge
+        STANDARD    — write operations, file changes, internal actions
+                      -> RuleBasedJudge + PolicyPackJudge
+        HEAVY       — send, delete, billing, permission changes, external API calls
+                      -> all judges including CrossModelJudge
+    """
+    op = operation_type.lower().strip()
+
+    # High/critical risk always gets heavy tier
+    if risk_level.lower() in _HEAVY_RISK_LEVELS:
+        return JudgeTier.HEAVY
+
+    # Check heavy operations
+    if op in _HEAVY_OPERATIONS:
+        return JudgeTier.HEAVY
+
+    # Check lightweight operations
+    if op in _LIGHTWEIGHT_OPERATIONS:
+        return JudgeTier.LIGHTWEIGHT
+
+    # Everything else (write, update, create, edit, etc.) is standard
+    return JudgeTier.STANDARD
+
+
+def judge_with_tier(
+    content: dict,
+    tier: JudgeTier,
+    *,
+    operations: list[str] | None = None,
+    context: dict | None = None,
+    cross_model_outputs: list[dict] | None = None,
+) -> JudgeResult:
+    """Run only the appropriate judges based on the tier.
+
+    Args:
+        content: The output dict to evaluate.
+        tier: The JudgeTier determining which judges to invoke.
+        operations: Optional list of operation names (for PolicyPackJudge).
+        context: Optional context dict (for RuleBasedJudge).
+        cross_model_outputs: Optional list of outputs from multiple models
+            (for CrossModelJudge in HEAVY tier).
+
+    Returns:
+        Combined JudgeResult from all judges in the tier.
+    """
+    results: list[JudgeResult] = []
+
+    # LIGHTWEIGHT / STANDARD / HEAVY: always run RuleBasedJudge
+    rule_result = rule_judge.evaluate(content, context)
+    results.append(rule_result)
+    if rule_result.verdict == JudgeVerdict.FAIL:
+        return rule_result
+
+    # STANDARD / HEAVY: add PolicyPackJudge
+    if tier in (JudgeTier.STANDARD, JudgeTier.HEAVY):
+        policy_result = policy_judge.evaluate(content, operations)
+        results.append(policy_result)
+        if policy_result.verdict == JudgeVerdict.FAIL:
+            return policy_result
+
+    # HEAVY: add CrossModelJudge
+    if tier == JudgeTier.HEAVY:
+        outputs = cross_model_outputs or [content]
+        if len(outputs) >= 2:
+            cross_result = cross_model_judge.evaluate(outputs, context)
+            results.append(cross_result)
+
+    # Combine all results
+    if len(results) == 1:
+        return results[0]
+
+    combined_score = sum(r.score for r in results) / len(results)
+    combined_reasons: list[str] = []
+    combined_suggestions: list[str] = []
+    combined_violations: list[str] = []
+    combined_contradictions: list[dict] = []
+    needs_review = False
+
+    for r in results:
+        combined_reasons.extend(r.reasons)
+        combined_suggestions.extend(r.suggestions)
+        combined_violations.extend(r.policy_violations)
+        combined_contradictions.extend(r.contradiction_details)
+        if r.requires_human_review:
+            needs_review = True
+
+    # Worst verdict wins
+    if any(r.verdict == JudgeVerdict.FAIL for r in results):
+        verdict = JudgeVerdict.FAIL
+    elif any(r.verdict == JudgeVerdict.NEEDS_REVIEW for r in results):
+        verdict = JudgeVerdict.NEEDS_REVIEW
+    elif any(r.verdict == JudgeVerdict.WARN for r in results):
+        verdict = JudgeVerdict.WARN
+    else:
+        verdict = JudgeVerdict.PASS
+
+    return JudgeResult(
+        verdict=verdict,
+        score=round(combined_score, 3),
+        reasons=combined_reasons,
+        suggestions=combined_suggestions,
+        policy_violations=combined_violations,
+        requires_human_review=needs_review,
+        contradiction_details=combined_contradictions,
+    )
+
+
 # Default judge instances
 rule_judge = RuleBasedJudge()
 policy_judge = PolicyPackJudge()

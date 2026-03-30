@@ -1,5 +1,6 @@
 """State & Memory Layer (Layer 7) - State machines, Experience Memory, Failure Taxonomy."""
 
+import time
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -144,7 +145,15 @@ class MemoryType(str, Enum):
 
 @dataclass
 class ExperienceMemoryEntry:
-    """A unit of reusable knowledge derived from execution history."""
+    """A unit of reusable knowledge derived from execution history.
+
+    Includes trust metadata for provenance tracking:
+    - source_type: origin of the data (user_input, llm_output, verified_fact, external_data)
+    - trust_level: confidence score from 0.0 (untrusted) to 1.0 (fully trusted)
+    - verified: whether this entry has been explicitly verified
+    - expires_at: optional expiration timestamp (epoch seconds)
+    - verification_method: how verification was performed (e.g. "human_review", "cross_model")
+    """
 
     id: str
     memory_type: MemoryType
@@ -158,9 +167,29 @@ class ExperienceMemoryEntry:
     effectiveness_score: float = 0.0
     created_at: str = ""
 
+    # Trust metadata
+    source_type: str = "llm_output"  # "user_input", "llm_output", "verified_fact", "external_data"
+    trust_level: float = 0.5
+    verified: bool = False
+    expires_at: float | None = None
+    verification_method: str | None = None
+
     def __post_init__(self) -> None:
         if not self.created_at:
             self.created_at = datetime.now(UTC).isoformat()
+
+    def is_trustworthy(self) -> bool:
+        """Return True only if trust_level >= 0.7 and the entry has not expired."""
+        if self.trust_level < 0.7:
+            return False
+        return not (self.expires_at is not None and time.time() > self.expires_at)
+
+    def mark_verified(self, method: str) -> None:
+        """Mark this entry as verified, setting trust_level to 1.0."""
+        self.verified = True
+        self.trust_level = 1.0
+        self.verification_method = method
+        self.source_type = "verified_fact"
 
 
 @dataclass

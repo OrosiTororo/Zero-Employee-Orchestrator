@@ -16,6 +16,8 @@ import {
   CheckCircle,
   XCircle,
   Eye,
+  OctagonX,
+  Play,
 } from "lucide-react"
 import { api } from "../shared/api/client"
 import { useT } from "@/shared/i18n"
@@ -110,6 +112,34 @@ export function AgentMonitorPage() {
   const [traces, setTraces] = useState<ReasoningTrace[]>([])
   const [approvals, setApprovals] = useState<PendingApproval[]>([])
   const [tab, setTab] = useState<"monitor" | "traces" | "approvals" | "sessions" | "hypotheses" | "errors">("monitor")
+  const [killSwitchActive, setKillSwitchActive] = useState(false)
+
+  const fetchKillSwitchStatus = useCallback(async () => {
+    try {
+      const status = await api.get<{ active: boolean }>("/kill-switch/status")
+      setKillSwitchActive(status.active)
+    } catch { /* ignore */ }
+  }, [])
+
+  const handleKillSwitch = useCallback(async () => {
+    if (killSwitchActive) {
+      try {
+        await api.post("/kill-switch/deactivate", {})
+        setKillSwitchActive(false)
+      } catch { /* ignore */ }
+    } else {
+      const confirmed = window.confirm(
+        t.agentMonitor?.killSwitchConfirm
+          ?? "Are you sure you want to activate the emergency kill switch? This will stop ALL active executions."
+      )
+      if (!confirmed) return
+      try {
+        await api.post("/kill-switch/activate", {})
+        setKillSwitchActive(true)
+        fetchData()
+      } catch { /* ignore */ }
+    }
+  }, [killSwitchActive, t])
 
   const fetchData = useCallback(async () => {
     try {
@@ -133,7 +163,7 @@ export function AgentMonitorPage() {
     } catch { /* ignore */ }
   }, [])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData(); fetchKillSwitchStatus() }, [fetchData, fetchKillSwitchStatus])
 
   // Auto-refresh every 5 seconds
   useEffect(() => {
@@ -162,9 +192,31 @@ export function AgentMonitorPage() {
               {t.agentMonitor?.subtitle ?? "Monitor agent status in real-time from the browser"}
             </p>
           </div>
-          <button onClick={fetchData} className="p-2 rounded-md hover:bg-[var(--bg-hover)]">
-            <RefreshCw size={14} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleKillSwitch}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium transition-colors ${
+                killSwitchActive
+                  ? "bg-[var(--warning)] text-[var(--bg-base)] hover:opacity-90"
+                  : "bg-[var(--error)] text-white hover:opacity-90"
+              }`}
+            >
+              {killSwitchActive ? (
+                <>
+                  <Play size={13} />
+                  {t.agentMonitor?.resume ?? "Resume"}
+                </>
+              ) : (
+                <>
+                  <OctagonX size={13} />
+                  {t.agentMonitor?.killSwitch ?? "Emergency Stop"}
+                </>
+              )}
+            </button>
+            <button onClick={fetchData} className="p-2 rounded-md hover:bg-[var(--bg-hover)]">
+              <RefreshCw size={14} />
+            </button>
+          </div>
         </div>
 
         {/* Summary Cards */}
