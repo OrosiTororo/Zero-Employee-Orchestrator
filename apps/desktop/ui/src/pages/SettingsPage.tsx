@@ -87,6 +87,7 @@ export function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState("")
   const [languageChanged, setLanguageChanged] = useState(false)
+  const [autonomyLevel, setAutonomyLevel] = useState("semi_auto")
 
   // API Key states
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({})
@@ -532,11 +533,16 @@ export function SettingsPage() {
               <div className="flex flex-wrap gap-2">
                 {(["observe", "assist", "semi_auto", "autonomous"] as const).map(level => (
                   <button key={level}
+                    onClick={async () => {
+                      setAutonomyLevel(level)
+                      try { await api.put("/config", { key: "AUTONOMY_LEVEL", value: level }) }
+                      catch { /* config may not exist yet */ }
+                    }}
                     className="px-3 py-1.5 rounded text-[12px] border transition-colors"
                     style={{
-                      background: level === "semi_auto" ? "var(--accent)" : "transparent",
-                      color: level === "semi_auto" ? "var(--accent-fg)" : "var(--text-primary)",
-                      borderColor: level === "semi_auto" ? "var(--accent)" : "var(--border)",
+                      background: autonomyLevel === level ? "var(--accent)" : "transparent",
+                      color: autonomyLevel === level ? "var(--accent-fg)" : "var(--text-primary)",
+                      borderColor: autonomyLevel === level ? "var(--accent)" : "var(--border)",
                     }}>
                     {t.settings[`autonomy_${level}` as keyof typeof t.settings] as string}
                   </button>

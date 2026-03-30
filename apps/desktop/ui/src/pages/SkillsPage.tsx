@@ -11,6 +11,7 @@ import {
   RefreshCw,
 } from "lucide-react"
 import { useT } from "@/shared/i18n"
+import { useToastStore } from "@/shared/ui/ErrorToast"
 
 const API_BASE = "/api/v1/registry"
 
@@ -36,6 +37,7 @@ export function SkillsPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("my")
   const navigate = useNavigate()
   const t = useT()
+  const addToast = useToastStore((s) => s.addToast)
 
   const fetchSkills = useCallback(async () => {
     setLoading(true)
@@ -72,7 +74,7 @@ export function SkillsPage() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       await fetchSkills()
     } catch (e) {
-      console.error("Toggle failed:", e)
+      addToast("Toggle failed")
     }
   }
 
@@ -95,7 +97,7 @@ export function SkillsPage() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       await fetchSkills()
     } catch (e) {
-      console.error("Delete failed:", e)
+      addToast("Delete failed")
     }
   }
 
@@ -177,7 +179,7 @@ export function SkillsPage() {
 
         {/* Error */}
         {error && (
-          <div className="rounded px-4 py-3 mb-4 text-[12px] border border-[var(--error)] bg-[#4a1a1a] text-[var(--error)]">
+          <div className="rounded px-4 py-3 mb-4 text-[12px] border border-[var(--error)] bg-[rgba(244,71,71,0.1)] text-[var(--error)]">
             {error}
           </div>
         )}

@@ -11,9 +11,11 @@ import {
   Type,
   ChevronDown,
   X,
+  Check,
 } from "lucide-react"
 import { api } from "@/shared/api/client"
 import { useT } from "@/shared/i18n"
+import { useToastStore } from "@/shared/ui/ErrorToast"
 
 interface BrainstormSession {
   id: string
@@ -108,6 +110,7 @@ export default function BrainstormPage() {
   const companyId = localStorage.getItem("company_id") || "default"
   const t = useT()
 
+  const addToast = useToastStore((s) => s.addToast)
   const [activeTab, setActiveTab] = useState<"brainstorm" | "compare" | "roles" | "agents">("brainstorm")
 
   // Brainstorm state
@@ -189,7 +192,7 @@ export default function BrainstormPage() {
       setShowNewSession(false)
       setNewTitle("")
       setNewTopic("")
-    } catch (e) { console.error("Failed to create session:", e) }
+    } catch { addToast("Failed to create session") }
   }
 
   async function loadSessionMessages(sessionId: string) {
@@ -212,7 +215,7 @@ export default function BrainstormPage() {
         setCurrentSession(prev => prev ? { ...prev, message_count: data.message_count, total_chars: data.total_chars } : null)
       }
       analyzeText(input)
-    } catch (e) { console.error("Failed to send message:", e) }
+    } catch { addToast("Failed to send message") }
     finally { setLoading(false) }
   }
 
@@ -231,7 +234,7 @@ export default function BrainstormPage() {
         input_text: compareInput, model_ids: compareModels,
       })
       setCompareResult(data)
-    } catch (e) { console.error("Failed to compare:", e) }
+    } catch { addToast("Failed to run comparison") }
     finally { setComparing(false) }
   }
 
@@ -241,12 +244,12 @@ export default function BrainstormPage() {
       await api.post(`/companies/${companyId}/feature-requests`, { request_text: featureRequest, auto_execute: true })
       setFeatureRequest("")
       loadAvailableRoles()
-    } catch (e) { console.error("Failed to submit request:", e) }
+    } catch { addToast("Failed to submit request") }
   }
 
   async function addAgentByRole(role: string) {
     try { await api.post(`/companies/${companyId}/agents/by-role`, { role }) }
-    catch (e) { console.error("Failed to add agent:", e) }
+    catch { addToast("Failed to add agent") }
   }
 
   function addCustomModel(modelId: string, target: "session" | "compare") {
@@ -494,7 +497,7 @@ export default function BrainstormPage() {
                         <td className="px-3 py-2 font-mono text-[var(--text-muted)]">{rm.fallback_model_id || "-"}</td>
                         <td className="px-3 py-2">
                           <span className="text-[10px] px-1.5 py-0.5 rounded" style={{
-                            background: rm.is_active ? "#16825d30" : "#f4474730",
+                            background: rm.is_active ? "rgba(78, 201, 176, 0.15)" : "rgba(244, 71, 71, 0.15)",
                             color: rm.is_active ? "var(--success-fg)" : "var(--error)",
                           }}>{rm.is_active ? t.brainstorm.enabled : t.brainstorm.disabled}</span>
                         </td>
@@ -516,7 +519,7 @@ export default function BrainstormPage() {
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-[13px] font-medium text-[var(--text-primary)]">{r.name}</span>
                     <span className="text-[10px] px-1.5 py-0.5 rounded" style={{
-                      background: r.is_preset ? "var(--accent)" + "20" : "#dcdcaa20",
+                      background: r.is_preset ? "rgba(0, 122, 204, 0.12)" : "rgba(220, 220, 170, 0.12)",
                       color: r.is_preset ? "var(--accent)" : "var(--warning)",
                     }}>{r.is_preset ? t.brainstorm.preset : t.brainstorm.custom}</span>
                   </div>
@@ -600,10 +603,14 @@ function ModelSelector({ models, onToggle, customValue, onCustomChange, onCustom
       {open && (
         <div className="mt-1 border border-[var(--border)] rounded bg-[var(--bg-surface)] p-2 max-h-[200px] overflow-auto">
           {PRESET_MODELS.map(m => (
-            <label key={m} className="flex items-center gap-2 px-2 py-1.5 rounded text-[12px] cursor-pointer hover:bg-[var(--bg-hover)] text-[var(--text-primary)]">
-              <input type="checkbox" checked={models.includes(m)} onChange={() => onToggle(m)} className="accent-[var(--accent)]" />
+            <button key={m}
+              onClick={() => onToggle(m)}
+              className="flex items-center justify-between w-full px-2 py-1.5 rounded text-[12px] cursor-pointer hover:bg-[var(--bg-hover)] text-[var(--text-primary)] text-left"
+              style={{ background: models.includes(m) ? "var(--bg-active)" : "transparent" }}
+            >
               <span className="font-mono">{m}</span>
-            </label>
+              {models.includes(m) && <Check size={14} className="text-[var(--accent)]" />}
+            </button>
           ))}
           {/* Custom model input */}
           <div className="flex gap-1.5 mt-2 pt-2 border-t border-[var(--border)]">

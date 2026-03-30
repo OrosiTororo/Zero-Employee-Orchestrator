@@ -8,8 +8,8 @@ import trLocale from "./locales/tr.json"
 
 export type Locale = "ja" | "en" | "zh" | "ko" | "pt" | "tr"
 
-/** Built-in locale codes that ship with the application */
-export const BUILTIN_LOCALES: ReadonlySet<string> = new Set<string>(["en", "ja", "zh", "ko", "pt", "tr"])
+/** Locale codes bundled with the application (changeable in Settings) */
+export const BUNDLED_LOCALES: ReadonlySet<string> = new Set<string>(["en", "ja", "zh", "ko", "pt", "tr"])
 
 export const LOCALE_LABELS: Record<string, string> = {
   ja: "日本語",
