@@ -204,8 +204,14 @@ export function SettingsPage() {
   const handleSave = async () => {
     setSaving(true)
     try {
-      await api.put("/config", { key: "COMPANY_NAME", value: companyName })
-      await api.put("/config", { key: "COMPANY_MISSION", value: mission })
+      // Update company via PATCH API (not config)
+      const companyId = localStorage.getItem("company_id")
+      if (companyId) {
+        await api.patch(`/companies/${companyId}`, {
+          name: companyName || undefined,
+          mission: mission || undefined,
+        })
+      }
       await api.put("/config", { key: "AUTO_APPROVE", value: String(autoApprove) })
       setSaveMessage(t.settings.saved)
       setTimeout(() => setSaveMessage(""), 3000)
