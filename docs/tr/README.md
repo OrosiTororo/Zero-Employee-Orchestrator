@@ -224,7 +224,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # Arka plan çalışanları
 ├── skills/                   # 8 yerleşik beceri
 ├── plugins/                  # 10 eklenti bildirimi
-├── extensions/               # 12 uzantı bildirimi
+├── extensions/               # 11 uzantı bildirimi
 │   └── browser-assist/
 │       └── chrome-extension/ # Tarayıcı Asistanı Chrome uzantısı
 ├── packages/                 # Paylaşılan NPM paketleri
@@ -334,7 +334,10 @@ ZEO çok katmanlı savunma ile **güvenlik öncelikli** tasarlanmıştır:
 | **Prompt Enjeksiyon Savunması** | Harici girdilerden talimat enjeksiyonunu tespit eder ve engeller (5 kategori, 28+ desen) |
 | **Onay Kapıları** | 12 tehlikeli işlem kategorisi (gönderme, silme, faturalandırma, izin değişiklikleri) insan onayı gerektirir |
 | **Otonomi Sınırları** | Yapay zekanın otonom olarak yapabileceklerini açıkça sınırlar |
-| **IAM** | Ayrı insan/yapay zeka hesapları; yapay zekanın gizli anahtar ve yönetici izinlerine erişimi engellenir |
+| **IAM ve Araç İzinleri** | Ayrı insan/yapay zeka hesapları; rol tabanlı araç izinleri (5 varsayılan politika: secretary, researcher, reviewer, executor, admin) ajan başına en az ayrıcalık uygular |
+| **Acil Durdurma Anahtarı** | UI düğmesi veya API (`/kill-switch/activate`) aracılığıyla tüm aktif yürütmelerin acil durdurulması. Yeniden başlatılana kadar yeni yürütmeleri engeller |
+| **Kademeli Judge** | Üç aşamalı doğrulama: LIGHTWEIGHT (yalnızca kurallar) → STANDARD (+politika) → HEAVY (+çapraz model). Düşük riskli işlemler için maliyeti azaltırken yüksek riskli işlemler için tam doğrulamayı sürdürür |
+| **Bellek Güvenilirliği** | Experience Memory kayıtları kaynak türü, güvenilirlik seviyesi (0.0-1.0), doğrulama durumu ve süre sonu bilgisini takip eder. Yalnızca güvenilir bellekler (≥0.7, süresi dolmamış) kullanılır |
 | **Gizli Anahtar Yönetimi** | Fernet şifreleme, otomatik maskeleme, rotasyon desteği |
 | **Temizleme** | API anahtarları, belirteçler ve PII'nin otomatik kaldırılması |
 | **Güvenlik Başlıkları** | Tüm yanıtlarda CSP, HSTS, X-Frame-Options |
@@ -409,7 +412,7 @@ POST /api/v1/registry/skills/generate
 }
 ```
 
-16 tehlikeli desen otomatik tespit edilir. Yalnızca güvenlik kontrollerini geçen beceriler kaydedilir.
+18 tehlikeli desen otomatik tespit edilir. Yalnızca güvenlik kontrollerini geçen beceriler kaydedilir.
 
 ---
 

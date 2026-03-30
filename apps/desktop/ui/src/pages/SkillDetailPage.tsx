@@ -12,6 +12,7 @@ import {
   Tag,
   Clock,
 } from "lucide-react"
+import { useT } from "@/shared/i18n"
 
 const API_BASE = "/api/v1/registry"
 
@@ -35,19 +36,20 @@ interface SkillDetail {
   config?: Record<string, unknown>
 }
 
-const statusBadges: Record<string, { label: string; color: string; bg: string }> = {
-  verified: { label: "検証済", color: "#4ec9b0", bg: "#4ec9b020" },
-  experimental: { label: "実験的", color: "#dcdcaa", bg: "#dcdcaa20" },
-  private: { label: "プライベート", color: "#007acc", bg: "#007acc20" },
-  deprecated: { label: "非推奨", color: "#f44747", bg: "#f4474720" },
-}
-
 export function SkillDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const t = useT()
   const [skill, setSkill] = useState<SkillDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const statusBadges: Record<string, { label: string; color: string; bg: string }> = {
+    verified: { label: t.skillDetail?.verified ?? "Verified", color: "var(--success-fg)", bg: "color-mix(in srgb, var(--success-fg) 12%, transparent)" },
+    experimental: { label: t.skillDetail?.experimental ?? "Experimental", color: "var(--warning)", bg: "color-mix(in srgb, var(--warning) 12%, transparent)" },
+    private: { label: t.skillDetail?.private ?? "Private", color: "var(--accent)", bg: "color-mix(in srgb, var(--accent) 12%, transparent)" },
+    deprecated: { label: t.skillDetail?.deprecated ?? "Deprecated", color: "var(--error)", bg: "color-mix(in srgb, var(--error) 12%, transparent)" },
+  }
 
   const fetchSkill = useCallback(async () => {
     if (!id) return
@@ -59,7 +61,7 @@ export function SkillDetailPage() {
       const data = await res.json()
       setSkill(data)
     } catch (e) {
-      setError("スキルの取得に失敗しました")
+      setError(t.skillDetail?.fetchError ?? "Failed to fetch skill")
       console.error("Failed to fetch skill:", e)
     } finally {
       setLoading(false)
@@ -80,7 +82,7 @@ export function SkillDetailPage() {
       })
       if (res.status === 403) {
         const data = await res.json()
-        alert(data.detail || "この操作は許可されていません")
+        alert(data.detail || (t.skillDetail?.notAllowed ?? "This operation is not allowed"))
         return
       }
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -92,14 +94,14 @@ export function SkillDetailPage() {
 
   const handleDelete = async () => {
     if (!skill || skill.is_system_protected) return
-    if (!confirm(`スキル「${skill.name}」を削除しますか?`)) return
+    if (!confirm(`${t.skillDetail?.confirmDelete ?? "Delete skill"} "${skill.name}"?`)) return
     try {
       const res = await fetch(`${API_BASE}/skills/${skill.id}`, {
         method: "DELETE",
       })
       if (res.status === 403) {
         const data = await res.json()
-        alert(data.detail || "この操作は許可されていません")
+        alert(data.detail || (t.skillDetail?.notAllowed ?? "This operation is not allowed"))
         return
       }
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -111,8 +113,8 @@ export function SkillDetailPage() {
 
   if (loading) {
     return (
-      <div className="h-full flex items-center justify-center text-[12px] text-[#6a6a6a]">
-        読み込み中...
+      <div className="h-full flex items-center justify-center text-[12px] text-[var(--text-muted)]">
+        {t.common?.loading ?? "Loading..."}
       </div>
     )
   }
@@ -123,13 +125,13 @@ export function SkillDetailPage() {
         <div className="max-w-[900px] mx-auto px-6 py-6">
           <button
             onClick={() => navigate("/skills")}
-            className="flex items-center gap-1 text-[12px] text-[#007acc] hover:underline mb-4"
+            className="flex items-center gap-1 text-[12px] text-[var(--accent)] hover:underline mb-4"
           >
             <ArrowLeft size={14} />
-            スキル一覧に戻る
+            {t.skillDetail?.backToList ?? "Back to Skills"}
           </button>
-          <div className="rounded px-4 py-3 text-[12px] border border-[#f44747] bg-[#4a1a1a] text-[#f44747]">
-            {error || "スキルが見つかりません"}
+          <div className="rounded px-4 py-3 text-[12px] border border-[var(--error)] bg-[color-mix(in_srgb,var(--error)_12%,transparent)] text-[var(--error)]">
+            {error || (t.skillDetail?.notFound ?? "Skill not found")}
           </div>
         </div>
       </div>
@@ -144,42 +146,42 @@ export function SkillDetailPage() {
         {/* Back button */}
         <button
           onClick={() => navigate("/skills")}
-          className="flex items-center gap-1 text-[12px] text-[#007acc] hover:underline mb-4"
+          className="flex items-center gap-1 text-[12px] text-[var(--accent)] hover:underline mb-4"
         >
           <ArrowLeft size={14} />
-          スキル一覧に戻る
+          {t.skillDetail?.backToList ?? "Back to Skills"}
         </button>
 
         {/* Header */}
-        <div className="rounded border border-[#3e3e42] bg-[#252526] p-4 mb-4">
+        <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)] p-4 mb-4">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded bg-[#007acc20] flex items-center justify-center">
-                <Package size={20} className="text-[#007acc]" />
+              <div className="w-10 h-10 rounded bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] flex items-center justify-center">
+                <Package size={20} className="text-[var(--accent)]" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-[16px] font-medium text-[#cccccc]">
+                  <h2 className="text-[16px] font-medium text-[var(--text-primary)]">
                     {skill.name}
                   </h2>
-                  <span className="text-[11px] text-[#6a6a6a]">v{skill.version}</span>
+                  <span className="text-[11px] text-[var(--text-muted)]">v{skill.version}</span>
                   <span
                     className="text-[10px] px-1.5 py-0.5 rounded"
                     style={{ background: badge.bg, color: badge.color }}
                   >
                     {badge.label}
                   </span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#3c3c3c] text-[#6a6a6a]">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-active)] text-[var(--text-muted)]">
                     {skill.skill_type}
                   </span>
                   {skill.is_system_protected && (
-                    <span className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded bg-[#dcdcaa20] text-[#dcdcaa]">
+                    <span className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded bg-[color-mix(in_srgb,var(--warning)_12%,transparent)] text-[var(--warning)]">
                       <Shield size={10} />
-                      システム必須
+                      {t.skillDetail?.systemRequired ?? "System Required"}
                     </span>
                   )}
                 </div>
-                <p className="text-[12px] text-[#969696] mt-1">
+                <p className="text-[12px] text-[var(--text-muted)] mt-1">
                   {skill.slug}
                 </p>
               </div>
@@ -187,28 +189,28 @@ export function SkillDetailPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={handleToggle}
-                className="flex items-center gap-1 px-3 py-1.5 rounded text-[12px] border border-[#3e3e42] text-[#cccccc] hover:bg-[#3c3c3c] transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 rounded text-[12px] border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-active)] transition-colors"
                 disabled={skill.is_system_protected}
               >
                 {skill.enabled ? (
                   <>
-                    <ToggleRight size={16} className="text-[#4ec9b0]" />
-                    有効
+                    <ToggleRight size={16} className="text-[var(--success-fg)]" />
+                    {t.skillDetail?.enabled ?? "Enabled"}
                   </>
                 ) : (
                   <>
                     <ToggleLeft size={16} />
-                    無効
+                    {t.skillDetail?.disabled ?? "Disabled"}
                   </>
                 )}
               </button>
               {!skill.is_system_protected && (
                 <button
                   onClick={handleDelete}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded text-[12px] border border-[#3e3e42] text-[#f44747] hover:bg-[#4a1a1a] transition-colors"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded text-[12px] border border-[var(--border)] text-[var(--error)] hover:bg-[color-mix(in_srgb,var(--error)_12%,transparent)] transition-colors"
                 >
                   <Trash2 size={14} />
-                  削除
+                  {t.common?.delete ?? "Delete"}
                 </button>
               )}
             </div>
@@ -216,56 +218,56 @@ export function SkillDetailPage() {
         </div>
 
         {/* Description */}
-        <div className="rounded border border-[#3e3e42] bg-[#252526] p-4 mb-4">
+        <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)] p-4 mb-4">
           <div className="flex items-center gap-2 mb-2">
-            <Info size={14} className="text-[#007acc]" />
-            <span className="text-[12px] font-medium text-[#cccccc]">説明</span>
+            <Info size={14} className="text-[var(--accent)]" />
+            <span className="text-[12px] font-medium text-[var(--text-primary)]">{t.skillDetail?.description ?? "Description"}</span>
           </div>
-          <p className="text-[12px] text-[#969696] leading-relaxed">
-            {skill.description || "説明なし"}
+          <p className="text-[12px] text-[var(--text-muted)] leading-relaxed">
+            {skill.description || (t.skillDetail?.noDescription ?? "No description")}
           </p>
         </div>
 
         {/* Metadata */}
         <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="rounded border border-[#3e3e42] bg-[#252526] p-4">
+          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)] p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Tag size={14} className="text-[#007acc]" />
-              <span className="text-[12px] font-medium text-[#cccccc]">メタデータ</span>
+              <Tag size={14} className="text-[var(--accent)]" />
+              <span className="text-[12px] font-medium text-[var(--text-primary)]">{t.skillDetail?.metadata ?? "Metadata"}</span>
             </div>
             <div className="flex flex-col gap-2 text-[12px]">
               <div className="flex justify-between">
-                <span className="text-[#6a6a6a]">ID</span>
-                <span className="text-[#9cdcfe] font-mono text-[11px]">{skill.id}</span>
+                <span className="text-[var(--text-muted)]">ID</span>
+                <span className="text-[var(--accent)] font-mono text-[11px]">{skill.id}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#6a6a6a]">Slug</span>
-                <span className="text-[#cccccc] font-mono text-[11px]">{skill.slug}</span>
+                <span className="text-[var(--text-muted)]">Slug</span>
+                <span className="text-[var(--text-primary)] font-mono text-[11px]">{skill.slug}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#6a6a6a]">タイプ</span>
-                <span className="text-[#cccccc]">{skill.skill_type}</span>
+                <span className="text-[var(--text-muted)]">{t.skillDetail?.type ?? "Type"}</span>
+                <span className="text-[var(--text-primary)]">{skill.skill_type}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#6a6a6a]">バージョン</span>
-                <span className="text-[#cccccc]">v{skill.version}</span>
+                <span className="text-[var(--text-muted)]">{t.skillDetail?.version ?? "Version"}</span>
+                <span className="text-[var(--text-primary)]">v{skill.version}</span>
               </div>
               {skill.author && (
                 <div className="flex justify-between">
-                  <span className="text-[#6a6a6a]">作成者</span>
-                  <span className="text-[#cccccc]">{skill.author}</span>
+                  <span className="text-[var(--text-muted)]">{t.skillDetail?.author ?? "Author"}</span>
+                  <span className="text-[var(--text-primary)]">{skill.author}</span>
                 </div>
               )}
             </div>
           </div>
-          <div className="rounded border border-[#3e3e42] bg-[#252526] p-4">
+          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)] p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Clock size={14} className="text-[#007acc]" />
-              <span className="text-[12px] font-medium text-[#cccccc]">タイムライン</span>
+              <Clock size={14} className="text-[var(--accent)]" />
+              <span className="text-[12px] font-medium text-[var(--text-primary)]">{t.skillDetail?.timeline ?? "Timeline"}</span>
             </div>
             <div className="flex flex-col gap-2 text-[12px]">
               <div className="flex justify-between">
-                <span className="text-[#6a6a6a]">ステータス</span>
+                <span className="text-[var(--text-muted)]">{t.skillDetail?.status ?? "Status"}</span>
                 <span
                   className="px-1.5 py-0.5 rounded text-[10px]"
                   style={{ background: badge.bg, color: badge.color }}
@@ -274,21 +276,21 @@ export function SkillDetailPage() {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#6a6a6a]">有効状態</span>
-                <span style={{ color: skill.enabled ? "#4ec9b0" : "#f44747" }}>
-                  {skill.enabled ? "有効" : "無効"}
+                <span className="text-[var(--text-muted)]">{t.skillDetail?.enabledState ?? "Enabled State"}</span>
+                <span style={{ color: skill.enabled ? "var(--success-fg)" : "var(--error)" }}>
+                  {skill.enabled ? (t.skillDetail?.enabled ?? "Enabled") : (t.skillDetail?.disabled ?? "Disabled")}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#6a6a6a]">システム保護</span>
-                <span className="text-[#cccccc]">
-                  {skill.is_system_protected ? "はい" : "いいえ"}
+                <span className="text-[var(--text-muted)]">{t.skillDetail?.systemProtection ?? "System Protection"}</span>
+                <span className="text-[var(--text-primary)]">
+                  {skill.is_system_protected ? (t.common?.yes ?? "Yes") : (t.common?.no ?? "No")}
                 </span>
               </div>
               {skill.created_at && (
                 <div className="flex justify-between">
-                  <span className="text-[#6a6a6a]">作成日</span>
-                  <span className="text-[#cccccc] text-[11px]">
+                  <span className="text-[var(--text-muted)]">{t.skillDetail?.createdAt ?? "Created"}</span>
+                  <span className="text-[var(--text-primary)] text-[11px]">
                     {new Date(skill.created_at).toLocaleString()}
                   </span>
                 </div>
@@ -299,16 +301,16 @@ export function SkillDetailPage() {
 
         {/* Tags */}
         {skill.tags && skill.tags.length > 0 && (
-          <div className="rounded border border-[#3e3e42] bg-[#252526] p-4 mb-4">
+          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)] p-4 mb-4">
             <div className="flex items-center gap-2 mb-2">
-              <Tag size={14} className="text-[#007acc]" />
-              <span className="text-[12px] font-medium text-[#cccccc]">タグ</span>
+              <Tag size={14} className="text-[var(--accent)]" />
+              <span className="text-[12px] font-medium text-[var(--text-primary)]">{t.skillDetail?.tags ?? "Tags"}</span>
             </div>
             <div className="flex flex-wrap gap-1">
               {skill.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="px-2 py-0.5 rounded text-[11px] bg-[#3c3c3c] text-[#cccccc]"
+                  className="px-2 py-0.5 rounded text-[11px] bg-[var(--bg-active)] text-[var(--text-primary)]"
                 >
                   {tag}
                 </span>
@@ -319,12 +321,12 @@ export function SkillDetailPage() {
 
         {/* Schema / Config */}
         {(skill.input_schema || skill.output_schema || skill.config) && (
-          <div className="rounded border border-[#3e3e42] bg-[#252526] p-4 mb-4">
+          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)] p-4 mb-4">
             <div className="flex items-center gap-2 mb-2">
-              <Code2 size={14} className="text-[#007acc]" />
-              <span className="text-[12px] font-medium text-[#cccccc]">スキーマ / 設定</span>
+              <Code2 size={14} className="text-[var(--accent)]" />
+              <span className="text-[12px] font-medium text-[var(--text-primary)]">{t.skillDetail?.schemaConfig ?? "Schema / Config"}</span>
             </div>
-            <pre className="text-[11px] text-[#d4d4d4] bg-[#1e1e1e] rounded p-3 overflow-auto max-h-[300px] font-mono">
+            <pre className="text-[11px] text-[var(--text-primary)] bg-[var(--bg-base)] rounded p-3 overflow-auto max-h-[300px] font-mono">
               {JSON.stringify(
                 {
                   ...(skill.input_schema && { input_schema: skill.input_schema }),

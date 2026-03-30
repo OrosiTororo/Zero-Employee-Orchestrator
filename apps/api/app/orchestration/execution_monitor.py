@@ -138,12 +138,100 @@ class ExecutionMonitor:
 
     Works with WebSocket emit_event to deliver execution status
     to the frontend in real-time.
+
+    Includes a kill switch mechanism to halt all active executions
+    and prevent new ones from starting.
     """
 
     def __init__(self) -> None:
         self._active: dict[str, ActiveExecution] = {}  # task_id → ActiveExecution
         self._recent_events: list[MonitorEvent] = []
         self._max_events = 500
+        self._killed: bool = False
+
+    # ------------------------------------------------------------------
+    # Kill switch
+    # ------------------------------------------------------------------
+
+    @property
+    def is_killed(self) -> bool:
+        """Whether the kill switch is currently active."""
+        return self._killed
+
+    async def kill_all(self) -> dict[str, Any]:
+        """Activate the kill switch: stop all active executions and prevent new ones.
+
+        Returns a summary of killed tasks.
+        """
+        self._killed = True
+        killed_tasks: list[str] = []
+
+        for task_id, execution in list(self._active.items()):
+            execution.status = "killed"
+            execution.last_updated = time.time()
+            killed_tasks.append(task_id)
+
+            await self._emit(
+                MonitorEvent(
+                    event_type=MonitorEventType.TASK_FAILED,
+                    company_id=execution.company_id,
+                    task_id=task_id,
+                    agent_id=execution.agent_id,
+                    trace_id=execution.trace_id,
+                    data={
+                        "error": "Kill switch activated — execution terminated",
+                        "will_retry": False,
+                        "killed_by": "kill_switch",
+                    },
+                )
+            )
+
+        # Clear all active executions
+        self._active.clear()
+        logger.warning("Kill switch activated — %d task(s) terminated", len(killed_tasks))
+
+        return {
+            "killed": True,
+            "tasks_killed": len(killed_tasks),
+            "task_ids": killed_tasks,
+        }
+
+    async def kill_task(self, task_id: str) -> dict[str, Any]:
+        """Kill a specific task by its ID.
+
+        Returns info about the killed task or an error if not found.
+        """
+        execution = self._active.pop(task_id, None)
+        if execution is None:
+            return {"killed": False, "error": f"Task {task_id} not found in active executions"}
+
+        execution.status = "killed"
+        execution.last_updated = time.time()
+
+        await self._emit(
+            MonitorEvent(
+                event_type=MonitorEventType.TASK_FAILED,
+                company_id=execution.company_id,
+                task_id=task_id,
+                agent_id=execution.agent_id,
+                trace_id=execution.trace_id,
+                data={
+                    "error": "Task killed by operator",
+                    "will_retry": False,
+                    "killed_by": "kill_task",
+                },
+            )
+        )
+
+        logger.warning("Task %s killed by operator", task_id)
+        return {"killed": True, "task_id": task_id, "agent_id": execution.agent_id}
+
+    def resume(self) -> dict[str, Any]:
+        """Deactivate the kill switch, allowing new executions to start again."""
+        was_killed = self._killed
+        self._killed = False
+        logger.info("Kill switch deactivated (was_active=%s)", was_killed)
+        return {"resumed": True, "was_killed": was_killed}
 
     # ------------------------------------------------------------------
     # Event delivery
@@ -182,7 +270,21 @@ class ExecutionMonitor:
         trace_id: str | None = None,
         provider_override: dict | None = None,
     ) -> None:
-        """Task execution started."""
+        """Task execution started.
+
+        Raises RuntimeError if the kill switch is active.
+        """
+        if self._killed:
+            logger.warning(
+                "Kill switch active — rejecting new task %s from agent %s",
+                task_id,
+                agent_id,
+            )
+            raise RuntimeError(
+                "Kill switch is active. No new executions are allowed. "
+                "Call resume() to re-enable executions."
+            )
+
         execution = ActiveExecution(
             task_id=task_id,
             agent_id=agent_id,

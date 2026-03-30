@@ -11,6 +11,7 @@ import {
   Star,
 } from "lucide-react"
 import { useT } from "@/shared/i18n"
+import { useToastStore } from "@/shared/ui/ErrorToast"
 
 const API_BASE = "/api/v1/registry"
 
@@ -30,6 +31,7 @@ type TabKey = "installed" | "marketplace"
 
 export function ExtensionsPage() {
   const [search, setSearch] = useState("")
+  const addToast = useToastStore((s) => s.addToast)
   const [extensions, setExtensions] = useState<ExtensionItem[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<TabKey>("installed")
@@ -44,7 +46,7 @@ export function ExtensionsPage() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       setExtensions(await res.json())
     } catch (e) {
-      console.error("Failed to fetch extensions:", e)
+      addToast("Failed to fetch extensions")
     } finally {
       setLoading(false)
     }
@@ -70,7 +72,7 @@ export function ExtensionsPage() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       await fetchExtensions()
     } catch (e) {
-      console.error("Toggle failed:", e)
+      addToast("Toggle failed")
     }
   }
 
@@ -90,7 +92,7 @@ export function ExtensionsPage() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       await fetchExtensions()
     } catch (e) {
-      console.error("Delete failed:", e)
+      addToast("Delete failed")
     }
   }
 
@@ -111,7 +113,7 @@ export function ExtensionsPage() {
       setInstallForm({ slug: "", name: "", description: "" })
       await fetchExtensions()
     } catch (e) {
-      console.error("Install failed:", e)
+      addToast("Install failed")
     }
   }
 

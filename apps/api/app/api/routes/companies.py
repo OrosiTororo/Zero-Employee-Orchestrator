@@ -111,6 +111,43 @@ async def get_company(
     )
 
 
+class CompanyUpdateRequest(BaseModel):
+    name: str | None = None
+    mission: str | None = None
+    description: str | None = None
+
+
+@router.patch("/{company_id}", response_model=CompanyResponse)
+async def update_company(
+    company_id: str,
+    req: CompanyUpdateRequest,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Update company details (name, mission, description)."""
+    result = await db.execute(select(Company).where(Company.id == uuid.UUID(company_id)))
+    company = result.scalar_one_or_none()
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    if req.name is not None:
+        company.name = req.name
+    if req.mission is not None:
+        company.mission = req.mission
+    if req.description is not None:
+        company.description = req.description
+    await db.commit()
+    await db.refresh(company)
+    return CompanyResponse(
+        id=str(company.id),
+        slug=company.slug,
+        name=company.name,
+        mission=company.mission or "",
+        description=company.description or "",
+        status=company.status,
+        created_at=company.created_at,
+    )
+
+
 @router.get("/{company_id}/org-chart")
 async def get_org_chart(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)

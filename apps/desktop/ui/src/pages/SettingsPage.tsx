@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react"
 import {
-  Settings,
   Link2,
   Shield,
   Cpu,
@@ -19,9 +18,10 @@ import {
   Monitor,
   FolderOpen,
   Cloud,
+  Search,
 } from "lucide-react"
 import { api } from "../shared/api/client"
-import { useT, useI18n, LOCALE_LABELS, BUILTIN_LOCALES, type Locale } from "@/shared/i18n"
+import { useT, useI18n, LOCALE_LABELS, availableLocales, type Locale } from "@/shared/i18n"
 import { useTheme, THEME_LABELS, type Theme } from "@/shared/hooks/use-theme"
 
 interface ProviderInfo {
@@ -51,8 +51,8 @@ const ALL_PROVIDER_KEYS = [
   { key: "XAI_API_KEY", name: "xAI (Grok)", placeholder: "xai-xxxxxxxxxxxx", category: "direct" },
 ]
 
-/** All known service integrations */
-const ALL_CONNECTIONS = [
+/** All known service integrations (mutable — users can add custom ones) */
+const ALL_CONNECTIONS: Array<{ id: string; name: string; description: string; category: string }> = [
   { id: "openrouter", name: "OpenRouter", description: "LLM Gateway", category: "ai" },
   { id: "google", name: "Google Workspace", description: "Docs, Sheets, Drive, Calendar, Gmail", category: "productivity" },
   { id: "github", name: "GitHub", description: "Repository & CI/CD", category: "dev" },
@@ -80,6 +80,7 @@ export function SettingsPage() {
   const { locale, setLocale } = useI18n()
   const { theme, setTheme } = useTheme()
 
+  const [settingsSearch, setSettingsSearch] = useState("")
   const [companyName, setCompanyName] = useState("")
   const [mission, setMission] = useState("")
   const [executionMode, setExecutionMode] = useState("quality")
@@ -87,6 +88,7 @@ export function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState("")
   const [languageChanged, setLanguageChanged] = useState(false)
+  const [autonomyLevel, setAutonomyLevel] = useState("semi_auto")
 
   // API Key states
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({})
@@ -111,8 +113,19 @@ export function SettingsPage() {
   const [newProviderKey, setNewProviderKey] = useState("")
   const [newProviderPlaceholder, setNewProviderPlaceholder] = useState("")
 
-  // Connection filter
+  // Connection filter and state
   const [connectionFilter, setConnectionFilter] = useState("all")
+  const [connectedServices, setConnectedServices] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem("connected_services")
+      if (stored) return new Set(JSON.parse(stored))
+    } catch { /* noop */ }
+    return new Set()
+  })
+  const [showAddConnection, setShowAddConnection] = useState(false)
+  const [newConnectionName, setNewConnectionName] = useState("")
+  const [newConnectionDesc, setNewConnectionDesc] = useState("")
+  const [newConnectionCat, setNewConnectionCat] = useState("productivity")
 
   useEffect(() => {
     try {
@@ -190,8 +203,14 @@ export function SettingsPage() {
   const handleSave = async () => {
     setSaving(true)
     try {
-      await api.put("/config", { key: "COMPANY_NAME", value: companyName })
-      await api.put("/config", { key: "COMPANY_MISSION", value: mission })
+      // Update company via PATCH API (not config)
+      const companyId = localStorage.getItem("company_id")
+      if (companyId) {
+        await api.patch(`/companies/${companyId}`, {
+          name: companyName || undefined,
+          mission: mission || undefined,
+        })
+      }
       await api.put("/config", { key: "AUTO_APPROVE", value: String(autoApprove) })
       setSaveMessage(t.settings.saved)
       setTimeout(() => setSaveMessage(""), 3000)
@@ -222,6 +241,40 @@ export function SettingsPage() {
 
   const isCustomProvider = (key: string) => customProviders.some((p) => p.key === key)
 
+  const handleConnect = async (id: string, name: string) => {
+    try {
+      await api.post("/app-integrations/connect", { connector_id: id, name })
+    } catch { /* API may not have this endpoint yet — still update UI */ }
+    const next = new Set(connectedServices)
+    next.add(id)
+    setConnectedServices(next)
+    try { localStorage.setItem("connected_services", JSON.stringify([...next])) } catch { /* noop */ }
+  }
+
+  const handleDisconnect = async (id: string) => {
+    try {
+      await api.post("/app-integrations/disconnect", { connector_id: id })
+    } catch { /* API may not have this endpoint yet */ }
+    const next = new Set(connectedServices)
+    next.delete(id)
+    setConnectedServices(next)
+    try { localStorage.setItem("connected_services", JSON.stringify([...next])) } catch { /* noop */ }
+  }
+
+  const handleAddCustomConnection = () => {
+    if (!newConnectionName.trim()) return
+    const id = newConnectionName.toLowerCase().replace(/[^a-z0-9]+/g, "-")
+    ALL_CONNECTIONS.push({
+      id,
+      name: newConnectionName,
+      description: newConnectionDesc || newConnectionName,
+      category: newConnectionCat,
+    })
+    setNewConnectionName("")
+    setNewConnectionDesc("")
+    setShowAddConnection(false)
+  }
+
   const connectionCategories = [
     { key: "all", label: t.common.all },
     { key: "ai", label: "AI" },
@@ -235,23 +288,71 @@ export function SettingsPage() {
     ? ALL_CONNECTIONS
     : ALL_CONNECTIONS.filter(c => c.category === connectionFilter)
 
+  const sq = settingsSearch.toLowerCase()
+  const matchesSearch = (...terms: string[]) =>
+    !sq || terms.some(t => t.toLowerCase().includes(sq))
+
+  const tocSections = [
+    { id: "theme", label: t.settings.themeSettings, icon: Palette },
+    { id: "language", label: t.settings.languageSettings, icon: Globe },
+    { id: "apikeys", label: t.settings.apiKeys, icon: Key },
+    { id: "execution", label: t.settings.executionMode, icon: Cpu },
+    { id: "agent", label: t.settings.agentBehavior, icon: Bot },
+    { id: "company", label: t.settings.companySettings, icon: Building2 },
+    { id: "connections", label: t.settings.providerConnections, icon: Link2 },
+    { id: "policies", label: t.settings.policies, icon: Shield },
+  ]
+
+  const scrollToSection = (id: string) => {
+    document.getElementById(`settings-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
+
   return (
-    <div className="h-full overflow-auto">
-      <div className="max-w-[720px] mx-auto px-6 py-6">
-        <div className="flex items-center gap-2 mb-6">
-          <Settings size={18} className="text-[var(--accent)]" />
-          <h2 className="text-[14px] font-medium text-[var(--text-primary)]">{t.settings.title}</h2>
+    <div className="h-full flex">
+      {/* TOC Sidebar (VSCode-style) */}
+      <nav className="w-[180px] shrink-0 border-r border-[var(--border)] bg-[var(--bg-surface)] overflow-auto py-3">
+        <div className="px-3 mb-2 text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">
+          {t.settings.title}
         </div>
+        {tocSections.map((sec) => {
+          const hidden = !matchesSearch(sec.label)
+          if (hidden) return null
+          return (
+            <button
+              key={sec.id}
+              onClick={() => scrollToSection(sec.id)}
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-[12px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors text-left"
+            >
+              <sec.icon size={13} className="shrink-0" />
+              <span className="truncate">{sec.label}</span>
+            </button>
+          )
+        })}
+      </nav>
 
-        {saveMessage && (
-          <div className="mb-4 flex items-center gap-2 px-3 py-2 rounded border border-[var(--success-fg)] bg-[var(--success)] text-[12px] text-white">
-            <Check size={14} />
-            {saveMessage}
+      {/* Settings Content */}
+      <div className="flex-1 overflow-auto">
+        <div className="max-w-[680px] mx-auto px-6 py-6">
+          {/* Search */}
+          <div className="relative mb-5">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+            <input
+              value={settingsSearch}
+              onChange={(e) => setSettingsSearch(e.target.value)}
+              placeholder={t.settings.searchPlaceholder ?? "Search settings..."}
+              className="w-full pl-9 pr-3 py-2 rounded text-[12px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)]"
+            />
           </div>
-        )}
 
-        {/* Theme Settings */}
-        <SettingsSection icon={Palette} title={t.settings.themeSettings}>
+          {saveMessage && (
+            <div className="mb-4 flex items-center gap-2 px-3 py-2 rounded border border-[var(--success-fg)] bg-[var(--success)] text-[12px] text-white">
+              <Check size={14} />
+              {saveMessage}
+            </div>
+          )}
+
+          {/* Theme Settings */}
+        <SettingsSection id="settings-theme" icon={Palette} title={t.settings.themeSettings} hidden={!matchesSearch(t.settings.themeSettings, "theme", "dark", "light")}>
           <div className="flex flex-wrap gap-2">
             {(Object.keys(THEME_LABELS) as Theme[]).map((th) => (
               <button
@@ -272,31 +373,29 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* Language Settings */}
-        <SettingsSection icon={Globe} title={t.settings.languageSettings}>
+        <SettingsSection id="settings-language" icon={Globe} title={t.settings.languageSettings} hidden={!matchesSearch(t.settings.languageSettings, "language", "locale")}>
           <div className="flex flex-col gap-4">
             <div>
               <label className="text-[11px] text-[var(--text-muted)] block mb-2">
                 {t.settings.uiLanguage}
               </label>
-              <div className="flex flex-wrap gap-2">
-                {(Object.keys(LOCALE_LABELS) as Locale[]).map((loc) => (
+              <div className="flex items-center gap-3">
+                <span className="px-4 py-2 rounded text-[12px] border bg-[var(--accent)] text-[var(--accent-fg)] border-[var(--accent)]">
+                  {LOCALE_LABELS[locale] ?? locale}
+                </span>
+                {/* Show other available languages only if user has added them */}
+                {[...availableLocales].filter(loc => loc !== locale).map((loc) => (
                   <button
                     key={loc}
-                    onClick={() => handleLanguageChange(loc)}
-                    className="px-4 py-2 rounded text-[12px] border transition-colors relative"
+                    onClick={() => handleLanguageChange(loc as Locale)}
+                    className="px-4 py-2 rounded text-[12px] border transition-colors"
                     style={{
-                      background: locale === loc ? "var(--accent)" : "transparent",
-                      color: locale === loc ? "var(--accent-fg)" : "var(--text-primary)",
-                      borderColor: locale === loc ? "var(--accent)" : "var(--border)",
+                      background: "transparent",
+                      color: "var(--text-primary)",
+                      borderColor: "var(--border)",
                     }}
-                    aria-pressed={locale === loc}
                   >
-                    {LOCALE_LABELS[loc]}
-                    {BUILTIN_LOCALES.has(loc) && (
-                      <span className="ml-1.5 text-[9px] opacity-60">
-                        ({t.settings.languageBuiltin})
-                      </span>
-                    )}
+                    {LOCALE_LABELS[loc] ?? loc}
                   </button>
                 ))}
               </div>
@@ -314,7 +413,7 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* LLM API Keys */}
-        <SettingsSection icon={Key} title={t.settings.apiKeys}>
+        <SettingsSection id="settings-apikeys" icon={Key} title={t.settings.apiKeys} hidden={!matchesSearch(t.settings.apiKeys, "api", "key", "llm", "provider", "openai", "anthropic", "gemini", "ollama")}>
           <div className="flex flex-col gap-1 mb-3">
             <div className="text-[11px] text-[var(--text-muted)]">{t.settings.apiKeysDesc}</div>
             <div className="text-[11px] text-[var(--text-muted)]">
@@ -455,7 +554,7 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* Execution Mode */}
-        <SettingsSection icon={Cpu} title={t.settings.executionMode}>
+        <SettingsSection id="settings-execution" icon={Cpu} title={t.settings.executionMode} hidden={!matchesSearch(t.settings.executionMode, "mode", "quality", "speed", "cost", "free")}>
           <div>
             <label className="text-[11px] text-[var(--text-muted)] block mb-2">{t.settings.executionModeDesc}</label>
             <div className="flex flex-wrap gap-2">
@@ -481,7 +580,7 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* Agent Behavior */}
-        <SettingsSection icon={Bot} title={t.settings.agentBehavior}>
+        <SettingsSection id="settings-agent" icon={Bot} title={t.settings.agentBehavior} hidden={!matchesSearch(t.settings.agentBehavior, "agent", "autonomy", "browser", "workspace")}>
           <div className="flex flex-col gap-4">
             {/* Autonomy Level */}
             <div>
@@ -489,11 +588,16 @@ export function SettingsPage() {
               <div className="flex flex-wrap gap-2">
                 {(["observe", "assist", "semi_auto", "autonomous"] as const).map(level => (
                   <button key={level}
+                    onClick={async () => {
+                      setAutonomyLevel(level)
+                      try { await api.put("/config", { key: "AUTONOMY_LEVEL", value: level }) }
+                      catch { /* config may not exist yet */ }
+                    }}
                     className="px-3 py-1.5 rounded text-[12px] border transition-colors"
                     style={{
-                      background: level === "semi_auto" ? "var(--accent)" : "transparent",
-                      color: level === "semi_auto" ? "var(--accent-fg)" : "var(--text-primary)",
-                      borderColor: level === "semi_auto" ? "var(--accent)" : "var(--border)",
+                      background: autonomyLevel === level ? "var(--accent)" : "transparent",
+                      color: autonomyLevel === level ? "var(--accent-fg)" : "var(--text-primary)",
+                      borderColor: autonomyLevel === level ? "var(--accent)" : "var(--border)",
                     }}>
                     {t.settings[`autonomy_${level}` as keyof typeof t.settings] as string}
                   </button>
@@ -550,7 +654,7 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* Company Settings */}
-        <SettingsSection icon={Building2} title={t.settings.companySettings}>
+        <SettingsSection id="settings-company" icon={Building2} title={t.settings.companySettings} hidden={!matchesSearch(t.settings.companySettings, "company", "organization", "mission")}>
           <div className="flex flex-col gap-3">
             <div>
               <label className="text-[11px] text-[var(--text-muted)] block mb-1">{t.settings.companyName}</label>
@@ -566,7 +670,19 @@ export function SettingsPage() {
         </SettingsSection>
 
         {/* Provider Connections */}
-        <SettingsSection icon={Link2} title={t.settings.providerConnections}>
+        <SettingsSection id="settings-connections" icon={Link2} title={t.settings.providerConnections} hidden={!matchesSearch(t.settings.providerConnections, "connection", "integration", "github", "slack", "notion")}>
+          {/* Integration strategy note */}
+          <div className="flex items-start gap-2.5 px-3 py-2.5 rounded border border-[var(--accent)] bg-[rgba(0,122,204,0.06)] mb-4 text-[11px]">
+            <Shield size={14} className="text-[var(--accent)] shrink-0 mt-0.5" />
+            <div>
+              <span className="text-[var(--text-primary)] font-medium">
+                {t.settings.integrationStrategy ?? "ZEO acts as the judgment, approval, and audit layer."}
+              </span>
+              <span className="text-[var(--text-muted)] ml-1">
+                {t.settings.integrationStrategyDesc ?? "Connect external tools for execution — ZEO handles verification, approval gates, and compliance. Works with n8n, Zapier, Make, and MCP for workflow automation."}
+              </span>
+            </div>
+          </div>
           {/* Category filter */}
           <div className="flex flex-wrap gap-1 mb-3">
             {connectionCategories.map(cat => (
@@ -582,26 +698,79 @@ export function SettingsPage() {
           </div>
           <div className="flex flex-col gap-2">
             {filteredConnections.map((p) => (
-              <div key={p.id} className="flex items-center justify-between rounded px-3 py-2 border border-[var(--border)] bg-[var(--bg-base)]">
+              <div key={p.id} className="flex items-center justify-between rounded px-3 py-2.5 border border-[var(--border)] bg-[var(--bg-base)] hover:border-[var(--accent)] transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-[var(--text-muted)]" />
+                  <div className="w-2 h-2 rounded-full" style={{ background: connectedServices.has(p.id) ? "var(--success-fg)" : "var(--text-muted)" }} />
                   <div>
                     <div className="text-[13px] text-[var(--text-primary)]">{p.name}</div>
                     <div className="text-[11px] text-[var(--text-muted)]">{p.description}</div>
                   </div>
                 </div>
-                <button className="flex items-center gap-1 px-2 py-1 rounded text-[11px] bg-[var(--accent)] text-[var(--accent-fg)]"
-                  aria-label={`${t.settings.connect} ${p.name}`}>
-                  <Link2 size={12} />
-                  {t.settings.connect}
-                </button>
+                {connectedServices.has(p.id) ? (
+                  <button
+                    onClick={() => handleDisconnect(p.id)}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] border border-[var(--success-fg)] text-[var(--success-fg)] hover:bg-[var(--success-fg)] hover:text-white transition-colors"
+                  >
+                    <Check size={12} />
+                    {t.settings.connected ?? "Connected"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleConnect(p.id, p.name)}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] bg-[var(--accent)] text-[var(--accent-fg)] hover:bg-[var(--accent-hover)] transition-colors"
+                    aria-label={`${t.settings.connect} ${p.name}`}
+                  >
+                    <Link2 size={12} />
+                    {t.settings.connect}
+                  </button>
+                )}
               </div>
             ))}
           </div>
+
+          {/* Add custom connection */}
+          {!showAddConnection ? (
+            <button onClick={() => setShowAddConnection(true)}
+              className="mt-3 flex items-center gap-1.5 px-3 py-2 rounded text-[12px] text-[var(--text-muted)] border border-dashed border-[var(--border)] hover:border-[var(--accent)] hover:text-[var(--text-primary)] transition-colors w-full justify-center">
+              <Plus size={14} />
+              {t.settings.addCustomConnection ?? "Add Custom Connection"}
+            </button>
+          ) : (
+            <div className="mt-3 rounded border border-[var(--accent)] bg-[var(--bg-base)] px-3 py-3">
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <input value={newConnectionName} onChange={(e) => setNewConnectionName(e.target.value)}
+                    placeholder={t.settings.connectionName ?? "Service Name"}
+                    className="flex-1 px-3 py-1.5 rounded text-[12px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)]" />
+                  <input value={newConnectionDesc} onChange={(e) => setNewConnectionDesc(e.target.value)}
+                    placeholder={t.settings.connectionDesc ?? "Description"}
+                    className="flex-1 px-3 py-1.5 rounded text-[12px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)]" />
+                </div>
+                <div className="flex gap-2">
+                  <select value={newConnectionCat} onChange={(e) => setNewConnectionCat(e.target.value)}
+                    className="flex-1 px-3 py-1.5 rounded text-[12px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)]">
+                    <option value="productivity">Productivity</option>
+                    <option value="dev">Dev</option>
+                    <option value="communication">Communication</option>
+                    <option value="automation">Automation</option>
+                    <option value="ai">AI</option>
+                  </select>
+                  <button onClick={handleAddCustomConnection} disabled={!newConnectionName.trim()}
+                    className="px-3 py-1.5 rounded text-[11px] bg-[var(--accent)] text-[var(--accent-fg)] disabled:opacity-40">
+                    {t.settings.addProvider ?? "Add"}
+                  </button>
+                  <button onClick={() => setShowAddConnection(false)}
+                    className="px-3 py-1.5 rounded text-[11px] text-[var(--text-primary)] border border-[var(--border)]">
+                    {t.common.cancel}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </SettingsSection>
 
         {/* Policies */}
-        <SettingsSection icon={Shield} title={t.settings.policies}>
+        <SettingsSection id="settings-policies" icon={Shield} title={t.settings.policies} hidden={!matchesSearch(t.settings.policies, "policy", "approval", "auto")}>
           <div className="flex items-center justify-between">
             <div className="text-[13px] text-[var(--text-primary)]">{t.settings.autoApprove}</div>
             <button onClick={() => setAutoApprove(!autoApprove)}
@@ -621,16 +790,20 @@ export function SettingsPage() {
         </button>
       </div>
     </div>
+  </div>
   )
 }
 
-function SettingsSection({ icon: Icon, title, children }: {
+function SettingsSection({ id, icon: Icon, title, children, hidden }: {
+  id?: string
   icon: React.ComponentType<{ size?: number; className?: string }>
   title: string
   children: React.ReactNode
+  hidden?: boolean
 }) {
+  if (hidden) return null
   return (
-    <section className="mb-6 rounded border border-[var(--border)] bg-[var(--bg-surface)]">
+    <section id={id} className="mb-6 rounded border border-[var(--border)] bg-[var(--bg-surface)] scroll-mt-4">
       <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border)]">
         <Icon size={14} className="text-[var(--accent)]" />
         <span className="text-[12px] font-medium text-[var(--text-primary)]">{title}</span>

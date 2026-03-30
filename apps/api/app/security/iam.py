@@ -17,6 +17,7 @@ import logging
 import os
 import stat
 import uuid
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
 
@@ -282,3 +283,104 @@ class IAMManager:
 
 # Global singleton
 iam_manager = IAMManager()
+
+
+# ---------------------------------------------------------------------------
+# Role-based Tool Permissions
+# ---------------------------------------------------------------------------
+
+
+class ToolPermission(str, Enum):
+    """Permission types for tool access control."""
+
+    READ = "read"
+    WRITE = "write"
+    DELETE = "delete"
+    SEND = "send"
+    EXECUTE = "execute"
+    BILLING = "billing"
+    ADMIN = "admin"
+
+
+@dataclass
+class RoleToolPolicy:
+    """Policy defining which tools and permissions a role has access to."""
+
+    role_name: str
+    allowed_tools: list[str] = field(default_factory=list)
+    denied_tools: list[str] = field(default_factory=list)
+    permissions: set[ToolPermission] = field(default_factory=set)
+
+
+# Default role-based tool policies
+_DEFAULT_ROLE_POLICIES: dict[str, RoleToolPolicy] = {
+    "secretary": RoleToolPolicy(
+        role_name="secretary",
+        permissions={ToolPermission.READ, ToolPermission.WRITE},
+    ),
+    "researcher": RoleToolPolicy(
+        role_name="researcher",
+        permissions={ToolPermission.READ, ToolPermission.EXECUTE},
+    ),
+    "reviewer": RoleToolPolicy(
+        role_name="reviewer",
+        permissions={ToolPermission.READ},
+    ),
+    "executor": RoleToolPolicy(
+        role_name="executor",
+        permissions={ToolPermission.READ, ToolPermission.WRITE, ToolPermission.EXECUTE},
+    ),
+    "admin": RoleToolPolicy(
+        role_name="admin",
+        permissions=set(ToolPermission),
+    ),
+}
+
+# Custom policies registered at runtime
+_custom_role_policies: dict[str, RoleToolPolicy] = {}
+
+
+def register_role_policy(policy: RoleToolPolicy) -> None:
+    """Register a custom role tool policy (overrides defaults for that role)."""
+    _custom_role_policies[policy.role_name] = policy
+    logger.info("Custom tool policy registered for role: %s", policy.role_name)
+
+
+def get_role_policy(role_name: str) -> RoleToolPolicy | None:
+    """Get the tool policy for a given role (custom policies take precedence)."""
+    return _custom_role_policies.get(role_name) or _DEFAULT_ROLE_POLICIES.get(role_name)
+
+
+def check_tool_permission(
+    agent_role: str,
+    tool_name: str,
+    permission: ToolPermission | str,
+) -> bool:
+    """Check whether an agent role is allowed to use a tool with a given permission.
+
+    Args:
+        agent_role: The role of the agent (e.g. "secretary", "researcher").
+        tool_name: The name of the tool being accessed.
+        permission: The permission type required.
+
+    Returns:
+        True if the role is allowed, False otherwise.
+    """
+    perm = ToolPermission(permission) if isinstance(permission, str) else permission
+
+    policy = get_role_policy(agent_role)
+    if policy is None:
+        # Unknown roles are denied by default
+        logger.warning("No tool policy found for role '%s' — access denied", agent_role)
+        return False
+
+    # Check denied tools first
+    if policy.denied_tools and tool_name in policy.denied_tools:
+        return False
+
+    # Check allowed tools (empty list means all tools are allowed)
+    if policy.allowed_tools and tool_name not in policy.allowed_tools:
+        return False
+
+    # Check permission
+    return perm in policy.permissions

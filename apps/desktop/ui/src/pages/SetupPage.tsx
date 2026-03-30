@@ -13,6 +13,11 @@ import {
   ClipboardList,
   Users,
   Loader2,
+  FileText,
+  Search,
+  HelpCircle,
+  ListTodo,
+  ShieldCheck,
 } from "lucide-react"
 import { Logo } from "@/shared/ui/Logo"
 import { useT, useI18n } from "@/shared/i18n"
@@ -102,6 +107,73 @@ export function SetupPage() {
   const [orgPreview, setOrgPreview] = useState<OrgPreview | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isGenerated, setIsGenerated] = useState(false)
+
+  const TEMPLATES = [
+    {
+      id: "content_ops",
+      icon: FileText,
+      label: t.setup?.welcome?.templateContentOps ?? "Content Operations",
+      desc: t.setup?.welcome?.templateContentOpsDesc ?? "Blog/SNS content creation pipeline with review and publish approval gate",
+      category: "content_creator",
+      painPoints: ["content_creation", "task_management"],
+      teamSize: "standard" as const,
+      secretaryOnly: false,
+      orgName: "Content Ops",
+    },
+    {
+      id: "sales_research",
+      icon: Search,
+      label: t.setup?.welcome?.templateSalesResearch ?? "Sales Research",
+      desc: t.setup?.welcome?.templateSalesResearchDesc ?? "Competitor analysis, market research, lead scoring with data verification",
+      category: "consulting",
+      painPoints: ["research", "customer_acquisition", "data_analysis"],
+      teamSize: "standard" as const,
+      secretaryOnly: false,
+      orgName: "Sales Research",
+    },
+    {
+      id: "faq_kb",
+      icon: HelpCircle,
+      label: t.setup?.welcome?.templateFaqKb ?? "Internal FAQ / Knowledge Base",
+      desc: t.setup?.welcome?.templateFaqKbDesc ?? "Customer support automation with human escalation",
+      category: "saas",
+      painPoints: ["customer_support", "task_management"],
+      teamSize: "minimal" as const,
+      secretaryOnly: false,
+      orgName: "Support Hub",
+    },
+    {
+      id: "meeting_tasks",
+      icon: ListTodo,
+      label: t.setup?.welcome?.templateMeetingTasks ?? "Meeting to Task Extraction",
+      desc: t.setup?.welcome?.templateMeetingTasksDesc ?? "Meeting notes to action items to ticket creation with assignment",
+      category: "tech_startup",
+      painPoints: ["task_management"],
+      teamSize: "minimal" as const,
+      secretaryOnly: true,
+      orgName: "Meeting Ops",
+    },
+    {
+      id: "pre_publish_review",
+      icon: ShieldCheck,
+      label: t.setup?.welcome?.templatePrePublishReview ?? "Pre-publish Review",
+      desc: t.setup?.welcome?.templatePrePublishReviewDesc ?? "Content/code/document review with multi-model cross-check (Judge Layer)",
+      category: "agency",
+      painPoints: ["content_creation", "development"],
+      teamSize: "standard" as const,
+      secretaryOnly: false,
+      orgName: "Review Team",
+    },
+  ]
+
+  const applyTemplate = (tpl: typeof TEMPLATES[number]) => {
+    setBizCat(tpl.category)
+    setPainPoints(tpl.painPoints)
+    setTeamSize(tpl.teamSize)
+    setSecretaryOnly(tpl.secretaryOnly)
+    setOrgName(tpl.orgName)
+    setCurrentStep("organization")
+  }
 
   const stepLabels: Record<Step, string> = {
     welcome: t.setup.steps.welcome,
@@ -264,6 +336,45 @@ export function SetupPage() {
                     </li>
                   ))}
                 </ul>
+              </div>
+
+              {/* Quick Start Templates */}
+              <div className="w-full max-w-[450px]">
+                <p className="text-[13px] text-[var(--text-primary)] font-medium mb-1">
+                  {t.setup?.welcome?.templatesTitle ?? "Quick Start Templates"}
+                </p>
+                <p className="text-[11px] text-[var(--text-muted)] mb-3">
+                  {t.setup?.welcome?.templatesSubtitle ?? "Select a template to get started in under 10 minutes"}
+                </p>
+                <div className="flex flex-col gap-2">
+                  {TEMPLATES.map((tpl) => (
+                    <button
+                      key={tpl.id}
+                      onClick={() => applyTemplate(tpl)}
+                      className="flex items-start gap-3 px-3 py-2.5 rounded-md border border-[var(--border)] bg-[var(--bg-surface)] text-left hover:border-[var(--accent)] transition-colors group"
+                    >
+                      <tpl.icon
+                        size={16}
+                        className="mt-0.5 shrink-0 text-[var(--text-muted)] group-hover:text-[var(--accent)] transition-colors"
+                      />
+                      <div className="min-w-0">
+                        <div className="text-[12px] font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
+                          {tpl.label}
+                        </div>
+                        <div className="text-[11px] text-[var(--text-muted)] truncate">
+                          {tpl.desc}
+                        </div>
+                      </div>
+                      <ChevronRight
+                        size={14}
+                        className="mt-0.5 shrink-0 ml-auto text-[var(--text-muted)] group-hover:text-[var(--accent)] transition-colors"
+                      />
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[11px] text-[var(--text-muted)] mt-2 text-center">
+                  {t.setup?.welcome?.templateOrCustom ?? "or configure manually below"}
+                </p>
               </div>
             </div>
           )}
@@ -527,7 +638,7 @@ export function SetupPage() {
                       <button
                         onClick={handlePreview}
                         className="px-6 py-2.5 rounded-md text-[13px] font-medium text-white"
-                        style={{ background: "var(--gradient-primary)" }}
+                        style={{ background: "var(--accent)" }}
                       >
                         {t.orgSetup.previewStructure}
                       </button>
@@ -579,7 +690,7 @@ export function SetupPage() {
                         onClick={handleGenerate}
                         disabled={isGenerating}
                         className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-md text-[13px] font-medium text-white disabled:opacity-60"
-                        style={{ background: "var(--gradient-primary)" }}
+                        style={{ background: "var(--accent)" }}
                       >
                         {isGenerating ? (
                           <>
@@ -668,7 +779,7 @@ export function SetupPage() {
             <button
               onClick={finishSetup}
               className="flex items-center gap-2 px-6 py-2.5 rounded-md text-[13px] font-medium text-white"
-              style={{ background: "var(--gradient-primary)" }}
+              style={{ background: "var(--accent)" }}
             >
               <Sparkles size={16} />
               {t.setup.complete.goToDashboard}
@@ -682,7 +793,7 @@ export function SetupPage() {
                 next()
               }}
               className="flex items-center gap-1 px-6 py-2.5 rounded-md text-[13px] font-medium text-white"
-              style={{ background: "var(--gradient-primary)" }}
+              style={{ background: "var(--accent)" }}
             >
               {t.common.next}
               <ChevronRight size={16} />

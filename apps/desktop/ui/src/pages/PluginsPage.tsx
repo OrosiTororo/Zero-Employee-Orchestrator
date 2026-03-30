@@ -10,6 +10,7 @@ import {
   Plus,
 } from "lucide-react"
 import { useT } from "@/shared/i18n"
+import { useToastStore } from "@/shared/ui/ErrorToast"
 
 const API_BASE = "/api/v1/registry"
 
@@ -29,6 +30,7 @@ export function PluginsPage() {
   const [plugins, setPlugins] = useState<PluginItem[]>([])
   const [loading, setLoading] = useState(true)
   const [showInstall, setShowInstall] = useState(false)
+  const addToast = useToastStore((s) => s.addToast)
   const [installForm, setInstallForm] = useState({ slug: "", name: "", description: "" })
   const t = useT()
 
@@ -39,7 +41,7 @@ export function PluginsPage() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       setPlugins(await res.json())
     } catch (e) {
-      console.error("Failed to fetch plugins:", e)
+      addToast("Failed to fetch plugins")
     } finally {
       setLoading(false)
     }
@@ -65,7 +67,7 @@ export function PluginsPage() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       await fetchPlugins()
     } catch (e) {
-      console.error("Toggle failed:", e)
+      addToast("Toggle failed")
     }
   }
 
@@ -88,7 +90,7 @@ export function PluginsPage() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       await fetchPlugins()
     } catch (e) {
-      console.error("Delete failed:", e)
+      addToast("Delete failed")
     }
   }
 
@@ -109,7 +111,7 @@ export function PluginsPage() {
       setInstallForm({ slug: "", name: "", description: "" })
       await fetchPlugins()
     } catch (e) {
-      console.error("Install failed:", e)
+      addToast("Install failed")
     }
   }
 

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { useAuthStore } from "@/shared/hooks/use-auth"
 import { LogIn, UserPlus, Mail, Lock, User, ArrowRight } from "lucide-react"
 import { Logo } from "@/shared/ui/Logo"
-import { useT, useI18n, LOCALE_LABELS, type Locale } from "@/shared/i18n"
+import { useT } from "@/shared/i18n"
 import { api, NetworkError } from "@/shared/api/client"
 
 function GoogleIcon({ size = 18 }: { size?: number }) {
@@ -98,14 +98,46 @@ export function LoginPage() {
     setLoading(true)
     setError("")
     try {
-      const res = await api.get<{ url: string }>("/auth/google/authorize")
-      window.location.href = res.url
+      const res = await api.get<{ url: string; state: string }>("/auth/google/authorize")
+      // Open Google auth in a new window/tab (works in both Tauri and browser)
+      window.open(res.url, "_blank", "noopener")
+
+      // Poll for completion
+      const state = res.state
+      const maxAttempts = 120 // 2 minutes
+      for (let i = 0; i < maxAttempts; i++) {
+        await new Promise((r) => setTimeout(r, 1000))
+        try {
+          const poll = await api.get<{
+            status: string
+            access_token?: string
+            setup_completed?: boolean
+          }>(`/auth/google/poll?state=${state}`)
+          if (poll.status === "complete" && poll.access_token) {
+            setToken(poll.access_token)
+            if (poll.setup_completed) {
+              useAuthStore.getState().setSetupCompleted()
+              navigate("/")
+            } else {
+              navigate("/setup")
+            }
+            return
+          }
+        } catch {
+          // poll endpoint may 404 if state expired — stop polling
+          break
+        }
+      }
+      setError(t.auth.googleOAuthTimeout)
     } catch (e: unknown) {
       if (e instanceof NetworkError) {
         setError(t.auth.connectionFailed)
+      } else if (e instanceof Error && e.message.includes("not configured")) {
+        setError(t.auth.googleOAuthNotConfigured)
       } else {
         setError(t.auth.googleOAuthNotReady)
       }
+    } finally {
       setLoading(false)
     }
   }
@@ -113,26 +145,8 @@ export function LoginPage() {
   const inputClass =
     "w-full pl-10 pr-4 py-2.5 rounded-md text-[13px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] placeholder:text-[var(--text-muted)]"
 
-  const { locale, setLocale } = useI18n()
-
   return (
     <div className="h-screen w-screen flex bg-[var(--bg-base)] relative">
-      {/* Language selector — top right */}
-      <div className="absolute top-4 right-4 z-50 flex items-center gap-1">
-        {(Object.keys(LOCALE_LABELS) as Locale[]).map((loc) => (
-          <button
-            key={loc}
-            onClick={() => setLocale(loc)}
-            className={`px-2 py-1 rounded text-[11px] transition-colors ${
-              loc === locale
-                ? "bg-[var(--accent)] text-white font-medium"
-                : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
-            }`}
-          >
-            {LOCALE_LABELS[loc]}
-          </button>
-        ))}
-      </div>
       {/* Left brand panel */}
       <div
         className="hidden lg:flex flex-col justify-between w-[420px] shrink-0 p-10"

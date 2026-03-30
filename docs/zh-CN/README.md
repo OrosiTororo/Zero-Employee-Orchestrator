@@ -224,7 +224,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # 后台工作进程
 ├── skills/                   # 8 个内置技能
 ├── plugins/                  # 10 个插件清单
-├── extensions/               # 12 个扩展清单
+├── extensions/               # 11 个扩展清单
 │   └── browser-assist/
 │       └── chrome-extension/ # 浏览器辅助 Chrome 扩展程序
 ├── packages/                 # 共享 NPM 包
@@ -334,7 +334,10 @@ ZEO 采用**安全优先**设计，具备多层防御：
 | **提示注入防御** | 检测并阻止来自外部输入的指令注入（5 个类别、28+ 模式） |
 | **审批门控** | 12 类危险操作（发送、删除、计费、权限变更等）需要人类审批 |
 | **自主执行边界** | 明确限制 AI 可自主执行的操作 |
-| **IAM** | 人类/AI 账户分离；AI 无法访问密钥和管理权限 |
+| **IAM 与工具权限** | 人类/AI 账户分离；基于角色的工具权限（5 个默认策略：secretary、researcher、reviewer、executor、admin）为每个代理实施最小权限 |
+| **紧急停止开关** | 通过 UI 按钮或 API（`/kill-switch/activate`）紧急停止所有活动执行。在恢复之前阻止新的执行 |
+| **分级 Judge** | 三级验证：LIGHTWEIGHT（仅规则）→ STANDARD（+策略）→ HEAVY（+跨模型）。降低低风险操作的成本，同时对高风险操作维持完整验证 |
+| **记忆信任度** | Experience Memory 条目跟踪来源类型、信任级别（0.0-1.0）、验证状态和过期时间。仅使用可信记忆（≥0.7，未过期） |
 | **密钥管理** | Fernet 加密、自动脱敏、轮换支持 |
 | **清理** | API 密钥、令牌和个人信息的自动移除 |
 | **安全头** | 所有响应添加 CSP、HSTS、X-Frame-Options |
@@ -409,7 +412,7 @@ POST /api/v1/registry/skills/generate
 }
 ```
 
-自动检测 16 种危险模式。仅通过安全性检查的技能才会被注册。
+自动检测 18 种危险模式。仅通过安全性检查的技能才会被注册。
 
 ---
 

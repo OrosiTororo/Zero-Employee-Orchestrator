@@ -225,7 +225,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # Background workers
 ├── skills/                   # 8 built-in skills
 ├── plugins/                  # 10 plugin manifests
-├── extensions/               # 12 extension manifests
+├── extensions/               # 11 extension manifests
 │   └── browser-assist/
 │       └── chrome-extension/ # Chrome extension for Browser Assist
 ├── packages/                 # Shared NPM packages
@@ -294,7 +294,7 @@ Zero-Employee-Orchestrator/
 | **Browser Assist** | Chrome extension overlay — AI sees your screen in real-time |
 | **Media Generation** | Image, video, audio, music, 3D — with dynamic provider registration |
 | **App Connector Hub** | 34+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, etc.) |
-| **AI Tool Integration** | 45+ external tools across 19 categories |
+| **AI Tool Integration** | 55+ external tools across 21 categories |
 | **A2A Communication** | Peer-to-peer agent messaging, channels, and negotiation |
 | **Avatar AI** | Learns your decision patterns and evolves with you |
 | **Secretary AI** | Brain dump → structured tasks, bridges you and the AI org |
@@ -335,7 +335,10 @@ ZEO is designed **security-first** with multi-layered defense:
 | **Prompt Injection Defense** | Detects and blocks instruction injection from external inputs (5 categories, 28+ patterns) |
 | **Approval Gates** | 12 categories of dangerous operations (send, delete, billing, permission changes) require human approval |
 | **Autonomy Boundaries** | Explicitly limits what AI can do autonomously |
-| **IAM** | Separate human/AI accounts; AI denied secrets and admin permissions |
+| **IAM & Tool Permissions** | Separate human/AI accounts; role-based tool permissions (5 default policies: secretary, researcher, reviewer, executor, admin) enforce least privilege per agent |
+| **Kill Switch** | Emergency halt of all active executions via UI button or API (`/kill-switch/activate`). Blocks new executions until resumed. |
+| **Tiered Judge** | Three-tier verification: LIGHTWEIGHT (rules only) → STANDARD (+policy) → HEAVY (+cross-model). Reduces cost for low-risk ops while maintaining full verification for high-risk ones. |
+| **Memory Trust** | Experience Memory entries track source type, trust level (0.0-1.0), verification status, and expiry. Only trustworthy memories (≥0.7, not expired) are used. |
 | **Secret Management** | Fernet encryption, auto-masking, rotation support |
 | **Sanitization** | Auto-removal of API keys, tokens, and PII |
 | **Security Headers** | CSP, HSTS, X-Frame-Options on all responses |
@@ -410,7 +413,7 @@ POST /api/v1/registry/skills/generate
 }
 ```
 
-16 dangerous patterns are auto-detected. Only skills passing safety checks are registered.
+18 dangerous patterns are auto-detected. Only skills passing safety checks are registered.
 
 ---
 

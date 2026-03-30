@@ -366,6 +366,81 @@ async def list_monitor_events(
 
 
 # ---------------------------------------------------------------------------
+# Kill Switch API
+# ---------------------------------------------------------------------------
+
+
+class KillSwitchStatusResponse(BaseModel):
+    active: bool
+    active_executions: int
+
+
+class KillSwitchActivateResponse(BaseModel):
+    killed: bool
+    tasks_killed: int
+    task_ids: list[str] = []
+
+
+class KillSwitchTaskResponse(BaseModel):
+    killed: bool
+    task_id: str | None = None
+    agent_id: str | None = None
+    error: str | None = None
+
+
+class KillSwitchDeactivateResponse(BaseModel):
+    resumed: bool
+    was_killed: bool
+
+
+@router.post("/kill-switch/activate", response_model=KillSwitchActivateResponse)
+async def activate_kill_switch(user: User = Depends(get_current_user)):
+    """Activate the kill switch — stop all active executions and block new ones."""
+    from app.orchestration.execution_monitor import get_execution_monitor
+
+    monitor = get_execution_monitor()
+    result = await monitor.kill_all()
+    logger.warning("Kill switch activated by user %s", user.id)
+    return KillSwitchActivateResponse(**result)
+
+
+@router.post("/kill-switch/deactivate", response_model=KillSwitchDeactivateResponse)
+async def deactivate_kill_switch(user: User = Depends(get_current_user)):
+    """Deactivate the kill switch — allow new executions to start."""
+    from app.orchestration.execution_monitor import get_execution_monitor
+
+    monitor = get_execution_monitor()
+    result = monitor.resume()
+    logger.info("Kill switch deactivated by user %s", user.id)
+    return KillSwitchDeactivateResponse(**result)
+
+
+@router.post("/kill-switch/task/{task_id}", response_model=KillSwitchTaskResponse)
+async def kill_specific_task(task_id: str, user: User = Depends(get_current_user)):
+    """Kill a specific task by its ID."""
+    from app.orchestration.execution_monitor import get_execution_monitor
+
+    monitor = get_execution_monitor()
+    result = await monitor.kill_task(task_id)
+    if not result.get("killed"):
+        raise HTTPException(status_code=404, detail=result.get("error", "Task not found"))
+    logger.warning("Task %s killed by user %s", task_id, user.id)
+    return KillSwitchTaskResponse(**result)
+
+
+@router.get("/kill-switch/status", response_model=KillSwitchStatusResponse)
+async def get_kill_switch_status(user: User = Depends(get_current_user)):
+    """Check whether the kill switch is currently active."""
+    from app.orchestration.execution_monitor import get_execution_monitor
+
+    monitor = get_execution_monitor()
+    return KillSwitchStatusResponse(
+        active=monitor.is_killed,
+        active_executions=monitor.active_count,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 

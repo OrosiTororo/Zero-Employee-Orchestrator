@@ -55,12 +55,12 @@ apps/
 │   │   ├── schemas/        # Pydantic DTO
 │   │   ├── services/       # Business logic (25 services)
 │   │   ├── repositories/   # DB I/O abstraction
-│   │   ├── orchestration/  # DAG, Judge, state machine, Knowledge, Memory, MetaSkill, A2A, Transparency (22 modules)
+│   │   ├── orchestration/  # DAG, Judge, state machine, Knowledge, Memory, MetaSkill, A2A, Transparency, ReasoningTrace, CostGuard, QualitySLA, AvatarCoevolution, LongrunScheduler (22 modules)
 │   │   ├── heartbeat/      # Heartbeat scheduler
 │   │   ├── providers/      # LLM gateway, Ollama, g4f, RAG, ModelRegistry, WebSession
-│   │   ├── tools/          # External tool connectors (MCP/Webhook/API/CLI/GraphQL/Browser/BrowserAdapter/LSP)
+│   │   ├── tools/          # External tool connectors (MCP/Webhook/API/CLI/GraphQL/Browser/BrowserAdapter/LSP/LLMMock)
 │   │   ├── policies/       # Approval gates, autonomy boundaries
-│   │   ├── security/       # IAM, secrets, sanitize, prompt defense, PII, sandbox, data protection, red-team
+│   │   ├── security/       # IAM, secrets, sanitize, prompt defense, PII, sandbox, data protection, red-team, input sanitization
 │   │   ├── integrations/   # Sentry, MCP, external skills, browser assist, AI research, media generation, AI tools, iPaaS, export, repurpose, RSS/ToS, Obsidian, cloud, smart devices, app connector hub
 │   │   ├── audit/          # Audit logging
 │   │   └── tests/          # Tests
@@ -71,7 +71,7 @@ apps/
 └── worker/           # Background workers
 skills/builtin/       # Built-in Skills (8: 7 Python modules + browser-assist manifest)
 plugins/              # Plugin manifests (10 Plugins)
-extensions/           # Extension manifests (11 Extensions + Chrome extension)
+extensions/           # Extension manifests (11 Extensions, including browser-assist Chrome extension)
 ```
 
 ## Commands
@@ -219,7 +219,7 @@ Defense layers:
 - Prompt injection defense (`security/prompt_guard.py`) -- 5 categories, 28+ patterns
 - Approval gates (`policies/approval_gate.py`) -- 12 categories of dangerous operations
 - Autonomy boundaries (`policies/autonomy_boundary.py`)
-- IAM (`security/iam.py`) -- AI denied secret and admin access
+- IAM (`security/iam.py`) -- AI denied secret and admin access + role-based tool permissions
 - PII guard (`security/pii_guard.py`) -- 13 categories of personal info detection and masking
 - File sandbox (`security/sandbox.py`) -- Whitelist-based folder access control
 - Data protection (`security/data_protection.py`) -- Upload/download policy control
@@ -227,6 +227,10 @@ Defense layers:
 - Secret management (`security/secret_manager.py`) -- Fernet encryption
 - Sanitization (`security/sanitizer.py`)
 - Rate limiting (`core/rate_limit.py`)
+- Kill switch (`orchestration/execution_monitor.py`) -- Emergency halt of all executions
+- Role-based tool permissions (`security/iam.py`) -- Least privilege per agent role (5 default policies)
+- Memory trust levels (`orchestration/state_machine.py`) -- Source tracking, trust scores, expiry for Experience Memory
+- Tiered Judge (`orchestration/judge.py`) -- LIGHTWEIGHT/STANDARD/HEAVY tiers to balance cost vs safety
 
 ## Browser Assist
 
@@ -307,7 +311,7 @@ Security:
 ## Media Generation / AI Tool Integration
 
 - Media generation: `apps/api/app/integrations/media_generation.py` (image, video, audio, music, 3D; dynamic provider registration)
-- AI tool registry: `apps/api/app/integrations/ai_tools.py` (45+ external tools, 19 categories)
+- AI tool registry: `apps/api/app/integrations/ai_tools.py` (55+ external tools, 21 categories)
 - **Tools are not fixed; users freely choose and switch** -- managed by Plugin Loader's ToolRegistry
 - API: `/api/v1/media/*`, `/api/v1/ai-tools/*`
 
@@ -336,7 +340,7 @@ resources, ipaas, export, marketplace, teams, governance, quality-insights**
 
 - Built-in Skills (8): spec-writer, plan-writer, task-breakdown, review-assistant, artifact-summarizer, local-context, domain-skills, browser-assist
 - System protection Skills cannot be deleted or disabled
-- Natural language skill generation: `POST /api/v1/registry/skills/generate` (16 dangerous pattern detections)
+- Natural language skill generation: `POST /api/v1/registry/skills/generate` (18 dangerous pattern detections)
 
 ## Ports
 
@@ -382,6 +386,10 @@ Dashboard, Org Chart, Secretary, Tickets, Approvals, Artifacts,
 Health Monitor, Costs, Audit, Skills, Plugins, Extensions,
 Marketplace, Brainstorm, Agent Monitor, Permissions, Settings
 
+### Additional Pages (not in Activity Bar)
+Login, Setup, Ticket Detail, Ticket Interview, Spec/Plan,
+Skill Create, Skill Detail, Releases, Not Found (404)
+
 ### Theme System
 - 3 built-in themes: Dark (default), Light, High Contrast
 - Theme selector in Settings
@@ -389,13 +397,13 @@ Marketplace, Brainstorm, Agent Monitor, Permissions, Settings
 - Custom themes can be added via extensions
 
 ### Key Pages
-- **Dashboard**: Command center with natural language input, quick actions, status grid
-- **Settings**: Theme, Language, LLM API Keys (11+ providers with dropdown selector),
-  Agent Behavior (autonomy level, browser automation, workspace access),
-  Execution Mode, Company, Provider Connections (12+ with category filter), Policies
-- **Skills/Plugins/Extensions**: Installed + Marketplace tabs, search, CRUD
+- **Dashboard**: Command center with natural language input, quick actions, status grid, chat history, 5 quick-start business templates (Content Ops, Sales Research, FAQ/KB, Meeting→Tasks, Pre-publish Review)
+- **Settings**: VSCode-style TOC sidebar + search bar. Theme, Language, LLM API Keys (11+ providers with dropdown selector), Agent Behavior (autonomy level, browser automation, workspace access), Execution Mode, Company, Provider Connections (12+ with category filter + custom add), Policies. Integration strategy note explains ZEO's role as judgment/audit layer.
+- **Agent Monitor**: Execution monitor, Reasoning Traces (step-by-step AI decision visualization), Approvals queue (approve/reject with risk levels), Sessions, Hypotheses, Error monitor. Kill switch (Emergency Stop) button for halting all executions.
+- **Skills/Plugins/Extensions**: Installed + Marketplace tabs, search, CRUD, system/user section separation
 - **Marketplace**: Unified view for community-created skills/plugins/extensions
 - **Brainstorm**: Multi-model comparison with dropdown model selector + custom model input
+- **Setup**: Onboarding wizard with 5 quick-start business templates for 10-minute value
 
 ### Agent Behavior (Settings)
 - **Autonomy levels**: Observe / Assist / Semi-Auto / Autonomous

@@ -224,7 +224,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # 背景工作程序
 ├── skills/                   # 8 個內建技能
 ├── plugins/                  # 10 個外掛清單
-├── extensions/               # 12 個擴充清單
+├── extensions/               # 11 個擴充清單
 │   └── browser-assist/
 │       └── chrome-extension/ # 瀏覽器輔助 Chrome 擴充功能
 ├── packages/                 # 共享 NPM 套件
@@ -334,7 +334,10 @@ ZEO 採用**安全優先**設計，具備多層防禦：
 | **提示注入防禦** | 偵測並阻止來自外部輸入的指令注入（5 個類別、28+ 模式） |
 | **審批閘門** | 12 類危險操作（傳送、刪除、計費、權限變更等）需要人類審批 |
 | **自主執行邊界** | 明確限制 AI 可自主執行的操作 |
-| **IAM** | 人類/AI 帳戶分離；AI 無法存取密鑰和管理權限 |
+| **IAM 與工具權限** | 人類/AI 帳戶分離；基於角色的工具權限（5 個預設策略：secretary、researcher、reviewer、executor、admin）為每個代理實施最小權限 |
+| **緊急停止開關** | 透過 UI 按鈕或 API（`/kill-switch/activate`）緊急停止所有活動執行。在恢復之前阻止新的執行 |
+| **分級 Judge** | 三級驗證：LIGHTWEIGHT（僅規則）→ STANDARD（+策略）→ HEAVY（+跨模型）。降低低風險操作的成本，同時對高風險操作維持完整驗證 |
+| **記憶信任度** | Experience Memory 條目追蹤來源類型、信任層級（0.0-1.0）、驗證狀態和到期時間。僅使用可信記憶（≥0.7，未到期） |
 | **密鑰管理** | Fernet 加密、自動遮罩、輪換支援 |
 | **清理** | API 金鑰、權杖和個人資訊的自動移除 |
 | **安全標頭** | 所有回應新增 CSP、HSTS、X-Frame-Options |
@@ -409,7 +412,7 @@ POST /api/v1/registry/skills/generate
 }
 ```
 
-自動偵測 16 種危險模式。僅通過安全性檢查的技能才會被註冊。
+自動偵測 18 種危險模式。僅通過安全性檢查的技能才會被註冊。
 
 ---
 

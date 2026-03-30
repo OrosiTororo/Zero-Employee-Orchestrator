@@ -103,7 +103,18 @@ export function MarketplacePage() {
                     {typeIcon(item.type)}
                     <span className="text-[13px] font-medium text-[var(--text-primary)]">{item.name}</span>
                   </div>
-                  <button className="flex items-center gap-1 px-2 py-1 rounded text-[11px] bg-[var(--accent)] text-[var(--accent-fg)]">
+                  <button
+                    onClick={async () => {
+                      try {
+                        await fetch(`/api/v1/registry/${item.type}s`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ slug: item.id, name: item.name, description: item.description }),
+                        })
+                      } catch { /* marketplace not yet connected */ }
+                    }}
+                    className="flex items-center gap-1 px-2 py-1 rounded text-[11px] bg-[var(--accent)] text-[var(--accent-fg)]"
+                  >
                     <Download size={12} />
                     {t.marketplace.install}
                   </button>

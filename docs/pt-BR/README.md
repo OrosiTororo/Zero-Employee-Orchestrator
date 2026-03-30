@@ -224,7 +224,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # Workers em segundo plano
 ├── skills/                   # 8 skills integradas
 ├── plugins/                  # 10 manifestos de plugins
-├── extensions/               # 12 manifestos de extensões
+├── extensions/               # 11 manifestos de extensões
 │   └── browser-assist/
 │       └── chrome-extension/ # Extensão Chrome para Browser Assist
 ├── packages/                 # Pacotes NPM compartilhados
@@ -334,7 +334,10 @@ O ZEO é projetado com **segurança em primeiro lugar** e defesa em múltiplas c
 | **Defesa contra Injeção de Prompt** | Detecta e bloqueia injeção de instruções de entradas externas (5 categorias, 28+ padrões) |
 | **Portões de Aprovação** | 12 categorias de operações perigosas (envio, exclusão, cobrança, alteração de permissão) requerem aprovação humana |
 | **Limites de Autonomia** | Limita explicitamente o que a IA pode fazer de forma autônoma |
-| **IAM** | Contas humanas/IA separadas; IA impedida de acessar segredos e permissões admin |
+| **IAM e Permissões de Ferramentas** | Contas humanas/IA separadas; permissões de ferramentas baseadas em papéis (5 políticas padrão: secretary, researcher, reviewer, executor, admin) aplicam privilégio mínimo por agente |
+| **Kill Switch** | Parada emergencial de todas as execuções ativas via botão na UI ou API (`/kill-switch/activate`). Bloqueia novas execuções até ser retomado |
+| **Judge em Camadas** | Verificação em três níveis: LIGHTWEIGHT (apenas regras) → STANDARD (+política) → HEAVY (+cross-model). Reduz custo para operações de baixo risco mantendo verificação completa para alto risco |
+| **Confiança de Memória** | Entradas de Experience Memory rastreiam tipo de fonte, nível de confiança (0.0-1.0), status de verificação e expiração. Apenas memórias confiáveis (≥0.7, não expiradas) são usadas |
 | **Gestão de Segredos** | Criptografia Fernet, mascaramento automático, suporte a rotação |
 | **Sanitização** | Remoção automática de chaves de API, tokens e PII |
 | **Headers de Segurança** | CSP, HSTS, X-Frame-Options em todas as respostas |
@@ -409,7 +412,7 @@ POST /api/v1/registry/skills/generate
 }
 ```
 
-16 padrões perigosos são autodetectados. Apenas skills que passam nas verificações de segurança são registradas.
+18 padrões perigosos são autodetectados. Apenas skills que passam nas verificações de segurança são registradas.
 
 ---
 

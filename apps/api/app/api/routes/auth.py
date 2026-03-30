@@ -1,14 +1,19 @@
 """Authentication endpoints - registration, login, session management."""
 
+import logging
+import secrets
 import uuid
 from datetime import UTC, datetime
 
+import httpx
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
+from app.core.config import settings
 from app.core.rate_limit import limiter
 from app.core.security import generate_uuid, hash_password
 from app.models.company import Company
@@ -30,9 +35,12 @@ from app.services.auth_service import (
     create_access_token,
     decode_access_token,
     get_user_by_id,
+    oauth_login_or_register,
     register_user,
     request_password_reset,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -106,25 +114,213 @@ async def login(request: Request, req: LoginRequest, db: AsyncSession = Depends(
     )
 
 
+# ---------------------------------------------------------------------------
+# Google OAuth — in-memory pending state store
+# ---------------------------------------------------------------------------
+# Maps state -> {"token": ..., "user_id": ..., ...} after successful callback.
+# Entries are cleaned up after polling or after a timeout.
+_google_oauth_pending: dict[str, dict] = {}
+
+GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
+GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
+GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
+
+
+def _google_redirect_uri(request: Request) -> str:
+    """Build the Google OAuth redirect URI based on the incoming request."""
+    base = str(request.base_url).rstrip("/")
+    return f"{base}{settings.API_V1_PREFIX}/auth/google/callback"
+
+
 @router.get("/google/authorize")
-async def google_authorize():
-    """Get Google OAuth authorization URL (unimplemented stub)."""
-    raise HTTPException(
-        status_code=501,
-        detail="Google OAuth is not yet available. Please use email registration.",
-    )
+async def google_authorize(request: Request):
+    """Get Google OAuth authorization URL.
+
+    Returns the URL and a state token. The frontend should open this URL
+    (in a popup or system browser) and poll /auth/google/poll?state=...
+    until the login completes.
+    """
+    if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
+        raise HTTPException(
+            status_code=501,
+            detail="Google OAuth is not configured. Set GOOGLE_CLIENT_ID and "
+            "GOOGLE_CLIENT_SECRET via `zero-employee config set` or .env file.",
+        )
+
+    state = secrets.token_urlsafe(32)
+    _google_oauth_pending[state] = {}  # placeholder — awaiting callback
+
+    redirect_uri = _google_redirect_uri(request)
+    params = {
+        "client_id": settings.GOOGLE_CLIENT_ID,
+        "redirect_uri": redirect_uri,
+        "response_type": "code",
+        "scope": "openid email profile",
+        "state": state,
+        "access_type": "offline",
+        "prompt": "select_account",
+    }
+    url = f"{GOOGLE_AUTH_URL}?{httpx.QueryParams(params)}"
+    return {"url": url, "state": state}
+
+
+@router.get("/google/callback")
+async def google_callback(
+    request: Request,
+    code: str | None = None,
+    state: str | None = None,
+    error: str | None = None,
+    db: AsyncSession = Depends(get_db),
+):
+    """Handle Google OAuth callback.
+
+    Google redirects here after the user authenticates. This endpoint
+    exchanges the authorization code for tokens, fetches user info,
+    creates or finds the user, and stores the result for polling.
+    Returns an HTML page that tells the user to return to the app.
+    """
+    if error:
+        return HTMLResponse(
+            _oauth_result_html(success=False, message=f"Google login failed: {error}")
+        )
+
+    if not code or not state:
+        return HTMLResponse(
+            _oauth_result_html(success=False, message="Missing code or state parameter.")
+        )
+
+    if state not in _google_oauth_pending:
+        return HTMLResponse(_oauth_result_html(success=False, message="Invalid or expired state."))
+
+    redirect_uri = _google_redirect_uri(request)
+
+    try:
+        # Exchange authorization code for tokens
+        async with httpx.AsyncClient(timeout=15) as client:
+            token_resp = await client.post(
+                GOOGLE_TOKEN_URL,
+                data={
+                    "client_id": settings.GOOGLE_CLIENT_ID,
+                    "client_secret": settings.GOOGLE_CLIENT_SECRET,
+                    "code": code,
+                    "grant_type": "authorization_code",
+                    "redirect_uri": redirect_uri,
+                },
+            )
+        if token_resp.status_code != 200:
+            logger.warning("Google token exchange failed: %s", token_resp.text)
+            _google_oauth_pending.pop(state, None)
+            return HTMLResponse(
+                _oauth_result_html(success=False, message="Failed to exchange authorization code.")
+            )
+
+        token_data = token_resp.json()
+        access_token_google = token_data.get("access_token")
+        if not access_token_google:
+            _google_oauth_pending.pop(state, None)
+            return HTMLResponse(
+                _oauth_result_html(success=False, message="No access token from Google.")
+            )
+
+        # Fetch user info from Google
+        async with httpx.AsyncClient(timeout=10) as client:
+            userinfo_resp = await client.get(
+                GOOGLE_USERINFO_URL,
+                headers={"Authorization": f"Bearer {access_token_google}"},
+            )
+        if userinfo_resp.status_code != 200:
+            _google_oauth_pending.pop(state, None)
+            return HTMLResponse(
+                _oauth_result_html(success=False, message="Failed to fetch user info from Google.")
+            )
+
+        userinfo = userinfo_resp.json()
+        email = userinfo.get("email")
+        name = userinfo.get("name", email)
+
+        if not email:
+            _google_oauth_pending.pop(state, None)
+            return HTMLResponse(
+                _oauth_result_html(success=False, message="Google account has no email address.")
+            )
+
+        # Create or find user
+        user, is_new = await oauth_login_or_register(
+            db, email=email, display_name=name, provider="google"
+        )
+        token = create_access_token(str(user.id))
+        setup_done = await _get_user_setup_completed(db, str(user.id))
+
+        _google_oauth_pending[state] = {
+            "access_token": token,
+            "user_id": str(user.id),
+            "display_name": user.display_name,
+            "setup_completed": setup_done,
+        }
+
+        return HTMLResponse(_oauth_result_html(success=True))
+
+    except httpx.HTTPError as exc:
+        logger.exception("Google OAuth HTTP error: %s", exc)
+        _google_oauth_pending.pop(state, None)
+        return HTMLResponse(
+            _oauth_result_html(success=False, message="Network error during Google login.")
+        )
+
+
+@router.get("/google/poll")
+async def google_poll(state: str):
+    """Poll for Google OAuth completion.
+
+    The frontend calls this after opening the Google auth URL.
+    Returns {"status": "pending"} until the callback is processed,
+    then returns the login response and removes the state entry.
+    """
+    if state not in _google_oauth_pending:
+        raise HTTPException(status_code=404, detail="Unknown or expired state")
+
+    data = _google_oauth_pending[state]
+    if not data:
+        return {"status": "pending"}
+
+    # Login complete — remove state and return credentials
+    _google_oauth_pending.pop(state, None)
+    return {
+        "status": "complete",
+        "access_token": data["access_token"],
+        "user_id": data["user_id"],
+        "display_name": data["display_name"],
+        "setup_completed": data.get("setup_completed", False),
+    }
 
 
 @router.post("/oauth/login", response_model=LoginResponse)
 async def oauth_login(req: OAuthLoginRequest, db: AsyncSession = Depends(get_db)):
     """Login via OAuth provider (Google, GitHub, etc.)."""
-    # In production, validate the OAuth code with the provider
-    # For now, create/find user by provider info
-    # This would be expanded with actual OAuth flow
     raise HTTPException(
         status_code=501,
-        detail=f"OAuth provider '{req.provider}' is not yet available. Please use email registration.",
+        detail=f"OAuth provider '{req.provider}' is not yet supported via this endpoint. "
+        "Use the /auth/google/authorize flow for Google login.",
     )
+
+
+def _oauth_result_html(*, success: bool, message: str | None = None) -> str:
+    """Return a minimal HTML page shown in the browser after OAuth callback."""
+    if success:
+        title = "Login Successful"
+        body = (
+            "<h2>&#10004; Login successful</h2><p>You can close this tab and return to the app.</p>"
+        )
+    else:
+        title = "Login Failed"
+        body = f"<h2>&#10008; Login failed</h2><p>{message or 'Unknown error'}</p>"
+    return f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>{title}</title>
+<style>body{{font-family:system-ui,sans-serif;display:flex;justify-content:center;
+align-items:center;min-height:100vh;margin:0;background:#1a1a2e;color:#e0e0e0;}}
+.card{{text-align:center;padding:2rem 3rem;border-radius:12px;background:#16213e;}}
+h2{{margin-bottom:.5rem;}} p{{color:#999;}}</style></head>
+<body><div class="card">{body}</div></body></html>"""
 
 
 @router.post("/logout")

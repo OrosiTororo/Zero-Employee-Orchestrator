@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { MessageSquare, Send, Check, ArrowRight, Loader2 } from "lucide-react"
 import { api } from "../shared/api/client"
+import { useT } from "@/shared/i18n"
 
 interface Question {
   question: string
@@ -11,62 +12,65 @@ interface Question {
   answer: string
 }
 
-const defaultQuestions: Question[] = [
-  {
-    question: "この業務の最終的な目的は何ですか？",
-    category: "objective",
-    required: true,
-    answered: false,
-    answer: "",
-  },
-  {
-    question: "守るべき制約条件はありますか？（予算、期限、品質基準など）",
-    category: "constraint",
-    required: true,
-    answered: false,
-    answer: "",
-  },
-  {
-    question: "完了条件（受け入れ基準）は何ですか？",
-    category: "acceptance",
-    required: true,
-    answered: false,
-    answer: "",
-  },
-  {
-    question: "想定されるリスクや注意点はありますか？",
-    category: "risk",
-    required: false,
-    answered: false,
-    answer: "",
-  },
-  {
-    question: "優先順位はどの程度ですか？（高/中/低）",
-    category: "priority",
-    required: true,
-    answered: false,
-    answer: "",
-  },
-  {
-    question: "外部サービスへの接続や送信は必要ですか？",
-    category: "constraint",
-    required: true,
-    answered: false,
-    answer: "",
-  },
-  {
-    question: "人間の承認が必要な工程はありますか？",
-    category: "acceptance",
-    required: true,
-    answered: false,
-    answer: "",
-  },
-]
+function getDefaultQuestions(t: Record<string, any>): Question[] {
+  return [
+    {
+      question: t.interview?.qObjective ?? "What is the ultimate goal of this task?",
+      category: "objective",
+      required: true,
+      answered: false,
+      answer: "",
+    },
+    {
+      question: t.interview?.qConstraints ?? "Are there any constraints to follow? (budget, deadline, quality standards, etc.)",
+      category: "constraint",
+      required: true,
+      answered: false,
+      answer: "",
+    },
+    {
+      question: t.interview?.qAcceptance ?? "What are the completion criteria (acceptance criteria)?",
+      category: "acceptance",
+      required: true,
+      answered: false,
+      answer: "",
+    },
+    {
+      question: t.interview?.qRisk ?? "Are there any anticipated risks or concerns?",
+      category: "risk",
+      required: false,
+      answered: false,
+      answer: "",
+    },
+    {
+      question: t.interview?.qPriority ?? "What is the priority level? (High / Medium / Low)",
+      category: "priority",
+      required: true,
+      answered: false,
+      answer: "",
+    },
+    {
+      question: t.interview?.qExternalService ?? "Is connection or transmission to external services required?",
+      category: "constraint",
+      required: true,
+      answered: false,
+      answer: "",
+    },
+    {
+      question: t.interview?.qApproval ?? "Are there any steps that require human approval?",
+      category: "acceptance",
+      required: true,
+      answered: false,
+      answer: "",
+    },
+  ]
+}
 
 export function InterviewPage() {
   const { id: ticketId } = useParams()
   const navigate = useNavigate()
-  const [questions, setQuestions] = useState<Question[]>(defaultQuestions)
+  const t = useT()
+  const [questions, setQuestions] = useState<Question[]>(() => getDefaultQuestions(t))
   const [currentIndex, setCurrentIndex] = useState(0)
   const [inputValue, setInputValue] = useState("")
 
@@ -102,7 +106,7 @@ export function InterviewPage() {
     setSubmitting(true)
     try {
       const companyId = localStorage.getItem("company_id") || ""
-      // インタビュー回答をバックエンドに保存
+      // Save interview answers to backend
       const answers = questions.reduce(
         (acc, q) => {
           if (q.answered) {
@@ -115,11 +119,11 @@ export function InterviewPage() {
       await api.post(`/companies/${companyId}/tickets/${ticketId}/interview/complete`, {
         answers,
       })
-      // 仕様生成をトリガー
+      // Trigger spec generation
       try {
         await api.post(`/companies/${companyId}/tickets/${ticketId}/generate-spec`, {})
       } catch {
-        // spec 生成失敗は非致命的
+        // Spec generation failure is non-fatal
       }
     } catch (e) {
       console.error("Interview save failed:", e)
@@ -132,32 +136,32 @@ export function InterviewPage() {
   return (
     <div className="p-6 max-w-[800px] mx-auto">
       <div className="flex items-center gap-3 mb-6">
-        <MessageSquare size={24} className="text-[#007acc]" />
+        <MessageSquare size={24} className="text-[var(--accent)]" />
         <div>
-          <h1 className="text-lg font-semibold text-[#cccccc]">
-            Design Interview
+          <h1 className="text-lg font-semibold text-[var(--text-primary)]">
+            {t.interview?.title ?? "Design Interview"}
           </h1>
-          <p className="text-[12px] text-[#6a6a6a]">
-            要件を深掘りして、実行計画の基礎を作ります
+          <p className="text-[12px] text-[var(--text-muted)]">
+            {t.interview?.subtitle ?? "Deep-dive into requirements to build a foundation for the execution plan"}
           </p>
         </div>
       </div>
 
       {/* Progress */}
       <div className="mb-6">
-        <div className="flex items-center justify-between text-[12px] text-[#6a6a6a] mb-2">
+        <div className="flex items-center justify-between text-[12px] text-[var(--text-muted)] mb-2">
           <span>
-            回答済み: {answeredCount} / {questions.length}
+            {t.interview?.answered ?? "Answered"}: {answeredCount} / {questions.length}
           </span>
           <span>
             {requiredRemaining > 0
-              ? `必須残り: ${requiredRemaining}件`
-              : "必須項目完了"}
+              ? `${t.interview?.requiredRemaining ?? "Required remaining"}: ${requiredRemaining}`
+              : (t.interview?.requiredComplete ?? "All required complete")}
           </span>
         </div>
-        <div className="h-1.5 bg-[#3e3e42] rounded-full overflow-hidden">
+        <div className="h-1.5 bg-[var(--border)] rounded-full overflow-hidden">
           <div
-            className="h-full bg-[#007acc] rounded-full transition-all"
+            className="h-full bg-[var(--accent)] rounded-full transition-all"
             style={{
               width: `${(answeredCount / questions.length) * 100}%`,
             }}
@@ -173,31 +177,31 @@ export function InterviewPage() {
             onClick={() => setCurrentIndex(i)}
             className="flex items-start gap-3 p-3 rounded border cursor-pointer transition-colors"
             style={{
-              borderColor: i === currentIndex ? "#007acc" : "#3e3e42",
-              background: i === currentIndex ? "#007acc10" : "transparent",
+              borderColor: i === currentIndex ? "var(--accent)" : "var(--border)",
+              background: i === currentIndex ? "color-mix(in srgb, var(--accent) 6%, transparent)" : "transparent",
             }}
           >
             <div
               className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5"
               style={{
-                background: q.answered ? "#16825d" : "#3e3e42",
+                background: q.answered ? "var(--success-fg)" : "var(--border)",
               }}
             >
               {q.answered ? (
                 <Check size={12} color="#fff" />
               ) : (
-                <span className="text-[10px] text-[#6a6a6a]">{i + 1}</span>
+                <span className="text-[10px] text-[var(--text-muted)]">{i + 1}</span>
               )}
             </div>
             <div className="flex-1">
-              <p className="text-[13px] text-[#cccccc]">
+              <p className="text-[13px] text-[var(--text-primary)]">
                 {q.question}
                 {q.required && (
-                  <span className="text-[#f44747] ml-1">*</span>
+                  <span className="text-[var(--error)] ml-1">*</span>
                 )}
               </p>
               {q.answered && (
-                <p className="text-[12px] text-[#969696] mt-1">{q.answer}</p>
+                <p className="text-[12px] text-[var(--text-muted)] mt-1">{q.answer}</p>
               )}
             </div>
           </div>
@@ -212,11 +216,11 @@ export function InterviewPage() {
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAnswer()}
             placeholder={`Q${currentIndex + 1}: ${current.question}`}
-            className="flex-1 px-3 py-2.5 rounded text-[13px] bg-[#3c3c3c] text-[#cccccc] border border-[#3e3e42] focus:border-[#007acc] outline-none"
+            className="flex-1 px-3 py-2.5 rounded text-[13px] bg-[var(--bg-surface)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)] outline-none"
           />
           <button
             onClick={handleAnswer}
-            className="px-4 py-2.5 rounded bg-[#007acc] text-white"
+            className="px-4 py-2.5 rounded bg-[var(--accent)] text-white"
           >
             <Send size={16} />
           </button>
@@ -228,10 +232,10 @@ export function InterviewPage() {
         <button
           onClick={handleComplete}
           disabled={submitting}
-          className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded text-[14px] font-medium bg-[#16825d] text-white disabled:opacity-50"
+          className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded text-[14px] font-medium bg-[var(--success-fg)] text-white disabled:opacity-50"
         >
           {submitting ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={18} />}
-          {submitting ? "保存中..." : "Spec / Plan の生成に進む"}
+          {submitting ? (t.interview?.saving ?? "Saving...") : (t.interview?.proceedToSpec ?? "Proceed to Spec / Plan generation")}
         </button>
       )}
     </div>

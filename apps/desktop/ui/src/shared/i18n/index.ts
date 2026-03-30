@@ -8,8 +8,8 @@ import trLocale from "./locales/tr.json"
 
 export type Locale = "ja" | "en" | "zh" | "ko" | "pt" | "tr"
 
-/** Built-in locale codes that ship with the application */
-export const BUILTIN_LOCALES: ReadonlySet<string> = new Set<string>(["en", "ja", "zh", "ko", "pt", "tr"])
+/** Locale codes bundled with the application (changeable in Settings) */
+export const BUNDLED_LOCALES: ReadonlySet<string> = new Set<string>(["en", "ja", "zh", "ko", "pt", "tr"])
 
 export const LOCALE_LABELS: Record<string, string> = {
   ja: "日本語",
@@ -31,22 +31,6 @@ export const locales: Record<string, Messages> = {
   tr: trLocale as unknown as Messages,
 }
 
-/**
- * Set of locale codes currently available (built-in + dynamically loaded).
- * Starts with the 6 built-in locales; grows when loadLanguagePack() succeeds.
- */
-export const availableLocales = new Set<string>(Object.keys(locales))
-
-function isValidLocale(s: string): s is Locale {
-  return availableLocales.has(s)
-}
-
-interface I18nState {
-  locale: Locale
-  messages: Messages
-  setLocale: (locale: Locale) => void
-}
-
 function detectLocaleFromOS(): Locale {
   const browserLang = navigator.language.toLowerCase()
   if (browserLang.startsWith("ja")) return "ja"
@@ -55,6 +39,65 @@ function detectLocaleFromOS(): Locale {
   if (browserLang.startsWith("pt")) return "pt"
   if (browserLang.startsWith("tr")) return "tr"
   return "en"
+}
+
+/**
+ * Set of locale codes currently visible to the user.
+ * Starts with only the active (installer-selected or OS-detected) locale.
+ * Additional languages are enabled via Settings → Extensions → Language Pack,
+ * or by calling enableLocale() / loadLanguagePack().
+ */
+function getInitialAvailable(): Set<string> {
+  // Restore previously enabled locales from localStorage
+  try {
+    const stored = localStorage.getItem("enabled_locales")
+    if (stored) {
+      const parsed = JSON.parse(stored) as string[]
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return new Set(parsed.filter(c => c in locales))
+      }
+    }
+  } catch { /* noop */ }
+  // Default: only the detected/saved locale
+  try {
+    const saved = localStorage.getItem("locale")
+    if (saved && saved in locales) return new Set([saved])
+  } catch { /* noop */ }
+  const detected = detectLocaleFromOS()
+  return new Set([detected])
+}
+
+export const availableLocales = getInitialAvailable()
+
+/** Make a bundled locale visible in Settings. */
+export function enableLocale(code: string): boolean {
+  if (!(code in locales)) return false
+  availableLocales.add(code)
+  try {
+    localStorage.setItem("enabled_locales", JSON.stringify([...availableLocales]))
+  } catch { /* noop */ }
+  return true
+}
+
+/** Remove a locale from the visible list (cannot remove the active locale). */
+export function disableLocale(code: string): boolean {
+  const current = useI18n.getState().locale
+  if (code === current) return false
+  availableLocales.delete(code)
+  try {
+    localStorage.setItem("enabled_locales", JSON.stringify([...availableLocales]))
+  } catch { /* noop */ }
+  return true
+}
+
+function isValidLocale(s: string): s is Locale {
+  return s in locales
+}
+
+interface I18nState {
+  locale: Locale
+  messages: Messages
+  setLocale: (locale: Locale) => void
 }
 
 /**
@@ -74,16 +117,22 @@ function getInitialLocale(): Locale {
 
 export const useI18n = create<I18nState>((set) => {
   const initial = getInitialLocale()
+  availableLocales.add(initial) // ensure active locale is always visible
   document.documentElement.lang = initial
   return {
     locale: initial,
     messages: locales[initial],
     setLocale: (locale: Locale) => {
-      if (!availableLocales.has(locale)) {
+      if (!(locale in locales)) {
         console.warn(`Locale "${locale}" is not available. Load it first with loadLanguagePack().`)
         return
       }
-      try { localStorage.setItem("locale", locale) } catch { /* noop */ }
+      // Ensure the locale is visible in Settings
+      availableLocales.add(locale)
+      try {
+        localStorage.setItem("locale", locale)
+        localStorage.setItem("enabled_locales", JSON.stringify([...availableLocales]))
+      } catch { /* noop */ }
       document.documentElement.lang = locale
       set({ locale, messages: locales[locale] })
     },
@@ -105,8 +154,13 @@ export async function loadLanguagePack(
   code: string,
   apiBase = "/api/v1",
 ): Promise<boolean> {
+  // If it's a bundled locale, just enable it
+  if (code in locales) {
+    enableLocale(code)
+    return true
+  }
+
   if (availableLocales.has(code)) {
-    // Already available (built-in or previously loaded)
     return true
   }
 

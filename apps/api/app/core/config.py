@@ -91,6 +91,10 @@ class Settings(BaseSettings):
     # Default: apps/api/model_catalog.json
     MODEL_CATALOG_PATH: str = ""
 
+    # Google OAuth (optional — users configure via `zero-employee config set`)
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+
     # Sentry DSN for error monitoring (optional)
     SENTRY_DSN: str = ""
 

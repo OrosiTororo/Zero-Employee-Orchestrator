@@ -67,8 +67,8 @@ Items that can be implemented by the development team without large-scale commun
 | TODO | **Plugin Loader UI** | Manifest-based dynamic loading in frontend |
 | TODO | **E2E flow integration** | Natural language input → interview → plan → execution |
 | TODO | **Worker core logic** | Strengthen TaskRunner / HeartbeatRunner |
-| TODO | **Template Gallery** | Quick-start workflow templates for common tasks |
-| TODO | **Execution Logs view** | Real-time task execution monitoring (n8n pattern) |
+| Done | **Template Gallery** | 5 quick-start business templates (Content Ops, Sales Research, FAQ/KB, Meeting→Tasks, Pre-publish Review) |
+| Done | **Execution Logs view** | Reasoning Traces tab + Approvals queue in Agent Monitor (real-time) |
 | TODO | **Tool Connector UI** | Register/manage external tools from the UI |
 | TODO | **Knowledge Feed UI** | RSS/web monitoring dashboard, org-wide sharing |
 | TODO | **Contributor Guide** | CONTRIBUTING.md and Skill development tutorials |

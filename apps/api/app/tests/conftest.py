@@ -15,11 +15,14 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+# Ensure all ORM models are registered with Base before create_all
+import app.models as _models  # noqa: F401
 from app.api.deps.database import get_db
 from app.api.routes.auth import get_current_user
 from app.core.database import Base
 from app.main import app
 from app.models.user import User
+from app.services.multi_model_service import BrainstormSessionRecord as _BSR  # noqa: F401
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_zero_employee_orchestrator.db"
 

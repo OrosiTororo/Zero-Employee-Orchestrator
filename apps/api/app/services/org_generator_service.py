@@ -433,7 +433,7 @@ async def apply_org_blueprint(
         actor_type="system",
         event_type="org.generated",
         target_type="company",
-        target_id=str(cid),
+        target_id=cid,
         details_json={
             "departments_count": len(created_departments),
             "teams_count": len(created_teams),

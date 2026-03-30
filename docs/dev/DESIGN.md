@@ -131,13 +131,19 @@ Zero-Employee Orchestrator is based on a 9-layer structure.
    Skill execution, Skill Gap detection, Skill generation, business-specific plugin execution
 
 5. **Judge Layer**
-   Two-stage Detection, Cross-Model Judge, Policy Pack
+   Two-stage Detection, Cross-Model Judge, Policy Pack.
+   Tiered verification: LIGHTWEIGHT (rules only for reads) → STANDARD (+policy for writes) → HEAVY (+cross-model for send/delete/billing). Reduces API cost while maintaining safety for high-risk operations.
 
 6. **Re-Propose Layer**
    Rejection, Plan Diff, partial re-execution, Self-Healing
 
 7. **State & Memory Layer**
-   State machine, history, artifacts, failure classification, experience knowledge storage
+   State machine, history, artifacts, failure classification, experience knowledge storage.
+   Memory trust levels: each ExperienceMemoryEntry tracks source_type, trust_level (0.0-1.0), verified status, and expiry. Only memories with trust ≥ 0.7 and not expired are used for decisions.
+
+   **Operational Safety:**
+   - Kill switch: Emergency halt of all executions via UI or API (`/kill-switch/activate`). Blocks new task starts until resumed.
+   - Role-based tool permissions: 5 default policies (secretary, researcher, reviewer, executor, admin) enforce least privilege per agent role via `check_tool_permission()`.
 
 8. **Provider Interface Layer**
    LiteLLM Gateway, model catalog, external APIs, OAuth, Webhook
@@ -375,6 +381,8 @@ Core tables start from the following:
 
 ### 10.2 Initial API Endpoint Groups
 
+> **Note**: All endpoints use the `/api/v1/` prefix in the actual implementation (e.g., `POST /api/v1/auth/login`). The paths below show the design-level structure.
+
 #### Authentication & Session
 - `POST /api/auth/login`
 - `GET /api/auth/status`
@@ -526,7 +534,7 @@ Zero-Employee-Orchestrator/
 │  ├─ desktop/                # Tauri + React UI
 │  │  ├─ src-tauri/           # Rust (Tauri v2)
 │  │  └─ ui/src/
-│  │     ├─ pages/            # 23 screen components
+│  │     ├─ pages/            # 27 screen components
 │  │     ├─ features/         # Feature-based modules
 │  │     ├─ shared/           # Common API, types, hooks, UI
 │  │     └─ app/              # Routing, entry point
