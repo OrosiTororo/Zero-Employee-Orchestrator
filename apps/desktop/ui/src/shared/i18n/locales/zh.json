@@ -23,7 +23,11 @@
     "no": "否",
     "or": "或",
     "language": "语言",
-    "typescriptReact": "TypeScript React"
+    "typescriptReact": "TypeScript React",
+    "view": "查看",
+    "download": "下载",
+    "connected": "已连接",
+    "jobs": "任务"
   },
   "auth": {
     "login": "登录",
@@ -331,7 +335,13 @@
     "workspaceAccess": "工作区访问",
     "localFileAccess": "本地文件访问",
     "cloudAccess": "云存储连接",
-    "workspaceDesc": "默认仅使用内部存储。在此启用本地文件或云端访问。"
+    "workspaceDesc": "默认仅使用内部存储。在此启用本地文件或云端访问。",
+    "searchPlaceholder": "搜索设置...",
+    "integrationStrategy": "ZEO作为判断、审批和审计层。",
+    "integrationStrategyDesc": "连接外部工具执行。支持n8n、Zapier、Make和MCP。",
+    "addCustomConnection": "添加自定义连接",
+    "connectionName": "服务名称",
+    "connectionDesc": "描述"
   },
   "secretary": {
     "title": "秘书",

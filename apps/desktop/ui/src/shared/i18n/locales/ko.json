@@ -23,7 +23,11 @@
     "no": "아니오",
     "or": "또는",
     "language": "언어",
-    "typescriptReact": "TypeScript React"
+    "typescriptReact": "TypeScript React",
+    "view": "보기",
+    "download": "다운로드",
+    "connected": "연결됨",
+    "jobs": "작업"
   },
   "auth": {
     "login": "로그인",
@@ -331,7 +335,13 @@
     "workspaceAccess": "워크스페이스 접근",
     "localFileAccess": "로컬 파일 접근",
     "cloudAccess": "클라우드 스토리지 연결",
-    "workspaceDesc": "기본적으로 내부 저장소만 사용됩니다. 여기에서 로컬 파일 또는 클라우드 접근을 활성화하세요."
+    "workspaceDesc": "기본적으로 내부 저장소만 사용됩니다. 여기에서 로컬 파일 또는 클라우드 접근을 활성화하세요.",
+    "searchPlaceholder": "설정 검색...",
+    "integrationStrategy": "ZEO는 판단, 승인, 감사 레이어로 작동합니다.",
+    "integrationStrategyDesc": "외부 도구를 연결하여 실행. n8n, Zapier, Make, MCP와 연동.",
+    "addCustomConnection": "사용자 정의 연결 추가",
+    "connectionName": "서비스 이름",
+    "connectionDesc": "설명"
   },
   "secretary": {
     "title": "비서",

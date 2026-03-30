@@ -23,7 +23,11 @@
     "no": "いいえ",
     "or": "または",
     "language": "言語",
-    "typescriptReact": "TypeScript React"
+    "typescriptReact": "TypeScript React",
+    "view": "表示",
+    "download": "ダウンロード",
+    "connected": "接続済み",
+    "jobs": "ジョブ"
   },
   "auth": {
     "login": "ログイン",
@@ -331,7 +335,13 @@
     "workspaceAccess": "ワークスペースアクセス",
     "localFileAccess": "ローカルファイルアクセス",
     "cloudAccess": "クラウドストレージ接続",
-    "workspaceDesc": "デフォルトでは内部ストレージのみ使用。ローカルファイルやクラウドへのアクセスはここで許可できます。"
+    "workspaceDesc": "デフォルトでは内部ストレージのみ使用。ローカルファイルやクラウドへのアクセスはここで許可できます。",
+    "searchPlaceholder": "設定を検索...",
+    "integrationStrategy": "ZEOは判断・承認・監査レイヤーとして機能します。",
+    "integrationStrategyDesc": "外部ツールを接続して実行を委譲。n8n、Zapier、Make、MCPと連携します。",
+    "addCustomConnection": "カスタム接続を追加",
+    "connectionName": "サービス名",
+    "connectionDesc": "説明"
   },
   "heartbeats": {
     "title": "ヘルスモニター",

@@ -14,7 +14,6 @@ import {
   Terminal,
   FileText,
   Zap,
-  ArrowRight,
   Search,
   HelpCircle,
   ListTodo,
@@ -49,14 +48,13 @@ export function DashboardPage() {
 
   useEffect(() => { fetchStats() }, [fetchStats])
 
-  const [nlResponse, setNlResponse] = useState("")
   const [chatHistory, setChatHistory] = useState<Array<{ role: "user" | "system"; content: string }>>([])
   const [showChat, setShowChat] = useState(false)
 
   const handleSubmit = async () => {
     if (!input.trim() || loading) return
     setLoading(true)
-    setNlResponse("")
+
     try {
       const nlResult = await api.post<{
         success: boolean; message: string; category: string
@@ -65,7 +63,6 @@ export function DashboardPage() {
 
       if (nlResult.confidence >= 0.3 && !nlResult.delegate_to_llm && nlResult.message) {
         setChatHistory(prev => [...prev, { role: "user", content: input.trim() }, { role: "system", content: nlResult.message }])
-        setNlResponse(nlResult.message)
         setShowChat(true)
         setInput("")
         fetchStats()

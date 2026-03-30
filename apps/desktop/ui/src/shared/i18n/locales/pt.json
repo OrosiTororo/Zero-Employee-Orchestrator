@@ -23,7 +23,11 @@
     "no": "Não",
     "or": "ou",
     "language": "Idioma",
-    "typescriptReact": "TypeScript React"
+    "typescriptReact": "TypeScript React",
+    "view": "Ver",
+    "download": "Baixar",
+    "connected": "Conectado",
+    "jobs": "Tarefas"
   },
   "auth": {
     "login": "Entrar",
@@ -331,7 +335,13 @@
     "workspaceAccess": "Acesso ao Workspace",
     "localFileAccess": "Acesso a arquivos locais",
     "cloudAccess": "Conexões de armazenamento em nuvem",
-    "workspaceDesc": "Por padrão, apenas o armazenamento interno é usado. Ative o acesso a arquivos locais ou à nuvem aqui."
+    "workspaceDesc": "Por padrão, apenas o armazenamento interno é usado. Ative o acesso a arquivos locais ou à nuvem aqui.",
+    "searchPlaceholder": "Pesquisar configurações...",
+    "integrationStrategy": "ZEO atua como camada de julgamento, aprovação e auditoria.",
+    "integrationStrategyDesc": "Conecte ferramentas externas para execução. Compatível com n8n, Zapier, Make e MCP.",
+    "addCustomConnection": "Adicionar conexão personalizada",
+    "connectionName": "Nome do serviço",
+    "connectionDesc": "Descrição"
   },
   "secretary": {
     "title": "Secretário",

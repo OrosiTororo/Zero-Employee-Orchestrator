@@ -23,7 +23,11 @@
     "no": "No",
     "or": "or",
     "language": "Language",
-    "typescriptReact": "TypeScript React"
+    "typescriptReact": "TypeScript React",
+    "view": "View",
+    "download": "Download",
+    "connected": "Connected",
+    "jobs": "Jobs"
   },
   "auth": {
     "login": "Log in",
@@ -331,7 +335,13 @@
     "workspaceAccess": "Workspace Access",
     "localFileAccess": "Local file access",
     "cloudAccess": "Cloud storage connections",
-    "workspaceDesc": "By default, only internal storage is used. Enable local file or cloud access here."
+    "workspaceDesc": "By default, only internal storage is used. Enable local file or cloud access here.",
+    "searchPlaceholder": "Search settings...",
+    "integrationStrategy": "ZEO acts as the judgment, approval, and audit layer.",
+    "integrationStrategyDesc": "Connect external tools for execution. Works with n8n, Zapier, Make, and MCP.",
+    "addCustomConnection": "Add Custom Connection",
+    "connectionName": "Service Name",
+    "connectionDesc": "Description"
   },
   "heartbeats": {
     "title": "Health Monitor",

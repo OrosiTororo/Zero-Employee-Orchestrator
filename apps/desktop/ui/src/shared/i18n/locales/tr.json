@@ -23,7 +23,11 @@
     "no": "Hayır",
     "or": "veya",
     "language": "Dil",
-    "typescriptReact": "TypeScript React"
+    "typescriptReact": "TypeScript React",
+    "view": "Görüntüle",
+    "download": "İndir",
+    "connected": "Bağlı",
+    "jobs": "İşler"
   },
   "auth": {
     "login": "Giriş yap",
@@ -331,7 +335,13 @@
     "workspaceAccess": "Çalışma Alanı Erişimi",
     "localFileAccess": "Yerel dosya erişimi",
     "cloudAccess": "Bulut depolama bağlantıları",
-    "workspaceDesc": "Varsayılan olarak yalnızca dahili depolama kullanılır. Yerel dosya veya bulut erişimini buradan etkinleştirin."
+    "workspaceDesc": "Varsayılan olarak yalnızca dahili depolama kullanılır. Yerel dosya veya bulut erişimini buradan etkinleştirin.",
+    "searchPlaceholder": "Ayarları ara...",
+    "integrationStrategy": "ZEO yargı, onay ve denetim katmanı olarak çalışır.",
+    "integrationStrategyDesc": "Harici araçları yürütme için bağlayın. n8n, Zapier, Make ve MCP ile çalışır.",
+    "addCustomConnection": "Özel bağlantı ekle",
+    "connectionName": "Hizmet adı",
+    "connectionDesc": "Açıklama"
   },
   "secretary": {
     "title": "Sekreter",

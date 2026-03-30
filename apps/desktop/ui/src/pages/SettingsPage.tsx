@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react"
 import {
-  Settings,
   Link2,
   Shield,
   Cpu,
@@ -350,9 +349,9 @@ export function SettingsPage() {
               <Check size={14} />
               {saveMessage}
             </div>
-        )}
+          )}
 
-        {/* Theme Settings */}
+          {/* Theme Settings */}
         <SettingsSection id="settings-theme" icon={Palette} title={t.settings.themeSettings} hidden={!matchesSearch(t.settings.themeSettings, "theme", "dark", "light")}>
           <div className="flex flex-wrap gap-2">
             {(Object.keys(THEME_LABELS) as Theme[]).map((th) => (
@@ -791,6 +790,7 @@ export function SettingsPage() {
         </button>
       </div>
     </div>
+  </div>
   )
 }
 
