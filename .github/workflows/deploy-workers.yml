@@ -90,8 +90,8 @@ jobs:
 
       - name: Deploy to Cloudflare Pages
         if: inputs.mode == 'pages'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        working-directory: apps/desktop/ui
-        run: npx wrangler pages deploy dist --project-name=zeo-ui --commit-dirty=true
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy apps/desktop/ui/dist --project-name=zeo-ui --commit-dirty=true
