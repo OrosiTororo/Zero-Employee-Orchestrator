@@ -3,7 +3,7 @@
 Auto-generates departments, teams, and agents based on interview responses.
 """
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -73,12 +73,30 @@ class OrgGenerateResponse(BaseModel):
 
 # No auth required: onboarding questions are public
 @router.get("/interview/questions")
-async def get_interview_questions():
-    """Get list of organization setup interview questions."""
+async def get_interview_questions(request: Request):
+    """Get list of organization setup interview questions.
+
+    Returns questions in the language specified by Accept-Language header
+    or the configured LANGUAGE setting. Defaults to English.
+    """
+    from app.core.config import settings
+
+    accept_lang = request.headers.get("accept-language", "").lower()
+    lang = settings.LANGUAGE.lower()
+    # Use Japanese only if explicitly requested
+    use_ja = accept_lang.startswith("ja") or lang == "ja"
+
+    def q(ja: str, en: str) -> str:
+        return ja if use_ja else en
+
+    def opt_label(ja: str, en: str) -> dict:
+        return {"label": ja if use_ja else en, "label_ja": ja, "label_en": en}
+
     return {
         "questions": [
             {
                 "id": "business_description",
+                "text": q("現在の事業内容を教えてください", "Please describe your current business"),
                 "question": "現在の事業内容を教えてください",
                 "question_en": "Please describe your current business",
                 "type": "text",
