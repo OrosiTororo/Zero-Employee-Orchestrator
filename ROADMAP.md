@@ -71,12 +71,12 @@ Items that can be implemented by the development team without large-scale commun
 | v0.1.2 | **API client migration** | All pages use centralized api client (auth + Tauri URL) |
 | v0.1.2 | **Frontend data connection** | TicketList, Approvals, Heartbeats, Costs, Audit connected to real API |
 | v0.1.2 | **features/ module separation** | features/company/ with shared useCompanyId hook |
-| TODO | **Plugin Loader UI** | Manifest-based dynamic loading in frontend |
-| TODO | **E2E flow integration** | Natural language input → interview → plan → execution |
-| TODO | **Worker core logic** | Strengthen TaskRunner / HeartbeatRunner |
-| TODO | **Tool Connector UI** | Register/manage external tools from the UI |
-| TODO | **Knowledge Feed UI** | RSS/web monitoring dashboard, org-wide sharing |
-| TODO | **Contributor Guide** | CONTRIBUTING.md and Skill development tutorials |
+| Done | **Plugin Loader UI** | PluginsPage CRUD + install form, API-connected |
+| Done | **E2E flow integration** | Dashboard → Interview → SpecPlan → Execution (all API-connected) |
+| Done | **Worker core logic** | TaskRunner (5 types, retry, judge) + HeartbeatRunner (cron, checks) |
+| Done | **Tool Connector UI** | SettingsPage Provider Connections (12+ services, category filter) |
+| Done | **Knowledge Feed UI** | SecretaryPage brain-dumps + knowledge store + PermissionsPage |
+| Done | **Contributor Guide** | CONTRIBUTING.md with dev setup, CI checks, design guidelines |
 
 ---
 
