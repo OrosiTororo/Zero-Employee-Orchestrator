@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import {
   LayoutDashboard,
@@ -20,6 +21,8 @@ import {
   Globe,
   Zap,
   Briefcase,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react"
 import { LogoMark } from "@/shared/ui/Logo"
 import { UpdateBanner } from "@/shared/ui/UpdateBanner"
@@ -50,33 +53,45 @@ export function Layout({ children }: LayoutProps) {
   const t = useT()
   const { locale } = useI18n()
 
-  const navGroups = [
-    [
-      { icon: LayoutDashboard, path: "/", label: t.nav.dashboard },
-      { icon: Network, path: "/org-chart", label: t.nav.orgChart },
-    ],
-    [
-      { icon: Ticket, path: "/tickets", label: t.nav.tickets },
-      { icon: ShieldCheck, path: "/approvals", label: t.nav.approvals },
-    ],
-    [
-      { icon: BrainCircuit, path: "/secretary", label: t.nav.secretary },
-      { icon: Sparkles, path: "/brainstorm", label: t.nav.brainstorm },
-      { icon: Activity, path: "/monitor", label: t.nav.monitor },
-    ],
-    [
-      { icon: FileBox, path: "/artifacts", label: t.nav.artifacts },
-      { icon: HeartPulse, path: "/heartbeats", label: t.nav.heartbeats },
-      { icon: Coins, path: "/costs", label: t.nav.costs },
-      { icon: ScrollText, path: "/audit", label: t.nav.audit },
-    ],
-    [
-      { icon: Blocks, path: "/skills", label: t.nav.skills },
-      { icon: Puzzle, path: "/plugins", label: t.nav.plugins },
-      { icon: Blocks, path: "/extensions", label: t.nav.extensions },
-      { icon: Store, path: "/marketplace", label: t.nav.marketplace },
-    ],
+  const [showManage, setShowManage] = useState(false)
+  const [showExtend, setShowExtend] = useState(false)
+
+  function isActive(path: string) {
+    return path === "/" ? location.pathname === "/" : location.pathname.startsWith(path)
+  }
+
+  /* Core items — always visible (progressive disclosure: primary actions) */
+  const coreItems = [
+    { icon: LayoutDashboard, path: "/", label: t.nav.dashboard },
+    { icon: Ticket, path: "/tickets", label: t.nav.tickets },
+    { icon: BrainCircuit, path: "/secretary", label: t.nav.secretary },
+    { icon: Sparkles, path: "/brainstorm", label: t.nav.brainstorm },
+    { icon: Activity, path: "/monitor", label: t.nav.monitor },
   ]
+
+  /* Management items — collapsed by default */
+  const manageItems = [
+    { icon: Network, path: "/org-chart", label: t.nav.orgChart },
+    { icon: ShieldCheck, path: "/approvals", label: t.nav.approvals },
+    { icon: FileBox, path: "/artifacts", label: t.nav.artifacts },
+    { icon: HeartPulse, path: "/heartbeats", label: t.nav.heartbeats },
+    { icon: Coins, path: "/costs", label: t.nav.costs },
+    { icon: ScrollText, path: "/audit", label: t.nav.audit },
+  ]
+
+  /* Extension items — collapsed by default */
+  const extendItems = [
+    { icon: Blocks, path: "/skills", label: t.nav.skills },
+    { icon: Puzzle, path: "/plugins", label: t.nav.plugins },
+    { icon: Blocks, path: "/extensions", label: t.nav.extensions },
+    { icon: Store, path: "/marketplace", label: t.nav.marketplace },
+  ]
+
+  /* Auto-expand sections when an item in them is active */
+  const manageActive = manageItems.some((item) => isActive(item.path))
+  const extendActive = extendItems.some((item) => isActive(item.path))
+  const isManageOpen = showManage || manageActive
+  const isExtendOpen = showExtend || extendActive
 
   const bottomItems = [
     { icon: Shield, path: "/permissions", label: t.nav.permissions },
@@ -107,10 +122,6 @@ export function Layout({ children }: LayoutProps) {
   const currentTitle =
     pageTitles[location.pathname] ??
     (location.pathname.startsWith("/tickets/") ? t.nav.ticketDetail : "")
-
-  function isActive(path: string) {
-    return path === "/" ? location.pathname === "/" : location.pathname.startsWith(path)
-  }
 
   /* VSCode Activity Bar button: 48x48px icon area, 24px icon, 2px left border */
   function renderNavButton(item: { icon: React.ElementType; path: string; label: string }) {
@@ -181,12 +192,42 @@ export function Layout({ children }: LayoutProps) {
           aria-label={t.nav.navigation}
         >
           <div className="flex flex-col items-center pt-[4px]">
-            {navGroups.map((group, gi) => (
-              <div key={gi}>
-                {gi > 0 && <ActivityBarDivider />}
-                {group.map((item) => renderNavButton(item))}
-              </div>
-            ))}
+            {/* Core — always visible */}
+            {coreItems.map((item) => renderNavButton(item))}
+
+            {/* Manage section — collapsible */}
+            <ActivityBarDivider />
+            <button
+              onClick={() => setShowManage((v) => !v)}
+              className="flex items-center justify-center"
+              style={{
+                width: ACTIVITY_BAR_WIDTH,
+                height: 20,
+                color: "var(--text-muted)",
+                opacity: 0.6,
+              }}
+              aria-label="Manage"
+            >
+              {isManageOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+            </button>
+            {isManageOpen && manageItems.map((item) => renderNavButton(item))}
+
+            {/* Extend section — collapsible */}
+            <ActivityBarDivider />
+            <button
+              onClick={() => setShowExtend((v) => !v)}
+              className="flex items-center justify-center"
+              style={{
+                width: ACTIVITY_BAR_WIDTH,
+                height: 20,
+                color: "var(--text-muted)",
+                opacity: 0.6,
+              }}
+              aria-label="Extend"
+            >
+              {isExtendOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+            </button>
+            {isExtendOpen && extendItems.map((item) => renderNavButton(item))}
           </div>
           <div className="flex-1" />
           <div className="flex flex-col items-center pb-[4px]">

@@ -106,7 +106,7 @@ export function SecretaryPage() {
         setCompanyId(companies[0].id)
       }
     } catch (err) {
-      addToast("Failed to load companies")
+      addToast("Could not connect to server. Check that the backend is running.")
     }
   }
 
@@ -117,7 +117,7 @@ export function SecretaryPage() {
       const data = await api.get<BrainDump[]>(`/companies/${companyId}/brain-dumps?limit=50${catParam}`)
       setDumps(data)
     } catch (err) {
-      addToast("Failed to load brain dumps")
+      addToast("Could not load brain dumps. Try refreshing the page.")
     }
   }
 
@@ -127,7 +127,7 @@ export function SecretaryPage() {
       const data = await api.get<{ action_items: ActionItem[] }>(`/companies/${companyId}/brain-dumps/action-items`)
       setActionItems(data.action_items)
     } catch (err) {
-      addToast("Failed to load action items")
+      addToast("Could not load action items. Try refreshing the page.")
     }
   }
 
@@ -139,7 +139,7 @@ export function SecretaryPage() {
       )
       setDailyStats(data)
     } catch (err) {
-      addToast("Failed to load daily stats")
+      addToast("Could not load daily stats. Try refreshing the page.")
     }
   }
 
@@ -155,7 +155,7 @@ export function SecretaryPage() {
       await loadActionItems()
       await loadDailyStats()
     } catch (err) {
-      addToast("Failed to submit brain dump")
+      addToast("Could not submit. Check your connection and try again.")
     } finally {
       setIsSubmitting(false)
     }
@@ -166,7 +166,7 @@ export function SecretaryPage() {
       await api.patch(`/brain-dumps/${dumpId}`, { is_archived: true })
       setDumps((prev) => prev.filter((d) => d.id !== dumpId))
     } catch (err) {
-      addToast("Failed to archive")
+      addToast("Could not archive this item. Try again.")
     }
   }
 
@@ -177,7 +177,7 @@ export function SecretaryPage() {
         prev.map((d) => (d.id === dumpId ? { ...d, is_processed: true } : d))
       )
     } catch (err) {
-      addToast("Failed to mark processed")
+      addToast("Could not update status. Try again.")
     }
   }
 
@@ -189,7 +189,7 @@ export function SecretaryPage() {
       )
       setDumps(data)
     } catch (err) {
-      addToast("Failed to search")
+      addToast("Search failed. Check your connection and try again.")
     }
   }
 

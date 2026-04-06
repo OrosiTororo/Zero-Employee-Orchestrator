@@ -128,7 +128,7 @@ export function InterviewPage() {
         // Spec generation failure is non-fatal
       }
     } catch (e) {
-      addToast("Interview save failed")
+      addToast("Could not save interview answers. Check your connection and try again.")
     } finally {
       setSubmitting(false)
     }

@@ -35,7 +35,7 @@ export function OrgChartPage() {
         setExpandedDepts(new Set(data.departments.map((d) => d.id)))
       }
     } catch (err) {
-      addToast("Failed to load org data")
+      addToast("Could not load organization data. Complete setup first or check your connection.")
     } finally {
       setLoading(false)
     }

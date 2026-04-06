@@ -1,552 +1,129 @@
-# Zero-Employee Orchestrator -- Claude Code Development Guide
+# Zero-Employee Orchestrator — Claude Code Guide
 
-> An AI orchestration platform that defines business workflows in natural language,
-> delegates tasks across multiple AI agents with role-based assignment, and executes
-> with human approval gates and full auditability.
+> AI orchestration: NL workflow → multi-agent DAG → human approval → audit trail.
+> 9-layer architecture. Python 3.12+ / FastAPI / Tauri v2 + React / Cloudflare Workers.
 
-## Before Starting Work
-
-Run the following at the start of each session to check the latest state:
+## Session Start
 
 ```bash
 git log --oneline -10
 ls apps/api/app/
-ls apps/api/app/tests/
 ```
 
-Reference documents:
-- `README.md` -- **Always check first. Contains feature list, configuration, and security settings**
-- `docs/ja-JP/Zero-Employee Orchestrator.md` -- Top-level requirements document (Japanese)
-- `docs/dev/DESIGN.md` -- Implementation design document
-- `docs/dev/MASTER_GUIDE.md` -- Implementation operations guide
-- `docs/ja-JP/BUILD_GUIDE.md` -- Build-from-scratch guide (by phase, Japanese)
-- `docs/dev/FEATURE_BOUNDARY.md` -- Core vs Skill/Plugin/Extension boundary definition
-- `ROADMAP.md` -- Roadmap (remaining tasks from v0.2 onward)
-- `docs/dev/DEVELOPER_SETUP.md` -- Developer setup guide (Sentry, red-team testing, etc.)
-- `docs/dev/CONFIG_SEPARATION.md` -- Developer vs User configuration separation guide, Repository Secrets audit
-- `docs/dev/REVIEW.md` -- **Comprehensive code review (2026-03-27) with security findings, architecture analysis, and industry best practice comparison**
-- `USER_SETUP.md` -- User setup guide (API keys, security, DB, deployment, etc.)
+**Key docs**: `README.md` (features, config), `docs/dev/DESIGN.md` (architecture), `docs/dev/REVIEW.md` (security audit), `USER_SETUP.md` (deployment), `ROADMAP.md`
 
-**IMPORTANT: If this file contains outdated information, read the actual code and README.md and update it. Always check the repository structure and all md files. When reviewing the repository, check all files. Record updates in md files.**
+**IMPORTANT: If this file is outdated, read the actual code and README.md and update it.**
 
-## Architecture (9 Layers)
+## Architecture
 
-1. User Layer -- GUI / CLI / TUI
-2. Design Interview -- Brainstorming and requirements exploration
-3. Task Orchestrator -- DAG decomposition, cost estimation, progress management
-4. Skill Layer -- Specialized Skills + Local Context
-5. Judge Layer -- Two-stage Detection + Cross-Model Verification
-6. Re-Propose -- Rejection and dynamic DAG reconstruction
-7. State & Memory -- Experience Memory, Failure Taxonomy
-8. Provider Interface -- LLM Gateway (LiteLLM)
-9. Skill Registry -- Skill/Plugin/Extension publishing, search, and import
+9 layers: User → Design Interview → Task Orchestrator (DAG) → Skills → Judge (cross-model) → Re-Propose → State & Memory → Provider (LiteLLM) → Skill Registry
 
-## Directory Structure
+## Directory Map
 
 ```
-apps/
-├── api/              # FastAPI backend (Python 3.12+)
-│   ├── app/
-│   │   ├── core/           # Config, DB, rate limiting, i18n
-│   │   ├── api/routes/     # REST API endpoints (41 route modules, 350+ endpoints)
-│   │   ├── api/ws/         # WebSocket (events, browser_assist_ws)
-│   │   ├── api/deps/       # Dependency injection
-│   │   ├── models/         # SQLAlchemy ORM
-│   │   ├── schemas/        # Pydantic DTO
-│   │   ├── services/       # Business logic (25 services)
-│   │   ├── repositories/   # DB I/O abstraction
-│   │   ├── orchestration/  # DAG, Judge, state machine, Knowledge, Memory, MetaSkill, A2A, Transparency, ReasoningTrace, CostGuard, QualitySLA, AvatarCoevolution, LongrunScheduler (22 modules)
-│   │   ├── heartbeat/      # Heartbeat scheduler
-│   │   ├── providers/      # LLM gateway, Ollama, g4f, RAG, ModelRegistry, WebSession
-│   │   ├── tools/          # External tool connectors (MCP/Webhook/API/CLI/GraphQL/Browser/BrowserAdapter/LSP/LLMMock)
-│   │   ├── policies/       # Approval gates, autonomy boundaries
-│   │   ├── security/       # IAM, secrets, sanitize, prompt defense, PII, sandbox, data protection, red-team, input sanitization
-│   │   ├── integrations/   # Sentry, MCP, external skills, browser assist, AI research, media generation, AI tools, iPaaS, export, repurpose, RSS/ToS, Obsidian, cloud, smart devices, app connector hub
-│   │   ├── audit/          # Audit logging
-│   │   └── tests/          # Tests
-│   ├── alembic/            # DB migrations
-│   └── model_catalog.json  # LLM model catalog (family-based, auto version resolution)
-├── desktop/          # Tauri v2 + React UI
-├── edge/             # Cloudflare Workers (proxy / full)
-└── worker/           # Background workers
-skills/builtin/       # Built-in Skills (8: 7 Python modules + browser-assist manifest)
-plugins/              # Plugin manifests (10 Plugins)
-extensions/           # Extension manifests (11 Extensions, including browser-assist Chrome extension)
+apps/api/app/         # FastAPI backend
+  core/               # Config, DB, rate limiting, i18n
+  api/routes/         # 44 route modules, 382 endpoints
+  services/           # 25 services (business logic)
+  orchestration/      # DAG, Judge, transparency, CostGuard (22 modules)
+  providers/          # LLM gateway, Ollama, g4f, ModelRegistry
+  security/           # sandbox, pii_guard, prompt_guard, iam, workspace_isolation
+  policies/           # approval_gate, autonomy_boundary
+  integrations/       # app_connector (34 apps), media, MCP, browser-assist
+  tools/              # MCP, browser_adapter, agent_adapter
+  tests/              # pytest + pytest-asyncio
+apps/desktop/         # Tauri v2 + React (VSCode-style layout)
+apps/edge/            # Cloudflare Workers
+skills/builtin/       # 8 Skills
+plugins/              # 10 Plugins
+extensions/           # 11 Extensions
 ```
 
 ## Commands
 
 ```bash
-# Start server
-zero-employee serve --reload        # Hot reload (port 18234)
-
-# Chat mode (all providers, natural language for all operations)
-zero-employee chat                  # Default settings
-zero-employee chat --mode free      # Ollama / g4f mode
-zero-employee chat --lang en        # English mode
-
-# Chat mode slash commands (file ops & shell — Claude Code-like)
-# /read <path>     Read a file (sandbox-checked)
-# /write <path>    Write content to a file
-# /edit <path>     View a file for editing
-# /run <command>   Execute a shell command (30s timeout)
-# /ls [path]       List directory contents
-# /cd <path>       Change working directory
-# /pwd             Show current directory
-# /find <pattern>  Find files by glob pattern
-# /grep <pat> [p]  Search file contents
-
-# Tests
-pytest apps/api/app/tests/          # All tests
-pytest apps/api/app/tests/test_cost_guard.py -v  # Individual test
-
-# Lint and format
-ruff check apps/api/app/
-ruff format apps/api/app/
-
-# DB migration
-zero-employee db upgrade
-
-# Update
-zero-employee update                # Update to latest
-zero-employee update --check        # Check only
-
-# Other
-zero-employee health
-zero-employee models
-zero-employee config list
+zero-employee serve --reload        # Dev server (port 18234)
+zero-employee chat                  # Interactive CLI (NL + slash commands)
+pytest apps/api/app/tests/          # Tests
+ruff check apps/api/app/ && ruff format apps/api/app/  # Lint
+./scripts/bump-version.sh X.Y.Z    # Update ALL 8 version files
 ```
 
-## Version Management (Important)
+## MUST-FOLLOW Rules
 
-**IMPORTANT: 8 version-bearing files exist. Always use the `bump-version` script when updating versions.**
+### Security (non-negotiable)
+1. External data → LLM: **always** `wrap_external_data()` (`security/prompt_guard.py`)
+2. User input → AI: **always** PII check via `pii_guard.py`
+3. File access: **always** through `sandbox.py` (whitelist + path boundary `+ "/"`)
+4. Dangerous ops: register in `approval_gate.py` + `autonomy_boundary.py`
+5. New endpoints: verify security headers applied
+6. Secrets: sanitize via `sanitizer.py` before logging
+7. Registry imports: `analyze_code_safety()` on manifest; block HIGH risk without `?force=true`
 
-| File | Format |
-|------|--------|
-| `pyproject.toml` (root) | `version = "X.Y.Z"` |
-| `apps/api/pyproject.toml` | `version = "X.Y.Z"` |
-| `apps/desktop/package.json` | `"version": "X.Y.Z"` |
-| `apps/desktop/ui/package.json` | `"version": "X.Y.Z"` |
-| `apps/edge/proxy/package.json` | `"version": "X.Y.Z"` |
-| `apps/edge/full/package.json` | `"version": "X.Y.Z"` |
-| `apps/desktop/src-tauri/tauri.conf.json` | `"version": "X.Y.Z"` |
-| `apps/desktop/src-tauri/Cargo.toml` | `version = "X.Y.Z"` |
+### Version Management
+**IMPORTANT: 8 version files. Always use `./scripts/bump-version.sh`.**
+Files: root `pyproject.toml`, `apps/api/pyproject.toml`, `apps/desktop/package.json`, `apps/desktop/ui/package.json`, `apps/edge/proxy/package.json`, `apps/edge/full/package.json`, `apps/desktop/src-tauri/tauri.conf.json`, `apps/desktop/src-tauri/Cargo.toml`
 
-- Version update: `./scripts/bump-version.sh 0.2.0`
-- The script updates all 8 files and verifies consistency
-- CI (`check-metadata-sync` job) will fail if pyproject.toml files are out of sync
-- When changing metadata, always update both pyproject.toml files simultaneously
-
-## Coding Conventions
-
-- **Python**: ruff (line-length=100), type hints required, all FastAPI endpoints use `async def`
-- **TypeScript**: strict mode, functional components only, Tailwind CSS
-- Tests use pytest + pytest-asyncio
-- Defer code style details to ruff. Fix any linter errors
+### Coding Style
+- Python: ruff (line-length=100), type hints, `async def` for all endpoints
+- TypeScript: strict mode, functional components, Tailwind CSS
+- Model catalog: family IDs only (`anthropic/claude-opus`), never version IDs directly
 
 ## Design Principles
 
-### Skill / Plugin / Extension Enabled States
-
-- **Built-in system protection skills** -> Always enabled, cannot be deleted or disabled
-- **User-added Skill / Plugin / Extension / Heartbeat** -> Enabled by default (users can manually disable)
-- "Minimal initial state" means "nothing unnecessary is included" -- features that users explicitly add should be enabled by default
-
-### LLM Usage Design Principles
-
-- API key input is not required. Multiple key-free options are provided:
-  - g4f (subscription mode): No key needed
-  - Ollama: Fully offline with local models
-  - Multi-LLM platforms (OpenRouter, etc.): One account for multiple LLMs
-- ZEO does not charge usage fees. LLM API costs are paid directly by users to each provider
-- No specific provider is promoted as "recommended". Docs and UI present options equally
-- Maintain extensibility for new multi-LLM platforms or key-free services
-
-### Language Extension Design
-
-- The NSIS installer offers 6 language choices (en, ja, zh, ko, pt, tr)
-- Only the installer-selected language is active by default
-- Other languages (including remaining built-in 5 and new languages) are enabled via the language-pack extension system
-- Language changes affect both UI display and AI agent output
-- Some features require app restart after language change
-- Additional languages beyond the built-in 6 can be loaded dynamically via API (`loadLanguagePack()`)
-- Language pack API: `GET /api/v1/language-packs`, `POST /api/v1/language-packs/set`
-- Extension manifest: `extensions/language-pack/manifest.json`
-
-### CLI Design (Claude Code-like)
-
-- `zero-employee chat` provides an interactive agent with file/shell operations
-- Slash commands: `/read`, `/write`, `/edit`, `/run`, `/ls`, `/cd`, `/pwd`, `/find`, `/grep`
-- File operations are sandbox-checked via `sandbox.py`
-- Shell commands have a 30-second timeout and block dangerous patterns
-- Natural language commands process file operations (FILE category in NL command service)
-- Both CLI and Desktop/Web provide equivalent operational capabilities
-
-## Model Catalog (`apps/api/model_catalog.json`)
-
-**IMPORTANT: Model IDs are managed by family name (do not include version numbers).**
-
-```
-Family ID:         "anthropic/claude-opus"
-latest_model_id:   "claude-opus-4-6"  <- Used for actual API calls
-```
-
-- When updating models, only change `latest_model_id` (no code changes needed)
-- `ModelRegistry.resolve_api_id()` auto-resolves family -> latest version
-- Execution modes: quality / speed / cost / free / subscription
-- RSS/ToS auto-update pipeline implemented (`integrations/rss_tos_monitor.py`)
-
-## Security (Critical)
-
-**IMPORTANT: The following rules must always be followed.**
-
-1. **When passing external data to LLMs**: Always wrap with `wrap_external_data()` boundary markers
-2. **Prompt injection checks**: Inspect user input before passing to LLMs
-3. **When adding dangerous operations**: Register in `approval_gate.py` and `autonomy_boundary.py`
-4. **Secrets**: Sanitize via `sanitizer.py` before logging
-5. **New API endpoints**: Verify that security headers are applied
-6. **PII protection**: Detect and mask via `pii_guard.py` before passing user input to AI
-7. **File access**: Check access through the `sandbox.py` sandbox
-8. **Data transfer**: Check upload/download permissions via `data_protection.py`
-9. **AI must never access unauthorized folders or files**
-10. **Password uploads are always blocked**
-11. **Workspace isolation**: Check isolation via `workspace_isolation.py`. AI can only access internal storage (default)
-12. **Per-task environment overrides**: If chat instructions differ from system settings, use `should_request_approval()` to ask the user for permission
-13. **Registry safety**: All skill/plugin/extension create/install/import endpoints run `analyze_code_safety()` on manifest code. HIGH risk items are blocked unless `?force=true` is explicitly passed
-
-Defense layers:
-- Workspace isolation (`security/workspace_isolation.py`) -- No local/cloud connections by default
-- Prompt injection defense (`security/prompt_guard.py`) -- 5 categories, 28+ patterns
-- Approval gates (`policies/approval_gate.py`) -- 12 categories of dangerous operations
-- Autonomy boundaries (`policies/autonomy_boundary.py`)
-- IAM (`security/iam.py`) -- AI denied secret and admin access + role-based tool permissions
-- PII guard (`security/pii_guard.py`) -- 13 categories of personal info detection and masking
-- File sandbox (`security/sandbox.py`) -- Whitelist-based folder access control
-- Data protection (`security/data_protection.py`) -- Upload/download policy control
-- Security headers and request validation (`security/security_headers.py`)
-- Secret management (`security/secret_manager.py`) -- Fernet encryption
-- Sanitization (`security/sanitizer.py`)
-- Rate limiting (`core/rate_limit.py`)
-- Kill switch (`orchestration/execution_monitor.py`) -- Emergency halt of all executions
-- Role-based tool permissions (`security/iam.py`) -- Least privilege per agent role (5 default policies)
-- Memory trust levels (`orchestration/state_machine.py`) -- Source tracking, trust scores, expiry for Experience Memory
-- Tiered Judge (`orchestration/judge.py`) -- LIGHTWEIGHT/STANDARD/HEAVY tiers to balance cost vs safety
-
-## Browser Assist
-
-Two usage modes:
-1. **Chrome Extension**: Overlay chat + real-time screen sharing (`extensions/browser-assist/chrome-extension/`)
-2. **REST API**: Analysis via screenshot submission (`apps/api/app/api/routes/browser_assist.py`)
-
-WebSocket endpoint: `ws://localhost:18234/ws/browser-assist`
-
-Supports file and image attachments (both Chrome extension and REST API).
-
-## External Agent Framework Integration (Agent Adapter)
-
-Like the browser adapter, external AI agent frameworks can be added/switched as plugins.
-ZEO's AI organization can delegate sub-tasks to external frameworks while maintaining
-approval gates, audit logging, and transparency.
-
-- Agent adapter registry: `apps/api/app/tools/agent_adapter.py`
-- Supported frameworks: CrewAI, AutoGen (Microsoft), LangChain, OpenClaw, Dify
-- Plugin templates: `crewai-orchestrator`, `autogen-orchestrator`, `langchain-agent`, `openclaw-agent`, `dify-workflow`
-- Installation: Natural language ("add CrewAI") or `POST /api/v1/browser-automation/plugins`
-- Integration: External agents register with A2A communication hub
-- Safety: All delegated tasks go through approval gates and audit logging
-
-## Plugin-based Browser Automation (Browser Adapter)
-
-Like VS Code extensions, browser automation tools can be added/switched as plugins.
-By default, only a minimal Playwright adapter is included. browser-use etc. are installed via Plugin.
-
-- Adapter registry: `apps/api/app/tools/browser_adapter.py`
-- browser-use Plugin: `plugins/browser-use/manifest.json`
-- API: `/api/v1/browser-automation/adapters`, `/api/v1/browser-automation/tasks`
-
-## Plugin Loader
-
-VS Code-style dynamic plugin management. Install by saying "add browser-use" or "add image generation tool" in natural language.
-
-- Plugin Loader: `apps/api/app/services/plugin_loader.py`
-- Generic Tool Registry: ToolRegistry (AI agents dynamically select optimal tools per task)
-- Supported categories: browser-automation, image-generation, music-generation, audio-generation, video-generation, search, data-analysis, three-d, communication, code-generation, custom
-- Auto environment checks: pip packages, API keys, browser, LLM providers
-- API: `/api/v1/browser-automation/plugins/*`, `/api/v1/browser-automation/tools/*`
-
-## Transparency / Fact-checking (Transparency Layer)
-
-Transparency layer to prevent AI from being a black box.
-
-- Transparency report: `apps/api/app/orchestration/transparency.py`
-- Disclose sources/information referenced by AI to users
-- Present information needed for approval decisions (cost, risk, permissions, data flow, reversibility)
-- Fact-check item user confirmation flow
-- Display AI reasoning summary, uncertainties, and questions
-
-## Web AI Sessions (Use AI without API fees)
-
-Method to use GPT, Gemini, Claude, etc. without API fees.
-
-- Web Session Provider: `apps/api/app/providers/web_session_provider.py`
-- Methods: g4f (recommended), Ollama (local), browser session
-- API: `/api/v1/browser-automation/web-ai/*`
-
-## App Connector Hub
-
-Hub for managing integrations with external applications in a unified way.
-Operates only within the scope permitted by the user.
-
-- Connector hub: `apps/api/app/integrations/app_connector.py`
-- Supported categories (16): knowledge_base, note_taking, document, productivity, project_management, communication, crm, calendar, email, cloud_storage, design, code_hosting, database, analytics, automation, custom
-- Supported apps (34+): Obsidian, Notion, Logseq, Joplin, Anytype, Roam Research, Google Docs/Sheets/Drive/Calendar/Gmail, Microsoft 365/Teams/OneDrive/Outlook, Confluence, Jira, Linear, Asana, Trello, ClickUp, Slack, Discord, HubSpot, Salesforce, Figma, Canva, Airtable, Dropbox, GitHub, GitLab, n8n, Zapier, Make
-- Custom app registration supported (users can add arbitrary apps)
-- API: `/api/v1/app-integrations/*`
-
-Security:
-- Connections are not established until explicitly permitted by the user
-- Permission control (read/write/delete/sync/export + path restrictions)
-- Workspace isolation, approval gates, PII guard, and audit logging applied
-
-## Media Generation / AI Tool Integration
-
-- Media generation: `apps/api/app/integrations/media_generation.py` (image, video, audio, music, 3D; dynamic provider registration)
-- AI tool registry: `apps/api/app/integrations/ai_tools.py` (55+ external tools, 21 categories)
-- **Tools are not fixed; users freely choose and switch** -- managed by Plugin Loader's ToolRegistry
-- API: `/api/v1/media/*`, `/api/v1/ai-tools/*`
-
-## API Endpoints
-
-Prefix: `/api/v1`
-
-For the latest endpoint list, check `apps/api/app/api/routes/__init__.py`.
-
-Major groups: auth, companies, agents, tickets, specs-plans, tasks, approvals,
-budgets, audit, registry, models, observability (traces/communications/monitor),
-ollama, knowledge, config, self-improvement, browser-assist, **browser-automation**,
-secretary, brainstorm, conversation-memory, hypotheses, sessions, org-setup,
-platform, security, media, ai-tools, **app-integrations**, **files, user-input,
-resources, ipaas, export, marketplace, teams, governance, quality-insights**
-(prerequisite-monitor, spec-contradiction, task-replay, judgment-review, plan-quality),
-**language-packs** (list, current, set)
-
-## Skill / Plugin / Extension
-
-| Type | Role | Examples |
-|------|------|---------|
-| Skill | Single-purpose specialized processing | spec-writer, review-assistant, browser-assist |
-| Plugin | Bundles multiple Skills | ai-secretary, ai-avatar, research |
-| Extension | System integration and infrastructure | mcp, oauth, notifications, language-pack, obsidian, notion, logseq, joplin, google-workspace, microsoft-365, browser-assist (Chrome extension) |
-
-- Built-in Skills (8): spec-writer, plan-writer, task-breakdown, review-assistant, artifact-summarizer, local-context, domain-skills, browser-assist
-- System protection Skills cannot be deleted or disabled
-- Natural language skill generation: `POST /api/v1/registry/skills/generate` (18 dangerous pattern detections)
-
-## Ports
-
-- FastAPI: 18234
-- Vite dev server: 5173
+- **No API key required**: g4f (subscription), Ollama (local), OpenRouter (one key)
+- **ZEO is free**: Users pay LLM providers directly; no provider is "recommended"
+- **Skill/Plugin/Extension**: Skill = single task; Plugin = skill bundle; Extension = system integration
+- **System skills**: Always enabled, cannot be disabled (8 built-in)
+- **UI**: VSCode layout — Activity Bar (progressive disclosure: 5 core + 2 collapsible groups), Command Palette (Ctrl+K), Status Bar
+- **CLI**: Claude Code-like slash commands (`/read`, `/write`, `/edit`, `/run`, `/ls`, `/cd`, `/pwd`, `/find`, `/grep`)
 
 ## Prohibited
 
-- Blurring Skill / Plugin / Extension boundaries
-- Silently executing approval-required operations
-- External transmissions or permission changes without audit logging
-- Passing external data to LLMs without `wrap_external_data()`
-- Disabling security headers
-- Using version-numbered IDs directly in model catalog (use `latest_model_id`)
-- **AI accessing unauthorized folders or files**
-- **Uploading data containing passwords or credentials**
-- **Passing user input to AI without PII detection**
+- Blurring Skill/Plugin/Extension boundaries
+- Silent execution of approval-required operations
+- External transmission without audit logging
+- LLM calls without `wrap_external_data()` on external input
+- Direct model version IDs in catalog (use `latest_model_id`)
+- AI access to unauthorized folders/files
+- Password/credential uploads
+- User input to AI without PII detection
 
-## Roadmap
+## Ports
 
-All formerly planned v0.2-v1.0 features are implemented in v0.1. Remaining tasks:
+FastAPI: 18234 | Vite dev: 5173
 
-- **v0.2**: Complete frontend data connections, features/ separation, Plugin Loader implementation
-- **v0.3**: Community Skill ecosystem, anonymous feedback aggregation
-- **v1.0**: Self-Improvement Loop automation, Cross-Orchestrator Learning
+## Release Notes
 
-See `ROADMAP.md` for details.
+Write about system behavior changes for end users. Do NOT write about docs/CI/config changes.
 
-## Desktop UI (Tauri v2 + React)
+## Demo Execution & Evaluation
 
-The desktop app follows a VSCode/Cursor-inspired IDE layout for AI orchestration.
-
-### Layout Structure
-- **Title Bar** -- App name, current page, version
-- **Activity Bar** (left sidebar) -- Icon navigation with tooltips
-- **Tab Bar** -- Current page tab
-- **Main Content** -- Page content
-- **Status Bar** -- App info
-- **Command Palette** (`Ctrl/Cmd+K`) -- Quick search across all pages and actions
-
-### Navigation (Activity Bar)
-Dashboard, Org Chart, Secretary, Tickets, Approvals, Artifacts,
-Health Monitor, Costs, Audit, Skills, Plugins, Extensions,
-Marketplace, Brainstorm, Agent Monitor, Permissions, Settings
-
-### Additional Pages (not in Activity Bar)
-Login, Setup, Ticket Detail, Ticket Interview, Spec/Plan,
-Skill Create, Skill Detail, Releases, Not Found (404)
-
-### Theme System
-- 3 built-in themes: Dark (default), Light, High Contrast
-- Theme selector in Settings
-- All colors via CSS variables (`--bg-base`, `--accent`, etc.)
-- Custom themes can be added via extensions
-
-### Key Pages
-- **Dashboard**: Command center with natural language input, quick actions, status grid, chat history, 5 quick-start business templates (Content Ops, Sales Research, FAQ/KB, Meeting→Tasks, Pre-publish Review)
-- **Settings**: VSCode-style TOC sidebar + search bar. Theme, Language, LLM API Keys (11+ providers with dropdown selector), Agent Behavior (autonomy level, browser automation, workspace access), Execution Mode, Company, Provider Connections (12+ with category filter + custom add), Policies. Integration strategy note explains ZEO's role as judgment/audit layer.
-- **Agent Monitor**: Execution monitor, Reasoning Traces (step-by-step AI decision visualization), Approvals queue (approve/reject with risk levels), Sessions, Hypotheses, Error monitor. Kill switch (Emergency Stop) button for halting all executions.
-- **Skills/Plugins/Extensions**: Installed + Marketplace tabs, search, CRUD, system/user section separation
-- **Marketplace**: Unified view for community-created skills/plugins/extensions
-- **Brainstorm**: Multi-model comparison with dropdown model selector + custom model input
-- **Setup**: Onboarding wizard with 5 quick-start business templates for 10-minute value
-
-### Agent Behavior (Settings)
-- **Autonomy levels**: Observe / Assist / Semi-Auto / Autonomous
-- **Browser automation**: Chrome control, Web AI sessions (API-free GPT/Gemini/Claude), site interaction (approval-gated)
-- **Workspace access**: Local file access (opt-in), Cloud storage connections (opt-in)
-- Default: Semi-Auto autonomy, internal storage only, all dangerous ops require approval
-
-### i18n
-- 6 built-in languages: ja, en, zh, ko, pt, tr
-- Additional languages via extension language packs
-- All UI strings use i18n keys (no hardcoded strings)
-
-## Release Notes Guidelines
-
-**GitHub Releases text must focus on system changes only.**
-
-Write about:
-- Security improvements (new defenses, hardened modules, vulnerability fixes)
-- Deployment changes (Docker, infrastructure, production configuration)
-- AI model catalog updates (new models, version changes, pricing)
-- Internationalization (new languages, translation coverage)
-- Platform features (new capabilities, API additions, orchestration improvements)
-
-Do NOT write about:
-- Documentation changes (typo fixes, wording improvements, accuracy corrections)
-- CI/CD pipeline changes (GitHub Actions, workflow modifications)
-- Repository configuration (Dependabot, linter settings, gitignore)
-- Internal refactoring that does not change user-facing behavior
-
-The audience is end users, not developers. Describe what changed in the system behavior, not what files were edited.
-
-## Demo Execution & Evaluation Guide
-
-### Demo Execution (User Scenario Testing)
-
-Simulate actual user workflows end-to-end. The goal is to catch issues that unit tests miss.
+### Demo Checklist (user scenario testing)
 
 ```bash
-# 1. Server startup
-cd apps/api
-PYTHONPATH=. SECRET_KEY=demo-key DATABASE_URL=sqlite+aiosqlite:///./demo.db DEBUG=true \
-  python -m uvicorn app.main:app --host 127.0.0.1 --port 18234
-
-# 2. Auth flow
-curl -s -X POST http://127.0.0.1:18234/api/v1/auth/anonymous-session
-# → Save TOKEN and COMPANY_ID
-
-# 3. Core workflow: Ticket → Interview → Spec → Tasks
-curl -s -X POST -H "Authorization: Bearer $TOKEN" \
-  http://127.0.0.1:18234/api/v1/companies/$CID/tickets \
-  -d '{"title":"Test","description":"Test feature","priority":"medium"}'
-
-# 4. Registry validation (Skills, Plugins, Extensions seeded)
-curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:18234/api/v1/registry/skills
-curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:18234/api/v1/registry/plugins
-curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:18234/api/v1/registry/extensions
-
-# 5. Security checks
-curl -s http://127.0.0.1:18234/api/v1/themes           # → 401 (auth required)
-curl -s http://127.0.0.1:18234/api/v1/app-integrations/apps  # → 401
-curl -sI http://127.0.0.1:18234/healthz | grep -i 'x-frame\|x-content\|strict-transport'
-
-# 6. Kill switch
-curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:18234/api/v1/kill-switch/status
-
-# 7. Frontend build
-cd apps/desktop/ui && npx tsc --noEmit && npx vite build
-
-# 8. Security module tests
-PYTHONPATH=. python -c "from app.security.sandbox import FileSystemSandbox, ..."
-PYTHONPATH=. python -c "from app.security.pii_guard import detect_and_mask_pii, ..."
-PYTHONPATH=. python -c "from app.security.prompt_guard import scan_prompt_injection, ..."
-
-# 9. Cleanup
-rm -f demo.db
+# Server: cd apps/api && PYTHONPATH=. SECRET_KEY=demo-key DATABASE_URL=sqlite+aiosqlite:///./demo.db python -m uvicorn app.main:app --port 18234
+# Auth: curl -s -X POST localhost:18234/api/v1/auth/anonymous-session
+# CRUD: POST /companies/$CID/tickets, GET /registry/skills, GET /kill-switch/status
+# Security: GET /themes without token → 401, check security headers
+# Frontend: cd apps/desktop/ui && npx tsc --noEmit && npx vite build
+# Security modules: sandbox boundary, PII guard, prompt guard
 ```
 
-**Checklist:**
-- [ ] Server starts without errors
-- [ ] Anonymous session → JWT works
-- [ ] Protected endpoints reject unauthenticated requests
-- [ ] Ticket CRUD works end-to-end
-- [ ] Security headers present (CSP, HSTS, X-Frame, X-XSS)
-- [ ] Registry seeded correctly (8 Skills, 10+ Plugins, 11+ Extensions)
-- [ ] Kill switch status returns `active: false`
-- [ ] Database creates all 29+ tables
-- [ ] TypeScript compiles with 0 errors
-- [ ] Vite build completes successfully
-- [ ] Sandbox blocks path traversal attacks
-- [ ] PII guard detects SSN with keyword context, rejects bare numbers
-- [ ] Prompt guard blocks system override / role hijacking attempts
-- [ ] model_catalog.json loads 26 models
+14 items: server startup, auth flow, protected endpoints, ticket CRUD, security headers, registry (8/10/11), kill switch, models (22+), themes, languages (6), org setup, monitor, brainstorm, app integrations (34 apps)
 
 ### Evaluation Criteria
 
-Evaluations must include at minimum the following two perspectives, plus additional ones as deemed necessary.
+**IMPORTANT: Web search is MANDATORY for all competitive comparisons and market data. Do not rely on training data alone.**
 
-#### 1. Relative Evaluation (Competitive Positioning)
+**Required perspectives (minimum):**
 
-Compare ZEO against direct competitors based on research. Competitors include:
-- **Multi-agent frameworks**: CrewAI, AutoGen, LangGraph, Dify, n8n AI
-- **IDE-style AI tools**: Cursor, Windsurf, Continue.dev
+1. **Relative evaluation** — Compare vs competitors (CrewAI, Dify, LangGraph, AutoGen, n8n, Claude Cowork) using verified market data from web search. Dimensions: usability, learning curve (VSCode base), onboarding time, security posture, multi-model support, enterprise readiness, ecosystem, community.
 
-| Dimension | How to Evaluate |
-|-----------|----------------|
-| **Usability** | Natural language operations vs code-first vs visual builder. Can a non-developer create a workflow? |
-| **Learning curve** | VSCode-based UI — how familiar does it feel to IDE users? Command palette, activity bar, tab navigation |
-| **Onboarding time** | Time from install to first useful result. g4f/Ollama zero-cost paths vs competitors requiring API keys |
-| **Security posture** | Compare security layers (approval gates, PII, sandbox, prompt guard, audit, kill switch) vs competitors |
-| **Multi-model support** | LiteLLM + Ollama + g4f + Web Sessions vs competitor model support |
-| **Enterprise readiness** | Audit trail, RBAC, workspace isolation, data protection vs competitor enterprise features |
-| **Ecosystem** | Skill/Plugin/Extension system vs competitor extension mechanisms |
-| **Community** | GitHub stars, contributors, documentation maturity vs competitors |
+2. **Objective evaluation** — First-time user perspective. Dimensions: README clarity, install experience, time to first value, error handling (actionable messages), documentation, UI intuitiveness (progressive disclosure), feature discoverability, trust & transparency.
 
-#### 2. Objective Evaluation (First-Time User Perspective)
+3. **Additional perspectives** — Architecture quality, deployment readiness, i18n/accessibility, cost to operate, plus any other relevant dimensions.
 
-Evaluate as if a person with no prior knowledge encounters ZEO for the first time.
+**Scoring**: 0-10 scale. Overall = (Relative × 0.35) + (Objective × 0.35) + (Additional × 0.30)
 
-| Dimension | How to Evaluate |
-|-----------|----------------|
-| **First impression** | README clarity, install instructions, "what is this?" answer within 30 seconds |
-| **Time to value** | How quickly can a user accomplish something useful after installation? |
-| **Error handling** | Are error messages actionable? Do failures guide the user to a fix? |
-| **Documentation** | Is there a clear getting-started guide? Are features discoverable? |
-| **UI intuitiveness** | Can a user navigate without reading docs? Activity bar icons, command palette |
-| **Feature discoverability** | Can users find the features they need? Are there too many features? |
-| **Trust and transparency** | Does the user understand what AI is doing? Transparency layer, reasoning traces |
-
-#### 3. Additional Evaluation Perspectives (as needed)
-
-Add any relevant perspective. Examples:
-
-- **Architecture quality**: 9-layer separation, code modularity, test coverage
-- **Deployment readiness**: Docker, Cloudflare, Fly.io, Railway — how production-ready?
-- **Accessibility**: i18n coverage (6 languages), theme system (dark/light/high-contrast)
-- **Scalability**: Can the system handle concurrent users? Background workers?
-- **Cost to operate**: LLM costs for various execution modes, infrastructure costs
-- **Developer experience**: Contribution guide, code style, CI/CD pipeline quality
-
-### Scoring
-
-Use a 0-10 scale with 0.5 increments. Provide an overall weighted score.
-
-```
-Overall = (Relative × 0.35) + (Objective × 0.35) + (Additional × 0.30)
-```
+**Latest evaluation**: `docs/dev/EVALUATION_v0.1.2.md` — 10.0/10 (2026-04-06)
