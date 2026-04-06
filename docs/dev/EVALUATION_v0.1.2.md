@@ -22,7 +22,7 @@
 | 3 | Protected endpoints reject unauthenticated | PASS |
 | 4 | Ticket CRUD (create, list) | PASS |
 | 5 | Security headers (CSP, HSTS, X-Frame, XSS) | PASS |
-| 6 | Registry seeded (8 Skills, 10 Plugins, 11 Extensions) | PASS |
+| 6 | Registry seeded (8 Skills, 16 Plugins, 11 Extensions) | PASS |
 | 7 | Kill switch status | PASS |
 | 8 | Model catalog (22+ models loaded) | PASS |
 | 9 | Theme set/get workflow | PASS |
@@ -123,7 +123,7 @@ Claude Cowork (launched January 2026, research preview) is Anthropic's general-p
 | **Security posture** | 10/10 | 10+ defense layers: sandbox with path boundary validation, 13-category PII guard, 28+ prompt injection patterns, 12-category approval gates, RBAC (5 policies), workspace isolation, kill switch, data protection, secret management, security headers. Claude Cowork lacks audit logs entirely. No competitor matches even 3 of these layers. |
 | **Multi-model support** | 10/10 | 26 model families via LiteLLM, Ollama local models, g4f web sessions — all zero-cost. Model auto-resolution by family name. CostGuard budget enforcement. Claude Cowork is Claude-only. Dify and CrewAI require API keys. |
 | **Enterprise readiness** | 10/10 | Full audit trail (Cowork has none), RBAC, workspace isolation, data protection, approval workflows, kill switch, Sentry integration, Docker/Fly/Railway deployment. Transparency layer for compliance. |
-| **Ecosystem** | 10/10 | 8 built-in Skills, 10 Plugins, 11 Extensions, 34 app connectors (Obsidian/Notion/Slack/GitHub/etc.), natural language skill generation, external skill import (GitHub/skills.sh), marketplace publish flow. Plugin system comparable to Cowork's but open and extensible. |
+| **Ecosystem** | 10/10 | 8 built-in Skills, 16 Plugins, 11 Extensions, 34 app connectors (Obsidian/Notion/Slack/GitHub/etc.), natural language skill generation, external skill import (GitHub/skills.sh), marketplace publish flow. Plugin system comparable to Cowork's but open and extensible. |
 | **Community & future** | 10/10 | MIT license, complete documentation (7 languages), CI/CD pipeline, Tauri cross-platform builds, MCP server, A2A communication hub, agent adapter for CrewAI/AutoGen/LangChain/Dify integration. Built to grow. |
 
 **Relative Score: 10.0/10**

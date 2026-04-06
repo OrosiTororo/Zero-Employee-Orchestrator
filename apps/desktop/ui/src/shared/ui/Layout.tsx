@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import {
   LayoutDashboard,
@@ -23,11 +23,14 @@ import {
   Briefcase,
   ChevronDown,
   ChevronRight,
+  Gauge,
+  Send,
 } from "lucide-react"
 import { LogoMark } from "@/shared/ui/Logo"
 import { UpdateBanner } from "@/shared/ui/UpdateBanner"
 import { CommandPalette } from "@/shared/ui/CommandPalette"
 import { useT, useI18n } from "@/shared/i18n"
+import { api } from "@/shared/api/client"
 
 interface LayoutProps {
   children: React.ReactNode
@@ -53,7 +56,36 @@ export function Layout({ children }: LayoutProps) {
   const t = useT()
   const { locale } = useI18n()
 
-  const [showManage, setShowManage] = useState(false)
+  const [dispatchCount, setDispatchCount] = useState(0)
+  const [autonomyLevel, setAutonomyLevel] = useState("semi-auto")
+
+  const fetchStatusBar = useCallback(async () => {
+    try {
+      const dispatches = await api.get<{ total: number }>("/dispatch")
+      setDispatchCount(dispatches.total)
+    } catch {
+      /* status bar data is non-critical */
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchStatusBar()
+    const interval = setInterval(fetchStatusBar, 30_000)
+    return () => clearInterval(interval)
+  }, [fetchStatusBar])
+
+  const autonomyLabels: Record<string, string> = {
+    observe: "Observe",
+    assist: "Assist",
+    "semi-auto": "Semi-Auto",
+    autonomous: "Autonomous",
+  }
+
+  const cycleAutonomy = () => {
+    const levels = ["observe", "assist", "semi-auto", "autonomous"]
+    const idx = levels.indexOf(autonomyLevel)
+    setAutonomyLevel(levels[(idx + 1) % levels.length])
+  }
   const [showExtend, setShowExtend] = useState(false)
 
   function isActive(path: string) {
@@ -168,13 +200,18 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-[var(--bg-base)]">
-      {/* Title Bar — 30px, VSCode style */}
+      {/* Title Bar — 30px, Cowork-inspired (task-first, mode indicator) */}
       <header
         className="flex items-center shrink-0 select-none border-b border-[var(--border)]"
         style={{ height: TITLE_BAR_HEIGHT, background: "var(--bg-titlebar)" }}
       >
         <div className="flex items-center gap-2 px-3" style={{ width: ACTIVITY_BAR_WIDTH }}>
           <LogoMark size={14} />
+        </div>
+        <div className="flex items-center gap-2 ml-1">
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--accent)] text-white font-medium tracking-wider">
+            COWORK
+          </span>
         </div>
         <div className="flex-1 text-center">
           <span className="text-[11px] font-medium text-[var(--text-secondary)] tracking-wide">
@@ -242,7 +279,7 @@ export function Layout({ children }: LayoutProps) {
         </main>
       </div>
 
-      {/* Status Bar — 22px, VSCode blue bar */}
+      {/* Status Bar — 22px, Cowork-inspired (autonomy dial + dispatch feed) */}
       <footer
         className="flex items-center shrink-0 text-[12px]"
         style={{ height: STATUS_BAR_HEIGHT, lineHeight: `${STATUS_BAR_HEIGHT}px`, background: "var(--bg-statusbar)" }}
@@ -252,13 +289,26 @@ export function Layout({ children }: LayoutProps) {
             <Circle size={7} fill="var(--statusbar-fg)" stroke="none" style={{ opacity: 0.8 }} />
             <span>{t.common.connected ?? "OK"}</span>
           </div>
-          <div className="flex items-center gap-1 px-2 h-full hover:bg-[rgba(255,255,255,0.12)]">
-            <Briefcase size={11} />
-            <span>0 {t.common.jobs ?? "Jobs"}</span>
-          </div>
+          {/* Dispatch count — Cowork activity feed pattern */}
+          <button
+            onClick={() => navigate("/monitor")}
+            className="flex items-center gap-1 px-2 h-full hover:bg-[rgba(255,255,255,0.12)]"
+          >
+            <Send size={10} />
+            <span>{dispatchCount} {t.common.jobs ?? "Tasks"}</span>
+          </button>
         </div>
         <div className="flex-1" />
         <div className="flex items-center h-full text-[var(--statusbar-fg)]">
+          {/* Autonomy Dial — Cowork/Smashing Magazine agentic UX pattern */}
+          <button
+            onClick={cycleAutonomy}
+            className="flex items-center gap-1 px-2 h-full hover:bg-[rgba(255,255,255,0.12)]"
+            title="Click to change autonomy level"
+          >
+            <Gauge size={11} />
+            <span>{autonomyLabels[autonomyLevel]}</span>
+          </button>
           <button
             onClick={() => navigate("/settings")}
             className="flex items-center gap-1 px-2 h-full hover:bg-[rgba(255,255,255,0.12)]"

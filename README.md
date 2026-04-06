@@ -208,7 +208,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI backend
 │   │   └── app/
 │   │       ├── core/               # Config, DB, security, i18n
-│   │       ├── api/routes/         # 41 REST API route modules
+│   │       ├── api/routes/         # 46 REST API route modules
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -224,7 +224,7 @@ Zero-Employee-Orchestrator/
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # Background workers
 ├── skills/                   # 8 built-in skills
-├── plugins/                  # 10 plugin manifests
+├── plugins/                  # 16 plugin manifests (10 general + 6 role-based)
 ├── extensions/               # 11 extension manifests
 │   └── browser-assist/
 │       └── chrome-extension/ # Chrome extension for Browser Assist
