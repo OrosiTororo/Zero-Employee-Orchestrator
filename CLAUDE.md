@@ -24,7 +24,7 @@ ls apps/api/app/
 ```
 apps/api/app/         # FastAPI backend
   core/               # Config, DB, rate limiting, i18n
-  api/routes/         # 46 route modules, 390+ endpoints
+  api/routes/         # 44 route modules, 390+ endpoints
   services/           # 25 services (business logic)
   orchestration/      # DAG, Judge, transparency, CostGuard (22 modules)
   providers/          # LLM gateway, Ollama, g4f, ModelRegistry
@@ -79,6 +79,9 @@ Files: root `pyproject.toml`, `apps/api/pyproject.toml`, `apps/desktop/package.j
 - **System skills**: Always enabled, cannot be disabled (8 built-in)
 - **UI**: Cowork-inspired task-first layout — Activity Bar with progressive disclosure, Autonomy Dial in status bar, Command Palette (Ctrl+K), Dispatch background tasks
 - **CLI**: Claude Code-like slash commands (`/read`, `/write`, `/edit`, `/run`, `/ls`, `/cd`, `/pwd`, `/find`, `/grep`)
+- **Operator Profile**: Cowork-style about-me + global instructions (`/operator-profile/profile`, `/operator-profile/instructions`)
+- **Dispatch**: Background task execution, Cowork Dispatch pattern (`/dispatch`)
+- **Browser permissions**: Tiered approval (10 levels: navigate < click < type < submit < login < payment)
 
 ## Prohibited
 

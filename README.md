@@ -208,7 +208,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI backend
 │   │   └── app/
 │   │       ├── core/               # Config, DB, security, i18n
-│   │       ├── api/routes/         # 46 REST API route modules
+│   │       ├── api/routes/         # 44 REST API route modules
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -310,6 +310,8 @@ Zero-Employee-Orchestrator/
 | **A2A Communication** | Peer-to-peer agent messaging, channels, and negotiation |
 | **Avatar AI** | Learns your decision patterns and evolves with you |
 | **Secretary AI** | Brain dump → structured tasks, bridges you and the AI org |
+| **Operator Profile** | Cowork-style about-me + global instructions — AI personalizes responses based on your role, priorities, and work style |
+| **Task Dispatch** | Cowork Dispatch-inspired background tasks — fire-and-forget with status polling |
 | **Repurpose Engine** | Auto-convert 1 content to 10 media formats |
 
 ### Security
@@ -317,7 +319,7 @@ Zero-Employee-Orchestrator/
 | Feature | Description |
 |---------|-------------|
 | **Prompt Injection Defense** | 5 categories, 28+ detection patterns |
-| **Approval Gates** | 12 categories of dangerous operations require human approval |
+| **Approval Gates** | 14 categories — including tiered browser automation (10 levels: navigate < click < type < submit < login < payment) |
 | **File Sandbox** | AI can only access user-permitted folders (default: STRICT) |
 | **Data Protection** | Upload/download policy control (default: LOCKDOWN) |
 | **PII Protection** | Auto-detect and mask 13 categories of personal information |
