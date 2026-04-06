@@ -1,150 +1,229 @@
-# ZEO UI Design Plan — VSCode準拠 + Zed参考
+# ZEO UI Design Plan v2 — VSCode準拠 + Zed参考 + Neovim CLI
 
 ## ライセンス確認結果
 
-| ソース | ライセンス | UIデザイン参照 |
-|--------|-----------|--------------|
-| VSCode | MIT | OK（カラートークン、レイアウト直接流用可） |
-| Zed | GPL/Apache 2.0 | OK（GPUI UIフレームワークはApache 2.0） |
-| Cursor | プロプライエタリ | NG（非公開、参照不可） |
+| ソース | ライセンス | 参照可否 |
+|--------|-----------|---------|
+| VSCode | MIT | OK — カラー、レイアウト、CSS直接流用可 |
+| Zed | GPUI: Apache 2.0, Editor: GPL v3 | OK — デザイントークン参照可 |
+| Neovim | Apache 2.0 + Vim License | OK — TUIパターン参照可 |
+| Cursor | プロプライエタリ | NG — 参照不可 |
 
 ---
 
-## 1. カラートークン（VSCode Dark Default を基盤）
+## GUI版デザイン計画
 
-### ベース（VSCode公式値をそのまま使用）
-```
---bg-base:          #1E1E1E   ← VSCode editor.background
---bg-surface:       #252526   ← VSCode sideBar.background / menu.background
---bg-raised:        #2D2D2D   ← VSCode tab.inactiveBackground
---bg-overlay:       #303031   ← VSCode widget.border 周辺
---bg-input:         #3C3C3C   ← VSCode input.background
---bg-hover:         #2A2D2E   ← VSCode list.hoverBackground
---bg-active:        #37373D   ← VSCode list.activeSelectionBackground
---bg-activity-bar:  #333333   ← VSCode activityBar.background
---bg-titlebar:      #323233   ← VSCode titleBar.activeBackground
---bg-statusbar:     #007ACC   ← VSCode statusBar.background
+### 方針
+「VSCodeのような重いテキストエディタではなく、機能を取捨選択できる軽量なIDE」
+→ VSCodeのUI骨格（レイアウト・色）をそのまま使い、不要な複雑さを削ぎ落とす
+
+### カラートークン（VSCode Dark Default — MIT、そのまま使用）
+
+```css
+/* ── Surface ── */
+--bg-base:          #1E1E1E;   /* editor.background */
+--bg-surface:       #252526;   /* sideBar.background, menu.background */
+--bg-raised:        #2D2D2D;   /* tab.inactiveBackground */
+--bg-input:         #3C3C3C;   /* input.background */
+--bg-hover:         #2A2D2E;   /* list.hoverBackground */
+--bg-active:        #37373D;   /* list.activeSelectionBackground */
+--bg-activity-bar:  #333333;   /* activityBar.background */
+--bg-titlebar:      #323233;   /* titleBar.activeBackground */
+--bg-statusbar:     #007ACC;   /* statusBar.background */
+--bg-tab-bar:       #252526;   /* editorGroupHeader.tabsBackground */
+
+/* ── Text ── */
+--text-primary:     #D4D4D4;   /* editor.foreground */
+--text-secondary:   #BBBBBB;   /* sideBarTitle.foreground */
+--text-muted:       #6E7681;   /* editorLineNumber.foreground 系 */
+
+/* ── Accent（単色、VSCode公式） ── */
+--accent:           #007ACC;   /* focusBorder, badge, statusBar */
+--accent-fg:        #FFFFFF;
+
+/* ── Border ── */
+--border:           #3E3E42;   /* contrastBorder 近辺 */
+--border-focus:     #007ACC;   /* focusBorder */
+
+/* ── Status（Zed Apache 2.0 — 拡張機能で変更可能） ── */
+--success:          #56BA9F;   /* Zed success */
+--error:            #E5484D;   /* Zed error */
+--warning:          #F3D768;   /* Zed warning */
+--info:             #0090FF;   /* Zed info */
 ```
 
-### テキスト（VSCode公式値）
-```
---text-primary:     #D4D4D4   ← VSCode editor.foreground
---text-secondary:   #BBBBBB   ← VSCode sideBarTitle.foreground
---text-muted:       #6E7681   ← VSCode editorGutter
-```
-
-### アクセント（VSCode公式値）
-```
---accent:           #007ACC   ← VSCode focusBorder / badge
---accent-fg:        #FFFFFF
-```
-
-### ステータス（Zed参考 — より視認性の高い色）
-```
---success:          #56BA9F   ← Zed success (VSCode緑 #16825d より明瞭)
---error:            #E5484D   ← Zed error
---warning:          #F3D768   ← Zed warning
---info:             #0090FF   ← Zed info/blue
+### ライトテーマ（VSCode Light Default）
+```css
+--bg-base:          #FFFFFF;
+--bg-surface:       #F3F3F3;
+--bg-raised:        #ECECEC;
+--bg-activity-bar:  #2C2C2C;   /* VSCodeライトでもダーク */
+--bg-statusbar:     #007ACC;
+--text-primary:     #1E1E1E;
+--text-secondary:   #616161;
+--text-muted:       #9E9E9E;
+--accent:           #007ACC;
+--border:           #E5E5E5;
 ```
 
-### ボーダー
+### レイアウト寸法（VSCode実ソースから取得）
 ```
---border:           #3E3E42   ← VSCode contrastBorder近辺
---border-focus:     #007ACC   ← VSCode focusBorder
+Activity Bar:       48px幅, アイコン24px, ボタン高48px
+Title Bar:          30px高（Tauri）
+Status Bar:         22px高, font-size 12px, line-height 22px
+Tab Bar:            35px高
+Sidebar最小幅:      170px
+本文font-size:      13px (VSCode workbench)
+グローバルfont:     11px (VSCode body base)
 ```
+
+### シャドウ（VSCode準拠 — 最小限）
+```css
+/* 通常要素: シャドウなし */
+--shadow-popup:  0 4px 12px rgba(0,0,0,0.3);   /* ポップオーバーのみ */
+--shadow-modal:  0 8px 24px rgba(0,0,0,0.4);   /* モーダル/パレットのみ */
+```
+
+### ロゴ
+- **カスタムSVG → 削除**
+- Lucide `Workflow` アイコン + "ZEO" テキスト（font-weight: 700, color: #007ACC）
+- アプリケーション全体のアイコンが必要な場合は Figma で別途デザイン
+
+### 削除するカスタム要素
+- Logo.tsx のカスタムSVG全体
+- --gradient-primary, --gradient-surface, --gradient-card
+- --shadow-glow, --shadow-inset
+- .btn-primary のグラデーション背景 → 単色 #007ACC に
+- .card-elevated のグラデーション → 単純な --bg-surface + border
+- .text-gradient, .glass ユーティリティ
+- @keyframes pulse-ring, checkmark, shimmer
+- LoginPage 左パネルのカスタムブランディング
+- OAuthコールバック HTML のカスタムカラー → VSCode色に
+
+### 残すもの
+- GoogleIcon（Google公式ブランドカラー再現）
+- Lucideアイコン（OSSライブラリ）
+- @keyframes loading, fadeIn, slideIn（標準UIパターン）
+- Tailwind CSSユーティリティ
+
+### 拡張機能で変更可能にするもの
+- ステータスカラー（success, error, warning, info）
+- テーマ全体（dark/light/high-contrast + カスタムテーマ）
+- Activity Barのアイコンセット
+- フォントファミリー・サイズ
 
 ---
 
-## 2. ライトテーマ（VSCode Light Default）
+## CLI版デザイン計画（Neovim inspired）
 
+### 方針
+「Neovimのような、Vimをベースにメンテナンス性、拡張性、モダンなUI（TUI）と高速な操作の両立」
+→ 現在の純粋ANSI出力から、Neovimのレイアウトパターンを取り入れた構造化TUIへ
+
+### 現状分析
+- ファイル: `apps/api/app/cli.py`（1,197行）
+- TUIライブラリ: なし（raw ANSI escape codes + input()）
+- 機能: チャット、スラッシュコマンド、NLコマンド処理、マルチプロバイダー対応
+
+### Neovim TUI レイアウトパターン（実ソースから）
 ```
---bg-base:          #FFFFFF
---bg-surface:       #F3F3F3
---bg-activity-bar:  #2C2C2C   ← VSCodeライトでもダーク
---text-primary:     #1E1E1E
---text-secondary:   #616161
---accent:           #007ACC   ← 共通
+┌─────────────────────────────────┐
+│ Tab Line (タブ/セッション)       │ ← Neovim tabline
+├─────────────────────────────────┤
+│                                 │
+│ Buffer Area (メイン会話表示)     │ ← Neovim buffer
+│                                 │
+├─────────────────────────────────┤
+│ Status Line (状態表示)           │ ← Neovim statusline (lualine風)
+│ A | B | C            X | Y | Z  │
+├─────────────────────────────────┤
+│ Command Line (入力)             │ ← Neovim cmdline
+└─────────────────────────────────┘
 ```
+
+### ZEO CLI への適用
+```
+┌─────────────────────────────────────┐
+│ ZEO v0.1.1 │ Session: default      │  ← セッション表示
+├─────────────────────────────────────┤
+│                                     │
+│ User: 新規顧客向けフローを設計して   │  ← 会話バッファ
+│                                     │
+│ ZEO: 以下の手順で進めます...         │
+│   1. ヒアリング                      │
+│   2. DAG分解                         │
+│   3. 承認ゲート設定                  │
+│                                     │
+├─────────────────────────────────────┤
+│ NORMAL │ ollama │ ctx:23% │ ja │ Q  │  ← ステータスライン
+├─────────────────────────────────────┤
+│ > _                                 │  ← コマンドライン入力
+└─────────────────────────────────────┘
+```
+
+### ステータスライン セクション（lualine風）
+
+| セクション | 内容 | 例 |
+|-----------|------|-----|
+| A (左端) | モード | NORMAL / INSERT / COMMAND |
+| B | プロバイダー | ollama / openrouter / anthropic |
+| C | コンテキスト使用率 | ctx:23% |
+| X (右端) | 言語 | ja / en |
+| Y | 実行モード | Quality / Speed / Cost |
+| Z | 接続状態 | ● Connected / ○ Offline |
+
+### モードシステム（Neovim風）
+- **NORMAL**: デフォルト。/コマンド入力可。矢印キーで履歴スクロール
+- **INSERT**: 長文入力モード（三重引用符で入る）
+- **COMMAND**: /helpなどのスラッシュコマンド実行中
+
+### カラー（Neovim default colorscheme ベース）
+```
+ステータスライン背景:  #004C63 (Neovim dark blue)
+モード NORMAL:         #56BA9F (green/cyan)
+モード INSERT:         #007ACC (blue)
+モード COMMAND:        #F3D768 (yellow)
+プロンプト:            #D4D4D4 (VSCode foreground)
+AIレスポンス:          #BBBBBB (VSCode secondary)
+エラー:                #E5484D (Zed error)
+```
+
+### TUIライブラリ選択
+**推奨: `textual`（Python TUIフレームワーク）**
+- Rich/Textual エコシステム（活発なメンテナンス）
+- CSS-likeスタイリング
+- ウィジェットベース
+- マウス対応
+
+**代替: 現行のANSI出力を維持しつつ段階的にリッチ化**
+- Phase 1: ステータスラインをlualine風に構造化（ANSI）
+- Phase 2: バッファ表示のスクロール対応
+- Phase 3: textual移行（オプション）
+
+→ 軽量という方針から、Phase 1-2 をまず実装し、textualはオプション拡張として提供
 
 ---
 
-## 3. レイアウト寸法（VSCode準拠）
+## 変更対象ファイル一覧
 
-```
-Activity Bar幅:     48px      ← VSCode ACTIVITY_BAR_WIDTH
-Activity Barアイコン: 24px     ← VSCode ACTIVITY_BAR_ICON_SIZE
-Activity Barボタン高: 48px     ← VSCode ACTIVITY_BAR_ACTION_HEIGHT
-Title Bar高:        30px      ← VSCode（Electronでは22px、Tauriでは30px）
-Status Bar高:       22px      ← VSCode STATUS_BAR_HEIGHT
-Tab Bar高:          35px      ← VSCode TAB_HEIGHT
-Sidebar最小幅:      170px     ← VSCode SIDEBAR_MIN_WIDTH
-```
-
----
-
-## 4. ロゴ方針
-
-**現行**: カスタムSVGロゴ（三角ネットワーク＋ノード） → **削除**
-
-**代替案 — Lucide `Workflow` アイコン + テキスト**:
-- Lucide React にある `Workflow` アイコンをロゴマークとして使用
-- アイコンの色: `#007ACC`（VSCodeアクセント）
-- テキスト: "ZEO" のみ、フォント: system-ui, 太字
-- フルロゴ: `[Workflow icon] Zero-Employee Orchestrator`
-
-→ ロゴはブランドイメージに関わるので、この方向でよいか確認お願いします。
-  もし専用デザインが必要なら、Figma等で別途作成を推奨。
-
----
-
-## 5. シャドウ（Zed参考）
-
-VSCodeはシャドウをほぼ使わないフラットデザイン。
-Zedも最小限のシャドウ。ZEOではポップオーバーとモーダルのみに使用：
-
-```
---shadow-sm:    なし（通常要素にはシャドウなし）
---shadow-popup: 0 4px 12px rgba(0,0,0,0.3)  ← ポップオーバー/ドロップダウンのみ
---shadow-modal: 0 8px 24px rgba(0,0,0,0.4)  ← モーダル/コマンドパレットのみ
-```
-
----
-
-## 6. 変更対象ファイル
-
-| ファイル | 変更内容 |
-|---------|---------|
-| `index.css` | VSCode公式値でテーマ書き換え、カスタムシャドウ・グラデーション削除 |
-| `Logo.tsx` | カスタムSVG削除 → Lucide `Workflow` + テキスト |
+### GUI (Desktop)
+| ファイル | 変更 |
+|---------|------|
+| `index.css` | VSCode公式カラーに書き換え、カスタム要素全削除 |
+| `Logo.tsx` | カスタムSVG削除 → Lucide Workflow + テキスト |
 | `Layout.tsx` | VSCode寸法に厳密準拠、タブバー復元 |
-| `LoginPage.tsx` | 左パネルのカスタムブランディング削除、シンプル化 |
-| `DashboardPage.tsx` | カスタムカード→VSCodeスタイルのパネル |
-| `CommandPalette.tsx` | カスタムアニメーション→シンプルフェード |
+| `LoginPage.tsx` | 左パネル削除、フォームのみのシンプルデザイン |
+| `DashboardPage.tsx` | カスタムカード→ VSCodeパネルスタイル |
+| `CommandPalette.tsx` | カスタムアニメーション削除 |
 | `BackendGuard.tsx` | カスタムグラデーション削除 |
-| `auth.py` | OAuthコールバックHTMLをVSCodeカラーに変更 |
 
----
+### Backend
+| ファイル | 変更 |
+|---------|------|
+| `auth.py` | OAuthコールバックHTML → VSCodeカラー |
 
-## 7. 削除するカスタム要素
-
-- [x] `Logo` / `LogoMark` SVGコンポーネント
-- [x] `--gradient-primary` (ブルー→パープルのグラデーション)
-- [x] `--gradient-surface`, `--gradient-card`
-- [x] `--shadow-glow` (アクセントグロウ)
-- [x] `.btn-primary` のグラデーション背景
-- [x] `.card-elevated` のグラデーション背景
-- [x] `.text-gradient` ユーティリティ
-- [x] `.glass` ユーティリティ
-- [x] `@keyframes pulse-ring`, `checkmark`, `shimmer`
-- [x] LoginPage左パネルのカスタムグラデーション背景
-- [x] OAuthコールバックのカスタムダークテーマ
-
----
-
-## 8. 残すもの
-
-- GoogleIcon（Google公式ブランドカラーの再現、商標に忠実）
-- Lucideアイコンの使用（OSSアイコンライブラリ）
-- Tailwind CSSのユーティリティクラス使用
-- `@keyframes loading`（プログレスバー用、標準的パターン）
-- `@keyframes fadeIn`, `slideIn`（標準的UIアニメーション）
+### CLI
+| ファイル | 変更 |
+|---------|------|
+| `cli.py` | ステータスライン構造化、モード表示、Neovimレイアウト |
+| `banner.py` | カスタムカラー → VSCode/Neovimカラー |
