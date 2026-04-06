@@ -12,8 +12,7 @@ import {
 } from "lucide-react"
 import { useT } from "@/shared/i18n"
 import { useToastStore } from "@/shared/ui/ErrorToast"
-
-const API_BASE = "/api/v1/registry"
+import { api } from "@/shared/api/client"
 
 interface SkillItem {
   id: string
@@ -43,9 +42,7 @@ export function SkillsPage() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`${API_BASE}/skills?include_disabled=true`)
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const data = await res.json()
+      const data = await api.get<SkillItem[]>("/registry/skills?include_disabled=true")
       setSkills(data)
     } catch {
       setError(t.skills.fetchError)
@@ -61,20 +58,10 @@ export function SkillsPage() {
   const handleToggle = async (skill: SkillItem) => {
     if (skill.is_system_protected) return
     try {
-      const res = await fetch(`${API_BASE}/skills/${skill.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled: !skill.enabled }),
-      })
-      if (res.status === 403) {
-        const data = await res.json()
-        alert(data.detail || t.skills.notPermitted)
-        return
-      }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      await api.patch(`/registry/skills/${skill.id}`, { enabled: !skill.enabled })
       await fetchSkills()
-    } catch (e) {
-      addToast("Toggle failed")
+    } catch (e: any) {
+      addToast(e?.message || "Toggle failed")
     }
   }
 
@@ -84,20 +71,11 @@ export function SkillsPage() {
       return
     }
     if (!confirm(`${t.skills.confirmDelete}${skill.name}`)) return
-
     try {
-      const res = await fetch(`${API_BASE}/skills/${skill.id}`, {
-        method: "DELETE",
-      })
-      if (res.status === 403) {
-        const data = await res.json()
-        alert(data.detail || t.skills.notPermitted)
-        return
-      }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      await api.delete(`/registry/skills/${skill.id}`)
       await fetchSkills()
-    } catch (e) {
-      addToast("Delete failed")
+    } catch (e: any) {
+      addToast(e?.message || "Delete failed")
     }
   }
 

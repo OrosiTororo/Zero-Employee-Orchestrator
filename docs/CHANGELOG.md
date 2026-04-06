@@ -1,5 +1,39 @@
 # Changelog
 
+## v0.1.2 (2026-04-06)
+
+### Changed — UI Redesign (VSCode/Zed/Neovim)
+
+- **VSCode Dark Default colors** — All GUI colors replaced with exact VSCode MIT-licensed values. Custom gradients, shadows, and glow effects removed entirely.
+- **Code splitting** — Lazy-loaded 20 page routes into 42 separate chunks. Main bundle reduced from 749KB to 388KB (48% reduction).
+- **Login page simplified** — Removed custom left-panel branding. Form-only centered layout.
+- **Empty state improvements** — Pages with no data now show icons and navigation links to the Dashboard.
+- **Welcome guide** — First-launch banner on Dashboard with quick-start actions (6 languages).
+
+### Added — Theme Extension API
+
+- `POST /api/v1/themes/register` — Extensions can register custom themes with CSS variable overrides.
+- `GET /api/v1/themes` — List all available themes (built-in + extension-provided).
+- `POST /api/v1/themes/set` — Switch active theme by slug.
+
+### Added — CLI Neovim-Inspired Modes
+
+- **NORMAL mode** — Standard input with slash commands. Green prompt.
+- **INSERT mode** — Multi-line input via `"""`. Blue prompt.
+- **COMMAND mode** — During slash command execution. Yellow prompt.
+- **Status line** — Neovim lualine-style: `NORMAL │ provider │ ctx:%    lang │ mode │ ●`
+
+### Fixed — Authentication
+
+- **Token auto-refresh** — 401 interceptor retries with refreshed token. Periodic refresh every 4 hours. Anonymous sessions no longer expire unexpectedly.
+
+### Fixed — Plugin/Extension Registry
+
+- **Built-in seeding** — 10 plugins and 11 extensions seeded on server startup.
+- **API client migration** — All registry pages use centralized API client with auth headers and correct Tauri URLs.
+
+---
+
 ## v0.1.1 (2026-03-29)
 
 ### Added — Desktop UI Overhaul

@@ -1,7 +1,7 @@
 # Roadmap
 
-> Last updated: 2026-03-29
-> Current version: v0.1.1
+> Last updated: 2026-04-06
+> Current version: v0.1.2
 
 ---
 
@@ -62,16 +62,21 @@ Items that can be implemented by the development team without large-scale commun
 | Done | **Marketplace UI** | Unified Skills/Plugins/Extensions view |
 | Done | **Agent behavior settings** | Autonomy level, browser automation, workspace access |
 | Done | **Provider expansion** | 11 LLM providers, 12 service connections with categories |
-| TODO | **Frontend data connection** | Connect all UI pages to backend API endpoints |
-| TODO | **features/ module separation** | Extract business logic from pages to features/ |
-| TODO | **Plugin Loader UI** | Manifest-based dynamic loading in frontend |
-| TODO | **E2E flow integration** | Natural language input → interview → plan → execution |
-| TODO | **Worker core logic** | Strengthen TaskRunner / HeartbeatRunner |
 | Done | **Template Gallery** | 5 quick-start business templates (Content Ops, Sales Research, FAQ/KB, Meeting→Tasks, Pre-publish Review) |
 | Done | **Execution Logs view** | Reasoning Traces tab + Approvals queue in Agent Monitor (real-time) |
-| TODO | **Tool Connector UI** | Register/manage external tools from the UI |
-| TODO | **Knowledge Feed UI** | RSS/web monitoring dashboard, org-wide sharing |
-| TODO | **Contributor Guide** | CONTRIBUTING.md and Skill development tutorials |
+| v0.1.2 | **VSCode/Zed/Neovim UI redesign** | VSCode MIT colors, Zed status colors, code split (48% reduction), theme extension API |
+| v0.1.2 | **CLI Neovim-style modes** | NORMAL/INSERT/COMMAND mode switching, lualine-inspired status line |
+| v0.1.2 | **Token auto-refresh** | 401 interceptor, periodic refresh, prevents auto-logout |
+| v0.1.2 | **Plugin/Extension seeding** | 10 built-in plugins + 11 extensions seeded on startup |
+| v0.1.2 | **API client migration** | All pages use centralized api client (auth + Tauri URL) |
+| v0.1.2 | **Frontend data connection** | TicketList, Approvals, Heartbeats, Costs, Audit connected to real API |
+| v0.1.2 | **features/ module separation** | features/company/ with shared useCompanyId hook |
+| Done | **Plugin Loader UI** | PluginsPage CRUD + install form, API-connected |
+| Done | **E2E flow integration** | Dashboard → Interview → SpecPlan → Execution (all API-connected) |
+| Done | **Worker core logic** | TaskRunner (5 types, retry, judge) + HeartbeatRunner (cron, checks) |
+| Done | **Tool Connector UI** | SettingsPage Provider Connections (12+ services, category filter) |
+| Done | **Knowledge Feed UI** | SecretaryPage brain-dumps + knowledge store + PermissionsPage |
+| Done | **Contributor Guide** | CONTRIBUTING.md with dev setup, CI checks, design guidelines |
 
 ---
 

@@ -2,7 +2,7 @@
   "common": {
     "appName": "Zero-Employee Orchestrator",
     "appTagline": "Plataforma de Orquestração Empresarial com IA",
-    "version": "v0.1.1",
+    "version": "v0.1.2",
     "back": "Voltar",
     "next": "Avançar",
     "save": "Salvar",
@@ -258,7 +258,12 @@
     "qaAutomate": "Automatizar",
     "qaAutomateEx": "Crie rascunhos automáticos de postagens nas redes sociais toda segunda-feira",
     "qaAnalyze": "Analisar",
-    "qaAnalyzeEx": "Classifique o feedback dos clientes e extraia melhorias"
+    "qaAnalyzeEx": "Classifique o feedback dos clientes e extraia melhorias",
+    "welcomeTitle": "Bem-vindo ao Zero-Employee Orchestrator",
+    "welcomeDesc": "Descreva suas tarefas em linguagem natural. Sua equipe de IA vai planejar, executar, verificar e entregar — tudo com sua aprovação.",
+    "trySecretary": "Falar com Secretário",
+    "configureSettings": "Abrir Configurações",
+    "dismissGuide": "Entendi"
   },
   "settings": {
     "title": "Configurações",

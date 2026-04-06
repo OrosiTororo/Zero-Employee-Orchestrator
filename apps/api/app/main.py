@@ -75,12 +75,18 @@ async def lifespan(application: FastAPI):
     # Register system-protected skills on startup
     try:
         from app.core.database import async_session_factory
+        from app.services.registry_service import (
+            ensure_system_extensions,
+            ensure_system_plugins,
+        )
         from app.services.skill_service import ensure_system_skills
 
         async with async_session_factory() as session:
             await ensure_system_skills(session)
+            await ensure_system_plugins(session)
+            await ensure_system_extensions(session)
             await session.commit()
-            logger.info("System skills verified")
+            logger.info("System skills, plugins, and extensions verified")
     except Exception as exc:
         logger.warning("System skills init failed (non-fatal): %s", exc)
 

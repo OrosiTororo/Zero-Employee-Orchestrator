@@ -220,8 +220,11 @@ export function SetupPage() {
     }
   }
 
+  const [generateError, setGenerateError] = useState("")
+
   const handleGenerate = async () => {
     setIsGenerating(true)
+    setGenerateError("")
     try {
       const slug = orgName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "my-org"
       const company = await api.post<{ id: string }>("/companies", {
@@ -230,6 +233,9 @@ export function SetupPage() {
         mission: orgMission,
         description: businessDesc,
       })
+
+      // Store company_id for later use
+      localStorage.setItem("company_id", company.id)
 
       await api.post("/org-setup/generate", {
         company_id: company.id,
@@ -244,8 +250,10 @@ export function SetupPage() {
       })
 
       setIsGenerated(true)
-    } catch (err) {
-      console.error("Failed to generate org:", err)
+      // Auto-advance to next step after a short delay for visual feedback
+      setTimeout(() => next(), 1500)
+    } catch (err: any) {
+      setGenerateError(err?.message || ((t.orgSetup as Record<string, string>)?.generateFailed ?? "Failed to create organization. Please try again."))
     } finally {
       setIsGenerating(false)
     }
@@ -689,7 +697,7 @@ export function SetupPage() {
                       <button
                         onClick={handleGenerate}
                         disabled={isGenerating}
-                        className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-md text-[13px] font-medium text-white disabled:opacity-60"
+                        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-md text-[14px] font-medium text-[var(--accent-fg)] disabled:opacity-60"
                         style={{ background: "var(--accent)" }}
                       >
                         {isGenerating ? (
@@ -704,12 +712,19 @@ export function SetupPage() {
                           </>
                         )}
                       </button>
+                      {generateError && (
+                        <div className="flex items-center gap-2 px-4 py-3 rounded-md text-[12px] text-[var(--error)] border border-[var(--error)]"
+                          style={{ background: "var(--error-subtle)" }}>
+                          {generateError}
+                        </div>
+                      )}
                     </>
                   )}
                 </>
               ) : (
-                <div className="flex flex-col items-center gap-4 py-8 text-center">
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center bg-[var(--success)]">
+                <div className="flex flex-col items-center gap-4 py-8 text-center animate-fade-in">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center"
+                    style={{ background: "var(--success)" }}>
                     <Check size={32} color="#fff" />
                   </div>
                   <h3 className="text-lg font-semibold text-[var(--text-primary)]">
@@ -717,6 +732,9 @@ export function SetupPage() {
                   </h3>
                   <p className="text-[13px] text-[var(--text-secondary)] max-w-[400px]">
                     {t.orgSetup.generatedDesc}
+                  </p>
+                  <p className="text-[11px] text-[var(--text-muted)]">
+                    {(t.orgSetup as Record<string, string>)?.autoAdvance ?? "Proceeding to next step..."}
                   </p>
                 </div>
               )}

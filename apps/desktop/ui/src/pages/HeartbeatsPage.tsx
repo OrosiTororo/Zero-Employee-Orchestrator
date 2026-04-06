@@ -1,17 +1,49 @@
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { HeartPulse, Plus, Clock, CheckCircle, XCircle } from "lucide-react"
 import { useT } from "@/shared/i18n"
+import { api } from "@/shared/api/client"
+
+interface HeartbeatPolicy {
+  id: string
+  name: string
+  target_agent_id?: string
+  cron_expression?: string
+  interval_minutes?: number
+  enabled: boolean
+}
+
+interface HeartbeatRun {
+  id: string
+  policy_id: string
+  status: string
+  summary?: string
+  created_at?: string
+  duration_ms?: number
+}
 
 export function HeartbeatsPage() {
   const t = useT()
+  const companyId = localStorage.getItem("company_id") || ""
+  const [policies, setPolicies] = useState<HeartbeatPolicy[]>([])
+  const [history, setHistory] = useState<HeartbeatRun[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const [policies] = useState<{
-    id: string; name: string; target: string; interval: string; enabled: boolean
-  }[]>([])
+  const fetchData = useCallback(async () => {
+    if (!companyId) { setLoading(false); return }
+    setLoading(true)
+    try {
+      const [p, h] = await Promise.all([
+        api.get<HeartbeatPolicy[]>(`/companies/${companyId}/heartbeat-policies`).catch(() => []),
+        api.get<HeartbeatRun[]>(`/companies/${companyId}/heartbeat-runs`).catch(() => []),
+      ])
+      setPolicies(p)
+      setHistory(h)
+    } finally {
+      setLoading(false)
+    }
+  }, [companyId])
 
-  const [history] = useState<{
-    id: string; policyName: string; status: "success" | "failure"; timestamp: string; duration: string
-  }[]>([])
+  useEffect(() => { fetchData() }, [fetchData])
 
   return (
     <div className="h-full overflow-auto">
@@ -22,9 +54,6 @@ export function HeartbeatsPage() {
             <h2 className="text-[14px] font-medium text-[var(--text-primary)]">{t.heartbeats.title}</h2>
           </div>
           <button
-            onClick={() => {
-              // TODO: Open add policy form when heartbeat management is implemented
-            }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[12px] bg-[var(--accent)] text-[var(--accent-fg)]"
             aria-label={t.heartbeats.addPolicy}
           >
@@ -34,12 +63,15 @@ export function HeartbeatsPage() {
         </div>
         <p className="text-[12px] text-[var(--text-muted)] mb-6">{t.heartbeats.description}</p>
 
-        {/* Policies */}
         <section className="mb-6">
           <h3 className="text-[11px] uppercase tracking-wider text-[var(--text-secondary)] font-medium mb-3">
             {t.heartbeats.policies}
           </h3>
-          {policies.length === 0 ? (
+          {loading ? (
+            <div className="rounded px-4 py-8 text-center text-[12px] border border-[var(--border)] text-[var(--text-muted)]">
+              {t.common.loading}
+            </div>
+          ) : policies.length === 0 ? (
             <div className="rounded px-4 py-8 text-center text-[12px] border border-[var(--border)] text-[var(--text-muted)]">
               {t.heartbeats.emptyPolicies}
             </div>
@@ -54,11 +86,8 @@ export function HeartbeatsPage() {
                     </div>
                     <div className="flex items-center gap-2 text-[11px] text-[var(--text-muted)]">
                       <Clock size={12} />
-                      <span>{p.interval}</span>
+                      <span>{p.cron_expression ?? `${p.interval_minutes ?? 60}min`}</span>
                     </div>
-                  </div>
-                  <div className="text-[11px] text-[var(--text-muted)] mt-1 pl-4">
-                    {t.heartbeats.target}: {p.target}
                   </div>
                 </div>
               ))}
@@ -66,7 +95,6 @@ export function HeartbeatsPage() {
           )}
         </section>
 
-        {/* History */}
         <section>
           <h3 className="text-[11px] uppercase tracking-wider text-[var(--text-secondary)] font-medium mb-3">
             {t.heartbeats.history}
@@ -83,11 +111,11 @@ export function HeartbeatsPage() {
                     {h.status === "success"
                       ? <CheckCircle size={14} className="text-[var(--success-fg)]" />
                       : <XCircle size={14} className="text-[var(--error)]" />}
-                    <span className="text-[12px] text-[var(--text-primary)]">{h.policyName}</span>
+                    <span className="text-[12px] text-[var(--text-primary)]">{h.summary ?? h.policy_id.slice(0, 8)}</span>
                   </div>
                   <div className="flex items-center gap-3 text-[11px] text-[var(--text-muted)]">
-                    <span>{h.duration}</span>
-                    <span>{h.timestamp}</span>
+                    {h.duration_ms != null && <span>{h.duration_ms}ms</span>}
+                    <span>{h.created_at ?? ""}</span>
                   </div>
                 </div>
               ))}

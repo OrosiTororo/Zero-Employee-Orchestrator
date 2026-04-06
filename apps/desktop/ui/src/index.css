@@ -1,127 +1,146 @@
 @import "tailwindcss";
 
-/* ── Theme Variables (VSCode-accurate) ─────────────────── */
+/* ── VSCode Dark Default Theme (MIT License) ─────────────── */
+/* Source: github.com/microsoft/vscode dark_vs.json + theme.ts */
 :root,
 [data-theme="dark"] {
-  --bg-base: #1e1e1e;
+  --bg-base: #1E1E1E;
   --bg-surface: #252526;
-  --bg-overlay: #2d2d30;
-  --bg-input: #3c3c3c;
-  --bg-hover: #2a2d2e;
-  --bg-active: #37373d;
+  --bg-raised: #2D2D2D;
+  --bg-overlay: #303031;
+  --bg-input: #3C3C3C;
+  --bg-hover: #2A2D2E;
+  --bg-active: #37373D;
   --bg-activity-bar: #333333;
   --bg-titlebar: #323233;
-  --bg-tooltip: #4b4b4d;
+  --bg-statusbar: #007ACC;
   --bg-tab-bar: #252526;
-  --bg-active-indicator: rgba(255, 255, 255, 0.07);
-  --bg-statusbar: #007acc;
+  --bg-tab-active: #1E1E1E;
 
-  --border: #3e3e42;
-  --border-focus: #007acc;
-  --activity-bar-divider: rgba(255, 255, 255, 0.12);
+  --border: #3E3E42;
+  --border-focus: #007ACC;
 
-  --text-primary: #cccccc;
-  --text-secondary: #969696;
-  --text-muted: #6e7681;
+  --text-primary: #D4D4D4;
+  --text-secondary: #BBBBBB;
+  --text-muted: #6E7681;
 
-  --accent: #007acc;
-  --accent-hover: #1a8ceb;
-  --accent-fg: #ffffff;
-  --accent-secondary: #7c3aed;
+  --accent: #007ACC;
+  --accent-hover: #1177BB;
+  --accent-fg: #FFFFFF;
 
-  --statusbar-fg: #ffffff;
+  --statusbar-fg: #FFFFFF;
 
-  --success: #16825d;
-  --success-fg: #4ec9b0;
-  --error: #f44747;
-  --warning: #dcdcaa;
-  --info: #9cdcfe;
+  /* Status colors — Zed (Apache 2.0), overridable via extensions */
+  --success: #56BA9F;
+  --success-fg: #56BA9F;
+  --error: #E5484D;
+  --warning: #F3D768;
+  --warning-fg: #F3D768;
+  --info: #0090FF;
 
-  --gradient-primary: linear-gradient(135deg, #007acc, #6d28d9);
+  /* Accent variants */
+  --accent-subtle: rgba(0, 122, 204, 0.08);
+  --accent-secondary: #7C3AED;
 
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
+  /* Elevated surface */
+  --bg-raised: #2D2D2D;
+
+  /* Shadows — VSCode-style: minimal, popups/modals only */
+  --shadow-popup: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-modal: 0 8px 24px rgba(0, 0, 0, 0.4);
+
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 8px;
 
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-  --font-mono: "SF Mono", "Fira Code", "Cascadia Code", Menlo, monospace;
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", "Cascadia Code", "JetBrains Mono",
+    Menlo, monospace;
 }
 
+/* ── VSCode Light Default Theme ──────────────────────────── */
 [data-theme="light"] {
-  --bg-base: #ffffff;
-  --bg-surface: #f3f3f3;
-  --bg-overlay: #eaeaea;
-  --bg-input: #ffffff;
-  --bg-hover: #e8e8e8;
-  --bg-active: #e0e0e0;
-  --bg-activity-bar: #2c2c2c;
-  --bg-titlebar: #dddddd;
-  --bg-tooltip: #4a4a4a;
-  --bg-tab-bar: #ececec;
-  --bg-active-indicator: rgba(255, 255, 255, 0.1);
-  --bg-statusbar: #007acc;
+  --bg-base: #FFFFFF;
+  --bg-surface: #F3F3F3;
+  --bg-raised: #ECECEC;
+  --bg-overlay: #E8E8E8;
+  --bg-input: #FFFFFF;
+  --bg-hover: #E8E8E8;
+  --bg-active: #E0E0E0;
+  --bg-activity-bar: #2C2C2C;
+  --bg-titlebar: #DDDDDD;
+  --bg-statusbar: #007ACC;
+  --bg-tab-bar: #ECECEC;
+  --bg-tab-active: #FFFFFF;
 
-  --border: #e5e5e5;
-  --border-focus: #007acc;
-  --activity-bar-divider: rgba(255, 255, 255, 0.2);
+  --border: #E5E5E5;
+  --border-focus: #007ACC;
 
-  --text-primary: #1e1e1e;
+  --text-primary: #1E1E1E;
   --text-secondary: #616161;
-  --text-muted: #9e9e9e;
+  --text-muted: #9E9E9E;
 
-  --accent: #007acc;
-  --accent-hover: #106ebe;
-  --accent-fg: #ffffff;
-  --accent-secondary: #6d28d9;
+  --accent: #007ACC;
+  --accent-hover: #106EBE;
+  --accent-fg: #FFFFFF;
 
-  --statusbar-fg: #ffffff;
+  --statusbar-fg: #FFFFFF;
 
-  --success: #16825d;
-  --success-fg: #16825d;
-  --error: #cd3131;
-  --warning: #bf8803;
-  --info: #0451a5;
+  --success: #16825D;
+  --success-fg: #16825D;
+  --error: #CD3131;
+  --warning: #BF8803;
+  --warning-fg: #BF8803;
+  --info: #0451A5;
 
-  --gradient-primary: linear-gradient(135deg, #007acc, #6d28d9);
+  --accent-subtle: rgba(0, 122, 204, 0.06);
+  --accent-secondary: #6D28D9;
+
+  --shadow-popup: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-modal: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
+/* ── VSCode High Contrast Theme ──────────────────────────── */
 [data-theme="high-contrast"] {
   --bg-base: #000000;
-  --bg-surface: #0a0a0a;
-  --bg-overlay: #111111;
-  --bg-input: #1a1a1a;
-  --bg-hover: #1a1a1a;
+  --bg-surface: #0A0A0A;
+  --bg-raised: #111111;
+  --bg-overlay: #161616;
+  --bg-input: #1A1A1A;
+  --bg-hover: #1A1A1A;
   --bg-active: #222222;
-  --bg-activity-bar: #0a0a0a;
-  --bg-titlebar: #0a0a0a;
-  --bg-tooltip: #222222;
-  --bg-tab-bar: #0a0a0a;
-  --bg-active-indicator: rgba(255, 255, 255, 0.08);
-  --bg-statusbar: #6fc3df;
+  --bg-activity-bar: #000000;
+  --bg-titlebar: #000000;
+  --bg-statusbar: #6FC3DF;
+  --bg-tab-bar: #000000;
+  --bg-tab-active: #0A0A0A;
 
-  --border: #6fc3df;
-  --border-focus: #f38518;
-  --activity-bar-divider: rgba(255, 255, 255, 0.25);
+  --border: #6FC3DF;
+  --border-focus: #F38518;
 
-  --text-primary: #ffffff;
-  --text-secondary: #d4d4d4;
-  --text-muted: #a0a0a0;
+  --text-primary: #FFFFFF;
+  --text-secondary: #D4D4D4;
+  --text-muted: #A0A0A0;
 
-  --accent: #1aebff;
-  --accent-hover: #4af0ff;
+  --accent: #1AEBFF;
+  --accent-hover: #4AF0FF;
   --accent-fg: #000000;
-  --accent-secondary: #b180d7;
 
   --statusbar-fg: #000000;
 
-  --success: #89d185;
-  --success-fg: #89d185;
-  --error: #f48771;
-  --warning: #cca700;
-  --info: #75beff;
+  --success: #89D185;
+  --success-fg: #89D185;
+  --error: #F48771;
+  --warning: #CCA700;
+  --warning-fg: #CCA700;
+  --info: #75BEFF;
 
-  --gradient-primary: linear-gradient(135deg, #1aebff, #b180d7);
+  --accent-subtle: rgba(26, 235, 255, 0.1);
+  --accent-secondary: #B180D7;
+
+  --shadow-popup: 0 0 0 1px var(--border);
+  --shadow-modal: 0 0 0 1px var(--border);
 }
 
 /* ── Base Styles ───────────────────────────────────────── */
@@ -143,11 +162,11 @@ body {
   font-size: 13px;
   color: var(--text-primary);
   background: var(--bg-base);
-  line-height: 1.5;
+  line-height: 1.4;
   overflow: hidden;
 }
 
-/* ── Custom Scrollbar (VSCode-style) ─────────────────── */
+/* ── Scrollbar (VSCode-style) ─────────────────────────── */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -185,12 +204,13 @@ body {
   background: transparent;
 }
 
-/* ── Focus & Interactive ───────────────────────────────── */
+/* ── Focus (VSCode: 1px solid accent, offset -1px) ────── */
 :focus-visible {
   outline: 1px solid var(--accent);
   outline-offset: -1px;
 }
 
+/* ── Interactive Elements ─────────────────────────────── */
 button {
   cursor: pointer;
   font-family: inherit;
@@ -207,22 +227,16 @@ select {
   font-family: inherit;
 }
 
-/* ── Transition Defaults ───────────────────────────────── */
 button,
 a,
 input,
 textarea {
   transition: background-color 120ms ease, border-color 120ms ease,
-    color 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+    color 120ms ease, opacity 120ms ease;
 }
 
-/* ── Button Interaction Feedback (VSCode-style: restrained) ── */
 button:not(:disabled):active {
   opacity: 0.8;
-}
-
-button:disabled {
-  opacity: 0.4;
 }
 
 /* ── Selection ─────────────────────────────────────────── */
@@ -231,14 +245,22 @@ button:disabled {
   color: var(--text-primary);
 }
 
-/* ── Utility Classes ─────────────────────────────────── */
-.gradient-primary {
-  background: var(--gradient-primary);
+/* ── Animations (standard UI patterns only) ──────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-/* ── Loading Animation ────────────────────────────────── */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes loading {
   0% { width: 0; margin-left: 0; }
   50% { width: 60%; margin-left: 20%; }
   100% { width: 0; margin-left: 100%; }
 }
+
+.animate-fade-in { animation: fadeIn 150ms ease-out; }
+.animate-slide-in { animation: slideIn 150ms ease-out; }

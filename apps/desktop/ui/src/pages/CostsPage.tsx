@@ -1,8 +1,48 @@
-import { Coins, TrendingUp, ShieldAlert, Receipt } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { useNavigate } from "react-router-dom"
+import { Coins, TrendingUp, ShieldAlert, Receipt, ArrowRight } from "lucide-react"
 import { useT } from "@/shared/i18n"
+import { api } from "@/shared/api/client"
+
+interface BudgetPolicy {
+  id: string
+  name: string
+  scope_type: string
+  period_type: string
+  limit_usd: number
+}
+
+interface CostSummary {
+  today: number
+  this_week: number
+  this_month: number
+  total: number
+}
 
 export function CostsPage() {
   const t = useT()
+  const navigate = useNavigate()
+  const companyId = localStorage.getItem("company_id") || ""
+  const [, setBudgets] = useState<BudgetPolicy[]>([])
+  const [summary, setSummary] = useState<CostSummary>({ today: 0, this_week: 0, this_month: 0, total: 0 })
+  const [, setLoading] = useState(true)
+
+  const fetchData = useCallback(async () => {
+    if (!companyId) { setLoading(false); return }
+    setLoading(true)
+    try {
+      const [b, s] = await Promise.all([
+        api.get<BudgetPolicy[]>(`/companies/${companyId}/budgets`).catch(() => []),
+        api.get<CostSummary>(`/companies/${companyId}/cost-summary`).catch(() => ({ today: 0, this_week: 0, this_month: 0, total: 0 })),
+      ])
+      setBudgets(b)
+      setSummary(s)
+    } finally {
+      setLoading(false)
+    }
+  }, [companyId])
+
+  useEffect(() => { fetchData() }, [fetchData])
 
   return (
     <div className="h-full overflow-auto">
@@ -46,10 +86,10 @@ export function CostsPage() {
           <div className="px-4 py-4">
             <div className="grid grid-cols-4 gap-4 mb-4">
               {[
-                { label: t.costs.today, value: "$0.00" },
-                { label: t.costs.thisWeek, value: "$0.00" },
-                { label: t.costs.thisMonth, value: "$0.00" },
-                { label: t.costs.total, value: "$0.00" },
+                { label: t.costs.today, value: `$${summary.today.toFixed(2)}` },
+                { label: t.costs.thisWeek, value: `$${summary.this_week.toFixed(2)}` },
+                { label: t.costs.thisMonth, value: `$${summary.this_month.toFixed(2)}` },
+                { label: t.costs.total, value: `$${summary.total.toFixed(2)}` },
               ].map((item, i) => (
                 <div key={i}>
                   <div className="text-[11px] text-[var(--text-muted)]">{item.label}</div>
@@ -77,8 +117,12 @@ export function CostsPage() {
               <span>{t.costs.tokens}</span>
               <span className="text-right">{t.costs.cost}</span>
             </div>
-            <div className="py-6 text-center text-[12px] text-[var(--text-muted)]">
-              {t.costs.emptyState}
+            <div className="py-6 text-center text-[var(--text-muted)]">
+              <Coins size={32} className="mx-auto mb-3 opacity-30" />
+              <p className="text-[12px] mb-2">{t.costs.emptyState}</p>
+              <button onClick={() => navigate("/")} className="inline-flex items-center gap-1 text-[12px] text-[var(--accent)] hover:underline">
+                {t.dashboard?.requestTask ?? "Request a task"} <ArrowRight size={12} />
+              </button>
             </div>
           </div>
         </section>

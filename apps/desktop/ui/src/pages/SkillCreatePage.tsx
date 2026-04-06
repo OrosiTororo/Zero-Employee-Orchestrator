@@ -8,8 +8,7 @@ import {
   Save,
 } from "lucide-react"
 import { useT } from "@/shared/i18n"
-
-const API_BASE = "/api/v1/registry"
+import { api } from "@/shared/api/client"
 
 interface GenerateResult {
   skill_json: Record<string, unknown>
@@ -41,24 +40,14 @@ export function SkillCreatePage() {
     setLoading(true)
     setResult(null)
     try {
-      const res = await fetch(`${API_BASE}/skills/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          description: description.trim(),
-          language: "ja",
-          auto_register: false,
-        }),
+      const data = await api.post<GenerateResult>("/registry/skills/generate", {
+        description: description.trim(),
+        language: "ja",
+        auto_register: false,
       })
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}))
-        throw new Error(errData.detail || `HTTP ${res.status}`)
-      }
-      const data: GenerateResult = await res.json()
       setResult(data)
-    } catch (e) {
-      console.error("Generation failed:", e)
-      alert(`${t.skillCreate?.generateFailed ?? "Skill generation failed"}: ${e instanceof Error ? e.message : String(e)}`)
+    } catch (e: any) {
+      alert(`${t.skillCreate?.generateFailed ?? "Skill generation failed"}: ${e?.message || String(e)}`)
     } finally {
       setLoading(false)
     }
@@ -68,27 +57,17 @@ export function SkillCreatePage() {
     if (!result || !result.safety_passed || registering) return
     setRegistering(true)
     try {
-      const res = await fetch(`${API_BASE}/skills/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          description: description.trim(),
-          language: "ja",
-          auto_register: true,
-        }),
+      const data = await api.post<GenerateResult>("/registry/skills/generate", {
+        description: description.trim(),
+        language: "ja",
+        auto_register: true,
       })
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}))
-        throw new Error(errData.detail || `HTTP ${res.status}`)
-      }
-      const data: GenerateResult = await res.json()
       setResult(data)
       if (data.registered) {
         navigate("/skills")
       }
-    } catch (e) {
-      console.error("Registration failed:", e)
-      alert(`${t.skillCreate?.registerFailed ?? "Skill registration failed"}: ${e instanceof Error ? e.message : String(e)}`)
+    } catch (e: any) {
+      alert(`${t.skillCreate?.registerFailed ?? "Skill registration failed"}: ${e?.message || String(e)}`)
     } finally {
       setRegistering(false)
     }

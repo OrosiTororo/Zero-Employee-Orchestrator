@@ -316,10 +316,11 @@ def _oauth_result_html(*, success: bool, message: str | None = None) -> str:
         body = f"<h2>&#10008; Login failed</h2><p>{message or 'Unknown error'}</p>"
     return f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>{title}</title>
-<style>body{{font-family:system-ui,sans-serif;display:flex;justify-content:center;
-align-items:center;min-height:100vh;margin:0;background:#1a1a2e;color:#e0e0e0;}}
-.card{{text-align:center;padding:2rem 3rem;border-radius:12px;background:#16213e;}}
-h2{{margin-bottom:.5rem;}} p{{color:#999;}}</style></head>
+<style>body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;
+background:#1E1E1E;color:#D4D4D4;font-size:13px;}}
+.card{{text-align:center;padding:2rem 3rem;border-radius:8px;background:#252526;
+border:1px solid #3E3E42;}} h2{{margin-bottom:.5rem;}} p{{color:#BBBBBB;}}</style></head>
 <body><div class="card">{body}</div></body></html>"""
 
 

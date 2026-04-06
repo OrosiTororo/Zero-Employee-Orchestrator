@@ -2,7 +2,7 @@
   "common": {
     "appName": "Zero-Employee Orchestrator",
     "appTagline": "AI 비즈니스 오케스트레이션 플랫폼",
-    "version": "v0.1.1",
+    "version": "v0.1.2",
     "back": "뒤로",
     "next": "다음",
     "save": "저장",
@@ -258,7 +258,12 @@
     "qaAutomate": "자동화",
     "qaAutomateEx": "매주 월요일 소셜 미디어 게시물을 자동 작성해 줘",
     "qaAnalyze": "분석",
-    "qaAnalyzeEx": "고객 피드백을 분류하고 개선 사항을 추출해 줘"
+    "qaAnalyzeEx": "고객 피드백을 분류하고 개선 사항을 추출해 줘",
+    "welcomeTitle": "Zero-Employee Orchestrator에 오신 것을 환영합니다",
+    "welcomeDesc": "자연어로 업무를 설명하세요. AI 팀이 계획, 실행, 검증, 전달까지 수행합니다. 모든 중요한 작업은 승인이 필요합니다.",
+    "trySecretary": "비서와 대화하기",
+    "configureSettings": "설정 열기",
+    "dismissGuide": "확인"
   },
   "settings": {
     "title": "설정",

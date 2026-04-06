@@ -12,8 +12,7 @@ import {
 } from "lucide-react"
 import { useT } from "@/shared/i18n"
 import { useToastStore } from "@/shared/ui/ErrorToast"
-
-const API_BASE = "/api/v1/registry"
+import { api } from "@/shared/api/client"
 
 interface ExtensionItem {
   id: string
@@ -42,10 +41,9 @@ export function ExtensionsPage() {
   const fetchExtensions = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`${API_BASE}/extensions?include_disabled=true`)
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      setExtensions(await res.json())
-    } catch (e) {
+      const data = await api.get<ExtensionItem[]>("/registry/extensions?include_disabled=true")
+      setExtensions(data)
+    } catch {
       addToast("Failed to fetch extensions")
     } finally {
       setLoading(false)
@@ -59,20 +57,10 @@ export function ExtensionsPage() {
   const handleToggle = async (ext: ExtensionItem) => {
     if (ext.is_system_protected) return
     try {
-      const res = await fetch(`${API_BASE}/extensions/${ext.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled: !ext.enabled }),
-      })
-      if (res.status === 403) {
-        const data = await res.json()
-        alert(data.detail || t.extensions.notPermitted)
-        return
-      }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      await api.patch(`/registry/extensions/${ext.id}`, { enabled: !ext.enabled })
       await fetchExtensions()
-    } catch (e) {
-      addToast("Toggle failed")
+    } catch (e: any) {
+      addToast(e?.message || "Toggle failed")
     }
   }
 
@@ -83,37 +71,22 @@ export function ExtensionsPage() {
     }
     if (!confirm(`${t.extensions.confirmDelete}${ext.name}`)) return
     try {
-      const res = await fetch(`${API_BASE}/extensions/${ext.id}`, { method: "DELETE" })
-      if (res.status === 403) {
-        const data = await res.json()
-        alert(data.detail || t.extensions.notPermitted)
-        return
-      }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      await api.delete(`/registry/extensions/${ext.id}`)
       await fetchExtensions()
-    } catch (e) {
-      addToast("Delete failed")
+    } catch (e: any) {
+      addToast(e?.message || "Delete failed")
     }
   }
 
   const handleInstall = async () => {
     if (!installForm.slug.trim() || !installForm.name.trim()) return
     try {
-      const res = await fetch(`${API_BASE}/extensions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(installForm),
-      })
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        alert(data.detail || `HTTP ${res.status}`)
-        return
-      }
+      await api.post("/registry/extensions", installForm)
       setShowInstall(false)
       setInstallForm({ slug: "", name: "", description: "" })
       await fetchExtensions()
-    } catch (e) {
-      addToast("Install failed")
+    } catch (e: any) {
+      addToast(e?.message || "Install failed")
     }
   }
 

@@ -31,7 +31,7 @@ export function UpdateBanner() {
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Download size={16} className="text-[#0078d4] shrink-0" />
+            <Download size={16} className="text-[var(--accent)] shrink-0" />
             <span className="text-[13px] font-medium text-[var(--text-primary,#fff)]">
               {error ? "Update check failed" : "Update available"}
             </span>
@@ -62,7 +62,7 @@ export function UpdateBanner() {
             {downloading && (
               <div className="mt-3 h-1.5 rounded-full bg-[var(--border,#333)] overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-[#0078d4] transition-all duration-300"
+                  className="h-full rounded-full bg-[var(--accent)] transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -79,12 +79,12 @@ export function UpdateBanner() {
                 <button
                   onClick={downloadAndInstall}
                   className="px-3 py-1.5 rounded text-[12px] font-medium text-white transition-colors"
-                  style={{ background: "#0078d4" }}
+                  style={{ background: "var(--accent)" }}
                   onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "#006abc")
+                    (e.currentTarget.style.background = "var(--accent-hover)")
                   }
                   onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "#0078d4")
+                    (e.currentTarget.style.background = "var(--accent)")
                   }
                 >
                   Download & Restart

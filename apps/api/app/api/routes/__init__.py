@@ -42,6 +42,7 @@ from app.api.routes import (
     specs_plans,
     tasks,
     team,
+    themes,
     tickets,
     user_input,
 )
@@ -89,6 +90,7 @@ api_router.include_router(marketplace.router, tags=["marketplace"])
 api_router.include_router(team.router, tags=["teams"])
 api_router.include_router(governance.router, tags=["governance"])
 api_router.include_router(language_packs.router, tags=["language-packs"])
+api_router.include_router(themes.router, tags=["themes"])
 api_router.include_router(nl_command.router, tags=["nl-command"])
 api_router.include_router(
     quality_insights.router,

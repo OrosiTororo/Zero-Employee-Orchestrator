@@ -2,7 +2,7 @@
   "common": {
     "appName": "Zero-Employee Orchestrator",
     "appTagline": "AI業務オーケストレーション基盤",
-    "version": "v0.1.1",
+    "version": "v0.1.2",
     "back": "戻る",
     "next": "次へ",
     "save": "保存",
@@ -258,7 +258,12 @@
     "qaAutomate": "自動化",
     "qaAutomateEx": "毎週月曜にSNS投稿を自動で下書きして",
     "qaAnalyze": "分析",
-    "qaAnalyzeEx": "顧客フィードバックを分類して改善点を抽出して"
+    "qaAnalyzeEx": "顧客フィードバックを分類して改善点を抽出して",
+    "welcomeTitle": "Zero-Employee Orchestrator へようこそ",
+    "welcomeDesc": "業務を自然言語で説明するだけで、AIチームが計画・実行・検証・納品まで行います。全ての重要な操作にはあなたの承認が必要です。",
+    "trySecretary": "秘書に話しかける",
+    "configureSettings": "設定を開く",
+    "dismissGuide": "閉じる"
   },
   "settings": {
     "title": "設定",

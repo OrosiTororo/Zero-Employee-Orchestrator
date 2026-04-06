@@ -203,3 +203,161 @@ async def delete_extension(db: AsyncSession, ext_id: uuid.UUID) -> tuple[bool, s
     await db.flush()
     logger.info("Extension 削除: %s", ext.slug)
     return True, f"拡張 '{ext.name}' を削除しました"
+
+
+# ---------------------------------------------------------------------------
+# Built-in Plugins & Extensions — seeded on application startup
+# ---------------------------------------------------------------------------
+
+BUILTIN_PLUGINS: list[dict] = [
+    {
+        "slug": "browser-use",
+        "name": "Browser Use",
+        "description": "LLM autonomous browser control — AI sees screenshots and DOM, decides clicks/typing",
+    },
+    {
+        "slug": "ai-secretary",
+        "name": "AI Secretary",
+        "description": "Personal AI secretary for scheduling, task triage, and daily briefings",
+    },
+    {
+        "slug": "ai-avatar",
+        "name": "AI Avatar",
+        "description": "AI-driven avatar that co-evolves with the user's work patterns",
+    },
+    {
+        "slug": "research",
+        "name": "Research Assistant",
+        "description": "Multi-source research with fact-checking and citation management",
+    },
+    {
+        "slug": "backoffice",
+        "name": "Back Office",
+        "description": "Accounting, invoicing, and administrative automation",
+    },
+    {
+        "slug": "ai-self-improvement",
+        "name": "AI Self-Improvement",
+        "description": "Continuous learning loop for AI agent skill enhancement",
+    },
+    {
+        "slug": "slack-bot",
+        "name": "Slack Bot",
+        "description": "Slack workspace integration for task management and notifications",
+    },
+    {
+        "slug": "discord-bot",
+        "name": "Discord Bot",
+        "description": "Discord server integration for community task management",
+    },
+    {
+        "slug": "line-bot",
+        "name": "LINE Bot",
+        "description": "LINE messaging integration for task management",
+    },
+    {
+        "slug": "youtube",
+        "name": "YouTube Manager",
+        "description": "YouTube content management — upload, scheduling, analytics",
+    },
+]
+
+BUILTIN_EXTENSIONS: list[dict] = [
+    {
+        "slug": "mcp",
+        "name": "MCP Connection",
+        "description": "Model Context Protocol — connect with MCP-compatible tools and servers",
+    },
+    {
+        "slug": "oauth",
+        "name": "OAuth Provider",
+        "description": "OAuth 2.0 authentication for third-party service connections",
+    },
+    {
+        "slug": "notifications",
+        "name": "Notifications",
+        "description": "Push notifications, email alerts, and webhook notifications",
+    },
+    {
+        "slug": "language-pack",
+        "name": "Language Pack",
+        "description": "Additional language support beyond the 6 built-in languages",
+    },
+    {
+        "slug": "browser-assist",
+        "name": "Browser Assist",
+        "description": "Chrome extension for overlay chat and real-time screen sharing",
+    },
+    {
+        "slug": "obsidian",
+        "name": "Obsidian",
+        "description": "Obsidian vault integration for knowledge base and note-taking",
+    },
+    {
+        "slug": "notion",
+        "name": "Notion",
+        "description": "Notion workspace integration for documents and databases",
+    },
+    {
+        "slug": "logseq",
+        "name": "Logseq",
+        "description": "Logseq graph integration for knowledge management",
+    },
+    {
+        "slug": "joplin",
+        "name": "Joplin",
+        "description": "Joplin integration for note-taking and to-do management",
+    },
+    {
+        "slug": "google-workspace",
+        "name": "Google Workspace",
+        "description": "Google Docs, Sheets, Drive, Calendar, Gmail integration",
+    },
+    {
+        "slug": "microsoft-365",
+        "name": "Microsoft 365",
+        "description": "Microsoft 365, Teams, OneDrive, Outlook integration",
+    },
+]
+
+
+async def ensure_system_plugins(db: AsyncSession) -> list[Plugin]:
+    """Seed built-in plugins on startup if they don't exist yet."""
+    created: list[Plugin] = []
+    for builtin in BUILTIN_PLUGINS:
+        existing = await get_plugin_by_slug(db, builtin["slug"])
+        if existing is None:
+            plugin = await create_plugin(
+                db,
+                PluginCreate(
+                    slug=builtin["slug"],
+                    name=builtin["name"],
+                    description=builtin["description"],
+                    version="0.1.0",
+                ),
+            )
+            created.append(plugin)
+    if created:
+        logger.info("Seeded %d built-in plugins", len(created))
+    return created
+
+
+async def ensure_system_extensions(db: AsyncSession) -> list[Extension]:
+    """Seed built-in extensions on startup if they don't exist yet."""
+    created: list[Extension] = []
+    for builtin in BUILTIN_EXTENSIONS:
+        existing = await get_extension_by_slug(db, builtin["slug"])
+        if existing is None:
+            ext = await create_extension(
+                db,
+                ExtensionCreate(
+                    slug=builtin["slug"],
+                    name=builtin["name"],
+                    description=builtin["description"],
+                    version="0.1.0",
+                ),
+            )
+            created.append(ext)
+    if created:
+        logger.info("Seeded %d built-in extensions", len(created))
+    return created
