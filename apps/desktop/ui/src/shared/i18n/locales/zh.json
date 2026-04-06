@@ -115,7 +115,8 @@
     "extensions": "扩展",
     "marketplace": "市场",
     "permissions": "权限管理",
-    "settings": "设置"
+    "settings": "设置",
+    "dispatch": "调度"
   },
   "setup": {
     "steps": {

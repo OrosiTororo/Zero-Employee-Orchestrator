@@ -115,7 +115,8 @@
     "extensions": "Extensões",
     "marketplace": "Marketplace",
     "permissions": "Permissões",
-    "settings": "Configurações"
+    "settings": "Configurações",
+    "dispatch": "Despachar"
   },
   "setup": {
     "steps": {

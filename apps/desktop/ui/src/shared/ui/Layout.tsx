@@ -20,7 +20,6 @@ import {
   Circle,
   Globe,
   Zap,
-  Briefcase,
   ChevronDown,
   ChevronRight,
   Gauge,
@@ -100,6 +99,7 @@ export function Layout({ children }: LayoutProps) {
       /* Config save failure is non-fatal */
     }
   }
+  const [showManage, setShowManage] = useState(false)
   const [showExtend, setShowExtend] = useState(false)
 
   function isActive(path: string) {
@@ -112,7 +112,7 @@ export function Layout({ children }: LayoutProps) {
     { icon: Ticket, path: "/tickets", label: t.nav.tickets },
     { icon: BrainCircuit, path: "/secretary", label: t.nav.secretary },
     { icon: Sparkles, path: "/brainstorm", label: t.nav.brainstorm },
-    { icon: Send, path: "/dispatch", label: t.nav?.dispatch ?? "Dispatch" },
+    { icon: Send, path: "/dispatch", label: (t.nav as Record<string, string>).dispatch ?? "Dispatch" },
     { icon: Activity, path: "/monitor", label: t.nav.monitor },
   ]
 
@@ -164,6 +164,7 @@ export function Layout({ children }: LayoutProps) {
     "/monitor": t.nav.monitor,
     "/permissions": t.nav.permissions,
     "/settings": t.nav.settings,
+    "/dispatch": (t.nav as Record<string, string>).dispatch ?? "Dispatch",
   }
 
   const currentTitle =
