@@ -253,7 +253,7 @@ export function SetupPage() {
       // Auto-advance to next step after a short delay for visual feedback
       setTimeout(() => next(), 1500)
     } catch (err: any) {
-      setGenerateError(err?.message || (t.orgSetup?.generateFailed ?? "Failed to create organization. Please try again."))
+      setGenerateError(err?.message || ((t.orgSetup as Record<string, string>)?.generateFailed ?? "Failed to create organization. Please try again."))
     } finally {
       setIsGenerating(false)
     }
@@ -734,7 +734,7 @@ export function SetupPage() {
                     {t.orgSetup.generatedDesc}
                   </p>
                   <p className="text-[11px] text-[var(--text-muted)]">
-                    {t.orgSetup?.autoAdvance ?? "Proceeding to next step..."}
+                    {(t.orgSetup as Record<string, string>)?.autoAdvance ?? "Proceeding to next step..."}
                   </p>
                 </div>
               )}
