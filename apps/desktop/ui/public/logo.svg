@@ -1,19 +1,16 @@
-<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#0078d4"/>
-      <stop offset="1" stop-color="#7c3aed"/>
-    </linearGradient>
-  </defs>
-  <rect x="8" y="8" width="240" height="240" rx="52" fill="url(#bg)"/>
-  <line x1="128" y1="72" x2="76" y2="180" stroke="white" stroke-width="7" stroke-linecap="round"/>
-  <line x1="128" y1="72" x2="180" y2="180" stroke="white" stroke-width="7" stroke-linecap="round"/>
-  <line x1="76" y1="180" x2="180" y2="180" stroke="white" stroke-width="7" stroke-linecap="round"/>
-  <circle cx="128" cy="132" r="12" fill="white"/>
-  <line x1="128" y1="72" x2="128" y2="120" stroke="white" stroke-width="5" stroke-linecap="round"/>
-  <line x1="128" y1="144" x2="76" y2="180" stroke="white" stroke-width="5" stroke-linecap="round"/>
-  <line x1="128" y1="144" x2="180" y2="180" stroke="white" stroke-width="5" stroke-linecap="round"/>
-  <circle cx="128" cy="68" r="18" fill="white"/>
-  <circle cx="72" cy="184" r="18" fill="white"/>
-  <circle cx="184" cy="184" r="18" fill="white"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none">
+  <!-- Favicon: Lucide Workflow icon on VSCode accent background -->
+  <rect width="256" height="256" rx="48" fill="#007ACC"/>
+  <!-- Simplified workflow/orchestration icon (based on Lucide Workflow) -->
+  <g stroke="white" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- Top node -->
+    <rect x="88" y="40" width="80" height="48" rx="8"/>
+    <!-- Bottom left node -->
+    <rect x="28" y="168" width="80" height="48" rx="8"/>
+    <!-- Bottom right node -->
+    <rect x="148" y="168" width="80" height="48" rx="8"/>
+    <!-- Connections -->
+    <line x1="108" y1="88" x2="68" y2="168"/>
+    <line x1="148" y1="88" x2="188" y2="168"/>
+  </g>
 </svg>

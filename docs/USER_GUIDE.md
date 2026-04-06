@@ -2,7 +2,7 @@
 
 # English User Guide
 
-> **v0.1.1** | Last updated: 2026-03-29
+> **v0.1.2** | Last updated: 2026-04-06
 
 ## 1. What is this software?
 

@@ -2,8 +2,8 @@
 
 # Zero-Employee Orchestrator — Feature List
 
-> Last updated: 2026-03-28
-> Current version: v0.1.1
+> Last updated: 2026-04-06
+> Current version: v0.1.2
 
 ---
 
