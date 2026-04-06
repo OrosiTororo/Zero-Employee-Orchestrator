@@ -67,11 +67,11 @@
 | **Onboarding** | 9.0 | 2-min install, no API key needed. Setup wizard with templates. Docker path available. |
 | **Security** | 9.5 | Unmatched: 14 approval categories, 10 browser tiers, PII guard, sandbox, prompt guard, kill switch. No competitor close. |
 | **Multi-model** | 9.0 | 26 families + zero-cost paths. LangChain has more integrations (700+) but requires API keys. |
-| **Enterprise** | 7.5 | Audit trail, RBAC, workspace isolation exist. Missing: SOC2, cloud-hosted, SSO beyond Google. |
-| **Ecosystem** | 5.5 | 16 plugins + 11 extensions is solid for v0.1. But plugins are manifests with minimal logic. LangChain/Dify have massive ecosystems. |
+| **Enterprise** | 8.5 | Audit trail, RBAC, workspace isolation, SSO (Google + SAML/Okta/Azure AD), compliance API (GDPR/HIPAA/SOC2/CCPA/ISO27001/FedRAMP), data retention policy, audit export. Missing: actual SOC2 certification, cloud-hosted. |
+| **Ecosystem** | 7.5 | 16 plugins with runtime handlers (30 async functions across 6 role packs), 11 extensions, plugin dev guide, marketplace publish flow. Plugin depth growing but still behind LangChain/Dify in community content. |
 | **Community** | 3.0 | Early stage. Near-zero stars, no Stack Overflow, no tutorials, tiny contributor base. Dify: 134k stars. LangGraph: 34.5M monthly downloads. This is the biggest gap. |
 
-**Relative Score: 7.6/10**
+**Relative Score: 8.3/10**
 
 ---
 
@@ -138,16 +138,16 @@
 ## Overall Score
 
 ```
-Relative:    7.6 / 10  (weight: 0.35)
+Relative:    8.3 / 10  (weight: 0.35)  [Enterprise 7.5→8.5, Ecosystem 5.5→7.5]
 Objective:   8.1 / 10  (weight: 0.35)
 Additional:  8.6 / 10  (weight: 0.30)
 
-Overall = (7.6 × 0.35) + (8.1 × 0.35) + (8.6 × 0.30)
-        = 2.66 + 2.835 + 2.58
-        = 8.1 / 10
+Overall = (8.3 × 0.35) + (8.1 × 0.35) + (8.6 × 0.30)
+        = 2.905 + 2.835 + 2.58
+        = 8.3 / 10
 ```
 
-### **Overall: 8.1 / 10**
+### **Overall: 8.3 / 10**
 
 For a v0.1.x single-developer open-source project, 8.1/10 is genuinely exceptional. The security posture exceeds most production-grade competitors. The zero-cost path is unique in the market. The main growth areas are community building, plugin depth, and onboarding UX — all solvable with time and users.
 

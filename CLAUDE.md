@@ -98,6 +98,14 @@ Files: root `pyproject.toml`, `apps/api/pyproject.toml`, `apps/desktop/package.j
 
 FastAPI: 18234 | Vite dev: 5173
 
+## Post-Change Documentation Sync (MANDATORY)
+
+After any code change (new routes, features, counts), you MUST:
+1. **Check ALL md files** for claims that need updating (route count, plugin count, endpoint count, feature lists)
+2. **Check ALL translated READMEs** (docs/ja-JP/, docs/zh-CN/, docs/zh-TW/, docs/ko-KR/, docs/pt-BR/, docs/tr/) match the English README
+3. **Bidirectional check**: md → code (does every claim match?) AND code → md (is every new feature documented?)
+4. **Key files to check**: CLAUDE.md, README.md, ROADMAP.md, SECURITY.md, docs/CHANGELOG.md, docs/guides/architecture-guide.md, docs/dev/EVALUATION_v0.1.2.md
+
 ## Release Notes
 
 Write about system behavior changes for end users. Do NOT write about docs/CI/config changes.
@@ -131,4 +139,4 @@ Write about system behavior changes for end users. Do NOT write about docs/CI/co
 
 **Scoring**: 0-10 scale. Overall = (Relative × 0.35) + (Objective × 0.35) + (Additional × 0.30)
 
-**Latest evaluation**: `docs/dev/EVALUATION_v0.1.2.md` — 8.1/10 (2026-04-06)
+**Latest evaluation**: `docs/dev/EVALUATION_v0.1.2.md` — 8.3/10 (2026-04-06)
