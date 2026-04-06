@@ -1,14 +1,19 @@
 """Approval gate -- Auto-detection of dangerous operations and approval requests.
 
-Based on Zero-Employee Orchestrator.md sections 12.3 and 36.6,
-the following operations require human approval:
+Inspired by Claude Cowork's tiered approval model:
+- Per-app approval (AI asks permission before accessing each application)
+- Per-action granularity (navigate vs. click vs. type vs. delete)
+- Scope-aware (read-only navigation vs. form filling vs. data extraction)
+
+Covers:
 - External sends / posts / publishing
 - Deletion / billing
 - Git push / release
 - Overwriting important files
 - Permission changes
 - API key-related operations
-- External credential update propagation
+- Browser automation (tiered: navigate < extract < interact < submit)
+- Web AI sessions (per-service approval)
 - Creating new Agents / Teams
 - Budget limit changes
 - Policy Pack changes
@@ -36,6 +41,8 @@ class ApprovalCategory(str, Enum):
     BUDGET_CHANGE = "budget_change"
     POLICY_CHANGE = "policy_change"
     AUTONOMY_EXPAND = "autonomy_expand"
+    BROWSER_AUTOMATION = "browser_automation"
+    WEB_AI_SESSION = "web_ai_session"
 
 
 class RiskLevel(str, Enum):
@@ -58,23 +65,45 @@ class ApprovalGateResult:
 
 # Operation name -> category + risk level mapping
 _DANGEROUS_OPERATIONS: dict[str, tuple[ApprovalCategory, RiskLevel]] = {
+    # External communications
     "send_email": (ApprovalCategory.EXTERNAL_SEND, RiskLevel.HIGH),
     "post_sns": (ApprovalCategory.PUBLISH, RiskLevel.HIGH),
     "publish_content": (ApprovalCategory.PUBLISH, RiskLevel.HIGH),
+    # Deletion
     "delete_file": (ApprovalCategory.DELETE, RiskLevel.MEDIUM),
     "delete_data": (ApprovalCategory.DELETE, RiskLevel.HIGH),
+    # Billing
     "charge_payment": (ApprovalCategory.BILLING, RiskLevel.CRITICAL),
+    # Git
     "git_push": (ApprovalCategory.GIT_PUSH, RiskLevel.MEDIUM),
     "git_release": (ApprovalCategory.GIT_PUSH, RiskLevel.HIGH),
+    # File operations
     "overwrite_config": (ApprovalCategory.FILE_OVERWRITE, RiskLevel.HIGH),
+    # Permissions & credentials
     "change_permission": (ApprovalCategory.PERMISSION_CHANGE, RiskLevel.CRITICAL),
     "update_api_key": (ApprovalCategory.CREDENTIAL_CHANGE, RiskLevel.CRITICAL),
     "rotate_secret": (ApprovalCategory.CREDENTIAL_CHANGE, RiskLevel.HIGH),
+    # Agent management
     "create_agent": (ApprovalCategory.AGENT_CREATE, RiskLevel.MEDIUM),
     "create_team": (ApprovalCategory.AGENT_CREATE, RiskLevel.MEDIUM),
+    # Policy
     "change_budget": (ApprovalCategory.BUDGET_CHANGE, RiskLevel.HIGH),
     "change_policy": (ApprovalCategory.POLICY_CHANGE, RiskLevel.HIGH),
     "expand_autonomy": (ApprovalCategory.AUTONOMY_EXPAND, RiskLevel.CRITICAL),
+    # Browser automation — tiered by action scope (Cowork pattern)
+    "browser_navigate": (ApprovalCategory.BROWSER_AUTOMATION, RiskLevel.LOW),
+    "browser_screenshot": (ApprovalCategory.BROWSER_AUTOMATION, RiskLevel.LOW),
+    "browser_extract_data": (ApprovalCategory.BROWSER_AUTOMATION, RiskLevel.MEDIUM),
+    "browser_click": (ApprovalCategory.BROWSER_AUTOMATION, RiskLevel.MEDIUM),
+    "browser_type": (ApprovalCategory.BROWSER_AUTOMATION, RiskLevel.HIGH),
+    "browser_fill_form": (ApprovalCategory.BROWSER_AUTOMATION, RiskLevel.HIGH),
+    "browser_submit_form": (ApprovalCategory.BROWSER_AUTOMATION, RiskLevel.HIGH),
+    "browser_download": (ApprovalCategory.BROWSER_AUTOMATION, RiskLevel.HIGH),
+    "browser_login": (ApprovalCategory.BROWSER_AUTOMATION, RiskLevel.CRITICAL),
+    "browser_payment": (ApprovalCategory.BROWSER_AUTOMATION, RiskLevel.CRITICAL),
+    # Web AI sessions — per-service (Cowork per-app approval pattern)
+    "web_ai_session": (ApprovalCategory.WEB_AI_SESSION, RiskLevel.MEDIUM),
+    "web_ai_session_paid": (ApprovalCategory.WEB_AI_SESSION, RiskLevel.HIGH),
 }
 
 

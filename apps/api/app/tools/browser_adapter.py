@@ -512,17 +512,23 @@ class BrowserAdapterRegistry:
         """
         adapter = self.get_active()
 
-        # Approval check
+        # Tiered approval check (Cowork pattern: read < write < execute)
         if task.require_approval:
             try:
                 from app.policies.approval_gate import check_approval_required
 
-                approval = check_approval_required("browser_automation")
+                # Determine action tier from task instruction
+                op = _classify_browser_operation(task.instruction)
+                approval = check_approval_required(op)
                 if approval.requires_approval:
                     return BrowserTaskResult(
                         task_id=task.id,
                         status=TaskStatus.FAILED,
-                        output="Approval required. Please re-execute after approval.",
+                        output=(
+                            f"Approval required for '{op}' "
+                            f"(risk: {approval.risk_level.value}). "
+                            f"Reason: {approval.reason}"
+                        ),
                         errors=["approval_required"],
                         adapter_used=self._active_adapter,
                     )
@@ -533,14 +539,51 @@ class BrowserAdapterRegistry:
 
         # Audit log
         logger.info(
-            "Browser task executed: adapter=%s, task=%s, status=%s, duration=%dms",
+            "Browser task executed: adapter=%s, task=%s, op=%s, status=%s, duration=%dms",
             self._active_adapter,
             task.id,
+            _classify_browser_operation(task.instruction),
             result.status.value,
             result.duration_ms,
         )
 
         return result
+
+
+def _classify_browser_operation(instruction: str) -> str:
+    """Classify a browser task instruction into a tiered operation type.
+
+    Follows Cowork's tool hierarchy: navigate < extract < interact < submit.
+    """
+    lower = instruction.lower()
+
+    # Critical: login, payment, credentials
+    if any(w in lower for w in ("login", "sign in", "password", "credential")):
+        return "browser_login"
+    if any(w in lower for w in ("payment", "purchase", "checkout", "pay ", "billing")):
+        return "browser_payment"
+
+    # Medium: clicking (check before submit to avoid "click submit" → submit_form)
+    if any(w in lower for w in ("click", "press button", "select ", "toggle")):
+        return "browser_click"
+
+    # High: form submission, filling, typing
+    if any(w in lower for w in ("submit", "send form", "confirm order")):
+        return "browser_submit_form"
+    if any(w in lower for w in ("fill", "enter ")):
+        return "browser_fill_form"
+    if any(w in lower for w in ("type ", "input ")):
+        return "browser_type"
+    if "download" in lower:
+        return "browser_download"
+    if any(w in lower for w in ("extract", "scrape", "copy ", "get data")):
+        return "browser_extract_data"
+
+    # Low: navigation, screenshots (safe)
+    if any(w in lower for w in ("screenshot", "capture")):
+        return "browser_screenshot"
+
+    return "browser_navigate"
 
     async def auto_install_adapter(self, adapter_type: AdapterType) -> bool:
         """Install and register an adapter.
