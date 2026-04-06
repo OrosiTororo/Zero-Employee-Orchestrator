@@ -7,8 +7,11 @@ The frontend loads the active theme's overrides and applies them.
 import logging
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+
+from app.api.routes.auth import get_current_user
+from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +48,7 @@ BUILTIN_THEMES = [
 
 
 @router.get("/themes", response_model=list[ThemeInfo])
-async def list_themes():
+async def list_themes(_user: User = Depends(get_current_user)):
     """List all available themes (built-in + extension-provided)."""
     custom = [
         ThemeInfo(slug=slug, name=data.get("name", slug), variables=data.get("variables", {}))
@@ -55,13 +58,13 @@ async def list_themes():
 
 
 @router.get("/themes/current")
-async def get_current_theme():
+async def get_current_theme(_user: User = Depends(get_current_user)):
     """Get the currently active theme slug."""
     return {"slug": _active_theme}
 
 
 @router.post("/themes/set", response_model=ThemeSetResponse)
-async def set_theme(req: ThemeSetRequest):
+async def set_theme(req: ThemeSetRequest, _user: User = Depends(get_current_user)):
     """Set the active theme by slug."""
     global _active_theme
     valid_slugs = {"dark", "light", "high-contrast"} | set(_custom_themes.keys())
@@ -73,7 +76,7 @@ async def set_theme(req: ThemeSetRequest):
 
 
 @router.post("/themes/register", response_model=ThemeInfo)
-async def register_theme(theme: ThemeInfo):
+async def register_theme(theme: ThemeInfo, _user: User = Depends(get_current_user)):
     """Register a custom theme from an extension.
 
     Extensions provide CSS variable overrides (e.g. {"--bg-base": "#000"}).

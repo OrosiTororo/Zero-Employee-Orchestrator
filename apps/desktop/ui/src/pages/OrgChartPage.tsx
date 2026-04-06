@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { Network, Building2, Bot, RefreshCw, ChevronDown, ChevronRight } from "lucide-react"
 import { api } from "@/shared/api/client"
 import { useT, useI18n } from "@/shared/i18n"
+import { useToastStore } from "@/shared/ui/ErrorToast"
 
 interface OrgData {
   departments: Array<{ id: string; name: string; code: string; description?: string }>
@@ -13,6 +14,7 @@ export function OrgChartPage() {
   const t = useT()
   const { locale } = useI18n()
   const isJa = locale === "ja"
+  const addToast = useToastStore((s) => s.addToast)
 
   const [orgData, setOrgData] = useState<OrgData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -33,7 +35,7 @@ export function OrgChartPage() {
         setExpandedDepts(new Set(data.departments.map((d) => d.id)))
       }
     } catch (err) {
-      console.error("Failed to load org data:", err)
+      addToast("Failed to load org data")
     } finally {
       setLoading(false)
     }

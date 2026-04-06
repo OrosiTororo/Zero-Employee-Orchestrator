@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import { MessageSquare, Send, Check, ArrowRight, Loader2 } from "lucide-react"
 import { api } from "../shared/api/client"
 import { useT } from "@/shared/i18n"
+import { useToastStore } from "@/shared/ui/ErrorToast"
 
 interface Question {
   question: string
@@ -70,6 +71,7 @@ export function InterviewPage() {
   const { id: ticketId } = useParams()
   const navigate = useNavigate()
   const t = useT()
+  const addToast = useToastStore((s) => s.addToast)
   const [questions, setQuestions] = useState<Question[]>(() => getDefaultQuestions(t))
   const [currentIndex, setCurrentIndex] = useState(0)
   const [inputValue, setInputValue] = useState("")
@@ -126,7 +128,7 @@ export function InterviewPage() {
         // Spec generation failure is non-fatal
       }
     } catch (e) {
-      console.error("Interview save failed:", e)
+      addToast("Interview save failed")
     } finally {
       setSubmitting(false)
     }

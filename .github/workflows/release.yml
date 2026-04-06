@@ -141,7 +141,7 @@ jobs:
           fi
 
       - name: Upload updater fragment artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: updater-${{ matrix.target }}
           path: latest-${{ matrix.target }}.json
@@ -153,7 +153,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download all updater fragments
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: updater-*
           merge-multiple: true

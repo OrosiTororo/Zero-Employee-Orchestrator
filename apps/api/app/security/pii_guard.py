@@ -145,10 +145,14 @@ _PII_PATTERNS: list[tuple[PIICategory, re.Pattern, str]] = [
         re.compile(r"\b[A-Z]{2}\d{7}\b"),
         "[PASSPORT]",
     ),
-    # SSN (US: 3-2-4 digits)
+    # SSN (US: 3-2-4 digits) — keyword context required to reduce false positives
     (
         PIICategory.SSN,
-        re.compile(r"\b\d{3}[-\s]?\d{2}[-\s]?\d{4}\b"),
+        re.compile(
+            r"(?:ssn|social\s*security(?:\s*number)?|社会保障番号)\s*[:=]?\s*"
+            r"(\d{3}[-\s]?\d{2}[-\s]?\d{4})\b",
+            re.IGNORECASE,
+        ),
         "[SSN]",
     ),
     # IP address (v4) — validated post-match by _is_valid_ipv4

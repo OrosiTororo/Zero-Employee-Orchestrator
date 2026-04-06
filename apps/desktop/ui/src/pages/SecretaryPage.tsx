@@ -13,6 +13,7 @@ import {
   MessageSquare,
   Zap,
 } from "lucide-react"
+import { useToastStore } from "@/shared/ui/ErrorToast"
 import { api } from "@/shared/api/client"
 import { useI18n } from "@/shared/i18n"
 
@@ -67,6 +68,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 export function SecretaryPage() {
   const { locale } = useI18n()
   const isJa = locale === "ja"
+  const addToast = useToastStore((s) => s.addToast)
 
   const [dumps, setDumps] = useState<BrainDump[]>([])
   const [actionItems, setActionItems] = useState<ActionItem[]>([])
@@ -104,7 +106,7 @@ export function SecretaryPage() {
         setCompanyId(companies[0].id)
       }
     } catch (err) {
-      console.error("Failed to load companies:", err)
+      addToast("Failed to load companies")
     }
   }
 
@@ -115,7 +117,7 @@ export function SecretaryPage() {
       const data = await api.get<BrainDump[]>(`/companies/${companyId}/brain-dumps?limit=50${catParam}`)
       setDumps(data)
     } catch (err) {
-      console.error("Failed to load brain dumps:", err)
+      addToast("Failed to load brain dumps")
     }
   }
 
@@ -125,7 +127,7 @@ export function SecretaryPage() {
       const data = await api.get<{ action_items: ActionItem[] }>(`/companies/${companyId}/brain-dumps/action-items`)
       setActionItems(data.action_items)
     } catch (err) {
-      console.error("Failed to load action items:", err)
+      addToast("Failed to load action items")
     }
   }
 
@@ -137,7 +139,7 @@ export function SecretaryPage() {
       )
       setDailyStats(data)
     } catch (err) {
-      console.error("Failed to load daily stats:", err)
+      addToast("Failed to load daily stats")
     }
   }
 
@@ -153,7 +155,7 @@ export function SecretaryPage() {
       await loadActionItems()
       await loadDailyStats()
     } catch (err) {
-      console.error("Failed to submit brain dump:", err)
+      addToast("Failed to submit brain dump")
     } finally {
       setIsSubmitting(false)
     }
@@ -164,7 +166,7 @@ export function SecretaryPage() {
       await api.patch(`/brain-dumps/${dumpId}`, { is_archived: true })
       setDumps((prev) => prev.filter((d) => d.id !== dumpId))
     } catch (err) {
-      console.error("Failed to archive:", err)
+      addToast("Failed to archive")
     }
   }
 
@@ -175,7 +177,7 @@ export function SecretaryPage() {
         prev.map((d) => (d.id === dumpId ? { ...d, is_processed: true } : d))
       )
     } catch (err) {
-      console.error("Failed to mark processed:", err)
+      addToast("Failed to mark processed")
     }
   }
 
@@ -187,7 +189,7 @@ export function SecretaryPage() {
       )
       setDumps(data)
     } catch (err) {
-      console.error("Failed to search:", err)
+      addToast("Failed to search")
     }
   }
 
