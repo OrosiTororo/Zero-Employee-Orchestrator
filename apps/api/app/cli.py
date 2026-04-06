@@ -356,8 +356,8 @@ def cmd_local(args: argparse.Namespace) -> None:
         cli_mode = "NORMAL"  # NORMAL | INSERT | COMMAND
 
         # Color constants (VSCode/Neovim)
-        _C_NORMAL = "\033[38;2;86;186;159m"   # success green
-        _C_INSERT = "\033[38;2;0;122;204m"    # accent blue
+        _C_NORMAL = "\033[38;2;86;186;159m"  # success green
+        _C_INSERT = "\033[38;2;0;122;204m"  # accent blue
         _C_COMMAND = "\033[38;2;243;215;104m"  # warning yellow
         _C_MUTED = "\033[38;2;110;118;129m"
         _C_ACCENT = "\033[38;2;0;122;204m"
@@ -367,11 +367,15 @@ def cmd_local(args: argparse.Namespace) -> None:
             try:
                 ctx_pct = min(100, int(ctx_tokens / 327.68))  # ~32768 ctx
                 mode_color = (
-                    _C_NORMAL if cli_mode == "NORMAL"
-                    else _C_INSERT if cli_mode == "INSERT"
+                    _C_NORMAL
+                    if cli_mode == "NORMAL"
+                    else _C_INSERT
+                    if cli_mode == "INSERT"
                     else _C_COMMAND
                 )
-                prompt_prefix = f"{mode_color}{cli_mode}{_C_RESET} {_C_MUTED}ctx:{ctx_pct}%{_C_RESET}"
+                prompt_prefix = (
+                    f"{mode_color}{cli_mode}{_C_RESET} {_C_MUTED}ctx:{ctx_pct}%{_C_RESET}"
+                )
                 user_input = input(f"{prompt_prefix} {_C_ACCENT}>{_C_RESET} ").strip()
             except (KeyboardInterrupt, EOFError):
                 if cli_mode == "INSERT":
@@ -389,7 +393,7 @@ def cmd_local(args: argparse.Namespace) -> None:
             # Triple-quote enters INSERT mode (multi-line input)
             if user_input == '"""' or user_input == "'''":
                 cli_mode = "INSERT"
-                print(f"  {_C_INSERT}-- INSERT -- (enter \"\"\" to finish){_C_RESET}")
+                print(f'  {_C_INSERT}-- INSERT -- (enter """ to finish){_C_RESET}')
                 lines = []
                 while True:
                     try:
@@ -544,7 +548,9 @@ def cmd_chat(args: argparse.Namespace) -> None:
 
         while True:
             try:
-                user_input = input("\033[38;2;86;186;159mNORMAL\033[0m \033[38;2;0;122;204m>\033[0m ").strip()
+                user_input = input(
+                    "\033[38;2;86;186;159mNORMAL\033[0m \033[38;2;0;122;204m>\033[0m "
+                ).strip()
             except (KeyboardInterrupt, EOFError):
                 print(f"\n\n  {t('chat_goodbye')}")
                 break
