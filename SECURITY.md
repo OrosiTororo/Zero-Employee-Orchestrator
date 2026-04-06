@@ -46,7 +46,7 @@ Detects and blocks instruction injection from external sources (web pages, email
 
 ### 2. Approval Gate (`policies/approval_gate.py`)
 
-12 categories of dangerous operations require human approval:
+14 categories of dangerous operations require human approval:
 - External send / publish / delete / billing
 - Git push / release / file overwrite
 - Permission change / credential change

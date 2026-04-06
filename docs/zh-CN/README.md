@@ -207,7 +207,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI 后端
 │   │   └── app/
 │   │       ├── core/               # 配置、数据库、安全、国际化
-│   │       ├── api/routes/         # 41 REST API 路由模块
+│   │       ├── api/routes/         # 46 REST API 路由模块
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -223,7 +223,7 @@ Zero-Employee-Orchestrator/
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # 后台工作进程
 ├── skills/                   # 8 个内置技能
-├── plugins/                  # 10 个插件清单
+├── plugins/                  # 16 个插件清单
 ├── extensions/               # 11 个扩展清单
 │   └── browser-assist/
 │       └── chrome-extension/ # 浏览器辅助 Chrome 扩展程序
@@ -304,7 +304,7 @@ Zero-Employee-Orchestrator/
 | 功能 | 描述 |
 |------|------|
 | **提示注入防御** | 5 个类别、28+ 检测模式 |
-| **审批门控** | 12 类危险操作需要人类审批 |
+| **审批门控** | 14 类危险操作需要人类审批 |
 | **文件沙箱** | AI 仅可访问用户许可的文件夹（默认：STRICT） |
 | **数据保护** | 上传/下载策略控制（默认：LOCKDOWN） |
 | **PII 保护** | 自动检测和脱敏 13 个类别的个人信息 |
@@ -332,7 +332,7 @@ ZEO 采用**安全优先**设计，具备多层防御：
 | 层级 | 描述 |
 |------|------|
 | **提示注入防御** | 检测并阻止来自外部输入的指令注入（5 个类别、28+ 模式） |
-| **审批门控** | 12 类危险操作（发送、删除、计费、权限变更等）需要人类审批 |
+| **审批门控** | 14 类危险操作（发送、删除、计费、权限变更等）需要人类审批 |
 | **自主执行边界** | 明确限制 AI 可自主执行的操作 |
 | **IAM 与工具权限** | 人类/AI 账户分离；基于角色的工具权限（5 个默认策略：secretary、researcher、reviewer、executor、admin）为每个代理实施最小权限 |
 | **紧急停止开关** | 通过 UI 按钮或 API（`/kill-switch/activate`）紧急停止所有活动执行。在恢复之前阻止新的执行 |

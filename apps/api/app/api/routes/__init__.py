@@ -14,6 +14,7 @@ from app.api.routes import (
     browser_automation,
     budgets,
     companies,
+    compliance,
     config,
     dispatch,
     export,
@@ -42,6 +43,7 @@ from app.api.routes import (
     self_improvement,
     settings,
     specs_plans,
+    sso,
     tasks,
     team,
     themes,
@@ -107,3 +109,5 @@ api_router.include_router(
         "plan-quality",
     ],
 )
+api_router.include_router(sso.router, tags=["sso", "saml", "enterprise"])
+api_router.include_router(compliance.router, tags=["compliance", "audit-export", "enterprise"])
