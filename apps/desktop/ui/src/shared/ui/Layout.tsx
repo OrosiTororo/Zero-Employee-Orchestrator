@@ -61,8 +61,16 @@ export function Layout({ children }: LayoutProps) {
 
   const fetchStatusBar = useCallback(async () => {
     try {
-      const dispatches = await api.get<{ total: number }>("/dispatch")
+      const [dispatches, config] = await Promise.all([
+        api.get<{ total: number }>("/dispatch").catch(() => ({ total: 0 })),
+        api
+          .get<{ config: Record<string, { value: string }> }>("/config")
+          .catch(() => null),
+      ])
       setDispatchCount(dispatches.total)
+      if (config?.config?.AUTONOMY_LEVEL?.value) {
+        setAutonomyLevel(config.config.AUTONOMY_LEVEL.value)
+      }
     } catch {
       /* status bar data is non-critical */
     }
@@ -81,10 +89,16 @@ export function Layout({ children }: LayoutProps) {
     autonomous: "Autonomous",
   }
 
-  const cycleAutonomy = () => {
+  const cycleAutonomy = async () => {
     const levels = ["observe", "assist", "semi-auto", "autonomous"]
     const idx = levels.indexOf(autonomyLevel)
-    setAutonomyLevel(levels[(idx + 1) % levels.length])
+    const next = levels[(idx + 1) % levels.length]
+    setAutonomyLevel(next)
+    try {
+      await api.put("/config", { key: "AUTONOMY_LEVEL", value: next })
+    } catch {
+      /* Config save failure is non-fatal */
+    }
   }
   const [showExtend, setShowExtend] = useState(false)
 
@@ -200,18 +214,13 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-[var(--bg-base)]">
-      {/* Title Bar — 30px, Cowork-inspired (task-first, mode indicator) */}
+      {/* Title Bar — 30px */}
       <header
         className="flex items-center shrink-0 select-none border-b border-[var(--border)]"
         style={{ height: TITLE_BAR_HEIGHT, background: "var(--bg-titlebar)" }}
       >
         <div className="flex items-center gap-2 px-3" style={{ width: ACTIVITY_BAR_WIDTH }}>
           <LogoMark size={14} />
-        </div>
-        <div className="flex items-center gap-2 ml-1">
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--accent)] text-white font-medium tracking-wider">
-            COWORK
-          </span>
         </div>
         <div className="flex-1 text-center">
           <span className="text-[11px] font-medium text-[var(--text-secondary)] tracking-wide">

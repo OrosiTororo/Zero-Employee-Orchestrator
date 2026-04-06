@@ -554,33 +554,51 @@ def _classify_browser_operation(instruction: str) -> str:
     """Classify a browser task instruction into a tiered operation type.
 
     Follows Cowork's tool hierarchy: navigate < extract < interact < submit.
+    Handles negation patterns (e.g., "don't click" → navigate, not click).
     """
+    import re
+
     lower = instruction.lower()
 
+    # Collect negated spans — all words following a negation word until punctuation/end
+    negated_words: set[str] = set()
+    for m in re.finditer(r"(?:don'?t|do not|never|avoid|without|no)\s+([\w\s]+)", lower):
+        negated_words.update(m.group(1).split())
+
+    def _match(keywords: tuple[str, ...]) -> bool:
+        """Match keywords while respecting negation."""
+        for kw in keywords:
+            if kw in lower:
+                root = kw.strip().split()[0] if " " in kw else kw
+                # Check if root or any variant of it appears in negated words
+                if not any(root in nw or nw.startswith(root) for nw in negated_words):
+                    return True
+        return False
+
     # Critical: login, payment, credentials
-    if any(w in lower for w in ("login", "sign in", "password", "credential")):
+    if _match(("login", "sign in", "password", "credential")):
         return "browser_login"
-    if any(w in lower for w in ("payment", "purchase", "checkout", "pay ", "billing")):
+    if _match(("payment", "purchase", "checkout", "pay ", "billing")):
         return "browser_payment"
 
     # Medium: clicking (check before submit to avoid "click submit" → submit_form)
-    if any(w in lower for w in ("click", "press button", "select ", "toggle")):
+    if _match(("click", "press button", "select ", "toggle")):
         return "browser_click"
 
     # High: form submission, filling, typing
-    if any(w in lower for w in ("submit", "send form", "confirm order")):
+    if _match(("submit", "send form", "confirm order")):
         return "browser_submit_form"
-    if any(w in lower for w in ("fill", "enter ")):
+    if _match(("fill", "enter ")):
         return "browser_fill_form"
-    if any(w in lower for w in ("type ", "input ")):
+    if _match(("type ", "input ")):
         return "browser_type"
-    if "download" in lower:
+    if _match(("download",)):
         return "browser_download"
-    if any(w in lower for w in ("extract", "scrape", "copy ", "get data")):
+    if _match(("extract", "scrape", "copy ", "get data")):
         return "browser_extract_data"
 
     # Low: navigation, screenshots (safe)
-    if any(w in lower for w in ("screenshot", "capture")):
+    if _match(("screenshot", "capture")):
         return "browser_screenshot"
 
     return "browser_navigate"

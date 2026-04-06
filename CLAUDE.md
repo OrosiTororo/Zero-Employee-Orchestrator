@@ -77,7 +77,7 @@ Files: root `pyproject.toml`, `apps/api/pyproject.toml`, `apps/desktop/package.j
 - **ZEO is free**: Users pay LLM providers directly; no provider is "recommended"
 - **Skill/Plugin/Extension**: Skill = single task; Plugin = skill bundle (includes role-based packs); Extension = system integration
 - **System skills**: Always enabled, cannot be disabled (8 built-in)
-- **UI**: Cowork-inspired task-first layout — Activity Bar with progressive disclosure, Autonomy Dial in status bar, Command Palette (Ctrl+K), Dispatch background tasks
+- **UI**: Task-first layout — Activity Bar with progressive disclosure, Autonomy Dial in status bar, Command Palette (Ctrl+K), Dispatch background tasks
 - **CLI**: Claude Code-like slash commands (`/read`, `/write`, `/edit`, `/run`, `/ls`, `/cd`, `/pwd`, `/find`, `/grep`)
 - **Operator Profile**: Cowork-style about-me + global instructions (`/operator-profile/profile`, `/operator-profile/instructions`)
 - **Dispatch**: Background task execution, Cowork Dispatch pattern (`/dispatch`)
