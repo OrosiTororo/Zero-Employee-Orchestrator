@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Store, Search, Package, Puzzle, Blocks, Download, Star } from "lucide-react"
 import { useT } from "@/shared/i18n"
+import { api } from "@/shared/api/client"
 
 type TabKey = "all" | "skills" | "plugins" | "extensions"
 
@@ -106,11 +107,7 @@ export function MarketplacePage() {
                   <button
                     onClick={async () => {
                       try {
-                        await fetch(`/api/v1/registry/${item.type}s`, {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ slug: item.id, name: item.name, description: item.description }),
-                        })
+                        await api.post(`/registry/${item.type}s`, { slug: item.id, name: item.name, description: item.description })
                       } catch { /* marketplace not yet connected */ }
                     }}
                     className="flex items-center gap-1 px-2 py-1 rounded text-[11px] bg-[var(--accent)] text-[var(--accent-fg)]"

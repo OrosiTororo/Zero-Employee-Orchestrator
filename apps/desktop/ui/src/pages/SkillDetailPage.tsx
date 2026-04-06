@@ -13,8 +13,7 @@ import {
   Clock,
 } from "lucide-react"
 import { useT } from "@/shared/i18n"
-
-const API_BASE = "/api/v1/registry"
+import { api } from "@/shared/api/client"
 
 interface SkillDetail {
   id: string
@@ -56,13 +55,10 @@ export function SkillDetailPage() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`${API_BASE}/skills/${id}`)
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const data = await res.json()
+      const data = await api.get<SkillDetail>(`/registry/skills/${id}`)
       setSkill(data)
-    } catch (e) {
+    } catch {
       setError(t.skillDetail?.fetchError ?? "Failed to fetch skill")
-      console.error("Failed to fetch skill:", e)
     } finally {
       setLoading(false)
     }
@@ -75,20 +71,10 @@ export function SkillDetailPage() {
   const handleToggle = async () => {
     if (!skill || skill.is_system_protected) return
     try {
-      const res = await fetch(`${API_BASE}/skills/${skill.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled: !skill.enabled }),
-      })
-      if (res.status === 403) {
-        const data = await res.json()
-        alert(data.detail || (t.skillDetail?.notAllowed ?? "This operation is not allowed"))
-        return
-      }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      await api.patch(`/registry/skills/${skill.id}`, { enabled: !skill.enabled })
       await fetchSkill()
-    } catch (e) {
-      console.error("Toggle failed:", e)
+    } catch (e: any) {
+      alert(e?.message || (t.skillDetail?.notAllowed ?? "This operation is not allowed"))
     }
   }
 
@@ -96,18 +82,10 @@ export function SkillDetailPage() {
     if (!skill || skill.is_system_protected) return
     if (!confirm(`${t.skillDetail?.confirmDelete ?? "Delete skill"} "${skill.name}"?`)) return
     try {
-      const res = await fetch(`${API_BASE}/skills/${skill.id}`, {
-        method: "DELETE",
-      })
-      if (res.status === 403) {
-        const data = await res.json()
-        alert(data.detail || (t.skillDetail?.notAllowed ?? "This operation is not allowed"))
-        return
-      }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      await api.delete(`/registry/skills/${skill.id}`)
       navigate("/skills")
-    } catch (e) {
-      console.error("Delete failed:", e)
+    } catch (e: any) {
+      alert(e?.message || (t.skillDetail?.notAllowed ?? "This operation is not allowed"))
     }
   }
 
