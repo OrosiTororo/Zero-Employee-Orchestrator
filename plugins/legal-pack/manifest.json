@@ -1,0 +1,22 @@
+{
+  "slug": "legal-pack",
+  "name": "Legal Pack",
+  "version": "0.1.0",
+  "description": "Role-based plugin for legal teams — contract review, clause extraction, compliance checking, NDA drafting, and regulatory change monitoring",
+  "type": "plugin",
+  "status": "experimental",
+  "role": "legal",
+  "skills": ["contract_review", "clause_extraction", "compliance_check", "nda_drafting", "regulatory_monitoring"],
+  "connectors": ["google_docs", "docusign"],
+  "required_permissions": ["read_local"],
+  "external_connections": [],
+  "dangerous_operations": false,
+  "approval_required_operations": ["sign_document", "update_compliance_policy", "send_legal_notice"],
+  "use_cases": [
+    "Review contracts and flag risky clauses",
+    "Extract and compare key terms across agreements",
+    "Check documents against compliance requirements",
+    "Draft NDAs and standard agreements"
+  ],
+  "author": "Zero-Employee Orchestrator Team"
+}

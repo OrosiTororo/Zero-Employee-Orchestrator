@@ -1,0 +1,22 @@
+{
+  "slug": "hr-pack",
+  "name": "HR Pack",
+  "version": "0.1.0",
+  "description": "Role-based plugin for HR teams — job description drafting, resume screening, onboarding checklists, policy document generation, and employee survey analysis",
+  "type": "plugin",
+  "status": "experimental",
+  "role": "hr",
+  "skills": ["job_description_drafting", "resume_screening", "onboarding_checklist", "policy_generation", "survey_analysis"],
+  "connectors": ["google_docs", "notion"],
+  "required_permissions": ["read_local"],
+  "external_connections": [],
+  "dangerous_operations": false,
+  "approval_required_operations": ["publish_job_posting", "send_offer", "update_policy"],
+  "use_cases": [
+    "Draft job descriptions from role requirements",
+    "Screen and rank candidate resumes",
+    "Generate onboarding checklists for new hires",
+    "Analyze employee engagement survey results"
+  ],
+  "author": "Zero-Employee Orchestrator Team"
+}

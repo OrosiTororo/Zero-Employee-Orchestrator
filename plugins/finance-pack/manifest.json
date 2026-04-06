@@ -1,0 +1,22 @@
+{
+  "slug": "finance-pack",
+  "name": "Finance Pack",
+  "version": "0.1.0",
+  "description": "Role-based plugin for finance teams — expense analysis, budget tracking, invoice processing, financial reporting, and cash flow forecasting",
+  "type": "plugin",
+  "status": "experimental",
+  "role": "finance",
+  "skills": ["expense_analysis", "budget_tracking", "invoice_processing", "financial_reporting", "cashflow_forecast"],
+  "connectors": ["google_sheets", "quickbooks", "xero"],
+  "required_permissions": ["read_local"],
+  "external_connections": [],
+  "dangerous_operations": false,
+  "approval_required_operations": ["submit_expense", "approve_invoice", "publish_report"],
+  "use_cases": [
+    "Categorize and analyze monthly expenses",
+    "Track budget vs actuals across departments",
+    "Process and validate invoices",
+    "Generate board-ready financial reports"
+  ],
+  "author": "Zero-Employee Orchestrator Team"
+}

@@ -1,0 +1,22 @@
+{
+  "slug": "sales-pack",
+  "name": "Sales Pack",
+  "version": "0.1.0",
+  "description": "Role-based plugin for sales teams — lead scoring, competitive analysis, CRM data sync, pipeline reports, and outreach draft generation",
+  "type": "plugin",
+  "status": "experimental",
+  "role": "sales",
+  "skills": ["lead_scoring", "competitive_analysis", "pipeline_report", "outreach_drafting", "crm_sync"],
+  "connectors": ["hubspot", "salesforce", "google_sheets"],
+  "required_permissions": ["internet_access", "read_local"],
+  "external_connections": [],
+  "dangerous_operations": false,
+  "approval_required_operations": ["send_outreach", "update_crm"],
+  "use_cases": [
+    "Score and prioritize leads from CRM",
+    "Generate competitive analysis reports",
+    "Draft personalized outreach emails",
+    "Create weekly pipeline summary"
+  ],
+  "author": "Zero-Employee Orchestrator Team"
+}

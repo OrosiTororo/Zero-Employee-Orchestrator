@@ -260,6 +260,37 @@ BUILTIN_PLUGINS: list[dict] = [
         "name": "YouTube Manager",
         "description": "YouTube content management — upload, scheduling, analytics",
     },
+    # Role-based plugin packs (inspired by Claude Cowork's role plugins)
+    {
+        "slug": "sales-pack",
+        "name": "Sales Pack",
+        "description": "Lead scoring, competitive analysis, CRM sync, pipeline reports, outreach drafting",
+    },
+    {
+        "slug": "finance-pack",
+        "name": "Finance Pack",
+        "description": "Expense analysis, budget tracking, invoice processing, financial reporting",
+    },
+    {
+        "slug": "hr-pack",
+        "name": "HR Pack",
+        "description": "Job description drafting, resume screening, onboarding checklists, survey analysis",
+    },
+    {
+        "slug": "legal-pack",
+        "name": "Legal Pack",
+        "description": "Contract review, clause extraction, compliance checking, NDA drafting",
+    },
+    {
+        "slug": "marketing-pack",
+        "name": "Marketing Pack",
+        "description": "Content calendar, SEO analysis, social scheduling, campaign tracking",
+    },
+    {
+        "slug": "customer-support-pack",
+        "name": "Customer Support Pack",
+        "description": "Ticket triage, FAQ auto-response, escalation routing, sentiment analysis",
+    },
 ]
 
 BUILTIN_EXTENSIONS: list[dict] = [

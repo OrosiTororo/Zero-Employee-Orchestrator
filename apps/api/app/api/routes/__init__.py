@@ -15,6 +15,7 @@ from app.api.routes import (
     budgets,
     companies,
     config,
+    dispatch,
     export,
     file_upload,
     governance,
@@ -29,6 +30,7 @@ from app.api.routes import (
     nl_command,
     observability,
     ollama,
+    operator_profile,
     org_setup,
     platform,
     projects,
@@ -92,6 +94,8 @@ api_router.include_router(governance.router, tags=["governance"])
 api_router.include_router(language_packs.router, tags=["language-packs"])
 api_router.include_router(themes.router, tags=["themes"])
 api_router.include_router(nl_command.router, tags=["nl-command"])
+api_router.include_router(operator_profile.router, tags=["operator-profile"])
+api_router.include_router(dispatch.router, tags=["dispatch"])
 api_router.include_router(
     quality_insights.router,
     tags=[

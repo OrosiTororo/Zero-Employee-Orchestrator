@@ -1,0 +1,22 @@
+{
+  "slug": "customer-support-pack",
+  "name": "Customer Support Pack",
+  "version": "0.1.0",
+  "description": "Role-based plugin for support teams — ticket triage, FAQ auto-response, escalation routing, customer sentiment analysis, and knowledge base maintenance",
+  "type": "plugin",
+  "status": "experimental",
+  "role": "customer_support",
+  "skills": ["ticket_triage", "faq_autoresponse", "escalation_routing", "sentiment_analysis", "kb_maintenance"],
+  "connectors": ["slack", "notion", "zendesk"],
+  "required_permissions": ["read_local"],
+  "external_connections": [],
+  "dangerous_operations": false,
+  "approval_required_operations": ["send_customer_response", "escalate_to_human", "update_kb_article"],
+  "use_cases": [
+    "Auto-triage support tickets by category and priority",
+    "Generate draft responses for common questions",
+    "Route escalations to the right team member",
+    "Analyze customer sentiment trends over time"
+  ],
+  "author": "Zero-Employee Orchestrator Team"
+}
