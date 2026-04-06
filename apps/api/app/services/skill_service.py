@@ -477,6 +477,20 @@ BUILTIN_SKILLS: list[dict] = [
         "description": "Access local file and system information",
         "source_type": "local",
     },
+    {
+        "slug": "domain-skills",
+        "name": "Domain Skills",
+        "skill_type": "builtin",
+        "description": "Generalized domain skill templates (content, analysis, strategy)",
+        "source_type": "local",
+    },
+    {
+        "slug": "browser-assist",
+        "name": "Browser Assist",
+        "skill_type": "builtin",
+        "description": "Chrome extension overlay chat and screen sharing",
+        "source_type": "local",
+    },
 ]
 
 

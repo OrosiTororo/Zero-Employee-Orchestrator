@@ -434,3 +434,119 @@ Do NOT write about:
 - Internal refactoring that does not change user-facing behavior
 
 The audience is end users, not developers. Describe what changed in the system behavior, not what files were edited.
+
+## Demo Execution & Evaluation Guide
+
+### Demo Execution (User Scenario Testing)
+
+Simulate actual user workflows end-to-end. The goal is to catch issues that unit tests miss.
+
+```bash
+# 1. Server startup
+cd apps/api
+PYTHONPATH=. SECRET_KEY=demo-key DATABASE_URL=sqlite+aiosqlite:///./demo.db DEBUG=true \
+  python -m uvicorn app.main:app --host 127.0.0.1 --port 18234
+
+# 2. Auth flow
+curl -s -X POST http://127.0.0.1:18234/api/v1/auth/anonymous-session
+# → Save TOKEN and COMPANY_ID
+
+# 3. Core workflow: Ticket → Interview → Spec → Tasks
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
+  http://127.0.0.1:18234/api/v1/companies/$CID/tickets \
+  -d '{"title":"Test","description":"Test feature","priority":"medium"}'
+
+# 4. Registry validation (Skills, Plugins, Extensions seeded)
+curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:18234/api/v1/registry/skills
+curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:18234/api/v1/registry/plugins
+curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:18234/api/v1/registry/extensions
+
+# 5. Security checks
+curl -s http://127.0.0.1:18234/api/v1/themes           # → 401 (auth required)
+curl -s http://127.0.0.1:18234/api/v1/app-integrations/apps  # → 401
+curl -sI http://127.0.0.1:18234/healthz | grep -i 'x-frame\|x-content\|strict-transport'
+
+# 6. Kill switch
+curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:18234/api/v1/kill-switch/status
+
+# 7. Frontend build
+cd apps/desktop/ui && npx tsc --noEmit && npx vite build
+
+# 8. Security module tests
+PYTHONPATH=. python -c "from app.security.sandbox import FileSystemSandbox, ..."
+PYTHONPATH=. python -c "from app.security.pii_guard import detect_and_mask_pii, ..."
+PYTHONPATH=. python -c "from app.security.prompt_guard import scan_prompt_injection, ..."
+
+# 9. Cleanup
+rm -f demo.db
+```
+
+**Checklist:**
+- [ ] Server starts without errors
+- [ ] Anonymous session → JWT works
+- [ ] Protected endpoints reject unauthenticated requests
+- [ ] Ticket CRUD works end-to-end
+- [ ] Security headers present (CSP, HSTS, X-Frame, X-XSS)
+- [ ] Registry seeded correctly (8 Skills, 10+ Plugins, 11+ Extensions)
+- [ ] Kill switch status returns `active: false`
+- [ ] Database creates all 29+ tables
+- [ ] TypeScript compiles with 0 errors
+- [ ] Vite build completes successfully
+- [ ] Sandbox blocks path traversal attacks
+- [ ] PII guard detects SSN with keyword context, rejects bare numbers
+- [ ] Prompt guard blocks system override / role hijacking attempts
+- [ ] model_catalog.json loads 26 models
+
+### Evaluation Criteria
+
+Evaluations must include at minimum the following two perspectives, plus additional ones as deemed necessary.
+
+#### 1. Relative Evaluation (Competitive Positioning)
+
+Compare ZEO against direct competitors based on research. Competitors include:
+- **Multi-agent frameworks**: CrewAI, AutoGen, LangGraph, Dify, n8n AI
+- **IDE-style AI tools**: Cursor, Windsurf, Continue.dev
+
+| Dimension | How to Evaluate |
+|-----------|----------------|
+| **Usability** | Natural language operations vs code-first vs visual builder. Can a non-developer create a workflow? |
+| **Learning curve** | VSCode-based UI — how familiar does it feel to IDE users? Command palette, activity bar, tab navigation |
+| **Onboarding time** | Time from install to first useful result. g4f/Ollama zero-cost paths vs competitors requiring API keys |
+| **Security posture** | Compare security layers (approval gates, PII, sandbox, prompt guard, audit, kill switch) vs competitors |
+| **Multi-model support** | LiteLLM + Ollama + g4f + Web Sessions vs competitor model support |
+| **Enterprise readiness** | Audit trail, RBAC, workspace isolation, data protection vs competitor enterprise features |
+| **Ecosystem** | Skill/Plugin/Extension system vs competitor extension mechanisms |
+| **Community** | GitHub stars, contributors, documentation maturity vs competitors |
+
+#### 2. Objective Evaluation (First-Time User Perspective)
+
+Evaluate as if a person with no prior knowledge encounters ZEO for the first time.
+
+| Dimension | How to Evaluate |
+|-----------|----------------|
+| **First impression** | README clarity, install instructions, "what is this?" answer within 30 seconds |
+| **Time to value** | How quickly can a user accomplish something useful after installation? |
+| **Error handling** | Are error messages actionable? Do failures guide the user to a fix? |
+| **Documentation** | Is there a clear getting-started guide? Are features discoverable? |
+| **UI intuitiveness** | Can a user navigate without reading docs? Activity bar icons, command palette |
+| **Feature discoverability** | Can users find the features they need? Are there too many features? |
+| **Trust and transparency** | Does the user understand what AI is doing? Transparency layer, reasoning traces |
+
+#### 3. Additional Evaluation Perspectives (as needed)
+
+Add any relevant perspective. Examples:
+
+- **Architecture quality**: 9-layer separation, code modularity, test coverage
+- **Deployment readiness**: Docker, Cloudflare, Fly.io, Railway — how production-ready?
+- **Accessibility**: i18n coverage (6 languages), theme system (dark/light/high-contrast)
+- **Scalability**: Can the system handle concurrent users? Background workers?
+- **Cost to operate**: LLM costs for various execution modes, infrastructure costs
+- **Developer experience**: Contribution guide, code style, CI/CD pipeline quality
+
+### Scoring
+
+Use a 0-10 scale with 0.5 increments. Provide an overall weighted score.
+
+```
+Overall = (Relative × 0.35) + (Objective × 0.35) + (Additional × 0.30)
+```
