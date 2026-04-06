@@ -1,6 +1,7 @@
 # Zero-Employee Orchestrator — Claude Code Guide
 
-> AI orchestration: NL workflow → multi-agent DAG → human approval → audit trail.
+> **The AI Meta-Orchestrator**: orchestrate orchestrators, unify every AI framework and tool
+> under human approval, audit trail, and security.
 > 9-layer architecture. Python 3.12+ / FastAPI / Tauri v2 + React / Cloudflare Workers.
 
 ## Session Start
@@ -71,11 +72,12 @@ Files: root `pyproject.toml`, `apps/api/pyproject.toml`, `apps/desktop/package.j
 
 ## Design Principles
 
+- **Meta-Orchestrator**: ZEO integrates other AI frameworks (CrewAI, AutoGen, LangChain, Dify) and automation platforms (n8n, Zapier, Make) as sub-workers under its approval/audit layer. Tool-of-tools: connect to tools that connect to other tools.
 - **No API key required**: g4f (subscription), Ollama (local), OpenRouter (one key)
 - **ZEO is free**: Users pay LLM providers directly; no provider is "recommended"
-- **Skill/Plugin/Extension**: Skill = single task; Plugin = skill bundle; Extension = system integration
+- **Skill/Plugin/Extension**: Skill = single task; Plugin = skill bundle (includes role-based packs); Extension = system integration
 - **System skills**: Always enabled, cannot be disabled (8 built-in)
-- **UI**: VSCode layout — Activity Bar (progressive disclosure: 5 core + 2 collapsible groups), Command Palette (Ctrl+K), Status Bar
+- **UI**: Cowork-inspired task-first layout — Activity Bar with progressive disclosure, Autonomy Dial in status bar, Command Palette (Ctrl+K), Dispatch background tasks
 - **CLI**: Claude Code-like slash commands (`/read`, `/write`, `/edit`, `/run`, `/ls`, `/cd`, `/pwd`, `/find`, `/grep`)
 
 ## Prohibited
