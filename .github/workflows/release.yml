@@ -124,6 +124,96 @@ jobs:
             ```
 
             > Details: [README](https://github.com/OrosiTororo/Zero-Employee-Orchestrator#readme) | [User Guide](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/docs/USER_GUIDE.md) | [CHANGELOG](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/blob/master/docs/CHANGELOG.md)
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           includeUpdaterJson: true
+
+      - name: Upload per-platform updater JSON fragment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}"
+          # Save a copy of the platform-specific latest.json for the merge job
+          if [ -f apps/desktop/src-tauri/target/release/bundle/updater/latest.json ]; then
+            cp apps/desktop/src-tauri/target/release/bundle/updater/latest.json latest-${{ matrix.target }}.json
+          elif [ -f latest.json ]; then
+            cp latest.json latest-${{ matrix.target }}.json
+          fi
+
+      - name: Upload updater fragment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: updater-${{ matrix.target }}
+          path: latest-${{ matrix.target }}.json
+          if-no-files-found: ignore
+
+  # Merge latest.json fragments from all platforms to prevent race conditions
+  merge-updater-json:
+    needs: build-desktop
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all updater fragments
+        uses: actions/download-artifact@v4
+        with:
+          pattern: updater-*
+          merge-multiple: true
+
+      - name: Merge platform entries into latest.json
+        run: |
+          TAG="${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}"
+
+          # Merge all fragment files into a single latest.json
+          MERGED="{}"
+          for f in latest-*.json; do
+            [ -f "$f" ] || continue
+            echo "Merging $f ..."
+            MERGED=$(echo "$MERGED" | jq -s '.[0] as $base | .[1] | {
+              version: .version,
+              notes: .notes,
+              pub_date: .pub_date,
+              platforms: ($base.platforms // {} | to_entries + (.platforms // {} | to_entries) | from_entries)
+            }' - "$f")
+          done
+
+          echo "$MERGED" | jq . > latest.json
+          echo "=== Merged latest.json ==="
+          jq '.platforms | keys' latest.json
+
+          # Verify all expected platforms are present
+          PLATFORMS=$(jq -r '.platforms | keys[]' latest.json)
+          HAS_LINUX=false; HAS_WINDOWS=false; HAS_MACOS=false
+          for p in $PLATFORMS; do
+            case "$p" in
+              linux-*) HAS_LINUX=true ;;
+              windows-*) HAS_WINDOWS=true ;;
+              darwin-*) HAS_MACOS=true ;;
+            esac
+          done
+          echo "Linux: $HAS_LINUX, Windows: $HAS_WINDOWS, macOS: $HAS_MACOS"
+          if [ "$HAS_LINUX" = false ] || [ "$HAS_WINDOWS" = false ]; then
+            echo "::warning::Missing platform entries in latest.json"
+          fi
+
+      - name: Upload merged latest.json to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          TAG="${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}"
+
+          # Delete old latest.json asset if exists
+          ASSET_ID=$(gh api "repos/${GH_REPO}/releases/tags/${TAG}" \
+            --jq '.assets[] | select(.name == "latest.json") | .id' 2>/dev/null || true)
+          if [ -n "$ASSET_ID" ]; then
+            gh api -X DELETE "repos/${GH_REPO}/releases/assets/${ASSET_ID}"
+            echo "Deleted old latest.json (asset $ASSET_ID)"
+          fi
+
+          # Upload merged latest.json
+          RELEASE_ID=$(gh api "repos/${GH_REPO}/releases/tags/${TAG}" --jq '.id')
+          gh api \
+            -X POST \
+            -H "Content-Type: application/json" \
+            "https://uploads.github.com/repos/${GH_REPO}/releases/${RELEASE_ID}/assets?name=latest.json" \
+            --input latest.json
+          echo "Uploaded merged latest.json to release ${TAG}"

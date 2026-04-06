@@ -121,12 +121,31 @@ export function useUpdater() {
   }, [])
 
   // 起動時に自動チェック (30秒後、ネットワーク安定待ち)
+  // + 4時間ごとに定期再チェック (リリース直後のdraft状態回避)
   useEffect(() => {
     if (!isTauriEnv()) return
-    const timer = setTimeout(() => {
+
+    const INITIAL_DELAY = 30_000 // 30s
+    const RECHECK_INTERVAL = 4 * 60 * 60 * 1000 // 4h
+
+    const initialTimer = setTimeout(() => {
       checkForUpdate()
-    }, 30_000)
-    return () => clearTimeout(timer)
+    }, INITIAL_DELAY)
+
+    const intervalTimer = setInterval(() => {
+      // 既にアップデートが見つかっている場合は再チェック不要
+      setState((s) => {
+        if (!s.available && !s.downloading) {
+          checkForUpdate()
+        }
+        return s
+      })
+    }, RECHECK_INTERVAL)
+
+    return () => {
+      clearTimeout(initialTimer)
+      clearInterval(intervalTimer)
+    }
   }, [checkForUpdate])
 
   return {
