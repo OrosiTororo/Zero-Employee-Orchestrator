@@ -1,0 +1,1 @@
+export { useCompanyId } from "./useCompanyId"

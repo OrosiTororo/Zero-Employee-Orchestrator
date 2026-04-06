@@ -69,8 +69,8 @@ Items that can be implemented by the development team without large-scale commun
 | v0.1.2 | **Token auto-refresh** | 401 interceptor, periodic refresh, prevents auto-logout |
 | v0.1.2 | **Plugin/Extension seeding** | 10 built-in plugins + 11 extensions seeded on startup |
 | v0.1.2 | **API client migration** | All pages use centralized api client (auth + Tauri URL) |
-| TODO | **Frontend data connection** | Connect remaining UI pages to backend API endpoints |
-| TODO | **features/ module separation** | Extract business logic from pages to features/ |
+| v0.1.2 | **Frontend data connection** | TicketList, Approvals, Heartbeats, Costs, Audit connected to real API |
+| v0.1.2 | **features/ module separation** | features/company/ with shared useCompanyId hook |
 | TODO | **Plugin Loader UI** | Manifest-based dynamic loading in frontend |
 | TODO | **E2E flow integration** | Natural language input → interview → plan → execution |
 | TODO | **Worker core logic** | Strengthen TaskRunner / HeartbeatRunner |

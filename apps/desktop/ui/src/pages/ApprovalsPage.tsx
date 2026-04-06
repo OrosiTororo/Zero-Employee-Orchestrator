@@ -1,14 +1,57 @@
+import { useState, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import { ShieldCheck, AlertTriangle, CheckCircle, XCircle, ArrowRight } from "lucide-react"
 import { useT } from "@/shared/i18n"
+import { api } from "@/shared/api/client"
+
+interface ApprovalItem {
+  id: string
+  operation_type: string
+  target: string
+  reason: string
+  risk_level: string
+  requester: string
+  status: string
+  created_at?: string
+}
 
 export function ApprovalsPage() {
   const t = useT()
   const navigate = useNavigate()
+  const companyId = localStorage.getItem("company_id") || ""
+  const [approvals, setApprovals] = useState<ApprovalItem[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const approvals: {
-    id: string; risk: string; target: string; reason: string; requester: string; created: string
-  }[] = []
+  const fetchApprovals = useCallback(async () => {
+    if (!companyId) { setLoading(false); return }
+    setLoading(true)
+    try {
+      const data = await api.get<ApprovalItem[]>(`/companies/${companyId}/approvals?status=requested`)
+      setApprovals(data)
+    } catch {
+      setApprovals([])
+    } finally {
+      setLoading(false)
+    }
+  }, [companyId])
+
+  useEffect(() => { fetchApprovals() }, [fetchApprovals])
+
+  const handleApprove = async (id: string) => {
+    try {
+      await api.post(`/approvals/${id}/approve`, {})
+      await fetchApprovals()
+    } catch { /* ignore */ }
+  }
+
+  const handleReject = async (id: string) => {
+    const reason = prompt((t.approvals as Record<string, string>)?.rejectReason ?? "Reason for rejection:")
+    if (!reason) return
+    try {
+      await api.post(`/approvals/${id}/reject`, { reason })
+      await fetchApprovals()
+    } catch { /* ignore */ }
+  }
 
   return (
     <div className="h-full overflow-auto">
@@ -18,7 +61,11 @@ export function ApprovalsPage() {
           <h2 className="text-[14px] font-medium text-[var(--text-primary)]">{t.approvals.title}</h2>
         </div>
 
-        {approvals.length === 0 ? (
+        {loading ? (
+          <div className="rounded px-4 py-8 text-center text-[12px] border border-[var(--border)] text-[var(--text-muted)]">
+            {t.common.loading}
+          </div>
+        ) : approvals.length === 0 ? (
           <div className="rounded px-4 py-8 text-center border border-[var(--border)] text-[var(--text-muted)]">
             <ShieldCheck size={32} className="mx-auto mb-3 opacity-30" />
             <p className="text-[12px] mb-2">{t.approvals.emptyState}</p>
@@ -35,22 +82,28 @@ export function ApprovalsPage() {
               <div key={a.id} className="rounded px-4 py-3 border border-[var(--border)] bg-[var(--bg-surface)]">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <AlertTriangle size={14} className={a.risk === "critical" || a.risk === "high" ? "text-[var(--error)]" : "text-[var(--warning)]"} />
+                    <AlertTriangle size={14} className={a.risk_level === "critical" || a.risk_level === "high" ? "text-[var(--error)]" : "text-[var(--warning)]"} />
                     <span className="text-[11px] px-2 py-0.5 rounded bg-[var(--bg-active)] text-[var(--text-primary)]">
-                      {t.approvals.risk}: {a.risk}
+                      {t.approvals.risk}: {a.risk_level}
                     </span>
-                    <span className="text-[13px] text-[var(--text-primary)]">{a.target}</span>
+                    <span className="text-[13px] text-[var(--text-primary)]">{a.target || a.operation_type}</span>
                   </div>
-                  <span className="text-[11px] text-[var(--text-muted)]">{a.created}</span>
+                  <span className="text-[11px] text-[var(--text-muted)]">{a.created_at ?? ""}</span>
                 </div>
                 <p className="text-[12px] text-[var(--text-secondary)] mb-3 pl-6">{a.reason}</p>
                 <div className="flex items-center gap-2 pl-6">
-                  <button className="flex items-center gap-1 px-3 py-1 rounded text-[11px] bg-[var(--success)] text-white"
-                    aria-label={t.approvals.approve}>
+                  <button
+                    onClick={() => handleApprove(a.id)}
+                    className="flex items-center gap-1 px-3 py-1 rounded text-[11px] bg-[var(--success)] text-white"
+                    aria-label={t.approvals.approve}
+                  >
                     <CheckCircle size={12} />{t.approvals.approve}
                   </button>
-                  <button className="flex items-center gap-1 px-3 py-1 rounded text-[11px] border border-[var(--error)] text-[var(--error)]"
-                    aria-label={t.approvals.reject}>
+                  <button
+                    onClick={() => handleReject(a.id)}
+                    className="flex items-center gap-1 px-3 py-1 rounded text-[11px] border border-[var(--error)] text-[var(--error)]"
+                    aria-label={t.approvals.reject}
+                  >
                     <XCircle size={12} />{t.approvals.reject}
                   </button>
                 </div>

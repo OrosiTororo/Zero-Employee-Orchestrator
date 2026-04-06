@@ -1,7 +1,8 @@
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import { ScrollText, Search, Filter, ArrowRight } from "lucide-react"
 import { useT } from "@/shared/i18n"
+import { api } from "@/shared/api/client"
 
 const EVENT_TYPES = [
   "all",
@@ -11,16 +12,47 @@ const EVENT_TYPES = [
   "cost.incurred", "auth.login", "auth.logout", "settings.updated",
 ]
 
+interface AuditLog {
+  id: string
+  actor: string
+  event_type: string
+  target: string
+  trace_id?: string
+  created_at?: string
+  detail?: string
+}
+
 export function AuditPage() {
   const t = useT()
   const navigate = useNavigate()
+  const companyId = localStorage.getItem("company_id") || ""
   const [search, setSearch] = useState("")
   const [eventFilter, setEventFilter] = useState("all")
+  const [logs, setLogs] = useState<AuditLog[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const logs: {
-    id: string; actor: string; eventType: string; target: string
-    traceId: string; timestamp: string; detail: string
-  }[] = []
+  const fetchLogs = useCallback(async () => {
+    if (!companyId) { setLoading(false); return }
+    setLoading(true)
+    try {
+      const filter = eventFilter !== "all" ? `&event_type=${eventFilter}` : ""
+      const data = await api.get<AuditLog[]>(`/companies/${companyId}/audit-logs?limit=100${filter}`)
+      setLogs(data)
+    } catch {
+      setLogs([])
+    } finally {
+      setLoading(false)
+    }
+  }, [companyId, eventFilter])
+
+  useEffect(() => { fetchLogs() }, [fetchLogs])
+
+  const filtered = logs.filter(
+    (log) =>
+      log.actor?.toLowerCase().includes(search.toLowerCase()) ||
+      log.event_type?.toLowerCase().includes(search.toLowerCase()) ||
+      log.target?.toLowerCase().includes(search.toLowerCase()),
+  )
 
   return (
     <div className="h-full overflow-auto">
@@ -59,7 +91,11 @@ export function AuditPage() {
             <span>{t.audit.traceId}</span>
             <span>{t.audit.detail}</span>
           </div>
-          {logs.length === 0 ? (
+          {loading ? (
+            <div className="px-4 py-8 text-center text-[12px] text-[var(--text-muted)]">
+              {t.common.loading}
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="px-4 py-8 text-center text-[var(--text-muted)]">
               <ScrollText size={32} className="mx-auto mb-3 opacity-30" />
               <p className="text-[12px] mb-2">{t.audit.emptyState}</p>
@@ -68,15 +104,15 @@ export function AuditPage() {
               </button>
             </div>
           ) : (
-            logs.map((log) => (
+            filtered.map((log) => (
               <div key={log.id}
                 className="grid grid-cols-6 gap-2 px-4 py-2 text-[12px] border-b border-[var(--border)] last:border-b-0 hover:bg-[var(--bg-hover)]">
-                <span className="text-[var(--text-muted)] text-[11px]">{log.timestamp}</span>
+                <span className="text-[var(--text-muted)] text-[11px]">{log.created_at ?? ""}</span>
                 <span className="text-[var(--text-primary)]">{log.actor}</span>
-                <span className="text-[var(--info)] font-mono text-[11px]">{log.eventType}</span>
+                <span className="text-[var(--info)] font-mono text-[11px]">{log.event_type}</span>
                 <span className="text-[var(--text-primary)] truncate">{log.target}</span>
-                <span className="text-[var(--text-muted)] font-mono text-[10px] truncate">{log.traceId}</span>
-                <span className="text-[var(--text-secondary)] truncate">{log.detail}</span>
+                <span className="text-[var(--text-muted)] font-mono text-[10px] truncate">{log.trace_id ?? ""}</span>
+                <span className="text-[var(--text-secondary)] truncate">{log.detail ?? ""}</span>
               </div>
             ))
           )}
