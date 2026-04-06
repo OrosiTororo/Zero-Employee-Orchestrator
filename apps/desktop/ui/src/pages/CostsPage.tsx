@@ -1,8 +1,10 @@
-import { Coins, TrendingUp, ShieldAlert, Receipt } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { Coins, TrendingUp, ShieldAlert, Receipt, ArrowRight } from "lucide-react"
 import { useT } from "@/shared/i18n"
 
 export function CostsPage() {
   const t = useT()
+  const navigate = useNavigate()
 
   return (
     <div className="h-full overflow-auto">
@@ -77,8 +79,12 @@ export function CostsPage() {
               <span>{t.costs.tokens}</span>
               <span className="text-right">{t.costs.cost}</span>
             </div>
-            <div className="py-6 text-center text-[12px] text-[var(--text-muted)]">
-              {t.costs.emptyState}
+            <div className="py-6 text-center text-[var(--text-muted)]">
+              <Coins size={32} className="mx-auto mb-3 opacity-30" />
+              <p className="text-[12px] mb-2">{t.costs.emptyState}</p>
+              <button onClick={() => navigate("/")} className="inline-flex items-center gap-1 text-[12px] text-[var(--accent)] hover:underline">
+                {t.dashboard?.requestTask ?? "Request a task"} <ArrowRight size={12} />
+              </button>
             </div>
           </div>
         </section>

@@ -1,10 +1,12 @@
 import { useState } from "react"
-import { FileBox, Grid, List, Download, Eye } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { FileBox, Grid, List, Download, Eye, ArrowRight } from "lucide-react"
 import { useT } from "@/shared/i18n"
 
 export function ArtifactsPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const t = useT()
+  const navigate = useNavigate()
 
   const artifacts: {
     id: string
@@ -52,8 +54,12 @@ export function ArtifactsPage() {
         </div>
 
         {artifacts.length === 0 ? (
-          <div className="rounded px-4 py-8 text-center text-[12px] border border-[var(--border)] text-[var(--text-muted)]">
-            {t.artifacts?.emptyState ?? "No artifacts yet. Results from ticket execution will appear here."}
+          <div className="rounded px-4 py-8 text-center border border-[var(--border)] text-[var(--text-muted)]">
+            <FileBox size={32} className="mx-auto mb-3 opacity-30" />
+            <p className="text-[12px] mb-2">{t.artifacts?.emptyState ?? "No artifacts yet. Results from ticket execution will appear here."}</p>
+            <button onClick={() => navigate("/")} className="inline-flex items-center gap-1 text-[12px] text-[var(--accent)] hover:underline mt-1">
+              {t.dashboard?.requestTask ?? "Request a task"} <ArrowRight size={12} />
+            </button>
           </div>
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-3 gap-3">

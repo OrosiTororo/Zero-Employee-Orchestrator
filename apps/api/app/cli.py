@@ -349,20 +349,36 @@ def cmd_local(args: argparse.Namespace) -> None:
             print()
             return
 
-        # Chat loop
+        # Chat loop with Neovim-inspired modes
         conversation: list[dict] = []
         system_prompt = _build_system_prompt(language)
-
         ctx_tokens = 0  # approximate context usage
+        cli_mode = "NORMAL"  # NORMAL | INSERT | COMMAND
+
+        # Color constants (VSCode/Neovim)
+        _C_NORMAL = "\033[38;2;86;186;159m"   # success green
+        _C_INSERT = "\033[38;2;0;122;204m"    # accent blue
+        _C_COMMAND = "\033[38;2;243;215;104m"  # warning yellow
+        _C_MUTED = "\033[38;2;110;118;129m"
+        _C_ACCENT = "\033[38;2;0;122;204m"
+        _C_RESET = "\033[0m"
 
         while True:
             try:
-                # Prompt with context usage indicator
                 ctx_pct = min(100, int(ctx_tokens / 327.68))  # ~32768 ctx
-                # Neovim-style prompt: mode + context
-                prompt_prefix = f"\033[38;2;86;186;159mNORMAL\033[0m \033[38;2;110;118;129mctx:{ctx_pct}%\033[0m"
-                user_input = input(f"{prompt_prefix} \033[38;2;0;122;204m>\033[0m ").strip()
+                mode_color = (
+                    _C_NORMAL if cli_mode == "NORMAL"
+                    else _C_INSERT if cli_mode == "INSERT"
+                    else _C_COMMAND
+                )
+                prompt_prefix = f"{mode_color}{cli_mode}{_C_RESET} {_C_MUTED}ctx:{ctx_pct}%{_C_RESET}"
+                user_input = input(f"{prompt_prefix} {_C_ACCENT}>{_C_RESET} ").strip()
             except (KeyboardInterrupt, EOFError):
+                if cli_mode == "INSERT":
+                    # Ctrl+C in INSERT mode returns to NORMAL
+                    cli_mode = "NORMAL"
+                    print(f"\n  {_C_MUTED}-- NORMAL --{_C_RESET}")
+                    continue
                 print()
                 print(f"\n  {t('chat_goodbye')}")
                 break
@@ -370,9 +386,29 @@ def cmd_local(args: argparse.Namespace) -> None:
             if not user_input:
                 continue
 
-            # Commands
+            # Triple-quote enters INSERT mode (multi-line input)
+            if user_input == '"""' or user_input == "'''":
+                cli_mode = "INSERT"
+                print(f"  {_C_INSERT}-- INSERT -- (enter \"\"\" to finish){_C_RESET}")
+                lines = []
+                while True:
+                    try:
+                        line = input(f"  {_C_INSERT}│{_C_RESET} ")
+                    except (KeyboardInterrupt, EOFError):
+                        break
+                    if line.strip() in ('"""', "'''"):
+                        break
+                    lines.append(line)
+                cli_mode = "NORMAL"
+                user_input = "\n".join(lines)
+                if not user_input.strip():
+                    continue
+
+            # Commands — enter COMMAND mode briefly
             if user_input.startswith("/"):
+                cli_mode = "COMMAND"
                 handled = _handle_command(user_input, language)
+                cli_mode = "NORMAL"
                 if handled == "quit":
                     print(f"\n  {t('chat_goodbye')}")
                     break

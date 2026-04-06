@@ -1,5 +1,6 @@
 import { useState } from "react"
-import { ScrollText, Search, Filter } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { ScrollText, Search, Filter, ArrowRight } from "lucide-react"
 import { useT } from "@/shared/i18n"
 
 const EVENT_TYPES = [
@@ -12,6 +13,7 @@ const EVENT_TYPES = [
 
 export function AuditPage() {
   const t = useT()
+  const navigate = useNavigate()
   const [search, setSearch] = useState("")
   const [eventFilter, setEventFilter] = useState("all")
 
@@ -58,8 +60,12 @@ export function AuditPage() {
             <span>{t.audit.detail}</span>
           </div>
           {logs.length === 0 ? (
-            <div className="px-4 py-8 text-center text-[12px] text-[var(--text-muted)]">
-              {t.audit.emptyState}
+            <div className="px-4 py-8 text-center text-[var(--text-muted)]">
+              <ScrollText size={32} className="mx-auto mb-3 opacity-30" />
+              <p className="text-[12px] mb-2">{t.audit.emptyState}</p>
+              <button onClick={() => navigate("/")} className="inline-flex items-center gap-1 text-[12px] text-[var(--accent)] hover:underline">
+                {t.dashboard?.requestTask ?? "Request a task"} <ArrowRight size={12} />
+              </button>
             </div>
           ) : (
             logs.map((log) => (
