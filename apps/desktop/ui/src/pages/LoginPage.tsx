@@ -143,7 +143,7 @@ export function LoginPage() {
   }
 
   const inputClass =
-    "w-full pl-10 pr-4 py-2.5 rounded-md text-[13px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] placeholder:text-[var(--text-muted)]"
+    "input pl-10 pr-4 py-2.5"
 
   return (
     <div className="h-screen w-screen flex bg-[var(--bg-base)] relative">
@@ -238,7 +238,7 @@ export function LoginPage() {
           <button
             onClick={handleGoogleAuth}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-md text-[13px] font-medium border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors mb-4"
+            className="btn-secondary w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-md text-[13px] font-medium mb-4"
           >
             <GoogleIcon size={18} />
             {t.auth.continueWithGoogle}
@@ -304,7 +304,8 @@ export function LoginPage() {
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-md text-[12px] text-[var(--error)] bg-[#f4474712] border border-[#f4474730]">
+              <div className="flex items-center gap-2 px-3 py-2.5 rounded-md text-[12px] text-[var(--error)] border border-[var(--error)] animate-slide-in"
+                style={{ background: "var(--error-subtle)" }}>
                 {error}
               </div>
             )}
@@ -312,12 +313,7 @@ export function LoginPage() {
             <button
               onClick={mode === "login" ? handleLogin : handleRegister}
               disabled={loading}
-              className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-md text-[13px] font-medium text-white"
-              style={{
-                background: loading
-                  ? "var(--bg-active)"
-                  : "var(--gradient-primary)",
-              }}
+              className="btn-primary flex items-center justify-center gap-2 px-6 py-2.5 rounded-md text-[13px] font-medium"
             >
               {mode === "login" ? (
                 <>

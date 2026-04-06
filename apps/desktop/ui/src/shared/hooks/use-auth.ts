@@ -19,6 +19,34 @@ interface AuthState {
   setSetupCompleted: () => void
 }
 
+// Periodic token refresh interval (every 4 hours)
+const TOKEN_REFRESH_INTERVAL_MS = 4 * 60 * 60 * 1000
+let refreshIntervalId: ReturnType<typeof setInterval> | null = null
+
+function startTokenRefresh() {
+  if (refreshIntervalId) return
+  refreshIntervalId = setInterval(async () => {
+    const token = localStorage.getItem("auth_token")
+    if (!token) return
+    try {
+      const res = await api.post<{ access_token: string }>("/auth/refresh")
+      if (res.access_token) {
+        localStorage.setItem("auth_token", res.access_token)
+        useAuthStore.setState({ token: res.access_token })
+      }
+    } catch {
+      // refresh failed — will retry next interval
+    }
+  }, TOKEN_REFRESH_INTERVAL_MS)
+}
+
+function stopTokenRefresh() {
+  if (refreshIntervalId) {
+    clearInterval(refreshIntervalId)
+    refreshIntervalId = null
+  }
+}
+
 export const useAuthStore = create<AuthState>((set) => ({
   authenticated: !!localStorage.getItem("auth_token"),
   loading: true,
@@ -47,6 +75,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       isAnonymous: false,
       setupCompleted: !!res.setup_completed,
     })
+    startTokenRefresh()
   },
 
   register: async (email: string, password: string, displayName: string) => {
@@ -67,6 +96,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       isAnonymous: false,
       setupCompleted: false,
     })
+    startTokenRefresh()
   },
 
   startAnonymous: async () => {
@@ -90,6 +120,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       isAnonymous: true,
       setupCompleted: false,
     })
+    startTokenRefresh()
   },
 
   linkAccount: async (email: string, password: string, displayName: string) => {
@@ -111,6 +142,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: () => {
+    stopTokenRefresh()
     localStorage.removeItem("auth_token")
     localStorage.removeItem("is_anonymous")
     localStorage.removeItem("setup_completed")
@@ -144,7 +176,35 @@ export const useAuthStore = create<AuthState>((set) => ({
         isAnonymous: res.role === "anonymous",
         setupCompleted: setupDone,
       })
+      startTokenRefresh()
     } catch {
+      // Token expired or invalid — try to refresh before logging out
+      try {
+        const refreshRes = await api.post<{ access_token: string }>("/auth/refresh")
+        if (refreshRes.access_token) {
+          localStorage.setItem("auth_token", refreshRes.access_token)
+          // Retry auth check with new token
+          const res = await api.get<{ id: string; display_name: string; role: string }>("/auth/me")
+          let setupDone = localStorage.getItem("setup_completed") === "true"
+          try {
+            const status = await api.get<{ setup_completed: boolean }>("/auth/setup-status")
+            setupDone = status.setup_completed
+            if (setupDone) localStorage.setItem("setup_completed", "true")
+            else localStorage.removeItem("setup_completed")
+          } catch { /* ignore */ }
+          set({
+            authenticated: true,
+            loading: false,
+            token: refreshRes.access_token,
+            userId: res.id,
+            displayName: res.display_name,
+            isAnonymous: res.role === "anonymous",
+            setupCompleted: setupDone,
+          })
+          startTokenRefresh()
+          return
+        }
+      } catch { /* refresh also failed */ }
       localStorage.removeItem("auth_token")
       set({ authenticated: false, loading: false, token: null })
     }
@@ -153,6 +213,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   setToken: (token: string) => {
     localStorage.setItem("auth_token", token)
     set({ authenticated: true, token })
+    startTokenRefresh()
   },
 
   setSetupCompleted: () => {

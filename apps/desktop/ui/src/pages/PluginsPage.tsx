@@ -11,8 +11,7 @@ import {
 } from "lucide-react"
 import { useT } from "@/shared/i18n"
 import { useToastStore } from "@/shared/ui/ErrorToast"
-
-const API_BASE = "/api/v1/registry"
+import { api } from "@/shared/api/client"
 
 interface PluginItem {
   id: string
@@ -37,10 +36,9 @@ export function PluginsPage() {
   const fetchPlugins = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`${API_BASE}/plugins?include_disabled=true`)
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      setPlugins(await res.json())
-    } catch (e) {
+      const data = await api.get<PluginItem[]>("/registry/plugins?include_disabled=true")
+      setPlugins(data)
+    } catch {
       addToast("Failed to fetch plugins")
     } finally {
       setLoading(false)
@@ -54,20 +52,10 @@ export function PluginsPage() {
   const handleToggle = async (plugin: PluginItem) => {
     if (plugin.is_system_protected) return
     try {
-      const res = await fetch(`${API_BASE}/plugins/${plugin.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled: !plugin.enabled }),
-      })
-      if (res.status === 403) {
-        const data = await res.json()
-        alert(data.detail || t.plugins.notPermitted)
-        return
-      }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      await api.patch(`/registry/plugins/${plugin.id}`, { enabled: !plugin.enabled })
       await fetchPlugins()
-    } catch (e) {
-      addToast("Toggle failed")
+    } catch (e: any) {
+      addToast(e?.message || "Toggle failed")
     }
   }
 
@@ -77,41 +65,23 @@ export function PluginsPage() {
       return
     }
     if (!confirm(`${t.plugins.confirmDelete}${plugin.name}`)) return
-
     try {
-      const res = await fetch(`${API_BASE}/plugins/${plugin.id}`, {
-        method: "DELETE",
-      })
-      if (res.status === 403) {
-        const data = await res.json()
-        alert(data.detail || t.plugins.notPermitted)
-        return
-      }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      await api.delete(`/registry/plugins/${plugin.id}`)
       await fetchPlugins()
-    } catch (e) {
-      addToast("Delete failed")
+    } catch (e: any) {
+      addToast(e?.message || "Delete failed")
     }
   }
 
   const handleInstall = async () => {
     if (!installForm.slug.trim() || !installForm.name.trim()) return
     try {
-      const res = await fetch(`${API_BASE}/plugins`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(installForm),
-      })
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        alert(data.detail || `HTTP ${res.status}`)
-        return
-      }
+      await api.post("/registry/plugins", installForm)
       setShowInstall(false)
       setInstallForm({ slug: "", name: "", description: "" })
       await fetchPlugins()
-    } catch (e) {
-      addToast("Install failed")
+    } catch (e: any) {
+      addToast(e?.message || "Install failed")
     }
   }
 

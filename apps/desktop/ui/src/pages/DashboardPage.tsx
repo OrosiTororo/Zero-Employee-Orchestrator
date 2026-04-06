@@ -17,6 +17,9 @@ import {
   Search,
   HelpCircle,
   ListTodo,
+  BookOpen,
+  ArrowRight,
+  X,
 } from "lucide-react"
 import { api } from "../shared/api/client"
 import { useT } from "@/shared/i18n"
@@ -27,6 +30,7 @@ export function DashboardPage() {
   const [activeTickets, setActiveTickets] = useState(0)
   const [pendingApprovals, setPendingApprovals] = useState(0)
   const [agentStatus, setAgentStatus] = useState("0 / 0")
+  const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem("welcome_dismissed"))
   const navigate = useNavigate()
   const t = useT()
   const companyId = localStorage.getItem("company_id") || ""
@@ -88,28 +92,81 @@ export function DashboardPage() {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit() }
   }
 
+  const dismissWelcome = () => {
+    localStorage.setItem("welcome_dismissed", "true")
+    setShowWelcome(false)
+  }
+
   const quickActions = [
-    { icon: Globe, label: t.dashboard.qaResearch, example: t.dashboard.qaResearchEx },
-    { icon: FileText, label: t.dashboard.qaReport, example: t.dashboard.qaReportEx },
-    { icon: Terminal, label: t.dashboard.qaAutomate, example: t.dashboard.qaAutomateEx },
-    { icon: Zap, label: t.dashboard.qaAnalyze, example: t.dashboard.qaAnalyzeEx },
+    { icon: Globe, label: t.dashboard.qaResearch, example: t.dashboard.qaResearchEx, color: "var(--accent)" },
+    { icon: FileText, label: t.dashboard.qaReport, example: t.dashboard.qaReportEx, color: "var(--accent-secondary)" },
+    { icon: Terminal, label: t.dashboard.qaAutomate, example: t.dashboard.qaAutomateEx, color: "var(--success)" },
+    { icon: Zap, label: t.dashboard.qaAnalyze, example: t.dashboard.qaAnalyzeEx, color: "var(--warning)" },
   ]
 
   return (
     <div className="h-full overflow-auto">
-      <div className="max-w-[960px] mx-auto px-6 py-6">
+      <div className="max-w-[960px] mx-auto px-6 py-6 space-y-5">
+
+        {/* Welcome Guide - shown on first visit */}
+        {showWelcome && (
+          <div className="card-elevated p-5 animate-slide-in relative">
+            <button
+              onClick={dismissWelcome}
+              className="absolute top-3 right-3 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+            >
+              <X size={16} />
+            </button>
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+                style={{ background: "var(--accent-subtle)" }}>
+                <BookOpen size={20} style={{ color: "var(--accent)" }} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-[14px] font-semibold text-[var(--text-primary)] mb-1">
+                  {t.dashboard?.welcomeTitle ?? "Welcome to Zero-Employee Orchestrator"}
+                </h3>
+                <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed mb-3">
+                  {t.dashboard?.welcomeDesc ?? "Describe your business tasks in natural language. Your AI team will plan, execute, verify, and deliver — all under your approval."}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => navigate("/secretary")}
+                    className="btn-primary flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-md"
+                  >
+                    <Bot size={13} />
+                    {t.dashboard?.trySecretary ?? "Talk to Secretary"}
+                  </button>
+                  <button
+                    onClick={() => navigate("/settings")}
+                    className="btn-secondary flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-md"
+                  >
+                    {t.dashboard?.configureSettings ?? "Configure Settings"}
+                  </button>
+                  <button
+                    onClick={dismissWelcome}
+                    className="btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-md"
+                  >
+                    {t.dashboard?.dismissGuide ?? "Got it"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Task Input */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Send size={16} className="text-[var(--accent)]" />
-            <h2 className="text-[14px] font-medium text-[var(--text-primary)]">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Send size={15} className="text-[var(--accent)]" />
+            <h2 className="text-[13px] font-semibold text-[var(--text-primary)]">
               {t.dashboard.requestTask}
             </h2>
-            <kbd className="ml-auto text-[10px] text-[var(--text-muted)] border border-[var(--border)] rounded px-1.5 py-0.5">
+            <kbd className="ml-auto text-[10px] text-[var(--text-muted)] border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--bg-raised)]">
               Ctrl+K
             </kbd>
           </div>
-          <div className="rounded-md overflow-hidden border border-[var(--border)] bg-[var(--bg-surface)] focus-within:border-[var(--accent)] transition-colors">
+          <div className="card overflow-hidden focus-within:border-[var(--accent)] transition-colors">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -120,29 +177,27 @@ export function DashboardPage() {
               rows={3}
               aria-label={t.dashboard.requestTask}
             />
-            <div className="flex items-center justify-between px-4 py-2 border-t border-[var(--border)]">
+            <div className="flex items-center justify-between px-4 py-2.5 border-t border-[var(--border)] bg-[var(--bg-raised)]">
               <span className="text-[11px] text-[var(--text-muted)]">
                 {t.dashboard.inputHint}
               </span>
               <button
                 onClick={handleSubmit}
                 disabled={!input.trim() || loading}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-[12px] font-medium disabled:opacity-40"
-                style={{
-                  background: input.trim() && !loading ? "var(--accent)" : "var(--border)",
-                  color: input.trim() && !loading ? "var(--accent-fg)" : "var(--text-muted)",
-                }}
+                className="btn-primary flex items-center gap-1.5 px-4 py-1.5 rounded-md text-[12px] font-medium disabled:opacity-40"
               >
-                <Send size={13} />
+                <Send size={12} />
                 {loading ? t.dashboard.submitting : t.dashboard.submit}
               </button>
             </div>
           </div>
           {showChat && chatHistory.length > 0 && (
-            <div className="mt-3 rounded-md border border-[var(--border)] bg-[var(--bg-surface)] max-h-[200px] overflow-auto">
+            <div className="mt-3 card max-h-[200px] overflow-auto animate-slide-in">
               {chatHistory.map((msg, i) => (
-                <div key={i} className={`px-4 py-2 text-[12px] ${i > 0 ? "border-t border-[var(--border)]" : ""}`}>
-                  <span className="text-[10px] text-[var(--text-muted)] mr-2">{msg.role === "user" ? ">" : "ZEO"}</span>
+                <div key={i} className={`px-4 py-2.5 text-[12px] ${i > 0 ? "border-t border-[var(--border)]" : ""}`}>
+                  <span className={`text-[10px] font-mono font-medium mr-2 ${msg.role === "user" ? "text-[var(--accent)]" : "text-[var(--success)]"}`}>
+                    {msg.role === "user" ? ">" : "ZEO"}
+                  </span>
                   <span className={msg.role === "user" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}>
                     {msg.content}
                   </span>
@@ -153,13 +208,16 @@ export function DashboardPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {quickActions.map((qa, i) => (
             <button key={i}
               onClick={() => { setInput(qa.example); }}
-              className="group rounded-md px-3 py-3 text-left border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent)] transition-colors"
+              className="card-interactive group rounded-lg px-3.5 py-3.5 text-left"
             >
-              <qa.icon size={16} className="text-[var(--accent)] mb-2" />
+              <div className="w-8 h-8 rounded-md flex items-center justify-center mb-2.5"
+                style={{ background: `color-mix(in srgb, ${qa.color} 12%, transparent)` }}>
+                <qa.icon size={16} style={{ color: qa.color }} />
+              </div>
               <div className="text-[12px] font-medium text-[var(--text-primary)] mb-0.5">{qa.label}</div>
               <div className="text-[11px] text-[var(--text-muted)] truncate">{qa.example}</div>
             </button>
@@ -167,35 +225,35 @@ export function DashboardPage() {
         </div>
 
         {/* Status Grid */}
-        <div className="grid grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-4 gap-3">
           <StatusCard icon={Ticket} label={t.dashboard.activeTickets} value={String(activeTickets)}
             accent="var(--accent)" onClick={() => navigate("/tickets")} />
           <StatusCard icon={ShieldCheck} label={t.dashboard.pendingApprovals} value={String(pendingApprovals)}
-            accent={pendingApprovals > 0 ? "var(--warning)" : "var(--accent)"} onClick={() => navigate("/approvals")} />
+            accent={pendingApprovals > 0 ? "var(--warning)" : "var(--success)"} onClick={() => navigate("/approvals")} />
           <StatusCard icon={Bot} label={t.dashboard.agentStatus} value={agentStatus}
-            accent="var(--success-fg)" onClick={() => navigate("/org-chart")} />
+            accent="var(--success)" onClick={() => navigate("/org-chart")} />
           <StatusCard icon={HeartPulse} label={t.dashboard.heartbeat} value={t.dashboard.heartbeatNormal}
-            accent="var(--success-fg)" onClick={() => navigate("/heartbeats")} />
+            accent="var(--success)" onClick={() => navigate("/heartbeats")} />
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-3 gap-3">
           {/* Cost */}
-          <div className="rounded-md px-4 py-3 border border-[var(--border)] bg-[var(--bg-surface)]">
+          <div className="card p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Coins size={14} className="text-[var(--warning)]" />
-              <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-medium">
+              <Coins size={14} style={{ color: "var(--warning)" }} />
+              <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
                 {t.dashboard.costSummary}
               </span>
             </div>
-            <div className="text-[20px] font-semibold text-[var(--text-primary)]">$0.00</div>
+            <div className="text-[20px] font-bold text-[var(--text-primary)]">$0.00</div>
             <div className="text-[11px] text-[var(--text-muted)]">{t.dashboard.today}</div>
           </div>
 
           {/* Mission */}
-          <div className="rounded-md px-4 py-3 border border-[var(--border)] bg-[var(--bg-surface)]">
+          <div className="card p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Target size={14} className="text-[var(--accent)]" />
-              <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-medium">
+              <Target size={14} style={{ color: "var(--accent)" }} />
+              <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
                 {t.dashboard.companyMission}
               </span>
             </div>
@@ -203,10 +261,10 @@ export function DashboardPage() {
           </div>
 
           {/* Errors */}
-          <div className="rounded-md px-4 py-3 border border-[var(--border)] bg-[var(--bg-surface)]">
+          <div className="card p-4">
             <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle size={14} className="text-[var(--success-fg)]" />
-              <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-medium">
+              <AlertTriangle size={14} style={{ color: "var(--success)" }} />
+              <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
                 {t.dashboard.errorsBlocks}
               </span>
             </div>
@@ -215,16 +273,16 @@ export function DashboardPage() {
         </div>
 
         {/* Quick Start Templates */}
-        <div className="rounded-md px-4 py-3 border border-[var(--border)] bg-[var(--bg-surface)]">
+        <div className="card p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Sparkles size={14} className="text-[var(--accent)]" />
-              <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-medium">
+              <Sparkles size={14} style={{ color: "var(--accent-secondary)" }} />
+              <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
                 {t.dashboard?.quickStartTemplates ?? "Quick Start Templates"}
               </span>
             </div>
-            <span className="text-[10px] text-[var(--text-muted)]">
-              {t.dashboard?.quickStartTemplatesDesc ?? "Get productive in under 10 minutes"}
+            <span className="badge badge-accent">
+              {t.dashboard?.quickStartTemplatesDesc ?? "10 min"}
             </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
@@ -279,7 +337,7 @@ export function DashboardPage() {
                     navigate("/setup")
                   }
                 }}
-                className="group rounded-md px-3 py-3 text-left border border-[var(--border)] hover:border-[var(--accent)] transition-colors"
+                className="card-interactive group rounded-lg px-3 py-3 text-left"
               >
                 <tpl.icon size={16} className="text-[var(--text-muted)] group-hover:text-[var(--accent)] mb-2 transition-colors" />
                 <div className="text-[12px] font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] mb-0.5 transition-colors">
@@ -301,12 +359,12 @@ function StatusCard({ icon: Icon, label, value, accent, onClick }: {
 }) {
   return (
     <button onClick={onClick}
-      className="rounded-md px-3 py-3 text-left border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent)] transition-colors">
-      <div className="flex items-center gap-1.5 mb-1">
+      className="card-interactive rounded-lg px-3.5 py-3.5 text-left">
+      <div className="flex items-center gap-1.5 mb-1.5">
         <Icon size={13} style={{ color: accent }} />
-        <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-medium truncate">{label}</span>
+        <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold truncate">{label}</span>
       </div>
-      <div className="text-[18px] font-semibold text-[var(--text-primary)]">{value}</div>
+      <div className="text-[18px] font-bold text-[var(--text-primary)]">{value}</div>
     </button>
   )
 }

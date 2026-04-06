@@ -67,6 +67,36 @@ export async function waitForBackend(
   return false
 }
 
+/**
+ * Try to refresh the current token. Returns true if successful.
+ */
+async function tryRefreshToken(): Promise<boolean> {
+  const token = localStorage.getItem("auth_token")
+  if (!token) return false
+  try {
+    const res = await fetch(`${API_BASE}/auth/refresh`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    if (res.ok) {
+      const data = await res.json()
+      if (data.access_token) {
+        localStorage.setItem("auth_token", data.access_token)
+        return true
+      }
+    }
+  } catch {
+    // refresh failed
+  }
+  return false
+}
+
+// Track if a refresh is in-flight to avoid duplicates
+let refreshPromise: Promise<boolean> | null = null
+
 export async function request<T>(
   path: string,
   options?: RequestInit,
@@ -106,18 +136,46 @@ export async function request<T>(
       } catch {
         clearTimeout(retryTimeout)
         throw new NetworkError(
-          "サーバーに接続できません。バックエンドが起動しているか確認してください。" +
-            `\n(接続先: ${API_BASE})`,
+          "Cannot connect to server. Please check that the backend is running." +
+            `\n(Target: ${API_BASE})`,
         )
       }
     } else {
       throw new NetworkError(
-        "サーバーに接続できません。バックエンドが起動しているか確認してください。" +
-          `\n(接続先: ${API_BASE})`,
+        "Cannot connect to server. Please check that the backend is running." +
+          `\n(Target: ${API_BASE})`,
       )
     }
   }
   clearTimeout(timeout)
+
+  // Handle 401 — attempt token refresh once, then retry the original request
+  if (res.status === 401 && !path.startsWith("/auth/")) {
+    if (!refreshPromise) {
+      refreshPromise = tryRefreshToken().finally(() => { refreshPromise = null })
+    }
+    const refreshed = await refreshPromise
+    if (refreshed) {
+      // Retry with the new token
+      const retryRes = await fetch(`${API_BASE}${path}`, {
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+          ...options?.headers,
+        },
+        ...options,
+      })
+      if (retryRes.ok) {
+        return retryRes.json()
+      }
+      // If retry also fails, fall through to error handling
+      const err = await retryRes.json().catch(() => ({ detail: retryRes.statusText }))
+      throw new ApiError(err.detail || retryRes.statusText, retryRes.status)
+    }
+    // Refresh failed — throw 401 so the caller can handle logout
+    const err = await res.json().catch(() => ({ detail: res.statusText }))
+    throw new ApiError(err.detail || res.statusText, res.status)
+  }
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }))
