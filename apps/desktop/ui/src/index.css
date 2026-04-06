@@ -32,9 +32,18 @@
 
   /* Status colors — Zed (Apache 2.0), overridable via extensions */
   --success: #56BA9F;
+  --success-fg: #56BA9F;
   --error: #E5484D;
   --warning: #F3D768;
+  --warning-fg: #F3D768;
   --info: #0090FF;
+
+  /* Accent variants */
+  --accent-subtle: rgba(0, 122, 204, 0.08);
+  --accent-secondary: #7C3AED;
+
+  /* Elevated surface */
+  --bg-raised: #2D2D2D;
 
   /* Shadows — VSCode-style: minimal, popups/modals only */
   --shadow-popup: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -79,9 +88,14 @@
   --statusbar-fg: #FFFFFF;
 
   --success: #16825D;
+  --success-fg: #16825D;
   --error: #CD3131;
   --warning: #BF8803;
+  --warning-fg: #BF8803;
   --info: #0451A5;
+
+  --accent-subtle: rgba(0, 122, 204, 0.06);
+  --accent-secondary: #6D28D9;
 
   --shadow-popup: 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-modal: 0 8px 24px rgba(0, 0, 0, 0.12);
@@ -116,9 +130,14 @@
   --statusbar-fg: #000000;
 
   --success: #89D185;
+  --success-fg: #89D185;
   --error: #F48771;
   --warning: #CCA700;
+  --warning-fg: #CCA700;
   --info: #75BEFF;
+
+  --accent-subtle: rgba(26, 235, 255, 0.1);
+  --accent-secondary: #B180D7;
 
   --shadow-popup: 0 0 0 1px var(--border);
   --shadow-modal: 0 0 0 1px var(--border);

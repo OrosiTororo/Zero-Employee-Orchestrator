@@ -1,8 +1,10 @@
-import { ShieldCheck, AlertTriangle, CheckCircle, XCircle } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { ShieldCheck, AlertTriangle, CheckCircle, XCircle, ArrowRight } from "lucide-react"
 import { useT } from "@/shared/i18n"
 
 export function ApprovalsPage() {
   const t = useT()
+  const navigate = useNavigate()
 
   const approvals: {
     id: string; risk: string; target: string; reason: string; requester: string; created: string
@@ -17,8 +19,15 @@ export function ApprovalsPage() {
         </div>
 
         {approvals.length === 0 ? (
-          <div className="rounded px-4 py-8 text-center text-[12px] border border-[var(--border)] text-[var(--text-muted)]">
-            {t.approvals.emptyState}
+          <div className="rounded px-4 py-8 text-center border border-[var(--border)] text-[var(--text-muted)]">
+            <ShieldCheck size={32} className="mx-auto mb-3 opacity-30" />
+            <p className="text-[12px] mb-2">{t.approvals.emptyState}</p>
+            <button
+              onClick={() => navigate("/")}
+              className="inline-flex items-center gap-1 text-[12px] text-[var(--accent)] hover:underline mt-1"
+            >
+              {t.dashboard?.requestTask ?? "Request a task"} <ArrowRight size={12} />
+            </button>
           </div>
         ) : (
           <div className="flex flex-col gap-3">

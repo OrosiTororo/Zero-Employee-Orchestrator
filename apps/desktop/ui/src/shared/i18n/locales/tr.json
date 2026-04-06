@@ -258,7 +258,12 @@
     "qaAutomate": "Otomatikleştir",
     "qaAutomateEx": "Her pazartesi sosyal medya gönderilerini otomatik olarak hazırla",
     "qaAnalyze": "Analiz",
-    "qaAnalyzeEx": "Müşteri geri bildirimlerini sınıflandır ve iyileştirmeleri çıkar"
+    "qaAnalyzeEx": "Müşteri geri bildirimlerini sınıflandır ve iyileştirmeleri çıkar",
+    "welcomeTitle": "Zero-Employee Orchestrator'a Hoş Geldiniz",
+    "welcomeDesc": "İş görevlerinizi doğal dilde anlatın. AI ekibiniz planlayacak, yürütecek, doğrulayacak ve teslim edecek — hepsi sizin onayınızla.",
+    "trySecretary": "Sekreterle Konuş",
+    "configureSettings": "Ayarları Aç",
+    "dismissGuide": "Anladım"
   },
   "settings": {
     "title": "Ayarlar",
