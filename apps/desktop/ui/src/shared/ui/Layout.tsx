@@ -112,6 +112,7 @@ export function Layout({ children }: LayoutProps) {
     { icon: Ticket, path: "/tickets", label: t.nav.tickets },
     { icon: BrainCircuit, path: "/secretary", label: t.nav.secretary },
     { icon: Sparkles, path: "/brainstorm", label: t.nav.brainstorm },
+    { icon: Send, path: "/dispatch", label: t.nav?.dispatch ?? "Dispatch" },
     { icon: Activity, path: "/monitor", label: t.nav.monitor },
   ]
 

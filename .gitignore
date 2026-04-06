@@ -72,3 +72,5 @@ zero_employee_orchestrator.db
 *.AppImage
 *.dmg
 .wrangler/cache
+
+# Auto-mutated on server startup

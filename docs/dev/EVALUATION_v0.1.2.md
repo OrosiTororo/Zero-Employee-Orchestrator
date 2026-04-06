@@ -98,7 +98,7 @@
 
 ### Architecture: 8.0/10
 - 9-layer separation is clean and well-designed
-- 25 services, 44 routes, clean DI
+- 25 services, 46 routes, clean DI
 - Test coverage is limited (14 test files for 390+ endpoints)
 - Some features are stubs (Dispatch, Operator Profile FS-only storage)
 

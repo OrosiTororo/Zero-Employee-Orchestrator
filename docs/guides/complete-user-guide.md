@@ -119,7 +119,7 @@ If the Judge rejects a result, the Re-Propose layer kicks in -- it rebuilds the 
 
 ### Approval Gates
 
-ZEO requires human approval before executing dangerous operations. There are 12 categories of gated actions:
+ZEO requires human approval before executing dangerous operations. There are 14 categories of gated actions:
 
 | Category | Examples |
 |----------|---------|
@@ -334,7 +334,7 @@ ZEO detects and blocks attempts to manipulate AI agents through injected instruc
 
 ### Approval Gates
 
-As described in Core Concepts, 12 categories of dangerous operations require your explicit approval. The AI cannot bypass these gates regardless of autonomy level. Each approval request includes context about cost, risk, permissions, data flow, and reversibility.
+As described in Core Concepts, 14 categories of dangerous operations require your explicit approval. The AI cannot bypass these gates regardless of autonomy level. Each approval request includes context about cost, risk, permissions, data flow, and reversibility.
 
 ### Role-Based Tool Permissions
 

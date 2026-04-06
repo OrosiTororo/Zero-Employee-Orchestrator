@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { ShieldCheck, AlertTriangle, CheckCircle, XCircle, ArrowRight } from "lucide-react"
 import { useT } from "@/shared/i18n"
 import { api } from "@/shared/api/client"
+import { useToastStore } from "@/shared/ui/ErrorToast"
 
 interface ApprovalItem {
   id: string
@@ -21,6 +22,7 @@ export function ApprovalsPage() {
   const companyId = localStorage.getItem("company_id") || ""
   const [approvals, setApprovals] = useState<ApprovalItem[]>([])
   const [loading, setLoading] = useState(true)
+  const addToast = useToastStore((s) => s.addToast)
 
   const fetchApprovals = useCallback(async () => {
     if (!companyId) { setLoading(false); return }
@@ -30,10 +32,11 @@ export function ApprovalsPage() {
       setApprovals(data)
     } catch {
       setApprovals([])
+      addToast("Could not load approvals. Check your connection.")
     } finally {
       setLoading(false)
     }
-  }, [companyId])
+  }, [companyId, addToast])
 
   useEffect(() => { fetchApprovals() }, [fetchApprovals])
 
@@ -41,7 +44,9 @@ export function ApprovalsPage() {
     try {
       await api.post(`/approvals/${id}/approve`, {})
       await fetchApprovals()
-    } catch { /* ignore */ }
+    } catch {
+      addToast("Could not approve. Try again.")
+    }
   }
 
   const handleReject = async (id: string) => {
@@ -50,7 +55,9 @@ export function ApprovalsPage() {
     try {
       await api.post(`/approvals/${id}/reject`, { reason })
       await fetchApprovals()
-    } catch { /* ignore */ }
+    } catch {
+      addToast("Could not reject. Try again.")
+    }
   }
 
   return (

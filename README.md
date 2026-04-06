@@ -347,7 +347,7 @@ ZEO is designed **security-first** with multi-layered defense:
 | Layer | Description |
 |-------|-------------|
 | **Prompt Injection Defense** | Detects and blocks instruction injection from external inputs (5 categories, 28+ patterns) |
-| **Approval Gates** | 12 categories of dangerous operations (send, delete, billing, permission changes) require human approval |
+| **Approval Gates** | 14 categories of dangerous operations (send, delete, billing, permission changes) require human approval |
 | **Autonomy Boundaries** | Explicitly limits what AI can do autonomously |
 | **IAM & Tool Permissions** | Separate human/AI accounts; role-based tool permissions (5 default policies: secretary, researcher, reviewer, executor, admin) enforce least privilege per agent |
 | **Kill Switch** | Emergency halt of all active executions via UI button or API (`/kill-switch/activate`). Blocks new executions until resumed. |
