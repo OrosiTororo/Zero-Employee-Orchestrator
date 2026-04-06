@@ -98,8 +98,8 @@ export function CommandPalette() {
       <div className="absolute inset-0 bg-black/50" />
 
       {/* Palette */}
-      <div className="relative w-[520px] max-h-[420px] flex flex-col rounded-xl border border-[var(--border-elevated)] bg-[var(--bg-surface)] overflow-hidden animate-scale-in"
-        style={{ boxShadow: "var(--shadow-xl)" }}
+      <div className="relative w-[500px] max-h-[400px] flex flex-col rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden animate-fade-in"
+        style={{ boxShadow: "var(--shadow-modal)" }}
         onClick={e => e.stopPropagation()}>
         {/* Search input */}
         <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border)]">

@@ -18,7 +18,6 @@ import {
   HelpCircle,
   ListTodo,
   BookOpen,
-  ArrowRight,
   X,
 } from "lucide-react"
 import { api } from "../shared/api/client"
@@ -110,7 +109,7 @@ export function DashboardPage() {
 
         {/* Welcome Guide - shown on first visit */}
         {showWelcome && (
-          <div className="card-elevated p-5 animate-slide-in relative">
+          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)] p-5 animate-slide-in relative">
             <button
               onClick={dismissWelcome}
               className="absolute top-3 right-3 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
@@ -132,20 +131,20 @@ export function DashboardPage() {
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => navigate("/secretary")}
-                    className="btn-primary flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-md"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-md"
                   >
                     <Bot size={13} />
                     {t.dashboard?.trySecretary ?? "Talk to Secretary"}
                   </button>
                   <button
                     onClick={() => navigate("/settings")}
-                    className="btn-secondary flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-md"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-md"
                   >
                     {t.dashboard?.configureSettings ?? "Configure Settings"}
                   </button>
                   <button
                     onClick={dismissWelcome}
-                    className="btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-md"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-md"
                   >
                     {t.dashboard?.dismissGuide ?? "Got it"}
                   </button>
@@ -166,7 +165,7 @@ export function DashboardPage() {
               Ctrl+K
             </kbd>
           </div>
-          <div className="card overflow-hidden focus-within:border-[var(--accent)] transition-colors">
+          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)]overflow-hidden focus-within:border-[var(--accent)] transition-colors">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -184,7 +183,7 @@ export function DashboardPage() {
               <button
                 onClick={handleSubmit}
                 disabled={!input.trim() || loading}
-                className="btn-primary flex items-center gap-1.5 px-4 py-1.5 rounded-md text-[12px] font-medium disabled:opacity-40"
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-[12px] font-medium disabled:opacity-40"
               >
                 <Send size={12} />
                 {loading ? t.dashboard.submitting : t.dashboard.submit}
@@ -192,7 +191,7 @@ export function DashboardPage() {
             </div>
           </div>
           {showChat && chatHistory.length > 0 && (
-            <div className="mt-3 card max-h-[200px] overflow-auto animate-slide-in">
+            <div className="mt-3 rounded border border-[var(--border)] bg-[var(--bg-surface)]max-h-[200px] overflow-auto animate-slide-in">
               {chatHistory.map((msg, i) => (
                 <div key={i} className={`px-4 py-2.5 text-[12px] ${i > 0 ? "border-t border-[var(--border)]" : ""}`}>
                   <span className={`text-[10px] font-mono font-medium mr-2 ${msg.role === "user" ? "text-[var(--accent)]" : "text-[var(--success)]"}`}>
@@ -212,7 +211,7 @@ export function DashboardPage() {
           {quickActions.map((qa, i) => (
             <button key={i}
               onClick={() => { setInput(qa.example); }}
-              className="card-interactive group rounded-lg px-3.5 py-3.5 text-left"
+              className="rounded border border-[var(--border)] bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] transition-colors group rounded-lg px-3.5 py-3.5 text-left"
             >
               <div className="w-8 h-8 rounded-md flex items-center justify-center mb-2.5"
                 style={{ background: `color-mix(in srgb, ${qa.color} 12%, transparent)` }}>
@@ -238,7 +237,7 @@ export function DashboardPage() {
 
         <div className="grid grid-cols-3 gap-3">
           {/* Cost */}
-          <div className="card p-4">
+          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)]p-4">
             <div className="flex items-center gap-2 mb-2">
               <Coins size={14} style={{ color: "var(--warning)" }} />
               <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
@@ -250,7 +249,7 @@ export function DashboardPage() {
           </div>
 
           {/* Mission */}
-          <div className="card p-4">
+          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)]p-4">
             <div className="flex items-center gap-2 mb-2">
               <Target size={14} style={{ color: "var(--accent)" }} />
               <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
@@ -261,7 +260,7 @@ export function DashboardPage() {
           </div>
 
           {/* Errors */}
-          <div className="card p-4">
+          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)]p-4">
             <div className="flex items-center gap-2 mb-2">
               <AlertTriangle size={14} style={{ color: "var(--success)" }} />
               <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
@@ -273,7 +272,7 @@ export function DashboardPage() {
         </div>
 
         {/* Quick Start Templates */}
-        <div className="card p-4">
+        <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)]p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Sparkles size={14} style={{ color: "var(--accent-secondary)" }} />
@@ -281,7 +280,7 @@ export function DashboardPage() {
                 {t.dashboard?.quickStartTemplates ?? "Quick Start Templates"}
               </span>
             </div>
-            <span className="badge badge-accent">
+            <span className="text-[10px] px-2 py-0.5 rounded bg-[var(--bg-raised)] text-[var(--text-muted)]">
               {t.dashboard?.quickStartTemplatesDesc ?? "10 min"}
             </span>
           </div>
@@ -337,7 +336,7 @@ export function DashboardPage() {
                     navigate("/setup")
                   }
                 }}
-                className="card-interactive group rounded-lg px-3 py-3 text-left"
+                className="rounded border border-[var(--border)] bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] transition-colors group rounded-lg px-3 py-3 text-left"
               >
                 <tpl.icon size={16} className="text-[var(--text-muted)] group-hover:text-[var(--accent)] mb-2 transition-colors" />
                 <div className="text-[12px] font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] mb-0.5 transition-colors">
@@ -359,7 +358,7 @@ function StatusCard({ icon: Icon, label, value, accent, onClick }: {
 }) {
   return (
     <button onClick={onClick}
-      className="card-interactive rounded-lg px-3.5 py-3.5 text-left">
+      className="rounded border border-[var(--border)] bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] transition-colors rounded-lg px-3.5 py-3.5 text-left">
       <div className="flex items-center gap-1.5 mb-1.5">
         <Icon size={13} style={{ color: accent }} />
         <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold truncate">{label}</span>

@@ -1,73 +1,48 @@
 @import "tailwindcss";
 
-/* ── Theme Variables — Inspired by VSCode/Cursor/Zed with added depth ─── */
+/* ── VSCode Dark Default Theme (MIT License) ─────────────── */
+/* Source: github.com/microsoft/vscode dark_vs.json + theme.ts */
 :root,
 [data-theme="dark"] {
-  /* Surface hierarchy: base → raised → overlay (increasing elevation) */
-  --bg-base: #181818;
-  --bg-surface: #1f1f1f;
-  --bg-raised: #262626;
-  --bg-overlay: #2d2d30;
-  --bg-input: #2a2a2a;
-  --bg-hover: #2c2f33;
-  --bg-active: #37393e;
-  --bg-activity-bar: #181818;
-  --bg-titlebar: #1f1f1f;
-  --bg-tooltip: #383838;
-  --bg-tab-bar: #181818;
-  --bg-tab-active: #1f1f1f;
-  --bg-active-indicator: rgba(255, 255, 255, 0.06);
-  --bg-statusbar: #1a6fb5;
-  --bg-sidebar-section: rgba(255, 255, 255, 0.03);
-  --bg-card: #1f1f1f;
-  --bg-badge: #007acc;
+  --bg-base: #1E1E1E;
+  --bg-surface: #252526;
+  --bg-raised: #2D2D2D;
+  --bg-overlay: #303031;
+  --bg-input: #3C3C3C;
+  --bg-hover: #2A2D2E;
+  --bg-active: #37373D;
+  --bg-activity-bar: #333333;
+  --bg-titlebar: #323233;
+  --bg-statusbar: #007ACC;
+  --bg-tab-bar: #252526;
+  --bg-tab-active: #1E1E1E;
 
-  --border: #2e2e32;
-  --border-subtle: #252528;
-  --border-focus: #007acc;
-  --border-elevated: #3a3a3f;
-  --activity-bar-divider: rgba(255, 255, 255, 0.08);
+  --border: #3E3E42;
+  --border-focus: #007ACC;
 
-  --text-primary: #e0e0e0;
-  --text-secondary: #a0a0a0;
-  --text-muted: #6b6b6b;
-  --text-inverse: #ffffff;
+  --text-primary: #D4D4D4;
+  --text-secondary: #BBBBBB;
+  --text-muted: #6E7681;
 
-  --accent: #2b8fd8;
-  --accent-hover: #3a9ee5;
-  --accent-subtle: rgba(43, 143, 216, 0.12);
-  --accent-fg: #ffffff;
-  --accent-secondary: #8b5cf6;
-  --accent-secondary-subtle: rgba(139, 92, 246, 0.12);
+  --accent: #007ACC;
+  --accent-hover: #1177BB;
+  --accent-fg: #FFFFFF;
 
-  --statusbar-fg: #ffffff;
+  --statusbar-fg: #FFFFFF;
 
-  --success: #34d399;
-  --success-subtle: rgba(52, 211, 153, 0.12);
-  --success-fg: #34d399;
-  --error: #f87171;
-  --error-subtle: rgba(248, 113, 113, 0.12);
-  --warning: #fbbf24;
-  --warning-subtle: rgba(251, 191, 36, 0.12);
-  --info: #60a5fa;
-  --info-subtle: rgba(96, 165, 250, 0.12);
+  /* Status colors — Zed (Apache 2.0), overridable via extensions */
+  --success: #56BA9F;
+  --error: #E5484D;
+  --warning: #F3D768;
+  --info: #0090FF;
 
-  --gradient-primary: linear-gradient(135deg, #2b8fd8 0%, #7c3aed 100%);
-  --gradient-surface: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
-  --gradient-card: linear-gradient(180deg, #232323 0%, #1f1f1f 100%);
+  /* Shadows — VSCode-style: minimal, popups/modals only */
+  --shadow-popup: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-modal: 0 8px 24px rgba(0, 0, 0, 0.4);
 
-  /* Shadows for depth */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.25);
-  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.3);
-  --shadow-glow: 0 0 20px rgba(43, 143, 216, 0.15);
-  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
-  --radius-xl: 14px;
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 8px;
 
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
@@ -75,126 +50,78 @@
     Menlo, monospace;
 }
 
+/* ── VSCode Light Default Theme ──────────────────────────── */
 [data-theme="light"] {
-  --bg-base: #f8f8f8;
-  --bg-surface: #ffffff;
-  --bg-raised: #ffffff;
-  --bg-overlay: #f0f0f0;
-  --bg-input: #ffffff;
-  --bg-hover: #f0f0f0;
-  --bg-active: #e8e8e8;
-  --bg-activity-bar: #2c2c2c;
-  --bg-titlebar: #ffffff;
-  --bg-tooltip: #383838;
-  --bg-tab-bar: #f0f0f0;
-  --bg-tab-active: #ffffff;
-  --bg-active-indicator: rgba(255, 255, 255, 0.1);
-  --bg-statusbar: #2b8fd8;
-  --bg-sidebar-section: rgba(0, 0, 0, 0.02);
-  --bg-card: #ffffff;
-  --bg-badge: #2b8fd8;
+  --bg-base: #FFFFFF;
+  --bg-surface: #F3F3F3;
+  --bg-raised: #ECECEC;
+  --bg-overlay: #E8E8E8;
+  --bg-input: #FFFFFF;
+  --bg-hover: #E8E8E8;
+  --bg-active: #E0E0E0;
+  --bg-activity-bar: #2C2C2C;
+  --bg-titlebar: #DDDDDD;
+  --bg-statusbar: #007ACC;
+  --bg-tab-bar: #ECECEC;
+  --bg-tab-active: #FFFFFF;
 
-  --border: #e0e0e0;
-  --border-subtle: #eaeaea;
-  --border-focus: #2b8fd8;
-  --border-elevated: #d0d0d0;
-  --activity-bar-divider: rgba(255, 255, 255, 0.15);
+  --border: #E5E5E5;
+  --border-focus: #007ACC;
 
-  --text-primary: #1a1a1a;
-  --text-secondary: #5a5a5a;
-  --text-muted: #9a9a9a;
-  --text-inverse: #ffffff;
+  --text-primary: #1E1E1E;
+  --text-secondary: #616161;
+  --text-muted: #9E9E9E;
 
-  --accent: #2b8fd8;
-  --accent-hover: #1a7fc8;
-  --accent-subtle: rgba(43, 143, 216, 0.08);
-  --accent-fg: #ffffff;
-  --accent-secondary: #7c3aed;
-  --accent-secondary-subtle: rgba(124, 58, 237, 0.08);
+  --accent: #007ACC;
+  --accent-hover: #106EBE;
+  --accent-fg: #FFFFFF;
 
-  --statusbar-fg: #ffffff;
+  --statusbar-fg: #FFFFFF;
 
-  --success: #16a34a;
-  --success-subtle: rgba(22, 163, 74, 0.08);
-  --success-fg: #16a34a;
-  --error: #dc2626;
-  --error-subtle: rgba(220, 38, 38, 0.08);
-  --warning: #d97706;
-  --warning-subtle: rgba(217, 119, 6, 0.08);
-  --info: #2563eb;
-  --info-subtle: rgba(37, 99, 235, 0.08);
+  --success: #16825D;
+  --error: #CD3131;
+  --warning: #BF8803;
+  --info: #0451A5;
 
-  --gradient-primary: linear-gradient(135deg, #2b8fd8 0%, #7c3aed 100%);
-  --gradient-surface: linear-gradient(180deg, rgba(0,0,0,0.01) 0%, transparent 100%);
-  --gradient-card: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
-  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.06);
-  --shadow-glow: 0 0 20px rgba(43, 143, 216, 0.1);
-  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  --shadow-popup: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-modal: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
+/* ── VSCode High Contrast Theme ──────────────────────────── */
 [data-theme="high-contrast"] {
   --bg-base: #000000;
-  --bg-surface: #0a0a0a;
+  --bg-surface: #0A0A0A;
   --bg-raised: #111111;
   --bg-overlay: #161616;
-  --bg-input: #1a1a1a;
-  --bg-hover: #1e1e1e;
-  --bg-active: #252525;
+  --bg-input: #1A1A1A;
+  --bg-hover: #1A1A1A;
+  --bg-active: #222222;
   --bg-activity-bar: #000000;
   --bg-titlebar: #000000;
-  --bg-tooltip: #2a2a2a;
+  --bg-statusbar: #6FC3DF;
   --bg-tab-bar: #000000;
-  --bg-tab-active: #0a0a0a;
-  --bg-active-indicator: rgba(255, 255, 255, 0.08);
-  --bg-statusbar: #6fc3df;
-  --bg-sidebar-section: rgba(255, 255, 255, 0.04);
-  --bg-card: #0a0a0a;
-  --bg-badge: #6fc3df;
+  --bg-tab-active: #0A0A0A;
 
-  --border: #6fc3df;
-  --border-subtle: #3a7a8a;
-  --border-focus: #f38518;
-  --border-elevated: #6fc3df;
-  --activity-bar-divider: rgba(255, 255, 255, 0.25);
+  --border: #6FC3DF;
+  --border-focus: #F38518;
 
-  --text-primary: #ffffff;
-  --text-secondary: #d4d4d4;
-  --text-muted: #a0a0a0;
-  --text-inverse: #000000;
+  --text-primary: #FFFFFF;
+  --text-secondary: #D4D4D4;
+  --text-muted: #A0A0A0;
 
-  --accent: #1aebff;
-  --accent-hover: #4af0ff;
-  --accent-subtle: rgba(26, 235, 255, 0.15);
+  --accent: #1AEBFF;
+  --accent-hover: #4AF0FF;
   --accent-fg: #000000;
-  --accent-secondary: #b180d7;
-  --accent-secondary-subtle: rgba(177, 128, 215, 0.15);
 
   --statusbar-fg: #000000;
 
-  --success: #89d185;
-  --success-subtle: rgba(137, 209, 133, 0.15);
-  --success-fg: #89d185;
-  --error: #f48771;
-  --error-subtle: rgba(244, 135, 113, 0.15);
-  --warning: #cca700;
-  --warning-subtle: rgba(204, 167, 0, 0.15);
-  --info: #75beff;
-  --info-subtle: rgba(117, 190, 255, 0.15);
+  --success: #89D185;
+  --error: #F48771;
+  --warning: #CCA700;
+  --info: #75BEFF;
 
-  --gradient-primary: linear-gradient(135deg, #1aebff 0%, #b180d7 100%);
-  --gradient-surface: none;
-  --gradient-card: none;
-
-  --shadow-sm: 0 0 0 1px var(--border);
-  --shadow-md: 0 0 0 1px var(--border);
-  --shadow-lg: 0 0 0 1px var(--border);
-  --shadow-xl: 0 0 0 2px var(--border);
-  --shadow-glow: 0 0 8px rgba(26, 235, 255, 0.3);
-  --shadow-inset: none;
+  --shadow-popup: 0 0 0 1px var(--border);
+  --shadow-modal: 0 0 0 1px var(--border);
 }
 
 /* ── Base Styles ───────────────────────────────────────── */
@@ -216,14 +143,14 @@ body {
   font-size: 13px;
   color: var(--text-primary);
   background: var(--bg-base);
-  line-height: 1.5;
+  line-height: 1.4;
   overflow: hidden;
 }
 
-/* ── Custom Scrollbar ─────────────────────────────────── */
+/* ── Scrollbar (VSCode-style) ─────────────────────────── */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -231,33 +158,40 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 [data-theme="light"] ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.12);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 [data-theme="light"] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.25);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-corner {
   background: transparent;
 }
 
-/* ── Focus & Interactive ───────────────────────────────── */
+/* ── Focus (VSCode: 1px solid accent, offset -1px) ────── */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 1px solid var(--accent);
   outline-offset: -1px;
-  border-radius: 2px;
 }
 
+/* ── Interactive Elements ─────────────────────────────── */
 button {
   cursor: pointer;
   font-family: inherit;
@@ -274,17 +208,16 @@ select {
   font-family: inherit;
 }
 
-/* ── Transition Defaults ───────────────────────────────── */
 button,
 a,
 input,
 textarea {
-  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 120ms ease, border-color 120ms ease,
+    color 120ms ease, opacity 120ms ease;
 }
 
-/* ── Button Interaction Feedback ─────────────────────── */
 button:not(:disabled):active {
-  transform: scale(0.98);
+  opacity: 0.8;
 }
 
 /* ── Selection ─────────────────────────────────────────── */
@@ -293,169 +226,15 @@ button:not(:disabled):active {
   color: var(--text-primary);
 }
 
-/* ── Card & Surface Utilities ────────────────────────── */
-.card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-}
-
-.card-elevated {
-  background: var(--gradient-card);
-  border: 1px solid var(--border-elevated);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-}
-
-.card-interactive {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.card-interactive:hover {
-  border-color: var(--border-elevated);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
-}
-
-.card-interactive:active {
-  transform: translateY(0);
-  box-shadow: var(--shadow-sm);
-}
-
-/* ── Button Utilities ────────────────────────────────── */
-.btn-primary {
-  background: var(--gradient-primary);
-  color: var(--accent-fg);
-  font-weight: 500;
-  border: none;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm), 0 0 0 0 rgba(43, 143, 216, 0);
-  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.btn-primary:hover:not(:disabled) {
-  box-shadow: var(--shadow-md), 0 0 16px rgba(43, 143, 216, 0.25);
-  filter: brightness(1.1);
-}
-
-.btn-primary:active:not(:disabled) {
-  box-shadow: var(--shadow-sm);
-  filter: brightness(0.95);
-}
-
-.btn-secondary {
-  background: var(--bg-raised);
-  color: var(--text-primary);
-  font-weight: 500;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background: var(--bg-hover);
-  border-color: var(--border-elevated);
-}
-
-.btn-ghost {
-  background: transparent;
-  color: var(--text-secondary);
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.btn-ghost:hover:not(:disabled) {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-  border-color: var(--border);
-}
-
-/* ── Status Badge ────────────────────────────────────── */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 99px;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.badge-accent {
-  background: var(--accent-subtle);
-  color: var(--accent);
-}
-
-.badge-success {
-  background: var(--success-subtle);
-  color: var(--success);
-}
-
-.badge-warning {
-  background: var(--warning-subtle);
-  color: var(--warning);
-}
-
-.badge-error {
-  background: var(--error-subtle);
-  color: var(--error);
-}
-
-/* ── Input Styles ────────────────────────────────────── */
-.input {
-  width: 100%;
-  padding: 8px 12px;
-  background: var(--bg-input);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  outline: none;
-  box-shadow: var(--shadow-inset);
-  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.input:focus {
-  border-color: var(--accent);
-  box-shadow: var(--shadow-inset), 0 0 0 3px var(--accent-subtle);
-}
-
-.input::placeholder {
-  color: var(--text-muted);
-}
-
-/* ── Toast / Notification Animations ─────────────────── */
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
+/* ── Animations (standard UI patterns only) ──────────── */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 rgba(43, 143, 216, 0.4); }
-  70% { box-shadow: 0 0 0 8px rgba(43, 143, 216, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(43, 143, 216, 0); }
-}
-
-@keyframes checkmark {
-  0% { stroke-dashoffset: 24; }
-  100% { stroke-dashoffset: 0; }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes loading {
@@ -464,38 +243,5 @@ button:not(:disabled):active {
   100% { width: 0; margin-left: 100%; }
 }
 
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-.animate-slide-in { animation: slideIn 200ms ease-out; }
-.animate-fade-in { animation: fadeIn 200ms ease-out; }
-.animate-scale-in { animation: scaleIn 200ms cubic-bezier(0.4, 0, 0.2, 1); }
-.animate-pulse-ring { animation: pulse-ring 1.5s ease infinite; }
-
-.skeleton {
-  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-hover) 50%, var(--bg-surface) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: var(--radius-md);
-}
-
-/* ── Gradient Text ───────────────────────────────────── */
-.text-gradient {
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* ── Glass Effect ────────────────────────────────────── */
-.glass {
-  background: rgba(31, 31, 31, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-[data-theme="light"] .glass {
-  background: rgba(255, 255, 255, 0.8);
-}
+.animate-fade-in { animation: fadeIn 150ms ease-out; }
+.animate-slide-in { animation: slideIn 150ms ease-out; }

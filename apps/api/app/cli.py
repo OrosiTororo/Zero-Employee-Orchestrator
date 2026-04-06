@@ -359,8 +359,9 @@ def cmd_local(args: argparse.Namespace) -> None:
             try:
                 # Prompt with context usage indicator
                 ctx_pct = min(100, int(ctx_tokens / 327.68))  # ~32768 ctx
-                prompt_prefix = f"\033[38;5;245mctx:{ctx_pct}%\033[0m"
-                user_input = input(f"{prompt_prefix} \033[38;5;51m>\033[0m ").strip()
+                # Neovim-style prompt: mode + context
+                prompt_prefix = f"\033[38;2;86;186;159mNORMAL\033[0m \033[38;2;110;118;129mctx:{ctx_pct}%\033[0m"
+                user_input = input(f"{prompt_prefix} \033[38;2;0;122;204m>\033[0m ").strip()
             except (KeyboardInterrupt, EOFError):
                 print()
                 print(f"\n  {t('chat_goodbye')}")
@@ -507,7 +508,7 @@ def cmd_chat(args: argparse.Namespace) -> None:
 
         while True:
             try:
-                user_input = input("\033[38;5;51m>\033[0m ").strip()
+                user_input = input("\033[38;2;86;186;159mNORMAL\033[0m \033[38;2;0;122;204m>\033[0m ").strip()
             except (KeyboardInterrupt, EOFError):
                 print(f"\n\n  {t('chat_goodbye')}")
                 break

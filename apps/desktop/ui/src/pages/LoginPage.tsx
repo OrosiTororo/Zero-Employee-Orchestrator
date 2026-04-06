@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuthStore } from "@/shared/hooks/use-auth"
 import { LogIn, UserPlus, Mail, Lock, User, ArrowRight } from "lucide-react"
-import { Logo } from "@/shared/ui/Logo"
+import { LogoMark } from "@/shared/ui/Logo"
 import { useT } from "@/shared/i18n"
 import { api, NetworkError } from "@/shared/api/client"
 
@@ -99,12 +99,10 @@ export function LoginPage() {
     setError("")
     try {
       const res = await api.get<{ url: string; state: string }>("/auth/google/authorize")
-      // Open Google auth in a new window/tab (works in both Tauri and browser)
       window.open(res.url, "_blank", "noopener")
 
-      // Poll for completion
       const state = res.state
-      const maxAttempts = 120 // 2 minutes
+      const maxAttempts = 120
       for (let i = 0; i < maxAttempts; i++) {
         await new Promise((r) => setTimeout(r, 1000))
         try {
@@ -124,7 +122,6 @@ export function LoginPage() {
             return
           }
         } catch {
-          // poll endpoint may 404 if state expired — stop polling
           break
         }
       }
@@ -143,260 +140,187 @@ export function LoginPage() {
   }
 
   const inputClass =
-    "input pl-10 pr-4 py-2.5"
+    "w-full pl-10 pr-4 py-2.5 rounded text-[13px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)] placeholder:text-[var(--text-muted)]"
 
   return (
-    <div className="h-screen w-screen flex bg-[var(--bg-base)] relative">
-      {/* Left brand panel */}
-      <div
-        className="hidden lg:flex flex-col justify-between w-[420px] shrink-0 p-10"
-        style={{
-          background: "linear-gradient(160deg, #0078d4 0%, #5b21b6 100%)",
-        }}
-      >
-        <div>
-          <Logo size={48} />
-          <h1 className="mt-8 text-[28px] font-bold leading-tight text-white">
-            Zero-Employee
-            <br />
-            Orchestrator
-          </h1>
-          <p className="mt-3 text-[14px] leading-relaxed text-white/70">
-            {t.common.appTagline}
-          </p>
-        </div>
-
-        <div className="space-y-6">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 w-8 h-8 rounded-md bg-white/15 flex items-center justify-center shrink-0">
-              <ArrowRight size={16} className="text-white/90" />
-            </div>
-            <div>
-              <p className="text-[13px] font-medium text-white/90">
-                {t.brand.feature1Title}
-              </p>
-              <p className="text-[12px] text-white/50 mt-0.5">
-                {t.brand.feature1Desc}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 w-8 h-8 rounded-md bg-white/15 flex items-center justify-center shrink-0">
-              <ArrowRight size={16} className="text-white/90" />
-            </div>
-            <div>
-              <p className="text-[13px] font-medium text-white/90">
-                {t.brand.feature2Title}
-              </p>
-              <p className="text-[12px] text-white/50 mt-0.5">
-                {t.brand.feature2Desc}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 w-8 h-8 rounded-md bg-white/15 flex items-center justify-center shrink-0">
-              <ArrowRight size={16} className="text-white/90" />
-            </div>
-            <div>
-              <p className="text-[13px] font-medium text-white/90">
-                {t.brand.feature3Title}
-              </p>
-              <p className="text-[12px] text-white/50 mt-0.5">
-                {t.brand.feature3Desc}
-              </p>
-            </div>
+    <div className="h-screen w-screen flex items-center justify-center bg-[var(--bg-base)]">
+      <div className="w-full max-w-[380px] px-6">
+        {/* Logo */}
+        <div className="flex items-center gap-2.5 mb-8">
+          <LogoMark size={28} />
+          <div>
+            <h1 className="text-[15px] font-semibold text-[var(--text-primary)]">
+              {t.common.appName}
+            </h1>
+            <p className="text-[11px] text-[var(--text-muted)]">
+              {t.common.appTagline}
+            </p>
           </div>
         </div>
 
-        <p className="text-[11px] text-white/30">{t.common.version}</p>
-      </div>
+        <h2 className="text-[18px] font-semibold text-[var(--text-primary)] mb-1">
+          {mode === "login" ? t.auth.loginTitle : t.auth.registerTitle}
+        </h2>
+        <p className="text-[12px] text-[var(--text-secondary)] mb-5">
+          {mode === "login" ? t.auth.loginSubtitle : t.auth.registerSubtitle}
+        </p>
 
-      {/* Right form panel */}
-      <div className="flex-1 flex items-center justify-center px-6">
-        <div className="w-full max-w-[380px]">
-          {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-3 mb-8">
-            <Logo size={36} />
-            <div>
-              <h1 className="text-[16px] font-semibold text-[var(--text-primary)]">
-                {t.common.appName}
-              </h1>
-              <p className="text-[11px] text-[var(--text-muted)]">
-                {t.common.appTagline}
-              </p>
+        {/* Google OAuth */}
+        <button
+          onClick={handleGoogleAuth}
+          disabled={loading}
+          className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded text-[13px] font-medium border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors mb-4"
+        >
+          <GoogleIcon size={18} />
+          {t.auth.continueWithGoogle}
+        </button>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-1 h-px bg-[var(--border)]" />
+          <span className="text-[11px] text-[var(--text-muted)] uppercase tracking-wider">
+            {t.auth.orDivider}
+          </span>
+          <div className="flex-1 h-px bg-[var(--border)]" />
+        </div>
+
+        {/* Form */}
+        <div className="flex flex-col gap-3">
+          {mode === "register" && (
+            <div className="relative">
+              <User
+                size={15}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+              />
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder={t.auth.displayName}
+                className={inputClass}
+              />
             </div>
+          )}
+
+          <div className="relative">
+            <Mail
+              size={15}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+            />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t.auth.email}
+              className={inputClass}
+            />
           </div>
 
-          <h2 className="text-[20px] font-semibold text-[var(--text-primary)] mb-1">
-            {mode === "login" ? t.auth.loginTitle : t.auth.registerTitle}
-          </h2>
-          <p className="text-[13px] text-[var(--text-secondary)] mb-6">
-            {mode === "login" ? t.auth.loginSubtitle : t.auth.registerSubtitle}
-          </p>
+          <div className="relative">
+            <Lock
+              size={15}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+            />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) =>
+                e.key === "Enter" &&
+                (mode === "login" ? handleLogin() : handleRegister())
+              }
+              placeholder={t.auth.password}
+              className={inputClass}
+            />
+          </div>
 
-          {/* Google OAuth */}
+          {error && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded text-[12px] text-[var(--error)] bg-[var(--bg-surface)] border border-[var(--border)] animate-slide-in">
+              {error}
+            </div>
+          )}
+
           <button
-            onClick={handleGoogleAuth}
+            onClick={mode === "login" ? handleLogin : handleRegister}
             disabled={loading}
-            className="btn-secondary w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-md text-[13px] font-medium mb-4"
+            className="flex items-center justify-center gap-2 px-6 py-2.5 rounded text-[13px] font-medium text-[var(--accent-fg)] disabled:opacity-50"
+            style={{ background: loading ? "var(--bg-active)" : "var(--accent)" }}
           >
-            <GoogleIcon size={18} />
-            {t.auth.continueWithGoogle}
+            {mode === "login" ? (
+              <>
+                <LogIn size={15} />
+                {loading ? t.auth.loggingIn : t.auth.loginButton}
+              </>
+            ) : (
+              <>
+                <UserPlus size={15} />
+                {loading ? t.auth.registering : t.auth.registerButton}
+              </>
+            )}
           </button>
+        </div>
 
-          {/* Divider */}
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1 h-px bg-[var(--border)]" />
-            <span className="text-[11px] text-[var(--text-muted)] uppercase tracking-wider">
-              {t.auth.orDivider}
-            </span>
-            <div className="flex-1 h-px bg-[var(--border)]" />
-          </div>
-
-          {/* Form */}
-          <div className="flex flex-col gap-3.5">
-            {mode === "register" && (
-              <div className="relative">
-                <User
-                  size={15}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
-                />
-                <input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder={t.auth.displayName}
-                  className={inputClass}
-                />
-              </div>
-            )}
-
-            <div className="relative">
-              <Mail
-                size={15}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
-              />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t.auth.email}
-                className={inputClass}
-              />
-            </div>
-
-            <div className="relative">
-              <Lock
-                size={15}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
-              />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) =>
-                  e.key === "Enter" &&
-                  (mode === "login" ? handleLogin() : handleRegister())
+        {/* Anonymous session */}
+        <div className="mt-4">
+          <button
+            onClick={async () => {
+              setLoading(true)
+              setError("")
+              try {
+                const { startAnonymous } = useAuthStore.getState()
+                await startAnonymous()
+                navigate("/setup")
+              } catch (e: unknown) {
+                if (e instanceof NetworkError) {
+                  setError(t.auth.connectionFailed)
+                } else if (e instanceof Error) {
+                  setError(e.message || t.auth.anonymousFailed)
+                } else {
+                  setError(t.auth.anonymousFailed)
                 }
-                placeholder={t.auth.password}
-                className={inputClass}
-              />
-            </div>
+              } finally {
+                setLoading(false)
+              }
+            }}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded text-[13px] border border-dashed border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+          >
+            <ArrowRight size={15} />
+            {t.auth.startWithoutLogin}
+          </button>
+          <p className="text-[10px] text-[var(--text-muted)] mt-1.5 text-center">
+            {t.auth.startWithoutLoginNote}
+          </p>
+        </div>
 
-            {error && (
-              <div className="flex items-center gap-2 px-3 py-2.5 rounded-md text-[12px] text-[var(--error)] border border-[var(--error)] animate-slide-in"
-                style={{ background: "var(--error-subtle)" }}>
-                {error}
-              </div>
+        {/* Toggle */}
+        <div className="mt-6 pt-5 border-t border-[var(--border)] text-center">
+          <p className="text-[12px] text-[var(--text-muted)]">
+            {mode === "login" ? (
+              <>
+                {t.auth.noAccount}{" "}
+                <button
+                  onClick={() => { setMode("register"); setError("") }}
+                  className="text-[var(--accent)] hover:underline font-medium"
+                >
+                  {t.auth.register}
+                </button>
+              </>
+            ) : (
+              <>
+                {t.auth.hasAccount}{" "}
+                <button
+                  onClick={() => { setMode("login"); setError("") }}
+                  className="text-[var(--accent)] hover:underline font-medium"
+                >
+                  {t.auth.login}
+                </button>
+              </>
             )}
-
-            <button
-              onClick={mode === "login" ? handleLogin : handleRegister}
-              disabled={loading}
-              className="btn-primary flex items-center justify-center gap-2 px-6 py-2.5 rounded-md text-[13px] font-medium"
-            >
-              {mode === "login" ? (
-                <>
-                  <LogIn size={15} />
-                  {loading ? t.auth.loggingIn : t.auth.loginButton}
-                </>
-              ) : (
-                <>
-                  <UserPlus size={15} />
-                  {loading ? t.auth.registering : t.auth.registerButton}
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* Anonymous session */}
-          <div className="mt-4">
-            <button
-              onClick={async () => {
-                setLoading(true)
-                setError("")
-                try {
-                  const { startAnonymous } = useAuthStore.getState()
-                  await startAnonymous()
-                  navigate("/setup")
-                } catch (e: unknown) {
-                  if (e instanceof NetworkError) {
-                    setError(t.auth.connectionFailed)
-                  } else if (e instanceof Error) {
-                    setError(e.message || t.auth.anonymousFailed)
-                  } else {
-                    setError(t.auth.anonymousFailed)
-                  }
-                } finally {
-                  setLoading(false)
-                }
-              }}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-[13px] border border-dashed border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
-            >
-              <ArrowRight size={15} />
-              {t.auth.startWithoutLogin}
-            </button>
-            <p className="text-[10px] text-[var(--text-muted)] mt-1.5 text-center">
-              {t.auth.startWithoutLoginNote}
-            </p>
-          </div>
-
-          {/* Toggle */}
-          <div className="mt-6 pt-6 border-t border-[var(--border)] text-center">
-            <p className="text-[12px] text-[var(--text-muted)]">
-              {mode === "login" ? (
-                <>
-                  {t.auth.noAccount}{" "}
-                  <button
-                    onClick={() => {
-                      setMode("register")
-                      setError("")
-                    }}
-                    className="text-[var(--accent)] hover:underline font-medium"
-                  >
-                    {t.auth.register}
-                  </button>
-                </>
-              ) : (
-                <>
-                  {t.auth.hasAccount}{" "}
-                  <button
-                    onClick={() => {
-                      setMode("login")
-                      setError("")
-                    }}
-                    className="text-[var(--accent)] hover:underline font-medium"
-                  >
-                    {t.auth.login}
-                  </button>
-                </>
-              )}
-            </p>
-            <p className="text-[11px] text-[var(--text-muted)] mt-2">
-              {t.auth.apiKeyNote}
-            </p>
-          </div>
+          </p>
+          <p className="text-[11px] text-[var(--text-muted)] mt-2">
+            {t.auth.apiKeyNote}
+          </p>
         </div>
       </div>
     </div>

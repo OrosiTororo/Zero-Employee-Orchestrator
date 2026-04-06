@@ -697,7 +697,8 @@ export function SetupPage() {
                       <button
                         onClick={handleGenerate}
                         disabled={isGenerating}
-                        className="btn-primary w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg text-[14px] font-medium text-white disabled:opacity-60"
+                        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-md text-[14px] font-medium text-[var(--accent-fg)] disabled:opacity-60"
+                        style={{ background: "var(--accent)" }}
                       >
                         {isGenerating ? (
                           <>
@@ -721,8 +722,8 @@ export function SetupPage() {
                   )}
                 </>
               ) : (
-                <div className="flex flex-col items-center gap-4 py-8 text-center animate-scale-in">
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center animate-pulse-ring"
+                <div className="flex flex-col items-center gap-4 py-8 text-center animate-fade-in">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center"
                     style={{ background: "var(--success)" }}>
                     <Check size={32} color="#fff" />
                   </div>

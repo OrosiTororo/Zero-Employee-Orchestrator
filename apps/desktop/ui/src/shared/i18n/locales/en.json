@@ -258,7 +258,12 @@
     "qaAutomate": "Automate",
     "qaAutomateEx": "Auto-draft social media posts every Monday",
     "qaAnalyze": "Analyze",
-    "qaAnalyzeEx": "Classify customer feedback and extract improvements"
+    "qaAnalyzeEx": "Classify customer feedback and extract improvements",
+    "welcomeTitle": "Welcome to Zero-Employee Orchestrator",
+    "welcomeDesc": "Describe your business tasks in natural language. Your AI team will plan, execute, verify, and deliver — all under your approval.",
+    "trySecretary": "Talk to Secretary",
+    "configureSettings": "Open Settings",
+    "dismissGuide": "Got it"
   },
   "settings": {
     "title": "Settings",
