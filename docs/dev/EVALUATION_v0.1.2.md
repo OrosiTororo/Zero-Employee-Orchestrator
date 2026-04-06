@@ -125,12 +125,12 @@
 
 | Issue | Severity | Status |
 |-------|----------|--------|
-| Dispatch API is a stub (no DAG integration) | Medium | Acknowledged |
-| Operator Profile uses filesystem (not DB) | Medium | Works single-server |
-| Autonomy Dial is UI-only (not connected to backend) | Medium | Cosmetic |
-| Browser classifier uses naive keyword matching | Low | Functional but fragile |
+| Dispatch API creates tickets but doesn't route to DAG | Low | Ticket integration done |
+| Operator Profile uses filesystem (not DB) | Low | Works single-server, portable |
+| Autonomy Dial connected to config API | — | **Fixed** |
+| Browser classifier handles negation patterns | — | **Fixed** |
 | Plugins are manifests with minimal runtime logic | Medium | By design for v0.1 |
-| No interactive onboarding tutorial | Medium | Planned |
+| Interactive welcome tour added to Dashboard | — | **Fixed** |
 | Community/ecosystem near zero | High | Needs time + adoption |
 
 ---

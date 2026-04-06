@@ -19,6 +19,7 @@ import {
   ListTodo,
   BookOpen,
   X,
+  Settings as SettingsIcon,
 } from "lucide-react"
 import { api } from "../shared/api/client"
 import { useT } from "@/shared/i18n"
@@ -107,7 +108,7 @@ export function DashboardPage() {
     <div className="h-full overflow-auto">
       <div className="max-w-[960px] mx-auto px-6 py-6 space-y-5">
 
-        {/* Welcome Guide - shown on first visit */}
+        {/* Welcome Tour - step-by-step onboarding for first-time users */}
         {showWelcome && (
           <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)] p-5 animate-slide-in relative">
             <button
@@ -128,27 +129,35 @@ export function DashboardPage() {
                 <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed mb-3">
                   {t.dashboard?.welcomeDesc ?? "Describe your business tasks in natural language. Your AI team will plan, execute, verify, and deliver — all under your approval."}
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => navigate("/secretary")}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-md"
-                  >
-                    <Bot size={13} />
-                    {t.dashboard?.trySecretary ?? "Talk to Secretary"}
-                  </button>
-                  <button
-                    onClick={() => navigate("/settings")}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-md"
-                  >
-                    {t.dashboard?.configureSettings ?? "Configure Settings"}
-                  </button>
-                  <button
-                    onClick={dismissWelcome}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-md"
-                  >
-                    {t.dashboard?.dismissGuide ?? "Got it"}
-                  </button>
+                {/* Step-by-step tour */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
+                  {[
+                    { step: 1, icon: Send, label: "Describe a task", desc: "Type what you need in the box below", action: () => document.querySelector("textarea")?.focus() },
+                    { step: 2, icon: Bot, label: "Meet your Secretary", desc: "Your AI assistant organizes and delegates", action: () => navigate("/secretary") },
+                    { step: 3, icon: ShieldCheck, label: "Review & approve", desc: "AI works, you approve key decisions", action: () => navigate("/approvals") },
+                    { step: 4, icon: SettingsIcon, label: "Customize", desc: "Set LLM provider, language, theme", action: () => navigate("/settings") },
+                  ].map((s) => (
+                    <button
+                      key={s.step}
+                      onClick={s.action}
+                      className="flex flex-col items-start gap-1 p-2.5 rounded border border-[var(--border)] hover:bg-[var(--bg-hover)] transition-colors text-left"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold"
+                          style={{ background: "var(--accent)", color: "white" }}>{s.step}</span>
+                        <s.icon size={13} className="text-[var(--text-muted)]" />
+                        <span className="text-[12px] font-medium text-[var(--text-primary)]">{s.label}</span>
+                      </div>
+                      <span className="text-[11px] text-[var(--text-muted)] pl-7">{s.desc}</span>
+                    </button>
+                  ))}
                 </div>
+                <button
+                  onClick={dismissWelcome}
+                  className="text-[11px] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  {t.dashboard?.dismissGuide ?? "Dismiss guide"}
+                </button>
               </div>
             </div>
           </div>

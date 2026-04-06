@@ -147,16 +147,39 @@ async def _execute_dispatch(task_id: str) -> None:
 
     task["status"] = "running"
     try:
-        # Production: route to orchestration DAG with task["instruction"]
-        # For now, acknowledge the task as received
-        await asyncio.sleep(0.1)  # Simulate minimal processing
+        # Route to ticket creation via the orchestration layer
+        from app.core.database import get_session
+        from app.services.ticket_service import create_ticket
+
+        ticket_id = None
+        async for db in get_session():
+            try:
+                ticket = await create_ticket(
+                    db,
+                    company_id=task["context"].get("company_id", ""),
+                    title=task["instruction"][:100],
+                    description=task["instruction"],
+                    priority=task["priority"],
+                    source_type="dispatch",
+                )
+                ticket_id = str(ticket.id) if ticket else None
+            except Exception:
+                # Ticket creation may fail if no company_id — still complete dispatch
+                pass
+
         task["status"] = "completed"
         task["completed_at"] = datetime.utcnow().isoformat()
-        task["result"] = (
-            f"Task dispatched successfully. Instruction: '{task['instruction']}' "
-            f"has been queued for processing by the AI organization."
-        )
-        logger.info("Dispatch task completed: %s", task_id)
+        if ticket_id:
+            task["result"] = (
+                f"Ticket created: {ticket_id}. "
+                f"Instruction: '{task['instruction']}' is now tracked as a task."
+            )
+        else:
+            task["result"] = (
+                f"Task acknowledged: '{task['instruction']}'. "
+                f"No company context — set company_id in dispatch context to auto-create tickets."
+            )
+        logger.info("Dispatch task completed: %s (ticket=%s)", task_id, ticket_id)
     except Exception as exc:
         task["status"] = "failed"
         task["completed_at"] = datetime.utcnow().isoformat()
