@@ -2,7 +2,7 @@
   "common": {
     "appName": "Zero-Employee Orchestrator",
     "appTagline": "Yapay Zeka İş Orkestrasyon Platformu",
-    "version": "v0.1.1",
+    "version": "v0.1.2",
     "back": "Geri",
     "next": "İleri",
     "save": "Kaydet",

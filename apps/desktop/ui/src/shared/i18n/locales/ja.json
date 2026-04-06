@@ -2,7 +2,7 @@
   "common": {
     "appName": "Zero-Employee Orchestrator",
     "appTagline": "AI業務オーケストレーション基盤",
-    "version": "v0.1.1",
+    "version": "v0.1.2",
     "back": "戻る",
     "next": "次へ",
     "save": "保存",
