@@ -32,6 +32,7 @@ const PermissionsPage = lazy(() => import('@/pages/PermissionsPage').then(m => (
 const AgentMonitorPage = lazy(() => import('@/pages/AgentMonitorPage').then(m => ({ default: m.AgentMonitorPage })))
 const BrainstormPage = lazy(() => import('@/pages/BrainstormPage'))
 const DispatchPage = lazy(() => import('@/pages/DispatchPage').then(m => ({ default: m.DispatchPage })))
+const OperatorProfilePage = lazy(() => import('@/pages/OperatorProfilePage').then(m => ({ default: m.OperatorProfilePage })))
 
 function PageLoader() {
   return (
@@ -81,6 +82,7 @@ export const router = createBrowserRouter([
       { path: 'monitor', element: <L><AgentMonitorPage /></L> },
       { path: 'brainstorm', element: <L><BrainstormPage /></L> },
       { path: 'dispatch', element: <L><DispatchPage /></L> },
+      { path: 'operator-profile', element: <L><OperatorProfilePage /></L> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

@@ -1,5 +1,39 @@
 # Changelog
 
+## [v0.1.4] (2026-04-07)
+
+### Cowork-Style Transition (Complete)
+
+- **All VSCode/VS Code references removed** from codebase (code, docs, CSS, comments)
+- CSS variable `--bg-activity-bar` renamed to `--bg-nav-bar`; `ActivityBarDivider` → `NavBarDivider`
+- Theme names changed: "Dark (VSCode Default)" → "Dark Default"
+- Plugin/extension docstrings updated to Cowork terminology
+
+### New — Operator Profile Page
+
+- **OperatorProfilePage** — dedicated UI for About Me + Global Instructions
+- Two-tab layout: profile fields (role, team, responsibilities, priorities, work style) and instruction editor
+- Connected to existing `/operator-profile/` API endpoints
+- Added to nav bar as bottom item with UserCircle icon
+
+### New — Welcome Tour
+
+- **WelcomeTour** — 3-step overlay for first-time users
+- Step-by-step introduction: Dashboard → Monitor → Autonomy Dial
+- Shows once per user (localStorage), dismissible, inspired by Claude Code quickstart
+
+### New — "What's New" Banner
+
+- **WhatsNew** — version-aware banner on Dashboard
+- Shows key highlights per version, dismissible, inspired by Claude Code release notes
+
+### Documentation
+
+- All 6 translated READMEs synced (added Claude Cowork, Operator Profile, Task Dispatch)
+- Fixed count discrepancies: zh-TW tools 19→21, pt-BR routes 41→46
+- New evaluation: `EVALUATION_v0.1.3.md` — 7.7/10 with concrete fix proposals
+- ROADMAP updated to v0.1.4
+
 ## [v0.1.3] (2026-04-07)
 
 ### Meta-Orchestrator Identity

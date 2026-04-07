@@ -23,6 +23,7 @@ import {
 } from "lucide-react"
 import { api } from "../shared/api/client"
 import { useT } from "@/shared/i18n"
+import { WhatsNew } from "@/shared/ui/WhatsNew"
 
 export function DashboardPage() {
   const [input, setInput] = useState("")
@@ -107,6 +108,8 @@ export function DashboardPage() {
   return (
     <div className="h-full overflow-auto">
       <div className="max-w-[960px] mx-auto px-6 py-6 space-y-5">
+
+        <WhatsNew />
 
         {/* Welcome Tour - step-by-step onboarding for first-time users */}
         {showWelcome && (

@@ -1,7 +1,7 @@
 # Roadmap
 
 > Last updated: 2026-04-07
-> Current version: v0.1.3
+> Current version: v0.1.4
 
 ---
 

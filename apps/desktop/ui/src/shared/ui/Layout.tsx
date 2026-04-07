@@ -24,10 +24,12 @@ import {
   ChevronRight,
   Gauge,
   Send,
+  UserCircle,
 } from "lucide-react"
 import { LogoMark } from "@/shared/ui/Logo"
 import { UpdateBanner } from "@/shared/ui/UpdateBanner"
 import { CommandPalette } from "@/shared/ui/CommandPalette"
+import { WelcomeTour } from "@/shared/ui/WelcomeTour"
 import { useT, useI18n } from "@/shared/i18n"
 import { api } from "@/shared/api/client"
 
@@ -141,6 +143,7 @@ export function Layout({ children }: LayoutProps) {
   const isExtendOpen = showExtend || extendActive
 
   const bottomItems = [
+    { icon: UserCircle, path: "/operator-profile", label: "Operator Profile" },
     { icon: Shield, path: "/permissions", label: t.nav.permissions },
     { icon: SettingsIcon, path: "/settings", label: t.nav.settings },
   ]
@@ -165,6 +168,7 @@ export function Layout({ children }: LayoutProps) {
     "/permissions": t.nav.permissions,
     "/settings": t.nav.settings,
     "/dispatch": (t.nav as Record<string, string>).dispatch ?? "Dispatch",
+    "/operator-profile": "Operator Profile",
   }
 
   const currentTitle =
@@ -336,6 +340,7 @@ export function Layout({ children }: LayoutProps) {
 
       <CommandPalette />
       <UpdateBanner />
+      <WelcomeTour />
     </div>
   )
 }
