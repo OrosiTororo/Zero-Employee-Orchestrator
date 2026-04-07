@@ -37,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### 变更
 
-- **VSCode 风格单活动栏导航** — 移除冗余双侧边栏，改用带提示的图标活动栏（与 VSCode UX 一致）
+- **Cowork 风格导航栏** — 移除冗余双侧边栏，改用带提示的图标导航栏（与 Cowork UX 一致）
 - **移除状态栏渐变** — 将蓝紫渐变替换为简洁的纯色，提高可读性
 - **Dependabot 配置大幅强化** — 忽略主版本更新、分组、覆盖全生态系统（pip/npm/cargo/github-actions）、Cloudflare Workers 单独管理
 - **Dependabot 自动合并工作流添加** — CI 通过后自动批准和 squash 合并 patch/minor 更新

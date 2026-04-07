@@ -1,6 +1,6 @@
-"""Plugin Loader — VSCode-style dynamic plugin loading and environment resolution.
+"""Plugin Loader — Cowork-style dynamic plugin loading and environment resolution.
 
-Like VSCode extensions, users can simply say in natural language "add browser-use",
+Users can simply say in natural language "add browser-use",
 "I want to use Flux for image generation", or "add a music generation tool"
 to install, configure, and enable plugins.
 
@@ -1211,7 +1211,7 @@ class EnvironmentResolver:
 class PluginLoader:
     """Manages plugin search, environment check, installation, and activation.
 
-    Similar to VSCode extension management:
+    Plugin lifecycle management:
     1. Search: Users search by name or keyword (natural language supported)
     2. Check: Automatic inspection of dependencies and environment requirements
     3. Install: Assistance with pip package installation

@@ -90,9 +90,9 @@ Plugins: 10 → 16. Plugin development guide added (docs/dev/PLUGIN_GUIDE.md).
 
 ## v0.1.2 (2026-04-06)
 
-### Changed — UI Redesign (VSCode/Zed/Neovim)
+### Changed — UI Redesign (Cowork-style + MIT palette)
 
-- **VSCode Dark Default colors** — All GUI colors replaced with exact VSCode MIT-licensed values. Custom gradients, shadows, and glow effects removed entirely.
+- **MIT-licensed dark palette colors** — All GUI colors replaced with MIT-licensed values. Custom gradients, shadows, and glow effects removed entirely.
 - **Code splitting** — Lazy-loaded 20 page routes into 42 separate chunks. Main bundle reduced from 749KB to 388KB (48% reduction).
 - **Login page simplified** — Removed custom left-panel branding. Form-only centered layout.
 - **Empty state improvements** — Pages with no data now show icons and navigation links to the Dashboard.

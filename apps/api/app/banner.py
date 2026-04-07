@@ -1,18 +1,18 @@
 """Zero-Employee Orchestrator -- Banner display.
 
 Logo and banner displayed at CLI / TUI startup.
-Uses VSCode (MIT) accent colors and Neovim-inspired status line layout.
+Uses MIT-licensed palette colors and Neovim-inspired status line layout.
 """
 
 import os
 import shutil
 
-# ANSI color codes — VSCode palette (#007ACC accent, #D4D4D4 foreground)
-_ACCENT = "\033[38;2;0;122;204m"  # #007ACC  VSCode accent
+# ANSI color codes — ZEO palette (#007ACC accent, #D4D4D4 foreground)
+_ACCENT = "\033[38;2;0;122;204m"  # #007ACC  accent
 _ACCENT_DIM = "\033[38;2;0;90;160m"  # dimmed accent
-_FG = "\033[38;2;212;212;212m"  # #D4D4D4  VSCode foreground
-_FG_SEC = "\033[38;2;187;187;187m"  # #BBBBBB  VSCode secondary
-_MUTED = "\033[38;2;110;118;129m"  # #6E7681  VSCode muted
+_FG = "\033[38;2;212;212;212m"  # #D4D4D4  foreground
+_FG_SEC = "\033[38;2;187;187;187m"  # #BBBBBB  secondary
+_MUTED = "\033[38;2;110;118;129m"  # #6E7681  muted
 _SUCCESS = "\033[38;2;86;186;159m"  # #56BA9F  Zed success
 _WARNING = "\033[38;2;243;215;104m"  # #F3D768  Zed warning
 _ERROR = "\033[38;2;229;72;77m"  # #E5484D  Zed error

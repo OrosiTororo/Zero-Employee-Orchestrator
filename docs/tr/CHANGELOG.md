@@ -25,7 +25,7 @@ Sürümleme: [Semantic Versioning](https://semver.org/)
 - **Varsayılan dil İngilizce olarak değiştirildi** — Daha geniş uluslararası benimseme için `ja`'dan `en`'e değiştirildi (kullanıcılar `LANGUAGE=ja` veya `--lang ja` ile değiştirebilir)
 - **Model kataloğu güncellendi** — GPT-5.4 / GPT-5.4 Mini (4.1'den), Llama 4 (3.2'den), Phi-4 (3'ten), Claude Haiku tarihsiz takma ad
 - **Dokümantasyon doğruluk düzeltmeleri** — Şişirilmiş metrikler düzeltildi: prompt guard desenleri 40+→28+, uygulama bağlayıcıları 35+→34+, rota modülleri 41→40. Tüm dillerde "GPT-5 Mini"→"GPT-5.4 Mini" düzeltildi
-- **VSCode tarzı tek aktivite çubuğu gezinmesi** — Çift kenar çubuğu kaldırıldı, ipuçlu simge tabanlı aktivite çubuğuna geçildi
+- **Cowork tarzı gezinme çubuğu** — Çift kenar çubuğu kaldırıldı, ipuçlu simge tabanlı gezinme çubuğuna geçildi
 
 ### Güvenlik
 

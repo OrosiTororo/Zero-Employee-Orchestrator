@@ -62,8 +62,8 @@
 
 | Dimension | Score | Rationale |
 |-----------|-------|-----------|
-| **Usability** | 8.5 | NL commands + VSCode UI + CLI. Three interaction modes. Progressive disclosure. But many features are breadth-over-depth. |
-| **Learning curve** | 9.0 | VSCode layout universally familiar. Command palette, activity bar, status bar. CLI slash commands mirror Claude Code. |
+| **Usability** | 8.5 | NL commands + Cowork-style UI + CLI. Three interaction modes. Progressive disclosure. But many features are breadth-over-depth. |
+| **Learning curve** | 9.0 | Cowork-style task-first layout is intuitive. Command palette, nav sidebar, autonomy dial. CLI slash commands mirror Claude Code. |
 | **Onboarding** | 9.0 | 2-min install, no API key needed. Setup wizard with templates. Docker path available. |
 | **Security** | 9.5 | Unmatched: 14 approval categories, 10 browser tiers, PII guard, sandbox, prompt guard, kill switch. No competitor close. |
 | **Multi-model** | 9.0 | 26 families + zero-cost paths. LangChain has more integrations (700+) but requires API keys. |

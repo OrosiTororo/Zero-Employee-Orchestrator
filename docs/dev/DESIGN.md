@@ -103,7 +103,7 @@ Examples:
 - MCP connection
 - OAuth integration
 - Notification features
-- VS Code-style UI
+- Cowork-style UI theme
 
 ### 3.4 Implementation Boundaries
 

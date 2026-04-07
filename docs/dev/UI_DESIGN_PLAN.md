@@ -1,4 +1,4 @@
-# ZEO UI Design Plan v2 — VSCode準拠 + Zed参考 + Neovim CLI
+# ZEO UI Design Plan v2 — Cowork-style + MIT palette + Neovim CLI
 
 ## ライセンス確認結果
 
@@ -14,10 +14,10 @@
 ## GUI版デザイン計画
 
 ### 方針
-「VSCodeのような重いテキストエディタではなく、機能を取捨選択できる軽量なIDE」
-→ VSCodeのUI骨格（レイアウト・色）をそのまま使い、不要な複雑さを削ぎ落とす
+「Cowork-styleのタスクファーストUI — チャット入力・承認ゲート・自律ダイアルを中心とした軽量レイアウト」
+→ MIT公開カラーパレットを基盤に、Coworkパターン（Dispatch, Autonomy Dial, Operator Profile）を実装
 
-### カラートークン（VSCode Dark Default — MIT、そのまま使用）
+### カラートークン（MIT公開パレットベース）
 
 ```css
 /* ── Surface ── */
@@ -27,7 +27,7 @@
 --bg-input:         #3C3C3C;   /* input.background */
 --bg-hover:         #2A2D2E;   /* list.hoverBackground */
 --bg-active:        #37373D;   /* list.activeSelectionBackground */
---bg-activity-bar:  #333333;   /* activityBar.background */
+--bg-nav-bar:  #333333;   /* nav bar background */
 --bg-titlebar:      #323233;   /* titleBar.activeBackground */
 --bg-statusbar:     #007ACC;   /* statusBar.background */
 --bg-tab-bar:       #252526;   /* editorGroupHeader.tabsBackground */
@@ -37,7 +37,7 @@
 --text-secondary:   #BBBBBB;   /* sideBarTitle.foreground */
 --text-muted:       #6E7681;   /* editorLineNumber.foreground 系 */
 
-/* ── Accent（単色、VSCode公式） ── */
+/* ── Accent（単色） ── */
 --accent:           #007ACC;   /* focusBorder, badge, statusBar */
 --accent-fg:        #FFFFFF;
 
@@ -52,12 +52,12 @@
 --info:             #0090FF;   /* Zed info */
 ```
 
-### ライトテーマ（VSCode Light Default）
+### ライトテーマ
 ```css
 --bg-base:          #FFFFFF;
 --bg-surface:       #F3F3F3;
 --bg-raised:        #ECECEC;
---bg-activity-bar:  #2C2C2C;   /* VSCodeライトでもダーク */
+--bg-nav-bar:  #2C2C2C;   /* ライトテーマでもダーク */
 --bg-statusbar:     #007ACC;
 --text-primary:     #1E1E1E;
 --text-secondary:   #616161;
@@ -66,18 +66,17 @@
 --border:           #E5E5E5;
 ```
 
-### レイアウト寸法（VSCode実ソースから取得）
+### レイアウト寸法
 ```
-Activity Bar:       48px幅, アイコン24px, ボタン高48px
+Nav Bar:            48px幅, アイコン24px, ボタン高48px
 Title Bar:          30px高（Tauri）
-Status Bar:         22px高, font-size 12px, line-height 22px
-Tab Bar:            35px高
+Status Bar:         22px高, font-size 12px, line-height 22px (Autonomy Dial + Dispatch feed)
 Sidebar最小幅:      170px
-本文font-size:      13px (VSCode workbench)
-グローバルfont:     11px (VSCode body base)
+本文font-size:      13px
+グローバルfont:     11px
 ```
 
-### シャドウ（VSCode準拠 — 最小限）
+### シャドウ（最小限）
 ```css
 /* 通常要素: シャドウなし */
 --shadow-popup:  0 4px 12px rgba(0,0,0,0.3);   /* ポップオーバーのみ */
@@ -98,7 +97,7 @@ Sidebar最小幅:      170px
 - .text-gradient, .glass ユーティリティ
 - @keyframes pulse-ring, checkmark, shimmer
 - LoginPage 左パネルのカスタムブランディング
-- OAuthコールバック HTML のカスタムカラー → VSCode色に
+- OAuthコールバック HTML のカスタムカラー → MITパレットカラーに
 
 ### 残すもの
 - GoogleIcon（Google公式ブランドカラー再現）
@@ -109,7 +108,7 @@ Sidebar最小幅:      170px
 ### 拡張機能で変更可能にするもの
 - ステータスカラー（success, error, warning, info）
 - テーマ全体（dark/light/high-contrast + カスタムテーマ）
-- Activity Barのアイコンセット
+- Nav Barのアイコンセット
 - フォントファミリー・サイズ
 
 ---
@@ -183,8 +182,8 @@ Sidebar最小幅:      170px
 モード NORMAL:         #56BA9F (green/cyan)
 モード INSERT:         #007ACC (blue)
 モード COMMAND:        #F3D768 (yellow)
-プロンプト:            #D4D4D4 (VSCode foreground)
-AIレスポンス:          #BBBBBB (VSCode secondary)
+プロンプト:            #D4D4D4 (foreground)
+AIレスポンス:          #BBBBBB (secondary)
 エラー:                #E5484D (Zed error)
 ```
 
@@ -209,21 +208,21 @@ AIレスポンス:          #BBBBBB (VSCode secondary)
 ### GUI (Desktop)
 | ファイル | 変更 |
 |---------|------|
-| `index.css` | VSCode公式カラーに書き換え、カスタム要素全削除 |
+| `index.css` | MITパレットカラーに書き換え、カスタム要素全削除 |
 | `Logo.tsx` | カスタムSVG削除 → Lucide Workflow + テキスト |
-| `Layout.tsx` | VSCode寸法に厳密準拠、タブバー復元 |
+| `Layout.tsx` | Cowork-style nav bar + status bar (Autonomy Dial, Dispatch feed) |
 | `LoginPage.tsx` | 左パネル削除、フォームのみのシンプルデザイン |
-| `DashboardPage.tsx` | カスタムカード→ VSCodeパネルスタイル |
+| `DashboardPage.tsx` | カスタムカード→ Coworkタスクファーストスタイル |
 | `CommandPalette.tsx` | カスタムアニメーション削除 |
 | `BackendGuard.tsx` | カスタムグラデーション削除 |
 
 ### Backend
 | ファイル | 変更 |
 |---------|------|
-| `auth.py` | OAuthコールバックHTML → VSCodeカラー |
+| `auth.py` | OAuthコールバックHTML → MITパレットカラー |
 
 ### CLI
 | ファイル | 変更 |
 |---------|------|
 | `cli.py` | ステータスライン構造化、モード表示、Neovimレイアウト |
-| `banner.py` | カスタムカラー → VSCode/Neovimカラー |
+| `banner.py` | カスタムカラー → MITパレット/Neovimカラー |

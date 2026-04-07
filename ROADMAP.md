@@ -1,7 +1,7 @@
 # Roadmap
 
-> Last updated: 2026-04-06
-> Current version: v0.1.2
+> Last updated: 2026-04-07
+> Current version: v0.1.3
 
 ---
 
@@ -35,7 +35,10 @@ v0.1 includes all features originally planned for v0.2 through v1.0, implemented
 - 34+ app integrations via App Connector Hub
 
 **Desktop UI (Tauri v2 + React):**
-- VSCode/Cursor-inspired IDE layout
+- Cowork-style task-first layout with nav sidebar + progressive disclosure
+- Autonomy Dial (Observe/Assist/Semi-Auto/Autonomous)
+- Dispatch background task feed in status bar
+- Operator Profile (about-me + global instructions)
 - 3 themes (Dark/Light/High Contrast)
 - Command Palette (Ctrl/Cmd+K)
 - Marketplace page (Skills/Plugins/Extensions unified view)
@@ -64,13 +67,19 @@ Items that can be implemented by the development team without large-scale commun
 | Done | **Provider expansion** | 11 LLM providers, 12 service connections with categories |
 | Done | **Template Gallery** | 5 quick-start business templates (Content Ops, Sales Research, FAQ/KB, Meeting→Tasks, Pre-publish Review) |
 | Done | **Execution Logs view** | Reasoning Traces tab + Approvals queue in Agent Monitor (real-time) |
-| v0.1.2 | **VSCode/Zed/Neovim UI redesign** | VSCode MIT colors, Zed status colors, code split (48% reduction), theme extension API |
-| v0.1.2 | **CLI Neovim-style modes** | NORMAL/INSERT/COMMAND mode switching, lualine-inspired status line |
-| v0.1.2 | **Token auto-refresh** | 401 interceptor, periodic refresh, prevents auto-logout |
-| v0.1.2 | **Plugin/Extension seeding** | 16 built-in plugins (10 general + 6 role-based packs) + 11 extensions seeded on startup |
-| v0.1.2 | **API client migration** | All pages use centralized api client (auth + Tauri URL) |
-| v0.1.2 | **Frontend data connection** | TicketList, Approvals, Heartbeats, Costs, Audit connected to real API |
-| v0.1.2 | **features/ module separation** | features/company/ with shared useCompanyId hook |
+| Done | **UI redesign** | Cowork-style layout, MIT-licensed colors, code split (48% reduction), theme extension API |
+| Done | **CLI Neovim-style modes** | NORMAL/INSERT/COMMAND mode switching, lualine-inspired status line |
+| Done | **Token auto-refresh** | 401 interceptor, periodic refresh, prevents auto-logout |
+| Done | **Plugin/Extension seeding** | 16 built-in plugins (10 general + 6 role-based packs) + 11 extensions seeded on startup |
+| Done | **API client migration** | All pages use centralized api client (auth + Tauri URL) |
+| Done | **Frontend data connection** | TicketList, Approvals, Heartbeats, Costs, Audit connected to real API |
+| Done | **features/ module separation** | features/company/ with shared useCompanyId hook |
+| Done | **Cowork Dispatch** | Fire-and-forget background tasks, status bar feed, /dispatch endpoint |
+| Done | **Operator Profile** | Cowork-style about-me + global instructions (/operator-profile) |
+| Done | **Tiered browser approval** | 10-level approval hierarchy (navigate < click < type < submit < login < payment) |
+| Done | **Role-based plugin packs** | 6 packs (Sales, Finance, HR, Legal, Marketing, Support) |
+| Done | **SSO / SAML** | Enterprise single sign-on support |
+| Done | **Compliance framework** | GDPR/HIPAA/SOC2/ISO27001 governance endpoints |
 | Done | **Plugin Loader UI** | PluginsPage CRUD + install form, API-connected |
 | Done | **E2E flow integration** | Dashboard → Interview → SpecPlan → Execution (all API-connected) |
 | Done | **Worker core logic** | TaskRunner (5 types, retry, judge) + HeartbeatRunner (cron, checks) |

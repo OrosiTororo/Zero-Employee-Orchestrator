@@ -4,10 +4,10 @@
 
 | 視点 | 定義 | 重み |
 |------|------|------|
-| **相対的評価** | VSCode/Zed等の競合IDEとの比較。カラー準拠度、レイアウト一貫性、VSCodeユーザーの習得容易さ | 25% |
+| **相対的評価** | Cowork/Zed等のAIツールとの比較。カラー準拠度、レイアウト一貫性、ユーザーの習得容易さ | 25% |
 | **客観的評価** | AIオーケストレーターとして初見ユーザーの視点。何ができるか分かるか、迷わないか | 30% |
 | **技術的評価** | ビルド品質、CSS変数整合性、バンドルサイズ、パフォーマンス、テスト | 20% |
-| **ZEO方針適合度** | 「軽量IDE」「拡張機能で追加」「VSCodeベース」「CLI=Neovim風」 | 15% |
+| **ZEO方針適合度** | 「軽量UI」「拡張機能で追加」「Coworkベース」「CLI=Neovim風」 | 15% |
 | **CLI評価** | Neovimインスパイア度。ステータスライン、モード切替、操作効率 | 10% |
 
 ---
@@ -21,13 +21,13 @@
 JSチャンク: 42 (lazy loading)
 メインJS:   380KB (gzip ~116KB)
 CSS:        36KB (gzip ~8KB)
-Favicon:    HTTP 200 (VSCode accent workflow icon)
-VSCode色:   --bg-base: #1E1E1E, --accent: #007ACC, --success: #56BA9F
+Favicon:    HTTP 200 (ZEO accent workflow icon)
+ZEOパレット:   --bg-base: #1E1E1E, --accent: #007ACC, --success: #56BA9F
 ```
 
 ### CLI (Python直接実行)
 ```
-バナー:         VSCode #007ACC アクセントカラー
+バナー:         ZEO #007ACC アクセントカラー
 ステータスライン: NORMAL(緑) / INSERT(青) / COMMAND(黄)
 接続状態:       ●(接続) / ○(切断、赤)
 i18n:          ja/en/zh/ko 全て正常
@@ -59,11 +59,11 @@ ROADMAP TODO:          0件（全てDone） ✓
 
 | 項目 | スコア | 根拠 |
 |------|--------|------|
-| カラー準拠度 | 10/10 | VSCode Dark Default (#1E1E1E, #252526, #D4D4D4, #007ACC) を全面採用（MIT）。ステータス色はZed (Apache 2.0) |
-| レイアウト | 9/10 | Activity Bar 48px, Title Bar 30px, Status Bar 22px — VSCode実ソース値。Tab Bar省略は合理的判断 |
-| 習得容易さ | 9.5/10 | VSCodeユーザーは即座に操作理解。Command Palette (Ctrl+K)、Activity Bar、Settings TOC全て同一パターン |
+| カラー準拠度 | 10/10 | MIT Dark Default (#1E1E1E, #252526, #D4D4D4, #007ACC) を全面採用（MIT）。ステータス色はZed (Apache 2.0) |
+| レイアウト | 9/10 | Nav Bar 48px, Title Bar 30px, Status Bar 22px。Tab Bar省略は合理的判断 |
+| 習得容易さ | 9.5/10 | ユーザーは即座に操作理解。Command Palette (Ctrl+K)、Nav Bar、Settings TOC全て同一パターン |
 
-**減点**: `-0.5` Activity Barのアイコンのみ。ただしツールチップあり、VSCodeと同等。
+**減点**: `-0.5` Nav Barのアイコンのみ。ただしツールチップあり。
 
 ---
 
@@ -99,8 +99,8 @@ ROADMAP TODO:          0件（全てDone） ✓
 |------|--------|------|
 | 軽量IDE | 10/10 | カスタム装飾全削除、コードスプリット、Tab Bar不要判断 |
 | 拡張機能で追加 | 9/10 | テーマAPI (`/themes/register`)、言語パックAPI、拡張テーマ変更可能 |
-| VSCodeベース | 10/10 | MITカラー、実ソース寸法、同一UIパターン |
-| Neovim CLI | 9/10 | 3モード実動作、lualineステータスライン、VSCode/Zedカラー |
+| Coworkベース | 10/10 | MITカラー、実ソース寸法、同一UIパターン |
+| Neovim CLI | 9/10 | 3モード実動作、lualineステータスライン、ZEOパレット/Zedカラー |
 
 **減点**: `-0.5` マーケットプレイスは「Coming Soon」（v0.2ロードマップ項目、コミュニティ前提）
 
@@ -112,7 +112,7 @@ ROADMAP TODO:          0件（全てDone） ✓
 |------|--------|------|
 | ステータスライン | 9.5/10 | lualine風 `NORMAL│ollama│ctx:42%  ja│quality│●`、動的幅調整 |
 | モード切替 | 9/10 | NORMAL(緑)/INSERT(青)/COMMAND(黄) 実動作、`"""`で複数行入力 |
-| カラー | 9.5/10 | VSCode #007ACC + Zed #56BA9F、24bitカラー |
+| カラー | 9.5/10 | ZEO #007ACC + Zed #56BA9F、24bitカラー |
 | 操作性 | 8/10 | スラッシュコマンド充実、NLコマンド処理。ヒストリナビ未対応 |
 
 ---
@@ -163,7 +163,7 @@ v0.1.2としては**機能的に完成**している。
 | 51bff36 | auth/plugin/setup修正、初回UI redesign |
 | 41d93d5 | UI_DESIGN_PLAN.md作成 |
 | 1002208 | CLI/Neovimパターン追加 |
-| 7f4a59d | VSCode/Zed/Neovimトークン全面適用 |
+| 7f4a59d | Cowork/Zed/Neovimトークン全面適用 |
 | 3aeecab | 未定義CSS変数修正、i18n 6言語、空状態改善 |
 | b2814e8 | コードスプリット、テーマAPI、CLIモード |
 | 8b322e1 | 残りraw fetch→api client移行 |

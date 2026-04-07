@@ -1,8 +1,8 @@
 """Browser automation adapter — plugin-style extensible browser automation framework.
 
-Like VS Code extensions, allows third-party browser automation libraries to be
-added and switched as adapters. Initially includes only the built-in Playwright
-adapter; browser-use / Selenium / Puppeteer etc. are added later as Plugins.
+Allows third-party browser automation libraries to be added and switched as
+adapters. Initially includes only the built-in Playwright adapter;
+browser-use / Selenium / Puppeteer etc. are added later as Plugins.
 
 Supported adapters:
 - builtin (Playwright) — default, bundled with ZEO
@@ -402,8 +402,8 @@ class BrowserUseAdapter(BrowserAdapter):
 class BrowserAdapterRegistry:
     """Browser automation adapter registry.
 
-    Like VS Code's extension marketplace, allows registering,
-    searching, and switching adapters.
+    Allows registering, searching, and switching adapters
+    through a plugin-style marketplace.
     """
 
     def __init__(self) -> None:
