@@ -129,12 +129,17 @@ jobs:
           includeUpdaterJson: true
 
       - name: Upload per-platform updater JSON fragment
+        shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}"
           # Save a copy of the platform-specific latest.json for the merge job
-          if [ -f apps/desktop/src-tauri/target/release/bundle/updater/latest.json ]; then
+          # Check target-specific path first (e.g. universal-apple-darwin), then default release path
+          RUST_TARGET="${{ matrix.rust_target }}"
+          if [ -n "$RUST_TARGET" ] && [ -f "apps/desktop/src-tauri/target/${RUST_TARGET}/release/bundle/updater/latest.json" ]; then
+            cp "apps/desktop/src-tauri/target/${RUST_TARGET}/release/bundle/updater/latest.json" latest-${{ matrix.target }}.json
+          elif [ -f apps/desktop/src-tauri/target/release/bundle/updater/latest.json ]; then
             cp apps/desktop/src-tauri/target/release/bundle/updater/latest.json latest-${{ matrix.target }}.json
           elif [ -f latest.json ]; then
             cp latest.json latest-${{ matrix.target }}.json
