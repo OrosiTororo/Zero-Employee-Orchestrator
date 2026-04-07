@@ -19,7 +19,7 @@
 
 **Yapay zekayı bir organizasyon olarak çalıştırma platformu — sadece bir sohbet botu değil.**
 
-İş akışlarını doğal dilde tanımlayın, rol tabanlı yetkilendirme ile birden fazla yapay zeka ajanını düzenleyin ve insan onay kapıları ile tam denetlenebilirlik sağlayarak görevleri yürütün. Self-Healing DAG, Judge Layer ve Experience Memory'ye sahip 9 katmanlı mimariyle oluşturulmuştur.
+ZEO mevcut yapay zeka araçlarınızı değiştirmez — onları birleştirir. CrewAI, AutoGen, LangChain, Dify, Claude Cowork, n8n, Zapier ve 34'ten fazla iş uygulamasını tek bir onay kapısı, denetim izi ve güvenlik katmanı altında bağlayın. İş akışlarını doğal dilde tanımlayın, rol tabanlı yetkilendirme ile birden fazla yapay zeka ajanını düzenleyin ve insan onay kapıları ile tam denetlenebilirlik sağlayarak görevleri yürütün. Self-Healing DAG, Judge Layer ve Experience Memory'ye sahip 9 katmanlı mimariyle oluşturulmuştur.
 
 ZEO'nun kendisi ücretsiz ve açık kaynaklıdır. LLM API maliyetleri kullanıcılar tarafından doğrudan her sağlayıcıya ödenir.
 
@@ -297,6 +297,8 @@ Zero-Employee-Orchestrator/
 | **A2A İletişim** | Ajanlar arası eşler arası mesajlaşma, kanallar ve müzakere |
 | **Avatar Yapay Zeka** | Karar kalıplarınızı öğrenir ve sizinle birlikte gelişir |
 | **Sekreter Yapay Zeka** | Beyin boşaltma → yapılandırılmış görevler, siz ve yapay zeka organizasyonu arasında köprü |
+| **Operatör Profili** | Cowork tarzı hakkımda + genel talimatlar — Yapay zeka rolünüze, önceliklerinize ve çalışma tarzınıza göre yanıtları kişiselleştirir |
+| **Görev Gönderimi** | Cowork Dispatch'ten ilham alan arka plan görevleri — gönder ve unut, durum yoklama desteği |
 | **Yeniden Kullanım Motoru** | 1 içeriği 10 medya formatına otomatik dönüştürme |
 
 ### Güvenlik

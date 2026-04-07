@@ -7,7 +7,7 @@ interface LogoProps {
 
 /**
  * Logo using Lucide Workflow icon — no custom SVG.
- * Color: VSCode accent #007ACC.
+ * Color: ZEO accent #007ACC.
  */
 export function Logo({ size = 32, className }: LogoProps) {
   return (

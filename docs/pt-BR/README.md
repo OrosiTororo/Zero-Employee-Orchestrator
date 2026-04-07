@@ -19,7 +19,7 @@
 
 **A plataforma para operar IA como uma organização — não apenas um chatbot.**
 
-Defina fluxos de trabalho de negócios em linguagem natural, orquestre múltiplos agentes de IA com delegação baseada em papéis e execute tarefas com portões de aprovação humana e auditabilidade completa. Construído com uma arquitetura de 9 camadas com Self-Healing DAG, Judge Layer e Experience Memory.
+O ZEO não substitui suas ferramentas de IA — ele as unifica. Conecte CrewAI, AutoGen, LangChain, Dify, Claude Cowork, n8n, Zapier e mais de 34 aplicativos de negócios sob um único portão de aprovação, trilha de auditoria e camada de segurança. Defina fluxos de trabalho de negócios em linguagem natural, orquestre múltiplos agentes de IA com delegação baseada em papéis e execute tarefas com portões de aprovação humana e auditabilidade completa. Construído com uma arquitetura de 9 camadas com Self-Healing DAG, Judge Layer e Experience Memory.
 
 O ZEO em si é gratuito e de código aberto. Os custos de API dos LLMs são pagos diretamente pelos usuários a cada provedor.
 
@@ -207,7 +207,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # Backend FastAPI
 │   │   └── app/
 │   │       ├── core/               # Config, DB, segurança, i18n
-│   │       ├── api/routes/         # 41 módulos de rotas REST API
+│   │       ├── api/routes/         # 46 módulos de rotas REST API
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -297,6 +297,8 @@ Zero-Employee-Orchestrator/
 | **Comunicação A2A** | Mensagens peer-to-peer entre agentes, canais e negociação |
 | **IA Avatar** | Aprende seus padrões de decisão e evolui com você |
 | **IA Secretária** | Brain dump → tarefas estruturadas, ponte entre você e a organização de IA |
+| **Perfil do Operador** | About-me estilo Cowork + instruções globais — IA personaliza respostas com base no seu papel, prioridades e estilo de trabalho |
+| **Despacho de Tarefas** | Tarefas em segundo plano inspiradas no Cowork Dispatch — dispare e esqueça com polling de status |
 | **Motor de Reaproveitamento** | Converte automaticamente 1 conteúdo em 10 formatos de mídia |
 
 ### Segurança

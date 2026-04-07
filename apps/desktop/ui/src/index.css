@@ -101,7 +101,7 @@
   --shadow-modal: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
-/* ── VSCode High Contrast Theme ──────────────────────────── */
+/* ── ZEO High Contrast Theme ────────────────────────────── */
 [data-theme="high-contrast"] {
   --bg-base: #000000;
   --bg-surface: #0A0A0A;
@@ -166,7 +166,7 @@ body {
   overflow: hidden;
 }
 
-/* ── Scrollbar (VSCode-style) ─────────────────────────── */
+/* ── Scrollbar (minimal style) ───────────────────────── */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -204,7 +204,7 @@ body {
   background: transparent;
 }
 
-/* ── Focus (VSCode: 1px solid accent, offset -1px) ────── */
+/* ── Focus (1px solid accent, offset -1px) ───────────── */
 :focus-visible {
   outline: 1px solid var(--accent);
   outline-offset: -1px;

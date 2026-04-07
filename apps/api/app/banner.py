@@ -112,7 +112,7 @@ def print_local_banner(
 ) -> None:
     """Display a detailed banner for local mode.
 
-    Uses Neovim-inspired status layout with VSCode colors.
+    Uses Neovim-inspired status layout with ZEO palette colors.
     """
     from app.core.i18n import t
 
@@ -128,7 +128,7 @@ def print_local_banner(
 
     print(_separator())
 
-    # Status lines — VSCode colors
+    # Status lines — ZEO palette
     status_icon = (
         f"{_SUCCESS}{_ICON_STATUS}{_RESET}" if ollama_available else f"{_WARNING}✗{_RESET}"
     )

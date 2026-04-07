@@ -309,7 +309,7 @@ export function SettingsPage() {
 
   return (
     <div className="h-full flex">
-      {/* TOC Sidebar (VSCode-style) */}
+      {/* TOC Sidebar */}
       <nav className="w-[180px] shrink-0 border-r border-[var(--border)] bg-[var(--bg-surface)] overflow-auto py-3">
         <div className="px-3 mb-2 text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">
           {t.settings.title}
