@@ -525,10 +525,14 @@
     "emptyState": "Nenhuma solicitação de aprovação pendente.",
     "risk": "Risco",
     "approve": "Aprovar",
-    "reject": "Rejeitar"
+    "reject": "Rejeitar",
+    "loadFailed": "Não foi possível carregar aprovações. Verifique sua conexão.",
+    "approveFailed": "Não foi possível aprovar. Tente novamente.",
+    "rejectFailed": "Não foi possível rejeitar. Tente novamente."
   },
   "audit": {
     "title": "Log de Auditoria",
+    "loadFailed": "Não foi possível carregar logs de auditoria. Verifique sua conexão.",
     "searchPlaceholder": "Pesquisar por ator, alvo, ID de rastreio...",
     "filterLabel": "Filtro de eventos",
     "allEvents": "Todos os Eventos",
@@ -808,5 +812,38 @@
     "downloadRestart": "Baixar e reiniciar",
     "autoUpdate": "Atualização automática",
     "autoUpdateDesc": "Baixar e instalar automaticamente quando houver atualizações"
+  },
+  "dispatch": {
+    "subtitle": "Tarefas em segundo plano — disparar e esquecer",
+    "helpText": "Tarefas executam em segundo plano. Um ticket é criado automaticamente.",
+    "loadFailed": "Não foi possível carregar tarefas. Verifique sua conexão.",
+    "dispatchFailed": "Não foi possível despachar tarefa. Verifique sua conexão.",
+    "cancelFailed": "Não foi possível cancelar tarefa."
+  },
+  "operatorProfile": {
+    "loadFailed": "Não foi possível carregar perfil do operador.",
+    "profileSaved": "Perfil salvo.",
+    "profileSaveFailed": "Não foi possível salvar perfil.",
+    "instructionsSaved": "Instruções salvas.",
+    "instructionsSaveFailed": "Não foi possível salvar instruções."
+  },
+  "errors": {
+    "orgLoadFailed": "Não foi possível carregar dados da organização. Complete a configuração ou verifique sua conexão.",
+    "interviewSaveFailed": "Não foi possível salvar respostas da entrevista. Verifique sua conexão e tente novamente.",
+    "secretaryConnectFailed": "Não foi possível conectar ao servidor. Verifique se o backend está em execução.",
+    "secretaryLoadDumpsFailed": "Não foi possível carregar brain dumps. Tente atualizar a página.",
+    "secretaryLoadActionsFailed": "Não foi possível carregar itens de ação. Tente atualizar a página.",
+    "secretaryLoadStatsFailed": "Não foi possível carregar estatísticas diárias. Tente atualizar a página.",
+    "secretarySubmitFailed": "Não foi possível enviar. Verifique sua conexão e tente novamente.",
+    "secretaryArchiveFailed": "Não foi possível arquivar. Tente novamente.",
+    "secretaryStatusFailed": "Não foi possível atualizar status. Tente novamente.",
+    "secretarySearchFailed": "Busca falhou. Verifique sua conexão e tente novamente.",
+    "brainstormSessionFailed": "Falha ao criar sessão",
+    "brainstormMessageFailed": "Falha ao enviar mensagem",
+    "brainstormCompareFailed": "Falha ao executar comparação",
+    "brainstormRequestFailed": "Falha ao enviar solicitação",
+    "brainstormAgentFailed": "Falha ao adicionar agente",
+    "pluginsFetchFailed": "Falha ao buscar plugins",
+    "extensionsFetchFailed": "Falha ao buscar extensões"
   }
 }

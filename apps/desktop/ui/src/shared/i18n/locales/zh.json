@@ -525,10 +525,14 @@
     "emptyState": "没有待处理的审批请求。",
     "risk": "风险",
     "approve": "批准",
-    "reject": "拒绝"
+    "reject": "拒绝",
+    "loadFailed": "无法加载审批请求。请检查连接。",
+    "approveFailed": "无法批准。请重试。",
+    "rejectFailed": "无法拒绝。请重试。"
   },
   "audit": {
     "title": "审计日志",
+    "loadFailed": "无法加载审计日志。请检查连接。",
     "searchPlaceholder": "按操作者、目标、追踪 ID 搜索...",
     "filterLabel": "事件筛选",
     "allEvents": "所有事件",
@@ -808,5 +812,38 @@
     "downloadRestart": "下载并重启",
     "autoUpdate": "自动更新",
     "autoUpdateDesc": "有更新时自动下载并安装"
+  },
+  "dispatch": {
+    "subtitle": "后台任务 — 即发即忘",
+    "helpText": "任务在后台运行。工单会自动创建。",
+    "loadFailed": "无法加载调度任务。请检查连接。",
+    "dispatchFailed": "无法调度任务。请检查连接。",
+    "cancelFailed": "无法取消任务。"
+  },
+  "operatorProfile": {
+    "loadFailed": "无法加载操作员资料。",
+    "profileSaved": "资料已保存。",
+    "profileSaveFailed": "无法保存资料。",
+    "instructionsSaved": "指令已保存。",
+    "instructionsSaveFailed": "无法保存指令。"
+  },
+  "errors": {
+    "orgLoadFailed": "无法加载组织数据。请完成设置或检查连接。",
+    "interviewSaveFailed": "无法保存访谈回答。请检查连接后重试。",
+    "secretaryConnectFailed": "无法连接服务器。请确认后端正在运行。",
+    "secretaryLoadDumpsFailed": "无法加载脑暴记录。请刷新页面。",
+    "secretaryLoadActionsFailed": "无法加载行动项。请刷新页面。",
+    "secretaryLoadStatsFailed": "无法加载今日统计。请刷新页面。",
+    "secretarySubmitFailed": "无法提交。请检查连接后重试。",
+    "secretaryArchiveFailed": "无法归档。请重试。",
+    "secretaryStatusFailed": "无法更新状态。请重试。",
+    "secretarySearchFailed": "搜索失败。请检查连接后重试。",
+    "brainstormSessionFailed": "创建会话失败",
+    "brainstormMessageFailed": "发送消息失败",
+    "brainstormCompareFailed": "运行比较失败",
+    "brainstormRequestFailed": "提交请求失败",
+    "brainstormAgentFailed": "添加代理失败",
+    "pluginsFetchFailed": "获取插件失败",
+    "extensionsFetchFailed": "获取扩展失败"
   }
 }

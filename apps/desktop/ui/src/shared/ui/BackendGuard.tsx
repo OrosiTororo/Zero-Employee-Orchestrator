@@ -7,8 +7,9 @@ const isTauri =
   typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
 
 function tauriInvoke<T>(cmd: string, args?: Record<string, unknown>): Promise<T> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const internals = (window as any).__TAURI_INTERNALS__
+  const internals = (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__ as
+    | { invoke: <T>(cmd: string, args?: Record<string, unknown>) => Promise<T> }
+    | undefined
   if (!internals?.invoke) {
     return Promise.reject(new Error("Tauri runtime not available"))
   }

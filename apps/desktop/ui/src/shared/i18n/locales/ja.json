@@ -525,10 +525,14 @@
     "emptyState": "承認待ちのリクエストはありません。",
     "risk": "リスク",
     "approve": "承認",
-    "reject": "却下"
+    "reject": "却下",
+    "loadFailed": "承認リクエストを読み込めませんでした。接続を確認してください。",
+    "approveFailed": "承認できませんでした。再度お試しください。",
+    "rejectFailed": "却下できませんでした。再度お試しください。"
   },
   "audit": {
     "title": "監査ログ",
+    "loadFailed": "監査ログを読み込めませんでした。接続を確認してください。",
     "searchPlaceholder": "アクター、対象、トレースIDで検索...",
     "filterLabel": "イベントフィルター",
     "allEvents": "すべてのイベント",
@@ -808,5 +812,38 @@
     "downloadRestart": "ダウンロードして再起動",
     "autoUpdate": "自動アップデート",
     "autoUpdateDesc": "更新が利用可能になったら自動的にダウンロード・インストールする"
+  },
+  "dispatch": {
+    "subtitle": "バックグラウンドタスク — 投げっぱなし実行",
+    "helpText": "タスクはバックグラウンドで実行されます。チケットが自動作成されます。",
+    "loadFailed": "ディスパッチタスクを読み込めませんでした。接続を確認してください。",
+    "dispatchFailed": "タスクをディスパッチできませんでした。接続を確認してください。",
+    "cancelFailed": "タスクをキャンセルできませんでした。"
+  },
+  "operatorProfile": {
+    "loadFailed": "オペレータープロフィールを読み込めませんでした。",
+    "profileSaved": "プロフィールを保存しました。",
+    "profileSaveFailed": "プロフィールを保存できませんでした。",
+    "instructionsSaved": "指示を保存しました。",
+    "instructionsSaveFailed": "指示を保存できませんでした。"
+  },
+  "errors": {
+    "orgLoadFailed": "組織データを読み込めませんでした。セットアップを完了するか、接続を確認してください。",
+    "interviewSaveFailed": "インタビューの回答を保存できませんでした。接続を確認して再度お試しください。",
+    "secretaryConnectFailed": "サーバーに接続できませんでした。バックエンドが起動しているか確認してください。",
+    "secretaryLoadDumpsFailed": "ブレインダンプを読み込めませんでした。ページを更新してください。",
+    "secretaryLoadActionsFailed": "アクションアイテムを読み込めませんでした。ページを更新してください。",
+    "secretaryLoadStatsFailed": "本日の統計を読み込めませんでした。ページを更新してください。",
+    "secretarySubmitFailed": "送信できませんでした。接続を確認して再度お試しください。",
+    "secretaryArchiveFailed": "アーカイブできませんでした。再度お試しください。",
+    "secretaryStatusFailed": "ステータスを更新できませんでした。再度お試しください。",
+    "secretarySearchFailed": "検索に失敗しました。接続を確認して再度お試しください。",
+    "brainstormSessionFailed": "セッションの作成に失敗しました",
+    "brainstormMessageFailed": "メッセージの送信に失敗しました",
+    "brainstormCompareFailed": "比較の実行に失敗しました",
+    "brainstormRequestFailed": "リクエストの送信に失敗しました",
+    "brainstormAgentFailed": "エージェントの追加に失敗しました",
+    "pluginsFetchFailed": "プラグインの取得に失敗しました",
+    "extensionsFetchFailed": "拡張機能の取得に失敗しました"
   }
 }

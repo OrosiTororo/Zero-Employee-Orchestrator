@@ -73,8 +73,8 @@ export function SkillDetailPage() {
     try {
       await api.patch(`/registry/skills/${skill.id}`, { enabled: !skill.enabled })
       await fetchSkill()
-    } catch (e: any) {
-      alert(e?.message || (t.skillDetail?.notAllowed ?? "This operation is not allowed"))
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : String(e) || (t.skillDetail?.notAllowed ?? "This operation is not allowed"))
     }
   }
 
@@ -84,8 +84,8 @@ export function SkillDetailPage() {
     try {
       await api.delete(`/registry/skills/${skill.id}`)
       navigate("/skills")
-    } catch (e: any) {
-      alert(e?.message || (t.skillDetail?.notAllowed ?? "This operation is not allowed"))
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : String(e) || (t.skillDetail?.notAllowed ?? "This operation is not allowed"))
     }
   }
 

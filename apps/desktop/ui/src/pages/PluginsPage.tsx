@@ -39,7 +39,7 @@ export function PluginsPage() {
       const data = await api.get<PluginItem[]>("/registry/plugins?include_disabled=true")
       setPlugins(data)
     } catch {
-      addToast("Failed to fetch plugins")
+      addToast((t as unknown as Record<string, Record<string, string>>).errors?.pluginsFetchFailed ?? "Failed to fetch plugins")
     } finally {
       setLoading(false)
     }
@@ -54,8 +54,8 @@ export function PluginsPage() {
     try {
       await api.patch(`/registry/plugins/${plugin.id}`, { enabled: !plugin.enabled })
       await fetchPlugins()
-    } catch (e: any) {
-      addToast(e?.message || "Toggle failed")
+    } catch (e: unknown) {
+      addToast(e instanceof Error ? e.message : String(e) || "Toggle failed")
     }
   }
 
@@ -68,8 +68,8 @@ export function PluginsPage() {
     try {
       await api.delete(`/registry/plugins/${plugin.id}`)
       await fetchPlugins()
-    } catch (e: any) {
-      addToast(e?.message || "Delete failed")
+    } catch (e: unknown) {
+      addToast(e instanceof Error ? e.message : String(e) || "Delete failed")
     }
   }
 
@@ -80,8 +80,8 @@ export function PluginsPage() {
       setShowInstall(false)
       setInstallForm({ slug: "", name: "", description: "" })
       await fetchPlugins()
-    } catch (e: any) {
-      addToast(e?.message || "Install failed")
+    } catch (e: unknown) {
+      addToast(e instanceof Error ? e.message : String(e) || "Install failed")
     }
   }
 

@@ -199,8 +199,9 @@ export async function applyInstallerLocale(): Promise<void> {
   if (!isTauri) return
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const internals = (window as any).__TAURI_INTERNALS__
+    const internals = (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__ as
+      | { invoke: (cmd: string) => Promise<string | null> }
+      | undefined
     if (!internals?.invoke) return
     const installerLocale = await internals.invoke("get_installer_locale")
     if (installerLocale && isValidLocale(installerLocale)) {

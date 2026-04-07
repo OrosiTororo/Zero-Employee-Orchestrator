@@ -46,8 +46,8 @@ export function SkillCreatePage() {
         auto_register: false,
       })
       setResult(data)
-    } catch (e: any) {
-      alert(`${t.skillCreate?.generateFailed ?? "Skill generation failed"}: ${e?.message || String(e)}`)
+    } catch (e: unknown) {
+      alert(`${t.skillCreate?.generateFailed ?? "Skill generation failed"}: ${e instanceof Error ? e.message : String(e) || String(e)}`)
     } finally {
       setLoading(false)
     }
@@ -66,8 +66,8 @@ export function SkillCreatePage() {
       if (data.registered) {
         navigate("/skills")
       }
-    } catch (e: any) {
-      alert(`${t.skillCreate?.registerFailed ?? "Skill registration failed"}: ${e?.message || String(e)}`)
+    } catch (e: unknown) {
+      alert(`${t.skillCreate?.registerFailed ?? "Skill registration failed"}: ${e instanceof Error ? e.message : String(e) || String(e)}`)
     } finally {
       setRegistering(false)
     }

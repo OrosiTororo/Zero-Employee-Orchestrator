@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react"
 import { UserCircle, Save, Loader2, FileText } from "lucide-react"
 import { api } from "@/shared/api/client"
 import { useToastStore } from "@/shared/ui/ErrorToast"
+import { useT } from "@/shared/i18n"
 
 interface Profile {
   display_name: string
@@ -20,6 +21,7 @@ interface Instructions {
 }
 
 export function OperatorProfilePage() {
+  const t = useT()
   const addToast = useToastStore((s) => s.addToast)
   const [tab, setTab] = useState<"profile" | "instructions">("profile")
   const [saving, setSaving] = useState(false)
@@ -49,7 +51,7 @@ export function OperatorProfilePage() {
       if (p) setProfile(p)
       if (ins) setInstructions(ins.instructions)
     } catch {
-      addToast("Could not load operator profile.")
+      addToast((t as unknown as Record<string, Record<string, string>>).operatorProfile?.loadFailed ?? "Could not load operator profile.")
     }
   }, [addToast])
 
@@ -59,9 +61,9 @@ export function OperatorProfilePage() {
     setSaving(true)
     try {
       await api.put("/operator-profile/profile", profile)
-      addToast("Profile saved.")
+      addToast((t as unknown as Record<string, Record<string, string>>).operatorProfile?.profileSaved ?? "Profile saved.")
     } catch {
-      addToast("Could not save profile.")
+      addToast((t as unknown as Record<string, Record<string, string>>).operatorProfile?.profileSaveFailed ?? "Could not save profile.")
     } finally {
       setSaving(false)
     }
@@ -71,9 +73,9 @@ export function OperatorProfilePage() {
     setSaving(true)
     try {
       await api.put("/operator-profile/instructions", { instructions })
-      addToast("Instructions saved.")
+      addToast((t as unknown as Record<string, Record<string, string>>).operatorProfile?.instructionsSaved ?? "Instructions saved.")
     } catch {
-      addToast("Could not save instructions.")
+      addToast((t as unknown as Record<string, Record<string, string>>).operatorProfile?.instructionsSaveFailed ?? "Could not save instructions.")
     } finally {
       setSaving(false)
     }

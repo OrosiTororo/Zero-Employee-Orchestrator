@@ -42,7 +42,7 @@ export function AuditPage() {
       setLogs(data)
     } catch {
       setLogs([])
-      addToast("Could not load audit logs. Check your connection.")
+      addToast((t.audit as Record<string, string>).loadFailed ?? "Could not load audit logs.")
     } finally {
       setLoading(false)
     }

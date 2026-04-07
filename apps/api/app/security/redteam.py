@@ -42,6 +42,8 @@ class VulnerabilityType(str, Enum):
 class TestSeverity(str, Enum):
     """Test severity."""
 
+    __test__ = False  # Prevent pytest collection
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
