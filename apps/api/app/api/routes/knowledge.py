@@ -5,14 +5,21 @@ Storage and retrieval of user settings, file permissions, folder locations, etc.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
 from app.api.routes.auth import get_current_user
+from app.core.rate_limit import limiter
 from app.models.user import User
 from app.orchestration.knowledge_store import KnowledgeStore
+from app.security.pii_guard import detect_and_mask_pii
+from app.security.prompt_guard import ThreatLevel, scan_prompt_injection
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -59,17 +66,32 @@ class FolderLocationRequest(BaseModel):
 
 
 @router.post("/knowledge/remember")
+@limiter.limit("30/minute")
 async def remember_knowledge(
+    request: Request,
     req: KnowledgeRememberRequest,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     """Store knowledge."""
+    # Prompt injection check (knowledge values may be recalled and used in LLM context)
+    guard_result = scan_prompt_injection(req.value)
+    if guard_result.threat_level in (ThreatLevel.HIGH, ThreatLevel.CRITICAL):
+        raise HTTPException(
+            status_code=400,
+            detail="Request blocked: potentially unsafe content detected.",
+        )
+
+    # PII masking
+    pii_result = detect_and_mask_pii(req.value)
+    if pii_result.detected_count > 0:
+        logger.warning("PII detected in knowledge value: types=%s", pii_result.detected_types)
+
     store = KnowledgeStore(db)
     record = await store.remember(
         req.category,
         req.key,
-        req.value,
+        pii_result.masked_text,
         company_id=req.company_id,
         user_id=req.user_id,
         metadata=req.metadata,

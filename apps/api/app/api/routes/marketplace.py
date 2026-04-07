@@ -8,11 +8,14 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from app.api.routes.auth import get_current_user
+from app.core.rate_limit import limiter
 from app.models.user import User
+from app.security.pii_guard import detect_and_mask_pii
+from app.security.prompt_guard import ThreatLevel, scan_prompt_injection
 from app.services.marketplace_service import (
     ListingStatus,
     MarketplaceCategory,
@@ -106,7 +109,10 @@ async def get_listing(listing_id: str) -> dict:
 
 
 @router.post("/publish", status_code=201)
-async def publish_listing(req: PublishRequest, user: User = Depends(get_current_user)) -> dict:
+@limiter.limit("10/minute")
+async def publish_listing(
+    request: Request, req: PublishRequest, user: User = Depends(get_current_user)
+) -> dict:
     """Publish a listing as pending review."""
     try:
         cat = MarketplaceCategory(req.category)
@@ -149,16 +155,31 @@ async def install_listing(
 
 
 @router.post("/{listing_id}/review", status_code=201)
+@limiter.limit("10/minute")
 async def add_review(
-    listing_id: str, req: ReviewRequest, user: User = Depends(get_current_user)
+    request: Request,
+    listing_id: str,
+    req: ReviewRequest,
+    user: User = Depends(get_current_user),
 ) -> dict:
     """Add a review to a listing."""
+    # Prompt injection + PII check on review comment
+    guard_result = scan_prompt_injection(req.comment)
+    if guard_result.threat_level in (ThreatLevel.HIGH, ThreatLevel.CRITICAL):
+        raise HTTPException(
+            status_code=400,
+            detail="Request blocked: potentially unsafe content detected.",
+        )
+    pii_result = detect_and_mask_pii(req.comment)
+    if pii_result.detected_count > 0:
+        logger.warning("PII detected in marketplace review: types=%s", pii_result.detected_types)
+
     try:
         review = await marketplace_service.add_review(
             listing_id=listing_id,
             user_id=req.user_id,
             rating=req.rating,
-            comment=req.comment,
+            comment=pii_result.masked_text,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

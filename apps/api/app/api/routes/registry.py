@@ -4,13 +4,15 @@ Provides full CRUD operations, natural language skill generation, and system pro
 Write operations (create, update, delete, install) require authentication.
 """
 
+import logging
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
 from app.api.routes.auth import get_current_user
+from app.core.rate_limit import limiter
 from app.models.user import User
 from app.schemas.registry import (
     ExtensionCreate,
@@ -26,6 +28,8 @@ from app.schemas.registry import (
     SkillRead,
     SkillUpdate,
 )
+from app.security.pii_guard import detect_and_mask_pii
+from app.security.prompt_guard import ThreatLevel, scan_prompt_injection
 from app.services import registry_service, skill_service
 from app.services.marketplace_service import (
     ListingStatus,
@@ -34,6 +38,8 @@ from app.services.marketplace_service import (
     marketplace_service,
 )
 from app.services.skill_service import analyze_code_safety
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -175,12 +181,31 @@ async def delete_skill(
 
 
 @router.post("/skills/generate", response_model=SkillGenerateResponse)
+@limiter.limit("5/minute")
 async def generate_skill(
+    http_request: Request,
     request: SkillGenerateRequest,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     """Auto-generate a skill from a natural language description."""
+    # Prompt injection check (description is passed directly to LLM for code generation)
+    guard_result = scan_prompt_injection(request.description)
+    if guard_result.threat_level in (ThreatLevel.HIGH, ThreatLevel.CRITICAL):
+        raise HTTPException(
+            status_code=400,
+            detail="Request blocked: potentially unsafe content detected in description.",
+        )
+
+    # PII masking
+    pii_result = detect_and_mask_pii(request.description)
+    if pii_result.detected_count > 0:
+        logger.warning(
+            "PII detected in skill generation request: types=%s",
+            pii_result.detected_types,
+        )
+        request.description = pii_result.masked_text
+
     result = await skill_service.generate_skill_from_description(request, db)
     if result.registered:
         await db.commit()
