@@ -2,13 +2,14 @@
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
 from app.api.routes.auth import get_current_user
+from app.core.rate_limit import limiter
 from app.models.agent import Agent
 from app.models.user import User
 
@@ -61,7 +62,9 @@ async def list_agents(
 
 
 @router.post("/companies/{company_id}/agents", response_model=AgentResponse)
+@limiter.limit("10/minute")
 async def create_agent(
+    request: Request,
     company_id: str,
     req: AgentCreate,
     db: AsyncSession = Depends(get_db),

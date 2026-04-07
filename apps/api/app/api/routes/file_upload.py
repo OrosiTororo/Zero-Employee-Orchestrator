@@ -14,11 +14,13 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+import anyio
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from app.api.routes.auth import get_current_user
+from app.core.rate_limit import limiter
 from app.models.user import User
 
 logger = logging.getLogger(__name__)
@@ -170,7 +172,7 @@ async def _save_upload(upload: UploadFile) -> StoredFile:
     except Exception as exc:
         logger.debug("Data protection check skipped: %s", exc)
 
-    # File size check (chunked reading)
+    # File size check (chunked reading with async I/O)
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     file_id = str(uuid.uuid4())
     ext = Path(filename).suffix.lower()
@@ -180,15 +182,14 @@ async def _save_upload(upload: UploadFile) -> StoredFile:
     chunk_size = 1024 * 1024  # 1MB
 
     try:
-        with open(stored_path, "wb") as f:
+        async with await anyio.open_file(stored_path, "wb") as f:
             while True:
                 chunk = await upload.read(chunk_size)
                 if not chunk:
                     break
                 total_size += len(chunk)
                 if total_size > MAX_FILE_SIZE_BYTES:
-                    # Delete partially written file
-                    f.close()
+                    await f.aclose()
                     stored_path.unlink(missing_ok=True)
                     raise HTTPException(
                         status_code=413,
@@ -197,7 +198,7 @@ async def _save_upload(upload: UploadFile) -> StoredFile:
                             f"(max {MAX_FILE_SIZE_BYTES // (1024 * 1024)}MB)"
                         ),
                     )
-                f.write(chunk)
+                await f.write(chunk)
     except HTTPException:
         raise
     except Exception as exc:
@@ -228,7 +229,10 @@ async def _save_upload(upload: UploadFile) -> StoredFile:
 # Endpoints
 # ---------------------------------------------------------------------------
 @router.post("/upload", response_model=UploadResponse)
-async def upload_file(file: UploadFile, user: User = Depends(get_current_user)) -> UploadResponse:
+@limiter.limit("10/minute")
+async def upload_file(
+    request: Request, file: UploadFile, user: User = Depends(get_current_user)
+) -> UploadResponse:
     """Upload a single file.
 
     Up to 50MB. Only allowed extensions are accepted.
@@ -243,7 +247,9 @@ async def upload_file(file: UploadFile, user: User = Depends(get_current_user)) 
 
 
 @router.post("/upload-multiple", response_model=MultiUploadResponse)
+@limiter.limit("5/minute")
 async def upload_multiple_files(
+    request: Request,
     files: list[UploadFile],
     user: User = Depends(get_current_user),
 ) -> MultiUploadResponse:

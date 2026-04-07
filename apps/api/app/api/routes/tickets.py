@@ -1,10 +1,11 @@
 """Ticket management endpoints."""
 
+import logging
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps.database import get_db
 from app.api.deps.validators import parse_uuid
 from app.api.routes.auth import get_current_user
+from app.core.rate_limit import limiter
 from app.core.security import generate_uuid
 from app.models.audit import AuditLog
 from app.models.ticket import Ticket, TicketThread
@@ -22,6 +24,10 @@ from app.orchestration.interview import (
     create_interview_session,
     generate_spec_from_interview,
 )
+from app.security.pii_guard import detect_and_mask_pii
+from app.security.prompt_guard import ThreatLevel, scan_prompt_injection, wrap_external_data
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -249,19 +255,37 @@ class InterviewAnswer(BaseModel):
 
 
 @router.post("/tickets/{ticket_id}/interview/answer")
+@limiter.limit("30/minute")
 async def answer_interview(
+    request: Request,
     ticket_id: str,
     req: InterviewAnswer,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     """Answer a Design Interview question."""
+    # Prompt injection check (answer text may be embedded in LLM prompt for spec generation)
+    guard_result = scan_prompt_injection(req.answer)
+    if guard_result.threat_level in (ThreatLevel.HIGH, ThreatLevel.CRITICAL):
+        raise HTTPException(
+            status_code=400,
+            detail="Request blocked: potentially unsafe content detected.",
+        )
+
+    # PII masking
+    pii_result = detect_and_mask_pii(req.answer)
+    if pii_result.detected_count > 0:
+        logger.warning(
+            "PII detected in interview answer: types=%s",
+            pii_result.detected_types,
+        )
+
     session = _interview_sessions.get(ticket_id)
     if not session:
         session = create_interview_session(ticket_id)
         _interview_sessions[ticket_id] = session
 
-    session.add_answer(req.question_index, req.answer)
+    session.add_answer(req.question_index, pii_result.masked_text)
 
     if session.is_complete:
         session.status = "completed"
@@ -313,10 +337,13 @@ async def attach_file_to_interview(
         file.content_type or "application/octet-stream",
     )
 
+    # Wrap extracted text as external data to prevent prompt injection in spec generation
+    wrapped_text = wrap_external_data(extracted, source=f"file:{file.filename or 'unknown'}")
+
     attachment = FileAttachment(
         filename=file.filename or "unknown",
         content_type=file.content_type or "application/octet-stream",
-        extracted_text=extracted,
+        extracted_text=wrapped_text,
         size_bytes=len(content),
         description=description,
     )
@@ -438,7 +465,9 @@ async def update_ticket(
 
 
 @router.post("/tickets/{ticket_id}/comments")
+@limiter.limit("30/minute")
 async def add_comment(
+    request: Request,
     ticket_id: str,
     req: CommentCreate,
     db: AsyncSession = Depends(get_db),

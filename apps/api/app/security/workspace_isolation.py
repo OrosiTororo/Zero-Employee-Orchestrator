@@ -188,7 +188,7 @@ class WorkspaceIsolation:
 
         # 1. Access to internal storage is always allowed
         internal_resolved = str(Path(self._config.internal_storage_path).resolve())
-        if resolved.startswith(internal_resolved):
+        if resolved == internal_resolved or resolved.startswith(internal_resolved + "/"):
             return WorkspaceAccessResult(
                 allowed=True,
                 path=resolved,
@@ -201,7 +201,7 @@ class WorkspaceIsolation:
             if override.approved_by_user:
                 for allowed in override.additional_local_paths:
                     allowed_resolved = str(Path(allowed).resolve())
-                    if resolved.startswith(allowed_resolved):
+                    if resolved == allowed_resolved or resolved.startswith(allowed_resolved + "/"):
                         return WorkspaceAccessResult(
                             allowed=True,
                             path=resolved,
@@ -229,7 +229,7 @@ class WorkspaceIsolation:
         # 4. Check if path is within allowed local paths
         for allowed in self._config.allowed_local_paths:
             allowed_resolved = str(Path(allowed).resolve())
-            if resolved.startswith(allowed_resolved):
+            if resolved == allowed_resolved or resolved.startswith(allowed_resolved + "/"):
                 return WorkspaceAccessResult(
                     allowed=True,
                     path=resolved,
@@ -264,7 +264,8 @@ class WorkspaceIsolation:
             if override.approved_by_user:
                 source = f"{provider}://{cloud_path}"
                 for allowed in override.additional_cloud_sources:
-                    if source.startswith(allowed):
+                    allowed_delimited = allowed if allowed.endswith("/") else allowed + "/"
+                    if source == allowed or source.startswith(allowed_delimited):
                         return WorkspaceAccessResult(
                             allowed=True,
                             path=source,

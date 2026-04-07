@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import logging
 import uuid
+from collections.abc import Callable, Coroutine
+from typing import Any
 
 from fastapi import HTTPException
 
@@ -24,7 +26,7 @@ def parse_uuid(value: str, name: str = "ID") -> uuid.UUID:
         )
 
 
-def require_iam_permission(required: str):
+def require_iam_permission(required: str) -> Callable[..., Coroutine[Any, Any, bool]]:
     """IAM permission check decorator (FastAPI Depends compatible).
 
     Verifies that requests from AI agents have the required permissions.

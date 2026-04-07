@@ -14,10 +14,11 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from app.api.routes.auth import get_current_user
+from app.core.rate_limit import limiter
 from app.integrations.browser_assist import (
     AssistAction,
     browser_assist_service,
@@ -83,8 +84,9 @@ async def update_consent(req: ConsentRequest, user: User = Depends(get_current_u
 
 
 @router.post("/analyze", response_model=AssistResponse)
+@limiter.limit("20/minute")
 async def analyze_screen(
-    req: AssistRequest, user: User = Depends(get_current_user)
+    request: Request, req: AssistRequest, user: User = Depends(get_current_user)
 ) -> AssistResponse:
     """Analyze a screenshot and provide operation guidance or error diagnosis.
 

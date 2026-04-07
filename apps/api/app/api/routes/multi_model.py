@@ -6,13 +6,20 @@ conversation memory, per-role model configuration for agents, and dynamic organi
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
 from app.api.routes.auth import get_current_user
+from app.core.rate_limit import limiter
 from app.models.user import User
+from app.security.pii_guard import detect_and_mask_pii
+from app.security.prompt_guard import ThreatLevel, scan_prompt_injection
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -194,19 +201,37 @@ class NaturalLanguageRequest(BaseModel):
     "/companies/{company_id}/multi-model/compare",
     response_model=MultiModelCompareResponse,
 )
+@limiter.limit("20/minute")
 async def create_multi_model_comparison(
+    request: Request,
     company_id: str,
     req: MultiModelCompareRequest,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     """Create a request to send the same input to multiple models and compare responses."""
+    # Prompt injection check
+    guard_result = scan_prompt_injection(req.input_text)
+    if guard_result.threat_level in (ThreatLevel.HIGH, ThreatLevel.CRITICAL):
+        raise HTTPException(
+            status_code=400,
+            detail="Request blocked: potentially unsafe content detected.",
+        )
+
+    # PII detection and masking
+    pii_result = detect_and_mask_pii(req.input_text)
+    if pii_result.detected_count > 0:
+        logger.warning(
+            "PII detected in multi-model compare: types=%s",
+            pii_result.detected_types,
+        )
+
     from app.services.multi_model_service import MultiModelService
 
     svc = MultiModelService(db)
     record = await svc.create_comparison(
         company_id=company_id,
-        input_text=req.input_text,
+        input_text=pii_result.masked_text,
         model_ids=req.model_ids,
         session_id=req.session_id,
         metadata=req.metadata,
@@ -348,20 +373,38 @@ async def create_brainstorm_session(
 
 
 @router.post("/brainstorm/{session_id}/message")
+@limiter.limit("30/minute")
 async def add_brainstorm_message(
+    request: Request,
     session_id: str,
     req: BrainstormMessageRequest,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     """Add a message to a brainstorming session."""
+    # Prompt injection check
+    guard_result = scan_prompt_injection(req.content)
+    if guard_result.threat_level in (ThreatLevel.HIGH, ThreatLevel.CRITICAL):
+        raise HTTPException(
+            status_code=400,
+            detail="Request blocked: potentially unsafe content detected.",
+        )
+
+    # PII masking
+    pii_result = detect_and_mask_pii(req.content)
+    if pii_result.detected_count > 0:
+        logger.warning(
+            "PII detected in brainstorm message: types=%s",
+            pii_result.detected_types,
+        )
+
     from app.services.multi_model_service import BrainstormService
 
     svc = BrainstormService(db)
     record = await svc.add_message(
         session_id=session_id,
         role=req.role,
-        content=req.content,
+        content=pii_result.masked_text,
         model_id=req.model_id,
         metadata=req.metadata,
     )
@@ -925,19 +968,37 @@ async def get_available_roles(
 
 
 @router.post("/companies/{company_id}/feature-requests")
+@limiter.limit("20/minute")
 async def submit_natural_language_request(
+    request: Request,
     company_id: str,
     req: NaturalLanguageRequest,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     """Submit a request to the AI organization in natural language."""
+    # Prompt injection check
+    guard_result = scan_prompt_injection(req.request_text)
+    if guard_result.threat_level in (ThreatLevel.HIGH, ThreatLevel.CRITICAL):
+        raise HTTPException(
+            status_code=400,
+            detail="Request blocked: potentially unsafe content detected.",
+        )
+
+    # PII masking
+    pii_result = detect_and_mask_pii(req.request_text)
+    if pii_result.detected_count > 0:
+        logger.warning(
+            "PII detected in feature request: types=%s",
+            pii_result.detected_types,
+        )
+
     from app.services.agent_org_service import AgentOrgService
 
     svc = AgentOrgService(db)
     record = await svc.process_natural_language_request(
         company_id=company_id,
-        request_text=req.request_text,
+        request_text=pii_result.masked_text,
         auto_execute=req.auto_execute,
     )
     await db.commit()
