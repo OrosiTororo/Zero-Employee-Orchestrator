@@ -128,7 +128,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: coverage-report
+          name: coverage-report-py${{ matrix.python-version }}
           path: apps/api/coverage.xml
 
       - name: Dependency security audit
