@@ -412,9 +412,15 @@ class LLMGateway:
                 provider="mock",
             )
         except Exception as e:
-            logger.error("LLM completion failed: %s", e)
+            # Distinguish authentication/configuration errors from transient failures
+            err_name = type(e).__name__
+            is_auth = "auth" in err_name.lower() or "api key" in str(e).lower()
+            if is_auth:
+                logger.error("LLM authentication failed for %s: %s", model, e)
+            else:
+                logger.error("LLM completion failed: %s", e)
             return CompletionResponse(
-                content=f"Error: {e}",
+                content=f"Error: {err_name}: {e}",
                 model_used=model,
                 provider="error",
                 finish_reason="error",
