@@ -26,7 +26,7 @@
 
 | ツール | バージョン |
 |--------|-----------|
-| Python | 3.12 以上 |
+| Python | 3.11 以上 |
 | Node.js | 20 以上 |
 | pnpm | 9 以上 |
 | Rust | 最新 stable（Tauri ビルド時のみ） |
@@ -92,7 +92,7 @@ cd apps/api
 name = "zero-employee-orchestrator"
 version = "0.1.0"
 description = "Zero-Employee Orchestrator – AI業務オーケストレーション基盤"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.34",

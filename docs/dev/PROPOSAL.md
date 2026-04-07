@@ -247,7 +247,7 @@ Home (Tokyo). Primarily remote work.
 
 | Category | Technology |
 |----------|-----------|
-| **Backend** | Python 3.12+ / FastAPI / SQLAlchemy 2.x / Alembic |
+| **Backend** | Python 3.11+ / FastAPI / SQLAlchemy 2.x / Alembic |
 | **Frontend** | React 19 / TypeScript / Vite / Tailwind CSS / shadcn/ui |
 | **Desktop** | Tauri v2 (Rust) |
 | **LLM Connection** | LiteLLM / Ollama / g4f |

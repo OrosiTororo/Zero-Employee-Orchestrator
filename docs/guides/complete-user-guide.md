@@ -49,7 +49,7 @@ git clone https://github.com/OrosiTororo/Zero-Employee-Orchestrator.git
 cd Zero-Employee-Orchestrator && pip install .
 ```
 
-**System requirements:** Python 3.12+, 4 GB RAM minimum. Ollama local models need 8 GB+ RAM.
+**System requirements:** Python 3.11+, 4 GB RAM minimum. Ollama local models need 8 GB+ RAM.
 
 #### Docker (For Self-Hosting / Production)
 

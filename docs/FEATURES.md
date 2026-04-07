@@ -777,7 +777,7 @@ Over 20 screens built with React 19 + TypeScript + Tailwind CSS are provided.
 
 ## 22. REST API
 
-47 route modules with 396 endpoints are provided under the `/api/v1` prefix.
+47 route modules with 394 endpoints are provided under the `/api/v1` prefix.
 
 ### Endpoint Groups
 
@@ -993,7 +993,7 @@ Configuration priority: Environment variables > `~/.zero-employee/config.json` >
 | UI Library | Tailwind CSS 4.2, shadcn/ui, Recharts 3.7, Lucide Icons |
 | State Management | TanStack Query 5.62, Zustand 5.0 |
 | Routing | React Router 7.13 |
-| Backend | Python 3.12+, FastAPI 0.115+ |
+| Backend | Python 3.11+, FastAPI 0.115+ |
 | ORM | SQLAlchemy 2.x (async) |
 | Migration | Alembic |
 | LLM Connection | LiteLLM 1.60+ |

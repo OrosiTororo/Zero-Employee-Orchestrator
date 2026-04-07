@@ -2,7 +2,7 @@
 name = "zero-employee-orchestrator"
 version = "0.1.5"
 description = "Zero-Employee Orchestrator – AI Orchestration Platform for multi-agent business automation with human approval and full auditability"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 license = "MIT"
 keywords = [
     "ai",
@@ -26,6 +26,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",

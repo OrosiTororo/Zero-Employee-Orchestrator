@@ -46,9 +46,9 @@ export function PermissionsPage() {
   const fetchData = useCallback(async () => {
     try {
       const [perms, fldrs, chgs] = await Promise.all([
-        api.get<{ permissions: Permission[] }>("/knowledge/permissions").catch(() => ({ permissions: [] })),
-        api.get<{ folders: FolderLocation[] }>("/knowledge/folders").catch(() => ({ folders: [] })),
-        api.get<{ changes: Change[] }>("/knowledge/changes").catch(() => ({ changes: [] })),
+        api.get<{ permissions: Permission[] }>("/knowledge/permissions").catch((e) => { console.warn("Permissions:", e); return { permissions: [] } }),
+        api.get<{ folders: FolderLocation[] }>("/knowledge/folders").catch((e) => { console.warn("Folders:", e); return { folders: [] } }),
+        api.get<{ changes: Change[] }>("/knowledge/changes").catch((e) => { console.warn("Changes:", e); return { changes: [] } }),
       ])
       setPermissions(perms.permissions)
       setFolders(fldrs.folders)

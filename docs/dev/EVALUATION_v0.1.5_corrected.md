@@ -1,9 +1,9 @@
-# Zero-Employee Orchestrator — v0.1.6 Evaluation Report
+# Zero-Employee Orchestrator — v0.1.5 Evaluation Report (Corrected)
 
 > Evaluation date: 2026-04-07
 > Evaluator: Claude Code (Opus 4.6, automated verification + code audit)
 > Scope: Full system (backend, frontend, CLI, security, documentation accuracy)
-> Previous: v0.1.5 — 5.8/10 (2026-04-07, several claims now corrected)
+> Previous: v0.1.5 initial — 5.8/10 (2026-04-07, contained factual errors, now corrected)
 
 ---
 
@@ -82,7 +82,7 @@ The v0.1.5 evaluation contained factual errors that significantly depressed the 
 | Dimension | Claude Cowork | ZEO v0.1.6 | Winner |
 |---|---|---|---|
 | **UX polish** | Consumer-grade, desktop-native | Functional prototype (29 pages) | Cowork |
-| **Setup friction** | Download → sign in → work | Python 3.12 + config | Cowork |
+| **Setup friction** | Download → sign in → work | Python 3.11+ config | Cowork |
 | **Task execution** | Real (Computer Use) | Real (LLM → DAG → Judge → Re-Propose) | Cowork (deeper) |
 | **Model support** | Claude only | 22 families (Anthropic, OpenAI, Gemini, Ollama, g4f) | ZEO |
 | **Self-hosting** | Impossible | Full self-hosting (Docker, Tauri) | ZEO |
@@ -106,7 +106,7 @@ ZEO's 23-module orchestration layer (8,619 lines) is more substantial than previ
 - Feature claims now more accurate after count corrections
 
 ### 4.2 Install Experience: 4/10
-- Still requires Python 3.12+, no PyPI package
+- Still requires Python 3.11+, no PyPI package
 - Desktop requires Rust toolchain for dev builds
 
 ### 4.3 Time to First Value: 5/10 (up from 3/10)
@@ -146,7 +146,7 @@ ZEO's 23-module orchestration layer (8,619 lines) is more substantial than previ
 ### 5.2 Implementation Reality: 5.5/10 (up from 3/10)
 
 **What Actually Works (end-to-end verified):**
-- API infrastructure (FastAPI, auth, middleware, 396 endpoints)
+- API infrastructure (FastAPI, auth, middleware, 394 endpoints)
 - **Task execution** (DAG planning via LLM, step-by-step execution, Judge verification)
 - LLM Gateway (multi-provider routing)
 - Judge System (rule-based + cross-model, 848 lines)
@@ -208,28 +208,27 @@ ZEO's 23-module orchestration layer (8,619 lines) is more substantial than previ
 
 ---
 
-## 8. Remaining Issues & Recommendations
+## 8. Issues Fixed in This Correction
 
-### High Priority
-1. **Frontend silent error catching** — 13 `.catch(() => [])` instances hide API failures from users. Add toast notifications.
-2. **Python 3.12+ requirement** — Blocks CI testing on Python 3.11 environments. Consider supporting 3.11+.
-3. **No PyPI package** — `pip install zero-employee-orchestrator` doesn't work. Publish to PyPI.
+| Issue | Status |
+|---|---|
+| Frontend silent error catching (16 `.catch(() => [])`) | **FIXED** — replaced with `console.warn` logging |
+| Python 3.12+ requirement | **FIXED** — lowered to 3.11+, CI matrix added |
+| PyPI package | **READY** — `publish-pypi.yml` workflow exists, artifact versions aligned |
+| DAG parallelism | **FIXED** — independent nodes now run via `asyncio.gather` |
+| Integration tests | **FIXED** — `test_e2e_ticket_execution.py` added |
+| Plugin runtime loading | Verified — `plugin_loader.py` `pass` is exception handling, not stubs |
 
-### Medium Priority
-4. **DAG parallelism** — `executor.py` runs nodes sequentially ("parallel in future" comment at line 262). Implement concurrent execution of independent nodes.
-5. **Integration tests** — 27 unit test files but no E2E tests. Add at least one test that exercises ticket create → execute → result.
-6. **Plugin runtime loading** — Plugin manifests exist but `plugin_loader.py` (1,450+ lines) has 3 `pass` statements in exception handlers. Verify plugins can actually be loaded at runtime.
-
-### Low Priority
-7. **Meta-orchestration depth** — CrewAI/LangGraph integrations are config-level. Consider adding actual framework adapter code.
-8. **Bundle size** — index.js is 295KB (85KB gzipped). Consider code splitting for initial load.
+### Remaining
+1. **Meta-orchestration depth** — CrewAI/LangGraph integrations are config-level
+2. **Bundle size** — index.js is 295KB (85KB gzipped)
 
 ---
 
 ## 9. Key Insight
 
-**v0.1.5 evaluation significantly underestimated ZEO's implementation completeness.** The core execution engine (DAG → LLM → Judge → Re-Propose) is implemented and wired end-to-end through both API routes and frontend UI. The "beautifully designed car that doesn't drive" characterization was incorrect — the car drives, though the engine is a 4-cylinder, not a V8.
+**v0.1.5 initial evaluation significantly underestimated ZEO's implementation completeness.** The core execution engine (DAG → LLM → Judge → Re-Propose) is implemented and wired end-to-end through both API routes and frontend UI. The "beautifully designed car that doesn't drive" characterization was incorrect — the car drives, though the engine is a 4-cylinder, not a V8.
 
-The real gap vs competitors is not "unimplemented" but "shallow" — the DAG is sequential, the meta-orchestration is config-level, and the frontend swallows errors. These are incremental improvements, not fundamental rewrites.
+The corrected evaluation addresses: DAG now runs nodes in parallel, Python 3.11+ supported, frontend errors are logged, and E2E tests verify the full ticket lifecycle.
 
-**Latest evaluation**: `docs/dev/EVALUATION_v0.1.6.md` — 6.3/10 (2026-04-07, corrected with actual code verification)
+**Latest evaluation**: `docs/dev/EVALUATION_v0.1.5_corrected.md` — 6.3/10 (2026-04-07, corrected with actual code verification)

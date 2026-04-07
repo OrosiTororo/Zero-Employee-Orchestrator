@@ -186,7 +186,7 @@ ZEO is composed of 9 layers. Each layer has independent responsibilities.
 
 | Technology | Purpose |
 |-----------|---------|
-| Python 3.12+ | Backend language |
+| Python 3.11+ | Backend language |
 | FastAPI | REST API framework |
 | SQLAlchemy 2.x (async) | ORM (database access) |
 | Alembic | DB migration |

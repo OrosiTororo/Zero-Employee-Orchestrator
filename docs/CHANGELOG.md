@@ -46,10 +46,23 @@ The desktop auto-update was completely non-functional for users who installed v0
 ### Documentation Sync
 
 - Fixed route count: 46 → 47 across README, CLAUDE.md, 6 translated READMEs, FEATURES.md, OVERVIEW.md, architecture guide
-- Fixed endpoint count: 387 → 433 (later corrected to 396 in v0.1.6)
+- Fixed endpoint count: 387 → 396 (verified by counting @router decorators + main.py endpoints)
 - Fixed skill count: 8 → 11 (6 system + 5 domain) across all docs
 - Fixed `common.version` stuck at v0.1.2 in all 6 i18n locale files
 - Updated `bump-version.sh` to also update locale files and WhatsNew.tsx (prevents version drift)
+
+### Audit & Corrections (v0.1.5 continued)
+
+- **Endpoint count corrected**: 433 → 396 across CLAUDE.md, FEATURES.md, architecture-guide.md, REVIEW.md
+- **Orchestration module count corrected**: 22 → 23
+- **Model family count corrected**: 26 → 24 in README.md (verified from model_catalog.json)
+- **ROADMAP version corrected**: v0.1.4 → v0.1.5
+- **DAG parallel execution**: Independent nodes now execute concurrently via `asyncio.gather`
+- **Frontend error handling**: Replaced 16 silent `.catch(() => [])` with `console.warn` logging
+- **Python 3.11+ support**: Lowered minimum requirement from 3.12 to 3.11, added CI matrix testing
+- **CI matrix testing**: Added Python 3.11 to lint-and-test matrix
+- **E2E test added**: `test_e2e_ticket_execution.py` — full ticket create → execute → verify flow
+- **Evaluation corrected**: v0.1.5 evaluation contained false claims about stub implementations; corrected in `EVALUATION_v0.1.5_corrected.md` (5.8 → 6.3)
 
 ## [v0.1.4] (2026-04-07)
 

@@ -35,7 +35,7 @@ ZEO itself is free and open source. LLM API costs are paid directly by users to 
 | **[CLI (pip install)](#-quick-start-cli)** | Developers | 2 min | No (subscription or Ollama) |
 | **[Docker](#-docker)** | Self-hosting / production | 5 min | No (subscription or Ollama) |
 
-**System Requirements:** Python 3.12+ (CLI), Node.js 22+ (frontend dev), 4 GB RAM minimum. Ollama local models need 8 GB+ RAM.
+**System Requirements:** Python 3.11+ (CLI), Node.js 22+ (frontend dev), 4 GB RAM minimum. Ollama local models need 8 GB+ RAM.
 
 ---
 
@@ -455,7 +455,7 @@ Chrome extension overlay chat — AI sees your screen in real-time and guides yo
 ## 🛠️ Tech Stack
 
 ### Backend
-- Python 3.12+ / FastAPI / uvicorn
+- Python 3.11+ / FastAPI / uvicorn
 - SQLAlchemy 2.x (async) + Alembic
 - SQLite (dev) / PostgreSQL (production)
 - LiteLLM Router SDK

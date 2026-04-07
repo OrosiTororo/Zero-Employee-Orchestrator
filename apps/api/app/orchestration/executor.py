@@ -259,27 +259,46 @@ class TaskExecutor:
                 result.failure_reason = "Execution deadlock: no nodes ready"
                 break
 
-            # Execute ready nodes (sequentially for now; parallel in future)
+            # Separate blocked nodes from executable ones
+            executable = []
             for node in ready_nodes:
                 if node.requires_approval:
                     logger.info("Node %s requires approval — skipping for now", node.id)
                     node.status = TaskNodeStatus.BLOCKED
-                    continue
+                else:
+                    executable.append(node)
 
-                node_result = await self.execute_node(
-                    node, context=accumulated_context, execution_mode=execution_mode
-                )
+            if not executable:
+                continue
+
+            # Execute independent nodes in parallel via asyncio.gather
+            async def _run_node(
+                n: TaskNode,
+                ctx: str = accumulated_context,
+                mode: ExecutionMode = execution_mode,
+            ) -> tuple[TaskNode, ExecutionResult]:
+                nr = await self.execute_node(n, context=ctx, execution_mode=mode)
+                return n, nr
+
+            node_pairs = await asyncio.gather(
+                *[_run_node(n) for n in executable],
+                return_exceptions=True,
+            )
+
+            for pair in node_pairs:
+                if isinstance(pair, BaseException):
+                    logger.error("Unexpected error during parallel execution: %s", pair)
+                    continue
+                node, node_result = pair
                 result.node_results.append(node_result)
                 result.total_cost_usd += node_result.cost_usd
                 result.total_tokens += node_result.tokens_input + node_result.tokens_output
                 result.total_duration_ms += node_result.duration_ms
 
                 if node_result.success:
-                    # Accumulate context for next nodes
                     accumulated_context += f"\n\n--- {node.title} ---\n{node_result.content}"
                     dag.mark_completed(node.id, success=True)
                 else:
-                    # Retry logic
                     retry_count = sum(
                         1 for r in result.node_results if r.node_id == node.id and not r.success
                     )
@@ -295,7 +314,6 @@ class TaskExecutor:
                         logger.warning("Node %s failed after %d retries", node.id, self.MAX_RETRIES)
                         dag.mark_completed(node.id, success=False)
 
-                        # Classify failure and attempt reproposal
                         rework_reason = classify_failure(
                             None, node_result.error or "Quality check failed"
                         )
