@@ -26,7 +26,7 @@ from app.orchestration.dag import (
     TaskNodeStatus,
     rebuild_dag_after_failure,
 )
-from app.orchestration.judge import CrossModelJudge, RuleBasedJudge
+from app.orchestration.judge import CrossModelJudge, JudgeVerdict, RuleBasedJudge
 from app.orchestration.repropose import classify_failure, generate_reproposal
 from app.providers.gateway import CompletionRequest, ExecutionMode, LLMGateway
 
@@ -88,7 +88,7 @@ class TaskExecutor:
         self._rule_judge.add_rule(
             "no_error_response",
             lambda output, ctx: not output.get("content", "").startswith("Error:"),
-            severity="warning",
+            severity="error",
         )
 
     async def generate_plan(
@@ -194,6 +194,7 @@ class TaskExecutor:
             node.status = (
                 TaskNodeStatus.SUCCEEDED
                 if judge_result.score >= self.JUDGE_PASS_THRESHOLD
+                and judge_result.verdict != JudgeVerdict.FAIL
                 else TaskNodeStatus.FAILED
             )
 

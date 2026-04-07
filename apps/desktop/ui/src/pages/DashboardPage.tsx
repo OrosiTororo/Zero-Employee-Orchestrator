@@ -41,7 +41,7 @@ export function DashboardPage() {
     try {
       const [tickets, approvals, agents] = await Promise.all([
         api.get<any[]>(`/companies/${companyId}/tickets?status=in_progress`).catch((e) => { console.warn("Failed to load tickets:", e); return [] }),
-        api.get<any[]>(`/approvals?status=requested`).catch((e) => { console.warn("Failed to load approvals:", e); return [] }),
+        api.get<any[]>(`/companies/${companyId}/approvals?status=requested`).catch((e) => { console.warn("Failed to load approvals:", e); return [] }),
         api.get<any[]>(`/companies/${companyId}/agents`).catch((e) => { console.warn("Failed to load agents:", e); return [] }),
       ])
       setActiveTickets(tickets.length)

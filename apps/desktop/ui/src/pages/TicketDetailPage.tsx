@@ -136,7 +136,9 @@ export function TicketDetailPage() {
               </span>
             </div>
             {result.output && (
-              <div className="text-[12px] text-[var(--text-secondary)] whitespace-pre-wrap max-h-[300px] overflow-auto">
+              <div className={`text-[12px] whitespace-pre-wrap max-h-[300px] overflow-auto ${
+                result.output.startsWith("Error:") ? "text-red-400" : "text-[var(--text-secondary)]"
+              }`}>
                 {result.output}
               </div>
             )}

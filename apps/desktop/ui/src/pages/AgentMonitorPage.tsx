@@ -104,6 +104,7 @@ interface PendingApproval {
 
 export function AgentMonitorPage() {
   const t = useT()
+  const companyId = localStorage.getItem("company_id") || ""
   const [summary, setSummary] = useState<MonitorSummary | null>(null)
   const [active, setActive] = useState<ActiveExecution[]>([])
   const [sessions, setSessions] = useState<Session[]>([])
@@ -149,7 +150,7 @@ export function AgentMonitorPage() {
         api.get<{ hypotheses: Hypothesis[] }>("/hypotheses").catch((e) => { console.warn("Hypotheses:", e); return { hypotheses: [] } }),
         api.get<SentryStats>("/sentry/stats").catch((e) => { console.warn("Sentry stats:", e); return null }),
         api.get<{ traces: ReasoningTrace[] }>("/traces?limit=20").catch((e) => { console.warn("Traces:", e); return { traces: [] } }),
-        api.get<PendingApproval[]>("/approvals?status=requested").catch((e) => { console.warn("Approvals:", e); return [] }),
+        (companyId ? api.get<PendingApproval[]>(`/companies/${companyId}/approvals?status=requested`).catch((e) => { console.warn("Approvals:", e); return [] }) : Promise.resolve([])),
       ])
       if (dashboard) {
         setSummary(dashboard.summary)

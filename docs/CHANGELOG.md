@@ -53,7 +53,10 @@ The desktop auto-update was completely non-functional for users who installed v0
 
 ### Audit & Corrections (v0.1.5 continued)
 
-- **Endpoint count corrected**: 433 → 396 across CLAUDE.md, FEATURES.md, architecture-guide.md, REVIEW.md
+- **Endpoint count corrected**: 433 → 394 across CLAUDE.md, FEATURES.md, architecture-guide.md, REVIEW.md
+- **CRITICAL FIX: Judge severity bug** — LLM gateway errors (e.g. missing API key) returned `CompletionResponse(content="Error: ...")` which passed Judge quality check with `severity="warning"` (score 0.95 > threshold 0.6). Changed `no_error_response` rule severity to `"error"` and added `JudgeVerdict.FAIL` check to executor. Tasks now correctly fail when LLM call fails.
+- **Frontend /approvals path mismatch** — DashboardPage and AgentMonitorPage called non-existent `/approvals?status=requested` instead of `/companies/{cid}/approvals`. Fixed to use correct company-scoped path.
+- **TicketDetailPage error display** — Error messages in execution output (starting with "Error:") now render in red text instead of default color
 - **Orchestration module count corrected**: 22 → 23
 - **Model family count corrected**: 26 → 24 in README.md (verified from model_catalog.json)
 - **ROADMAP version corrected**: v0.1.4 → v0.1.5
