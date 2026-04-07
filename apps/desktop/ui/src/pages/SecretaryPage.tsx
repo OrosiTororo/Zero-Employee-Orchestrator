@@ -66,7 +66,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 }
 
 export function SecretaryPage() {
-  const { locale } = useI18n()
+  const { locale, messages: t } = useI18n()
   const isJa = locale === "ja"
   const addToast = useToastStore((s) => s.addToast)
 
@@ -106,7 +106,7 @@ export function SecretaryPage() {
         setCompanyId(companies[0].id)
       }
     } catch (err) {
-      addToast((t as Record<string, Record<string, string>>).errors?.secretaryConnectFailed ?? "Could not connect to server.")
+      addToast((t as unknown as Record<string, Record<string, string>>).errors?.secretaryConnectFailed ?? "Could not connect to server.")
     }
   }
 
@@ -117,7 +117,7 @@ export function SecretaryPage() {
       const data = await api.get<BrainDump[]>(`/companies/${companyId}/brain-dumps?limit=50${catParam}`)
       setDumps(data)
     } catch (err) {
-      addToast((t as Record<string, Record<string, string>>).errors?.secretaryLoadDumpsFailed ?? "Could not load brain dumps.")
+      addToast((t as unknown as Record<string, Record<string, string>>).errors?.secretaryLoadDumpsFailed ?? "Could not load brain dumps.")
     }
   }
 
@@ -127,7 +127,7 @@ export function SecretaryPage() {
       const data = await api.get<{ action_items: ActionItem[] }>(`/companies/${companyId}/brain-dumps/action-items`)
       setActionItems(data.action_items)
     } catch (err) {
-      addToast((t as Record<string, Record<string, string>>).errors?.secretaryLoadActionsFailed ?? "Could not load action items.")
+      addToast((t as unknown as Record<string, Record<string, string>>).errors?.secretaryLoadActionsFailed ?? "Could not load action items.")
     }
   }
 
@@ -139,7 +139,7 @@ export function SecretaryPage() {
       )
       setDailyStats(data)
     } catch (err) {
-      addToast((t as Record<string, Record<string, string>>).errors?.secretaryLoadStatsFailed ?? "Could not load daily stats.")
+      addToast((t as unknown as Record<string, Record<string, string>>).errors?.secretaryLoadStatsFailed ?? "Could not load daily stats.")
     }
   }
 
@@ -155,7 +155,7 @@ export function SecretaryPage() {
       await loadActionItems()
       await loadDailyStats()
     } catch (err) {
-      addToast((t as Record<string, Record<string, string>>).errors?.secretarySubmitFailed ?? "Could not submit.")
+      addToast((t as unknown as Record<string, Record<string, string>>).errors?.secretarySubmitFailed ?? "Could not submit.")
     } finally {
       setIsSubmitting(false)
     }
@@ -166,7 +166,7 @@ export function SecretaryPage() {
       await api.patch(`/brain-dumps/${dumpId}`, { is_archived: true })
       setDumps((prev) => prev.filter((d) => d.id !== dumpId))
     } catch (err) {
-      addToast((t as Record<string, Record<string, string>>).errors?.secretaryArchiveFailed ?? "Could not archive.")
+      addToast((t as unknown as Record<string, Record<string, string>>).errors?.secretaryArchiveFailed ?? "Could not archive.")
     }
   }
 
@@ -177,7 +177,7 @@ export function SecretaryPage() {
         prev.map((d) => (d.id === dumpId ? { ...d, is_processed: true } : d))
       )
     } catch (err) {
-      addToast((t as Record<string, Record<string, string>>).errors?.secretaryStatusFailed ?? "Could not update status.")
+      addToast((t as unknown as Record<string, Record<string, string>>).errors?.secretaryStatusFailed ?? "Could not update status.")
     }
   }
 
@@ -189,7 +189,7 @@ export function SecretaryPage() {
       )
       setDumps(data)
     } catch (err) {
-      addToast((t as Record<string, Record<string, string>>).errors?.secretarySearchFailed ?? "Search failed.")
+      addToast((t as unknown as Record<string, Record<string, string>>).errors?.secretarySearchFailed ?? "Search failed.")
     }
   }
 

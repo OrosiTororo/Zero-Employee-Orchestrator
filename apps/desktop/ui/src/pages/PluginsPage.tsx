@@ -39,7 +39,7 @@ export function PluginsPage() {
       const data = await api.get<PluginItem[]>("/registry/plugins?include_disabled=true")
       setPlugins(data)
     } catch {
-      addToast((t as Record<string, Record<string, string>>).errors?.pluginsFetchFailed ?? "Failed to fetch plugins")
+      addToast((t as unknown as Record<string, Record<string, string>>).errors?.pluginsFetchFailed ?? "Failed to fetch plugins")
     } finally {
       setLoading(false)
     }

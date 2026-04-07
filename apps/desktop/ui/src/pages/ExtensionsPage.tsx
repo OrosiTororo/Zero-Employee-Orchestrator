@@ -44,7 +44,7 @@ export function ExtensionsPage() {
       const data = await api.get<ExtensionItem[]>("/registry/extensions?include_disabled=true")
       setExtensions(data)
     } catch {
-      addToast((t as Record<string, Record<string, string>>).errors?.extensionsFetchFailed ?? "Failed to fetch extensions")
+      addToast((t as unknown as Record<string, Record<string, string>>).errors?.extensionsFetchFailed ?? "Failed to fetch extensions")
     } finally {
       setLoading(false)
     }
