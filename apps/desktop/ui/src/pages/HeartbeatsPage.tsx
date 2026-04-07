@@ -33,8 +33,8 @@ export function HeartbeatsPage() {
     setLoading(true)
     try {
       const [p, h] = await Promise.all([
-        api.get<HeartbeatPolicy[]>(`/companies/${companyId}/heartbeat-policies`).catch(() => []),
-        api.get<HeartbeatRun[]>(`/companies/${companyId}/heartbeat-runs`).catch(() => []),
+        api.get<HeartbeatPolicy[]>(`/companies/${companyId}/heartbeat-policies`).catch((e) => { console.warn("Heartbeat policies:", e); return [] }),
+        api.get<HeartbeatRun[]>(`/companies/${companyId}/heartbeat-runs`).catch((e) => { console.warn("Heartbeat runs:", e); return [] }),
       ])
       setPolicies(p)
       setHistory(h)

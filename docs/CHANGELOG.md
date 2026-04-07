@@ -46,7 +46,7 @@ The desktop auto-update was completely non-functional for users who installed v0
 ### Documentation Sync
 
 - Fixed route count: 46 → 47 across README, CLAUDE.md, 6 translated READMEs, FEATURES.md, OVERVIEW.md, architecture guide
-- Fixed endpoint count: 387 → 433
+- Fixed endpoint count: 387 → 433 (later corrected to 396 in v0.1.6)
 - Fixed skill count: 8 → 11 (6 system + 5 domain) across all docs
 - Fixed `common.version` stuck at v0.1.2 in all 6 i18n locale files
 - Updated `bump-version.sh` to also update locale files and WhatsNew.tsx (prevents version drift)
