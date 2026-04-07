@@ -46,6 +46,8 @@ logger = logging.getLogger(__name__)
 
 # Key: model name used inside this system (e.g. "g4f/GeminiPro")
 # Value: dict with g4f provider name (string) and model string for g4f
+# NOTE: "model" values are g4f-library-specific identifiers, NOT ZEO catalog IDs.
+# These version strings are required by the external g4f API and cannot use family IDs.
 _G4F_MODEL_MAP: dict[str, dict] = {
     # ── Free providers (no account needed) ─────────────────────────────────
     "g4f/GeminiPro": {

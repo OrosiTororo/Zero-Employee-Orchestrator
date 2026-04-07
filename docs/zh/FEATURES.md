@@ -1059,7 +1059,7 @@ uv pip install zero-employee-orchestrator
 |---------|------|------|
 | `rest_api` | REST API 调用 | SaaS API、内部 API |
 | `webhook` | Webhook 接收/发送 | Slack / Discord 通知 |
-| `mcp` | Model Context Protocol | Claude Desktop、VS Code 集成 |
+| `mcp` | Model Context Protocol | Claude Desktop、IDE 集成 |
 | `oauth` | OAuth 2.0 认证流程 | Google / GitHub 认证 |
 | `websocket` | WebSocket 双向通信 | 实时数据流 |
 | `file_system` | 文件系统连接 | 本地 / NFS / S3 |

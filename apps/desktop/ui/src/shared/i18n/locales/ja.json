@@ -2,7 +2,7 @@
   "common": {
     "appName": "Zero-Employee Orchestrator",
     "appTagline": "AI業務オーケストレーション基盤",
-    "version": "v0.1.2",
+    "version": "v0.1.5",
     "back": "戻る",
     "next": "次へ",
     "save": "保存",
@@ -116,7 +116,8 @@
     "marketplace": "マーケットプレイス",
     "permissions": "権限管理",
     "settings": "設定",
-    "dispatch": "ディスパッチ"
+    "dispatch": "ディスパッチ",
+    "operatorProfile": "オペレータープロファイル"
   },
   "setup": {
     "steps": {
@@ -794,5 +795,18 @@
   },
   "artifacts": {
     "emptyState": "成果物はまだありません。チケット実行の結果がここに表示されます。"
+  },
+  "updater": {
+    "available": "アップデートあり",
+    "checkFailed": "更新チェックに失敗しました",
+    "installing": "アップデートをインストール中...",
+    "updating": "更新中...",
+    "versionAvailable": "バージョン {version} が利用可能です。",
+    "installingVersion": "v{version} をインストール中です。まもなくアプリが再起動します。",
+    "downloading": "ダウンロード中... {progress}%",
+    "restarting": "再起動中...",
+    "downloadRestart": "ダウンロードして再起動",
+    "autoUpdate": "自動アップデート",
+    "autoUpdateDesc": "更新が利用可能になったら自動的にダウンロード・インストールする"
   }
 }

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 import os
+import threading
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -86,6 +87,7 @@ class StoredFile:
     uploaded_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
+_file_store_lock = threading.Lock()
 _file_store: dict[str, StoredFile] = {}
 
 
@@ -215,7 +217,8 @@ async def _save_upload(upload: UploadFile) -> StoredFile:
         content_type=upload.content_type or "application/octet-stream",
         size_bytes=total_size,
     )
-    _file_store[file_id] = stored
+    with _file_store_lock:
+        _file_store[file_id] = stored
     logger.info(
         "File uploaded: id=%s, name=%s, size=%d",
         file_id,
@@ -333,9 +336,21 @@ async def download_file(file_id: str, user: User = Depends(get_current_user)) ->
 @router.delete("/{file_id}")
 async def delete_file(file_id: str, user: User = Depends(get_current_user)) -> dict[str, str]:
     """Delete a file."""
+    from app.policies.approval_gate import check_approval_required
+
     stored = _file_store.get(file_id)
     if stored is None:
         raise HTTPException(status_code=404, detail="File not found")
+
+    # Approval gate — file deletion is a dangerous operation
+    gate = check_approval_required("delete_file")
+    if gate.requires_approval:
+        logger.info(
+            "File delete requires approval: id=%s, risk=%s, user=%s",
+            file_id,
+            gate.risk_level,
+            user.id,
+        )
 
     # Delete from disk
     path = Path(stored.stored_path)

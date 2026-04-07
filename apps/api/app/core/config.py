@@ -48,6 +48,8 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Zero-Employee Orchestrator"
     DEBUG: bool = True
     API_V1_PREFIX: str = "/api/v1"
+    PORT: int = 18234
+    FRONTEND_PORT: int = 5173
 
     # Security — auto-generated for local dev if not explicitly set
     SECRET_KEY: str = _auto_secret_key()

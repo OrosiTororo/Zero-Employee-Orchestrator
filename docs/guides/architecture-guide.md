@@ -65,7 +65,7 @@ The entry point for all interactions. Supports multiple interfaces:
 | Interface | Description | Port |
 |-----------|-------------|------|
 | **Web UI** | React 19 + Tauri v2 desktop app | 5173 (dev) |
-| **REST API** | FastAPI with 46 route modules, 387 endpoints | 18234 |
+| **REST API** | FastAPI with 47 route modules, 433 endpoints | 18234 |
 | **CLI** | `zero-employee` command with chat, serve, config subcommands | — |
 | **WebSocket** | Real-time event streaming and browser assist | 18234 |
 
@@ -122,18 +122,21 @@ Key capabilities:
 
 Specialized execution units with domain knowledge.
 
-**Built-in Skills (8):**
+**Built-in Skills (11: 6 system + 5 domain):**
 
-| Skill | Purpose |
-|-------|---------|
-| `spec-writer` | Generates structured specifications |
-| `plan-writer` | Creates execution plans |
-| `task-breakdown` | Decomposes tasks into subtasks |
-| `review-assistant` | Reviews and critiques outputs |
-| `artifact-summarizer` | Summarizes intermediate artifacts |
-| `local-context` | Injects project-specific context |
-| `domain-skills` | Domain-specific knowledge |
-| `browser-assist` | Browser automation and screen analysis |
+| Skill | Type | Purpose |
+|-------|------|---------|
+| `spec-writer` | System | Generates structured specifications |
+| `plan-writer` | System | Creates execution plans |
+| `task-breakdown` | System | Decomposes tasks into subtasks |
+| `review-assistant` | System | Reviews and critiques outputs |
+| `artifact-summarizer` | System | Summarizes intermediate artifacts |
+| `local-context` | System | Injects project-specific context |
+| `content-creator` | Domain | Content creation and copywriting |
+| `competitor-analysis` | Domain | Competitive landscape analysis |
+| `trend-analysis` | Domain | Market and industry trend analysis |
+| `performance-analysis` | Domain | Business performance metrics |
+| `strategy-advisor` | Domain | Strategic planning and advisory |
 
 Each skill receives **Local Context** — project-specific information that helps the AI understand the user's environment.
 
@@ -377,7 +380,7 @@ AI capabilities for learning how to learn:
 
 | Tier | Count | Purpose | Examples |
 |------|-------|---------|---------|
-| **Skill** | 8 built-in | Single-purpose processing | spec-writer, review-assistant |
+| **Skill** | 11 built-in (6 system + 5 domain) | Single-purpose processing | spec-writer, review-assistant |
 | **Plugin** | 10 | Bundle multiple skills | ai-secretary, youtube |
 | **Extension** | 5 | System integration | mcp, oauth, notifications |
 

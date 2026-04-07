@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import threading
 import uuid
 from datetime import UTC, datetime
 
@@ -17,6 +18,7 @@ from pydantic import BaseModel, Field
 from app.api.routes.auth import get_current_user
 from app.core.rate_limit import limiter
 from app.models.user import User
+from app.security.pii_guard import detect_and_mask_pii
 from app.security.prompt_guard import ThreatLevel, scan_prompt_injection
 
 logger = logging.getLogger(__name__)
@@ -24,6 +26,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/dispatch", tags=["dispatch"])
 
 # In-memory task store (production: use DB + background worker)
+_dispatch_lock = threading.Lock()
 _dispatch_tasks: dict[str, dict] = {}
 
 
@@ -71,6 +74,15 @@ async def create_dispatch(
             detail="Request blocked: potentially unsafe content detected in instruction.",
         )
 
+    # PII detection — mask before passing to AI agents
+    pii_result = detect_and_mask_pii(req.instruction)
+    if pii_result.has_pii:
+        logger.warning(
+            "PII detected in dispatch instruction (user=%s): %s",
+            user.id,
+            pii_result.detected_types,
+        )
+
     task_id = str(uuid.uuid4())
     now = datetime.now(UTC).isoformat()
 
@@ -86,7 +98,8 @@ async def create_dispatch(
         "completed_at": None,
         "result": None,
     }
-    _dispatch_tasks[task_id] = task
+    with _dispatch_lock:
+        _dispatch_tasks[task_id] = task
     logger.info("Dispatch task created: %s (user=%s)", task_id, user.id)
 
     # Simulate async execution (production: enqueue to background worker)
@@ -139,60 +152,58 @@ async def list_dispatches(status: str | None = None, user: User = Depends(get_cu
     )
 
 
-@router.delete("/{task_id}")
+@router.delete("/{task_id}", response_model=DispatchResponse)
 async def cancel_dispatch(task_id: str, _user: User = Depends(get_current_user)):
     """Cancel a queued or running dispatch task."""
-    task = _dispatch_tasks.get(task_id)
+    with _dispatch_lock:
+        task = _dispatch_tasks.get(task_id)
     if not task:
         raise HTTPException(status_code=404, detail=f"Dispatch task not found: {task_id}")
-    if task["status"] in ("completed", "failed", "cancelled"):
-        return {"task_id": task_id, "status": task["status"], "message": "Task already finished"}
-    task["status"] = "cancelled"
-    task["completed_at"] = datetime.now(UTC).isoformat()
-    return {"task_id": task_id, "status": "cancelled"}
+    if task["status"] not in ("completed", "failed", "cancelled"):
+        task["status"] = "cancelled"
+        task["completed_at"] = datetime.now(UTC).isoformat()
+    return DispatchResponse(
+        task_id=task["task_id"],
+        status=task["status"],
+        instruction=task["instruction"],
+        created_at=task["created_at"],
+        completed_at=task["completed_at"],
+        result=task["result"],
+    )
 
 
 async def _execute_dispatch(task_id: str) -> None:
-    """Execute a dispatched task in the background."""
-    task = _dispatch_tasks.get(task_id)
+    """Execute a dispatched task in the background via the execution engine."""
+    with _dispatch_lock:
+        task = _dispatch_tasks.get(task_id)
     if not task:
         return
 
     task["status"] = "running"
     try:
-        # Route to ticket creation via the orchestration layer
-        from app.core.database import get_session
-        from app.services.ticket_service import create_ticket
+        from app.orchestration.executor import get_executor
 
-        ticket_id = None
-        async for db in get_session():
-            try:
-                ticket = await create_ticket(
-                    db,
-                    company_id=task["context"].get("company_id", ""),
-                    title=task["instruction"][:100],
-                    description=task["instruction"],
-                    priority=task["priority"],
-                    source_type="dispatch",
-                )
-                ticket_id = str(ticket.id) if ticket else None
-            except Exception:
-                # Ticket creation may fail if no company_id — still complete dispatch
-                pass
+        executor = get_executor()
 
-        task["status"] = "completed"
+        # Step 1: Generate plan from instruction
+        dag = await executor.generate_plan(
+            ticket_title=task["instruction"][:100],
+            spec_text=task["instruction"],
+        )
+
+        # Step 2: Execute plan
+        plan_result = await executor.execute_plan(dag)
+
+        task["status"] = "completed" if plan_result.status == "succeeded" else "failed"
         task["completed_at"] = datetime.now(UTC).isoformat()
-        if ticket_id:
-            task["result"] = (
-                f"Ticket created: {ticket_id}. "
-                f"Instruction: '{task['instruction']}' is now tracked as a task."
-            )
-        else:
-            task["result"] = (
-                f"Task acknowledged: '{task['instruction']}'. "
-                f"No company context — set company_id in dispatch context to auto-create tickets."
-            )
-        logger.info("Dispatch task completed: %s (ticket=%s)", task_id, ticket_id)
+        task["result"] = plan_result.final_output or plan_result.failure_reason or "No output"
+        logger.info(
+            "Dispatch task %s: status=%s, cost=$%.4f, nodes=%d",
+            task_id,
+            plan_result.status,
+            plan_result.total_cost_usd,
+            len(plan_result.node_results),
+        )
     except Exception as exc:
         task["status"] = "failed"
         task["completed_at"] = datetime.now(UTC).isoformat()

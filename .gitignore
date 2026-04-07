@@ -42,7 +42,6 @@ client_secret.json
 *.secret
 
 # Credentials
-~/.zero-employee/
 .zero-employee/
 
 # Linter cache

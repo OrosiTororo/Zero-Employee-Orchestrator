@@ -171,6 +171,13 @@ async def delete_skill(
     user: User = Depends(get_current_user),
 ):
     """Delete a skill. System-protected skills cannot be deleted."""
+    from app.policies.approval_gate import check_approval_required
+
+    gate = check_approval_required("delete_data")
+    if gate.requires_approval:
+        logger.info(
+            "Skill delete gate: skill=%s, risk=%s, user=%s", skill_id, gate.risk_level, user.id
+        )
     deleted, message = await skill_service.delete_skill(db, skill_id)
     if not deleted and "not found" in message.lower():
         raise HTTPException(status_code=404, detail=message)
@@ -307,6 +314,13 @@ async def delete_plugin(
     user: User = Depends(get_current_user),
 ):
     """Delete a plugin. System-protected plugins cannot be deleted."""
+    from app.policies.approval_gate import check_approval_required
+
+    gate = check_approval_required("delete_data")
+    if gate.requires_approval:
+        logger.info(
+            "Plugin delete gate: plugin=%s, risk=%s, user=%s", plugin_id, gate.risk_level, user.id
+        )
     deleted, message = await registry_service.delete_plugin(db, plugin_id)
     if not deleted and "not found" in message.lower():
         raise HTTPException(status_code=404, detail=message)
@@ -473,6 +487,13 @@ async def delete_extension(
     user: User = Depends(get_current_user),
 ):
     """Delete an extension. System-protected extensions cannot be deleted."""
+    from app.policies.approval_gate import check_approval_required
+
+    gate = check_approval_required("delete_data")
+    if gate.requires_approval:
+        logger.info(
+            "Extension delete gate: ext=%s, risk=%s, user=%s", ext_id, gate.risk_level, user.id
+        )
     deleted, message = await registry_service.delete_extension(db, ext_id)
     if not deleted and "not found" in message.lower():
         raise HTTPException(status_code=404, detail=message)

@@ -541,3 +541,156 @@ async def reopen_ticket(
     ticket.closed_at = None
     await db.commit()
     return {"status": "reopened"}
+
+
+# ------------------------------------------------------------------ #
+#  Execution — Generate plan & execute ticket
+# ------------------------------------------------------------------ #
+
+
+@router.post(
+    "/tickets/{ticket_id}/generate-plan",
+    tags=["execution"],
+)
+@limiter.limit("5/minute")
+async def generate_plan(
+    request: Request,
+    ticket_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Generate an execution plan (DAG) for a ticket from its spec."""
+    from app.orchestration.executor import get_executor
+
+    result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
+    ticket = result.scalar_one_or_none()
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+
+    # Get spec text from interview session or ticket description
+    spec_text = ticket.description or ""
+    session = _interview_sessions.get(str(ticket.id))
+    if session and session.spec_text:
+        spec_text = session.spec_text
+
+    if not spec_text.strip():
+        raise HTTPException(
+            status_code=400, detail="Ticket has no spec or description to plan from"
+        )
+
+    executor = get_executor()
+    dag = await executor.generate_plan(ticket.title, spec_text)
+
+    # Store plan in interview session for later execution
+    if session is None:
+        session = create_interview_session(str(ticket.id), ticket.title, spec_text)
+        _interview_sessions[str(ticket.id)] = session
+    session.generated_plan = dag.to_dict()
+
+    ticket.status = "open"
+    await db.commit()
+
+    return dag.to_dict()
+
+
+@router.post(
+    "/tickets/{ticket_id}/execute",
+    tags=["execution"],
+)
+@limiter.limit("3/minute")
+async def execute_ticket(
+    request: Request,
+    ticket_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Execute a ticket: generate plan if needed, then run all steps.
+
+    This is the main end-to-end execution endpoint. It:
+    1. Generates an execution plan (DAG) from the ticket spec
+    2. Executes each step by calling the LLM
+    3. Verifies results via the Judge layer
+    4. Returns the final output with cost/quality metrics
+    """
+    from app.orchestration.executor import get_executor
+
+    result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
+    ticket = result.scalar_one_or_none()
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+
+    # Get spec/description
+    spec_text = ticket.description or ""
+    session = _interview_sessions.get(str(ticket.id))
+    if session and session.spec_text:
+        spec_text = session.spec_text
+
+    if not spec_text.strip():
+        raise HTTPException(status_code=400, detail="Ticket has no spec or description to execute")
+
+    # Mark as executing
+    ticket.status = "in_progress"
+    ticket.started_at = datetime.now(UTC)
+    await db.commit()
+
+    executor = get_executor()
+
+    # Step 1: Generate plan
+    dag = await executor.generate_plan(ticket.title, spec_text)
+
+    # Step 2: Execute plan
+    plan_result = await executor.execute_plan(dag)
+
+    # Step 3: Update ticket status based on result
+    if plan_result.status == "succeeded":
+        ticket.status = "resolved"
+        ticket.closed_at = datetime.now(UTC)
+    else:
+        ticket.status = "open"  # Back to open on failure
+
+    # Audit log
+    audit = AuditLog(
+        id=generate_uuid(),
+        company_id=ticket.company_id,
+        actor_type="system",
+        event_type=f"ticket.execution.{plan_result.status}",
+        target_type="ticket",
+        target_id=ticket.id,
+        details_json={
+            "plan_id": plan_result.plan_id,
+            "status": plan_result.status,
+            "nodes_executed": len(plan_result.node_results),
+            "total_cost_usd": plan_result.total_cost_usd,
+            "total_tokens": plan_result.total_tokens,
+        },
+    )
+    db.add(audit)
+    await db.commit()
+
+    return {
+        "ticket_id": str(ticket.id),
+        "status": plan_result.status,
+        "plan": dag.to_dict(),
+        "output": plan_result.final_output,
+        "metrics": {
+            "total_cost_usd": plan_result.total_cost_usd,
+            "total_tokens": plan_result.total_tokens,
+            "total_duration_ms": plan_result.total_duration_ms,
+            "nodes_executed": len(plan_result.node_results),
+            "nodes_succeeded": sum(1 for r in plan_result.node_results if r.success),
+        },
+        "node_results": [
+            {
+                "node_id": r.node_id,
+                "success": r.success,
+                "model_used": r.model_used,
+                "judge_score": r.judge_score,
+                "judge_verdict": r.judge_verdict,
+                "cost_usd": r.cost_usd,
+                "duration_ms": r.duration_ms,
+                "error": r.error,
+            }
+            for r in plan_result.node_results
+        ],
+        "failure_reason": plan_result.failure_reason,
+    }

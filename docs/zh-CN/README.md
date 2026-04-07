@@ -207,7 +207,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI 后端
 │   │   └── app/
 │   │       ├── core/               # 配置、数据库、安全、国际化
-│   │       ├── api/routes/         # 46 REST API 路由模块
+│   │       ├── api/routes/         # 47 REST API 路由模块
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -222,7 +222,7 @@ Zero-Employee-Orchestrator/
 │   ├── desktop/              # Tauri v2 + React UI
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # 后台工作进程
-├── skills/                   # 8 个内置技能
+├── skills/                   # 11 个内置技能（6 系统 + 5 领域）
 ├── plugins/                  # 16 个插件清单
 ├── extensions/               # 11 个扩展清单
 │   └── browser-assist/

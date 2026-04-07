@@ -24,7 +24,7 @@ ls apps/api/app/
 ```
 apps/api/app/         # FastAPI backend
   core/               # Config, DB, rate limiting, i18n
-  api/routes/         # 46 route modules, 387 endpoints
+  api/routes/         # 47 route modules, 433 endpoints
   services/           # 25 services (business logic)
   orchestration/      # DAG, Judge, transparency, CostGuard (22 modules)
   providers/          # LLM gateway, Ollama, g4f, ModelRegistry
@@ -35,7 +35,7 @@ apps/api/app/         # FastAPI backend
   tests/              # pytest + pytest-asyncio
 apps/desktop/         # Tauri v2 + React (Cowork-style layout)
 apps/edge/            # Cloudflare Workers
-skills/builtin/       # 8 Skills
+skills/builtin/       # 11 Skills (6 system + 5 domain)
 plugins/              # 16 Plugins (10 general + 6 role-based packs)
 extensions/           # 11 Extensions
 ```
@@ -76,7 +76,7 @@ Files: root `pyproject.toml`, `apps/api/pyproject.toml`, `apps/desktop/package.j
 - **No API key required**: g4f (subscription), Ollama (local), OpenRouter (one key)
 - **ZEO is free**: Users pay LLM providers directly; no provider is "recommended"
 - **Skill/Plugin/Extension**: Skill = single task; Plugin = skill bundle (includes role-based packs); Extension = system integration
-- **System skills**: Always enabled, cannot be disabled (8 built-in)
+- **System skills**: Always enabled, cannot be disabled (6 system); 5 domain skills can be toggled
 - **UI**: Task-first layout — Cowork-style nav sidebar with progressive disclosure, Autonomy Dial in status bar, Command Palette (Ctrl+K), Dispatch background tasks
 - **CLI**: Claude Code-like slash commands (`/read`, `/write`, `/edit`, `/run`, `/ls`, `/cd`, `/pwd`, `/find`, `/grep`)
 - **Operator Profile**: Cowork-style about-me + global instructions (`/operator-profile/profile`, `/operator-profile/instructions`)
@@ -139,4 +139,4 @@ Write about system behavior changes for end users. Do NOT write about docs/CI/co
 
 **Scoring**: 0-10 scale. Overall = (Relative × 0.35) + (Objective × 0.35) + (Additional × 0.30)
 
-**Latest evaluation**: `docs/dev/EVALUATION_v0.1.3.md` — 7.7/10 (2026-04-07)
+**Latest evaluation**: `docs/dev/EVALUATION_v0.1.5.md` — 5.8/10 (2026-04-07, recalibrated with honest implementation audit)

@@ -777,7 +777,7 @@ Over 20 screens built with React 19 + TypeScript + Tailwind CSS are provided.
 
 ## 22. REST API
 
-46 route modules with 387 endpoints are provided under the `/api/v1` prefix.
+47 route modules with 433 endpoints are provided under the `/api/v1` prefix.
 
 ### Endpoint Groups
 
@@ -1062,7 +1062,7 @@ Approval dialogs are displayed in the chat tool for operations requiring approva
 |----------------|-------------|---------|
 | `rest_api` | REST API calls | SaaS APIs, internal APIs |
 | `webhook` | Webhook send/receive | Slack / Discord notifications |
-| `mcp` | Model Context Protocol | Claude Desktop, VS Code integration |
+| `mcp` | Model Context Protocol | Claude Desktop and IDE integrations |
 | `oauth` | OAuth 2.0 authentication flow | Google / GitHub authentication |
 | `websocket` | WebSocket bidirectional communication | Real-time data streams |
 | `file_system` | File system connection | Local / NFS / S3 |

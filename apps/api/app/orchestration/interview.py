@@ -66,6 +66,8 @@ class InterviewSession:
     attachments: list[FileAttachment] = field(default_factory=list)
     failure_warnings: list[FailureWarning] = field(default_factory=list)
     status: str = "in_progress"  # in_progress | completed | cancelled
+    spec_text: str = ""  # Generated spec from interview answers
+    generated_plan: dict | None = None  # DAG plan for execution
 
     @property
     def is_complete(self) -> bool:

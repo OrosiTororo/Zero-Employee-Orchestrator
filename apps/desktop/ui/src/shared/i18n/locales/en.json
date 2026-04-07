@@ -2,7 +2,7 @@
   "common": {
     "appName": "Zero-Employee Orchestrator",
     "appTagline": "AI Business Orchestration Platform",
-    "version": "v0.1.2",
+    "version": "v0.1.5",
     "back": "Back",
     "next": "Next",
     "save": "Save",
@@ -116,7 +116,8 @@
     "marketplace": "Marketplace",
     "permissions": "Permissions",
     "settings": "Settings",
-    "dispatch": "Dispatch"
+    "dispatch": "Dispatch",
+    "operatorProfile": "Operator Profile"
   },
   "setup": {
     "steps": {
@@ -794,5 +795,18 @@
   },
   "artifacts": {
     "emptyState": "No artifacts yet. Results from ticket execution will appear here."
+  },
+  "updater": {
+    "available": "Update available",
+    "checkFailed": "Update check failed",
+    "installing": "Installing update...",
+    "updating": "Updating...",
+    "versionAvailable": "Version {version} is available.",
+    "installingVersion": "Installing v{version}. The app will restart shortly.",
+    "downloading": "Downloading... {progress}%",
+    "restarting": "Restarting...",
+    "downloadRestart": "Download & Restart",
+    "autoUpdate": "Auto-update",
+    "autoUpdateDesc": "Automatically download and install updates when available"
   }
 }

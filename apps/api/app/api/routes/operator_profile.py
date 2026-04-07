@@ -12,17 +12,21 @@ import logging
 from pathlib import Path
 
 from anyio import Path as AsyncPath
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.api.routes.auth import get_current_user
 from app.models.user import User
+from app.security.sandbox import AccessType, filesystem_sandbox
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/operator-profile", tags=["operator-profile"])
 
 _PROFILE_DIR = Path.home() / ".zero-employee"
+
+# Register the profile directory with the sandbox whitelist
+filesystem_sandbox.add_allowed_path(str(_PROFILE_DIR))
 
 
 class OperatorProfile(BaseModel):
@@ -54,10 +58,19 @@ def _profile_path(user_id: str) -> Path:
     return _PROFILE_DIR / f"operator-profile-{user_id}.json"
 
 
+def _check_sandbox(path: Path, access_type: AccessType) -> None:
+    """Validate file access through the sandbox."""
+    result = filesystem_sandbox.check_access(str(path), access_type)
+    if not result.allowed:
+        raise HTTPException(status_code=403, detail=f"Access denied: {result.reason}")
+
+
 @router.get("/profile", response_model=OperatorProfile)
 async def get_profile(user: User = Depends(get_current_user)):
     """Get the current operator profile."""
-    apath = AsyncPath(_profile_path(user.id))
+    path = _profile_path(user.id)
+    _check_sandbox(path, AccessType.READ)
+    apath = AsyncPath(path)
     if await apath.exists():
         data = json.loads(await apath.read_text(encoding="utf-8"))
         return OperatorProfile(**data)
@@ -67,8 +80,10 @@ async def get_profile(user: User = Depends(get_current_user)):
 @router.put("/profile", response_model=OperatorProfile)
 async def update_profile(profile: OperatorProfile, user: User = Depends(get_current_user)):
     """Update operator profile. AI agents read this to personalize responses."""
+    path = _profile_path(user.id)
+    _check_sandbox(path, AccessType.WRITE)
     await AsyncPath(_PROFILE_DIR).mkdir(parents=True, exist_ok=True)
-    apath = AsyncPath(_profile_path(user.id))
+    apath = AsyncPath(path)
     await apath.write_text(profile.model_dump_json(indent=2), encoding="utf-8")
     await apath.chmod(0o600)
     logger.info("Operator profile updated for user %s", user.id)
@@ -87,7 +102,9 @@ def _instructions_path(user_id: str) -> Path:
 @router.get("/instructions", response_model=GlobalInstructions)
 async def get_instructions(user: User = Depends(get_current_user)):
     """Get global instructions (applied to every AI conversation)."""
-    apath = AsyncPath(_instructions_path(user.id))
+    path = _instructions_path(user.id)
+    _check_sandbox(path, AccessType.READ)
+    apath = AsyncPath(path)
     if await apath.exists():
         return GlobalInstructions(instructions=await apath.read_text(encoding="utf-8"))
     return GlobalInstructions()
@@ -96,8 +113,10 @@ async def get_instructions(user: User = Depends(get_current_user)):
 @router.put("/instructions", response_model=GlobalInstructions)
 async def update_instructions(body: GlobalInstructions, user: User = Depends(get_current_user)):
     """Update global instructions. These are injected into every AI prompt."""
+    path = _instructions_path(user.id)
+    _check_sandbox(path, AccessType.WRITE)
     await AsyncPath(_PROFILE_DIR).mkdir(parents=True, exist_ok=True)
-    apath = AsyncPath(_instructions_path(user.id))
+    apath = AsyncPath(path)
     await apath.write_text(body.instructions, encoding="utf-8")
     await apath.chmod(0o600)
     logger.info(

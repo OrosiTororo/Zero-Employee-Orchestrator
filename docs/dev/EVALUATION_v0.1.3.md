@@ -105,8 +105,8 @@
 
 ### Architecture: 8.0/10
 - 9-layer separation is clean and well-designed
-- 25 services, 46 routes, 22 orchestration modules
-- **Test coverage: 27 test files for 387 endpoints** — better than v0.1.2 (14 files) but still low (~7% coverage by file)
+- 25 services, 47 routes, 22 orchestration modules
+- **Test coverage: 27 test files for 433 endpoints** — better than v0.1.2 (14 files) but still low (~6% coverage by file)
 - Operator Profile uses filesystem storage (not DB) — fine for v0.1 but not scalable
 
 ### Deployment: 7.5/10
@@ -143,7 +143,7 @@
 | **Community infrastructure missing** | Medium | Create Discord/GitHub Discussions. Write 3 tutorial posts. |
 | **No video/interactive tutorial** | Medium | Record 5-min "First 5 Minutes with ZEO" video |
 | **Autonomy Dial UX unclear** | Low | Add tooltip explaining each level's concrete effect |
-| **387 endpoints, docs say "390+"** | Low | Update to "385+" or count accurately |
+| **Endpoint count was stale (387→433)** | Low | Fixed in v0.1.5 — all docs now show 433 |
 
 ---
 
@@ -179,7 +179,7 @@ Implementation: React overlay component, ~100 lines, localStorage flag.
 
 **5. OpenAPI /docs Page**
 - FastAPI already generates this — ensure it's accessible and complete
-- Add descriptions to all 387 endpoints
+- Add descriptions to all 433 endpoints
 
 **6. "What's New" Banner**
 - Show once per version update on Dashboard

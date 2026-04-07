@@ -1,5 +1,56 @@
 # Changelog
 
+## [v0.1.5] (2026-04-07)
+
+### New — End-to-End Task Execution Engine
+
+The core task execution engine is now implemented. Tasks can be planned and executed end-to-end:
+
+- **`POST /tickets/{id}/execute`** — Generate plan, execute all steps via LLM, verify with Judge, return results
+- **`POST /tickets/{id}/generate-plan`** — Generate execution plan (DAG) from ticket spec
+- **`executor.py`** — Central orchestration engine connecting all 9 layers:
+  Interview → DAG plan generation → LLM execution → Judge verification → Reproposal on failure
+- **Dispatch now executes** — Background tasks route through the execution engine (not just ticket creation)
+- **Repropose layer** — Real failure classification with plan diffs and confidence scoring
+- **Autonomy boundary** — `execute` added to autonomous operations set
+
+### Security & Stability
+
+- Thread safety: Added `threading.Lock()` to in-memory stores (`_dispatch_tasks`, `_file_store`)
+- Fixed PII detection API usage in dispatch (`has_pii` not `detected`)
+
+### Fix — Desktop Auto-Update System
+
+The desktop auto-update was completely non-functional for users who installed v0.1.2–v0.1.4. Three root causes identified and fixed:
+
+- **[CRITICAL] Release workflow jq bug** — `latest.json` platforms object was always empty due to operator precedence error in the `merge-updater-json` job. No platform entries → updater found nothing → silent failure.
+- **[CRITICAL] CSP blocking updater** — `connect-src` only allowed `api.github.com` but the updater endpoint is on `github.com`. Added `github.com` and `objects.githubusercontent.com`.
+- **Auto-download & install** — Previously required manual click on "Download & Restart" banner. Now automatically downloads and installs updates by default (user-configurable toggle in Settings).
+
+### Desktop Updater Improvements
+
+- Initial update check reduced from 30s → 5s
+- Periodic recheck interval reduced from 4h → 1h
+- Added window-focus recheck (minimum 5 min interval)
+- Update banner now shows download/install progress with i18n (6 languages)
+- Dismiss no longer permanently hides the update
+- New auto-update ON/OFF toggle in Settings page
+
+### Release Workflow Hardening
+
+- Platform validation changed from `::warning` to `exit 1` (broken `latest.json` no longer uploads)
+- Added macOS to platform validation (was only checking Linux + Windows)
+- Updater fragment upload changed from `if-no-files-found: ignore` to `error`
+- Added empty platforms check before per-platform validation
+
+### Documentation Sync
+
+- Fixed route count: 46 → 47 across README, CLAUDE.md, 6 translated READMEs, FEATURES.md, OVERVIEW.md, architecture guide
+- Fixed endpoint count: 387 → 433
+- Fixed skill count: 8 → 11 (6 system + 5 domain) across all docs
+- Fixed `common.version` stuck at v0.1.2 in all 6 i18n locale files
+- Updated `bump-version.sh` to also update locale files and WhatsNew.tsx (prevents version drift)
+
 ## [v0.1.4] (2026-04-07)
 
 ### Cowork-Style Transition (Complete)

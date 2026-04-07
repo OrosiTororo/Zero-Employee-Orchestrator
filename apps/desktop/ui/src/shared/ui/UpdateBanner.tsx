@@ -2,22 +2,31 @@
  * アプリ内アップデート通知バナー.
  *
  * 新しいバージョンが利用可能な場合、画面下部に通知を表示する。
+ * 自動アップデートが有効な場合、ダウンロード＆インストールの進捗を表示する。
  */
-import { Download, X, RefreshCw } from "lucide-react"
+import { Download, X, RefreshCw, CheckCircle } from "lucide-react"
 import { useUpdater } from "@/shared/hooks/use-updater"
+import { useT } from "@/shared/i18n"
 
 export function UpdateBanner() {
+  const t = useT()
   const {
     available,
     downloading,
+    installing,
     progress,
     info,
     error,
+    dismissed,
     downloadAndInstall,
     dismiss,
   } = useUpdater()
 
-  if (!available && !error) return null
+  // Show banner when: update available (not dismissed), downloading, installing, or error
+  const showBanner =
+    (available && !dismissed) || downloading || installing || (error && !dismissed)
+
+  if (!showBanner) return null
 
   return (
     <div
@@ -31,17 +40,29 @@ export function UpdateBanner() {
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Download size={16} className="text-[var(--accent)] shrink-0" />
+            {installing ? (
+              <CheckCircle size={16} className="text-green-400 shrink-0" />
+            ) : (
+              <Download size={16} className="text-[var(--accent)] shrink-0" />
+            )}
             <span className="text-[13px] font-medium text-[var(--text-primary,#fff)]">
-              {error ? "Update check failed" : "Update available"}
+              {error
+                ? t.updater.checkFailed
+                : installing
+                  ? t.updater.installing
+                  : downloading
+                    ? t.updater.updating
+                    : t.updater.available}
             </span>
           </div>
-          <button
-            onClick={dismiss}
-            className="text-[var(--text-muted,#888)] hover:text-[var(--text-primary,#fff)] transition-colors"
-          >
-            <X size={14} />
-          </button>
+          {!downloading && !installing && (
+            <button
+              onClick={dismiss}
+              className="text-[var(--text-muted,#888)] hover:text-[var(--text-primary,#fff)] transition-colors"
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
 
         {/* Body */}
@@ -52,18 +73,23 @@ export function UpdateBanner() {
         ) : info ? (
           <>
             <p className="mt-2 text-[12px] text-[var(--text-secondary,#aaa)]">
-              Version {info.version} is available.
-              {info.body && (
+              {installing
+                ? t.updater.installingVersion.replace("{version}", info.version)
+                : t.updater.versionAvailable.replace("{version}", info.version)}
+              {info.body && !installing && (
                 <span className="block mt-1 line-clamp-2">{info.body}</span>
               )}
             </p>
 
             {/* Progress bar */}
-            {downloading && (
+            {(downloading || installing) && (
               <div className="mt-3 h-1.5 rounded-full bg-[var(--border,#333)] overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-[var(--accent)] transition-all duration-300"
-                  style={{ width: `${progress}%` }}
+                  className="h-full rounded-full transition-all duration-300"
+                  style={{
+                    width: `${progress}%`,
+                    background: installing ? "#4ade80" : "var(--accent)",
+                  }}
                 />
               </div>
             )}
@@ -73,7 +99,12 @@ export function UpdateBanner() {
               {downloading ? (
                 <span className="flex items-center gap-1.5 text-[12px] text-[var(--text-secondary,#aaa)]">
                   <RefreshCw size={12} className="animate-spin" />
-                  Downloading... {progress}%
+                  {t.updater.downloading.replace("{progress}", String(progress))}
+                </span>
+              ) : installing ? (
+                <span className="flex items-center gap-1.5 text-[12px] text-green-400">
+                  <RefreshCw size={12} className="animate-spin" />
+                  {t.updater.restarting}
                 </span>
               ) : (
                 <button
@@ -87,7 +118,7 @@ export function UpdateBanner() {
                     (e.currentTarget.style.background = "var(--accent)")
                   }
                 >
-                  Download & Restart
+                  {t.updater.downloadRestart}
                 </button>
               )}
             </div>

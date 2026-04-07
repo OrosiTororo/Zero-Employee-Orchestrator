@@ -294,7 +294,7 @@ Additional settings:
 | **Plugin** | A bundle of related Skills that work together | ai-secretary, ai-avatar, research, browser-use |
 | **Extension** | System-level integration or infrastructure | MCP, OAuth, notifications, language-pack, Obsidian, Chrome extension |
 
-ZEO ships with 8 built-in Skills, 10 Plugins, and 11 Extensions. Built-in system Skills (like spec-writer and review-assistant) are always active and cannot be disabled.
+ZEO ships with 11 built-in Skills (6 system + 5 domain), 16 Plugins, and 11 Extensions. Built-in system Skills (like spec-writer and review-assistant) are always active and cannot be disabled.
 
 ### Creating Custom Skills
 

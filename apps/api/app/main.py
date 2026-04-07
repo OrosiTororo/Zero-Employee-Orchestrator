@@ -197,8 +197,8 @@ async def root():
     return {
         "service": settings.PROJECT_NAME,
         "status": "running",
-        "api_docs": f"http://localhost:18234{settings.API_V1_PREFIX}/openapi.json",
-        "frontend": "http://localhost:5173",
+        "api_docs": f"http://localhost:{settings.PORT}{settings.API_V1_PREFIX}/openapi.json",
+        "frontend": f"http://localhost:{settings.FRONTEND_PORT}",
         "note": "This is the API server. Open the frontend URL above for the Web UI, "
         "or use the Desktop App.",
     }
