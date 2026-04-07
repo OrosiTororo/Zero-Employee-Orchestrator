@@ -209,7 +209,7 @@ They are bundled in v0.1 but are planned for future separation as Extensions / S
 | `google-drive` | Google Drive integration |
 | `github-integration` | GitHub Issues / PR integration |
 | `gws-integration` | Google Workspace CLI (gws) integration |
-| `vscode-ui` | VS Code-style UI theme |
+| `cowork-ui` | Cowork-style UI theme |
 | `generative-ui` | Dynamic responses with forms, tables, and charts |
 | `auto-update` | Automatic update mechanism |
 | `ipaas-bridge` | Make / Zapier / n8n integration bridge |

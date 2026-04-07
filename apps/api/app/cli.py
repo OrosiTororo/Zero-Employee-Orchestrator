@@ -355,7 +355,7 @@ def cmd_local(args: argparse.Namespace) -> None:
         ctx_tokens = 0  # approximate context usage
         cli_mode = "NORMAL"  # NORMAL | INSERT | COMMAND
 
-        # Color constants (VSCode/Neovim)
+        # Color constants (ZEO palette / Neovim)
         _C_NORMAL = "\033[38;2;86;186;159m"  # success green
         _C_INSERT = "\033[38;2;0;122;204m"  # accent blue
         _C_COMMAND = "\033[38;2;243;215;104m"  # warning yellow

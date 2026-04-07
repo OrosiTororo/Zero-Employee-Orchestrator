@@ -1,7 +1,7 @@
 """Browser automation, plugin loader, and tool registry API.
 
 - Browser adapter listing, switching, and task execution
-- Plugin search, environment check, and installation (VS Code-style extension management)
+- Plugin search, environment check, and installation (Cowork-style plugin management)
 - Tool registry (AI agents dynamically select optimal tools)
 - Web AI sessions (use AI without API fees)
 """
@@ -285,7 +285,7 @@ async def web_ai_complete(req: WebSessionRequest, user: User = Depends(get_curre
 
 
 # ---------------------------------------------------------------------------
-# Plugin loader endpoints — VS Code-style plugin management
+# Plugin loader endpoints — Cowork-style plugin management
 # ---------------------------------------------------------------------------
 
 

@@ -19,7 +19,7 @@
 
 **将 AI 作为组织来运营的平台 — 不只是聊天机器人。**
 
-用自然语言定义业务流程，让多个 AI 代理按角色分工协作，在人类审批门控和完整审计能力的支持下执行任务。基于 Self-Healing DAG、Judge Layer 和 Experience Memory 的 9 层架构构建。
+ZEO 不是要取代您的 AI 工具，而是统一它们。将 CrewAI、AutoGen、LangChain、Dify、Claude Cowork、n8n、Zapier 以及 34+ 业务应用连接在单一的审批门控、审计追踪和安全层之下。用自然语言定义业务流程，让多个 AI 代理按角色分工协作，在人类审批门控和完整审计能力的支持下执行任务。基于 Self-Healing DAG、Judge Layer 和 Experience Memory 的 9 层架构构建。
 
 ZEO 本身是免费的开源项目。LLM API 费用由用户直接向各提供商支付。
 
@@ -297,6 +297,8 @@ Zero-Employee-Orchestrator/
 | **A2A 通信** | 代理间点对点消息、频道和协商 |
 | **分身 AI** | 从用户对话中学习判断标准，共同成长 |
 | **秘书 AI** | 脑中倾倒 → 结构化任务，作为用户和 AI 组织的桥梁 |
+| **操作员档案** | Cowork 风格的个人简介 + 全局指令 — AI 根据您的角色、优先级和工作风格个性化回复 |
+| **任务派发** | 受 Cowork Dispatch 启发的后台任务 — 发出即忘，支持状态轮询 |
 | **再利用引擎** | 自动将 1 个内容转换为 10 种媒体格式 |
 
 ### 安全

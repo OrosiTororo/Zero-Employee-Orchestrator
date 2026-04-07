@@ -1,6 +1,6 @@
 """Plugin management example — Search, install, and use plugins.
 
-This example demonstrates the VS Code-style plugin management system,
+This example demonstrates the plugin management system,
 including searching for plugins, checking environment requirements,
 and installing them.
 

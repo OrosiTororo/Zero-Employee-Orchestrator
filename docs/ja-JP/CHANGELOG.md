@@ -37,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- **VSCode風シングルアクティビティバーナビゲーション** — 二重サイドバーを廃止し、ツールチップ付きのアイコンベースアクティビティバーに統一（VSCode UXに準拠）
+- **Cowork風ナビバーナビゲーション** — 二重サイドバーを廃止し、ツールチップ付きのアイコンベースナビバーに統一（Cowork UXに準拠）
 - **ステータスバーのグラデーション削除** — 青紫グラデーションをフラットカラーに変更し、視認性を向上
 - **Dependabot 設定の大幅強化** — メジャーバージョン更新の無視、グループ化、全エコシステム網羅（pip/npm/cargo/github-actions）、Cloudflare Workers 個別管理
 - **Dependabot 自動マージワークフロー追加** — patch/minor 更新を CI 通過後に自動承認・squash マージ

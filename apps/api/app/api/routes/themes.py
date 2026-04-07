@@ -41,8 +41,8 @@ class ThemeSetResponse(BaseModel):
 
 
 BUILTIN_THEMES = [
-    ThemeInfo(slug="dark", name="Dark (VSCode Default)", is_builtin=True),
-    ThemeInfo(slug="light", name="Light (VSCode Default)", is_builtin=True),
+    ThemeInfo(slug="dark", name="Dark Default", is_builtin=True),
+    ThemeInfo(slug="light", name="Light Default", is_builtin=True),
     ThemeInfo(slug="high-contrast", name="High Contrast", is_builtin=True),
 ]
 

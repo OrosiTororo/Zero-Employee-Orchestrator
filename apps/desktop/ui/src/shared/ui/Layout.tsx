@@ -24,10 +24,12 @@ import {
   ChevronRight,
   Gauge,
   Send,
+  UserCircle,
 } from "lucide-react"
 import { LogoMark } from "@/shared/ui/Logo"
 import { UpdateBanner } from "@/shared/ui/UpdateBanner"
 import { CommandPalette } from "@/shared/ui/CommandPalette"
+import { WelcomeTour } from "@/shared/ui/WelcomeTour"
 import { useT, useI18n } from "@/shared/i18n"
 import { api } from "@/shared/api/client"
 
@@ -35,12 +37,12 @@ interface LayoutProps {
   children: React.ReactNode
 }
 
-/* VSCode dimensions (from source) */
-const ACTIVITY_BAR_WIDTH = 48
+/* Layout dimensions (Cowork nav bar) */
+const NAV_BAR_WIDTH = 48
 const TITLE_BAR_HEIGHT = 30
 const STATUS_BAR_HEIGHT = 22
 
-function ActivityBarDivider() {
+function NavBarDivider() {
   return (
     <div
       className="mx-auto my-[6px]"
@@ -141,6 +143,7 @@ export function Layout({ children }: LayoutProps) {
   const isExtendOpen = showExtend || extendActive
 
   const bottomItems = [
+    { icon: UserCircle, path: "/operator-profile", label: "Operator Profile" },
     { icon: Shield, path: "/permissions", label: t.nav.permissions },
     { icon: SettingsIcon, path: "/settings", label: t.nav.settings },
   ]
@@ -165,13 +168,14 @@ export function Layout({ children }: LayoutProps) {
     "/permissions": t.nav.permissions,
     "/settings": t.nav.settings,
     "/dispatch": (t.nav as Record<string, string>).dispatch ?? "Dispatch",
+    "/operator-profile": "Operator Profile",
   }
 
   const currentTitle =
     pageTitles[location.pathname] ??
     (location.pathname.startsWith("/tickets/") ? t.nav.ticketDetail : "")
 
-  /* VSCode Activity Bar button: 48x48px icon area, 24px icon, 2px left border */
+  /* Nav button: 48x48px icon area, 24px icon, 2px left border accent */
   function renderNavButton(item: { icon: React.ElementType; path: string; label: string }) {
     const active = isActive(item.path)
     return (
@@ -180,8 +184,8 @@ export function Layout({ children }: LayoutProps) {
         onClick={() => navigate(item.path)}
         className="group relative flex items-center justify-center"
         style={{
-          width: ACTIVITY_BAR_WIDTH,
-          height: ACTIVITY_BAR_WIDTH,
+          width: NAV_BAR_WIDTH,
+          height: NAV_BAR_WIDTH,
           color: active ? "var(--text-primary)" : "var(--text-muted)",
           borderLeft: active ? "2px solid var(--accent)" : "2px solid transparent",
           background: active ? "rgba(255,255,255,0.07)" : "transparent",
@@ -221,7 +225,7 @@ export function Layout({ children }: LayoutProps) {
         className="flex items-center shrink-0 select-none border-b border-[var(--border)]"
         style={{ height: TITLE_BAR_HEIGHT, background: "var(--bg-titlebar)" }}
       >
-        <div className="flex items-center gap-2 px-3" style={{ width: ACTIVITY_BAR_WIDTH }}>
+        <div className="flex items-center gap-2 px-3" style={{ width: NAV_BAR_WIDTH }}>
           <LogoMark size={14} />
         </div>
         <div className="flex-1 text-center">
@@ -233,10 +237,10 @@ export function Layout({ children }: LayoutProps) {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Activity Bar — 48px, VSCode style */}
+        {/* Nav Bar — 48px, Cowork style */}
         <nav
           className="shrink-0 flex flex-col items-center border-r border-[var(--border)]"
-          style={{ width: ACTIVITY_BAR_WIDTH, background: "var(--bg-activity-bar)" }}
+          style={{ width: NAV_BAR_WIDTH, background: "var(--bg-nav-bar)" }}
           aria-label={t.nav.navigation}
         >
           <div className="flex flex-col items-center pt-[4px]">
@@ -244,12 +248,12 @@ export function Layout({ children }: LayoutProps) {
             {coreItems.map((item) => renderNavButton(item))}
 
             {/* Manage section — collapsible */}
-            <ActivityBarDivider />
+            <NavBarDivider />
             <button
               onClick={() => setShowManage((v) => !v)}
               className="flex items-center justify-center"
               style={{
-                width: ACTIVITY_BAR_WIDTH,
+                width: NAV_BAR_WIDTH,
                 height: 20,
                 color: "var(--text-muted)",
                 opacity: 0.6,
@@ -261,12 +265,12 @@ export function Layout({ children }: LayoutProps) {
             {isManageOpen && manageItems.map((item) => renderNavButton(item))}
 
             {/* Extend section — collapsible */}
-            <ActivityBarDivider />
+            <NavBarDivider />
             <button
               onClick={() => setShowExtend((v) => !v)}
               className="flex items-center justify-center"
               style={{
-                width: ACTIVITY_BAR_WIDTH,
+                width: NAV_BAR_WIDTH,
                 height: 20,
                 color: "var(--text-muted)",
                 opacity: 0.6,
@@ -279,12 +283,12 @@ export function Layout({ children }: LayoutProps) {
           </div>
           <div className="flex-1" />
           <div className="flex flex-col items-center pb-[4px]">
-            <ActivityBarDivider />
+            <NavBarDivider />
             {bottomItems.map((item) => renderNavButton(item))}
           </div>
         </nav>
 
-        {/* Main Content — no tab bar (ZEO is not a text editor) */}
+        {/* Main Content */}
         <main className="flex-1 overflow-auto bg-[var(--bg-base)]">
           {children}
         </main>
@@ -336,6 +340,7 @@ export function Layout({ children }: LayoutProps) {
 
       <CommandPalette />
       <UpdateBanner />
+      <WelcomeTour />
     </div>
   )
 }

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
-/* ── VSCode Dark Default Theme (MIT License) ─────────────── */
-/* Source: github.com/microsoft/vscode dark_vs.json + theme.ts */
+/* ── ZEO Dark Theme (colors: MIT-licensed palette) ─────────── */
+/* Based on: MIT-licensed dark theme palette + Zed status colors */
 :root,
 [data-theme="dark"] {
   --bg-base: #1E1E1E;
@@ -11,7 +11,7 @@
   --bg-input: #3C3C3C;
   --bg-hover: #2A2D2E;
   --bg-active: #37373D;
-  --bg-activity-bar: #333333;
+  --bg-nav-bar: #333333;
   --bg-titlebar: #323233;
   --bg-statusbar: #007ACC;
   --bg-tab-bar: #252526;
@@ -45,7 +45,7 @@
   /* Elevated surface */
   --bg-raised: #2D2D2D;
 
-  /* Shadows — VSCode-style: minimal, popups/modals only */
+  /* Shadows — minimal, popups/modals only */
   --shadow-popup: 0 4px 12px rgba(0, 0, 0, 0.3);
   --shadow-modal: 0 8px 24px rgba(0, 0, 0, 0.4);
 
@@ -59,7 +59,7 @@
     Menlo, monospace;
 }
 
-/* ── VSCode Light Default Theme ──────────────────────────── */
+/* ── ZEO Light Theme ────────────────────────────────────── */
 [data-theme="light"] {
   --bg-base: #FFFFFF;
   --bg-surface: #F3F3F3;
@@ -68,7 +68,7 @@
   --bg-input: #FFFFFF;
   --bg-hover: #E8E8E8;
   --bg-active: #E0E0E0;
-  --bg-activity-bar: #2C2C2C;
+  --bg-nav-bar: #2C2C2C;
   --bg-titlebar: #DDDDDD;
   --bg-statusbar: #007ACC;
   --bg-tab-bar: #ECECEC;
@@ -101,7 +101,7 @@
   --shadow-modal: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
-/* ── VSCode High Contrast Theme ──────────────────────────── */
+/* ── ZEO High Contrast Theme ────────────────────────────── */
 [data-theme="high-contrast"] {
   --bg-base: #000000;
   --bg-surface: #0A0A0A;
@@ -110,7 +110,7 @@
   --bg-input: #1A1A1A;
   --bg-hover: #1A1A1A;
   --bg-active: #222222;
-  --bg-activity-bar: #000000;
+  --bg-nav-bar: #000000;
   --bg-titlebar: #000000;
   --bg-statusbar: #6FC3DF;
   --bg-tab-bar: #000000;
@@ -166,7 +166,7 @@ body {
   overflow: hidden;
 }
 
-/* ── Scrollbar (VSCode-style) ─────────────────────────── */
+/* ── Scrollbar (minimal style) ───────────────────────── */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -204,7 +204,7 @@ body {
   background: transparent;
 }
 
-/* ── Focus (VSCode: 1px solid accent, offset -1px) ────── */
+/* ── Focus (1px solid accent, offset -1px) ───────────── */
 :focus-visible {
   outline: 1px solid var(--accent);
   outline-offset: -1px;

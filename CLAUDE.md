@@ -24,7 +24,7 @@ ls apps/api/app/
 ```
 apps/api/app/         # FastAPI backend
   core/               # Config, DB, rate limiting, i18n
-  api/routes/         # 46 route modules, 390+ endpoints
+  api/routes/         # 46 route modules, 387 endpoints
   services/           # 25 services (business logic)
   orchestration/      # DAG, Judge, transparency, CostGuard (22 modules)
   providers/          # LLM gateway, Ollama, g4f, ModelRegistry
@@ -33,7 +33,7 @@ apps/api/app/         # FastAPI backend
   integrations/       # app_connector (34 apps), media, MCP, browser-assist
   tools/              # MCP, browser_adapter, agent_adapter
   tests/              # pytest + pytest-asyncio
-apps/desktop/         # Tauri v2 + React (VSCode-style layout)
+apps/desktop/         # Tauri v2 + React (Cowork-style layout)
 apps/edge/            # Cloudflare Workers
 skills/builtin/       # 8 Skills
 plugins/              # 16 Plugins (10 general + 6 role-based packs)
@@ -77,7 +77,7 @@ Files: root `pyproject.toml`, `apps/api/pyproject.toml`, `apps/desktop/package.j
 - **ZEO is free**: Users pay LLM providers directly; no provider is "recommended"
 - **Skill/Plugin/Extension**: Skill = single task; Plugin = skill bundle (includes role-based packs); Extension = system integration
 - **System skills**: Always enabled, cannot be disabled (8 built-in)
-- **UI**: Task-first layout — Activity Bar with progressive disclosure, Autonomy Dial in status bar, Command Palette (Ctrl+K), Dispatch background tasks
+- **UI**: Task-first layout — Cowork-style nav sidebar with progressive disclosure, Autonomy Dial in status bar, Command Palette (Ctrl+K), Dispatch background tasks
 - **CLI**: Claude Code-like slash commands (`/read`, `/write`, `/edit`, `/run`, `/ls`, `/cd`, `/pwd`, `/find`, `/grep`)
 - **Operator Profile**: Cowork-style about-me + global instructions (`/operator-profile/profile`, `/operator-profile/instructions`)
 - **Dispatch**: Background task execution, Cowork Dispatch pattern (`/dispatch`)
@@ -131,7 +131,7 @@ Write about system behavior changes for end users. Do NOT write about docs/CI/co
 
 **Required perspectives (minimum):**
 
-1. **Relative evaluation** — Compare vs competitors (CrewAI, Dify, LangGraph, AutoGen, n8n, Claude Cowork) using verified market data from web search. Dimensions: usability, learning curve (VSCode base), onboarding time, security posture, multi-model support, enterprise readiness, ecosystem, community.
+1. **Relative evaluation** — Compare vs competitors (CrewAI, Dify, LangGraph, AutoGen, n8n, Claude Cowork) using verified market data from web search. Dimensions: usability, learning curve, onboarding time, security posture, multi-model support, enterprise readiness, ecosystem, community.
 
 2. **Objective evaluation** — First-time user perspective. Dimensions: README clarity, install experience, time to first value, error handling (actionable messages), documentation, UI intuitiveness (progressive disclosure), feature discoverability, trust & transparency.
 
@@ -139,4 +139,4 @@ Write about system behavior changes for end users. Do NOT write about docs/CI/co
 
 **Scoring**: 0-10 scale. Overall = (Relative × 0.35) + (Objective × 0.35) + (Additional × 0.30)
 
-**Latest evaluation**: `docs/dev/EVALUATION_v0.1.2.md` — 8.3/10 (2026-04-06)
+**Latest evaluation**: `docs/dev/EVALUATION_v0.1.3.md` — 7.7/10 (2026-04-07)

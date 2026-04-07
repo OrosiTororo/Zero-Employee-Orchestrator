@@ -1,5 +1,39 @@
 # Changelog
 
+## [v0.1.4] (2026-04-07)
+
+### Cowork-Style Transition (Complete)
+
+- **All VSCode/VS Code references removed** from codebase (code, docs, CSS, comments)
+- CSS variable `--bg-activity-bar` renamed to `--bg-nav-bar`; `ActivityBarDivider` → `NavBarDivider`
+- Theme names changed: "Dark (VSCode Default)" → "Dark Default"
+- Plugin/extension docstrings updated to Cowork terminology
+
+### New — Operator Profile Page
+
+- **OperatorProfilePage** — dedicated UI for About Me + Global Instructions
+- Two-tab layout: profile fields (role, team, responsibilities, priorities, work style) and instruction editor
+- Connected to existing `/operator-profile/` API endpoints
+- Added to nav bar as bottom item with UserCircle icon
+
+### New — Welcome Tour
+
+- **WelcomeTour** — 3-step overlay for first-time users
+- Step-by-step introduction: Dashboard → Monitor → Autonomy Dial
+- Shows once per user (localStorage), dismissible, inspired by Claude Code quickstart
+
+### New — "What's New" Banner
+
+- **WhatsNew** — version-aware banner on Dashboard
+- Shows key highlights per version, dismissible, inspired by Claude Code release notes
+
+### Documentation
+
+- All 6 translated READMEs synced (added Claude Cowork, Operator Profile, Task Dispatch)
+- Fixed count discrepancies: zh-TW tools 19→21, pt-BR routes 41→46
+- New evaluation: `EVALUATION_v0.1.3.md` — 7.7/10 with concrete fix proposals
+- ROADMAP updated to v0.1.4
+
 ## [v0.1.3] (2026-04-07)
 
 ### Meta-Orchestrator Identity
@@ -90,9 +124,9 @@ Plugins: 10 → 16. Plugin development guide added (docs/dev/PLUGIN_GUIDE.md).
 
 ## v0.1.2 (2026-04-06)
 
-### Changed — UI Redesign (VSCode/Zed/Neovim)
+### Changed — UI Redesign (Cowork-style + MIT palette)
 
-- **VSCode Dark Default colors** — All GUI colors replaced with exact VSCode MIT-licensed values. Custom gradients, shadows, and glow effects removed entirely.
+- **MIT-licensed dark palette colors** — All GUI colors replaced with MIT-licensed values. Custom gradients, shadows, and glow effects removed entirely.
 - **Code splitting** — Lazy-loaded 20 page routes into 42 separate chunks. Main bundle reduced from 749KB to 388KB (48% reduction).
 - **Login page simplified** — Removed custom left-panel branding. Form-only centered layout.
 - **Empty state improvements** — Pages with no data now show icons and navigation links to the Dashboard.

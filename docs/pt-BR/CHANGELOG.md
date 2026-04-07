@@ -25,7 +25,7 @@ Versionamento: [Semantic Versioning](https://semver.org/)
 - **Idioma padrão alterado para Inglês** — Mudado de `ja` para `en` para maior adoção internacional (usuários podem definir `LANGUAGE=ja` ou `--lang ja`)
 - **Catálogo de modelos atualizado** — GPT-5.4 / GPT-5.4 Mini (de 4.1), Llama 4 (de 3.2), Phi-4 (de 3), Claude Haiku alias sem data
 - **Correções de precisão na documentação** — Métricas inflacionadas corrigidas: padrões do prompt guard 40+→28+, conectores de apps 35+→34+, módulos de rotas 41→40. "GPT-5 Mini"→"GPT-5.4 Mini" corrigido em todos os idiomas
-- **Navegação estilo VSCode com barra de atividades única** — Barra lateral dupla removida, substituída por barra de ícones com tooltips
+- **Navegação estilo Cowork com barra de navegação** — Barra lateral dupla removida, substituída por barra de navegação com ícones e tooltips
 
 ### Segurança
 

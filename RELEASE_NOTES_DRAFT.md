@@ -27,10 +27,10 @@
 
 ## Desktop UI
 
-- **VSCode-style layout** — Activity Bar with grouped icons and dividers, centered page title in title bar (no duplication), blue status bar showing connection status and execution mode, tab bar with accent-colored active indicator.
-- **Button interactions** — VSCode-aligned: opacity 0.8 on press, 0.4 when disabled, no scale transforms. 120ms transitions.
+- **Cowork-style layout** — Nav bar with grouped icons and dividers, centered page title in title bar, status bar with Autonomy Dial and Dispatch feed.
+- **Button interactions** — opacity 0.8 on press, 0.4 when disabled, no scale transforms. 120ms transitions.
 - **Toast notifications** — Replaced console.error calls with useToastStore across Brainstorm, Skills, Plugins, and Extensions pages.
-- **CSS variables** — Hardcoded hex colors replaced throughout all pages. Dark theme uses VSCode-accurate values (#1E1E1E base, #252526 surface, #333333 activity bar, #007ACC accent).
+- **CSS variables** — Hardcoded hex colors replaced throughout all pages. Dark theme uses MIT-licensed palette (#1E1E1E base, #252526 surface, #333333 nav bar, #007ACC accent).
 - **Dashboard chat history** — Natural language commands and responses displayed as persistent conversation log.
 - **Model selector** — Brainstorm page uses click-to-toggle dropdown instead of checkboxes for model selection.
 - **Skill list sections** — System and user skills separated with section headers.
