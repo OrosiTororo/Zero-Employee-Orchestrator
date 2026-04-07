@@ -66,7 +66,7 @@ export function DashboardPage() {
         confidence: number; delegate_to_llm: boolean; suggestions: string[]
       }>("/command", { text: input.trim() })
 
-      if (nlResult.confidence >= 0.3 && !nlResult.delegate_to_llm && nlResult.message) {
+      if (nlResult && nlResult.confidence >= 0.3 && !nlResult.delegate_to_llm && nlResult.message) {
         setChatHistory(prev => [...prev, { role: "user", content: input.trim() }, { role: "system", content: nlResult.message }])
         setShowChat(true)
         setInput("")
@@ -80,9 +80,12 @@ export function DashboardPage() {
         })
         navigate(`/tickets/${ticket.id}/interview`)
       } else {
+        setChatHistory(prev => [...prev, { role: "user", content: input.trim() }, { role: "system", content: "Ticket created. Redirecting to interview..." }])
+        setShowChat(true)
         navigate("/tickets")
       }
-    } catch {
+    } catch (e) {
+      console.warn("NL command failed:", e)
       navigate("/tickets")
     } finally {
       setLoading(false)

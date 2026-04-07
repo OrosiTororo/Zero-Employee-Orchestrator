@@ -156,21 +156,31 @@ export async function request<T>(
     }
     const refreshed = await refreshPromise
     if (refreshed) {
-      // Retry with the new token
-      const retryRes = await fetch(`${API_BASE}${path}`, {
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeaders(),
-          ...options?.headers,
-        },
-        ...options,
-      })
-      if (retryRes.ok) {
-        return retryRes.json()
+      // Retry with the new token (with timeout)
+      const retryController = new AbortController()
+      const retryTimeout = setTimeout(() => retryController.abort(), 30000)
+      try {
+        const retryRes = await fetch(`${API_BASE}${path}`, {
+          headers: {
+            "Content-Type": "application/json",
+            ...getAuthHeaders(),
+            ...options?.headers,
+          },
+          ...options,
+          signal: options?.signal ?? retryController.signal,
+        })
+        clearTimeout(retryTimeout)
+        if (retryRes.ok) {
+          return retryRes.json()
+        }
+        // If retry also fails, fall through to error handling
+        const err = await retryRes.json().catch(() => ({ detail: retryRes.statusText }))
+        throw new ApiError(err.detail || retryRes.statusText, retryRes.status)
+      } catch (e) {
+        clearTimeout(retryTimeout)
+        if (e instanceof ApiError) throw e
+        throw new NetworkError("Request failed after token refresh")
       }
-      // If retry also fails, fall through to error handling
-      const err = await retryRes.json().catch(() => ({ detail: retryRes.statusText }))
-      throw new ApiError(err.detail || retryRes.statusText, retryRes.status)
     }
     // Refresh failed — throw 401 so the caller can handle logout
     const err = await res.json().catch(() => ({ detail: res.statusText }))
