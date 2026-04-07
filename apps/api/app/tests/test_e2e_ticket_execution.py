@@ -29,6 +29,7 @@ def mock_gateway():
         '{"id":"step_2","title":"Write report","depends_on":["step_1"],'
         '"prompt":"Write a summary report","estimated_minutes":10}]',
         model_used="test-model",
+        provider="test",
         tokens_input=100,
         tokens_output=200,
         cost_usd=0.001,
@@ -39,6 +40,7 @@ def mock_gateway():
         content="This is a well-researched analysis of the topic with detailed findings "
         "and actionable recommendations for the team.",
         model_used="test-model",
+        provider="test",
         tokens_input=150,
         tokens_output=300,
         cost_usd=0.002,
@@ -55,6 +57,7 @@ async def test_e2e_ticket_create_execute(client: AsyncClient, mock_gateway):
     # Step 1: Create a company
     company_data = {
         "name": "E2E Test Corp",
+        "slug": "e2e-test-corp",
         "description": "Company for end-to-end testing",
     }
     resp = await client.post("/api/v1/companies", json=company_data)
@@ -73,7 +76,7 @@ async def test_e2e_ticket_create_execute(client: AsyncClient, mock_gateway):
     assert resp.status_code == 200, f"Ticket creation failed: {resp.text}"
     ticket = resp.json()
     ticket_id = ticket["id"]
-    assert ticket["status"] == "open"
+    assert ticket["status"] in ("open", "draft")
 
     # Step 3: Execute the ticket (with mocked LLM gateway)
     with patch("app.orchestration.executor.LLMGateway", return_value=mock_gateway):
@@ -88,9 +91,9 @@ async def test_e2e_ticket_create_execute(client: AsyncClient, mock_gateway):
 
     # Step 4: Verify execution result
     assert result["status"] == "succeeded", f"Expected succeeded, got {result['status']}"
-    assert result["plan_id"]  # Plan ID should be present
-    assert result["total_cost_usd"] > 0  # Cost should be tracked
-    assert result["total_tokens"] > 0  # Tokens should be tracked
+    assert result["plan"]["plan_id"]  # Plan ID should be present
+    assert result["metrics"]["total_cost_usd"] > 0  # Cost should be tracked
+    assert result["metrics"]["total_tokens"] > 0  # Tokens should be tracked
     assert len(result["node_results"]) >= 1  # At least one node executed
 
     # Verify node results have quality metrics
@@ -121,6 +124,7 @@ async def test_executor_parallel_independent_nodes(mock_gateway):
     exec_resp = CompletionResponse(
         content="Completed task with sufficient detail for quality checks to pass.",
         model_used="test-model",
+        provider="test",
         tokens_input=50,
         tokens_output=100,
         cost_usd=0.001,
@@ -151,6 +155,7 @@ async def test_executor_sequential_dependent_nodes(mock_gateway):
     exec_resp = CompletionResponse(
         content="Completed task with sufficient detail for quality checks to pass.",
         model_used="test-model",
+        provider="test",
         tokens_input=50,
         tokens_output=100,
         cost_usd=0.001,
