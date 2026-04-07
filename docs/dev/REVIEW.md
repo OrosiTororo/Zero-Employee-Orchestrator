@@ -233,10 +233,10 @@ The third-pass review (2026-03-29) addressed remaining test coverage gaps:
 - **9-layer architecture**: Clean separation of concerns with well-defined boundaries
 - **Multi-provider LLM support**: Ollama, g4f, LiteLLM with auto-discovery
 - **Family-based model IDs**: `model_catalog.json` allows version updates without code changes
-- **Comprehensive approval gates**: 12 categories of dangerous operations
+- **Comprehensive approval gates**: 14 categories of dangerous operations
 - **Prompt injection defense**: 5 categories, 28+ patterns including Japanese
 - **PII detection**: 13 categories with masking
-- **Extensive API surface**: 350+ endpoints covering the full domain
+- **Extensive API surface**: 390+ endpoints covering the full domain
 - **Version management**: 8-file version sync with bump script and CI check
 - **Plugin/Skill/Extension model**: VS Code-inspired extensibility architecture
 

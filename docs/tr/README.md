@@ -207,7 +207,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI arka ucu
 │   │   └── app/
 │   │       ├── core/               # Yapılandırma, VT, güvenlik, i18n
-│   │       ├── api/routes/         # 41 REST API rota modülü
+│   │       ├── api/routes/         # 46 REST API rota modülü
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -223,7 +223,7 @@ Zero-Employee-Orchestrator/
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # Arka plan çalışanları
 ├── skills/                   # 8 yerleşik beceri
-├── plugins/                  # 10 eklenti bildirimi
+├── plugins/                  # 16 eklenti bildirimi
 ├── extensions/               # 11 uzantı bildirimi
 │   └── browser-assist/
 │       └── chrome-extension/ # Tarayıcı Asistanı Chrome uzantısı
@@ -304,7 +304,7 @@ Zero-Employee-Orchestrator/
 | Özellik | Açıklama |
 |---------|----------|
 | **Prompt Enjeksiyon Savunması** | 5 kategori, 28+ tespit deseni |
-| **Onay Kapıları** | 12 tehlikeli işlem kategorisi insan onayı gerektirir |
+| **Onay Kapıları** | 14 tehlikeli işlem kategorisi insan onayı gerektirir |
 | **Dosya Sandbox'ı** | Yapay zeka yalnızca kullanıcı tarafından izin verilen klasörlere erişebilir (varsayılan: STRICT) |
 | **Veri Koruması** | Yükleme/indirme politika kontrolü (varsayılan: LOCKDOWN) |
 | **PII Koruması** | 13 kişisel bilgi kategorisinin otomatik tespiti ve maskelenmesi |
@@ -332,7 +332,7 @@ ZEO çok katmanlı savunma ile **güvenlik öncelikli** tasarlanmıştır:
 | Katman | Açıklama |
 |--------|----------|
 | **Prompt Enjeksiyon Savunması** | Harici girdilerden talimat enjeksiyonunu tespit eder ve engeller (5 kategori, 28+ desen) |
-| **Onay Kapıları** | 12 tehlikeli işlem kategorisi (gönderme, silme, faturalandırma, izin değişiklikleri) insan onayı gerektirir |
+| **Onay Kapıları** | 14 tehlikeli işlem kategorisi (gönderme, silme, faturalandırma, izin değişiklikleri) insan onayı gerektirir |
 | **Otonomi Sınırları** | Yapay zekanın otonom olarak yapabileceklerini açıkça sınırlar |
 | **IAM ve Araç İzinleri** | Ayrı insan/yapay zeka hesapları; rol tabanlı araç izinleri (5 varsayılan politika: secretary, researcher, reviewer, executor, admin) ajan başına en az ayrıcalık uygular |
 | **Acil Durdurma Anahtarı** | UI düğmesi veya API (`/kill-switch/activate`) aracılığıyla tüm aktif yürütmelerin acil durdurulması. Yeniden başlatılana kadar yeni yürütmeleri engeller |

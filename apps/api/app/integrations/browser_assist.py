@@ -27,6 +27,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -83,18 +84,40 @@ class BrowserAssistService:
 
     def __init__(self) -> None:
         self._consent_cache: dict[str, bool] = {}
+        self._consent_file = Path.home() / ".zero-employee" / "browser-consent.json"
+        self._load_consent()
+
+    def _load_consent(self) -> None:
+        """Load persisted consent from disk."""
+        if self._consent_file.exists():
+            try:
+                import json
+
+                self._consent_cache = json.loads(self._consent_file.read_text(encoding="utf-8"))
+            except Exception:
+                self._consent_cache = {}
+
+    def _save_consent(self) -> None:
+        """Persist consent to disk (survives restart)."""
+        import json
+
+        self._consent_file.parent.mkdir(parents=True, exist_ok=True)
+        self._consent_file.write_text(json.dumps(self._consent_cache, indent=2), encoding="utf-8")
+        self._consent_file.chmod(0o600)
 
     def check_user_consent(self, user_id: str) -> bool:
         """Check if the user has consented to screen sharing."""
         return self._consent_cache.get(user_id, False)
 
     def grant_consent(self, user_id: str) -> None:
-        """Record the user's screen sharing consent."""
+        """Record the user's screen sharing consent (persisted to disk)."""
         self._consent_cache[user_id] = True
+        self._save_consent()
 
     def revoke_consent(self, user_id: str) -> None:
-        """Revoke the user's screen sharing consent."""
+        """Revoke the user's screen sharing consent (persisted to disk)."""
         self._consent_cache[user_id] = False
+        self._save_consent()
 
     async def analyze_screenshot(
         self,

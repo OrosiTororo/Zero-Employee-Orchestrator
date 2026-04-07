@@ -223,7 +223,7 @@ Zero-Employee-Orchestrator/
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # Workers em segundo plano
 ├── skills/                   # 8 skills integradas
-├── plugins/                  # 10 manifestos de plugins
+├── plugins/                  # 16 manifestos de plugins
 ├── extensions/               # 11 manifestos de extensões
 │   └── browser-assist/
 │       └── chrome-extension/ # Extensão Chrome para Browser Assist
@@ -304,7 +304,7 @@ Zero-Employee-Orchestrator/
 | Funcionalidade | Descrição |
 |---------------|-----------|
 | **Defesa contra Injeção de Prompt** | 5 categorias, 28+ padrões de detecção |
-| **Portões de Aprovação** | 12 categorias de operações perigosas requerem aprovação humana |
+| **Portões de Aprovação** | 14 categorias de operações perigosas requerem aprovação humana |
 | **Sandbox de Arquivos** | IA só pode acessar pastas permitidas pelo usuário (padrão: STRICT) |
 | **Proteção de Dados** | Controle de política de upload/download (padrão: LOCKDOWN) |
 | **Proteção PII** | Detecção automática e mascaramento de 13 categorias de informações pessoais |
@@ -332,7 +332,7 @@ O ZEO é projetado com **segurança em primeiro lugar** e defesa em múltiplas c
 | Camada | Descrição |
 |--------|-----------|
 | **Defesa contra Injeção de Prompt** | Detecta e bloqueia injeção de instruções de entradas externas (5 categorias, 28+ padrões) |
-| **Portões de Aprovação** | 12 categorias de operações perigosas (envio, exclusão, cobrança, alteração de permissão) requerem aprovação humana |
+| **Portões de Aprovação** | 14 categorias de operações perigosas (envio, exclusão, cobrança, alteração de permissão) requerem aprovação humana |
 | **Limites de Autonomia** | Limita explicitamente o que a IA pode fazer de forma autônoma |
 | **IAM e Permissões de Ferramentas** | Contas humanas/IA separadas; permissões de ferramentas baseadas em papéis (5 políticas padrão: secretary, researcher, reviewer, executor, admin) aplicam privilégio mínimo por agente |
 | **Kill Switch** | Parada emergencial de todas as execuções ativas via botão na UI ou API (`/kill-switch/activate`). Bloqueia novas execuções até ser retomado |

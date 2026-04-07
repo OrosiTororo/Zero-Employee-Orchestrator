@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { ScrollText, Search, Filter, ArrowRight } from "lucide-react"
 import { useT } from "@/shared/i18n"
 import { api } from "@/shared/api/client"
+import { useToastStore } from "@/shared/ui/ErrorToast"
 
 const EVENT_TYPES = [
   "all",
@@ -30,6 +31,7 @@ export function AuditPage() {
   const [eventFilter, setEventFilter] = useState("all")
   const [logs, setLogs] = useState<AuditLog[]>([])
   const [loading, setLoading] = useState(true)
+  const addToast = useToastStore((s) => s.addToast)
 
   const fetchLogs = useCallback(async () => {
     if (!companyId) { setLoading(false); return }
@@ -40,6 +42,7 @@ export function AuditPage() {
       setLogs(data)
     } catch {
       setLogs([])
+      addToast("Could not load audit logs. Check your connection.")
     } finally {
       setLoading(false)
     }

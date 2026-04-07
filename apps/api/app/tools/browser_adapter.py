@@ -512,17 +512,23 @@ class BrowserAdapterRegistry:
         """
         adapter = self.get_active()
 
-        # Approval check
+        # Tiered approval check (Cowork pattern: read < write < execute)
         if task.require_approval:
             try:
                 from app.policies.approval_gate import check_approval_required
 
-                approval = check_approval_required("browser_automation")
+                # Determine action tier from task instruction
+                op = _classify_browser_operation(task.instruction)
+                approval = check_approval_required(op)
                 if approval.requires_approval:
                     return BrowserTaskResult(
                         task_id=task.id,
                         status=TaskStatus.FAILED,
-                        output="Approval required. Please re-execute after approval.",
+                        output=(
+                            f"Approval required for '{op}' "
+                            f"(risk: {approval.risk_level.value}). "
+                            f"Reason: {approval.reason}"
+                        ),
                         errors=["approval_required"],
                         adapter_used=self._active_adapter,
                     )
@@ -533,14 +539,69 @@ class BrowserAdapterRegistry:
 
         # Audit log
         logger.info(
-            "Browser task executed: adapter=%s, task=%s, status=%s, duration=%dms",
+            "Browser task executed: adapter=%s, task=%s, op=%s, status=%s, duration=%dms",
             self._active_adapter,
             task.id,
+            _classify_browser_operation(task.instruction),
             result.status.value,
             result.duration_ms,
         )
 
         return result
+
+
+def _classify_browser_operation(instruction: str) -> str:
+    """Classify a browser task instruction into a tiered operation type.
+
+    Follows Cowork's tool hierarchy: navigate < extract < interact < submit.
+    Handles negation patterns (e.g., "don't click" → navigate, not click).
+    """
+    import re
+
+    lower = instruction.lower()
+
+    # Collect negated spans — all words following a negation word until punctuation/end
+    negated_words: set[str] = set()
+    for m in re.finditer(r"(?:don'?t|do not|never|avoid|without|no)\s+([\w\s]+)", lower):
+        negated_words.update(m.group(1).split())
+
+    def _match(keywords: tuple[str, ...]) -> bool:
+        """Match keywords while respecting negation."""
+        for kw in keywords:
+            if kw in lower:
+                root = kw.strip().split()[0] if " " in kw else kw
+                # Check if root or any variant of it appears in negated words
+                if not any(root in nw or nw.startswith(root) for nw in negated_words):
+                    return True
+        return False
+
+    # Critical: login, payment, credentials
+    if _match(("login", "sign in", "password", "credential")):
+        return "browser_login"
+    if _match(("payment", "purchase", "checkout", "pay ", "billing")):
+        return "browser_payment"
+
+    # Medium: clicking (check before submit to avoid "click submit" → submit_form)
+    if _match(("click", "press button", "select ", "toggle")):
+        return "browser_click"
+
+    # High: form submission, filling, typing
+    if _match(("submit", "send form", "confirm order")):
+        return "browser_submit_form"
+    if _match(("fill", "enter ")):
+        return "browser_fill_form"
+    if _match(("type ", "input ")):
+        return "browser_type"
+    if _match(("download",)):
+        return "browser_download"
+    if _match(("extract", "scrape", "copy ", "get data")):
+        return "browser_extract_data"
+
+    # Low: navigation, screenshots (safe)
+    if _match(("screenshot", "capture")):
+        return "browser_screenshot"
+
+    return "browser_navigate"
 
     async def auto_install_adapter(self, adapter_type: AdapterType) -> bool:
         """Install and register an adapter.

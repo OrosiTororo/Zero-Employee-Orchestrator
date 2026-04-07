@@ -115,7 +115,8 @@
     "extensions": "Uzantılar",
     "marketplace": "Mağaza",
     "permissions": "İzin Yönetimi",
-    "settings": "Ayarlar"
+    "settings": "Ayarlar",
+    "dispatch": "Gönder"
   },
   "setup": {
     "steps": {

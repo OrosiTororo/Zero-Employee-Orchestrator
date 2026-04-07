@@ -37,7 +37,7 @@
 
 ### Approval & Auditing
 - Approval workflow (mandatory blocking of dangerous operations)
-- Approval gate (detection of 12 categories of dangerous operations)
+- Approval gate (detection of 14 categories of dangerous operations)
 - Autonomous execution boundary management
 - Audit log (recording of all significant operations, non-deletable)
 

@@ -29,7 +29,7 @@
 
 ### Fixed — Plugin/Extension Registry
 
-- **Built-in seeding** — 10 plugins and 11 extensions seeded on server startup.
+- **Built-in seeding** — 16 plugins and 11 extensions seeded on server startup.
 - **API client migration** — All registry pages use centralized API client with auth headers and correct Tauri URLs.
 
 ---

@@ -25,10 +25,12 @@ This document is not a README; it serves as the standard for implementation, rev
 
 ### 1.1 One-line Definition
 
-Zero-Employee Orchestrator is an AI orchestration platform that defines business workflows in natural language, delegates roles across multiple AI, and executes, replans, and improves business operations with human approval and auditability as prerequisites.
+Zero-Employee Orchestrator is the AI meta-orchestrator — a platform that unifies every AI framework, LLM provider, and business tool under a single approval gate, audit trail, and security layer. Define workflows in natural language, delegate across AI teams, and orchestrate orchestrators (CrewAI, AutoGen, LangChain, Dify, n8n, Zapier) as sub-workers.
 
 ### 1.2 Target State
 
+- **Meta-orchestration**: Integrate and command other AI frameworks and automation platforms, not replace them
+- **Tool-of-tools**: Connect to tools that connect to other tools (e.g., n8n → 400+ apps → ZEO controls all through one integration)
 - Treat AI not as one-shot chat but as a team with defined roles
 - Save spec / plan / tasks as intermediate artifacts
 - Automate most execution while maintaining human final approval

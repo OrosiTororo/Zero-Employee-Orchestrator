@@ -14,7 +14,7 @@ v0.1 includes all features originally planned for v0.2 through v1.0, implemented
 **Foundation:**
 - Full 9-layer architecture (22 orchestration modules, 25 services)
 - ZEO-Bench, Self-Healing DAG, Experience Memory, AI Self-Improvement
-- 41 API route modules, 350+ endpoints
+- 46 API route modules, 390+ endpoints
 - 14 security defense layers
 
 **Connectivity:**
@@ -67,7 +67,7 @@ Items that can be implemented by the development team without large-scale commun
 | v0.1.2 | **VSCode/Zed/Neovim UI redesign** | VSCode MIT colors, Zed status colors, code split (48% reduction), theme extension API |
 | v0.1.2 | **CLI Neovim-style modes** | NORMAL/INSERT/COMMAND mode switching, lualine-inspired status line |
 | v0.1.2 | **Token auto-refresh** | 401 interceptor, periodic refresh, prevents auto-logout |
-| v0.1.2 | **Plugin/Extension seeding** | 10 built-in plugins + 11 extensions seeded on startup |
+| v0.1.2 | **Plugin/Extension seeding** | 16 built-in plugins (10 general + 6 role-based packs) + 11 extensions seeded on startup |
 | v0.1.2 | **API client migration** | All pages use centralized api client (auth + Tauri URL) |
 | v0.1.2 | **Frontend data connection** | TicketList, Approvals, Heartbeats, Costs, Audit connected to real API |
 | v0.1.2 | **features/ module separation** | features/company/ with shared useCompanyId hook |

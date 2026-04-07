@@ -1,0 +1,22 @@
+{
+  "slug": "marketing-pack",
+  "name": "Marketing Pack",
+  "version": "0.1.0",
+  "description": "Role-based plugin for marketing teams — content calendar management, SEO analysis, social media scheduling, campaign performance tracking, and brand voice consistency",
+  "type": "plugin",
+  "status": "experimental",
+  "role": "marketing",
+  "skills": ["content_calendar", "seo_analysis", "social_scheduling", "campaign_tracking", "brand_voice_check"],
+  "connectors": ["google_analytics", "notion", "slack"],
+  "required_permissions": ["internet_access", "read_local"],
+  "external_connections": [],
+  "dangerous_operations": false,
+  "approval_required_operations": ["publish_content", "launch_campaign", "send_newsletter"],
+  "use_cases": [
+    "Plan and manage content calendar across channels",
+    "Analyze SEO performance and suggest improvements",
+    "Draft and schedule social media posts",
+    "Track campaign ROI and generate performance reports"
+  ],
+  "author": "Zero-Employee Orchestrator Team"
+}

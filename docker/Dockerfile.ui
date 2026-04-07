@@ -7,7 +7,7 @@ RUN groupadd -r zeapp -g 1000 && \
 WORKDIR /app
 
 # Install pnpm and serve
-RUN corepack enable && corepack prepare pnpm@9 --activate && \
+RUN corepack enable && corepack prepare pnpm@10 --activate && \
     npm install -g serve
 
 # Copy package files

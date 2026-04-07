@@ -39,6 +39,9 @@ AUTONOMOUS_OPERATIONS: set[str] = {
     "format",
     "classify",
     "extract",
+    # Browser read-only operations (Cowork: read < write hierarchy)
+    "browser_navigate",
+    "browser_screenshot",
 }
 
 # Operation types that require approval
@@ -56,6 +59,17 @@ APPROVAL_REQUIRED_OPERATIONS: set[str] = {
     "external_api_write",
     "create_agent",
     "modify_policy",
+    # Browser write/interact operations (Cowork: per-action approval)
+    "browser_click",
+    "browser_type",
+    "browser_fill_form",
+    "browser_submit_form",
+    "browser_download",
+    "browser_login",
+    "browser_payment",
+    "browser_extract_data",
+    # Web AI sessions
+    "web_ai_session",
 }
 
 

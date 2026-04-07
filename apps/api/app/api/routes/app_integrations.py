@@ -92,7 +92,7 @@ class CustomAppRequest(BaseModel):
 
 
 @router.get("/apps")
-async def list_apps(category: str | None = None) -> dict:
+async def list_apps(category: str | None = None, _user: User = Depends(get_current_user)) -> dict:
     """Return list of supported applications."""
     filter_category: AppCategory | None = None
     if category:
@@ -125,7 +125,7 @@ async def list_apps(category: str | None = None) -> dict:
 
 
 @router.get("/apps/{app_id}")
-async def get_app(app_id: str) -> dict:
+async def get_app(app_id: str, _user: User = Depends(get_current_user)) -> dict:
     """Return app definition details."""
     app_def = app_connector_hub.get_app(app_id)
     if app_def is None:
@@ -145,7 +145,7 @@ async def get_app(app_id: str) -> dict:
 
 
 @router.get("/categories")
-async def list_categories() -> dict:
+async def list_categories(_user: User = Depends(get_current_user)) -> dict:
     """Return category list."""
     return {"categories": app_connector_hub.list_categories()}
 

@@ -207,7 +207,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI 백엔드
 │   │   └── app/
 │   │       ├── core/               # 설정, DB, 보안, i18n
-│   │       ├── api/routes/         # 41 REST API 라우트 모듈
+│   │       ├── api/routes/         # 46 REST API 라우트 모듈
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -223,7 +223,7 @@ Zero-Employee-Orchestrator/
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # 백그라운드 워커
 ├── skills/                   # 내장 스킬 (8개)
-├── plugins/                  # 플러그인 매니페스트 (10개)
+├── plugins/                  # 플러그인 매니페스트 (16개)
 ├── extensions/               # 익스텐션 매니페스트 (11개)
 │   └── browser-assist/
 │       └── chrome-extension/ # 브라우저 어시스트용 Chrome 확장 프로그램
@@ -304,7 +304,7 @@ Zero-Employee-Orchestrator/
 | 기능 | 설명 |
 |------|------|
 | **프롬프트 인젝션 방어** | 5개 카테고리, 28+ 탐지 패턴 |
-| **승인 게이트** | 12개 카테고리의 위험 작업에 인간 승인 필수 |
+| **승인 게이트** | 14개 카테고리의 위험 작업에 인간 승인 필수 |
 | **파일 샌드박스** | AI가 접근 가능한 폴더를 사용자 허가제로 제한 (기본: STRICT) |
 | **데이터 보호** | 업로드/다운로드 정책 제어 (기본: LOCKDOWN) |
 | **PII 보호** | 13개 카테고리 개인정보 자동 탐지 및 마스킹 |
@@ -332,7 +332,7 @@ ZEO는 **보안 우선**으로 설계된 다층 방어를 갖추고 있습니다
 | 계층 | 설명 |
 |------|------|
 | **프롬프트 인젝션 방어** | 외부 입력의 명령 주입을 탐지하고 차단 (5개 카테고리, 28+ 패턴) |
-| **승인 게이트** | 12개 카테고리의 위험 작업(전송, 삭제, 과금, 권한 변경 등)에 인간 승인 필수 |
+| **승인 게이트** | 14개 카테고리의 위험 작업(전송, 삭제, 과금, 권한 변경 등)에 인간 승인 필수 |
 | **자율 실행 경계** | AI가 자율적으로 실행할 수 있는 작업을 명시적으로 제한 |
 | **IAM 및 도구 권한** | 인간/AI 계정 분리; 역할 기반 도구 권한(5개 기본 정책: secretary, researcher, reviewer, executor, admin)으로 에이전트별 최소 권한 적용 |
 | **킬 스위치** | UI 버튼 또는 API(`/kill-switch/activate`)를 통해 모든 활성 실행을 긴급 중지. 재개할 때까지 새 실행을 차단 |

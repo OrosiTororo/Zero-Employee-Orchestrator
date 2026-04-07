@@ -13,13 +13,13 @@
 ![Rust](https://img.shields.io/badge/-Rust-000000?logo=rust&logoColor=white)
 ![Docker](https://img.shields.io/badge/-Docker-2496ED?logo=docker&logoColor=white)
 
-> **AI Orchestration Platform — Design · Execute · Verify · Improve**
+> **The AI Meta-Orchestrator — Design · Execute · Verify · Improve**
 
 ---
 
-**The platform for running AI as an organization — not just a chatbot.**
+**The orchestrator of orchestrators. One platform to command every AI framework, every LLM, every tool — under human approval and full audit.**
 
-Define business workflows in natural language, orchestrate multiple AI agents with role-based delegation, and execute tasks with human approval gates and full auditability. Built with a 9-layer architecture featuring Self-Healing DAG, Judge Layer, and Experience Memory.
+ZEO doesn't replace your AI tools — it unifies them. Connect CrewAI, AutoGen, LangChain, Dify, Claude Cowork, n8n, Zapier, and 34+ business apps under a single approval gate, audit trail, and security layer. Define workflows in natural language. Let multiple AI agents plan, execute, verify, and improve — all under your control.
 
 ZEO itself is free and open source. LLM API costs are paid directly by users to each provider.
 
@@ -208,7 +208,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI backend
 │   │   └── app/
 │   │       ├── core/               # Config, DB, security, i18n
-│   │       ├── api/routes/         # 41 REST API route modules
+│   │       ├── api/routes/         # 46 REST API route modules
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -224,7 +224,7 @@ Zero-Employee-Orchestrator/
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # Background workers
 ├── skills/                   # 8 built-in skills
-├── plugins/                  # 10 plugin manifests
+├── plugins/                  # 16 plugin manifests (10 general + 6 role-based)
 ├── extensions/               # 11 extension manifests
 │   └── browser-assist/
 │       └── chrome-extension/ # Chrome extension for Browser Assist
@@ -276,11 +276,23 @@ Zero-Employee-Orchestrator/
 | **Self-Healing / Re-Propose** | Automatic re-planning on failure with dynamic DAG reconstruction |
 | **Experience Memory** | Learns from past executions to improve future performance |
 
+### Meta-Orchestration (Orchestrator of Orchestrators)
+
+| Feature | Description |
+|---------|-------------|
+| **Agent Adapter** | Integrate CrewAI, AutoGen, LangChain, Dify agents as ZEO sub-workers — all under approval gates and audit |
+| **iPaaS Bridge** | Connect n8n / Zapier / Make workflows — ZEO becomes the judgment layer for existing automations |
+| **MCP Server** | Model Context Protocol — any MCP-compatible tool becomes a ZEO tool automatically |
+| **App Connector Hub** | 34+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, Slack, etc.) — connectors for connectors |
+| **Tool-of-Tools** | Tools that connect to other tools (e.g., n8n connects to 400+ apps → ZEO connects to n8n → ZEO accesses all 400+ apps through one integration) |
+| **Multi-Model Freedom** | 26 model families via LiteLLM, Ollama local models, g4f web sessions — not locked to any single provider |
+
 ### Extensibility
 
 | Feature | Description |
 |---------|-------------|
 | **Skill / Plugin / Extension** | 3-tier extensibility with full CRUD management |
+| **Role-Based Plugin Packs** | Pre-configured plugins per business role: Sales, Finance, HR, Legal, Marketing, Support |
 | **Natural Language Skill Generation** | Describe in plain language → AI auto-generates (with safety checks) |
 | **Skill Marketplace** | Community skill publishing, search, review, and installation |
 | **External Skill Import** | Import skills from GitHub repositories |
@@ -298,6 +310,8 @@ Zero-Employee-Orchestrator/
 | **A2A Communication** | Peer-to-peer agent messaging, channels, and negotiation |
 | **Avatar AI** | Learns your decision patterns and evolves with you |
 | **Secretary AI** | Brain dump → structured tasks, bridges you and the AI org |
+| **Operator Profile** | Cowork-style about-me + global instructions — AI personalizes responses based on your role, priorities, and work style |
+| **Task Dispatch** | Cowork Dispatch-inspired background tasks — fire-and-forget with status polling |
 | **Repurpose Engine** | Auto-convert 1 content to 10 media formats |
 
 ### Security
@@ -305,7 +319,7 @@ Zero-Employee-Orchestrator/
 | Feature | Description |
 |---------|-------------|
 | **Prompt Injection Defense** | 5 categories, 28+ detection patterns |
-| **Approval Gates** | 12 categories of dangerous operations require human approval |
+| **Approval Gates** | 14 categories — including tiered browser automation (10 levels: navigate < click < type < submit < login < payment) |
 | **File Sandbox** | AI can only access user-permitted folders (default: STRICT) |
 | **Data Protection** | Upload/download policy control (default: LOCKDOWN) |
 | **PII Protection** | Auto-detect and mask 13 categories of personal information |
@@ -333,7 +347,7 @@ ZEO is designed **security-first** with multi-layered defense:
 | Layer | Description |
 |-------|-------------|
 | **Prompt Injection Defense** | Detects and blocks instruction injection from external inputs (5 categories, 28+ patterns) |
-| **Approval Gates** | 12 categories of dangerous operations (send, delete, billing, permission changes) require human approval |
+| **Approval Gates** | 14 categories of dangerous operations (send, delete, billing, permission changes) require human approval |
 | **Autonomy Boundaries** | Explicitly limits what AI can do autonomously |
 | **IAM & Tool Permissions** | Separate human/AI accounts; role-based tool permissions (5 default policies: secretary, researcher, reviewer, executor, admin) enforce least privilege per agent |
 | **Kill Switch** | Emergency halt of all active executions via UI button or API (`/kill-switch/activate`). Blocks new executions until resumed. |

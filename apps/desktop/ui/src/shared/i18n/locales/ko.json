@@ -115,7 +115,8 @@
     "extensions": "확장 기능",
     "marketplace": "마켓플레이스",
     "permissions": "권한 관리",
-    "settings": "설정"
+    "settings": "설정",
+    "dispatch": "디스패치"
   },
   "setup": {
     "steps": {

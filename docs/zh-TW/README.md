@@ -207,7 +207,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI 後端
 │   │   └── app/
 │   │       ├── core/               # 設定、資料庫、安全、國際化
-│   │       ├── api/routes/         # 41 REST API 路由模組
+│   │       ├── api/routes/         # 46 REST API 路由模組
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -223,7 +223,7 @@ Zero-Employee-Orchestrator/
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # 背景工作程序
 ├── skills/                   # 8 個內建技能
-├── plugins/                  # 10 個外掛清單
+├── plugins/                  # 16 個外掛清單
 ├── extensions/               # 11 個擴充清單
 │   └── browser-assist/
 │       └── chrome-extension/ # 瀏覽器輔助 Chrome 擴充功能
@@ -304,7 +304,7 @@ Zero-Employee-Orchestrator/
 | 功能 | 描述 |
 |------|------|
 | **提示注入防禦** | 5 個類別、28+ 偵測模式 |
-| **審批閘門** | 12 類危險操作需要人類審批 |
+| **審批閘門** | 14 類危險操作需要人類審批 |
 | **檔案沙箱** | AI 僅可存取使用者許可的資料夾（預設：STRICT） |
 | **資料保護** | 上傳/下載原則控制（預設：LOCKDOWN） |
 | **PII 保護** | 自動偵測和遮罩 13 個類別的個人資訊 |
@@ -332,7 +332,7 @@ ZEO 採用**安全優先**設計，具備多層防禦：
 | 層級 | 描述 |
 |------|------|
 | **提示注入防禦** | 偵測並阻止來自外部輸入的指令注入（5 個類別、28+ 模式） |
-| **審批閘門** | 12 類危險操作（傳送、刪除、計費、權限變更等）需要人類審批 |
+| **審批閘門** | 14 類危險操作（傳送、刪除、計費、權限變更等）需要人類審批 |
 | **自主執行邊界** | 明確限制 AI 可自主執行的操作 |
 | **IAM 與工具權限** | 人類/AI 帳戶分離；基於角色的工具權限（5 個預設策略：secretary、researcher、reviewer、executor、admin）為每個代理實施最小權限 |
 | **緊急停止開關** | 透過 UI 按鈕或 API（`/kill-switch/activate`）緊急停止所有活動執行。在恢復之前阻止新的執行 |

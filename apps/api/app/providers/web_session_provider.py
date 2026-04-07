@@ -368,7 +368,7 @@ class WebSessionProvider:
                 url=catalog_entry["url"],
                 max_steps=20,
                 timeout_seconds=config.timeout_seconds if config else 120,
-                require_approval=False,  # Web AI sessions do not require approval
+                require_approval=True,  # Web AI sessions require user consent (Cowork pattern)
             )
 
             result = await adapter.execute_task(task)

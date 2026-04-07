@@ -134,7 +134,7 @@ jobs:
       - name: Verify Alembic migrations
         run: |
           pip install alembic aiosqlite
-          cd /home/runner/work/Zero-Employee-Orchestrator/Zero-Employee-Orchestrator/apps/api
+          cd $GITHUB_WORKSPACE/apps/api
           python -c "
           import asyncio
           from sqlalchemy.ext.asyncio import create_async_engine

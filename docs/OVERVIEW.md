@@ -592,7 +592,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                    # FastAPI backend
 │   │   ├── app/
 │   │   │   ├── core/           # Configuration, DB, security, i18n
-│   │   │   ├── api/routes/     # REST API (41 routes)
+│   │   │   ├── api/routes/     # REST API (46 routes)
 │   │   │   ├── api/ws/         # WebSocket
 │   │   │   ├── models/         # ORM models (29 tables / 18 files)
 │   │   │   ├── schemas/        # Pydantic DTO

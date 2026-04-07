@@ -243,7 +243,9 @@ class FileSystemSandbox:
             if denied.startswith("/") or denied.startswith("~"):
                 # Absolute path denial rule
                 denied_resolved = str(Path(denied).expanduser().resolve())
-                if resolved_path.startswith(denied_resolved) or resolved_path == denied_resolved:
+                if resolved_path == denied_resolved or resolved_path.startswith(
+                    denied_resolved + "/"
+                ):
                     return AccessCheckResult(
                         allowed=False,
                         path=resolved_path,
@@ -281,7 +283,9 @@ class FileSystemSandbox:
         """STRICT mode: whitelisted folders only."""
         for allowed in self._config.allowed_paths:
             allowed_resolved = str(Path(allowed).resolve())
-            if resolved_path.startswith(allowed_resolved) or resolved_path == allowed_resolved:
+            if resolved_path == allowed_resolved or resolved_path.startswith(
+                allowed_resolved + "/"
+            ):
                 return AccessCheckResult(
                     allowed=True,
                     path=resolved_path,
@@ -303,7 +307,9 @@ class FileSystemSandbox:
         # Allowlist check
         for allowed in self._config.allowed_paths:
             allowed_resolved = str(Path(allowed).resolve())
-            if resolved_path.startswith(allowed_resolved):
+            if resolved_path == allowed_resolved or resolved_path.startswith(
+                allowed_resolved + "/"
+            ):
                 return AccessCheckResult(
                     allowed=True,
                     path=resolved_path,

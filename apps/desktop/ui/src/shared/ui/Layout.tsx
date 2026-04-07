@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import {
   LayoutDashboard,
@@ -19,12 +20,16 @@ import {
   Circle,
   Globe,
   Zap,
-  Briefcase,
+  ChevronDown,
+  ChevronRight,
+  Gauge,
+  Send,
 } from "lucide-react"
 import { LogoMark } from "@/shared/ui/Logo"
 import { UpdateBanner } from "@/shared/ui/UpdateBanner"
 import { CommandPalette } from "@/shared/ui/CommandPalette"
 import { useT, useI18n } from "@/shared/i18n"
+import { api } from "@/shared/api/client"
 
 interface LayoutProps {
   children: React.ReactNode
@@ -50,33 +55,90 @@ export function Layout({ children }: LayoutProps) {
   const t = useT()
   const { locale } = useI18n()
 
-  const navGroups = [
-    [
-      { icon: LayoutDashboard, path: "/", label: t.nav.dashboard },
-      { icon: Network, path: "/org-chart", label: t.nav.orgChart },
-    ],
-    [
-      { icon: Ticket, path: "/tickets", label: t.nav.tickets },
-      { icon: ShieldCheck, path: "/approvals", label: t.nav.approvals },
-    ],
-    [
-      { icon: BrainCircuit, path: "/secretary", label: t.nav.secretary },
-      { icon: Sparkles, path: "/brainstorm", label: t.nav.brainstorm },
-      { icon: Activity, path: "/monitor", label: t.nav.monitor },
-    ],
-    [
-      { icon: FileBox, path: "/artifacts", label: t.nav.artifacts },
-      { icon: HeartPulse, path: "/heartbeats", label: t.nav.heartbeats },
-      { icon: Coins, path: "/costs", label: t.nav.costs },
-      { icon: ScrollText, path: "/audit", label: t.nav.audit },
-    ],
-    [
-      { icon: Blocks, path: "/skills", label: t.nav.skills },
-      { icon: Puzzle, path: "/plugins", label: t.nav.plugins },
-      { icon: Blocks, path: "/extensions", label: t.nav.extensions },
-      { icon: Store, path: "/marketplace", label: t.nav.marketplace },
-    ],
+  const [dispatchCount, setDispatchCount] = useState(0)
+  const [autonomyLevel, setAutonomyLevel] = useState("semi-auto")
+
+  const fetchStatusBar = useCallback(async () => {
+    try {
+      const [dispatches, config] = await Promise.all([
+        api.get<{ total: number }>("/dispatch").catch(() => ({ total: 0 })),
+        api
+          .get<{ config: Record<string, { value: string }> }>("/config")
+          .catch(() => null),
+      ])
+      setDispatchCount(dispatches.total)
+      if (config?.config?.AUTONOMY_LEVEL?.value) {
+        setAutonomyLevel(config.config.AUTONOMY_LEVEL.value)
+      }
+    } catch {
+      /* status bar data is non-critical */
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchStatusBar()
+    const interval = setInterval(fetchStatusBar, 30_000)
+    return () => clearInterval(interval)
+  }, [fetchStatusBar])
+
+  const autonomyLabels: Record<string, string> = {
+    observe: "Observe",
+    assist: "Assist",
+    "semi-auto": "Semi-Auto",
+    autonomous: "Autonomous",
+  }
+
+  const cycleAutonomy = async () => {
+    const levels = ["observe", "assist", "semi-auto", "autonomous"]
+    const idx = levels.indexOf(autonomyLevel)
+    const next = levels[(idx + 1) % levels.length]
+    setAutonomyLevel(next)
+    try {
+      await api.put("/config", { key: "AUTONOMY_LEVEL", value: next })
+    } catch {
+      /* Config save failure is non-fatal */
+    }
+  }
+  const [showManage, setShowManage] = useState(false)
+  const [showExtend, setShowExtend] = useState(false)
+
+  function isActive(path: string) {
+    return path === "/" ? location.pathname === "/" : location.pathname.startsWith(path)
+  }
+
+  /* Core items — always visible (progressive disclosure: primary actions) */
+  const coreItems = [
+    { icon: LayoutDashboard, path: "/", label: t.nav.dashboard },
+    { icon: Ticket, path: "/tickets", label: t.nav.tickets },
+    { icon: BrainCircuit, path: "/secretary", label: t.nav.secretary },
+    { icon: Sparkles, path: "/brainstorm", label: t.nav.brainstorm },
+    { icon: Send, path: "/dispatch", label: (t.nav as Record<string, string>).dispatch ?? "Dispatch" },
+    { icon: Activity, path: "/monitor", label: t.nav.monitor },
   ]
+
+  /* Management items — collapsed by default */
+  const manageItems = [
+    { icon: Network, path: "/org-chart", label: t.nav.orgChart },
+    { icon: ShieldCheck, path: "/approvals", label: t.nav.approvals },
+    { icon: FileBox, path: "/artifacts", label: t.nav.artifacts },
+    { icon: HeartPulse, path: "/heartbeats", label: t.nav.heartbeats },
+    { icon: Coins, path: "/costs", label: t.nav.costs },
+    { icon: ScrollText, path: "/audit", label: t.nav.audit },
+  ]
+
+  /* Extension items — collapsed by default */
+  const extendItems = [
+    { icon: Blocks, path: "/skills", label: t.nav.skills },
+    { icon: Puzzle, path: "/plugins", label: t.nav.plugins },
+    { icon: Blocks, path: "/extensions", label: t.nav.extensions },
+    { icon: Store, path: "/marketplace", label: t.nav.marketplace },
+  ]
+
+  /* Auto-expand sections when an item in them is active */
+  const manageActive = manageItems.some((item) => isActive(item.path))
+  const extendActive = extendItems.some((item) => isActive(item.path))
+  const isManageOpen = showManage || manageActive
+  const isExtendOpen = showExtend || extendActive
 
   const bottomItems = [
     { icon: Shield, path: "/permissions", label: t.nav.permissions },
@@ -102,15 +164,12 @@ export function Layout({ children }: LayoutProps) {
     "/monitor": t.nav.monitor,
     "/permissions": t.nav.permissions,
     "/settings": t.nav.settings,
+    "/dispatch": (t.nav as Record<string, string>).dispatch ?? "Dispatch",
   }
 
   const currentTitle =
     pageTitles[location.pathname] ??
     (location.pathname.startsWith("/tickets/") ? t.nav.ticketDetail : "")
-
-  function isActive(path: string) {
-    return path === "/" ? location.pathname === "/" : location.pathname.startsWith(path)
-  }
 
   /* VSCode Activity Bar button: 48x48px icon area, 24px icon, 2px left border */
   function renderNavButton(item: { icon: React.ElementType; path: string; label: string }) {
@@ -157,7 +216,7 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-[var(--bg-base)]">
-      {/* Title Bar — 30px, VSCode style */}
+      {/* Title Bar — 30px */}
       <header
         className="flex items-center shrink-0 select-none border-b border-[var(--border)]"
         style={{ height: TITLE_BAR_HEIGHT, background: "var(--bg-titlebar)" }}
@@ -181,12 +240,42 @@ export function Layout({ children }: LayoutProps) {
           aria-label={t.nav.navigation}
         >
           <div className="flex flex-col items-center pt-[4px]">
-            {navGroups.map((group, gi) => (
-              <div key={gi}>
-                {gi > 0 && <ActivityBarDivider />}
-                {group.map((item) => renderNavButton(item))}
-              </div>
-            ))}
+            {/* Core — always visible */}
+            {coreItems.map((item) => renderNavButton(item))}
+
+            {/* Manage section — collapsible */}
+            <ActivityBarDivider />
+            <button
+              onClick={() => setShowManage((v) => !v)}
+              className="flex items-center justify-center"
+              style={{
+                width: ACTIVITY_BAR_WIDTH,
+                height: 20,
+                color: "var(--text-muted)",
+                opacity: 0.6,
+              }}
+              aria-label="Manage"
+            >
+              {isManageOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+            </button>
+            {isManageOpen && manageItems.map((item) => renderNavButton(item))}
+
+            {/* Extend section — collapsible */}
+            <ActivityBarDivider />
+            <button
+              onClick={() => setShowExtend((v) => !v)}
+              className="flex items-center justify-center"
+              style={{
+                width: ACTIVITY_BAR_WIDTH,
+                height: 20,
+                color: "var(--text-muted)",
+                opacity: 0.6,
+              }}
+              aria-label="Extend"
+            >
+              {isExtendOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+            </button>
+            {isExtendOpen && extendItems.map((item) => renderNavButton(item))}
           </div>
           <div className="flex-1" />
           <div className="flex flex-col items-center pb-[4px]">
@@ -201,7 +290,7 @@ export function Layout({ children }: LayoutProps) {
         </main>
       </div>
 
-      {/* Status Bar — 22px, VSCode blue bar */}
+      {/* Status Bar — 22px, Cowork-inspired (autonomy dial + dispatch feed) */}
       <footer
         className="flex items-center shrink-0 text-[12px]"
         style={{ height: STATUS_BAR_HEIGHT, lineHeight: `${STATUS_BAR_HEIGHT}px`, background: "var(--bg-statusbar)" }}
@@ -211,13 +300,26 @@ export function Layout({ children }: LayoutProps) {
             <Circle size={7} fill="var(--statusbar-fg)" stroke="none" style={{ opacity: 0.8 }} />
             <span>{t.common.connected ?? "OK"}</span>
           </div>
-          <div className="flex items-center gap-1 px-2 h-full hover:bg-[rgba(255,255,255,0.12)]">
-            <Briefcase size={11} />
-            <span>0 {t.common.jobs ?? "Jobs"}</span>
-          </div>
+          {/* Dispatch count — Cowork activity feed pattern */}
+          <button
+            onClick={() => navigate("/monitor")}
+            className="flex items-center gap-1 px-2 h-full hover:bg-[rgba(255,255,255,0.12)]"
+          >
+            <Send size={10} />
+            <span>{dispatchCount} {t.common.jobs ?? "Tasks"}</span>
+          </button>
         </div>
         <div className="flex-1" />
         <div className="flex items-center h-full text-[var(--statusbar-fg)]">
+          {/* Autonomy Dial — Cowork/Smashing Magazine agentic UX pattern */}
+          <button
+            onClick={cycleAutonomy}
+            className="flex items-center gap-1 px-2 h-full hover:bg-[rgba(255,255,255,0.12)]"
+            title="Click to change autonomy level"
+          >
+            <Gauge size={11} />
+            <span>{autonomyLabels[autonomyLevel]}</span>
+          </button>
           <button
             onClick={() => navigate("/settings")}
             className="flex items-center gap-1 px-2 h-full hover:bg-[rgba(255,255,255,0.12)]"
