@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react"
 import { UserCircle, Save, Loader2, FileText } from "lucide-react"
 import { api } from "@/shared/api/client"
-import { useT } from "@/shared/i18n"
 import { useToastStore } from "@/shared/ui/ErrorToast"
 
 interface Profile {
@@ -21,7 +20,6 @@ interface Instructions {
 }
 
 export function OperatorProfilePage() {
-  const t = useT()
   const addToast = useToastStore((s) => s.addToast)
   const [tab, setTab] = useState<"profile" | "instructions">("profile")
   const [saving, setSaving] = useState(false)
