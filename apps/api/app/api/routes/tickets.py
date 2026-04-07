@@ -562,9 +562,7 @@ async def generate_plan(
     """Generate an execution plan (DAG) for a ticket from its spec."""
     from app.orchestration.executor import get_executor
 
-    result = await db.execute(
-        select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id"))
-    )
+    result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
@@ -576,7 +574,9 @@ async def generate_plan(
         spec_text = session.spec_text
 
     if not spec_text.strip():
-        raise HTTPException(status_code=400, detail="Ticket has no spec or description to plan from")
+        raise HTTPException(
+            status_code=400, detail="Ticket has no spec or description to plan from"
+        )
 
     executor = get_executor()
     dag = await executor.generate_plan(ticket.title, spec_text)
@@ -614,9 +614,7 @@ async def execute_ticket(
     """
     from app.orchestration.executor import get_executor
 
-    result = await db.execute(
-        select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id"))
-    )
+    result = await db.execute(select(Ticket).where(Ticket.id == parse_uuid(ticket_id, "ticket_id")))
     ticket = result.scalar_one_or_none()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
@@ -628,9 +626,7 @@ async def execute_ticket(
         spec_text = session.spec_text
 
     if not spec_text.strip():
-        raise HTTPException(
-            status_code=400, detail="Ticket has no spec or description to execute"
-        )
+        raise HTTPException(status_code=400, detail="Ticket has no spec or description to execute")
 
     # Mark as executing
     ticket.status = "in_progress"

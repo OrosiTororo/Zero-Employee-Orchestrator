@@ -347,7 +347,9 @@ async def delete_file(file_id: str, user: User = Depends(get_current_user)) -> d
     if gate.requires_approval:
         logger.info(
             "File delete requires approval: id=%s, risk=%s, user=%s",
-            file_id, gate.risk_level, user.id,
+            file_id,
+            gate.risk_level,
+            user.id,
         )
 
     # Delete from disk

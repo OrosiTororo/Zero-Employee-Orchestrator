@@ -26,9 +26,9 @@ from app.orchestration.dag import (
     TaskNodeStatus,
     rebuild_dag_after_failure,
 )
-from app.orchestration.judge import CrossModelJudge, JudgeVerdict, RuleBasedJudge
+from app.orchestration.judge import CrossModelJudge, RuleBasedJudge
 from app.orchestration.repropose import classify_failure, generate_reproposal
-from app.providers.gateway import CompletionRequest, CompletionResponse, ExecutionMode, LLMGateway
+from app.providers.gateway import CompletionRequest, ExecutionMode, LLMGateway
 
 logger = logging.getLogger(__name__)
 
@@ -276,20 +276,19 @@ class TaskExecutor:
 
                 if node_result.success:
                     # Accumulate context for next nodes
-                    accumulated_context += (
-                        f"\n\n--- {node.title} ---\n{node_result.content}"
-                    )
+                    accumulated_context += f"\n\n--- {node.title} ---\n{node_result.content}"
                     dag.mark_completed(node.id, success=True)
                 else:
                     # Retry logic
                     retry_count = sum(
-                        1 for r in result.node_results
-                        if r.node_id == node.id and not r.success
+                        1 for r in result.node_results if r.node_id == node.id and not r.success
                     )
                     if retry_count <= self.MAX_RETRIES:
                         logger.info(
                             "Retrying node %s (attempt %d/%d)",
-                            node.id, retry_count, self.MAX_RETRIES,
+                            node.id,
+                            retry_count,
+                            self.MAX_RETRIES,
                         )
                         rebuild_dag_after_failure(dag, node.id, strategy="retry")
                     else:
@@ -300,9 +299,7 @@ class TaskExecutor:
                         rework_reason = classify_failure(
                             None, node_result.error or "Quality check failed"
                         )
-                        reproposal = generate_reproposal(
-                            dag.to_dict(), [rework_reason]
-                        )
+                        reproposal = generate_reproposal(dag.to_dict(), [rework_reason])
                         logger.info(
                             "Reproposal generated: %s (confidence=%.2f)",
                             reproposal.new_plan_summary,
@@ -327,14 +324,12 @@ class TaskExecutor:
         failed_results = [r for r in result.node_results if not r.success]
         if failed_results:
             try:
-                from app.orchestration.experience_memory import PersistentExperienceMemory
                 from app.core.database import get_session
+                from app.orchestration.experience_memory import PersistentExperienceMemory
 
                 async for db in get_session():
                     # Use a placeholder company_id for system-level memory
-                    memory = PersistentExperienceMemory(
-                        db, "00000000-0000-0000-0000-000000000000"
-                    )
+                    memory = PersistentExperienceMemory(db, "00000000-0000-0000-0000-000000000000")
                     for fr in failed_results:
                         reason = classify_failure(None, fr.error or "Quality check failed")
                         await memory.add_failure(
@@ -350,7 +345,10 @@ class TaskExecutor:
 
         logger.info(
             "Plan %s completed: status=%s, nodes=%d, cost=$%.4f",
-            dag.plan_id, result.status, len(result.node_results), result.total_cost_usd,
+            dag.plan_id,
+            result.status,
+            len(result.node_results),
+            result.total_cost_usd,
         )
         return result
 

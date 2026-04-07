@@ -199,7 +199,9 @@ async def _execute_dispatch(task_id: str) -> None:
         task["result"] = plan_result.final_output or plan_result.failure_reason or "No output"
         logger.info(
             "Dispatch task %s: status=%s, cost=$%.4f, nodes=%d",
-            task_id, plan_result.status, plan_result.total_cost_usd,
+            task_id,
+            plan_result.status,
+            plan_result.total_cost_usd,
             len(plan_result.node_results),
         )
     except Exception as exc:

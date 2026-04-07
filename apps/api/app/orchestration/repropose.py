@@ -134,9 +134,11 @@ def generate_reproposal(
 
     # Confidence based on severity — critical failures have lower confidence
     severity_weights = {"low": 0.9, "medium": 0.75, "high": 0.5, "critical": 0.3}
-    confidence = min(
-        severity_weights.get(r.severity, 0.5) for r in rework_reasons
-    ) if rework_reasons else 0.5
+    confidence = (
+        min(severity_weights.get(r.severity, 0.5) for r in rework_reasons)
+        if rework_reasons
+        else 0.5
+    )
 
     return ReproposalResult(
         original_plan_id=original_plan.get("plan_id", original_plan.get("id", "")),
