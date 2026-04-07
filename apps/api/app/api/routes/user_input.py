@@ -8,11 +8,13 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from app.api.routes.auth import get_current_user
+from app.core.rate_limit import limiter
 from app.models.user import User
+from app.security.pii_guard import detect_and_mask_pii
 from app.services.user_input_service import (
     InputRequest,
     InputRequestStatus,
@@ -146,14 +148,27 @@ async def list_pending_for_task(
 
 
 @router.post("/{request_id}/answer", response_model=InputRequestResponse)
+@limiter.limit("30/minute")
 async def answer_request(
+    request: Request,
     request_id: str,
     body: AnswerInputBody,
     user: User = Depends(get_current_user),
 ) -> InputRequestResponse:
     """Answer an input request."""
+    # PII detection for string responses
+    response = body.response
+    if isinstance(response, str):
+        pii_result = detect_and_mask_pii(response)
+        if pii_result.detected_count > 0:
+            logger.warning(
+                "PII detected in user input answer: types=%s",
+                pii_result.detected_types,
+            )
+            response = pii_result.masked_text
+
     try:
-        req = await user_input_service.answer_input(request_id, body.response)
+        req = await user_input_service.answer_input(request_id, response)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:

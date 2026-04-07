@@ -11,11 +11,13 @@ import logging
 import uuid
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from app.api.routes.auth import get_current_user
+from app.core.rate_limit import limiter
 from app.models.user import User
+from app.security.prompt_guard import ThreatLevel, scan_prompt_injection
 
 logger = logging.getLogger(__name__)
 
@@ -53,11 +55,22 @@ class DispatchListResponse(BaseModel):
 
 
 @router.post("", response_model=DispatchResponse)
-async def create_dispatch(req: DispatchRequest, user: User = Depends(get_current_user)):
+@limiter.limit("10/minute")
+async def create_dispatch(
+    request: Request, req: DispatchRequest, user: User = Depends(get_current_user)
+):
     """Dispatch a background task. Returns immediately with a task ID.
 
     The task runs asynchronously. Poll GET /dispatch/{task_id} for status.
     """
+    # Prompt injection check on task instruction
+    guard_result = scan_prompt_injection(req.instruction)
+    if guard_result.threat_level in (ThreatLevel.HIGH, ThreatLevel.CRITICAL):
+        raise HTTPException(
+            status_code=400,
+            detail="Request blocked: potentially unsafe content detected in instruction.",
+        )
+
     task_id = str(uuid.uuid4())
     now = datetime.utcnow().isoformat()
 

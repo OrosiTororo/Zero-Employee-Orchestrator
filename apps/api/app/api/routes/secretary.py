@@ -3,16 +3,21 @@
 Functionality to dump, organize, and accumulate CEO thoughts, ideas, and todos.
 """
 
+import logging
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
 from app.api.routes.auth import get_current_user
+from app.core.rate_limit import limiter
 from app.models.user import User
+from app.security.pii_guard import detect_and_mask_pii
 from app.services.secretary_service import SecretaryService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -93,17 +98,28 @@ def _to_response(record) -> BrainDumpResponse:
 
 
 @router.post("/companies/{company_id}/brain-dump", response_model=BrainDumpResponse)
+@limiter.limit("30/minute")
 async def create_brain_dump(
+    request: Request,
     company_id: str,
     req: BrainDumpRequest,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     """Dump thoughts, ideas, and todos."""
+    # PII detection and masking
+    pii_result = detect_and_mask_pii(req.raw_text)
+    if pii_result.detected_count > 0:
+        logger.warning(
+            "PII detected in brain dump: types=%s, count=%d",
+            pii_result.detected_types,
+            pii_result.detected_count,
+        )
+
     svc = SecretaryService(db)
     record = await svc.brain_dump(
         company_id=company_id,
-        raw_text=req.raw_text,
+        raw_text=pii_result.masked_text,
         category=req.category,
         priority=req.priority,
         tags=req.tags,

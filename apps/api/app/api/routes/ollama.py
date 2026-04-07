@@ -16,14 +16,16 @@ import json
 import logging
 import time
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
 from app.api.routes.auth import get_current_user
+from app.core.rate_limit import limiter
 from app.models.user import User
+from app.security.prompt_guard import ThreatLevel, scan_prompt_injection, wrap_external_data
 
 logger = logging.getLogger(__name__)
 
@@ -243,7 +245,9 @@ async def ollama_pull(
 
 
 @router.post("/ollama/chat", response_model=OllamaChatResponse)
+@limiter.limit("30/minute")
 async def ollama_chat(
+    request: Request,
     req: OllamaChatRequest,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -252,6 +256,16 @@ async def ollama_chat(
 
     If ``stream=true``, returns an SSE stream instead of JSON.
     """
+    # Scan user messages for prompt injection
+    for msg in req.messages:
+        if msg.get("role") == "user":
+            guard_result = scan_prompt_injection(msg.get("content", ""))
+            if guard_result.threat_level in (ThreatLevel.HIGH, ThreatLevel.CRITICAL):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Request blocked: potentially unsafe content detected.",
+                )
+
     if req.stream:
         return await _ollama_chat_stream(req)
 
@@ -387,7 +401,9 @@ async def rag_search(
 
 
 @router.post("/ollama/rag/add", response_model=RAGAddResponse)
+@limiter.limit("20/minute")
 async def rag_add(
+    request: Request,
     req: RAGAddRequest,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -399,9 +415,12 @@ async def rag_add(
         register_rag_artifact,
     )
 
+    # Wrap external content to prevent prompt injection when used in RAG retrieval
+    wrapped_content = wrap_external_data(req.content, source="rag-upload")
+
     store = await get_rag_store()
     ids = store.add(
-        content=req.content,
+        content=wrapped_content,
         metadata=req.metadata,
     )
     store.save()

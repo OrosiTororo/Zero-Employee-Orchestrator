@@ -8,11 +8,14 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from app.api.routes.auth import get_current_user
+from app.core.rate_limit import limiter
 from app.models.user import User
+from app.security.pii_guard import detect_and_mask_pii
+from app.security.prompt_guard import ThreatLevel, scan_prompt_injection
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +40,10 @@ class NLCommandResponse(BaseModel):
 
 
 @router.post("/command", response_model=NLCommandResponse)
-async def execute_nl_command(req: NLCommandRequest, user: User = Depends(get_current_user)):
+@limiter.limit("30/minute")
+async def execute_nl_command(
+    request: Request, req: NLCommandRequest, user: User = Depends(get_current_user)
+):
     """Execute a natural language command.
 
     Parses user natural language input and automatically executes operations such as
@@ -46,9 +52,27 @@ async def execute_nl_command(req: NLCommandRequest, user: User = Depends(get_cur
 
     Accessible from GUI chat bar, CLI interactive mode, and TUI.
     """
+    # Prompt injection check
+    guard_result = scan_prompt_injection(req.text)
+    if guard_result.threat_level in (ThreatLevel.HIGH, ThreatLevel.CRITICAL):
+        raise HTTPException(
+            status_code=400,
+            detail="Request blocked: potentially unsafe content detected.",
+        )
+
+    # PII detection and masking
+    pii_result = detect_and_mask_pii(req.text)
+    if pii_result.detected_count > 0:
+        logger.warning(
+            "PII detected in NL command: types=%s, count=%d",
+            pii_result.detected_types,
+            pii_result.detected_count,
+        )
+    safe_text = pii_result.masked_text
+
     from app.services.nl_command_service import nl_command_processor
 
-    parsed = nl_command_processor.parse(req.text)
+    parsed = nl_command_processor.parse(safe_text)
     result = await nl_command_processor.execute(parsed)
 
     return NLCommandResponse(

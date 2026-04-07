@@ -14,11 +14,12 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from app.api.routes.auth import get_current_user
+from app.core.rate_limit import limiter
 from app.models.user import User
 
 logger = logging.getLogger(__name__)
@@ -228,7 +229,10 @@ async def _save_upload(upload: UploadFile) -> StoredFile:
 # Endpoints
 # ---------------------------------------------------------------------------
 @router.post("/upload", response_model=UploadResponse)
-async def upload_file(file: UploadFile, user: User = Depends(get_current_user)) -> UploadResponse:
+@limiter.limit("10/minute")
+async def upload_file(
+    request: Request, file: UploadFile, user: User = Depends(get_current_user)
+) -> UploadResponse:
     """Upload a single file.
 
     Up to 50MB. Only allowed extensions are accepted.
@@ -243,7 +247,9 @@ async def upload_file(file: UploadFile, user: User = Depends(get_current_user)) 
 
 
 @router.post("/upload-multiple", response_model=MultiUploadResponse)
+@limiter.limit("5/minute")
 async def upload_multiple_files(
+    request: Request,
     files: list[UploadFile],
     user: User = Depends(get_current_user),
 ) -> MultiUploadResponse:
