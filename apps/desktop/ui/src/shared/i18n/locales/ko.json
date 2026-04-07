@@ -116,7 +116,8 @@
     "marketplace": "마켓플레이스",
     "permissions": "권한 관리",
     "settings": "설정",
-    "dispatch": "디스패치"
+    "dispatch": "디스패치",
+    "operatorProfile": "Operator Profile"
   },
   "setup": {
     "steps": {

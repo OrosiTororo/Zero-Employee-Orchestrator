@@ -116,7 +116,8 @@
     "marketplace": "Mağaza",
     "permissions": "İzin Yönetimi",
     "settings": "Ayarlar",
-    "dispatch": "Gönder"
+    "dispatch": "Gönder",
+    "operatorProfile": "Operator Profile"
   },
   "setup": {
     "steps": {

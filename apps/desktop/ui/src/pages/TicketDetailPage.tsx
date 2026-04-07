@@ -52,7 +52,7 @@ export function TicketDetailPage() {
 
   useEffect(() => {
     if (!id) return
-    api.get(`/tickets/${id}`).then(setTicket).catch(() => setError("Failed to load ticket"))
+    api.get(`/tickets/${id}`).then(d => setTicket(d as TicketData)).catch(() => setError("Failed to load ticket"))
   }, [id])
 
   const handleExecute = async () => {
@@ -61,11 +61,11 @@ export function TicketDetailPage() {
     setError(null)
     setResult(null)
     try {
-      const res = await api.post(`/tickets/${id}/execute`)
-      setResult(res as ExecutionResult)
+      const res = await api.post(`/tickets/${id}/execute`) as ExecutionResult
+      setResult(res)
       // Reload ticket to get updated status
-      const updated = await api.get(`/tickets/${id}`)
-      setTicket(updated as TicketData)
+      const updated = await api.get(`/tickets/${id}`) as TicketData
+      setTicket(updated)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Execution failed")
     } finally {

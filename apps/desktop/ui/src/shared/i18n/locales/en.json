@@ -116,7 +116,8 @@
     "marketplace": "Marketplace",
     "permissions": "Permissions",
     "settings": "Settings",
-    "dispatch": "Dispatch"
+    "dispatch": "Dispatch",
+    "operatorProfile": "Operator Profile"
   },
   "setup": {
     "steps": {

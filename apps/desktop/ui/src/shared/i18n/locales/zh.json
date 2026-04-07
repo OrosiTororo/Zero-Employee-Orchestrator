@@ -116,7 +116,8 @@
     "marketplace": "市场",
     "permissions": "权限管理",
     "settings": "设置",
-    "dispatch": "调度"
+    "dispatch": "调度",
+    "operatorProfile": "Operator Profile"
   },
   "setup": {
     "steps": {
