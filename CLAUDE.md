@@ -24,7 +24,7 @@ ls apps/api/app/
 ```
 apps/api/app/         # FastAPI backend
   core/               # Config, DB, rate limiting, i18n
-  api/routes/         # 47 route modules, 394 endpoints
+  api/routes/         # 47 route modules, 392 endpoints
   services/           # 25 services (business logic)
   orchestration/      # DAG, Judge, transparency, CostGuard (23 modules)
   providers/          # LLM gateway, Ollama, g4f, ModelRegistry
@@ -145,4 +145,4 @@ Write about system behavior changes for end users. Do NOT write about docs/CI/co
 
 **Scoring**: 0-10 scale. Overall = (Relative × 0.35) + (Objective × 0.35) + (Additional × 0.30)
 
-**Latest evaluation**: `docs/dev/EVALUATION_v0.1.5_corrected.md` — 6.3/10 (2026-04-07, corrected with actual code verification)
+**Latest evaluation**: `docs/dev/EVALUATION_v0.1.6.md` — 6.4/10 (2026-04-07, full automated verification + fixes)

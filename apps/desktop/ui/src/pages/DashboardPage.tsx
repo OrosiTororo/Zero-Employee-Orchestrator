@@ -180,7 +180,7 @@ export function DashboardPage() {
               Ctrl+K
             </kbd>
           </div>
-          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)]overflow-hidden focus-within:border-[var(--accent)] transition-colors">
+          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden focus-within:border-[var(--accent)] transition-colors">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -206,7 +206,7 @@ export function DashboardPage() {
             </div>
           </div>
           {showChat && chatHistory.length > 0 && (
-            <div className="mt-3 rounded border border-[var(--border)] bg-[var(--bg-surface)]max-h-[200px] overflow-auto animate-slide-in">
+            <div className="mt-3 rounded border border-[var(--border)] bg-[var(--bg-surface)] max-h-[200px] overflow-auto animate-slide-in">
               {chatHistory.map((msg, i) => (
                 <div key={i} className={`px-4 py-2.5 text-[12px] ${i > 0 ? "border-t border-[var(--border)]" : ""}`}>
                   <span className={`text-[10px] font-mono font-medium mr-2 ${msg.role === "user" ? "text-[var(--accent)]" : "text-[var(--success)]"}`}>
@@ -252,7 +252,7 @@ export function DashboardPage() {
 
         <div className="grid grid-cols-3 gap-3">
           {/* Cost */}
-          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)]p-4">
+          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)] p-4">
             <div className="flex items-center gap-2 mb-2">
               <Coins size={14} style={{ color: "var(--warning)" }} />
               <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
@@ -264,7 +264,7 @@ export function DashboardPage() {
           </div>
 
           {/* Mission */}
-          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)]p-4">
+          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)] p-4">
             <div className="flex items-center gap-2 mb-2">
               <Target size={14} style={{ color: "var(--accent)" }} />
               <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
@@ -275,7 +275,7 @@ export function DashboardPage() {
           </div>
 
           {/* Errors */}
-          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)]p-4">
+          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)] p-4">
             <div className="flex items-center gap-2 mb-2">
               <AlertTriangle size={14} style={{ color: "var(--success)" }} />
               <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
@@ -287,7 +287,7 @@ export function DashboardPage() {
         </div>
 
         {/* Quick Start Templates */}
-        <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)]p-4">
+        <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)] p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Sparkles size={14} style={{ color: "var(--accent-secondary)" }} />
