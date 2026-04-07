@@ -23,7 +23,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:18234 http://127.0.0.1:18234 ws://localhost:18234 ws://127.0.0.1:18234 https://api.github.com; img-src 'self' data: blob:"
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:18234 http://127.0.0.1:18234 ws://localhost:18234 ws://127.0.0.1:18234 https://api.github.com https://github.com https://objects.githubusercontent.com; img-src 'self' data: blob:"
     }
   },
   "bundle": {
