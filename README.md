@@ -208,7 +208,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI backend
 │   │   └── app/
 │   │       ├── core/               # Config, DB, security, i18n
-│   │       ├── api/routes/         # 46 REST API route modules
+│   │       ├── api/routes/         # 47 REST API route modules
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -223,7 +223,7 @@ Zero-Employee-Orchestrator/
 │   ├── desktop/              # Tauri v2 + React UI
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # Background workers
-├── skills/                   # 8 built-in skills
+├── skills/                   # 11 built-in skills (6 system + 5 domain)
 ├── plugins/                  # 16 plugin manifests (10 general + 6 role-based)
 ├── extensions/               # 11 extension manifests
 │   └── browser-assist/

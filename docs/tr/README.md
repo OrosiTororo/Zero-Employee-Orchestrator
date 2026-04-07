@@ -207,7 +207,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI arka ucu
 │   │   └── app/
 │   │       ├── core/               # Yapılandırma, VT, güvenlik, i18n
-│   │       ├── api/routes/         # 46 REST API rota modülü
+│   │       ├── api/routes/         # 47 REST API rota modülü
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -222,7 +222,7 @@ Zero-Employee-Orchestrator/
 │   ├── desktop/              # Tauri v2 + React UI
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # Arka plan çalışanları
-├── skills/                   # 8 yerleşik beceri
+├── skills/                   # 11 yerleşik beceri (6 sistem + 5 alan)
 ├── plugins/                  # 16 eklenti bildirimi
 ├── extensions/               # 11 uzantı bildirimi
 │   └── browser-assist/

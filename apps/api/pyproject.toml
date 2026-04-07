@@ -1,6 +1,6 @@
 [project]
 name = "zero-employee-orchestrator"
-version = "0.1.4"
+version = "0.1.5"
 description = "Zero-Employee Orchestrator – AI Orchestration Platform for multi-agent business automation with human approval and full auditability"
 requires-python = ">=3.12"
 license = "MIT"

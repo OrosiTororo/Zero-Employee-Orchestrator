@@ -1,5 +1,39 @@
 # Changelog
 
+## [v0.1.5] (2026-04-07)
+
+### Fix — Desktop Auto-Update System
+
+The desktop auto-update was completely non-functional for users who installed v0.1.2–v0.1.4. Three root causes identified and fixed:
+
+- **[CRITICAL] Release workflow jq bug** — `latest.json` platforms object was always empty due to operator precedence error in the `merge-updater-json` job. No platform entries → updater found nothing → silent failure.
+- **[CRITICAL] CSP blocking updater** — `connect-src` only allowed `api.github.com` but the updater endpoint is on `github.com`. Added `github.com` and `objects.githubusercontent.com`.
+- **Auto-download & install** — Previously required manual click on "Download & Restart" banner. Now automatically downloads and installs updates by default (user-configurable toggle in Settings).
+
+### Desktop Updater Improvements
+
+- Initial update check reduced from 30s → 5s
+- Periodic recheck interval reduced from 4h → 1h
+- Added window-focus recheck (minimum 5 min interval)
+- Update banner now shows download/install progress with i18n (6 languages)
+- Dismiss no longer permanently hides the update
+- New auto-update ON/OFF toggle in Settings page
+
+### Release Workflow Hardening
+
+- Platform validation changed from `::warning` to `exit 1` (broken `latest.json` no longer uploads)
+- Added macOS to platform validation (was only checking Linux + Windows)
+- Updater fragment upload changed from `if-no-files-found: ignore` to `error`
+- Added empty platforms check before per-platform validation
+
+### Documentation Sync
+
+- Fixed route count: 46 → 47 across README, CLAUDE.md, 6 translated READMEs, FEATURES.md, OVERVIEW.md, architecture guide
+- Fixed endpoint count: 387 → 433
+- Fixed skill count: 8 → 11 (6 system + 5 domain) across all docs
+- Fixed `common.version` stuck at v0.1.2 in all 6 i18n locale files
+- Updated `bump-version.sh` to also update locale files and WhatsNew.tsx (prevents version drift)
+
 ## [v0.1.4] (2026-04-07)
 
 ### Cowork-Style Transition (Complete)

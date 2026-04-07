@@ -209,7 +209,7 @@ done
 
 # Verify WhatsNew.tsx
 if [ -f "$WHATS_NEW" ]; then
-  v=$(grep 'CURRENT_VERSION' "$WHATS_NEW" | sed 's/.*"\(.*\)".*/\1/')
+  v=$(grep 'const CURRENT_VERSION' "$WHATS_NEW" | sed 's/.*"\(.*\)".*/\1/')
   label="${WHATS_NEW#$REPO_ROOT/}"
   if [ "$v" = "$NEW_VERSION" ]; then
     echo "  ✓ $label: $v"

@@ -24,7 +24,7 @@ ls apps/api/app/
 ```
 apps/api/app/         # FastAPI backend
   core/               # Config, DB, rate limiting, i18n
-  api/routes/         # 46 route modules, 387 endpoints
+  api/routes/         # 47 route modules, 433 endpoints
   services/           # 25 services (business logic)
   orchestration/      # DAG, Judge, transparency, CostGuard (22 modules)
   providers/          # LLM gateway, Ollama, g4f, ModelRegistry
@@ -35,7 +35,7 @@ apps/api/app/         # FastAPI backend
   tests/              # pytest + pytest-asyncio
 apps/desktop/         # Tauri v2 + React (Cowork-style layout)
 apps/edge/            # Cloudflare Workers
-skills/builtin/       # 8 Skills
+skills/builtin/       # 11 Skills (6 system + 5 domain)
 plugins/              # 16 Plugins (10 general + 6 role-based packs)
 extensions/           # 11 Extensions
 ```
