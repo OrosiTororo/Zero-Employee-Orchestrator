@@ -525,10 +525,14 @@
     "emptyState": "Bekleyen onay talebi yok.",
     "risk": "Risk",
     "approve": "Onayla",
-    "reject": "Reddet"
+    "reject": "Reddet",
+    "loadFailed": "Onay istekleri yüklenemedi. Bağlantınızı kontrol edin.",
+    "approveFailed": "Onaylanamadı. Tekrar deneyin.",
+    "rejectFailed": "Reddedilemedi. Tekrar deneyin."
   },
   "audit": {
     "title": "Denetim Günlüğü",
+    "loadFailed": "Denetim günlükleri yüklenemedi. Bağlantınızı kontrol edin.",
     "searchPlaceholder": "Aktör, hedef, izleme ID ile ara...",
     "filterLabel": "Olay filtresi",
     "allEvents": "Tüm Olaylar",
@@ -808,5 +812,38 @@
     "downloadRestart": "İndir ve yeniden başlat",
     "autoUpdate": "Otomatik güncelleme",
     "autoUpdateDesc": "Güncelleme mevcut olduğunda otomatik indir ve yükle"
+  },
+  "dispatch": {
+    "subtitle": "Arka plan görevleri — gönder ve unut",
+    "helpText": "Görevler arka planda çalışır. Otomatik bilet oluşturulur.",
+    "loadFailed": "Görevler yüklenemedi. Bağlantınızı kontrol edin.",
+    "dispatchFailed": "Görev gönderilemedi. Bağlantınızı kontrol edin.",
+    "cancelFailed": "Görev iptal edilemedi."
+  },
+  "operatorProfile": {
+    "loadFailed": "Operatör profili yüklenemedi.",
+    "profileSaved": "Profil kaydedildi.",
+    "profileSaveFailed": "Profil kaydedilemedi.",
+    "instructionsSaved": "Talimatlar kaydedildi.",
+    "instructionsSaveFailed": "Talimatlar kaydedilemedi."
+  },
+  "errors": {
+    "orgLoadFailed": "Organizasyon verileri yüklenemedi. Kurulumu tamamlayın veya bağlantınızı kontrol edin.",
+    "interviewSaveFailed": "Görüşme yanıtları kaydedilemedi. Bağlantınızı kontrol edip tekrar deneyin.",
+    "secretaryConnectFailed": "Sunucuya bağlanılamadı. Backend'in çalıştığından emin olun.",
+    "secretaryLoadDumpsFailed": "Beyin dökümü yüklenemedi. Sayfayı yenileyin.",
+    "secretaryLoadActionsFailed": "Eylem öğeleri yüklenemedi. Sayfayı yenileyin.",
+    "secretaryLoadStatsFailed": "Günlük istatistikler yüklenemedi. Sayfayı yenileyin.",
+    "secretarySubmitFailed": "Gönderilemedi. Bağlantınızı kontrol edip tekrar deneyin.",
+    "secretaryArchiveFailed": "Arşivlenemedi. Tekrar deneyin.",
+    "secretaryStatusFailed": "Durum güncellenemedi. Tekrar deneyin.",
+    "secretarySearchFailed": "Arama başarısız. Bağlantınızı kontrol edip tekrar deneyin.",
+    "brainstormSessionFailed": "Oturum oluşturulamadı",
+    "brainstormMessageFailed": "Mesaj gönderilemedi",
+    "brainstormCompareFailed": "Karşılaştırma çalıştırılamadı",
+    "brainstormRequestFailed": "İstek gönderilemedi",
+    "brainstormAgentFailed": "Ajan eklenemedi",
+    "pluginsFetchFailed": "Eklentiler getirilemedi",
+    "extensionsFetchFailed": "Uzantılar getirilemedi"
   }
 }

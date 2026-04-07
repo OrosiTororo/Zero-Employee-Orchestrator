@@ -32,7 +32,7 @@ export function ApprovalsPage() {
       setApprovals(data)
     } catch {
       setApprovals([])
-      addToast("Could not load approvals. Check your connection.")
+      addToast((t.approvals as Record<string, string>).loadFailed ?? "Could not load approvals.")
     } finally {
       setLoading(false)
     }
@@ -45,7 +45,7 @@ export function ApprovalsPage() {
       await api.post(`/approvals/${id}/approve`, {})
       await fetchApprovals()
     } catch {
-      addToast("Could not approve. Try again.")
+      addToast((t.approvals as Record<string, string>).approveFailed ?? "Could not approve.")
     }
   }
 
@@ -56,7 +56,7 @@ export function ApprovalsPage() {
       await api.post(`/approvals/${id}/reject`, { reason })
       await fetchApprovals()
     } catch {
-      addToast("Could not reject. Try again.")
+      addToast((t.approvals as Record<string, string>).rejectFailed ?? "Could not reject.")
     }
   }
 

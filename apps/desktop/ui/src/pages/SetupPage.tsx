@@ -252,8 +252,8 @@ export function SetupPage() {
       setIsGenerated(true)
       // Auto-advance to next step after a short delay for visual feedback
       setTimeout(() => next(), 1500)
-    } catch (err: any) {
-      setGenerateError(err?.message || ((t.orgSetup as Record<string, string>)?.generateFailed ?? "Failed to create organization. Please try again."))
+    } catch (err: unknown) {
+      setGenerateError((err instanceof Error ? err.message : null) || ((t.orgSetup as Record<string, string>)?.generateFailed ?? "Failed to create organization. Please try again."))
     } finally {
       setIsGenerating(false)
     }

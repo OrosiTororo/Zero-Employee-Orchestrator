@@ -525,10 +525,14 @@
     "emptyState": "No pending approval requests.",
     "risk": "Risk",
     "approve": "Approve",
-    "reject": "Reject"
+    "reject": "Reject",
+    "loadFailed": "Could not load approvals. Check your connection.",
+    "approveFailed": "Could not approve. Try again.",
+    "rejectFailed": "Could not reject. Try again."
   },
   "audit": {
     "title": "Audit Log",
+    "loadFailed": "Could not load audit logs. Check your connection.",
     "searchPlaceholder": "Search by actor, target, trace ID...",
     "filterLabel": "Event filter",
     "allEvents": "All Events",
@@ -808,5 +812,38 @@
     "downloadRestart": "Download & Restart",
     "autoUpdate": "Auto-update",
     "autoUpdateDesc": "Automatically download and install updates when available"
+  },
+  "dispatch": {
+    "subtitle": "Background tasks — fire and forget",
+    "helpText": "Tasks run in the background. A ticket is auto-created.",
+    "loadFailed": "Could not load dispatch tasks. Check your connection.",
+    "dispatchFailed": "Could not dispatch task. Check your connection.",
+    "cancelFailed": "Could not cancel task."
+  },
+  "operatorProfile": {
+    "loadFailed": "Could not load operator profile.",
+    "profileSaved": "Profile saved.",
+    "profileSaveFailed": "Could not save profile.",
+    "instructionsSaved": "Instructions saved.",
+    "instructionsSaveFailed": "Could not save instructions."
+  },
+  "errors": {
+    "orgLoadFailed": "Could not load organization data. Complete setup first or check your connection.",
+    "interviewSaveFailed": "Could not save interview answers. Check your connection and try again.",
+    "secretaryConnectFailed": "Could not connect to server. Check that the backend is running.",
+    "secretaryLoadDumpsFailed": "Could not load brain dumps. Try refreshing the page.",
+    "secretaryLoadActionsFailed": "Could not load action items. Try refreshing the page.",
+    "secretaryLoadStatsFailed": "Could not load daily stats. Try refreshing the page.",
+    "secretarySubmitFailed": "Could not submit. Check your connection and try again.",
+    "secretaryArchiveFailed": "Could not archive this item. Try again.",
+    "secretaryStatusFailed": "Could not update status. Try again.",
+    "secretarySearchFailed": "Search failed. Check your connection and try again.",
+    "brainstormSessionFailed": "Failed to create session",
+    "brainstormMessageFailed": "Failed to send message",
+    "brainstormCompareFailed": "Failed to run comparison",
+    "brainstormRequestFailed": "Failed to submit request",
+    "brainstormAgentFailed": "Failed to add agent",
+    "pluginsFetchFailed": "Failed to fetch plugins",
+    "extensionsFetchFailed": "Failed to fetch extensions"
   }
 }

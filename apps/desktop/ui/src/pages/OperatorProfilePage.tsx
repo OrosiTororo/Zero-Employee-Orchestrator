@@ -49,7 +49,7 @@ export function OperatorProfilePage() {
       if (p) setProfile(p)
       if (ins) setInstructions(ins.instructions)
     } catch {
-      addToast("Could not load operator profile.")
+      addToast((t as Record<string, Record<string, string>>).operatorProfile?.loadFailed ?? "Could not load operator profile.")
     }
   }, [addToast])
 
@@ -59,9 +59,9 @@ export function OperatorProfilePage() {
     setSaving(true)
     try {
       await api.put("/operator-profile/profile", profile)
-      addToast("Profile saved.")
+      addToast((t as Record<string, Record<string, string>>).operatorProfile?.profileSaved ?? "Profile saved.")
     } catch {
-      addToast("Could not save profile.")
+      addToast((t as Record<string, Record<string, string>>).operatorProfile?.profileSaveFailed ?? "Could not save profile.")
     } finally {
       setSaving(false)
     }
@@ -71,9 +71,9 @@ export function OperatorProfilePage() {
     setSaving(true)
     try {
       await api.put("/operator-profile/instructions", { instructions })
-      addToast("Instructions saved.")
+      addToast((t as Record<string, Record<string, string>>).operatorProfile?.instructionsSaved ?? "Instructions saved.")
     } catch {
-      addToast("Could not save instructions.")
+      addToast((t as Record<string, Record<string, string>>).operatorProfile?.instructionsSaveFailed ?? "Could not save instructions.")
     } finally {
       setSaving(false)
     }

@@ -44,7 +44,7 @@ export function ExtensionsPage() {
       const data = await api.get<ExtensionItem[]>("/registry/extensions?include_disabled=true")
       setExtensions(data)
     } catch {
-      addToast("Failed to fetch extensions")
+      addToast((t as Record<string, Record<string, string>>).errors?.extensionsFetchFailed ?? "Failed to fetch extensions")
     } finally {
       setLoading(false)
     }
@@ -59,8 +59,8 @@ export function ExtensionsPage() {
     try {
       await api.patch(`/registry/extensions/${ext.id}`, { enabled: !ext.enabled })
       await fetchExtensions()
-    } catch (e: any) {
-      addToast(e?.message || "Toggle failed")
+    } catch (e: unknown) {
+      addToast(e instanceof Error ? e.message : String(e) || "Toggle failed")
     }
   }
 
@@ -73,8 +73,8 @@ export function ExtensionsPage() {
     try {
       await api.delete(`/registry/extensions/${ext.id}`)
       await fetchExtensions()
-    } catch (e: any) {
-      addToast(e?.message || "Delete failed")
+    } catch (e: unknown) {
+      addToast(e instanceof Error ? e.message : String(e) || "Delete failed")
     }
   }
 
@@ -85,8 +85,8 @@ export function ExtensionsPage() {
       setShowInstall(false)
       setInstallForm({ slug: "", name: "", description: "" })
       await fetchExtensions()
-    } catch (e: any) {
-      addToast(e?.message || "Install failed")
+    } catch (e: unknown) {
+      addToast(e instanceof Error ? e.message : String(e) || "Install failed")
     }
   }
 

@@ -192,7 +192,7 @@ export default function BrainstormPage() {
       setShowNewSession(false)
       setNewTitle("")
       setNewTopic("")
-    } catch { addToast("Failed to create session") }
+    } catch { addToast((t as Record<string, Record<string, string>>).errors?.brainstormSessionFailed ?? "Failed to create session") }
   }
 
   async function loadSessionMessages(sessionId: string) {
@@ -215,7 +215,7 @@ export default function BrainstormPage() {
         setCurrentSession(prev => prev ? { ...prev, message_count: data.message_count, total_chars: data.total_chars } : null)
       }
       analyzeText(input)
-    } catch { addToast("Failed to send message") }
+    } catch { addToast((t as Record<string, Record<string, string>>).errors?.brainstormMessageFailed ?? "Failed to send message") }
     finally { setLoading(false) }
   }
 
@@ -234,7 +234,7 @@ export default function BrainstormPage() {
         input_text: compareInput, model_ids: compareModels,
       })
       setCompareResult(data)
-    } catch { addToast("Failed to run comparison") }
+    } catch { addToast((t as Record<string, Record<string, string>>).errors?.brainstormCompareFailed ?? "Failed to run comparison") }
     finally { setComparing(false) }
   }
 
@@ -244,12 +244,12 @@ export default function BrainstormPage() {
       await api.post(`/companies/${companyId}/feature-requests`, { request_text: featureRequest, auto_execute: true })
       setFeatureRequest("")
       loadAvailableRoles()
-    } catch { addToast("Failed to submit request") }
+    } catch { addToast((t as Record<string, Record<string, string>>).errors?.brainstormRequestFailed ?? "Failed to submit request") }
   }
 
   async function addAgentByRole(role: string) {
     try { await api.post(`/companies/${companyId}/agents/by-role`, { role }) }
-    catch { addToast("Failed to add agent") }
+    catch { addToast((t as Record<string, Record<string, string>>).errors?.brainstormAgentFailed ?? "Failed to add agent") }
   }
 
   function addCustomModel(modelId: string, target: "session" | "compare") {

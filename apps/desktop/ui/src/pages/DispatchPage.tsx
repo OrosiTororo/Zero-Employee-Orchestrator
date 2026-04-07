@@ -26,7 +26,7 @@ export function DispatchPage() {
       const data = await api.get<{ tasks: DispatchTask[]; total: number }>("/dispatch")
       setTasks(data.tasks)
     } catch {
-      addToast("Could not load dispatch tasks. Check your connection.")
+      addToast((t as Record<string, Record<string, string>>).dispatch?.loadFailed ?? "Could not load dispatch tasks.")
     }
   }, [addToast])
 
@@ -48,7 +48,7 @@ export function DispatchPage() {
       setInstruction("")
       await loadTasks()
     } catch {
-      addToast("Could not dispatch task. Check your connection.")
+      addToast((t as Record<string, Record<string, string>>).dispatch?.dispatchFailed ?? "Could not dispatch task.")
     } finally {
       setLoading(false)
     }
@@ -59,7 +59,7 @@ export function DispatchPage() {
       await api.delete(`/dispatch/${taskId}`)
       await loadTasks()
     } catch {
-      addToast("Could not cancel task.")
+      addToast((t as Record<string, Record<string, string>>).dispatch?.cancelFailed ?? "Could not cancel task.")
     }
   }
 
@@ -81,7 +81,7 @@ export function DispatchPage() {
           {t.nav?.dispatch ?? "Dispatch"}
         </h1>
         <span className="text-[11px] text-[var(--text-muted)] ml-2">
-          Background tasks — fire and forget
+          {(t as Record<string, Record<string, string>>).dispatch?.subtitle ?? "Background tasks — fire and forget"}
         </span>
       </div>
 
@@ -97,7 +97,7 @@ export function DispatchPage() {
         />
         <div className="flex items-center justify-between px-4 py-2 border-t border-[var(--border)] bg-[var(--bg-raised)]">
           <span className="text-[11px] text-[var(--text-muted)]">
-            Tasks run in the background. A ticket is auto-created.
+            {(t as Record<string, Record<string, string>>).dispatch?.helpText ?? "Tasks run in the background. A ticket is auto-created."}
           </span>
           <button
             onClick={handleDispatch}
