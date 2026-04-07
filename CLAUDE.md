@@ -52,6 +52,12 @@ ruff check apps/api/app/ && ruff format apps/api/app/  # Lint
 
 ## MUST-FOLLOW Rules
 
+### Evidence-Based Changes (non-negotiable)
+- **Always search/verify before making changes.** Every code or documentation change must have a verified basis (web search, code grep, file read, or official documentation).
+- Do NOT change version numbers, counts, or claims without first verifying the actual value (e.g., grep endpoint count, read model_catalog.json, check GitHub releases for action versions).
+- When updating GitHub Actions versions, verify the version exists on the official releases page.
+- When changing Python/Node version requirements, verify language feature compatibility via PEP or official docs.
+
 ### Security (non-negotiable)
 1. External data → LLM: **always** `wrap_external_data()` (`security/prompt_guard.py`)
 2. User input → AI: **always** PII check via `pii_guard.py`
