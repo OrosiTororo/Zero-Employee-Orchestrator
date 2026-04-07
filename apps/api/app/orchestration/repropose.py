@@ -103,18 +103,47 @@ def generate_reproposal(
 ) -> ReproposalResult:
     """Generate a re-proposal based on failure analysis.
 
-    In production, this would call the LLM to generate an alternative plan.
-    Currently returns a structured template for the orchestration engine.
+    Analyzes the failure reasons and generates a structured reproposal with
+    plan diffs and confidence scoring based on failure severity.
     """
+    reasons_text = "; ".join(r.description for r in rework_reasons)
+
+    # Compute plan diff based on failure analysis
+    added = []
+    removed = []
+    modified = []
+
+    for reason in rework_reasons:
+        if reason.category == "quality":
+            modified.append("Add verification step for quality criteria")
+        elif reason.category == "cost":
+            modified.append("Switch to lower-cost model or reduce scope")
+            removed.append("Optional elaboration steps")
+        elif reason.category == "timeout":
+            modified.append("Split long tasks into smaller subtasks")
+        elif reason.category == "error":
+            added.append("Add error handling / retry wrapper")
+            modified.append("Simplify failing step")
+
     diff = PlanDiff(
-        reason="; ".join(r.description for r in rework_reasons),
+        added_tasks=added,
+        removed_tasks=removed,
+        modified_tasks=modified,
+        reason=reasons_text,
     )
 
+    # Confidence based on severity — critical failures have lower confidence
+    severity_weights = {"low": 0.9, "medium": 0.75, "high": 0.5, "critical": 0.3}
+    confidence = min(
+        severity_weights.get(r.severity, 0.5) for r in rework_reasons
+    ) if rework_reasons else 0.5
+
     return ReproposalResult(
-        original_plan_id=original_plan.get("id", ""),
-        new_plan_summary=f"Revised plan: addressing {diff.reason}",
+        original_plan_id=original_plan.get("plan_id", original_plan.get("id", "")),
+        new_plan_summary=f"Revised plan: {reasons_text}. "
+        f"Changes: +{len(added)} added, -{len(removed)} removed, ~{len(modified)} modified.",
         diff=diff,
         rework_reasons=rework_reasons,
         requires_approval=any(r.severity in ("high", "critical") for r in rework_reasons),
-        confidence_score=0.7,
+        confidence_score=round(confidence, 2),
     )

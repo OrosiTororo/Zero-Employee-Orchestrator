@@ -26,6 +26,7 @@ class AutonomyLevel(str, Enum):
 
 # Operation types permitted for autonomous execution
 AUTONOMOUS_OPERATIONS: set[str] = {
+    "execute",
     "research",
     "analyze",
     "draft",

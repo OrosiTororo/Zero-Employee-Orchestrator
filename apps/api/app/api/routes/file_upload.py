@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 import os
+import threading
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -86,6 +87,7 @@ class StoredFile:
     uploaded_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
+_file_store_lock = threading.Lock()
 _file_store: dict[str, StoredFile] = {}
 
 

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import threading
 import uuid
 from datetime import UTC, datetime
 
@@ -25,6 +26,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/dispatch", tags=["dispatch"])
 
 # In-memory task store (production: use DB + background worker)
+_dispatch_lock = threading.Lock()
 _dispatch_tasks: dict[str, dict] = {}
 
 
@@ -74,11 +76,11 @@ async def create_dispatch(
 
     # PII detection — mask before passing to AI agents
     pii_result = detect_and_mask_pii(req.instruction)
-    if pii_result.detected:
+    if pii_result.has_pii:
         logger.warning(
             "PII detected in dispatch instruction (user=%s): %s",
             user.id,
-            [d.category for d in pii_result.detections],
+            pii_result.detected_types,
         )
 
     task_id = str(uuid.uuid4())
@@ -96,7 +98,8 @@ async def create_dispatch(
         "completed_at": None,
         "result": None,
     }
-    _dispatch_tasks[task_id] = task
+    with _dispatch_lock:
+        _dispatch_tasks[task_id] = task
     logger.info("Dispatch task created: %s (user=%s)", task_id, user.id)
 
     # Simulate async execution (production: enqueue to background worker)
@@ -163,46 +166,35 @@ async def cancel_dispatch(task_id: str, _user: User = Depends(get_current_user))
 
 
 async def _execute_dispatch(task_id: str) -> None:
-    """Execute a dispatched task in the background."""
-    task = _dispatch_tasks.get(task_id)
+    """Execute a dispatched task in the background via the execution engine."""
+    with _dispatch_lock:
+        task = _dispatch_tasks.get(task_id)
     if not task:
         return
 
     task["status"] = "running"
     try:
-        # Route to ticket creation via the orchestration layer
-        from app.core.database import get_session
-        from app.services.ticket_service import create_ticket
+        from app.orchestration.executor import get_executor
 
-        ticket_id = None
-        async for db in get_session():
-            try:
-                ticket = await create_ticket(
-                    db,
-                    company_id=task["context"].get("company_id", ""),
-                    title=task["instruction"][:100],
-                    description=task["instruction"],
-                    priority=task["priority"],
-                    source_type="dispatch",
-                )
-                ticket_id = str(ticket.id) if ticket else None
-            except Exception:
-                # Ticket creation may fail if no company_id — still complete dispatch
-                pass
+        executor = get_executor()
 
-        task["status"] = "completed"
+        # Step 1: Generate plan from instruction
+        dag = await executor.generate_plan(
+            ticket_title=task["instruction"][:100],
+            spec_text=task["instruction"],
+        )
+
+        # Step 2: Execute plan
+        plan_result = await executor.execute_plan(dag)
+
+        task["status"] = "completed" if plan_result.status == "succeeded" else "failed"
         task["completed_at"] = datetime.now(UTC).isoformat()
-        if ticket_id:
-            task["result"] = (
-                f"Ticket created: {ticket_id}. "
-                f"Instruction: '{task['instruction']}' is now tracked as a task."
-            )
-        else:
-            task["result"] = (
-                f"Task acknowledged: '{task['instruction']}'. "
-                f"No company context — set company_id in dispatch context to auto-create tickets."
-            )
-        logger.info("Dispatch task completed: %s (ticket=%s)", task_id, ticket_id)
+        task["result"] = plan_result.final_output or plan_result.failure_reason or "No output"
+        logger.info(
+            "Dispatch task %s: status=%s, cost=$%.4f, nodes=%d",
+            task_id, plan_result.status, plan_result.total_cost_usd,
+            len(plan_result.node_results),
+        )
     except Exception as exc:
         task["status"] = "failed"
         task["completed_at"] = datetime.now(UTC).isoformat()

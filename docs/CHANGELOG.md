@@ -2,6 +2,23 @@
 
 ## [v0.1.5] (2026-04-07)
 
+### New — End-to-End Task Execution Engine
+
+The core task execution engine is now implemented. Tasks can be planned and executed end-to-end:
+
+- **`POST /tickets/{id}/execute`** — Generate plan, execute all steps via LLM, verify with Judge, return results
+- **`POST /tickets/{id}/generate-plan`** — Generate execution plan (DAG) from ticket spec
+- **`executor.py`** — Central orchestration engine connecting all 9 layers:
+  Interview → DAG plan generation → LLM execution → Judge verification → Reproposal on failure
+- **Dispatch now executes** — Background tasks route through the execution engine (not just ticket creation)
+- **Repropose layer** — Real failure classification with plan diffs and confidence scoring
+- **Autonomy boundary** — `execute` added to autonomous operations set
+
+### Security & Stability
+
+- Thread safety: Added `threading.Lock()` to in-memory stores (`_dispatch_tasks`, `_file_store`)
+- Fixed PII detection API usage in dispatch (`has_pii` not `detected`)
+
 ### Fix — Desktop Auto-Update System
 
 The desktop auto-update was completely non-functional for users who installed v0.1.2–v0.1.4. Three root causes identified and fixed:
