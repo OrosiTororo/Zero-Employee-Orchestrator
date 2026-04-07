@@ -2,7 +2,7 @@
   "common": {
     "appName": "Zero-Employee Orchestrator",
     "appTagline": "AI 비즈니스 오케스트레이션 플랫폼",
-    "version": "v0.1.2",
+    "version": "v0.1.4",
     "back": "뒤로",
     "next": "다음",
     "save": "저장",
@@ -794,5 +794,18 @@
   },
   "artifacts": {
     "emptyState": "아직 산출물이 없습니다. 티켓 실행 결과가 여기에 표시됩니다."
+  },
+  "updater": {
+    "available": "업데이트 가능",
+    "checkFailed": "업데이트 확인 실패",
+    "installing": "업데이트 설치 중...",
+    "updating": "업데이트 중...",
+    "versionAvailable": "버전 {version}을 사용할 수 있습니다.",
+    "installingVersion": "v{version}을 설치 중입니다. 곧 앱이 재시작됩니다.",
+    "downloading": "다운로드 중... {progress}%",
+    "restarting": "재시작 중...",
+    "downloadRestart": "다운로드 및 재시작",
+    "autoUpdate": "자동 업데이트",
+    "autoUpdateDesc": "업데이트가 있으면 자동으로 다운로드 및 설치"
   }
 }

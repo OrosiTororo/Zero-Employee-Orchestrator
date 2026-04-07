@@ -6,8 +6,10 @@
  */
 import { Download, X, RefreshCw, CheckCircle } from "lucide-react"
 import { useUpdater } from "@/shared/hooks/use-updater"
+import { useT } from "@/shared/i18n"
 
 export function UpdateBanner() {
+  const t = useT()
   const {
     available,
     downloading,
@@ -45,12 +47,12 @@ export function UpdateBanner() {
             )}
             <span className="text-[13px] font-medium text-[var(--text-primary,#fff)]">
               {error
-                ? "Update check failed"
+                ? t.updater.checkFailed
                 : installing
-                  ? "Installing update..."
+                  ? t.updater.installing
                   : downloading
-                    ? "Updating..."
-                    : "Update available"}
+                    ? t.updater.updating
+                    : t.updater.available}
             </span>
           </div>
           {!downloading && !installing && (
@@ -72,8 +74,8 @@ export function UpdateBanner() {
           <>
             <p className="mt-2 text-[12px] text-[var(--text-secondary,#aaa)]">
               {installing
-                ? `Installing v${info.version}. The app will restart shortly.`
-                : `Version ${info.version} is available.`}
+                ? t.updater.installingVersion.replace("{version}", info.version)
+                : t.updater.versionAvailable.replace("{version}", info.version)}
               {info.body && !installing && (
                 <span className="block mt-1 line-clamp-2">{info.body}</span>
               )}
@@ -97,12 +99,12 @@ export function UpdateBanner() {
               {downloading ? (
                 <span className="flex items-center gap-1.5 text-[12px] text-[var(--text-secondary,#aaa)]">
                   <RefreshCw size={12} className="animate-spin" />
-                  Downloading... {progress}%
+                  {t.updater.downloading.replace("{progress}", String(progress))}
                 </span>
               ) : installing ? (
                 <span className="flex items-center gap-1.5 text-[12px] text-green-400">
                   <RefreshCw size={12} className="animate-spin" />
-                  Restarting...
+                  {t.updater.restarting}
                 </span>
               ) : (
                 <button
@@ -116,7 +118,7 @@ export function UpdateBanner() {
                     (e.currentTarget.style.background = "var(--accent)")
                   }
                 >
-                  Download & Restart
+                  {t.updater.downloadRestart}
                 </button>
               )}
             </div>

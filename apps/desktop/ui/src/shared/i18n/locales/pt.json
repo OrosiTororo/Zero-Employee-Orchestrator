@@ -2,7 +2,7 @@
   "common": {
     "appName": "Zero-Employee Orchestrator",
     "appTagline": "Plataforma de Orquestração Empresarial com IA",
-    "version": "v0.1.2",
+    "version": "v0.1.4",
     "back": "Voltar",
     "next": "Avançar",
     "save": "Salvar",
@@ -794,5 +794,18 @@
   },
   "artifacts": {
     "emptyState": "Nenhum artefato ainda. Os resultados da execução de tickets aparecerão aqui."
+  },
+  "updater": {
+    "available": "Atualização disponível",
+    "checkFailed": "Falha na verificação de atualização",
+    "installing": "Instalando atualização...",
+    "updating": "Atualizando...",
+    "versionAvailable": "Versão {version} está disponível.",
+    "installingVersion": "Instalando v{version}. O aplicativo será reiniciado em breve.",
+    "downloading": "Baixando... {progress}%",
+    "restarting": "Reiniciando...",
+    "downloadRestart": "Baixar e reiniciar",
+    "autoUpdate": "Atualização automática",
+    "autoUpdateDesc": "Baixar e instalar automaticamente quando houver atualizações"
   }
 }

@@ -19,6 +19,7 @@ import {
   FolderOpen,
   Cloud,
   Search,
+  RefreshCw,
 } from "lucide-react"
 import { api } from "../shared/api/client"
 import { useT, useI18n, LOCALE_LABELS, availableLocales, type Locale } from "@/shared/i18n"
@@ -85,6 +86,9 @@ export function SettingsPage() {
   const [mission, setMission] = useState("")
   const [executionMode, setExecutionMode] = useState("quality")
   const [autoApprove, setAutoApprove] = useState(false)
+  const [autoUpdate, setAutoUpdate] = useState(() => {
+    try { return localStorage.getItem("zeo-auto-update") !== "false" } catch { return true }
+  })
   const [saving, setSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState("")
   const [languageChanged, setLanguageChanged] = useState(false)
@@ -301,6 +305,7 @@ export function SettingsPage() {
     { id: "company", label: t.settings.companySettings, icon: Building2 },
     { id: "connections", label: t.settings.providerConnections, icon: Link2 },
     { id: "policies", label: t.settings.policies, icon: Shield },
+    { id: "updates", label: t.updater.autoUpdate, icon: RefreshCw },
   ]
 
   const scrollToSection = (id: string) => {
@@ -778,6 +783,26 @@ export function SettingsPage() {
               style={{ color: autoApprove ? "var(--success-fg)" : "var(--text-muted)" }}
               aria-pressed={autoApprove} role="switch">
               {autoApprove ? "ON" : "OFF"}
+            </button>
+          </div>
+        </SettingsSection>
+
+        {/* Auto-Update */}
+        <SettingsSection id="settings-updates" icon={RefreshCw} title={t.updater.autoUpdate} hidden={!matchesSearch(t.updater.autoUpdate, "update", "アップデート", "更新")}>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-[13px] text-[var(--text-primary)]">{t.updater.autoUpdate}</div>
+              <div className="text-[11px] text-[var(--text-muted)] mt-0.5">{t.updater.autoUpdateDesc}</div>
+            </div>
+            <button onClick={() => {
+                const next = !autoUpdate
+                setAutoUpdate(next)
+                try { localStorage.setItem("zeo-auto-update", String(next)) } catch {}
+              }}
+              className="text-[12px] font-medium"
+              style={{ color: autoUpdate ? "var(--success-fg)" : "var(--text-muted)" }}
+              aria-pressed={autoUpdate} role="switch">
+              {autoUpdate ? "ON" : "OFF"}
             </button>
           </div>
         </SettingsSection>

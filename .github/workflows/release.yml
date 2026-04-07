@@ -145,12 +145,17 @@ jobs:
             cp latest.json latest-${{ matrix.target }}.json
           fi
 
+          if [ ! -f "latest-${{ matrix.target }}.json" ]; then
+            echo "::error::Failed to find updater JSON for ${{ matrix.target }}"
+            exit 1
+          fi
+
       - name: Upload updater fragment artifact
         uses: actions/upload-artifact@v7
         with:
           name: updater-${{ matrix.target }}
           path: latest-${{ matrix.target }}.json
-          if-no-files-found: ignore
+          if-no-files-found: error
 
   # Merge latest.json fragments from all platforms to prevent race conditions
   merge-updater-json:
@@ -176,13 +181,20 @@ jobs:
               version: .version,
               notes: .notes,
               pub_date: .pub_date,
-              platforms: ($base.platforms // {} | to_entries + (.platforms // {} | to_entries) | from_entries)
+              platforms: (($base.platforms // {} | to_entries) + (.platforms // {} | to_entries) | from_entries)
             }' - "$f")
           done
 
           echo "$MERGED" | jq . > latest.json
           echo "=== Merged latest.json ==="
           jq '.platforms | keys' latest.json
+
+          # Verify platforms object is non-empty
+          PLATFORM_COUNT=$(jq '.platforms | length' latest.json)
+          if [ "$PLATFORM_COUNT" -eq 0 ]; then
+            echo "::error::latest.json has no platforms defined"
+            exit 1
+          fi
 
           # Verify all expected platforms are present
           PLATFORMS=$(jq -r '.platforms | keys[]' latest.json)
@@ -195,8 +207,9 @@ jobs:
             esac
           done
           echo "Linux: $HAS_LINUX, Windows: $HAS_WINDOWS, macOS: $HAS_MACOS"
-          if [ "$HAS_LINUX" = false ] || [ "$HAS_WINDOWS" = false ]; then
-            echo "::warning::Missing platform entries in latest.json"
+          if [ "$HAS_LINUX" = false ] || [ "$HAS_WINDOWS" = false ] || [ "$HAS_MACOS" = false ]; then
+            echo "::error::Missing platform entries in latest.json (Linux=$HAS_LINUX, Windows=$HAS_WINDOWS, macOS=$HAS_MACOS)"
+            exit 1
           fi
 
       - name: Upload merged latest.json to release

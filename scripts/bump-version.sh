@@ -52,6 +52,20 @@ PACKAGE_JSON_FILES=(
 CARGO_TOML="$REPO_ROOT/apps/desktop/src-tauri/Cargo.toml"
 TAURI_CONF="$REPO_ROOT/apps/desktop/src-tauri/tauri.conf.json"
 
+# i18n locale files (common.version = "vX.Y.Z")
+LOCALE_DIR="$REPO_ROOT/apps/desktop/ui/src/shared/i18n/locales"
+LOCALE_FILES=(
+  "$LOCALE_DIR/en.json"
+  "$LOCALE_DIR/ja.json"
+  "$LOCALE_DIR/zh.json"
+  "$LOCALE_DIR/ko.json"
+  "$LOCALE_DIR/pt.json"
+  "$LOCALE_DIR/tr.json"
+)
+
+# WhatsNew component (CURRENT_VERSION)
+WHATS_NEW="$REPO_ROOT/apps/desktop/ui/src/shared/ui/WhatsNew.tsx"
+
 # ────────────────────────────────────────────
 # Helper functions
 # ────────────────────────────────────────────
@@ -117,6 +131,20 @@ echo "  Updated apps/desktop/src-tauri/Cargo.toml"
 update_json_version "$TAURI_CONF"
 echo "  Updated apps/desktop/src-tauri/tauri.conf.json"
 
+# Update i18n locale files (common.version field only — first occurrence)
+for f in "${LOCALE_FILES[@]}"; do
+  if [ -f "$f" ]; then
+    sed -i "0,/\"version\": *\"v[^\"]*\"/s//\"version\": \"v$NEW_VERSION\"/" "$f"
+    echo "  Updated ${f#$REPO_ROOT/}"
+  fi
+done
+
+# Update WhatsNew.tsx hardcoded version
+if [ -f "$WHATS_NEW" ]; then
+  sed -i "s/const CURRENT_VERSION = \"[^\"]*\"/const CURRENT_VERSION = \"$NEW_VERSION\"/" "$WHATS_NEW"
+  echo "  Updated ${WHATS_NEW#$REPO_ROOT/}"
+fi
+
 # ────────────────────────────────────────────
 # Post-update verification
 # ────────────────────────────────────────────
@@ -165,9 +193,35 @@ else
   FAILED=1
 fi
 
+# Verify locale files
+for f in "${LOCALE_FILES[@]}"; do
+  if [ -f "$f" ]; then
+    v=$(grep -m1 '"version": "v' "$f" | sed 's/.*"version": "v\(.*\)".*/\1/')
+    label="${f#$REPO_ROOT/}"
+    if [ "$v" = "$NEW_VERSION" ]; then
+      echo "  ✓ $label: v$v"
+    else
+      echo "  ✗ $label: v$v (expected v$NEW_VERSION)"
+      FAILED=1
+    fi
+  fi
+done
+
+# Verify WhatsNew.tsx
+if [ -f "$WHATS_NEW" ]; then
+  v=$(grep 'CURRENT_VERSION' "$WHATS_NEW" | sed 's/.*"\(.*\)".*/\1/')
+  label="${WHATS_NEW#$REPO_ROOT/}"
+  if [ "$v" = "$NEW_VERSION" ]; then
+    echo "  ✓ $label: $v"
+  else
+    echo "  ✗ $label: $v (expected $NEW_VERSION)"
+    FAILED=1
+  fi
+fi
+
 echo ""
 if [ "$FAILED" -eq 0 ]; then
-  echo "All 8 files updated to $NEW_VERSION"
+  echo "All version files updated to $NEW_VERSION"
   exit 0
 else
   echo "Some files failed to update. Please check manually."

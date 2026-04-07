@@ -2,7 +2,7 @@
   "common": {
     "appName": "Zero-Employee Orchestrator",
     "appTagline": "Yapay Zeka İş Orkestrasyon Platformu",
-    "version": "v0.1.2",
+    "version": "v0.1.4",
     "back": "Geri",
     "next": "İleri",
     "save": "Kaydet",
@@ -794,5 +794,18 @@
   },
   "artifacts": {
     "emptyState": "Henüz çıktı yok. Bilet yürütme sonuçları burada görünecektir."
+  },
+  "updater": {
+    "available": "Güncelleme mevcut",
+    "checkFailed": "Güncelleme kontrolü başarısız",
+    "installing": "Güncelleme yükleniyor...",
+    "updating": "Güncelleniyor...",
+    "versionAvailable": "Sürüm {version} mevcut.",
+    "installingVersion": "v{version} yükleniyor. Uygulama yakında yeniden başlayacak.",
+    "downloading": "İndiriliyor... {progress}%",
+    "restarting": "Yeniden başlatılıyor...",
+    "downloadRestart": "İndir ve yeniden başlat",
+    "autoUpdate": "Otomatik güncelleme",
+    "autoUpdateDesc": "Güncelleme mevcut olduğunda otomatik indir ve yükle"
   }
 }
