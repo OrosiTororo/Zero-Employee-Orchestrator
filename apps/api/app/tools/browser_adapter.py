@@ -369,15 +369,20 @@ class BrowserUseAdapter(BrowserAdapter):
                 from langchain_openai import ChatOpenAI
 
                 # Prioritize OpenAI-compatible providers
+                from app.providers.model_registry import ModelRegistry
+
+                registry = ModelRegistry()
+                gpt_model_id = registry.resolve_api_id("openai/gpt")
+
                 api_key = os.environ.get("OPENAI_API_KEY", "")
                 if api_key:
-                    return ChatOpenAI(model="gpt-5.4", api_key=api_key)
+                    return ChatOpenAI(model=gpt_model_id, api_key=api_key)
 
                 # Via OpenRouter
                 openrouter_key = os.environ.get("OPENROUTER_API_KEY", "")
                 if openrouter_key:
                     return ChatOpenAI(
-                        model="openai/gpt-5.4",
+                        model=f"openai/{gpt_model_id}",
                         api_key=openrouter_key,
                         base_url="https://openrouter.ai/api/v1",
                     )

@@ -76,7 +76,7 @@ Files: root `pyproject.toml`, `apps/api/pyproject.toml`, `apps/desktop/package.j
 - **No API key required**: g4f (subscription), Ollama (local), OpenRouter (one key)
 - **ZEO is free**: Users pay LLM providers directly; no provider is "recommended"
 - **Skill/Plugin/Extension**: Skill = single task; Plugin = skill bundle (includes role-based packs); Extension = system integration
-- **System skills**: Always enabled, cannot be disabled (8 built-in)
+- **System skills**: Always enabled, cannot be disabled (6 system); 5 domain skills can be toggled
 - **UI**: Task-first layout — Cowork-style nav sidebar with progressive disclosure, Autonomy Dial in status bar, Command Palette (Ctrl+K), Dispatch background tasks
 - **CLI**: Claude Code-like slash commands (`/read`, `/write`, `/edit`, `/run`, `/ls`, `/cd`, `/pwd`, `/find`, `/grep`)
 - **Operator Profile**: Cowork-style about-me + global instructions (`/operator-profile/profile`, `/operator-profile/instructions`)
