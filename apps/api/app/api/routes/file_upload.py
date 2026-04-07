@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 
+import anyio
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -171,7 +172,7 @@ async def _save_upload(upload: UploadFile) -> StoredFile:
     except Exception as exc:
         logger.debug("Data protection check skipped: %s", exc)
 
-    # File size check (chunked reading)
+    # File size check (chunked reading with async I/O)
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     file_id = str(uuid.uuid4())
     ext = Path(filename).suffix.lower()
@@ -181,15 +182,14 @@ async def _save_upload(upload: UploadFile) -> StoredFile:
     chunk_size = 1024 * 1024  # 1MB
 
     try:
-        with open(stored_path, "wb") as f:
+        async with await anyio.open_file(stored_path, "wb") as f:
             while True:
                 chunk = await upload.read(chunk_size)
                 if not chunk:
                     break
                 total_size += len(chunk)
                 if total_size > MAX_FILE_SIZE_BYTES:
-                    # Delete partially written file
-                    f.close()
+                    await f.aclose()
                     stored_path.unlink(missing_ok=True)
                     raise HTTPException(
                         status_code=413,
@@ -198,7 +198,7 @@ async def _save_upload(upload: UploadFile) -> StoredFile:
                             f"(max {MAX_FILE_SIZE_BYTES // (1024 * 1024)}MB)"
                         ),
                     )
-                f.write(chunk)
+                await f.write(chunk)
     except HTTPException:
         raise
     except Exception as exc:

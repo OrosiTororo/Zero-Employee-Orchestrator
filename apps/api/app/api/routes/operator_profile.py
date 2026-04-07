@@ -11,6 +11,7 @@ import json
 import logging
 from pathlib import Path
 
+from anyio import Path as AsyncPath
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
@@ -56,9 +57,9 @@ def _profile_path(user_id: str) -> Path:
 @router.get("/profile", response_model=OperatorProfile)
 async def get_profile(user: User = Depends(get_current_user)):
     """Get the current operator profile."""
-    path = _profile_path(user.id)
-    if path.exists():
-        data = json.loads(path.read_text(encoding="utf-8"))
+    apath = AsyncPath(_profile_path(user.id))
+    if await apath.exists():
+        data = json.loads(await apath.read_text(encoding="utf-8"))
         return OperatorProfile(**data)
     return OperatorProfile(display_name=user.display_name or "")
 
@@ -66,10 +67,10 @@ async def get_profile(user: User = Depends(get_current_user)):
 @router.put("/profile", response_model=OperatorProfile)
 async def update_profile(profile: OperatorProfile, user: User = Depends(get_current_user)):
     """Update operator profile. AI agents read this to personalize responses."""
-    _PROFILE_DIR.mkdir(parents=True, exist_ok=True)
-    path = _profile_path(user.id)
-    path.write_text(profile.model_dump_json(indent=2), encoding="utf-8")
-    path.chmod(0o600)
+    await AsyncPath(_PROFILE_DIR).mkdir(parents=True, exist_ok=True)
+    apath = AsyncPath(_profile_path(user.id))
+    await apath.write_text(profile.model_dump_json(indent=2), encoding="utf-8")
+    await apath.chmod(0o600)
     logger.info("Operator profile updated for user %s", user.id)
     return profile
 
@@ -86,19 +87,19 @@ def _instructions_path(user_id: str) -> Path:
 @router.get("/instructions", response_model=GlobalInstructions)
 async def get_instructions(user: User = Depends(get_current_user)):
     """Get global instructions (applied to every AI conversation)."""
-    path = _instructions_path(user.id)
-    if path.exists():
-        return GlobalInstructions(instructions=path.read_text(encoding="utf-8"))
+    apath = AsyncPath(_instructions_path(user.id))
+    if await apath.exists():
+        return GlobalInstructions(instructions=await apath.read_text(encoding="utf-8"))
     return GlobalInstructions()
 
 
 @router.put("/instructions", response_model=GlobalInstructions)
 async def update_instructions(body: GlobalInstructions, user: User = Depends(get_current_user)):
     """Update global instructions. These are injected into every AI prompt."""
-    _PROFILE_DIR.mkdir(parents=True, exist_ok=True)
-    path = _instructions_path(user.id)
-    path.write_text(body.instructions, encoding="utf-8")
-    path.chmod(0o600)
+    await AsyncPath(_PROFILE_DIR).mkdir(parents=True, exist_ok=True)
+    apath = AsyncPath(_instructions_path(user.id))
+    await apath.write_text(body.instructions, encoding="utf-8")
+    await apath.chmod(0o600)
     logger.info(
         "Global instructions updated for user %s (%d chars)", user.id, len(body.instructions)
     )
