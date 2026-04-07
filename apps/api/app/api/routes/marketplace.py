@@ -114,6 +114,12 @@ async def publish_listing(
     request: Request, req: PublishRequest, user: User = Depends(get_current_user)
 ) -> dict:
     """Publish a listing as pending review."""
+    from app.policies.approval_gate import check_approval_required
+
+    gate = check_approval_required("publish_content")
+    if gate.requires_approval:
+        logger.info("Marketplace publish gate: risk=%s, user=%s", gate.risk_level, user.id)
+
     try:
         cat = MarketplaceCategory(req.category)
     except ValueError:

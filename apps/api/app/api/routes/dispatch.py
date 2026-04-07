@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 from app.api.routes.auth import get_current_user
 from app.core.rate_limit import limiter
 from app.models.user import User
+from app.security.pii_guard import detect_and_mask_pii
 from app.security.prompt_guard import ThreatLevel, scan_prompt_injection
 
 logger = logging.getLogger(__name__)
@@ -69,6 +70,15 @@ async def create_dispatch(
         raise HTTPException(
             status_code=400,
             detail="Request blocked: potentially unsafe content detected in instruction.",
+        )
+
+    # PII detection — mask before passing to AI agents
+    pii_result = detect_and_mask_pii(req.instruction)
+    if pii_result.detected:
+        logger.warning(
+            "PII detected in dispatch instruction (user=%s): %s",
+            user.id,
+            [d.category for d in pii_result.detections],
         )
 
     task_id = str(uuid.uuid4())

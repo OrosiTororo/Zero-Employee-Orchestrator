@@ -333,9 +333,19 @@ async def download_file(file_id: str, user: User = Depends(get_current_user)) ->
 @router.delete("/{file_id}")
 async def delete_file(file_id: str, user: User = Depends(get_current_user)) -> dict[str, str]:
     """Delete a file."""
+    from app.policies.approval_gate import check_approval_required
+
     stored = _file_store.get(file_id)
     if stored is None:
         raise HTTPException(status_code=404, detail="File not found")
+
+    # Approval gate — file deletion is a dangerous operation
+    gate = check_approval_required("delete_file")
+    if gate.requires_approval:
+        logger.info(
+            "File delete requires approval: id=%s, risk=%s, user=%s",
+            file_id, gate.risk_level, user.id,
+        )
 
     # Delete from disk
     path = Path(stored.stored_path)
