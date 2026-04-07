@@ -11,10 +11,10 @@ const CURRENT_VERSION = "0.1.5"
 const STORAGE_KEY = `zeo_whats_new_dismissed_${CURRENT_VERSION}`
 
 const HIGHLIGHTS = [
-  "Operator Profile page — tell AI about yourself and set global instructions",
-  "Welcome Tour for first-time users with step-by-step guidance",
-  "Cowork-style terminology throughout UI and documentation",
-  "All 6 translated READMEs synced with Cowork features",
+  "Task execution engine — tickets can now be executed end-to-end via AI",
+  "Desktop auto-update fixed — automatic download & install on launch",
+  "Execute button on ticket detail page with real-time result display",
+  "Dispatch runs tasks through the execution engine (not just ticket creation)",
 ]
 
 export function WhatsNew() {

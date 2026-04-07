@@ -36,6 +36,9 @@ export function CommandPalette() {
     { id: "monitor", label: t.nav.monitor, path: "/monitor", category: t.commandPalette.catNavigation },
     { id: "permissions", label: t.nav.permissions, path: "/permissions", category: t.commandPalette.catNavigation },
     { id: "settings", label: t.nav.settings, path: "/settings", category: t.commandPalette.catNavigation },
+    { id: "dispatch", label: t.nav.dispatch, path: "/dispatch", category: t.commandPalette.catNavigation },
+    { id: "marketplace", label: t.nav.marketplace, path: "/marketplace", category: t.commandPalette.catNavigation },
+    { id: "operator-profile", label: t.nav.operatorProfile, path: "/operator-profile", category: t.commandPalette.catNavigation },
     { id: "new-skill", label: t.commandPalette.newSkill, path: "/skills/create", category: t.commandPalette.catActions },
     { id: "new-ticket", label: t.commandPalette.newTicket, path: "/tickets", category: t.commandPalette.catActions },
   ]
