@@ -1,5 +1,93 @@
 # Changelog
 
+## [v0.1.3] (2026-04-07)
+
+### Meta-Orchestrator Identity
+
+ZEO is now positioned as **the AI meta-orchestrator** — orchestrate orchestrators, unify every AI framework and tool under human approval, audit trail, and security. Connect CrewAI, AutoGen, LangChain, Dify, n8n, Zapier, and 34+ business apps under one platform.
+
+### Task Dispatch (Background Execution)
+
+- **POST /dispatch** — Fire-and-forget background tasks with automatic ticket creation
+- **GET /dispatch/{id}** — Poll task status (queued → running → completed)
+- **DispatchPage** — Full UI with task input, status list, cancel, 10s auto-refresh
+- Activity bar and status bar show live dispatch count
+
+### Operator Profile & Global Instructions
+
+- **PUT/GET /operator-profile/profile** — Persistent user context (role, team, priorities, work style) for AI personalization across sessions
+- **PUT/GET /operator-profile/instructions** — Global instructions injected into every AI conversation
+- Stored in ~/.zero-employee/ with 0o600 permissions
+
+### Role-Based Plugin Packs (6 new)
+
+Pre-configured plugin bundles per business role, each with manifest + runtime handler:
+
+- **Sales Pack** — Lead scoring, competitive analysis, CRM sync, pipeline reports, outreach drafting
+- **Finance Pack** — Expense analysis, budget tracking, invoice processing, financial reporting
+- **HR Pack** — Job description drafting, resume screening, onboarding checklists, survey analysis
+- **Legal Pack** — Contract review, clause extraction, compliance checking, NDA drafting
+- **Marketing Pack** — Content calendar, SEO analysis, social scheduling, campaign tracking
+- **Customer Support Pack** — Ticket triage, FAQ auto-response, escalation routing, sentiment analysis
+
+Plugins: 10 → 16. Plugin development guide added (docs/dev/PLUGIN_GUIDE.md).
+
+### Enterprise SSO & Compliance
+
+- **SSO/SAML** — GET /sso/providers (Google OAuth, SAML 2.0, Okta, Azure AD), SAML metadata/ACS endpoints
+- **Compliance API** — GET /compliance/frameworks (GDPR, HIPAA, SOC 2, CCPA, ISO 27001, FedRAMP), data retention policies, audit export (JSON/CSV)
+
+### Browser Automation — Tiered Approval Model
+
+10-level operation classification following Claude Cowork's tool hierarchy:
+
+| Level | Operations | Risk |
+|-------|-----------|------|
+| LOW | navigate, screenshot | Safe — autonomous OK |
+| MEDIUM | extract_data, click | Approval required |
+| HIGH | type, fill_form, submit, download | Approval required |
+| CRITICAL | login, payment | Always requires approval |
+
+- Natural language instruction classifier with negation handling ("don't click" → navigate)
+- Web AI sessions now require approval (was bypassed)
+- Browser consent persisted to disk (survives restart)
+
+### Desktop Auto-Update Fix
+
+- **release.yml**: releaseDraft false (was true, making updates invisible)
+- **use-updater.ts**: 4-hour periodic re-check (was one-time at startup)
+- **latest.json merge job**: Prevents macOS entries from being lost in matrix build race conditions
+
+### UI Improvements
+
+- **Progressive disclosure sidebar** — 6 core items always visible, Manage (6 items) and Extend (4 items) collapsed by default with auto-expand
+- **Autonomy Dial** — Status bar control cycling Observe/Assist/Semi-Auto/Autonomous, connected to backend config API
+- **Interactive welcome tour** — 4-step onboarding (Describe task → Meet Secretary → Review & approve → Customize)
+- **Actionable error messages** — All catch blocks across 5 pages replaced with toast notifications guiding users to resolution
+
+### Security Hardening
+
+- **Sandbox path boundary** — startswith() checks now include "/" separator, preventing /data/work-archive bypassing /data/work
+- **PII Guard SSN** — Keyword context required (SSN, social security, 社会保障番号), bare numbers no longer false-positive
+- **Prompt Guard** — System override and role hijacking correctly blocked
+- **Auth enforcement** — themes, app-integrations endpoints now require authentication
+- **Approval categories** — 12 → 14 (added BROWSER_AUTOMATION, WEB_AI_SESSION)
+
+### Infrastructure & CI
+
+- ci.yml: $GITHUB_WORKSPACE instead of hardcoded runner path
+- deploy-api.yml: flyctl-actions pinned to v2 (was @master)
+- deploy-workers.yml: Node.js 20 → 22
+- release.yml: artifact actions v7/v8, latest.json merge job
+- Docker: pnpm 9 → 10
+- .env.example: 7 missing config variables added
+
+### Documentation
+
+- **CLAUDE.md rewritten** — 553 → 142 lines, mandatory post-change md sync rule
+- **All 6 translated READMEs synced** (ja/zh-CN/zh-TW/ko/pt-BR/tr)
+- **Evaluation report** — 8.3/10 with search-verified competitive analysis and Claude Cowork comparison
+
 ## v0.1.2 (2026-04-06)
 
 ### Changed — UI Redesign (VSCode/Zed/Neovim)

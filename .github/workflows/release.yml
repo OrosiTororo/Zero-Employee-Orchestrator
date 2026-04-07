@@ -79,7 +79,7 @@ jobs:
           tauriScript: npx tauri
           args: ${{ matrix.rust_target != '' && format('--target {0}', matrix.rust_target) || '' }}
           tagName: ${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}
-          releaseName: "Zero-Employee Orchestrator ${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}"
+          releaseName: "${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}"
           releaseBody: |
             AI Business Orchestration Platform. Define business workflows in natural language, orchestrate multiple AI agents with role-based delegation, and execute tasks with human approval and full auditability.
 

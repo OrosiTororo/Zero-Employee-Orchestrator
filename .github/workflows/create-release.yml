@@ -85,7 +85,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: "v${{ env.VERSION }}"
-          name: "Zero-Employee Orchestrator v${{ env.VERSION }}"
+          name: "v${{ env.VERSION }}"
           body_path: ${{ steps.changelog.outputs.notes_file }}
           draft: false
           prerelease: ${{ github.event.inputs.prerelease == 'true' }}
