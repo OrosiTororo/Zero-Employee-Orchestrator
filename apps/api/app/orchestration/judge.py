@@ -33,7 +33,9 @@ class RuleBasedJudge:
     def __init__(self) -> None:
         self.rules: list[dict] = []
 
-    def add_rule(self, name: str, check_fn: Callable[[dict, dict], bool], severity: str = "error") -> None:
+    def add_rule(
+        self, name: str, check_fn: Callable[[dict, dict], bool], severity: str = "error"
+    ) -> None:
         self.rules.append({"name": name, "check": check_fn, "severity": severity})
 
     def evaluate(self, output: dict, context: dict | None = None) -> JudgeResult:

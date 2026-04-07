@@ -201,9 +201,7 @@ class WorkspaceIsolation:
             if override.approved_by_user:
                 for allowed in override.additional_local_paths:
                     allowed_resolved = str(Path(allowed).resolve())
-                    if resolved == allowed_resolved or resolved.startswith(
-                        allowed_resolved + "/"
-                    ):
+                    if resolved == allowed_resolved or resolved.startswith(allowed_resolved + "/"):
                         return WorkspaceAccessResult(
                             allowed=True,
                             path=resolved,
@@ -231,9 +229,7 @@ class WorkspaceIsolation:
         # 4. Check if path is within allowed local paths
         for allowed in self._config.allowed_local_paths:
             allowed_resolved = str(Path(allowed).resolve())
-            if resolved == allowed_resolved or resolved.startswith(
-                allowed_resolved + "/"
-            ):
+            if resolved == allowed_resolved or resolved.startswith(allowed_resolved + "/"):
                 return WorkspaceAccessResult(
                     allowed=True,
                     path=resolved,
