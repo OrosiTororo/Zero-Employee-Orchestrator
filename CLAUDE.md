@@ -2,7 +2,7 @@
 
 > **The AI Meta-Orchestrator**: orchestrate orchestrators, unify every AI framework and tool
 > under human approval, audit trail, and security.
-> 9-layer architecture. Python 3.12+ / FastAPI / Tauri v2 + React / Cloudflare Workers.
+> 9-layer architecture. Python 3.11+ / FastAPI / Tauri v2 + React / Cloudflare Workers.
 
 ## Session Start
 
@@ -24,9 +24,9 @@ ls apps/api/app/
 ```
 apps/api/app/         # FastAPI backend
   core/               # Config, DB, rate limiting, i18n
-  api/routes/         # 47 route modules, 433 endpoints
+  api/routes/         # 47 route modules, 394 endpoints
   services/           # 25 services (business logic)
-  orchestration/      # DAG, Judge, transparency, CostGuard (22 modules)
+  orchestration/      # DAG, Judge, transparency, CostGuard (23 modules)
   providers/          # LLM gateway, Ollama, g4f, ModelRegistry
   security/           # sandbox, pii_guard, prompt_guard, iam, workspace_isolation
   policies/           # approval_gate, autonomy_boundary
@@ -51,6 +51,12 @@ ruff check apps/api/app/ && ruff format apps/api/app/  # Lint
 ```
 
 ## MUST-FOLLOW Rules
+
+### Evidence-Based Changes (non-negotiable)
+- **Always search/verify before making changes.** Every code or documentation change must have a verified basis (web search, code grep, file read, or official documentation).
+- Do NOT change version numbers, counts, or claims without first verifying the actual value (e.g., grep endpoint count, read model_catalog.json, check GitHub releases for action versions).
+- When updating GitHub Actions versions, verify the version exists on the official releases page.
+- When changing Python/Node version requirements, verify language feature compatibility via PEP or official docs.
 
 ### Security (non-negotiable)
 1. External data → LLM: **always** `wrap_external_data()` (`security/prompt_guard.py`)
@@ -139,4 +145,4 @@ Write about system behavior changes for end users. Do NOT write about docs/CI/co
 
 **Scoring**: 0-10 scale. Overall = (Relative × 0.35) + (Objective × 0.35) + (Additional × 0.30)
 
-**Latest evaluation**: `docs/dev/EVALUATION_v0.1.5.md` — 5.8/10 (2026-04-07, recalibrated with honest implementation audit)
+**Latest evaluation**: `docs/dev/EVALUATION_v0.1.5_corrected.md` — 6.3/10 (2026-04-07, corrected with actual code verification)

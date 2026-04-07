@@ -104,6 +104,7 @@ interface PendingApproval {
 
 export function AgentMonitorPage() {
   const t = useT()
+  const companyId = localStorage.getItem("company_id") || ""
   const [summary, setSummary] = useState<MonitorSummary | null>(null)
   const [active, setActive] = useState<ActiveExecution[]>([])
   const [sessions, setSessions] = useState<Session[]>([])
@@ -144,12 +145,12 @@ export function AgentMonitorPage() {
   const fetchData = useCallback(async () => {
     try {
       const [dashboard, sessionData, hypoData, sentry, traceData, approvalData] = await Promise.all([
-        api.get<{ summary: MonitorSummary; active: ActiveExecution[] }>("/monitor/dashboard").catch(() => null),
-        api.get<{ sessions: Session[] }>("/sessions").catch(() => ({ sessions: [] })),
-        api.get<{ hypotheses: Hypothesis[] }>("/hypotheses").catch(() => ({ hypotheses: [] })),
-        api.get<SentryStats>("/sentry/stats").catch(() => null),
-        api.get<{ traces: ReasoningTrace[] }>("/traces?limit=20").catch(() => ({ traces: [] })),
-        api.get<PendingApproval[]>("/approvals?status=requested").catch(() => []),
+        api.get<{ summary: MonitorSummary; active: ActiveExecution[] }>("/monitor/dashboard").catch((e) => { console.warn("Monitor dashboard:", e); return null }),
+        api.get<{ sessions: Session[] }>("/sessions").catch((e) => { console.warn("Sessions:", e); return { sessions: [] } }),
+        api.get<{ hypotheses: Hypothesis[] }>("/hypotheses").catch((e) => { console.warn("Hypotheses:", e); return { hypotheses: [] } }),
+        api.get<SentryStats>("/sentry/stats").catch((e) => { console.warn("Sentry stats:", e); return null }),
+        api.get<{ traces: ReasoningTrace[] }>("/traces?limit=20").catch((e) => { console.warn("Traces:", e); return { traces: [] } }),
+        (companyId ? api.get<PendingApproval[]>(`/companies/${companyId}/approvals?status=requested`).catch((e) => { console.warn("Approvals:", e); return [] }) : Promise.resolve([])),
       ])
       if (dashboard) {
         setSummary(dashboard.summary)

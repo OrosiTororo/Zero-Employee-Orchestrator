@@ -106,7 +106,7 @@ jobs:
           [ -z "$DEPLOY_USER" ] && missing+=("DEPLOY_USER")
           [ -z "$DEPLOY_SSH_KEY" ] && missing+=("DEPLOY_SSH_KEY")
           if [ ${#missing[@]} -ne 0 ]; then
-            echo "::error::Required secrets: ${missing[*]}. See docs/deployment.md"
+            echo "::error::Required secrets: ${missing[*]}. See USER_SETUP.md"
             exit 1
           fi
 

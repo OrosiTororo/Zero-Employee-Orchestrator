@@ -51,7 +51,11 @@ export const useWSStore = create<WSState>((set, get) => ({
     }
     listeners.get(eventType)!.add(handler)
     return () => {
-      listeners.get(eventType)?.delete(handler)
+      const handlers = listeners.get(eventType)
+      handlers?.delete(handler)
+      if (handlers?.size === 0) {
+        listeners.delete(eventType)
+      }
     }
   },
 }))

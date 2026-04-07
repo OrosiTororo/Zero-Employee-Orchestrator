@@ -182,10 +182,11 @@ export function SettingsPage() {
     try {
       await api.put("/config", { key, value })
       setSaveMessage(t.settings.saved)
-      setApiKeys((prev) => ({ ...prev, [key]: "" }))
       await loadConfig()
+      setApiKeys((prev) => ({ ...prev, [key]: "" }))
       setTimeout(() => setSaveMessage(""), 3000)
-    } catch {
+    } catch (e) {
+      console.warn("Failed to save API key:", e)
       setSaveMessage(t.settings.saveFailed)
       setTimeout(() => setSaveMessage(""), 3000)
     } finally { setSaving(false) }

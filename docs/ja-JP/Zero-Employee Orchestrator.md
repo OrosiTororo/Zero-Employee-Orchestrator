@@ -555,7 +555,7 @@ Zero-Employee Orchestrator は特定の Provider への固定依存を避け、O
 - shadcn/ui
 
 #### バックエンド層
-- Python 3.12 系
+- Python 3.11 系
 - FastAPI
 - uvicorn
 
@@ -2264,7 +2264,7 @@ Claude Code、Gemini、OpenAI API、ローカルモデル、スクリプト、HT
 - Tauri v2
 
 #### バックエンド API
-- Python 3.12+
+- Python 3.11+
 - FastAPI
 - Pydantic
 - SQLAlchemy 2.x

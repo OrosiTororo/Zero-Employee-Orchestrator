@@ -990,7 +990,7 @@ uv pip install zero-employee-orchestrator
 | UI 库 | Tailwind CSS 4.2、shadcn/ui、Recharts 3.7、Lucide Icons |
 | 状态管理 | TanStack Query 5.62、Zustand 5.0 |
 | 路由 | React Router 7.13 |
-| 后端 | Python 3.12+、FastAPI 0.115+ |
+| 后端 | Python 3.11+、FastAPI 0.115+ |
 | ORM | SQLAlchemy 2.x (async) |
 | 迁移 | Alembic |
 | LLM 连接 | LiteLLM 1.60+ |

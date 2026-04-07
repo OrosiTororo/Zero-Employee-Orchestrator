@@ -35,7 +35,7 @@ ZEO'nun kendisi ücretsiz ve açık kaynaklıdır. LLM API maliyetleri kullanıc
 | **[CLI (pip install)](#-hızlı-başlangıç-cli)** | Geliştiriciler | 2 dk | Hayır (abonelik veya Ollama) |
 | **[Docker](#-docker)** | Kendi sunucunuz / üretim | 5 dk | Hayır (abonelik veya Ollama) |
 
-**Sistem Gereksinimleri:** Python 3.12+ (CLI), Node.js 22+ (frontend geliştirme), minimum 4 GB RAM. Ollama yerel modelleri 8 GB+ RAM gerektirir.
+**Sistem Gereksinimleri:** Python 3.11+ (CLI), Node.js 22+ (frontend geliştirme), minimum 4 GB RAM. Ollama yerel modelleri 8 GB+ RAM gerektirir.
 
 ---
 
@@ -442,7 +442,7 @@ Chrome uzantısı overlay sohbet — Yapay zeka ekranınızı gerçek zamanlı g
 ## 🛠️ Teknoloji Yığını
 
 ### Arka Uç
-- Python 3.12+ / FastAPI / uvicorn
+- Python 3.11+ / FastAPI / uvicorn
 - SQLAlchemy 2.x (async) + Alembic
 - SQLite (geliştirme) / PostgreSQL (üretim)
 - LiteLLM Router SDK

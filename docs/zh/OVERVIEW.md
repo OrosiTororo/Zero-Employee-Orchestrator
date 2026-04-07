@@ -186,7 +186,7 @@ ZEO 由 9 个层组成，每层拥有独立的职责。
 
 | 技术 | 用途 |
 |------|------|
-| Python 3.12+ | 后端语言 |
+| Python 3.11+ | 后端语言 |
 | FastAPI | REST API 框架 |
 | SQLAlchemy 2.x (async) | ORM（数据库访问） |
 | Alembic | 数据库迁移 |

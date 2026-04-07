@@ -32,8 +32,8 @@ export function CostsPage() {
     setLoading(true)
     try {
       const [b, s] = await Promise.all([
-        api.get<BudgetPolicy[]>(`/companies/${companyId}/budgets`).catch(() => []),
-        api.get<CostSummary>(`/companies/${companyId}/cost-summary`).catch(() => ({ today: 0, this_week: 0, this_month: 0, total: 0 })),
+        api.get<BudgetPolicy[]>(`/companies/${companyId}/budgets`).catch((e) => { console.warn("Budgets:", e); return [] }),
+        api.get<CostSummary>(`/companies/${companyId}/cost-summary`).catch((e) => { console.warn("Cost summary:", e); return { today: 0, this_week: 0, this_month: 0, total: 0 } }),
       ])
       setBudgets(b)
       setSummary(s)

@@ -295,7 +295,7 @@ The Vite dev server runs on `http://localhost:5173` and communicates with the AP
 **Symptom:** `zero-employee serve` exits with an error.
 
 **Solutions:**
-- Verify Python 3.12+ is installed: `python --version`
+- Verify Python 3.11+ is installed: `python --version`
 - Ensure the package is installed correctly: `pip install zero-employee-orchestrator`
 - Check if port 18234 is already in use: `lsof -i :18234` (macOS/Linux) or `netstat -ano | findstr :18234` (Windows)
 - Run database migrations: `zero-employee db upgrade`

@@ -35,7 +35,7 @@ ZEO itself is free and open source. LLM API costs are paid directly by users to 
 | **[CLI (pip install)](#-quick-start-cli)** | Developers | 2 min | No (subscription or Ollama) |
 | **[Docker](#-docker)** | Self-hosting / production | 5 min | No (subscription or Ollama) |
 
-**System Requirements:** Python 3.12+ (CLI), Node.js 22+ (frontend dev), 4 GB RAM minimum. Ollama local models need 8 GB+ RAM.
+**System Requirements:** Python 3.11+ (CLI), Node.js 22+ (frontend dev), 4 GB RAM minimum. Ollama local models need 8 GB+ RAM.
 
 ---
 
@@ -285,7 +285,7 @@ Zero-Employee-Orchestrator/
 | **MCP Server** | Model Context Protocol — any MCP-compatible tool becomes a ZEO tool automatically |
 | **App Connector Hub** | 34+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, Slack, etc.) — connectors for connectors |
 | **Tool-of-Tools** | Tools that connect to other tools (e.g., n8n connects to 400+ apps → ZEO connects to n8n → ZEO accesses all 400+ apps through one integration) |
-| **Multi-Model Freedom** | 26 model families via LiteLLM, Ollama local models, g4f web sessions — not locked to any single provider |
+| **Multi-Model Freedom** | 24 model families via LiteLLM, Ollama local models, g4f web sessions — not locked to any single provider |
 
 ### Extensibility
 
@@ -455,7 +455,7 @@ Chrome extension overlay chat — AI sees your screen in real-time and guides yo
 ## 🛠️ Tech Stack
 
 ### Backend
-- Python 3.12+ / FastAPI / uvicorn
+- Python 3.11+ / FastAPI / uvicorn
 - SQLAlchemy 2.x (async) + Alembic
 - SQLite (dev) / PostgreSQL (production)
 - LiteLLM Router SDK
