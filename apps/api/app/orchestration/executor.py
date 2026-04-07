@@ -323,6 +323,31 @@ class TaskExecutor:
         if result.status == "running":
             result.status = "succeeded" if successful_results else "failed"
 
+        # Record experience for future improvement
+        failed_results = [r for r in result.node_results if not r.success]
+        if failed_results:
+            try:
+                from app.orchestration.experience_memory import PersistentExperienceMemory
+                from app.core.database import get_session
+
+                async for db in get_session():
+                    # Use a placeholder company_id for system-level memory
+                    memory = PersistentExperienceMemory(
+                        db, "00000000-0000-0000-0000-000000000000"
+                    )
+                    for fr in failed_results:
+                        reason = classify_failure(None, fr.error or "Quality check failed")
+                        await memory.add_failure(
+                            category=reason.category,
+                            subcategory=reason.severity,
+                            description=f"Node '{fr.node_id}' failed: {fr.error or 'judge rejected'}",
+                            prevention_strategy=f"Consider model={fr.model_used}, "
+                            f"judge_score={fr.judge_score}",
+                        )
+                    break
+            except Exception as exc:
+                logger.debug("Experience memory recording skipped: %s", exc)
+
         logger.info(
             "Plan %s completed: status=%s, nodes=%d, cost=$%.4f",
             dag.plan_id, result.status, len(result.node_results), result.total_cost_usd,

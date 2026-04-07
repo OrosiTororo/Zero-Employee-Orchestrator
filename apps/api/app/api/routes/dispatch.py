@@ -152,17 +152,24 @@ async def list_dispatches(status: str | None = None, user: User = Depends(get_cu
     )
 
 
-@router.delete("/{task_id}")
+@router.delete("/{task_id}", response_model=DispatchResponse)
 async def cancel_dispatch(task_id: str, _user: User = Depends(get_current_user)):
     """Cancel a queued or running dispatch task."""
-    task = _dispatch_tasks.get(task_id)
+    with _dispatch_lock:
+        task = _dispatch_tasks.get(task_id)
     if not task:
         raise HTTPException(status_code=404, detail=f"Dispatch task not found: {task_id}")
-    if task["status"] in ("completed", "failed", "cancelled"):
-        return {"task_id": task_id, "status": task["status"], "message": "Task already finished"}
-    task["status"] = "cancelled"
-    task["completed_at"] = datetime.now(UTC).isoformat()
-    return {"task_id": task_id, "status": "cancelled"}
+    if task["status"] not in ("completed", "failed", "cancelled"):
+        task["status"] = "cancelled"
+        task["completed_at"] = datetime.now(UTC).isoformat()
+    return DispatchResponse(
+        task_id=task["task_id"],
+        status=task["status"],
+        instruction=task["instruction"],
+        created_at=task["created_at"],
+        completed_at=task["completed_at"],
+        result=task["result"],
+    )
 
 
 async def _execute_dispatch(task_id: str) -> None:

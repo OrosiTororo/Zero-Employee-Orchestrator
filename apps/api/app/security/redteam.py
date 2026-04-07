@@ -17,6 +17,7 @@ Test categories:
 from __future__ import annotations
 
 import logging
+import os
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -670,7 +671,8 @@ class RedTeamService:
         try:
             import httpx
 
-            async with httpx.AsyncClient(base_url="http://localhost:18234") as client:
+            _base = f"http://localhost:{os.environ.get('PORT', '18234')}"
+            async with httpx.AsyncClient(base_url=_base) as client:
                 # Verify server is running via health check
                 probe = await client.get("/healthz", timeout=2.0)
                 if probe.status_code == 200:
@@ -737,7 +739,8 @@ class RedTeamService:
                 "/api/v1/ollama/health",
                 "/api/v1/traces",
             ]
-            async with httpx.AsyncClient(base_url="http://localhost:18234") as client:
+            _base = f"http://localhost:{os.environ.get('PORT', '18234')}"
+            async with httpx.AsyncClient(base_url=_base) as client:
                 probe = await client.get("/healthz", timeout=2.0)
                 if probe.status_code == 200:
                     for path in protected_paths:

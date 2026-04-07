@@ -217,7 +217,8 @@ async def _save_upload(upload: UploadFile) -> StoredFile:
         content_type=upload.content_type or "application/octet-stream",
         size_bytes=total_size,
     )
-    _file_store[file_id] = stored
+    with _file_store_lock:
+        _file_store[file_id] = stored
     logger.info(
         "File uploaded: id=%s, name=%s, size=%d",
         file_id,

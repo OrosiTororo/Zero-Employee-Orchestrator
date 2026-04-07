@@ -240,8 +240,8 @@ class TestTaskReplay:
             task_description="競合分析レポート作成",
             original_output="分析結果...",
             configs=[
-                {"model_id": "claude-opus-4-6", "temperature": 0.7},
-                {"model_id": "gpt-5.4", "temperature": 0.7},
+                {"model_id": "anthropic/claude-opus", "temperature": 0.7},
+                {"model_id": "openai/gpt", "temperature": 0.7},
             ],
         )
         assert job.id
