@@ -67,6 +67,15 @@ The desktop auto-update was completely non-functional for users who installed v0
 - **E2E test added**: `test_e2e_ticket_execution.py` — full ticket create → execute → verify flow
 - **Evaluation corrected**: v0.1.5 evaluation contained false claims about stub implementations; corrected in `EVALUATION_v0.1.5_corrected.md` (5.8 → 6.3)
 
+### v0.1.5 Final Audit & Release
+
+- **Model family count corrected**: 24 → 22 in README.md (verified: 22 active + 4 deprecated = 26 total entries in model_catalog.json)
+- **Route module count corrected**: 47 → 46 across README, CLAUDE.md, 6 translated READMEs, FEATURES.md, OVERVIEW.md, ROADMAP.md, architecture guide (47 was counting `__init__.py`)
+- **eslint peer dependency conflict fixed**: Downgraded eslint 10.x → 9.x and eslint-plugin-react-hooks 7.x → 5.x to resolve `npm install` failure without `--legacy-peer-deps`
+- **12 eslint errors resolved**: Removed unused catch variables in SecretaryPage, OrgChartPage, InterviewPage; fixed unused `_configLoading` and empty catch block in SettingsPage
+- **Hono version aligned**: edge/full ^4.12.10 → ^4.12.11 (matching edge/proxy)
+- **Full verification**: 467 tests pass, ruff lint clean, tsc clean, vite build clean, eslint 0 errors, server starts successfully
+
 ## [v0.1.4] (2026-04-07)
 
 ### Cowork-Style Transition (Complete)

@@ -98,7 +98,7 @@ export function SettingsPage() {
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({})
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({})
   const [providerStatus, setProviderStatus] = useState<Record<string, ProviderInfo>>({})
-  const [_configLoading, setConfigLoading] = useState(true)
+  const [, setConfigLoading] = useState(true)
 
   // Provider selector
   const [showProviderPicker, setShowProviderPicker] = useState(false)
@@ -798,7 +798,7 @@ export function SettingsPage() {
             <button onClick={() => {
                 const next = !autoUpdate
                 setAutoUpdate(next)
-                try { localStorage.setItem("zeo-auto-update", String(next)) } catch {}
+                try { localStorage.setItem("zeo-auto-update", String(next)) } catch { /* storage unavailable */ }
               }}
               className="text-[12px] font-medium"
               style={{ color: autoUpdate ? "var(--success-fg)" : "var(--text-muted)" }}

@@ -65,7 +65,7 @@ The entry point for all interactions. Supports multiple interfaces:
 | Interface | Description | Port |
 |-----------|-------------|------|
 | **Web UI** | React 19 + Tauri v2 desktop app | 5173 (dev) |
-| **REST API** | FastAPI with 47 route modules, 392 endpoints | 18234 |
+| **REST API** | FastAPI with 46 route modules, 392 endpoints | 18234 |
 | **CLI** | `zero-employee` command with chat, serve, config subcommands | — |
 | **WebSocket** | Real-time event streaming and browser assist | 18234 |
 

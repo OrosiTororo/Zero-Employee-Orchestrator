@@ -127,7 +127,7 @@ export function InterviewPage() {
       } catch {
         // Spec generation failure is non-fatal
       }
-    } catch (e) {
+    } catch {
       addToast((t as unknown as Record<string, Record<string, string>>).errors?.interviewSaveFailed ?? "Could not save interview answers.")
     } finally {
       setSubmitting(false)
