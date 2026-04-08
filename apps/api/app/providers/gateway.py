@@ -325,14 +325,18 @@ class LLMGateway:
 
     @staticmethod
     def _sanitize_messages(messages: list[dict]) -> list[dict]:
-        """Scan messages for prompt injection and wrap external data markers.
+        """Scan messages for prompt injection, strip PII, and wrap external data.
 
-        This ensures all content sent to LLMs passes through the security
-        pipeline — CLAUDE.md rule: "When passing external data to LLMs:
-        always wrap with wrap_external_data() boundary markers".
+        Security pipeline (executed in order):
+        1. Prompt injection detection and boundary wrapping
+        2. PII detection and masking — prevents personal information from
+           being sent to external LLM providers (CLAUDE.md + user privacy policy)
         """
         try:
+            from app.security.pii_guard import PIIGuard
             from app.security.prompt_guard import scan_prompt_injection, wrap_external_data
+
+            pii_guard = PIIGuard()
 
             sanitized: list[dict] = []
             for msg in messages:
@@ -341,8 +345,18 @@ class LLMGateway:
                     sanitized.append(msg)
                     continue
 
-                # System messages are trusted; user/assistant messages may carry
-                # external data that was injected (e.g. web scrape, file content).
+                # --- Step 1: PII masking (all roles except system) ---
+                if msg.get("role") in ("user", "tool", "assistant"):
+                    pii_result = pii_guard.detect_and_mask(content)
+                    if pii_result.detections:
+                        logger.info(
+                            "PII masked before LLM call: %d items (%s)",
+                            len(pii_result.detections),
+                            ", ".join(d.category for d in pii_result.detections),
+                        )
+                        content = pii_result.masked_text
+
+                # --- Step 2: Prompt injection scan (user/tool messages) ---
                 if msg.get("role") in ("user", "tool"):
                     guard_result = scan_prompt_injection(content)
                     if not guard_result.is_safe:
@@ -351,18 +365,16 @@ class LLMGateway:
                             guard_result.threat_level.value,
                             guard_result.detections,
                         )
-                        # Wrap with boundary markers so the LLM can distinguish
                         content = wrap_external_data(content, source="user_input")
                         sanitized.append({**msg, "content": content})
                         continue
 
-                sanitized.append(msg)
+                sanitized.append({**msg, "content": content})
             return sanitized
         except Exception as exc:
             logger.critical(
                 "Message sanitization FAILED — refusing to send unsanitized messages: %s", exc
             )
-            # Return ONLY a security warning — never forward unsanitized messages
             warning_msg = {
                 "role": "system",
                 "content": (
