@@ -101,7 +101,7 @@ The desktop auto-update was completely non-functional for users who installed v0
 - **eslint peer dependency conflict fixed**: Downgraded eslint 10.x → 9.x and eslint-plugin-react-hooks 7.x → 5.x to resolve `npm install` failure without `--legacy-peer-deps`
 - **12 eslint errors resolved**: Removed unused catch variables in SecretaryPage, OrgChartPage, InterviewPage; fixed unused `_configLoading` and empty catch block in SettingsPage
 - **Hono version aligned**: edge/full ^4.12.10 → ^4.12.11 (matching edge/proxy)
-- **Full verification**: 467 tests pass, ruff lint clean, tsc clean, vite build clean, eslint 0 errors, server starts successfully
+- **Full verification**: 497 tests pass (26 files), ruff lint clean, tsc clean, vite build clean, eslint 0 errors, server starts successfully
 
 ## [v0.1.4] (2026-04-07)
 
