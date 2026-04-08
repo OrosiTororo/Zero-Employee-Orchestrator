@@ -65,7 +65,7 @@ class FolderLocationRequest(BaseModel):
     user_id: str | None = None
 
 
-@router.post("/knowledge/remember")
+@router.post("/knowledge/remember", response_model=KnowledgeResponse)
 @limiter.limit("30/minute")
 async def remember_knowledge(
     request: Request,
@@ -106,7 +106,7 @@ async def remember_knowledge(
     }
 
 
-@router.post("/knowledge/recall")
+@router.post("/knowledge/recall", response_model=list[KnowledgeResponse])
 async def recall_knowledge(
     req: KnowledgeRecallRequest,
     db: AsyncSession = Depends(get_db),
@@ -178,7 +178,7 @@ async def remember_folder_location(
     return {"id": str(record.id), "name": req.name, "path": req.path, "stored": True}
 
 
-@router.get("/knowledge/permissions")
+@router.get("/knowledge/permissions", response_model=list[KnowledgeResponse])
 async def list_permissions(
     company_id: str | None = None,
     db: AsyncSession = Depends(get_db),
@@ -193,7 +193,7 @@ async def list_permissions(
     }
 
 
-@router.get("/knowledge/folders")
+@router.get("/knowledge/folders", response_model=list[KnowledgeResponse])
 async def list_folder_locations(
     company_id: str | None = None,
     db: AsyncSession = Depends(get_db),

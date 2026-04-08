@@ -28,6 +28,17 @@ interface WorkflowBuilderProps {
   className?: string;
 }
 
+const toolbarBtnStyle: React.CSSProperties = {
+  padding: "4px 8px",
+  borderRadius: 4,
+  border: "1px solid #555",
+  background: "var(--bg-secondary, #252526)",
+  color: "var(--fg-primary, #d4d4d4)",
+  cursor: "pointer",
+  fontSize: 12,
+  fontFamily: "system-ui, sans-serif",
+};
+
 const STATUS_COLORS: Record<string, { bg: string; border: string; text: string }> = {
   pending: { bg: "var(--bg-secondary, #252526)", border: "#555", text: "var(--fg-primary, #d4d4d4)" },
   running: { bg: "#1a3a5c", border: "#007acc", text: "#4fc3f7" },
@@ -92,7 +103,51 @@ export default function WorkflowBuilder({
   const layout = useMemo(() => computeLayout(steps), [steps]);
   const [dragSource, setDragSource] = useState<string | null>(null);
   const [linkSource, setLinkSource] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const panStart = useRef({ x: 0, y: 0 });
   const svgRef = useRef<SVGSVGElement>(null);
+
+  /** Zoom with mouse wheel */
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    setZoom((z) => Math.max(0.3, Math.min(2.5, z - e.deltaY * 0.001)));
+  }, []);
+
+  /** Pan with middle mouse or ctrl+drag */
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button === 1 || (e.button === 0 && e.ctrlKey)) {
+      setIsPanning(true);
+      panStart.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+    }
+  }, [pan]);
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (isPanning) {
+      setPan({ x: e.clientX - panStart.current.x, y: e.clientY - panStart.current.y });
+    }
+  }, [isPanning]);
+  const handleMouseUp = useCallback(() => setIsPanning(false), []);
+
+  /** Add a new empty node */
+  const addNode = useCallback(() => {
+    if (!editable || !onStepsChange) return;
+    const newId = `step_${steps.length + 1}`;
+    onStepsChange([...steps, { id: newId, title: "New Step", depends_on: [], status: "pending" }]);
+  }, [editable, onStepsChange, steps]);
+
+  /** Delete a node and clean up dependencies */
+  const deleteNode = useCallback(
+    (nodeId: string) => {
+      if (!editable || !onStepsChange) return;
+      onStepsChange(
+        steps
+          .filter((s) => s.id !== nodeId)
+          .map((s) => ({ ...s, depends_on: s.depends_on.filter((d) => d !== nodeId) })),
+      );
+    },
+    [editable, onStepsChange, steps],
+  );
 
   /** Drag-and-drop: swap two nodes' positions in the step array. */
   const handleDrop = useCallback(
@@ -164,11 +219,36 @@ export default function WorkflowBuilder({
   return (
     <div
       className={className}
-      style={{ overflow: "auto", border: "1px solid var(--border-primary, #333)", borderRadius: 8 }}
+      style={{ overflow: "hidden", border: "1px solid var(--border-primary, #333)", borderRadius: 8, position: "relative" }}
       role="img"
       aria-label="Workflow execution graph"
+      onWheel={handleWheel}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
     >
-      <svg ref={svgRef} width={svgW} height={svgH} style={{ minWidth: svgW, minHeight: svgH }}>
+      {/* Toolbar */}
+      {editable && (
+        <div style={{ position: "absolute", top: 8, right: 8, zIndex: 10, display: "flex", gap: 4 }}>
+          <button onClick={() => setZoom((z) => Math.min(2.5, z + 0.2))} style={toolbarBtnStyle} aria-label="Zoom in">+</button>
+          <button onClick={() => setZoom((z) => Math.max(0.3, z - 0.2))} style={toolbarBtnStyle} aria-label="Zoom out">&minus;</button>
+          <button onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }} style={toolbarBtnStyle} aria-label="Reset view">1:1</button>
+          <button onClick={addNode} style={{ ...toolbarBtnStyle, background: "#007acc" }} aria-label="Add step">+ Step</button>
+        </div>
+      )}
+      {linkSource && (
+        <div style={{ position: "absolute", top: 8, left: 8, zIndex: 10, color: "#007acc", fontSize: 12 }}>
+          Click another node to add dependency from {linkSource}
+        </div>
+      )}
+      <svg
+        ref={svgRef}
+        width={svgW * zoom}
+        height={svgH * zoom}
+        viewBox={`${-pan.x / zoom} ${-pan.y / zoom} ${svgW} ${svgH}`}
+        style={{ minWidth: svgW * zoom, minHeight: svgH * zoom, cursor: isPanning ? "grabbing" : "default" }}
+      >
         {/* Edges */}
         {steps.flatMap((step) =>
           step.depends_on.map((dep) => {
@@ -246,6 +326,22 @@ export default function WorkflowBuilder({
                 {step.id}
                 {step.estimated_minutes ? ` \u2022 ~${step.estimated_minutes}min` : ""}
               </text>
+              {/* Delete button (editable mode only) */}
+              {editable && (
+                <text
+                  x={pos.x + NODE_W - 16}
+                  y={pos.y + 16}
+                  fill="#e5484d"
+                  fontSize={14}
+                  fontWeight="bold"
+                  style={{ cursor: "pointer" }}
+                  onClick={(e) => { e.stopPropagation(); deleteNode(step.id); }}
+                  role="button"
+                  aria-label={`Delete step ${step.title}`}
+                >
+                  ×
+                </text>
+              )}
             </g>
           );
         })}

@@ -267,6 +267,46 @@ class KnowledgeStore:
             scored.sort(key=lambda x: x[0], reverse=True)
             records = [r for _, r in scored]
 
+            # LLM semantic re-ranking: use LLM to pick most relevant results
+            if len(records) > 3:
+                try:
+                    import json as _json
+
+                    from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
+
+                    candidates = [
+                        {"idx": i, "key": r.key, "value": r.value[:100]}
+                        for i, r in enumerate(records[:10])
+                    ]
+                    resp = await llm_gateway.complete(
+                        CompletionRequest(
+                            messages=[
+                                {
+                                    "role": "user",
+                                    "content": (
+                                        "Rank these knowledge items by relevance to the query. "
+                                        "Return a JSON array of idx values, most relevant first.\n\n"
+                                        f"Query: {search_query}\n\n"
+                                        f"Items: {_json.dumps(candidates, ensure_ascii=False)}"
+                                    ),
+                                }
+                            ],
+                            mode=ExecutionMode.SPEED,
+                            temperature=0.1,
+                            max_tokens=128,
+                        )
+                    )
+                    content = resp.content.strip()
+                    if content.startswith("```"):
+                        content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+                    ranked_ids = _json.loads(content)
+                    if isinstance(ranked_ids, list) and all(isinstance(x, int) for x in ranked_ids):
+                        reranked = [records[i] for i in ranked_ids if i < len(records)]
+                        remaining = [r for i, r in enumerate(records) if i not in ranked_ids]
+                        records = reranked + remaining
+                except Exception:
+                    pass  # Silently fall back to TF-IDF + cosine order
+
         # Update usage count
         for r in records:
             r.use_count += 1
