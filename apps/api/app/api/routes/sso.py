@@ -159,7 +159,7 @@ async def saml_acs(request: Request) -> SAMLAssertionResponse:
 # --- Google OAuth 2.0 ---
 
 
-@router.get("/oauth/google/authorize")
+@router.get("/oauth/google/authorize", response_class=RedirectResponse)
 async def google_oauth_authorize(request: Request):
     """Redirect to Google OAuth consent screen."""
     client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
@@ -255,7 +255,7 @@ async def google_oauth_callback(
 # --- Azure AD OIDC ---
 
 
-@router.get("/oauth/azure/authorize")
+@router.get("/oauth/azure/authorize", response_class=RedirectResponse)
 async def azure_oauth_authorize(request: Request):
     """Redirect to Azure AD / Entra ID consent screen."""
     tenant_id = os.environ.get("AZURE_AD_TENANT_ID", "")

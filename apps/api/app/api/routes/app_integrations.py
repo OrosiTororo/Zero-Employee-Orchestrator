@@ -158,6 +158,12 @@ class SyncHistoryResponse(BaseModel):
     count: int
 
 
+class KnowledgeImportResponse(BaseModel):
+    imported: int = 0
+    tags: list[str] = Field(default_factory=list)
+    message: str = ""
+
+
 class IntegrationSummaryResponse(BaseModel):
     total_apps: int = 0
     connected: int = 0
@@ -261,7 +267,7 @@ async def register_custom_app(
     return {"app_id": app_id, "name": req.name, "status": "registered"}
 
 
-@router.post("/connections")
+@router.post("/connections", response_model=ConnectionResponse)
 async def connect_app(req: ConnectRequest, user: User = Depends(get_current_user)) -> dict:
     """Establish an application connection."""
     permissions = None
@@ -294,7 +300,7 @@ async def connect_app(req: ConnectRequest, user: User = Depends(get_current_user
     }
 
 
-@router.get("/connections")
+@router.get("/connections", response_model=ConnectionListResponse)
 async def list_connections(
     app_id: str | None = None,
     status: str | None = None,
@@ -335,7 +341,7 @@ async def list_connections(
     }
 
 
-@router.get("/connections/{connection_id}")
+@router.get("/connections/{connection_id}", response_model=ConnectionResponse)
 async def get_connection(connection_id: str, user: User = Depends(get_current_user)) -> dict:
     """Return connection details."""
     conn = app_connector_hub.get_connection(connection_id)
@@ -442,7 +448,7 @@ async def sync_connection(
     }
 
 
-@router.post("/connections/{connection_id}/import-knowledge")
+@router.post("/connections/{connection_id}/import-knowledge", response_model=KnowledgeImportResponse)
 async def import_to_knowledge(
     connection_id: str,
     req: ImportRequest,

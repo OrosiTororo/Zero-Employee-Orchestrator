@@ -39,6 +39,12 @@ class LanguageSetRequest(BaseModel):
     language: str
 
 
+class CurrentLanguageResponse(BaseModel):
+    language: str
+    name: str
+    native_name: str
+
+
 class LanguageSetResponse(BaseModel):
     language: str
     requires_restart: bool = False
@@ -64,7 +70,7 @@ async def list_language_packs():
     return result
 
 
-@router.get("/language-packs/current")
+@router.get("/language-packs/current", response_model=CurrentLanguageResponse)
 async def get_current_language():
     """Get the currently active language."""
     lang = get_language()

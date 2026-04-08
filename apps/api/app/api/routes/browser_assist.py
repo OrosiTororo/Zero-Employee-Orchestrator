@@ -58,6 +58,22 @@ class AssistStepResponse(BaseModel):
     ui_element: str = ""
 
 
+class ConsentResponse(BaseModel):
+    """Consent update result."""
+
+    status: str
+    message: str
+
+
+class AssistStatusResponse(BaseModel):
+    """Browser assist feature status."""
+
+    available: bool
+    supported_actions: list[str] = []
+    supported_browsers: list[str] = []
+    privacy: dict = {}
+
+
 class AssistResponse(BaseModel):
     """Assist result."""
 
@@ -68,7 +84,7 @@ class AssistResponse(BaseModel):
     confidence: float = 0.0
 
 
-@router.post("/consent")
+@router.post("/consent", response_model=ConsentResponse)
 async def update_consent(req: ConsentRequest, user: User = Depends(get_current_user)) -> dict:
     """Set screen sharing consent.
 
@@ -151,7 +167,7 @@ async def analyze_screen(
     )
 
 
-@router.get("/status")
+@router.get("/status", response_model=AssistStatusResponse)
 async def assist_status(user: User = Depends(get_current_user)) -> dict:
     """Return browser assist feature status."""
     return {

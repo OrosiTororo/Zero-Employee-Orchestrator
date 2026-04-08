@@ -121,6 +121,122 @@ class WorkingMemoryResponse(BaseModel):
     key: str
 
 
+class MCPToolListResponse(BaseModel):
+    """Response for listing MCP tools."""
+
+    tools: list[dict] = []
+
+
+class MCPResourceListResponse(BaseModel):
+    """Response for listing MCP resources."""
+
+    resources: list[dict] = []
+
+
+class MCPPromptListResponse(BaseModel):
+    """Response for listing MCP prompts."""
+
+    prompts: list[dict] = []
+
+
+class SentryStatsResponse(BaseModel):
+    """Response for Sentry error statistics."""
+
+    total_events: int = 0
+    error_count: int = 0
+    warning_count: int = 0
+    info_count: int = 0
+    events_by_type: dict = {}
+    recent_errors: list[dict] = []
+
+
+class RevokeAccountResponse(BaseModel):
+    """Response for revoking an AI service account."""
+
+    revoked: bool = True
+
+
+class InvestigationResultResponse(BaseModel):
+    """Response for AI investigation query/audit/error results."""
+
+    success: bool = True
+    query: str = ""
+    rows: list[dict] = []
+    row_count: int = 0
+    error: str | None = None
+    duration_ms: float = 0
+
+
+class InvestigationMetricsResponse(BaseModel):
+    """Response for system metrics from AI investigator."""
+
+    uptime_seconds: float = 0
+    total_requests: int = 0
+    error_rate: float = 0
+    avg_response_ms: float = 0
+    active_sessions: int = 0
+    memory_usage_mb: float = 0
+    db_pool_size: int = 0
+    db_pool_available: int = 0
+
+
+class HypothesisDetailResponse(BaseModel):
+    """Response for a single hypothesis."""
+
+    id: str
+    title: str
+    description: str
+    status: str = ""
+    proposer_agent_id: str = ""
+    task_id: str | None = None
+    company_id: str | None = None
+    priority: int = 0
+    evidence: list[dict] = []
+    reviews: list[dict] = []
+    created_at: str = ""
+    updated_at: str = ""
+
+
+class SessionDetailResponse(BaseModel):
+    """Response for a single session."""
+
+    session_id: str
+    agent_id: str
+    role: str = ""
+    status: str = ""
+    company_id: str | None = None
+    task_id: str | None = None
+    message_count: int = 0
+    created_at: str = ""
+    last_active_at: str = ""
+    working_memory: dict = {}
+
+
+class SessionIdleResponse(BaseModel):
+    """Response for setting a session to idle."""
+
+    status: str = "idle"
+    session_id: str
+
+
+class SessionContextSummaryResponse(BaseModel):
+    """Response for resuming a session (context summary)."""
+
+    session_id: str = ""
+    agent_id: str = ""
+    role: str = ""
+    status: str = ""
+    message_count: int = 0
+    working_memory_keys: list[str] = []
+    last_messages: list[dict] = []
+
+
+class TerminateSessionResponse(BaseModel):
+    """Response for terminating a session."""
+
+    terminated: bool = True
+
+
 # ===================================================================
 # MCP endpoints
 # ===================================================================
@@ -139,7 +255,7 @@ async def mcp_capabilities(user: User = Depends(get_current_user)):
     return mcp_server.get_capabilities()
 
 
-@router.get("/mcp/tools")
+@router.get("/mcp/tools", response_model=MCPToolListResponse)
 async def mcp_list_tools(user: User = Depends(get_current_user)):
     """List MCP tools."""
     from app.integrations.mcp_server import mcp_server
@@ -155,7 +271,7 @@ async def mcp_call_tool(req: MCPToolCallRequest, user: User = Depends(get_curren
     return await mcp_server.handle_call_tool(req.name, req.arguments)
 
 
-@router.get("/mcp/resources")
+@router.get("/mcp/resources", response_model=MCPResourceListResponse)
 async def mcp_list_resources(user: User = Depends(get_current_user)):
     """List MCP resources."""
     from app.integrations.mcp_server import mcp_server
@@ -163,7 +279,7 @@ async def mcp_list_resources(user: User = Depends(get_current_user)):
     return await mcp_server.handle_list_resources()
 
 
-@router.get("/mcp/prompts")
+@router.get("/mcp/prompts", response_model=MCPPromptListResponse)
 async def mcp_list_prompts(user: User = Depends(get_current_user)):
     """List MCP prompts."""
     from app.integrations.mcp_server import mcp_server
@@ -252,7 +368,7 @@ async def import_external_skill(
 # ===================================================================
 
 
-@router.get("/sentry/stats")
+@router.get("/sentry/stats", response_model=SentryStatsResponse)
 async def sentry_stats(user: User = Depends(get_current_user)):
     """Sentry error statistics."""
     from app.integrations.sentry_integration import sentry
@@ -357,7 +473,7 @@ async def list_ai_accounts(
     }
 
 
-@router.delete("/iam/ai-accounts/{account_id}")
+@router.delete("/iam/ai-accounts/{account_id}", response_model=RevokeAccountResponse)
 async def revoke_ai_account(
     account_id: str,
     user: User = Depends(get_current_user),
@@ -391,7 +507,7 @@ class AuditSearchRequest(BaseModel):
     limit: int = 100
 
 
-@router.post("/investigate/query")
+@router.post("/investigate/query", response_model=InvestigationResultResponse)
 async def investigate_query(
     req: DBQueryRequest,
     user: User = Depends(get_current_user),
@@ -404,7 +520,7 @@ async def investigate_query(
     return result.to_dict()
 
 
-@router.post("/investigate/audit")
+@router.post("/investigate/audit", response_model=InvestigationResultResponse)
 async def investigate_audit(
     req: AuditSearchRequest,
     user: User = Depends(get_current_user),
@@ -424,7 +540,7 @@ async def investigate_audit(
     return result.to_dict()
 
 
-@router.get("/investigate/errors")
+@router.get("/investigate/errors", response_model=InvestigationResultResponse)
 async def investigate_errors(
     since_hours: int = 24,
     limit: int = 50,
@@ -438,7 +554,7 @@ async def investigate_errors(
     return result.to_dict()
 
 
-@router.get("/investigate/metrics")
+@router.get("/investigate/metrics", response_model=InvestigationMetricsResponse)
 async def investigate_metrics(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -490,7 +606,7 @@ class ReviewRequest(BaseModel):
     suggested_actions: list[str] = []
 
 
-@router.post("/hypotheses")
+@router.post("/hypotheses", response_model=HypothesisDetailResponse)
 async def propose_hypothesis(req: HypothesisRequest, user: User = Depends(get_current_user)):
     """Propose a hypothesis."""
     from app.orchestration.hypothesis_engine import hypothesis_engine
@@ -506,7 +622,7 @@ async def propose_hypothesis(req: HypothesisRequest, user: User = Depends(get_cu
     return h.to_dict()
 
 
-@router.get("/hypotheses")
+@router.get("/hypotheses", response_model=HypothesisListResponse)
 async def list_hypotheses(
     company_id: str | None = None,
     task_id: str | None = None,
@@ -522,7 +638,7 @@ async def list_hypotheses(
     return {"hypotheses": [h.to_dict() for h in hypotheses]}
 
 
-@router.get("/hypotheses/{hypothesis_id}")
+@router.get("/hypotheses/{hypothesis_id}", response_model=HypothesisDetailResponse)
 async def get_hypothesis(hypothesis_id: str, user: User = Depends(get_current_user)):
     """Get hypothesis details."""
     from app.orchestration.hypothesis_engine import hypothesis_engine
@@ -621,7 +737,7 @@ class WorkingMemoryRequest(BaseModel):
     value: dict | str | list | int | float | bool | None
 
 
-@router.post("/sessions")
+@router.post("/sessions", response_model=SessionDetailResponse)
 async def create_session(req: CreateSessionRequest, user: User = Depends(get_current_user)):
     """Create an agent session."""
     from app.orchestration.agent_session import session_manager
@@ -637,7 +753,7 @@ async def create_session(req: CreateSessionRequest, user: User = Depends(get_cur
     return session.to_dict()
 
 
-@router.get("/sessions")
+@router.get("/sessions", response_model=SessionListResponse)
 async def list_sessions(
     company_id: str | None = None,
     status: str | None = None,
@@ -652,7 +768,7 @@ async def list_sessions(
     return {"sessions": [s.to_dict() for s in sessions]}
 
 
-@router.get("/sessions/{session_id}")
+@router.get("/sessions/{session_id}", response_model=SessionDetailResponse)
 async def get_session(session_id: str, user: User = Depends(get_current_user)):
     """Get session details."""
     from app.orchestration.agent_session import session_manager
@@ -663,7 +779,7 @@ async def get_session(session_id: str, user: User = Depends(get_current_user)):
     return session.to_dict()
 
 
-@router.get("/sessions/agent/{agent_id}")
+@router.get("/sessions/agent/{agent_id}", response_model=SessionDetailResponse)
 async def get_agent_session(agent_id: str, user: User = Depends(get_current_user)):
     """Get active session for an agent."""
     from app.orchestration.agent_session import session_manager
@@ -674,7 +790,7 @@ async def get_agent_session(agent_id: str, user: User = Depends(get_current_user
     return session.to_dict()
 
 
-@router.post("/sessions/agent/{agent_id}/get-or-create")
+@router.post("/sessions/agent/{agent_id}/get-or-create", response_model=SessionDetailResponse)
 async def get_or_create_session(
     agent_id: str, req: CreateSessionRequest, user: User = Depends(get_current_user)
 ):
@@ -716,7 +832,7 @@ async def add_working_memory(req: WorkingMemoryRequest, user: User = Depends(get
     return {"stored": True, "key": req.key}
 
 
-@router.post("/sessions/{session_id}/idle")
+@router.post("/sessions/{session_id}/idle", response_model=SessionIdleResponse)
 async def set_session_idle(session_id: str, user: User = Depends(get_current_user)):
     """Set session to idle state."""
     from app.orchestration.agent_session import session_manager
@@ -728,7 +844,7 @@ async def set_session_idle(session_id: str, user: User = Depends(get_current_use
     return {"status": "idle", "session_id": session_id}
 
 
-@router.post("/sessions/{session_id}/resume")
+@router.post("/sessions/{session_id}/resume", response_model=SessionContextSummaryResponse)
 async def resume_session(session_id: str, user: User = Depends(get_current_user)):
     """Resume a session."""
     from app.orchestration.agent_session import session_manager
@@ -740,7 +856,7 @@ async def resume_session(session_id: str, user: User = Depends(get_current_user)
     return session.get_context_summary()
 
 
-@router.delete("/sessions/{session_id}")
+@router.delete("/sessions/{session_id}", response_model=TerminateSessionResponse)
 async def terminate_session(session_id: str, user: User = Depends(get_current_user)):
     """Terminate a session."""
     from app.orchestration.agent_session import session_manager

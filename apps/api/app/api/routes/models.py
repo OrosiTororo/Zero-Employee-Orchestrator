@@ -88,6 +88,40 @@ class DeprecatedModelsResponse(BaseModel):
     total: int
 
 
+class DeprecateResponse(BaseModel):
+    model_id: str
+    deprecated: bool
+    successor: str | None = None
+    message: str
+
+
+class UpdateCostResponse(BaseModel):
+    model_id: str
+    cost_per_1k_input: float
+    cost_per_1k_output: float
+    message: str
+
+
+class RemoveModelResponse(BaseModel):
+    model_id: str
+    message: str
+
+
+class AutoUpdateResponse(BaseModel):
+    success: bool
+    model_count: int
+    catalog_version: str
+    auto_discovered_models: list = []
+    rss_pipeline: dict = {}
+    message: str
+
+
+class UpdateVersionResponse(BaseModel):
+    family_id: str
+    new_model_id: str
+    message: str
+
+
 class AddModelRequest(BaseModel):
     """Register a custom model that is not in the default catalog."""
 
@@ -241,7 +275,7 @@ async def list_deprecated_models():
     )
 
 
-@router.post("/models/deprecate")
+@router.post("/models/deprecate", response_model=DeprecateResponse)
 async def deprecate_model(req: DeprecateRequest):
     """Mark a model as deprecated (optionally specify successor)."""
     from app.providers.model_registry import get_model_registry
@@ -262,7 +296,7 @@ async def deprecate_model(req: DeprecateRequest):
     }
 
 
-@router.post("/models/update-cost")
+@router.post("/models/update-cost", response_model=UpdateCostResponse)
 async def update_model_cost(req: UpdateCostRequest):
     """Update model cost information."""
     from app.providers.model_registry import get_model_registry
@@ -349,7 +383,7 @@ async def add_custom_model(req: AddModelRequest):
     )
 
 
-@router.delete("/models/{model_id}")
+@router.delete("/models/{model_id}", response_model=RemoveModelResponse)
 async def remove_custom_model(model_id: str):
     """Remove a custom model from the catalog.
 
@@ -368,7 +402,7 @@ async def remove_custom_model(model_id: str):
     return {"model_id": model_id, "message": "Model removed from catalog"}
 
 
-@router.post("/models/auto-update")
+@router.post("/models/auto-update", response_model=AutoUpdateResponse)
 async def auto_update_models():
     """Detect model updates from RSS/ToS pipeline and auto-update the catalog.
 
@@ -397,7 +431,7 @@ async def auto_update_models():
     }
 
 
-@router.post("/models/update-version")
+@router.post("/models/update-version", response_model=UpdateVersionResponse)
 async def update_model_version(
     family_id: str,
     new_model_id: str,

@@ -61,6 +61,13 @@ class BrainDumpUpdateRequest(BaseModel):
     is_processed: bool | None = None
 
 
+class ActionItemsResponse(BaseModel):
+    """Action items response."""
+
+    action_items: list[dict]
+    total: int
+
+
 class DailyStatsResponse(BaseModel):
     """Daily statistics response."""
 
@@ -207,7 +214,7 @@ async def search_brain_dumps(
     return [_to_response(r) for r in records]
 
 
-@router.get("/companies/{company_id}/brain-dumps/action-items")
+@router.get("/companies/{company_id}/brain-dumps/action-items", response_model=ActionItemsResponse)
 async def get_action_items(
     company_id: str,
     unprocessed_only: bool = True,

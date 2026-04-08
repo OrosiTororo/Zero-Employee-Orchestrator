@@ -127,6 +127,12 @@ class MultiUploadResponse(BaseModel):
     failed: list[dict[str, str]]
 
 
+class FileDeleteResponse(BaseModel):
+    """File deletion response."""
+
+    message: str
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -295,7 +301,7 @@ async def get_file_info(file_id: str, user: User = Depends(get_current_user)) ->
     return _to_info_response(stored)
 
 
-@router.get("/{file_id}/download")
+@router.get("/{file_id}/download", response_class=FileResponse)
 async def download_file(file_id: str, user: User = Depends(get_current_user)) -> FileResponse:
     """Download a file."""
     stored = _file_store.get(file_id)
@@ -333,7 +339,7 @@ async def download_file(file_id: str, user: User = Depends(get_current_user)) ->
     )
 
 
-@router.delete("/{file_id}")
+@router.delete("/{file_id}", response_model=FileDeleteResponse)
 async def delete_file(file_id: str, user: User = Depends(get_current_user)) -> dict[str, str]:
     """Delete a file."""
     from app.policies.approval_gate import check_approval_required

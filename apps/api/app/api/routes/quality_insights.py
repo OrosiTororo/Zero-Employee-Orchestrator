@@ -35,6 +35,7 @@ from __future__ import annotations
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
@@ -100,6 +101,15 @@ from app.services.spec_contradiction_service import (
 from app.services.task_replay_service import task_replay_service
 
 logger = logging.getLogger(__name__)
+
+
+class MessageResponse(BaseModel):
+    message: str
+
+
+class JudgmentRecordedResponse(BaseModel):
+    id: str
+    message: str
 
 router = APIRouter(prefix="/quality-insights")
 
@@ -194,6 +204,7 @@ async def update_prerequisite_source(
 
 @router.delete(
     "/prerequisites/sources/{source_id}",
+    response_model=MessageResponse,
     summary="Delete monitoring source",
 )
 async def delete_prerequisite_source(
@@ -253,6 +264,7 @@ async def list_prerequisite_changes(
 
 @router.post(
     "/prerequisites/changes/{change_id}/ack",
+    response_model=MessageResponse,
     summary="Mark change as acknowledged",
 )
 async def acknowledge_prerequisite_change(
@@ -452,6 +464,7 @@ async def record_replay_execution(
 
 @router.post(
     "/judgment-review/record",
+    response_model=JudgmentRecordedResponse,
     summary="Record judgment",
 )
 async def record_judgment(

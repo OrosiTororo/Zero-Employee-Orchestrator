@@ -35,6 +35,15 @@ class ThemeSetRequest(BaseModel):
     slug: str
 
 
+class CurrentThemeResponse(BaseModel):
+    slug: str
+
+
+class ThemeVariablesResponse(BaseModel):
+    slug: str
+    variables: dict[str, str] = {}
+
+
 class ThemeSetResponse(BaseModel):
     slug: str
     applied: bool
@@ -57,7 +66,7 @@ async def list_themes(_user: User = Depends(get_current_user)):
     return BUILTIN_THEMES + custom
 
 
-@router.get("/themes/current")
+@router.get("/themes/current", response_model=CurrentThemeResponse)
 async def get_current_theme(_user: User = Depends(get_current_user)):
     """Get the currently active theme slug."""
     return {"slug": _active_theme}
@@ -91,7 +100,7 @@ async def register_theme(theme: ThemeInfo, _user: User = Depends(get_current_use
     return theme
 
 
-@router.get("/themes/{slug}/variables")
+@router.get("/themes/{slug}/variables", response_model=ThemeVariablesResponse)
 async def get_theme_variables(slug: str):
     """Get CSS variable overrides for a specific theme."""
     if slug in ("dark", "light", "high-contrast"):

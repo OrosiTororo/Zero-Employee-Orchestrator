@@ -19,13 +19,23 @@ from app.core.security import generate_uuid, hash_password
 from app.models.company import Company
 from app.models.user import CompanyMember, User
 from app.schemas.auth import (
+    AnonymousSessionResponse,
     ChangePasswordRequest,
+    GoogleAuthorizeResponse,
+    GooglePollCompleteResponse,
+    GooglePollPendingResponse,
+    LinkAccountResponse,
     LoginRequest,
     LoginResponse,
+    LogoutResponse,
+    MessageResponse,
     OAuthLoginRequest,
     PasswordResetConfirm,
     PasswordResetRequest,
+    PasswordResetRequestResponse,
+    RefreshResponse,
     RegisterRequest,
+    SetupStatusResponse,
     UserRead,
 )
 from app.services.auth_service import (
@@ -132,7 +142,7 @@ def _google_redirect_uri(request: Request) -> str:
     return f"{base}{settings.API_V1_PREFIX}/auth/google/callback"
 
 
-@router.get("/google/authorize")
+@router.get("/google/authorize", response_model=GoogleAuthorizeResponse)
 async def google_authorize(request: Request):
     """Get Google OAuth authorization URL.
 
@@ -164,7 +174,7 @@ async def google_authorize(request: Request):
     return {"url": url, "state": state}
 
 
-@router.get("/google/callback")
+@router.get("/google/callback", response_class=HTMLResponse)
 async def google_callback(
     request: Request,
     code: str | None = None,
@@ -268,7 +278,10 @@ async def google_callback(
         )
 
 
-@router.get("/google/poll")
+@router.get(
+    "/google/poll",
+    response_model=GooglePollCompleteResponse | GooglePollPendingResponse,
+)
 async def google_poll(state: str):
     """Poll for Google OAuth completion.
 
@@ -331,7 +344,7 @@ border:1px solid #3E3E42;}} h2{{margin-bottom:.5rem;}} p{{color:#BBBBBB;}}</styl
 <body><div class="card">{body}</div></body></html>"""
 
 
-@router.post("/logout")
+@router.post("/logout", response_model=LogoutResponse)
 async def logout():
     """Logout."""
     return {"status": "ok", "message": "Logged out successfully"}
@@ -352,14 +365,14 @@ async def get_me(user: User = Depends(get_current_user)):
     )
 
 
-@router.post("/refresh")
+@router.post("/refresh", response_model=RefreshResponse)
 async def refresh_token(user: User = Depends(get_current_user)):
     """Refresh token."""
     token = create_access_token(str(user.id))
     return {"access_token": token, "token_type": "bearer"}
 
 
-@router.post("/password-reset/request")
+@router.post("/password-reset/request", response_model=PasswordResetRequestResponse)
 @limiter.limit("3/minute")
 async def password_reset_request(
     request: Request,
@@ -383,7 +396,7 @@ async def password_reset_request(
     }
 
 
-@router.post("/password-reset/confirm")
+@router.post("/password-reset/confirm", response_model=MessageResponse)
 @limiter.limit("5/minute")
 async def password_reset_confirm(
     request: Request,
@@ -400,7 +413,7 @@ async def password_reset_confirm(
     return {"message": "Password has been reset successfully"}
 
 
-@router.post("/change-password")
+@router.post("/change-password", response_model=MessageResponse)
 async def change_password_endpoint(
     req: ChangePasswordRequest,
     user: User = Depends(get_current_user),
@@ -416,7 +429,7 @@ async def change_password_endpoint(
     return {"message": "Password changed successfully"}
 
 
-@router.post("/anonymous-session")
+@router.post("/anonymous-session", response_model=AnonymousSessionResponse)
 @limiter.limit("10/minute")
 async def create_anonymous_session(request: Request, db: AsyncSession = Depends(get_db)):
     """Create an anonymous session without login.
@@ -477,7 +490,7 @@ class LinkAccountRequest(BaseModel):
     display_name: str
 
 
-@router.post("/link-account")
+@router.post("/link-account", response_model=LinkAccountResponse)
 async def link_anonymous_to_account(
     req: LinkAccountRequest,
     user: User = Depends(get_current_user),
@@ -514,7 +527,7 @@ async def link_anonymous_to_account(
     }
 
 
-@router.get("/setup-status")
+@router.get("/setup-status", response_model=SetupStatusResponse)
 async def get_setup_status(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -524,7 +537,7 @@ async def get_setup_status(
     return {"setup_completed": setup_done}
 
 
-@router.post("/setup-complete")
+@router.post("/setup-complete", response_model=SetupStatusResponse)
 async def mark_setup_complete(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),

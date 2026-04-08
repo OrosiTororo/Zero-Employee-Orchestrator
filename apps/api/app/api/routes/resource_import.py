@@ -85,6 +85,12 @@ class ImportFolderResponse(BaseModel):
     total: int
 
 
+class ResourceDeleteResponse(BaseModel):
+    """Resource deletion response."""
+
+    message: str
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -214,7 +220,7 @@ async def get_resource(
     return _to_response(resource)
 
 
-@router.delete("/{resource_id}")
+@router.delete("/{resource_id}", response_model=ResourceDeleteResponse)
 async def delete_resource(
     resource_id: str, user: User = Depends(get_current_user)
 ) -> dict[str, str]:

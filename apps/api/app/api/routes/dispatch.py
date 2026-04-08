@@ -570,6 +570,12 @@ class ScheduleResponse(BaseModel):
     run_count: int = 0
 
 
+class ScheduleDeleteResponse(BaseModel):
+    """Schedule deletion result."""
+
+    deleted: str
+
+
 async def _register_scheduled_task(task_id: str, cron_expression: str) -> None:
     """Register a dispatch task as a scheduled recurring job.
 
@@ -664,7 +670,7 @@ async def list_schedules(_user: User = Depends(get_current_user)):
         ]
 
 
-@router.delete("/schedules/{schedule_id}")
+@router.delete("/schedules/{schedule_id}", response_model=ScheduleDeleteResponse)
 async def delete_schedule(schedule_id: str, _user: User = Depends(get_current_user)):
     """Delete a scheduled recurring task."""
     with _scheduler_lock:

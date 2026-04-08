@@ -102,6 +102,127 @@ class WebSessionResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Response models — adapter management
+# ---------------------------------------------------------------------------
+
+
+class SetActiveAdapterResponse(BaseModel):
+    active: str
+    message: str
+
+
+# ---------------------------------------------------------------------------
+# Response models — plugin loader
+# ---------------------------------------------------------------------------
+
+
+class AvailablePluginResponse(BaseModel):
+    slug: str
+    name: str
+    name_ja: str
+    description: str
+    description_ja: str
+    version: str
+    source_uri: str
+    category: str
+    license: str
+    installed: bool
+    pypi_package: str | None = None
+
+
+class PluginSearchResultResponse(BaseModel):
+    slug: str
+    name: str
+    name_ja: str
+    description: str
+    description_ja: str
+    version: str
+    source_uri: str
+    category: str
+    license: str
+    installed: bool
+
+
+class InstalledPluginResponse(BaseModel):
+    slug: str
+    name: str
+    adapter_registered: bool
+
+
+class EnvCheckItemResponse(BaseModel):
+    name: str
+    type: str
+    status: str
+    detail: str
+    install_hint: str
+
+
+class PluginEnvCheckResponse(BaseModel):
+    plugin: str
+    all_satisfied: bool
+    checks: list[EnvCheckItemResponse]
+    setup_instructions: list[str]
+
+
+class PluginInstallEnvironment(BaseModel):
+    all_satisfied: bool
+    setup_instructions: list[str]
+    checks: list[EnvCheckItemResponse] | None = None
+
+
+class PluginInstallResponse(BaseModel):
+    success: bool
+    plugin: str | None = None
+    slug: str | None = None
+    category: str | None = None
+    adapter_registered: bool | None = None
+    environment: PluginInstallEnvironment | None = None
+    transparency: dict = Field(default_factory=dict)
+    dry_run: bool | None = None
+    error: str | None = None
+    available_plugins: list[str] | None = None
+
+
+class PluginUninstallResponse(BaseModel):
+    success: bool
+    message: str | None = None
+    error: str | None = None
+
+
+# ---------------------------------------------------------------------------
+# Response models — tool registry
+# ---------------------------------------------------------------------------
+
+
+class ToolInfoResponse(BaseModel):
+    slug: str
+    category: str
+    name: str
+    is_active: bool
+
+    model_config = {"extra": "allow"}
+
+
+class ToolCategoryResponse(BaseModel):
+    category: str
+    active_tool: str
+    tool_count: int
+    tools: list[str]
+
+
+class ToolSelectResponse(BaseModel):
+    category: str
+    active_tool: str
+    message: str
+
+
+class ToolResolveResponse(BaseModel):
+    resolved: bool
+    tool: dict | None = None
+    message: str | None = None
+
+
+# ---------------------------------------------------------------------------
 # Adapter management endpoints
 # ---------------------------------------------------------------------------
 
@@ -166,7 +287,7 @@ async def list_adapters(user: User = Depends(get_current_user)):
     )
 
 
-@router.post("/adapters/active")
+@router.post("/adapters/active", response_model=SetActiveAdapterResponse)
 async def set_active_adapter(req: SetActiveRequest, user: User = Depends(get_current_user)):
     """Switch the active browser automation adapter."""
     from app.tools.browser_adapter import browser_adapter_registry
@@ -308,7 +429,7 @@ class ToolResolveRequest(BaseModel):
     task_description: str = Field(..., min_length=1, max_length=2000)
 
 
-@router.get("/plugins/available")
+@router.get("/plugins/available", response_model=list[AvailablePluginResponse])
 async def list_available_plugins(user: User = Depends(get_current_user)):
     """List available plugins across all categories.
 
@@ -320,7 +441,7 @@ async def list_available_plugins(user: User = Depends(get_current_user)):
     return plugin_loader.list_available()
 
 
-@router.post("/plugins/search")
+@router.post("/plugins/search", response_model=list[PluginSearchResultResponse])
 async def search_plugins(req: PluginSearchRequest, user: User = Depends(get_current_user)):
     """Search for plugins using natural language.
 
@@ -331,7 +452,7 @@ async def search_plugins(req: PluginSearchRequest, user: User = Depends(get_curr
     return plugin_loader.search(req.query)
 
 
-@router.get("/plugins/installed")
+@router.get("/plugins/installed", response_model=list[InstalledPluginResponse])
 async def list_installed_plugins(user: User = Depends(get_current_user)):
     """List installed plugins."""
     from app.services.plugin_loader import plugin_loader
@@ -339,7 +460,7 @@ async def list_installed_plugins(user: User = Depends(get_current_user)):
     return plugin_loader.list_installed()
 
 
-@router.post("/plugins/check-env")
+@router.post("/plugins/check-env", response_model=PluginEnvCheckResponse)
 async def check_plugin_environment(
     req: PluginInstallRequest, user: User = Depends(get_current_user)
 ):
@@ -364,7 +485,7 @@ async def check_plugin_environment(
     }
 
 
-@router.post("/plugins/install")
+@router.post("/plugins/install", response_model=PluginInstallResponse)
 async def install_plugin(req: PluginInstallRequest, user: User = Depends(get_current_user)):
     """Install a plugin.
 
@@ -401,7 +522,7 @@ async def install_plugin(req: PluginInstallRequest, user: User = Depends(get_cur
     return result
 
 
-@router.delete("/plugins/{slug}")
+@router.delete("/plugins/{slug}", response_model=PluginUninstallResponse)
 async def uninstall_plugin(slug: str, user: User = Depends(get_current_user)):
     """Uninstall a plugin."""
     from app.services.plugin_loader import plugin_loader
@@ -417,7 +538,7 @@ async def uninstall_plugin(slug: str, user: User = Depends(get_current_user)):
 # ---------------------------------------------------------------------------
 
 
-@router.get("/tools")
+@router.get("/tools", response_model=list[ToolInfoResponse])
 async def list_tools(category: str | None = None, user: User = Depends(get_current_user)):
     """List registered tools (filterable by category).
 
@@ -428,7 +549,7 @@ async def list_tools(category: str | None = None, user: User = Depends(get_curre
     return plugin_loader.tool_registry.list_tools(category=category)
 
 
-@router.get("/tools/categories")
+@router.get("/tools/categories", response_model=list[ToolCategoryResponse])
 async def list_tool_categories(user: User = Depends(get_current_user)):
     """List tool categories and active tools."""
     from app.services.plugin_loader import plugin_loader
@@ -436,7 +557,7 @@ async def list_tool_categories(user: User = Depends(get_current_user)):
     return plugin_loader.tool_registry.list_categories()
 
 
-@router.post("/tools/select")
+@router.post("/tools/select", response_model=ToolSelectResponse)
 async def select_active_tool(req: ToolSelectRequest, user: User = Depends(get_current_user)):
     """Switch the active tool for a category.
 
@@ -457,7 +578,7 @@ async def select_active_tool(req: ToolSelectRequest, user: User = Depends(get_cu
     }
 
 
-@router.post("/tools/resolve")
+@router.post("/tools/resolve", response_model=ToolResolveResponse)
 async def resolve_tool_for_task(req: ToolResolveRequest, user: User = Depends(get_current_user)):
     """Auto-select the optimal tool for a task description.
 

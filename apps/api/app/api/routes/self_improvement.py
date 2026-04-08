@@ -19,6 +19,7 @@ import logging
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel as PydanticBaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
@@ -66,6 +67,20 @@ _stats = {
     "ab_tests_completed": 0,
     "tests_generated": 0,
 }
+
+class ImprovementApplyResponse(PydanticBaseModel):
+    status: str
+    skill_id: str
+    new_version: str
+    message: str
+
+
+class FailureSkillRegisterResponse(PydanticBaseModel):
+    status: str
+    skill_id: str
+    slug: str
+    message: str
+
 
 # Cache latest results (for approval flow)
 _latest_tuning: dict = {}
@@ -159,7 +174,7 @@ async def improve_skill_endpoint(
     )
 
 
-@router.post("/improve/apply")
+@router.post("/improve/apply", response_model=ImprovementApplyResponse)
 async def apply_improvement_endpoint(
     request: SkillImprovementApplyRequest,
     db: AsyncSession = Depends(get_db),
@@ -324,7 +339,7 @@ async def failure_to_skill_endpoint(
     )
 
 
-@router.post("/failure-to-skill/register")
+@router.post("/failure-to-skill/register", response_model=FailureSkillRegisterResponse)
 async def register_failure_skill_endpoint(
     request: FailureToSkillRegisterRequest,
     db: AsyncSession = Depends(get_db),

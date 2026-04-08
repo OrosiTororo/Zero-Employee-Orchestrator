@@ -122,6 +122,39 @@ class EscalationResponse(BaseModel):
     total: int
 
 
+class DecisionStepResponse(BaseModel):
+    step_id: str
+    summary: str
+    chosen: str = ""
+    alternatives: list[str] = []
+    reason: str = ""
+    confidence: str = ""
+    timestamp: float
+
+
+class TraceDecisionsResponse(BaseModel):
+    trace_id: str
+    decisions: list[DecisionStepResponse]
+    total: int
+
+
+class AgentInteractionsResponse(BaseModel):
+    agent_id: str
+    interactions: dict[str, int]
+    total_partners: int
+    total_messages: int
+
+
+class ActiveExecutionsListResponse(BaseModel):
+    executions: list[dict]
+    total: int
+
+
+class MonitorEventsListResponse(BaseModel):
+    events: list[dict]
+    total: int
+
+
 # ---------------------------------------------------------------------------
 # Reasoning Trace API
 # ---------------------------------------------------------------------------
@@ -181,7 +214,7 @@ async def get_trace(trace_id: str, user: User = Depends(get_current_user)):
     return _trace_to_response(trace, include_steps=True)
 
 
-@router.get("/traces/{trace_id}/decisions")
+@router.get("/traces/{trace_id}/decisions", response_model=TraceDecisionsResponse)
 async def get_trace_decisions(trace_id: str, user: User = Depends(get_current_user)):
     """Extract only the decision steps from a reasoning trace.
 
@@ -266,7 +299,7 @@ async def list_escalations(
     )
 
 
-@router.get("/communications/agent/{agent_id}/interactions")
+@router.get("/communications/agent/{agent_id}/interactions", response_model=AgentInteractionsResponse)
 async def get_agent_interactions(agent_id: str, user: User = Depends(get_current_user)):
     """Aggregated communication statistics for a specific agent.
 
@@ -329,7 +362,7 @@ async def monitor_dashboard(company_id: str | None = None, user: User = Depends(
     )
 
 
-@router.get("/monitor/active")
+@router.get("/monitor/active", response_model=ActiveExecutionsListResponse)
 async def list_active_executions(
     company_id: str | None = None, user: User = Depends(get_current_user)
 ):
@@ -341,7 +374,7 @@ async def list_active_executions(
     return {"executions": active, "total": len(active)}
 
 
-@router.get("/monitor/agent/{agent_id}")
+@router.get("/monitor/agent/{agent_id}", response_model=dict)
 async def get_agent_activity(agent_id: str, user: User = Depends(get_current_user)):
     """Get activity for a specific agent."""
     from app.orchestration.execution_monitor import get_execution_monitor
@@ -350,7 +383,7 @@ async def get_agent_activity(agent_id: str, user: User = Depends(get_current_use
     return monitor.get_agent_activity(agent_id)
 
 
-@router.get("/monitor/events")
+@router.get("/monitor/events", response_model=MonitorEventsListResponse)
 async def list_monitor_events(
     company_id: str | None = None,
     event_type: str | None = None,
