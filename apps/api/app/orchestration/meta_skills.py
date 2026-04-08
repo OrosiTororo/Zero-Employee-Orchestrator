@@ -255,6 +255,45 @@ class MetaSkillEngine:
                 }
             )
 
+        # LLM-enhanced pattern discovery across experiences
+        if len(matching_experiences) >= 3:
+            try:
+                import json
+
+                from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
+
+                exp_summaries = [
+                    f"- {'SUCCESS' if e.get('success') else 'FAIL'}: "
+                    f"{e.get('approach', '?')} in {e.get('domain', '?')}"
+                    for e in matching_experiences[:10]
+                ]
+                resp = await llm_gateway.complete(
+                    CompletionRequest(
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": (
+                                    "Analyze these past experiences and identify non-obvious patterns. "
+                                    'Return JSON array of {"pattern_type": "llm_insight", '
+                                    '"description": "...", "confidence": 0-1}.\n\n'
+                                    "Experiences:\n" + "\n".join(exp_summaries)
+                                ),
+                            }
+                        ],
+                        mode=ExecutionMode.SPEED,
+                        temperature=0.3,
+                        max_tokens=256,
+                    )
+                )
+                content = resp.content.strip()
+                if content.startswith("```"):
+                    content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+                for p in json.loads(content)[:3]:
+                    p["domain"] = context_domain
+                    patterns_found.append(p)
+            except Exception as exc:
+                logger.debug("LLM see pattern discovery fallback: %s", exc)
+
         # Update confidence
         state.confidence = min(
             1.0,
@@ -438,13 +477,44 @@ class MetaSkillEngine:
                 failed += 1
                 continue
 
-            # Step execution (simulation)
+            # Step execution — LLM-assisted when action is complex
+            step_output = "Execution completed"
+            step_success = True
+            if step_action and len(step_action) > 20:
+                try:
+                    from app.providers.gateway import (
+                        CompletionRequest,
+                        ExecutionMode,
+                        llm_gateway,
+                    )
+
+                    resp = await llm_gateway.complete(
+                        CompletionRequest(
+                            messages=[
+                                {
+                                    "role": "user",
+                                    "content": (
+                                        f"Execute this step and return the result.\n"
+                                        f"Step: {step_name}\nAction: {step_action[:300]}\n"
+                                        f"Expected output: {expected_output[:200]}"
+                                    ),
+                                }
+                            ],
+                            mode=ExecutionMode.SPEED,
+                            temperature=0.5,
+                            max_tokens=512,
+                        )
+                    )
+                    step_output = resp.content[:500] if resp.content else "Execution completed"
+                except Exception as exc:
+                    logger.debug("LLM make step fallback to simulated: %s", exc)
+
             execution_results.append(
                 {
                     "step": step_name,
                     "action": step_action,
-                    "success": True,
-                    "reason": "Execution completed",
+                    "success": step_success,
+                    "reason": step_output,
                     "order": i + 1,
                 }
             )

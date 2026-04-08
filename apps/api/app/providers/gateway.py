@@ -530,6 +530,39 @@ class LLMGateway:
             logger.debug("Ollama model discovery failed: %s", exc)
         return []
 
+    async def auto_pull_ollama_model(self, model_name: str = "llama3.2") -> bool:
+        """Auto-pull an Ollama model if none are installed locally.
+
+        Called automatically when Ollama is reachable but has no models.
+        Implements the "zero config" promise for local LLM usage.
+        """
+        try:
+            import httpx
+
+            base = getattr(self, "_ollama_url", "http://localhost:11434")
+            async with httpx.AsyncClient(timeout=300.0) as client:
+                # Check if any models exist
+                resp = await client.get(f"{base}/api/tags")
+                if resp.status_code == 200:
+                    data = resp.json()
+                    if data.get("models"):
+                        return True  # Models already installed
+
+                # Pull the default model
+                logger.info("No Ollama models found — auto-pulling %s...", model_name)
+                resp = await client.post(
+                    f"{base}/api/pull",
+                    json={"name": model_name, "stream": False},
+                    timeout=600.0,
+                )
+                if resp.status_code == 200:
+                    logger.info("Successfully pulled Ollama model: %s", model_name)
+                    await self.discover_ollama_models()
+                    return True
+        except Exception as exc:
+            logger.debug("Ollama auto-pull failed (Ollama may not be running): %s", exc)
+        return False
+
     async def ollama_health(self) -> bool:
         """Check if Ollama is reachable."""
         try:
