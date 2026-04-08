@@ -95,11 +95,14 @@ These features require a user base and community participation.
 
 | Priority | Feature | Description |
 |:--------:|---------|-------------|
-| High | **Community Skill Ecosystem** | Large-scale Skill/Plugin sharing, reviews, ratings |
-| High | **Marketplace production operation** | User-submitted content, moderation, install counts |
+| **High** | **Discord community server** | Official Discord for user support, feature requests, and plugin sharing |
+| **High** | **Community Skill Ecosystem** | Large-scale Skill/Plugin sharing, reviews, ratings |
+| **High** | **Marketplace production operation** | User-submitted content, moderation, install counts |
+| **High** | **Native mobile app** | React Native / Flutter client with Dispatch integration (phone → desktop) |
 | High | **Anonymous Feedback Aggregation** | Privacy-preserving Experience Memory sharing |
 | Medium | **Cross-Model Large-scale Verification** | Community-contributed verification datasets |
 | Medium | **Multilingual Experience Memory** | Shared knowledge across language boundaries |
+| Medium | **Vector DB production integration** | Pinecone/Qdrant/ChromaDB for embedding-based RAG at scale |
 
 ## v0.3 — Enterprise & Scale (Requires Funding/Infrastructure)
 

@@ -17,6 +17,111 @@ router = APIRouter()
 
 
 # ===================================================================
+# Shared response models
+# ===================================================================
+
+
+class StatusResponse(BaseModel):
+    """Generic status response used across multiple endpoints."""
+
+    success: bool = True
+    message: str = ""
+
+
+class MCPCapabilitiesResponse(BaseModel):
+    tools: list[dict] = []
+    resources: list[dict] = []
+    prompts: list[dict] = []
+
+
+class MCPToolCallResponse(BaseModel):
+    result: dict | list | str | None = None
+
+
+class ExternalSkillSearchResult(BaseModel):
+    name: str
+    slug: str
+    description: str = ""
+    source_type: str
+    source_uri: str = ""
+    author: str = ""
+    stars: int = 0
+    downloads: int = 0
+
+
+class ExternalSkillSearchResponse(BaseModel):
+    results: list[ExternalSkillSearchResult]
+    total: int
+
+
+class SkillImportResponse(BaseModel):
+    installed: bool
+    skill_id: str
+    name: str
+    slug: str
+    source: str
+
+
+class SentryEventsResponse(BaseModel):
+    events: list[dict]
+    total: int
+
+
+class SentryCaptureResponse(BaseModel):
+    event_id: str
+    captured: bool
+
+
+class IAMAccountResponse(BaseModel):
+    account_id: str
+    agent_id: str
+    account_name: str
+    token: str = ""
+    permissions: list[str] = []
+
+
+class IAMAccountListResponse(BaseModel):
+    accounts: list[dict]
+
+
+class InvestigationHistoryResponse(BaseModel):
+    history: list[dict]
+
+
+class HypothesisListResponse(BaseModel):
+    hypotheses: list[dict]
+
+
+class EvidenceResponse(BaseModel):
+    evidence_id: str
+    added: bool
+
+
+class ReviewResponse(BaseModel):
+    review_id: str
+    submitted: bool
+
+
+class ResolveResponse(BaseModel):
+    resolved: bool
+    confirmed: bool
+
+
+class SessionListResponse(BaseModel):
+    sessions: list[dict]
+
+
+class SessionMessageResponse(BaseModel):
+    added: bool
+    message_count: int
+
+
+class WorkingMemoryResponse(BaseModel):
+    stored: bool
+    key: str
+
+
+# ===================================================================
 # MCP endpoints
 # ===================================================================
 
@@ -26,7 +131,7 @@ class MCPToolCallRequest(BaseModel):
     arguments: dict = {}
 
 
-@router.get("/mcp/capabilities")
+@router.get("/mcp/capabilities", response_model=MCPCapabilitiesResponse)
 async def mcp_capabilities(user: User = Depends(get_current_user)):
     """Get MCP server capabilities."""
     from app.integrations.mcp_server import mcp_server
@@ -42,7 +147,7 @@ async def mcp_list_tools(user: User = Depends(get_current_user)):
     return await mcp_server.handle_list_tools()
 
 
-@router.post("/mcp/tools/call")
+@router.post("/mcp/tools/call", response_model=MCPToolCallResponse)
 async def mcp_call_tool(req: MCPToolCallRequest, user: User = Depends(get_current_user)):
     """Execute MCP tool."""
     from app.integrations.mcp_server import mcp_server
@@ -82,7 +187,7 @@ class SkillImportRequest(BaseModel):
     source_uri: str
 
 
-@router.post("/skills/external/search")
+@router.post("/skills/external/search", response_model=ExternalSkillSearchResponse)
 async def search_external_skills(req: SkillSearchRequest, user: User = Depends(get_current_user)):
     """Search for skills from external sources."""
     from app.integrations.external_skills import SkillSourceType, skill_importer
@@ -107,7 +212,7 @@ async def search_external_skills(req: SkillSearchRequest, user: User = Depends(g
     }
 
 
-@router.post("/skills/external/import")
+@router.post("/skills/external/import", response_model=SkillImportResponse)
 async def import_external_skill(
     req: SkillImportRequest,
     user: User = Depends(get_current_user),
@@ -155,7 +260,7 @@ async def sentry_stats(user: User = Depends(get_current_user)):
     return sentry.get_error_stats()
 
 
-@router.get("/sentry/events")
+@router.get("/sentry/events", response_model=SentryEventsResponse)
 async def sentry_events(
     level: str | None = None,
     event_type: str | None = None,
@@ -174,7 +279,7 @@ async def sentry_events(
     }
 
 
-@router.post("/sentry/capture")
+@router.post("/sentry/capture", response_model=SentryCaptureResponse)
 async def sentry_capture_message(
     message: str = "",
     level: str = "info",
@@ -200,7 +305,7 @@ class CreateAIAccountRequest(BaseModel):
     custom_permissions: list[str] | None = None
 
 
-@router.post("/iam/ai-accounts")
+@router.post("/iam/ai-accounts", response_model=IAMAccountResponse)
 async def create_ai_account(
     req: CreateAIAccountRequest,
     user: User = Depends(get_current_user),
@@ -226,7 +331,7 @@ async def create_ai_account(
     }
 
 
-@router.get("/iam/ai-accounts")
+@router.get("/iam/ai-accounts", response_model=IAMAccountListResponse)
 async def list_ai_accounts(
     company_id: str | None = None,
     user: User = Depends(get_current_user),
@@ -344,7 +449,7 @@ async def investigate_metrics(
     return await ai_investigator.get_system_metrics(db)
 
 
-@router.get("/investigate/history")
+@router.get("/investigate/history", response_model=InvestigationHistoryResponse)
 async def investigate_history(limit: int = 50, user: User = Depends(get_current_user)):
     """AI investigation: investigation history."""
     from app.integrations.ai_investigator import ai_investigator
@@ -428,7 +533,7 @@ async def get_hypothesis(hypothesis_id: str, user: User = Depends(get_current_us
     return h.to_dict()
 
 
-@router.post("/hypotheses/evidence")
+@router.post("/hypotheses/evidence", response_model=EvidenceResponse)
 async def add_evidence(req: EvidenceRequest, user: User = Depends(get_current_user)):
     """Add evidence."""
     from app.orchestration.hypothesis_engine import hypothesis_engine
@@ -447,7 +552,7 @@ async def add_evidence(req: EvidenceRequest, user: User = Depends(get_current_us
     return {"evidence_id": ev.evidence_id, "added": True}
 
 
-@router.post("/hypotheses/review")
+@router.post("/hypotheses/review", response_model=ReviewResponse)
 async def submit_review(req: ReviewRequest, user: User = Depends(get_current_user)):
     """Submit a review."""
     from app.orchestration.hypothesis_engine import ReviewVerdict, hypothesis_engine
@@ -465,7 +570,7 @@ async def submit_review(req: ReviewRequest, user: User = Depends(get_current_use
     return {"review_id": review.review_id, "submitted": True}
 
 
-@router.post("/hypotheses/{hypothesis_id}/resolve")
+@router.post("/hypotheses/{hypothesis_id}/resolve", response_model=ResolveResponse)
 async def resolve_hypothesis(
     hypothesis_id: str, confirmed: bool = True, user: User = Depends(get_current_user)
 ):
@@ -478,7 +583,7 @@ async def resolve_hypothesis(
     return {"resolved": True, "confirmed": confirmed}
 
 
-@router.get("/hypotheses/needing-review")
+@router.get("/hypotheses/needing-review", response_model=HypothesisListResponse)
 async def hypotheses_needing_review(
     company_id: str | None = None, user: User = Depends(get_current_user)
 ):
@@ -587,7 +692,7 @@ async def get_or_create_session(
     return session.to_dict()
 
 
-@router.post("/sessions/message")
+@router.post("/sessions/message", response_model=SessionMessageResponse)
 async def add_session_message(req: SessionMessageRequest, user: User = Depends(get_current_user)):
     """Add a message to a session."""
     from app.orchestration.agent_session import session_manager
@@ -599,7 +704,7 @@ async def add_session_message(req: SessionMessageRequest, user: User = Depends(g
     return {"added": True, "message_count": session.message_count}
 
 
-@router.post("/sessions/memory")
+@router.post("/sessions/memory", response_model=WorkingMemoryResponse)
 async def add_working_memory(req: WorkingMemoryRequest, user: User = Depends(get_current_user)):
     """Add information to working memory."""
     from app.orchestration.agent_session import session_manager
