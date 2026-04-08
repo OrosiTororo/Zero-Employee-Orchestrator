@@ -521,7 +521,7 @@ async def publish_skill_to_marketplace(
     user: User = Depends(get_current_user),
 ):
     """Publish a user-created skill to the marketplace."""
-    skill = await registry_service.get_skill(db, skill_id)
+    skill = await skill_service.get_skill(db, skill_id)
     if skill is None:
         raise HTTPException(status_code=404, detail="Skill not found")
     if skill.is_system_protected:

@@ -296,12 +296,19 @@ async def google_poll(state: str):
 
 @router.post("/oauth/login", response_model=LoginResponse)
 async def oauth_login(req: OAuthLoginRequest, db: AsyncSession = Depends(get_db)):
-    """Login via OAuth provider (Google, GitHub, etc.)."""
-    raise HTTPException(
-        status_code=501,
-        detail=f"OAuth provider '{req.provider}' is not yet supported via this endpoint. "
-        "Use the /auth/google/authorize flow for Google login.",
-    )
+    """Login via OAuth provider.
+
+    Currently supported: google (via /auth/google/authorize).
+    Other providers (github, microsoft, okta) are on the roadmap.
+    """
+    supported = ["google"]
+    if req.provider.lower() not in supported:
+        raise HTTPException(
+            status_code=400,
+            detail=f"OAuth provider '{req.provider}' is not yet supported. "
+            f"Supported providers: {', '.join(supported)}. "
+            "Use POST /auth/google/authorize for Google OAuth.",
+        )
 
 
 def _oauth_result_html(*, success: bool, message: str | None = None) -> str:
