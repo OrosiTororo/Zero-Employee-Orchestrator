@@ -266,26 +266,69 @@ class AutoGenAdapter(AgentFrameworkAdapter):
 class LangChainAdapter(AgentFrameworkAdapter):
     """LangChain agent executor adapter.
 
+    Runs a LangChain AgentExecutor with the ReAct agent type.
+    Falls back to a simple LLM chain if agent tools are not configured.
+
     Installed via: Plugin "langchain-agent"
     Requires: pip install langchain langchain-openai
     """
 
     async def execute_task(self, task: AgentTask) -> dict:
         try:
-            from langchain.agents import AgentExecutor as _AgentExecutor  # noqa: F401
+            import asyncio as _aio
 
-            # Minimal agent creation — full config via task.context
+            from langchain.agents import AgentType, initialize_agent
+            from langchain.tools import Tool
+            from langchain_openai import ChatOpenAI
+
+            # Build LLM from task context or env
+            model = task.context.get("model", "gpt-4o-mini")
+            api_key = task.context.get("api_key", "")
+            llm_kwargs: dict = {"model": model, "temperature": 0.7}
+            if api_key:
+                llm_kwargs["api_key"] = api_key
+            llm = ChatOpenAI(**llm_kwargs)
+
+            # Build tools from task context
+            tool_defs = task.context.get("tools", [])
+            tools = []
+            for td in tool_defs:
+                tools.append(
+                    Tool(
+                        name=td.get("name", "tool"),
+                        description=td.get("description", ""),
+                        func=lambda x: x,  # placeholder — real tools wired via MCP
+                    )
+                )
+
+            if tools:
+                agent = initialize_agent(
+                    tools=tools,
+                    llm=llm,
+                    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+                    verbose=False,
+                    max_iterations=task.max_steps,
+                    handle_parsing_errors=True,
+                )
+                result = await _aio.to_thread(agent.run, task.instruction)
+            else:
+                # No tools — direct LLM invocation
+                from langchain.schema import HumanMessage
+
+                response = await _aio.to_thread(
+                    llm.invoke, [HumanMessage(content=task.instruction)]
+                )
+                result = response.content if hasattr(response, "content") else str(response)
+
             return {
                 "success": True,
-                "result": "",
+                "result": str(result),
                 "framework": "langchain",
-                "delegate_to_llm": True,
-                "context": task.instruction,
             }
         except ImportError:
             return {
                 "success": False,
-                "error": "langchain not installed. Run: pip install langchain",
+                "error": "langchain not installed. Run: pip install langchain langchain-openai",
             }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -307,32 +350,194 @@ class LangChainAdapter(AgentFrameworkAdapter):
 
 
 class OpenClawAdapter(AgentFrameworkAdapter):
-    """OpenClaw AI agent adapter.
+    """OpenClaw AI agent adapter — via REST API.
 
-    Installed via: Plugin "openclaw-agent"
+    Connects to a running OpenClaw instance and delegates task execution.
+    Requires OPENCLAW_URL environment variable (e.g. http://localhost:8080).
     """
 
     async def execute_task(self, task: AgentTask) -> dict:
+        import os
+
+        base_url = os.environ.get("OPENCLAW_URL", task.context.get("openclaw_url", ""))
+        if not base_url:
+            return {
+                "success": False,
+                "error": "OPENCLAW_URL not configured. Set env var or pass openclaw_url in context.",
+            }
         try:
-            # OpenClaw integration via its API
+            import httpx
+
+            async with httpx.AsyncClient(timeout=120) as client:
+                resp = await client.post(
+                    f"{base_url.rstrip('/')}/api/v1/tasks",
+                    json={
+                        "instruction": task.instruction,
+                        "context": task.context,
+                        "max_steps": task.max_steps,
+                    },
+                )
+                resp.raise_for_status()
+                data = resp.json()
             return {
                 "success": True,
-                "result": "",
+                "result": data.get("result", str(data)),
                 "framework": "openclaw",
-                "delegate_to_llm": True,
-                "context": task.instruction,
             }
+        except ImportError:
+            return {"success": False, "error": "httpx not installed"}
         except Exception as e:
             return {"success": False, "error": str(e)}
 
     async def health_check(self) -> dict:
-        return {"ok": True, "note": "OpenClaw uses REST API"}
+        import os
+
+        base_url = os.environ.get("OPENCLAW_URL", "")
+        if not base_url:
+            return {"ok": False, "error": "OPENCLAW_URL not set"}
+        try:
+            import httpx
+
+            async with httpx.AsyncClient(timeout=5) as client:
+                resp = await client.get(f"{base_url.rstrip('/')}/health")
+                return {"ok": resp.status_code == 200}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
 
     def get_capabilities(self) -> AdapterCapabilities:
         return AdapterCapabilities(
             tool_use=True,
             web_browsing=True,
             code_execution=True,
+        )
+
+
+class DifyAdapter(AgentFrameworkAdapter):
+    """Dify workflow/agent adapter — via REST API.
+
+    Connects to a Dify instance and runs workflows or agent conversations.
+    Requires DIFY_URL and DIFY_API_KEY environment variables.
+    """
+
+    async def execute_task(self, task: AgentTask) -> dict:
+        import os
+
+        base_url = os.environ.get("DIFY_URL", task.context.get("dify_url", ""))
+        api_key = os.environ.get("DIFY_API_KEY", task.context.get("dify_api_key", ""))
+        if not base_url or not api_key:
+            return {
+                "success": False,
+                "error": "DIFY_URL and DIFY_API_KEY must be configured.",
+            }
+        try:
+            import httpx
+
+            async with httpx.AsyncClient(timeout=120) as client:
+                resp = await client.post(
+                    f"{base_url.rstrip('/')}/v1/chat-messages",
+                    headers={"Authorization": f"Bearer {api_key}"},
+                    json={
+                        "inputs": task.context.get("inputs", {}),
+                        "query": task.instruction,
+                        "response_mode": "blocking",
+                        "user": task.context.get("user", "zeo-orchestrator"),
+                    },
+                )
+                resp.raise_for_status()
+                data = resp.json()
+            return {
+                "success": True,
+                "result": data.get("answer", str(data)),
+                "conversation_id": data.get("conversation_id"),
+                "framework": "dify",
+            }
+        except ImportError:
+            return {"success": False, "error": "httpx not installed"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    async def health_check(self) -> dict:
+        import os
+
+        base_url = os.environ.get("DIFY_URL", "")
+        if not base_url:
+            return {"ok": False, "error": "DIFY_URL not set"}
+        try:
+            import httpx
+
+            async with httpx.AsyncClient(timeout=5) as client:
+                resp = await client.get(f"{base_url.rstrip('/')}/v1/parameters")
+                return {"ok": resp.status_code in (200, 401)}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_capabilities(self) -> AdapterCapabilities:
+        return AdapterCapabilities(
+            tool_use=True,
+            memory=True,
+            streaming=True,
+        )
+
+
+class N8NAgentAdapter(AgentFrameworkAdapter):
+    """n8n workflow-as-agent adapter — via webhook trigger.
+
+    Runs an n8n workflow that acts as an AI agent. The workflow receives
+    the task instruction and returns the result via webhook response.
+    Requires N8N_WEBHOOK_URL environment variable.
+    """
+
+    async def execute_task(self, task: AgentTask) -> dict:
+        import os
+
+        webhook_url = os.environ.get(
+            "N8N_AGENT_WEBHOOK_URL",
+            task.context.get("n8n_webhook_url", ""),
+        )
+        if not webhook_url:
+            return {
+                "success": False,
+                "error": "N8N_AGENT_WEBHOOK_URL not configured.",
+            }
+        try:
+            import httpx
+
+            async with httpx.AsyncClient(timeout=120) as client:
+                resp = await client.post(
+                    webhook_url,
+                    json={
+                        "instruction": task.instruction,
+                        "context": task.context,
+                        "max_steps": task.max_steps,
+                    },
+                )
+                resp.raise_for_status()
+                data = (
+                    resp.json()
+                    if resp.headers.get("content-type", "").startswith("application/json")
+                    else {"result": resp.text}
+                )
+            return {
+                "success": True,
+                "result": data.get("result", str(data)),
+                "framework": "n8n",
+            }
+        except ImportError:
+            return {"success": False, "error": "httpx not installed"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    async def health_check(self) -> dict:
+        import os
+
+        url = os.environ.get("N8N_AGENT_WEBHOOK_URL", "")
+        return {"ok": bool(url), "note": "n8n health depends on workflow availability"}
+
+    def get_capabilities(self) -> AdapterCapabilities:
+        return AdapterCapabilities(
+            tool_use=True,
+            web_browsing=True,
+            memory=True,
         )
 
 
@@ -346,6 +551,8 @@ _FRAMEWORK_ADAPTERS: dict[str, type[AgentFrameworkAdapter]] = {
     AgentFrameworkType.AUTOGEN: AutoGenAdapter,
     AgentFrameworkType.LANGCHAIN: LangChainAdapter,
     AgentFrameworkType.OPENCLAW: OpenClawAdapter,
+    AgentFrameworkType.DIFY: DifyAdapter,
+    AgentFrameworkType.N8N: N8NAgentAdapter,
 }
 
 

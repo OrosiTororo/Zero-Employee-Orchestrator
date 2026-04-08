@@ -191,6 +191,67 @@ async def readiness_check():
     return {"status": "ok"}
 
 
+@app.get("/.well-known/agent.json", tags=["a2a"])
+async def a2a_agent_card():
+    """A2A Agent Card — enables cross-framework agent discovery.
+
+    Follows the Agent-to-Agent (A2A) protocol specification:
+    agents publish a JSON card at /.well-known/agent.json describing
+    their identity, capabilities, skills, and service endpoint.
+    """
+    return {
+        "name": "Zero-Employee Orchestrator",
+        "description": (
+            "AI meta-orchestrator — unifies every AI framework, LLM provider, "
+            "and business tool under human approval, audit trail, and security."
+        ),
+        "url": f"http://localhost:{settings.PORT or 18234}",
+        "version": "0.1.5",
+        "protocol_version": "0.3",
+        "capabilities": {
+            "streaming": True,
+            "push_notifications": True,
+        },
+        "authentication": {
+            "schemes": ["bearer"],
+        },
+        "default_input_modes": ["text/plain", "application/json"],
+        "default_output_modes": ["text/plain", "application/json"],
+        "skills": [
+            {
+                "id": "task_orchestration",
+                "name": "Task Orchestration",
+                "description": "Decompose tasks into DAG, execute with multi-model LLMs, verify via Judge layer",
+                "tags": ["orchestration", "planning", "execution"],
+            },
+            {
+                "id": "meta_orchestration",
+                "name": "Meta-Orchestration",
+                "description": "Delegate tasks to CrewAI, AutoGen, LangChain, Dify, n8n agents",
+                "tags": ["crewai", "autogen", "langchain", "dify", "n8n"],
+            },
+            {
+                "id": "knowledge_search",
+                "name": "Knowledge Search",
+                "description": "Search experience memory with TF-IDF + cosine + LLM re-ranking",
+                "tags": ["rag", "search", "memory"],
+            },
+            {
+                "id": "security_review",
+                "name": "Security Review",
+                "description": "PII detection, prompt injection defense, approval gates",
+                "tags": ["security", "pii", "approval"],
+            },
+            {
+                "id": "media_generation",
+                "name": "Media Generation",
+                "description": "Generate images, video, audio, music, 3D content",
+                "tags": ["media", "image", "video", "audio"],
+            },
+        ],
+    }
+
+
 @app.get("/", tags=["health"])
 async def root():
     """Root endpoint — guide users to the correct URL."""

@@ -93,16 +93,42 @@ class MediaProviderResponse(BaseModel):
     cost_per_generation: float
 
 
+class ProviderRegisteredResponse(BaseModel):
+    """Provider registration result."""
+
+    status: str
+    provider: dict
+
+
+class ProviderUnregisteredResponse(BaseModel):
+    """Provider removal result."""
+
+    status: str
+    provider_id: str
+
+
+class GenerationStatusResponse(BaseModel):
+    """Generation status result."""
+
+    request_id: str
+    status: str
+    media_type: str
+    provider: str
+    output_url: str = ""
+    error: str = ""
+    cost_usd: float = 0.0
+
+
 # ---------- Provider listing ----------
 
 
-@router.get("/providers")
+@router.get("/providers", response_model=list[MediaProviderResponse])
 async def list_providers() -> list[dict]:
     """List available media generation providers (built-in + user-registered)."""
     return media_provider_registry.get_available()
 
 
-@router.get("/providers/{media_type}")
+@router.get("/providers/{media_type}", response_model=list[MediaProviderResponse])
 async def list_providers_by_type(media_type: str) -> list[dict]:
     """List providers by media type."""
     _validate_media_type(media_type)
@@ -112,7 +138,7 @@ async def list_providers_by_type(media_type: str) -> list[dict]:
 # ---------- Provider registration ----------
 
 
-@router.post("/providers", status_code=201)
+@router.post("/providers", status_code=201, response_model=ProviderRegisteredResponse)
 async def register_provider(
     req: MediaProviderRegisterRequest,
     user: User = Depends(get_current_user),
@@ -146,7 +172,7 @@ async def register_provider(
     return {"status": "registered", "provider": entry.to_dict()}
 
 
-@router.delete("/providers/{provider_id}")
+@router.delete("/providers/{provider_id}", response_model=ProviderUnregisteredResponse)
 async def unregister_provider(
     provider_id: str,
     user: User = Depends(get_current_user),
@@ -208,7 +234,7 @@ async def generate_media(
 # ---------- Status ----------
 
 
-@router.get("/status/{request_id}")
+@router.get("/status/{request_id}", response_model=GenerationStatusResponse)
 async def get_generation_status(request_id: str) -> dict:
     """Get generation request status."""
     result = media_generation_service.get_result(request_id)

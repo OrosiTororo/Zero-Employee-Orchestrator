@@ -891,9 +891,20 @@ class AppConnectorHub:
         """Return an app-specific sync handler if available."""
         handlers = {
             "obsidian": self._sync_obsidian,
-            "notion": self._sync_generic_api,
+            "notion": self._sync_notion,
             "logseq": self._sync_local_files,
             "joplin": self._sync_generic_api,
+            "slack": self._sync_slack,
+            "github": self._sync_github,
+            "google_docs": self._sync_generic_api,
+            "google_drive": self._sync_generic_api,
+            "google_calendar": self._sync_generic_api,
+            "gmail": self._sync_generic_api,
+            "jira": self._sync_generic_api,
+            "linear": self._sync_generic_api,
+            "discord": self._sync_generic_api,
+            "hubspot": self._sync_generic_api,
+            "salesforce": self._sync_generic_api,
         }
         return handlers.get(app_id)
 
@@ -919,6 +930,100 @@ class AppConnectorHub:
             }
 
         return {"items_read": 0, "items_written": 0, "items_skipped": 0}
+
+    async def _sync_notion(
+        self,
+        conn: AppConnection,
+        direction: AppDataDirection,
+        options: dict[str, Any],
+    ) -> dict[str, int]:
+        """Notion sync handler — reads pages from a Notion database/workspace."""
+        api_key = conn.config.get("api_key") or conn.config.get("token", "")
+        if not api_key:
+            logger.warning("Notion sync: no API key configured")
+            return {"items_read": 0, "items_written": 0, "items_skipped": 0}
+        try:
+            import httpx
+
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Notion-Version": "2022-06-28",
+                "Content-Type": "application/json",
+            }
+            async with httpx.AsyncClient(timeout=30) as client:
+                resp = await client.post(
+                    "https://api.notion.com/v1/search",
+                    headers=headers,
+                    json={"filter": {"property": "object", "value": "page"}, "page_size": 50},
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                pages = data.get("results", [])
+            return {"items_read": len(pages), "items_written": 0, "items_skipped": 0}
+        except Exception as e:
+            logger.error("Notion sync failed: %s", e)
+            return {"items_read": 0, "items_written": 0, "items_skipped": 0}
+
+    async def _sync_slack(
+        self,
+        conn: AppConnection,
+        direction: AppDataDirection,
+        options: dict[str, Any],
+    ) -> dict[str, int]:
+        """Slack sync handler — reads channel list and recent messages."""
+        token = conn.config.get("token") or conn.config.get("api_key", "")
+        if not token:
+            logger.warning("Slack sync: no token configured")
+            return {"items_read": 0, "items_written": 0, "items_skipped": 0}
+        try:
+            import httpx
+
+            headers = {"Authorization": f"Bearer {token}"}
+            async with httpx.AsyncClient(timeout=30) as client:
+                resp = await client.get(
+                    "https://slack.com/api/conversations.list",
+                    headers=headers,
+                    params={"limit": 50, "types": "public_channel,private_channel"},
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                channels = data.get("channels", [])
+            return {"items_read": len(channels), "items_written": 0, "items_skipped": 0}
+        except Exception as e:
+            logger.error("Slack sync failed: %s", e)
+            return {"items_read": 0, "items_written": 0, "items_skipped": 0}
+
+    async def _sync_github(
+        self,
+        conn: AppConnection,
+        direction: AppDataDirection,
+        options: dict[str, Any],
+    ) -> dict[str, int]:
+        """GitHub sync handler — reads repositories, issues, PRs."""
+        token = conn.config.get("token") or conn.config.get("api_key", "")
+        if not token:
+            logger.warning("GitHub sync: no token configured")
+            return {"items_read": 0, "items_written": 0, "items_skipped": 0}
+        try:
+            import httpx
+
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28",
+            }
+            async with httpx.AsyncClient(timeout=30) as client:
+                resp = await client.get(
+                    "https://api.github.com/user/repos",
+                    headers=headers,
+                    params={"per_page": 50, "sort": "updated"},
+                )
+                resp.raise_for_status()
+                repos = resp.json()
+            return {"items_read": len(repos), "items_written": 0, "items_skipped": 0}
+        except Exception as e:
+            logger.error("GitHub sync failed: %s", e)
+            return {"items_read": 0, "items_written": 0, "items_skipped": 0}
 
     async def _sync_generic_api(
         self,

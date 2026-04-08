@@ -66,13 +66,19 @@ class OrgGenerateResponse(BaseModel):
     total_agents: int
 
 
+class InterviewQuestionsResponse(BaseModel):
+    """Interview questions list."""
+
+    questions: list[dict]
+
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
 
 
 # No auth required: onboarding questions are public
-@router.get("/interview/questions")
+@router.get("/interview/questions", response_model=InterviewQuestionsResponse)
 async def get_interview_questions(request: Request):
     """Get list of organization setup interview questions.
 

@@ -12,6 +12,7 @@ Initial settings are the most secure:
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
@@ -101,15 +102,170 @@ class PIICheckRequest(BaseModel):
 class SecurityOverviewResponse(BaseModel):
     """Security settings overview."""
 
-    sandbox: dict
-    data_protection: dict
-    pii_protection: dict
+    sandbox: dict[str, Any]
+    data_protection: dict[str, Any]
+    pii_protection: dict[str, Any]
+
+
+# --- Sandbox response models ---
+
+
+class SandboxConfigResponse(BaseModel):
+    """Sandbox configuration response."""
+
+    level: str
+    allowed_paths: list[str]
+    denied_paths: list[str]
+    max_file_size_mb: int
+    allow_symlink_follow: bool
+
+
+class SandboxUpdateResponse(BaseModel):
+    """Sandbox update result."""
+
+    status: str
+    level: str
+
+
+class AllowedPathAddResponse(BaseModel):
+    """Allowed path add result."""
+
+    status: str
+    path: str
+    total_allowed: int
+
+
+class AllowedPathRemoveResponse(BaseModel):
+    """Allowed path remove result."""
+
+    status: str
+    path: str
+
+
+class AccessCheckResponse(BaseModel):
+    """Access check result."""
+
+    allowed: bool
+    path: str
+    access_type: str
+    reason: str
+    sandbox_level: str
+
+
+# --- Data protection response models ---
+
+
+class DataProtectionConfigResponse(BaseModel):
+    """Data protection configuration response."""
+
+    transfer_policy: str
+    upload_enabled: bool
+    upload_allowed_destinations: list[str]
+    upload_max_size_mb: int
+    upload_require_approval: bool
+    download_enabled: bool
+    download_allowed_sources: list[str]
+    download_max_size_mb: int
+    download_require_approval: bool
+    external_api_enabled: bool
+    external_api_allowed_hosts: list[str]
+    external_api_require_approval: bool
+    pii_auto_detect: bool
+    pii_block_upload: bool
+    password_upload_blocked: bool
+
+
+class DataProtectionUpdateResponse(BaseModel):
+    """Data protection update result."""
+
+    status: str
+    policy: str
+
+
+# --- PII response models ---
+
+
+class PIICategoryResponse(BaseModel):
+    """Single PII category entry."""
+
+    id: str
+    name: str
+
+
+class PIICheckResponse(BaseModel):
+    """PII check result."""
+
+    has_pii: bool
+    detected_count: int
+    detected_types: list[str]
+    masked_text: str
+
+
+# --- Workspace response models ---
+
+
+class WorkspaceConfigResponse(BaseModel):
+    """Workspace configuration response."""
+
+    local_access_enabled: bool
+    cloud_access_enabled: bool
+    allowed_local_paths: list[str]
+    cloud_providers: list[str]
+    storage_location: str
+    internal_storage_path: str
+    access_scope: str
+
+
+class WorkspaceUpdateResponse(BaseModel):
+    """Workspace update result."""
+
+    status: str
+    access_scope: str
+
+
+class TaskOverrideSetResponse(BaseModel):
+    """Task workspace override set result."""
+
+    status: str
+    task_id: str
+    requires_approval: bool
+
+
+class TaskOverrideApproveResponse(BaseModel):
+    """Task workspace override approval result."""
+
+    status: str
+    task_id: str
+
+
+# --- Red team response models ---
+
+
+class RedTeamTestResult(BaseModel):
+    """Single red team test result."""
+
+    test_id: str
+    passed: bool
+    vulnerability_found: bool
+    details: str
+
+
+class RedTeamRunResponse(BaseModel):
+    """Red team run result."""
+
+    total: int
+    passed: int
+    failed: int
+    critical_findings: int | None = None
+    high_findings: int | None = None
+    summary: str | None = None
+    results: list[RedTeamTestResult]
 
 
 # ---------- Endpoints ----------
 
 
-@router.get("/overview")
+@router.get("/overview", response_model=SecurityOverviewResponse)
 async def get_security_overview(
     user: User = Depends(get_current_user),
     sandbox: FileSystemSandbox = Depends(get_sandbox),
@@ -150,11 +306,11 @@ async def get_security_overview(
 # --- Sandbox ---
 
 
-@router.get("/sandbox")
+@router.get("/sandbox", response_model=SandboxConfigResponse)
 async def get_sandbox_config(
     user: User = Depends(get_current_user),
     sandbox: FileSystemSandbox = Depends(get_sandbox),
-) -> dict:
+) -> SandboxConfigResponse:
     """Get sandbox configuration."""
     config = sandbox.config
     return {
@@ -166,12 +322,12 @@ async def get_sandbox_config(
     }
 
 
-@router.put("/sandbox")
+@router.put("/sandbox", response_model=SandboxUpdateResponse)
 async def update_sandbox_config(
     req: SandboxConfigRequest,
     user: User = Depends(get_current_user),
     sandbox: FileSystemSandbox = Depends(get_sandbox),
-) -> dict:
+) -> SandboxUpdateResponse:
     """Update sandbox configuration."""
     try:
         level = SandboxLevel(req.level)
@@ -193,12 +349,12 @@ async def update_sandbox_config(
     return {"status": "updated", "level": level.value}
 
 
-@router.post("/sandbox/allowed-paths")
+@router.post("/sandbox/allowed-paths", response_model=AllowedPathAddResponse)
 async def add_allowed_path(
     req: AllowedPathRequest,
     user: User = Depends(get_current_user),
     sandbox: FileSystemSandbox = Depends(get_sandbox),
-) -> dict:
+) -> AllowedPathAddResponse:
     """Add an allowed path."""
     sandbox.add_allowed_path(req.path)
     return {
@@ -208,23 +364,23 @@ async def add_allowed_path(
     }
 
 
-@router.delete("/sandbox/allowed-paths")
+@router.delete("/sandbox/allowed-paths", response_model=AllowedPathRemoveResponse)
 async def remove_allowed_path(
     req: AllowedPathRequest,
     user: User = Depends(get_current_user),
     sandbox: FileSystemSandbox = Depends(get_sandbox),
-) -> dict:
+) -> AllowedPathRemoveResponse:
     """Remove an allowed path."""
     sandbox.remove_allowed_path(req.path)
     return {"status": "removed", "path": req.path}
 
 
-@router.post("/sandbox/check-access")
+@router.post("/sandbox/check-access", response_model=AccessCheckResponse)
 async def check_access(
     req: AccessCheckRequest,
     user: User = Depends(get_current_user),
     sandbox: FileSystemSandbox = Depends(get_sandbox),
-) -> dict:
+) -> AccessCheckResponse:
     """Check whether access to a path is allowed."""
     try:
         access_type = AccessType(req.access_type)
@@ -247,11 +403,11 @@ async def check_access(
 # --- Data Protection ---
 
 
-@router.get("/data-protection")
+@router.get("/data-protection", response_model=DataProtectionConfigResponse)
 async def get_data_protection_config(
     user: User = Depends(get_current_user),
     dp_guard: DataProtectionGuard = Depends(get_data_protection),
-) -> dict:
+) -> DataProtectionConfigResponse:
     """Get data protection configuration."""
     config = dp_guard.config
     return {
@@ -273,12 +429,12 @@ async def get_data_protection_config(
     }
 
 
-@router.put("/data-protection")
+@router.put("/data-protection", response_model=DataProtectionUpdateResponse)
 async def update_data_protection_config(
     req: DataProtectionConfigRequest,
     user: User = Depends(get_current_user),
     dp_guard: DataProtectionGuard = Depends(get_data_protection),
-) -> dict:
+) -> DataProtectionUpdateResponse:
     """Update data protection configuration."""
     try:
         policy = TransferPolicy(req.transfer_policy)
@@ -313,14 +469,18 @@ async def update_data_protection_config(
 # --- PII ---
 
 
-@router.get("/pii/categories")
-async def get_pii_categories_list(user: User = Depends(get_current_user)) -> list[dict]:
+@router.get("/pii/categories", response_model=list[PIICategoryResponse])
+async def get_pii_categories_list(
+    user: User = Depends(get_current_user),
+) -> list[PIICategoryResponse]:
     """Return PII category list."""
     return get_pii_categories()
 
 
-@router.post("/pii/check")
-async def check_pii(req: PIICheckRequest, user: User = Depends(get_current_user)) -> dict:
+@router.post("/pii/check", response_model=PIICheckResponse)
+async def check_pii(
+    req: PIICheckRequest, user: User = Depends(get_current_user)
+) -> PIICheckResponse:
     """Check text for PII."""
     result = detect_and_mask_pii(req.text)
     return {
@@ -353,11 +513,11 @@ class TaskWorkspaceOverrideRequest(BaseModel):
     output_path: str | None = None
 
 
-@router.get("/workspace")
+@router.get("/workspace", response_model=WorkspaceConfigResponse)
 async def get_workspace_config(
     user: User = Depends(get_current_user),
     ws_isolation: WorkspaceIsolation = Depends(get_workspace_isolation),
-) -> dict:
+) -> WorkspaceConfigResponse:
     """Get workspace configuration."""
     config = ws_isolation.config
     return {
@@ -371,12 +531,12 @@ async def get_workspace_config(
     }
 
 
-@router.put("/workspace")
+@router.put("/workspace", response_model=WorkspaceUpdateResponse)
 async def update_workspace_config(
     req: WorkspaceConfigRequest,
     user: User = Depends(get_current_user),
     ws_isolation: WorkspaceIsolation = Depends(get_workspace_isolation),
-) -> dict:
+) -> WorkspaceUpdateResponse:
     """Update workspace configuration."""
     try:
         storage = StorageLocation(req.storage_location)
@@ -402,13 +562,13 @@ async def update_workspace_config(
     }
 
 
-@router.post("/workspace/tasks/{task_id}/override")
+@router.post("/workspace/tasks/{task_id}/override", response_model=TaskOverrideSetResponse)
 async def set_task_workspace_override(
     task_id: str,
     req: TaskWorkspaceOverrideRequest,
     user: User = Depends(get_current_user),
     ws_isolation: WorkspaceIsolation = Depends(get_workspace_isolation),
-) -> dict:
+) -> TaskOverrideSetResponse:
     """Set per-task workspace override."""
     storage = None
     if req.storage_location:
@@ -437,12 +597,12 @@ async def set_task_workspace_override(
     }
 
 
-@router.post("/workspace/tasks/{task_id}/approve")
+@router.post("/workspace/tasks/{task_id}/approve", response_model=TaskOverrideApproveResponse)
 async def approve_task_workspace_override(
     task_id: str,
     user: User = Depends(get_current_user),
     ws_isolation: WorkspaceIsolation = Depends(get_workspace_isolation),
-) -> dict:
+) -> TaskOverrideApproveResponse:
     """Approve per-task workspace override."""
     approved = ws_isolation.approve_task_override(task_id)
     if not approved:
@@ -468,10 +628,10 @@ class RedTeamRunRequest(BaseModel):
     )
 
 
-@router.post("/redteam/run")
+@router.post("/redteam/run", response_model=RedTeamRunResponse)
 async def run_redteam_tests(
     req: RedTeamRunRequest | None = None, user: User = Depends(get_current_user)
-) -> dict:
+) -> RedTeamRunResponse:
     """Run red team security tests."""
     from app.security.redteam import VulnerabilityType
 

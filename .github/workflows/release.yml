@@ -94,6 +94,7 @@ jobs:
             | **Linux** | `.AppImage` | Portable, no install needed ⭐ |
             | **Linux** | `.deb` | Debian / Ubuntu |
             | **Linux** | `.rpm` | Fedora / RHEL |
+            | **Chrome** | `chrome-extension.zip` | Load unpacked in chrome://extensions |
 
             ### Key Features
 
@@ -156,6 +157,35 @@ jobs:
           name: updater-${{ matrix.target }}
           path: latest-${{ matrix.target }}.json
           if-no-files-found: error
+
+  # Package and upload Chrome extension (Browser Assist)
+  build-chrome-extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Package Chrome extension
+        run: |
+          cd extensions/browser-assist/chrome-extension
+          # Update version in manifest to match release tag
+          TAG="${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}"
+          VERSION="${TAG#v}"
+          jq --arg v "$VERSION" '.version = $v' manifest.json > manifest.tmp && mv manifest.tmp manifest.json
+          cd ..
+          zip -r chrome-extension.zip chrome-extension/
+          echo "Packaged Chrome extension v${VERSION}"
+
+      - name: Upload Chrome extension to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          TAG="${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}"
+          RELEASE_ID=$(gh api "repos/${GH_REPO}/releases/tags/${TAG}" --jq '.id')
+          gh release upload "${TAG}" extensions/browser-assist/chrome-extension.zip \
+            --clobber \
+            --repo "${GH_REPO}"
+          echo "Uploaded chrome-extension.zip to release ${TAG}"
 
   # Merge latest.json fragments from all platforms to prevent race conditions
   merge-updater-json:

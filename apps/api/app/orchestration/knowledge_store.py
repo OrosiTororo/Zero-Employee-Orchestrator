@@ -182,8 +182,15 @@ class KnowledgeStore:
         *,
         company_id: str | uuid.UUID | None = None,
         user_id: str | uuid.UUID | None = None,
+        search_query: str | None = None,
     ) -> list[KnowledgeRecord]:
-        """Search knowledge."""
+        """Search knowledge with optional full-text search.
+
+        Args:
+            search_query: Free-text query to search across key and value fields.
+                Uses SQL LIKE for broad matching, then ranks results by TF-IDF-like
+                term frequency scoring for relevance.
+        """
         stmt = select(KnowledgeRecord).where(KnowledgeRecord.is_active.is_(True))
 
         if category:
@@ -200,8 +207,105 @@ class KnowledgeStore:
             uid = uuid.UUID(str(user_id)) if not isinstance(user_id, uuid.UUID) else user_id
             stmt = stmt.where(KnowledgeRecord.user_id == uid)
 
+        # Full-text search across key and value fields
+        if search_query and search_query.strip():
+            terms = search_query.strip().lower().split()
+            for term in terms[:10]:  # Cap at 10 search terms
+                like_pattern = f"%{term}%"
+                stmt = stmt.where(
+                    (KnowledgeRecord.key.ilike(like_pattern))
+                    | (KnowledgeRecord.value.ilike(like_pattern))
+                )
+
         result = await self._db.execute(stmt)
         records = list(result.scalars().all())
+
+        # Relevance scoring: TF-IDF + cosine similarity (bag-of-words, no deps)
+        if search_query and search_query.strip() and records:
+            import math
+            import re as _re
+
+            query_terms = search_query.strip().lower().split()
+
+            # Build document frequency map across all records for IDF
+            doc_count = len(records)
+            df: dict[str, int] = {}
+            for r in records:
+                text_tokens = set(
+                    _re.findall(r"[a-zA-Z0-9\u3040-\u9fff]+", f"{r.key} {r.value}".lower())
+                )
+                for t in text_tokens:
+                    df[t] = df.get(t, 0) + 1
+
+            scored: list[tuple[float, KnowledgeRecord]] = []
+            for r in records:
+                text = f"{r.key} {r.value}".lower()
+                text_tokens = _re.findall(r"[a-zA-Z0-9\u3040-\u9fff]+", text)
+                token_freq: dict[str, int] = {}
+                for t in text_tokens:
+                    token_freq[t] = token_freq.get(t, 0) + 1
+
+                # TF-IDF vector for query terms
+                tf_idf_score = 0.0
+                for qt in query_terms:
+                    tf = token_freq.get(qt, 0) / max(len(text_tokens), 1)
+                    idf = math.log((doc_count + 1) / (df.get(qt, 0) + 1)) + 1.0
+                    tf_idf_score += tf * idf
+
+                # Cosine similarity (bag-of-words)
+                all_terms = set(query_terms) | set(token_freq.keys())
+                dot = sum(query_terms.count(t) * token_freq.get(t, 0) for t in all_terms)
+                mag_q = math.sqrt(sum(query_terms.count(t) ** 2 for t in all_terms))
+                mag_d = math.sqrt(sum(token_freq.get(t, 0) ** 2 for t in all_terms))
+                cosine = dot / (mag_q * mag_d) if mag_q > 0 and mag_d > 0 else 0.0
+
+                # Popularity boost
+                popularity = min(r.use_count / 10.0, 1.0) if r.use_count else 0.0
+
+                final_score = tf_idf_score * 0.4 + cosine * 0.5 + popularity * 0.1
+                scored.append((final_score, r))
+            scored.sort(key=lambda x: x[0], reverse=True)
+            records = [r for _, r in scored]
+
+            # LLM semantic re-ranking: use LLM to pick most relevant results
+            if len(records) > 3:
+                try:
+                    import json as _json
+
+                    from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
+
+                    candidates = [
+                        {"idx": i, "key": r.key, "value": r.value[:100]}
+                        for i, r in enumerate(records[:10])
+                    ]
+                    resp = await llm_gateway.complete(
+                        CompletionRequest(
+                            messages=[
+                                {
+                                    "role": "user",
+                                    "content": (
+                                        "Rank these knowledge items by relevance to the query. "
+                                        "Return a JSON array of idx values, most relevant first.\n\n"
+                                        f"Query: {search_query}\n\n"
+                                        f"Items: {_json.dumps(candidates, ensure_ascii=False)}"
+                                    ),
+                                }
+                            ],
+                            mode=ExecutionMode.SPEED,
+                            temperature=0.1,
+                            max_tokens=128,
+                        )
+                    )
+                    content = resp.content.strip()
+                    if content.startswith("```"):
+                        content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+                    ranked_ids = _json.loads(content)
+                    if isinstance(ranked_ids, list) and all(isinstance(x, int) for x in ranked_ids):
+                        reranked = [records[i] for i in ranked_ids if i < len(records)]
+                        remaining = [r for i, r in enumerate(records) if i not in ranked_ids]
+                        records = reranked + remaining
+                except Exception:
+                    pass  # Silently fall back to TF-IDF + cosine order
 
         # Update usage count
         for r in records:

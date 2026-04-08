@@ -21,6 +21,9 @@ from app.models.user import User
 router = APIRouter()
 
 
+# ---------- Request Schemas ----------
+
+
 class SpecCreate(BaseModel):
     objective: str
     constraints_json: dict | None = None
@@ -41,7 +44,71 @@ class PlanCreate(BaseModel):
     file_context: str = ""  # Text extracted from attached files
 
 
-@router.get("/tickets/{ticket_id}/specs")
+# ---------- Response Schemas ----------
+
+
+class SpecItem(BaseModel):
+    """Single spec in a list."""
+
+    id: str
+    version_no: int
+    status: str
+    objective: str
+    risk_notes: str
+
+
+class SpecCreateResponse(BaseModel):
+    """Response for spec creation."""
+
+    id: str
+    version_no: int
+
+
+class PlanItem(BaseModel):
+    """Single plan in a list."""
+
+    id: str
+    version_no: int
+    status: str
+    summary: str
+    estimated_cost_usd: float
+    estimated_minutes: int
+    risk_level: str
+
+
+class PlanCreateResponse(BaseModel):
+    """Response for plan creation."""
+
+    id: str
+    version_no: int
+
+
+class PlanApproveResponse(BaseModel):
+    """Response for plan approval."""
+
+    status: str
+    tasks_created: int
+    task_ids: list[str]
+
+
+class PlanStatusResponse(BaseModel):
+    """Response containing plan status."""
+
+    status: str
+
+
+class PlanTaskItem(BaseModel):
+    """Single task in a plan task list."""
+
+    id: str
+    title: str
+    sequence_no: int
+    status: str
+    task_type: str
+    requires_approval: bool
+
+
+@router.get("/tickets/{ticket_id}/specs", response_model=list[SpecItem])
 async def list_specs(
     ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -63,7 +130,7 @@ async def list_specs(
     ]
 
 
-@router.post("/tickets/{ticket_id}/specs")
+@router.post("/tickets/{ticket_id}/specs", response_model=SpecCreateResponse)
 async def create_spec(
     ticket_id: str,
     req: SpecCreate,
@@ -97,7 +164,7 @@ async def create_spec(
     return {"id": str(spec.id), "version_no": spec.version_no}
 
 
-@router.get("/tickets/{ticket_id}/plans")
+@router.get("/tickets/{ticket_id}/plans", response_model=list[PlanItem])
 async def list_plans(
     ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -121,7 +188,7 @@ async def list_plans(
     ]
 
 
-@router.post("/tickets/{ticket_id}/plans")
+@router.post("/tickets/{ticket_id}/plans", response_model=PlanCreateResponse)
 async def create_plan(
     ticket_id: str,
     req: PlanCreate,
@@ -155,7 +222,7 @@ async def create_plan(
     return {"id": str(plan.id), "version_no": plan.version_no}
 
 
-@router.post("/plans/{plan_id}/approve")
+@router.post("/plans/{plan_id}/approve", response_model=PlanApproveResponse)
 async def approve_plan(
     plan_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -223,7 +290,7 @@ async def approve_plan(
     }
 
 
-@router.post("/plans/{plan_id}/reject")
+@router.post("/plans/{plan_id}/reject", response_model=PlanStatusResponse)
 async def reject_plan(
     plan_id: str,
     reason: str = "",
@@ -240,7 +307,7 @@ async def reject_plan(
     return {"status": "rejected"}
 
 
-@router.get("/plans/{plan_id}/tasks")
+@router.get("/plans/{plan_id}/tasks", response_model=list[PlanTaskItem])
 async def list_plan_tasks(
     plan_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):

@@ -147,6 +147,14 @@ class KnowledgeStoreResponse(BaseModel):
     stored: bool
 
 
+class OllamaChatStreamChunk(BaseModel):
+    """Schema documenting SSE stream chunk format."""
+
+    content: str = ""
+    done: bool = False
+    error: str | None = None
+
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -347,7 +355,11 @@ async def _ollama_chat_stream(req: OllamaChatRequest) -> StreamingResponse:
     )
 
 
-@router.post("/ollama/chat/stream")
+@router.post(
+    "/ollama/chat/stream",
+    response_model=OllamaChatStreamChunk,
+    responses={200: {"description": "SSE stream of OllamaChatStreamChunk objects"}},
+)
 async def ollama_chat_stream(req: OllamaChatRequest, user: User = Depends(get_current_user)):
     """Dedicated SSE streaming endpoint for Ollama chat.
 

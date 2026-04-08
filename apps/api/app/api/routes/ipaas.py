@@ -56,11 +56,73 @@ class WorkflowTriggerRequest(BaseModel):
 
 
 # ------------------------------------------------------------------ #
+#  Response schemas
+# ------------------------------------------------------------------ #
+
+
+class WorkflowRegisterResponse(BaseModel):
+    """Response for workflow registration."""
+
+    workflow_id: str
+    name: str
+    provider: str
+    status: str
+
+
+class WorkflowItem(BaseModel):
+    """Single workflow in list response."""
+
+    id: str
+    name: str
+    provider: str
+    status: str
+    description: str
+    trigger_count: int
+    run_count: int
+    last_run_at: str | None = None
+    created_at: str | None = None
+
+
+class WorkflowListResponse(BaseModel):
+    """Response for listing workflows."""
+
+    workflows: list[WorkflowItem]
+    count: int
+
+
+class WorkflowTriggerResponse(BaseModel):
+    """Response for workflow trigger."""
+
+    workflow_id: str
+    run_id: str | None = None
+    success: bool
+    status_code: int | None = None
+    error: str | None = None
+    latency_ms: float | None = None
+
+
+class WorkflowStatusResponse(BaseModel):
+    """Response for workflow status."""
+
+    workflow_id: str | None = None
+    status: str | None = None
+    last_run_at: str | None = None
+    run_count: int | None = None
+
+
+class WorkflowRemoveResponse(BaseModel):
+    """Response for workflow removal."""
+
+    workflow_id: str
+    status: str
+
+
+# ------------------------------------------------------------------ #
 #  Endpoints
 # ------------------------------------------------------------------ #
 
 
-@router.post("/workflows")
+@router.post("/workflows", response_model=WorkflowRegisterResponse)
 async def register_workflow(
     req: WorkflowCreateRequest, user: User = Depends(get_current_user)
 ) -> dict:
@@ -103,7 +165,7 @@ async def register_workflow(
     }
 
 
-@router.get("/workflows")
+@router.get("/workflows", response_model=WorkflowListResponse)
 async def list_workflows(
     provider: str | None = None, user: User = Depends(get_current_user)
 ) -> dict:
@@ -138,7 +200,7 @@ async def list_workflows(
     }
 
 
-@router.post("/workflows/{workflow_id}/trigger")
+@router.post("/workflows/{workflow_id}/trigger", response_model=WorkflowTriggerResponse)
 async def trigger_workflow(
     workflow_id: str, req: WorkflowTriggerRequest, user: User = Depends(get_current_user)
 ) -> dict:
@@ -158,7 +220,7 @@ async def trigger_workflow(
     }
 
 
-@router.get("/workflows/{workflow_id}/status")
+@router.get("/workflows/{workflow_id}/status", response_model=WorkflowStatusResponse)
 async def get_workflow_status(workflow_id: str, user: User = Depends(get_current_user)) -> dict:
     """Get workflow status."""
     status = await ipaas_service.sync_status(workflow_id)
@@ -167,7 +229,7 @@ async def get_workflow_status(workflow_id: str, user: User = Depends(get_current
     return status
 
 
-@router.delete("/workflows/{workflow_id}")
+@router.delete("/workflows/{workflow_id}", response_model=WorkflowRemoveResponse)
 async def remove_workflow(workflow_id: str, user: User = Depends(get_current_user)) -> dict:
     """Delete a workflow."""
     removed = ipaas_service.remove_workflow(workflow_id)

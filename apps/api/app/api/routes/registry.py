@@ -8,6 +8,7 @@ import logging
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel as PydanticBaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.database import get_db
@@ -42,6 +43,21 @@ from app.services.skill_service import analyze_code_safety
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+class ExternalPluginResult(PydanticBaseModel):
+    name: str
+    slug: str
+    description: str
+    source_uri: str
+    author: str
+    stars: int
+
+
+class PublishResponse(PydanticBaseModel):
+    listing_id: str
+    status: str
+    name: str
 
 
 def _check_manifest_safety(manifest_json: dict | None, force: bool = False) -> None:
@@ -330,7 +346,7 @@ async def delete_plugin(
     return RegistryDeleteResponse(deleted=True, message=message)
 
 
-@router.post("/plugins/search-external")
+@router.post("/plugins/search-external", response_model=list[ExternalPluginResult])
 async def search_external_plugins(
     query: str = "",
     limit: int = 20,
@@ -514,7 +530,7 @@ class PublishToMarketplaceRequest:
     pass
 
 
-@router.post("/skills/{skill_id}/publish")
+@router.post("/skills/{skill_id}/publish", response_model=PublishResponse)
 async def publish_skill_to_marketplace(
     skill_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
@@ -543,7 +559,7 @@ async def publish_skill_to_marketplace(
     return {"listing_id": result.id, "status": result.status.value, "name": result.name}
 
 
-@router.post("/plugins/{plugin_id}/publish")
+@router.post("/plugins/{plugin_id}/publish", response_model=PublishResponse)
 async def publish_plugin_to_marketplace(
     plugin_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
@@ -572,7 +588,7 @@ async def publish_plugin_to_marketplace(
     return {"listing_id": result.id, "status": result.status.value, "name": result.name}
 
 
-@router.post("/extensions/{ext_id}/publish")
+@router.post("/extensions/{ext_id}/publish", response_model=PublishResponse)
 async def publish_extension_to_marketplace(
     ext_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),

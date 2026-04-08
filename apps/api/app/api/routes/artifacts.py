@@ -24,7 +24,27 @@ class ArtifactCreate(BaseModel):
     summary: str = ""
 
 
-@router.get("/tickets/{ticket_id}/artifacts")
+# ---------- Response Schemas ----------
+
+
+class ArtifactItem(BaseModel):
+    """Single artifact in list response."""
+
+    id: str
+    artifact_type: str
+    title: str
+    mime_type: str
+    summary: str
+
+
+class ArtifactCreateResponse(BaseModel):
+    """Response for artifact creation."""
+
+    id: str
+    title: str
+
+
+@router.get("/tickets/{ticket_id}/artifacts", response_model=list[ArtifactItem])
 async def list_artifacts(
     ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -46,7 +66,7 @@ async def list_artifacts(
     ]
 
 
-@router.post("/tickets/{ticket_id}/artifacts")
+@router.post("/tickets/{ticket_id}/artifacts", response_model=ArtifactCreateResponse)
 async def create_artifact(
     ticket_id: str,
     req: ArtifactCreate,

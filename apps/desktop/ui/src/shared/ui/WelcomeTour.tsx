@@ -20,21 +20,21 @@ interface TourStep {
 const STEPS: TourStep[] = [
   {
     icon: LayoutDashboard,
-    title: "Describe tasks in natural language",
+    title: "Tell the AI what you need",
     description:
-      "The Dashboard is your starting point. Type what you need — ZEO's AI agents will plan, execute, and verify the work. No menus to navigate, just describe the task.",
+      "Type your request on the Dashboard — like telling a coworker. For example: \"Create a sales report\" or \"Research competitors for our product\". The AI will handle the rest.",
   },
   {
     icon: Activity,
-    title: "Monitor your AI agents",
+    title: "See what the AI is doing",
     description:
-      "The Monitor page shows live execution traces, approval queues, and agent status. Every AI action is logged with full reasoning traces for transparency.",
+      "The Monitor page shows you exactly what the AI is working on right now. You can see each step, approve actions before they happen, and stop anything that doesn't look right.",
   },
   {
     icon: Gauge,
-    title: "Control AI autonomy",
+    title: "Choose how much the AI does alone",
     description:
-      "The Autonomy Dial in the status bar lets you set how independently AI acts: Observe (watch only), Assist (suggestions), Semi-Auto (execute after approval), or Autonomous (auto-execute safe tasks).",
+      "Use the dial at the bottom of the screen to control the AI: \"Observe\" = AI only watches, \"Assist\" = AI suggests, \"Semi-Auto\" = AI works but asks before important actions, \"Autonomous\" = AI handles safe tasks on its own.",
   },
 ]
 

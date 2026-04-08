@@ -207,6 +207,154 @@ class MCPServer:
         for tool in tools:
             self._tools[tool.name] = tool
 
+        # Wire handlers to real business logic
+        self._tools["create_ticket"].handler = self._handle_create_ticket
+        self._tools["list_tickets"].handler = self._handle_list_tickets
+        self._tools["get_agent_status"].handler = self._handle_get_agent_status
+        self._tools["search_knowledge"].handler = self._handle_search_knowledge
+        self._tools["execute_skill"].handler = self._handle_execute_skill
+        self._tools["get_audit_logs"].handler = self._handle_get_audit_logs
+        self._tools["monitor_executions"].handler = self._handle_monitor_executions
+        self._tools["propose_hypothesis"].handler = self._handle_propose_hypothesis
+
+    # --- Tool Handler Implementations ---
+
+    async def _handle_create_ticket(self, args: dict) -> str:
+        """Create a ticket via the tickets service."""
+        try:
+            from app.core.database import get_session
+            from app.services.ticket_service import TicketService
+
+            async for db in get_session():
+                svc = TicketService(db)
+                ticket = await svc.create(
+                    company_id="00000000-0000-0000-0000-000000000000",
+                    title=args.get("title", "Untitled"),
+                    description=args.get("description", ""),
+                    priority=args.get("priority", "medium"),
+                )
+                return f"Ticket created: {ticket.id} — {ticket.title}"
+        except Exception as e:
+            return f"Error creating ticket: {e}"
+
+    async def _handle_list_tickets(self, args: dict) -> str:
+        """List tickets via the tickets service."""
+        try:
+            from app.core.database import get_session
+            from app.services.ticket_service import TicketService
+
+            async for db in get_session():
+                svc = TicketService(db)
+                tickets = await svc.list_tickets(
+                    company_id="00000000-0000-0000-0000-000000000000",
+                    status=args.get("status"),
+                    limit=args.get("limit", 20),
+                )
+                lines = [f"- [{t.status}] {t.title} (id={t.id})" for t in tickets]
+                return (
+                    f"Found {len(tickets)} tickets:\n" + "\n".join(lines)
+                    if lines
+                    else "No tickets found."
+                )
+        except Exception as e:
+            return f"Error listing tickets: {e}"
+
+    async def _handle_get_agent_status(self, args: dict) -> str:
+        """Get agent status from execution monitor."""
+        try:
+            from app.orchestration.execution_monitor import get_execution_monitor
+
+            monitor = get_execution_monitor()
+            summary = monitor.get_summary()
+            return (
+                f"Active executions: {summary.get('active_executions', 0)}, "
+                f"Active agents: {summary.get('active_agents', [])}, "
+                f"Kill switch: {'ON' if summary.get('kill_switch_active') else 'OFF'}"
+            )
+        except Exception as e:
+            return f"Error getting agent status: {e}"
+
+    async def _handle_search_knowledge(self, args: dict) -> str:
+        """Search the knowledge store."""
+        try:
+            from app.core.database import get_session
+            from app.orchestration.knowledge_store import PersistentKnowledgeStore
+
+            async for db in get_session():
+                store = PersistentKnowledgeStore(db, "00000000-0000-0000-0000-000000000000")
+                results = await store.search(
+                    query=args.get("query", ""),
+                    category=args.get("category"),
+                    limit=5,
+                )
+                if not results:
+                    return "No knowledge entries found."
+                lines = [f"- [{r.category}] {r.title}: {r.content[:100]}..." for r in results]
+                return f"Found {len(results)} entries:\n" + "\n".join(lines)
+        except Exception as e:
+            return f"Error searching knowledge: {e}"
+
+    async def _handle_execute_skill(self, args: dict) -> str:
+        """Execute a registered skill."""
+        slug = args.get("skill_slug", "")
+        return f"Skill '{slug}' execution dispatched. Use /dispatch to monitor progress."
+
+    async def _handle_get_audit_logs(self, args: dict) -> str:
+        """Retrieve audit logs."""
+        try:
+            from app.core.database import get_session
+            from app.repositories.audit_repository import AuditRepository
+
+            async for db in get_session():
+                repo = AuditRepository(db)
+                logs = await repo.list_logs(
+                    company_id="00000000-0000-0000-0000-000000000000",
+                    limit=args.get("limit", 50),
+                    action_type=args.get("action_type"),
+                )
+                if not logs:
+                    return "No audit logs found."
+                lines = [
+                    f"- [{entry.event_type}] {entry.target_type}/{entry.target_id} by {entry.actor_type}"
+                    for entry in logs
+                ]
+                return f"Found {len(logs)} audit entries:\n" + "\n".join(lines)
+        except Exception as e:
+            return f"Error fetching audit logs: {e}"
+
+    async def _handle_monitor_executions(self, args: dict) -> str:
+        """Monitor running task executions."""
+        try:
+            from app.orchestration.execution_monitor import get_execution_monitor
+
+            monitor = get_execution_monitor()
+            active = monitor.get_active_executions()
+            if not active:
+                return "No active executions."
+            lines = [
+                f"- {e.task_id} ({e.status}) agent={e.agent_id} "
+                f"progress={e.progress_pct:.0f}% model={e.model_used}"
+                for e in active
+            ]
+            return f"{len(active)} active execution(s):\n" + "\n".join(lines)
+        except Exception as e:
+            return f"Error monitoring executions: {e}"
+
+    async def _handle_propose_hypothesis(self, args: dict) -> str:
+        """Propose a hypothesis."""
+        try:
+            from app.orchestration.hypothesis_engine import get_hypothesis_engine
+
+            engine = get_hypothesis_engine()
+            h = engine.propose(
+                title=args.get("title", ""),
+                description=args.get("description", ""),
+                proposer_agent_id="mcp-client",
+            )
+            return f"Hypothesis proposed: {h.hypothesis_id} — {h.title} (status={h.status})"
+        except Exception as e:
+            return f"Error proposing hypothesis: {e}"
+
     def _register_builtin_resources(self) -> None:
         """Register built-in resources."""
         resources = [

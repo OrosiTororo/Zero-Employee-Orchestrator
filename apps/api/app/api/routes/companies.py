@@ -44,6 +44,55 @@ class DashboardSummary(BaseModel):
     errors_count: int = 0
 
 
+class OrgChartDepartment(BaseModel):
+    id: str
+    name: str
+    code: str
+
+
+class OrgChartTeam(BaseModel):
+    id: str
+    name: str
+    purpose: str
+
+
+class OrgChartAgent(BaseModel):
+    id: str
+    name: str
+    title: str | None
+    status: str
+
+
+class OrgChartResponse(BaseModel):
+    departments: list[OrgChartDepartment]
+    teams: list[OrgChartTeam]
+    agents: list[OrgChartAgent]
+
+
+class DepartmentResponse(BaseModel):
+    id: str
+    name: str
+    code: str
+    description: str | None = None
+
+
+class DepartmentCreateResponse(BaseModel):
+    id: str
+    name: str
+
+
+class TeamResponse(BaseModel):
+    id: str
+    name: str
+    purpose: str
+    status: str
+
+
+class TeamCreateResponse(BaseModel):
+    id: str
+    name: str
+
+
 @router.get("", response_model=list[CompanyResponse])
 async def list_companies(
     db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
@@ -148,7 +197,7 @@ async def update_company(
     )
 
 
-@router.get("/{company_id}/org-chart")
+@router.get("/{company_id}/org-chart", response_model=OrgChartResponse)
 async def get_org_chart(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -176,7 +225,7 @@ async def get_dashboard_summary(
     return DashboardSummary()
 
 
-@router.get("/{company_id}/departments")
+@router.get("/{company_id}/departments", response_model=list[DepartmentResponse])
 async def list_departments(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -190,7 +239,7 @@ async def list_departments(
     ]
 
 
-@router.post("/{company_id}/departments")
+@router.post("/{company_id}/departments", response_model=DepartmentCreateResponse)
 async def create_department(
     company_id: str,
     name: str = "",
@@ -205,7 +254,7 @@ async def create_department(
     return {"id": str(dept.id), "name": dept.name}
 
 
-@router.get("/{company_id}/teams")
+@router.get("/{company_id}/teams", response_model=list[TeamResponse])
 async def list_teams(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -218,7 +267,7 @@ async def list_teams(
     ]
 
 
-@router.post("/{company_id}/teams")
+@router.post("/{company_id}/teams", response_model=TeamCreateResponse)
 async def create_team(
     company_id: str,
     name: str = "",

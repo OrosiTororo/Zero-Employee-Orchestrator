@@ -1,0 +1,50 @@
+# Git
+.git
+.gitignore
+
+# Node modules
+node_modules
+apps/desktop/ui/node_modules
+apps/edge/proxy/node_modules
+apps/edge/full/node_modules
+
+# Python caches
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.mypy_cache
+.ruff_cache
+*.egg-info
+
+# Build artifacts
+apps/desktop/ui/dist
+apps/desktop/src-tauri/target
+dist
+
+# Test & dev databases
+*.db
+*.db-journal
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Documentation (not needed in container)
+docs
+*.md
+!README.md
+
+# CI/CD
+.github
+
+# Misc
+.DS_Store
+Thumbs.db

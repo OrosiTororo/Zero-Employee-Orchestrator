@@ -1,0 +1,19 @@
+{
+  "name": "Zero-Employee Orchestrator",
+  "short_name": "ZEO",
+  "description": "AI Meta-Orchestrator — Design, Execute, Verify, Improve",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1e1e1e",
+  "theme_color": "#007acc",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "business", "utilities"]
+}

@@ -39,6 +39,10 @@ class NLCommandResponse(BaseModel):
     delegate_to_llm: bool = False
 
 
+class CommandCapabilitiesResponse(BaseModel):
+    categories: list[dict] = Field(default_factory=list)
+
+
 @router.post("/command", response_model=NLCommandResponse)
 @limiter.limit("30/minute")
 async def execute_nl_command(
@@ -87,7 +91,7 @@ async def execute_nl_command(
     )
 
 
-@router.get("/command/capabilities")
+@router.get("/command/capabilities", response_model=CommandCapabilitiesResponse)
 async def list_capabilities(user: User = Depends(get_current_user)):
     """List available natural language command capabilities.
 

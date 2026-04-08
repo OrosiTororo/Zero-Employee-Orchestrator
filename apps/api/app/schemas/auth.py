@@ -58,3 +58,56 @@ class UserRead(BaseModel):
 class RefreshResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class GoogleAuthorizeResponse(BaseModel):
+    url: str
+    state: str
+
+
+class GooglePollPendingResponse(BaseModel):
+    status: str  # "pending"
+
+
+class GooglePollCompleteResponse(BaseModel):
+    status: str  # "complete"
+    access_token: str
+    user_id: str
+    display_name: str
+    setup_completed: bool = False
+
+
+class LogoutResponse(BaseModel):
+    status: str
+    message: str
+
+
+class MessageResponse(BaseModel):
+    message: str
+
+
+class PasswordResetRequestResponse(BaseModel):
+    message: str
+    reset_token: str | None = None
+
+
+class AnonymousSessionResponse(BaseModel):
+    access_token: str
+    user_id: str
+    company_id: str
+    display_name: str
+    is_anonymous: bool = True
+    setup_completed: bool = False
+    message: str
+
+
+class LinkAccountResponse(BaseModel):
+    access_token: str
+    user_id: str
+    display_name: str
+    linked: bool = True
+    message: str
+
+
+class SetupStatusResponse(BaseModel):
+    setup_completed: bool

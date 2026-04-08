@@ -41,10 +41,72 @@ class AddPolicyRequest(BaseModel):
     is_active: bool = Field(default=True)
 
 
+# ---------- Response Schemas ----------
+
+
+class PolicyResponse(BaseModel):
+    """Single policy rule response."""
+
+    id: str
+    name: str
+    policy_type: str
+    framework: str
+    description: str
+    conditions: dict
+    actions: list[str]
+    severity: str
+    is_active: bool
+    created_at: str | None = None
+
+
+class ComplianceCheckResult(BaseModel):
+    """Single compliance check result."""
+
+    id: str
+    rule_id: str
+    status: str
+    details: str | None = None
+    checked_at: str | None = None
+    resource_id: str | None = None
+
+
+class ComplianceCheckResponse(BaseModel):
+    """Response for compliance check."""
+
+    framework: str
+    total_checks: int
+    passed: int
+    failed: int
+    results: list[ComplianceCheckResult]
+
+
+class ComplianceReportResponse(BaseModel):
+    """Response for compliance report."""
+
+    framework: str | None = None
+    total_rules: int | None = None
+    compliant: int | None = None
+    non_compliant: int | None = None
+    last_checked: str | None = None
+    details: list[dict] | None = None
+
+
+class ViolationItem(BaseModel):
+    """Single policy violation."""
+
+    id: str
+    rule_id: str
+    rule_name: str
+    severity: str
+    details: str | None = None
+    resource_id: str | None = None
+    detected_at: str | None = None
+
+
 # ---------- Endpoints ----------
 
 
-@router.post("/policies", status_code=201)
+@router.post("/policies", status_code=201, response_model=PolicyResponse)
 async def add_policy(req: AddPolicyRequest, user: User = Depends(get_current_user)) -> dict:
     """Add a policy rule."""
     try:
@@ -88,7 +150,7 @@ async def add_policy(req: AddPolicyRequest, user: User = Depends(get_current_use
     return _policy_to_dict(result)
 
 
-@router.get("/policies")
+@router.get("/policies", response_model=list[PolicyResponse])
 async def list_policies(
     framework: str | None = None,
     policy_type: str | None = None,
@@ -122,7 +184,7 @@ async def list_policies(
     return [_policy_to_dict(p) for p in policies]
 
 
-@router.post("/check/{framework}")
+@router.post("/check/{framework}", response_model=ComplianceCheckResponse)
 async def run_compliance_check(
     framework: str,
     resource_id: str = Query(default="", description="Resource ID to check"),
@@ -161,7 +223,7 @@ async def run_compliance_check(
     }
 
 
-@router.get("/report/{framework}")
+@router.get("/report/{framework}", response_model=ComplianceReportResponse)
 async def get_compliance_report(framework: str, user: User = Depends(get_current_user)) -> dict:
     """Get compliance report."""
     try:
@@ -175,7 +237,7 @@ async def get_compliance_report(framework: str, user: User = Depends(get_current
     return await governance_service.get_compliance_report(fw)
 
 
-@router.get("/violations")
+@router.get("/violations", response_model=list[ViolationItem])
 async def get_violations(
     severity: str | None = None,
     limit: int = Query(default=50, ge=1, le=200),

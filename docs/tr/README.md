@@ -49,6 +49,7 @@ ZEO'nun kendisi ücretsiz ve açık kaynaklıdır. LLM API maliyetleri kullanıc
 | **macOS** | `.dmg` | macOS Universal (Intel + Apple Silicon) |
 | **Linux** | `.AppImage` | Taşınabilir (kurulum gerektirmez, amd64) |
 | **Linux** | `.deb` / `.rpm` | Debian/Ubuntu / Fedora/RHEL (amd64/x86_64) |
+| **Chrome** | `chrome-extension.zip` | Browser Assist (chrome://extensions) |
 
 Kurulumdan sonra bir **kurulum sihirbazı** sizi şu adımlardan geçirecektir:
 1. **Dil** — English, 日本語, 中文, 한국어, Português veya Türkçe seçin (daha sonra Ayarlar'dan değiştirilebilir)

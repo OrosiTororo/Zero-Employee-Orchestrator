@@ -30,6 +30,9 @@ from app.services.task_service import (
 router = APIRouter()
 
 
+# ---------- Request Schemas ----------
+
+
 class TaskProviderOverride(BaseModel):
     """Per-task provider override."""
 
@@ -47,7 +50,60 @@ class TaskCreate(BaseModel):
     provider_override: TaskProviderOverride | None = None
 
 
-@router.post("/plans/{plan_id}/tasks")
+# ---------- Response Schemas ----------
+
+
+class TaskCreateResponse(BaseModel):
+    """Response for task creation."""
+
+    id: str
+    title: str
+    status: str
+    provider_override: dict | None = None
+
+
+class TaskProviderUpdateResponse(BaseModel):
+    """Response for task provider update."""
+
+    id: str
+    title: str
+    provider_override: dict | None = None
+
+
+class TaskStartResponse(BaseModel):
+    """Response for starting a task."""
+
+    status: str
+    run_id: str
+    run_no: int
+    resolved_provider: dict
+
+
+class TaskStatusResponse(BaseModel):
+    """Response containing task status."""
+
+    status: str
+
+
+class TaskRunCreateResponse(BaseModel):
+    """Response for task run creation."""
+
+    id: str
+    run_no: int
+    status: str
+
+
+class TaskRunItem(BaseModel):
+    """Single task run in a list."""
+
+    id: str
+    run_no: int
+    status: str
+    started_at: str | None = None
+    finished_at: str | None = None
+
+
+@router.post("/plans/{plan_id}/tasks", response_model=TaskCreateResponse)
 async def create_task(
     plan_id: str,
     req: TaskCreate,
@@ -78,7 +134,7 @@ async def create_task(
     }
 
 
-@router.patch("/tasks/{task_id}/provider")
+@router.patch("/tasks/{task_id}/provider", response_model=TaskProviderUpdateResponse)
 async def update_task_provider(
     task_id: str,
     req: TaskProviderOverride,
@@ -105,7 +161,7 @@ async def update_task_provider(
     }
 
 
-@router.post("/tasks/{task_id}/start")
+@router.post("/tasks/{task_id}/start", response_model=TaskStartResponse)
 async def start_task(
     task_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -143,7 +199,7 @@ async def start_task(
     }
 
 
-@router.post("/tasks/{task_id}/complete")
+@router.post("/tasks/{task_id}/complete", response_model=TaskStatusResponse)
 async def complete_task(
     task_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -167,7 +223,7 @@ async def complete_task(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/tasks/{task_id}/retry")
+@router.post("/tasks/{task_id}/retry", response_model=TaskStatusResponse)
 async def retry_task(
     task_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -183,7 +239,7 @@ async def retry_task(
     return {"status": "retrying"}
 
 
-@router.post("/tasks/{task_id}/request-approval")
+@router.post("/tasks/{task_id}/request-approval", response_model=TaskStatusResponse)
 async def request_approval(
     task_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -199,7 +255,7 @@ async def request_approval(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/tasks/{task_id}/runs")
+@router.post("/tasks/{task_id}/runs", response_model=TaskRunCreateResponse)
 async def create_task_run(
     task_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -219,7 +275,7 @@ async def create_task_run(
     return {"id": str(run.id), "run_no": run.run_no, "status": run.status}
 
 
-@router.get("/tasks/{task_id}/runs")
+@router.get("/tasks/{task_id}/runs", response_model=list[TaskRunItem])
 async def list_task_runs(
     task_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):

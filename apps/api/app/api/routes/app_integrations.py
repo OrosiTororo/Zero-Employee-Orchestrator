@@ -87,11 +87,95 @@ class CustomAppRequest(BaseModel):
 
 
 # ------------------------------------------------------------------ #
+#  Response schemas
+# ------------------------------------------------------------------ #
+
+
+class AppDetailResponse(BaseModel):
+    id: str
+    name: str
+    category: str
+    description: str = ""
+    description_en: str = ""
+    auth_method: str = ""
+    data_direction: str = ""
+    env_key: str = ""
+    capabilities: list[str] = Field(default_factory=list)
+    requires_approval: bool = False
+
+
+class AppListResponse(BaseModel):
+    apps: list[AppDetailResponse]
+    count: int
+
+
+class CategoryListResponse(BaseModel):
+    categories: list[dict]
+
+
+class CustomAppRegisteredResponse(BaseModel):
+    app_id: str
+    name: str
+    status: str
+
+
+class ConnectionResponse(BaseModel):
+    connection_id: str = ""
+    id: str = ""
+    app_id: str
+    status: str
+    connected_at: str | None = None
+    last_sync_at: str | None = None
+    permissions: dict = Field(default_factory=dict)
+    metadata: dict = Field(default_factory=dict)
+
+
+class ConnectionListResponse(BaseModel):
+    connections: list[dict]
+    count: int
+
+
+class StatusUpdateResponse(BaseModel):
+    connection_id: str
+    status: str
+
+
+class SyncResultResponse(BaseModel):
+    connection_id: str
+    app_id: str = ""
+    direction: str = ""
+    items_read: int = 0
+    items_written: int = 0
+    items_skipped: int = 0
+    started_at: str | None = None
+    finished_at: str | None = None
+    status: str = ""
+    errors: list[str] = Field(default_factory=list)
+
+
+class SyncHistoryResponse(BaseModel):
+    history: list[dict]
+    count: int
+
+
+class KnowledgeImportResponse(BaseModel):
+    imported: int = 0
+    tags: list[str] = Field(default_factory=list)
+    message: str = ""
+
+
+class IntegrationSummaryResponse(BaseModel):
+    total_apps: int = 0
+    connected: int = 0
+    categories: dict = Field(default_factory=dict)
+
+
+# ------------------------------------------------------------------ #
 #  Endpoints
 # ------------------------------------------------------------------ #
 
 
-@router.get("/apps")
+@router.get("/apps", response_model=AppListResponse)
 async def list_apps(category: str | None = None, _user: User = Depends(get_current_user)) -> dict:
     """Return list of supported applications."""
     filter_category: AppCategory | None = None
@@ -124,7 +208,7 @@ async def list_apps(category: str | None = None, _user: User = Depends(get_curre
     }
 
 
-@router.get("/apps/{app_id}")
+@router.get("/apps/{app_id}", response_model=AppDetailResponse)
 async def get_app(app_id: str, _user: User = Depends(get_current_user)) -> dict:
     """Return app definition details."""
     app_def = app_connector_hub.get_app(app_id)
@@ -144,13 +228,13 @@ async def get_app(app_id: str, _user: User = Depends(get_current_user)) -> dict:
     }
 
 
-@router.get("/categories")
+@router.get("/categories", response_model=CategoryListResponse)
 async def list_categories(_user: User = Depends(get_current_user)) -> dict:
     """Return category list."""
     return {"categories": app_connector_hub.list_categories()}
 
 
-@router.post("/apps/custom")
+@router.post("/apps/custom", response_model=CustomAppRegisteredResponse)
 async def register_custom_app(
     req: CustomAppRequest, user: User = Depends(get_current_user)
 ) -> dict:
@@ -183,7 +267,7 @@ async def register_custom_app(
     return {"app_id": app_id, "name": req.name, "status": "registered"}
 
 
-@router.post("/connections")
+@router.post("/connections", response_model=ConnectionResponse)
 async def connect_app(req: ConnectRequest, user: User = Depends(get_current_user)) -> dict:
     """Establish an application connection."""
     permissions = None
@@ -216,7 +300,7 @@ async def connect_app(req: ConnectRequest, user: User = Depends(get_current_user
     }
 
 
-@router.get("/connections")
+@router.get("/connections", response_model=ConnectionListResponse)
 async def list_connections(
     app_id: str | None = None,
     status: str | None = None,
@@ -257,7 +341,7 @@ async def list_connections(
     }
 
 
-@router.get("/connections/{connection_id}")
+@router.get("/connections/{connection_id}", response_model=ConnectionResponse)
 async def get_connection(connection_id: str, user: User = Depends(get_current_user)) -> dict:
     """Return connection details."""
     conn = app_connector_hub.get_connection(connection_id)
@@ -283,7 +367,7 @@ async def get_connection(connection_id: str, user: User = Depends(get_current_us
     }
 
 
-@router.put("/connections/{connection_id}/permissions")
+@router.put("/connections/{connection_id}/permissions", response_model=StatusUpdateResponse)
 async def update_permissions(
     connection_id: str,
     req: UpdatePermissionsRequest,
@@ -307,7 +391,7 @@ async def update_permissions(
     return {"connection_id": connection_id, "status": "updated"}
 
 
-@router.post("/connections/{connection_id}/disconnect")
+@router.post("/connections/{connection_id}/disconnect", response_model=StatusUpdateResponse)
 async def disconnect_app(connection_id: str, user: User = Depends(get_current_user)) -> dict:
     """Disconnect a connection."""
     success = app_connector_hub.disconnect(connection_id)
@@ -316,7 +400,7 @@ async def disconnect_app(connection_id: str, user: User = Depends(get_current_us
     return {"connection_id": connection_id, "status": "disconnected"}
 
 
-@router.delete("/connections/{connection_id}")
+@router.delete("/connections/{connection_id}", response_model=StatusUpdateResponse)
 async def remove_connection(connection_id: str, user: User = Depends(get_current_user)) -> dict:
     """Completely remove a connection."""
     removed = app_connector_hub.remove_connection(connection_id)
@@ -325,7 +409,7 @@ async def remove_connection(connection_id: str, user: User = Depends(get_current
     return {"connection_id": connection_id, "status": "removed"}
 
 
-@router.post("/connections/{connection_id}/sync")
+@router.post("/connections/{connection_id}/sync", response_model=SyncResultResponse)
 async def sync_connection(
     connection_id: str,
     req: SyncRequest,
@@ -364,7 +448,9 @@ async def sync_connection(
     }
 
 
-@router.post("/connections/{connection_id}/import-knowledge")
+@router.post(
+    "/connections/{connection_id}/import-knowledge", response_model=KnowledgeImportResponse
+)
 async def import_to_knowledge(
     connection_id: str,
     req: ImportRequest,
@@ -384,7 +470,7 @@ async def import_to_knowledge(
     return result
 
 
-@router.get("/connections/{connection_id}/sync-history")
+@router.get("/connections/{connection_id}/sync-history", response_model=SyncHistoryResponse)
 async def get_sync_history(
     connection_id: str,
     limit: int = 50,
@@ -414,7 +500,7 @@ async def get_sync_history(
     }
 
 
-@router.get("/summary")
+@router.get("/summary", response_model=IntegrationSummaryResponse)
 async def get_summary() -> dict:
     """Return integration hub summary."""
     return app_connector_hub.get_summary()

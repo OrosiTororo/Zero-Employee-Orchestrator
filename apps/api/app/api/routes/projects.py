@@ -28,7 +28,32 @@ class GoalCreate(BaseModel):
     goal_level: str = "project"
 
 
-@router.get("/companies/{company_id}/projects")
+class ProjectResponse(BaseModel):
+    id: str
+    name: str
+    goal: str = ""
+    priority: str = "medium"
+    status: str = "active"
+
+
+class ProjectCreateResponse(BaseModel):
+    id: str
+    name: str
+
+
+class GoalResponse(BaseModel):
+    id: str
+    title: str
+    goal_level: str = "project"
+    status: str = "active"
+
+
+class GoalCreateResponse(BaseModel):
+    id: str
+    title: str
+
+
+@router.get("/companies/{company_id}/projects", response_model=list[ProjectResponse])
 async def list_projects(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -48,7 +73,7 @@ async def list_projects(
     ]
 
 
-@router.post("/companies/{company_id}/projects")
+@router.post("/companies/{company_id}/projects", response_model=ProjectCreateResponse)
 async def create_project(
     company_id: str,
     req: ProjectCreate,
@@ -70,7 +95,7 @@ async def create_project(
     return {"id": str(project.id), "name": project.name}
 
 
-@router.get("/projects/{project_id}/goals")
+@router.get("/projects/{project_id}/goals", response_model=list[GoalResponse])
 async def list_goals(
     project_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -89,7 +114,7 @@ async def list_goals(
     ]
 
 
-@router.post("/projects/{project_id}/goals")
+@router.post("/projects/{project_id}/goals", response_model=GoalCreateResponse)
 async def create_goal(
     project_id: str,
     req: GoalCreate,

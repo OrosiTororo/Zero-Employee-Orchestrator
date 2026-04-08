@@ -65,7 +65,63 @@ class FolderLocationRequest(BaseModel):
     user_id: str | None = None
 
 
-@router.post("/knowledge/remember")
+class FilePermissionStoreResponse(BaseModel):
+    id: str
+    path: str
+    permission: str
+    stored: bool
+
+
+class FolderLocationStoreResponse(BaseModel):
+    id: str
+    name: str
+    path: str
+    stored: bool
+
+
+class PermissionEntry(BaseModel):
+    id: str
+    path: str
+    permission: str
+
+
+class PermissionListResponse(BaseModel):
+    permissions: list[PermissionEntry]
+
+
+class FolderEntry(BaseModel):
+    id: str
+    name: str
+    path: str
+
+
+class FolderListResponse(BaseModel):
+    folders: list[FolderEntry]
+
+
+class ChangeEntry(BaseModel):
+    id: str
+    entity_type: str
+    change_type: str
+    old_value: str | None
+    new_value: str | None
+    detected_at: str
+    acknowledged: bool
+
+
+class ChangeListResponse(BaseModel):
+    changes: list[ChangeEntry]
+
+
+class AcknowledgeResponse(BaseModel):
+    acknowledged: bool
+
+
+class ForgetResponse(BaseModel):
+    forgotten: bool
+
+
+@router.post("/knowledge/remember", response_model=KnowledgeResponse)
 @limiter.limit("30/minute")
 async def remember_knowledge(
     request: Request,
@@ -106,7 +162,7 @@ async def remember_knowledge(
     }
 
 
-@router.post("/knowledge/recall")
+@router.post("/knowledge/recall", response_model=list[KnowledgeResponse])
 async def recall_knowledge(
     req: KnowledgeRecallRequest,
     db: AsyncSession = Depends(get_db),
@@ -137,7 +193,7 @@ async def recall_knowledge(
     }
 
 
-@router.post("/knowledge/file-permission")
+@router.post("/knowledge/file-permission", response_model=FilePermissionStoreResponse)
 async def remember_file_permission(
     req: FilePermissionRequest,
     db: AsyncSession = Depends(get_db),
@@ -160,7 +216,7 @@ async def remember_file_permission(
     }
 
 
-@router.post("/knowledge/folder-location")
+@router.post("/knowledge/folder-location", response_model=FolderLocationStoreResponse)
 async def remember_folder_location(
     req: FolderLocationRequest,
     db: AsyncSession = Depends(get_db),
@@ -178,7 +234,7 @@ async def remember_folder_location(
     return {"id": str(record.id), "name": req.name, "path": req.path, "stored": True}
 
 
-@router.get("/knowledge/permissions")
+@router.get("/knowledge/permissions", response_model=PermissionListResponse)
 async def list_permissions(
     company_id: str | None = None,
     db: AsyncSession = Depends(get_db),
@@ -193,7 +249,7 @@ async def list_permissions(
     }
 
 
-@router.get("/knowledge/folders")
+@router.get("/knowledge/folders", response_model=FolderListResponse)
 async def list_folder_locations(
     company_id: str | None = None,
     db: AsyncSession = Depends(get_db),
@@ -208,7 +264,7 @@ async def list_folder_locations(
     }
 
 
-@router.get("/knowledge/changes")
+@router.get("/knowledge/changes", response_model=ChangeListResponse)
 async def list_changes(
     company_id: str | None = None,
     unacknowledged_only: bool = True,
@@ -236,7 +292,7 @@ async def list_changes(
     }
 
 
-@router.post("/knowledge/changes/{change_id}/acknowledge")
+@router.post("/knowledge/changes/{change_id}/acknowledge", response_model=AcknowledgeResponse)
 async def acknowledge_change(
     change_id: str,
     db: AsyncSession = Depends(get_db),
@@ -251,7 +307,7 @@ async def acknowledge_change(
     return {"acknowledged": True}
 
 
-@router.delete("/knowledge/{record_id}")
+@router.delete("/knowledge/{record_id}", response_model=ForgetResponse)
 async def forget_knowledge(
     record_id: str,
     db: AsyncSession = Depends(get_db),

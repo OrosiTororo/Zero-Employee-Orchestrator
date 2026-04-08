@@ -118,6 +118,150 @@ class TicketResponse(BaseModel):
     created_at: datetime
 
 
+class InterviewQuestionResponse(BaseModel):
+    index: int
+    question: str
+    category: str
+    required: bool
+    answered: bool
+    answer: str | None
+
+
+class InterviewAttachmentInfo(BaseModel):
+    filename: str
+    content_type: str
+    size_bytes: int
+    description: str
+    has_text: bool
+
+
+class InterviewSessionResponse(BaseModel):
+    ticket_id: str
+    status: str
+    is_complete: bool
+    questions: list[InterviewQuestionResponse]
+    attachments: list[InterviewAttachmentInfo]
+    pending_count: int
+
+
+class InterviewAnswerResponse(BaseModel):
+    status: str
+    is_complete: bool
+    pending_count: int
+
+
+class AttachFileResponse(BaseModel):
+    status: str
+    filename: str
+    size_bytes: int
+    extracted_text_length: int
+    total_attachments: int
+
+
+class AttachmentDetailInfo(BaseModel):
+    filename: str
+    content_type: str
+    size_bytes: int
+    description: str
+    extracted_text_preview: str
+
+
+class AttachmentListResponse(BaseModel):
+    attachments: list[AttachmentDetailInfo]
+
+
+class GenerateSpecResponse(BaseModel):
+    spec_id: str
+    version_no: int
+    spec: dict
+
+
+class TicketDetailResponse(BaseModel):
+    id: str
+    ticket_no: int
+    title: str
+    description: str | None
+    priority: str
+    status: str
+    source_type: str | None
+    created_at: str | None
+
+
+class UpdateTicketResponse(BaseModel):
+    status: str
+
+
+class CommentCreateResponse(BaseModel):
+    id: str
+    status: str
+
+
+class ThreadEntryResponse(BaseModel):
+    id: str
+    author_type: str
+    message_type: str
+    body_markdown: str
+    created_at: str | None
+
+
+class CloseTicketResponse(BaseModel):
+    status: str
+
+
+class ReopenTicketResponse(BaseModel):
+    status: str
+
+
+class PlanNodeResponse(BaseModel):
+    id: str
+    title: str
+    task_type: str
+    depends_on: list[str]
+    status: str
+    requires_approval: bool
+    estimated_cost_usd: float
+    estimated_minutes: int
+    provider_override: dict | None
+
+
+class GeneratePlanResponse(BaseModel):
+    plan_id: str
+    total_cost_usd: float
+    total_minutes: int
+    critical_path_minutes: int
+    approval_points: int
+    nodes: list[PlanNodeResponse]
+
+
+class ExecutionMetricsResponse(BaseModel):
+    total_cost_usd: float
+    total_tokens: int
+    total_duration_ms: int
+    nodes_executed: int
+    nodes_succeeded: int
+
+
+class NodeExecutionResultResponse(BaseModel):
+    node_id: str
+    success: bool
+    model_used: str
+    judge_score: float
+    judge_verdict: str
+    cost_usd: float
+    duration_ms: int
+    error: str | None
+
+
+class ExecuteTicketResponse(BaseModel):
+    ticket_id: str
+    status: str
+    plan: GeneratePlanResponse
+    output: str
+    metrics: ExecutionMetricsResponse
+    node_results: list[NodeExecutionResultResponse]
+    failure_reason: str | None
+
+
 class CommentCreate(BaseModel):
     body_markdown: str
     message_type: str = "comment"
@@ -213,7 +357,7 @@ async def create_ticket(
     )
 
 
-@router.get("/tickets/{ticket_id}/interview")
+@router.get("/tickets/{ticket_id}/interview", response_model=InterviewSessionResponse)
 async def get_interview(ticket_id: str, user: User = Depends(get_current_user)):
     """Get Design Interview session."""
     session = _interview_sessions.get(ticket_id)
@@ -254,7 +398,7 @@ class InterviewAnswer(BaseModel):
     answer: str
 
 
-@router.post("/tickets/{ticket_id}/interview/answer")
+@router.post("/tickets/{ticket_id}/interview/answer", response_model=InterviewAnswerResponse)
 @limiter.limit("30/minute")
 async def answer_interview(
     request: Request,
@@ -297,7 +441,7 @@ async def answer_interview(
     }
 
 
-@router.post("/tickets/{ticket_id}/interview/attach")
+@router.post("/tickets/{ticket_id}/interview/attach", response_model=AttachFileResponse)
 async def attach_file_to_interview(
     ticket_id: str,
     file: UploadFile = File(...),
@@ -358,7 +502,7 @@ async def attach_file_to_interview(
     }
 
 
-@router.get("/tickets/{ticket_id}/interview/attachments")
+@router.get("/tickets/{ticket_id}/interview/attachments", response_model=AttachmentListResponse)
 async def list_interview_attachments(ticket_id: str, user: User = Depends(get_current_user)):
     """Get list of interview attachments."""
     session = _interview_sessions.get(ticket_id)
@@ -379,7 +523,7 @@ async def list_interview_attachments(ticket_id: str, user: User = Depends(get_cu
     }
 
 
-@router.post("/tickets/{ticket_id}/interview/generate-spec")
+@router.post("/tickets/{ticket_id}/interview/generate-spec", response_model=GenerateSpecResponse)
 async def generate_spec_from_interview_endpoint(
     ticket_id: str,
     db: AsyncSession = Depends(get_db),
@@ -422,7 +566,7 @@ async def generate_spec_from_interview_endpoint(
     return {"spec_id": str(spec.id), "version_no": spec.version_no, "spec": spec_data}
 
 
-@router.get("/tickets/{ticket_id}")
+@router.get("/tickets/{ticket_id}", response_model=TicketDetailResponse)
 async def get_ticket(
     ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -443,7 +587,7 @@ async def get_ticket(
     }
 
 
-@router.patch("/tickets/{ticket_id}")
+@router.patch("/tickets/{ticket_id}", response_model=UpdateTicketResponse)
 async def update_ticket(
     ticket_id: str,
     title: str | None = None,
@@ -464,7 +608,7 @@ async def update_ticket(
     return {"status": "updated"}
 
 
-@router.post("/tickets/{ticket_id}/comments")
+@router.post("/tickets/{ticket_id}/comments", response_model=CommentCreateResponse)
 @limiter.limit("30/minute")
 async def add_comment(
     request: Request,
@@ -491,7 +635,7 @@ async def add_comment(
     return {"id": str(thread.id), "status": "created"}
 
 
-@router.get("/tickets/{ticket_id}/thread")
+@router.get("/tickets/{ticket_id}/thread", response_model=list[ThreadEntryResponse])
 async def get_thread(
     ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -513,7 +657,7 @@ async def get_thread(
     ]
 
 
-@router.post("/tickets/{ticket_id}/close")
+@router.post("/tickets/{ticket_id}/close", response_model=CloseTicketResponse)
 async def close_ticket(
     ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -528,7 +672,7 @@ async def close_ticket(
     return {"status": "closed"}
 
 
-@router.post("/tickets/{ticket_id}/reopen")
+@router.post("/tickets/{ticket_id}/reopen", response_model=ReopenTicketResponse)
 async def reopen_ticket(
     ticket_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -551,6 +695,7 @@ async def reopen_ticket(
 @router.post(
     "/tickets/{ticket_id}/generate-plan",
     tags=["execution"],
+    response_model=GeneratePlanResponse,
 )
 @limiter.limit("5/minute")
 async def generate_plan(
@@ -596,6 +741,7 @@ async def generate_plan(
 @router.post(
     "/tickets/{ticket_id}/execute",
     tags=["execution"],
+    response_model=ExecuteTicketResponse,
 )
 @limiter.limit("3/minute")
 async def execute_ticket(

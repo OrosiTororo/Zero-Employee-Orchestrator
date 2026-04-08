@@ -38,6 +38,10 @@ class AgentResponse(BaseModel):
     autonomy_level: str
 
 
+class AgentStatusResponse(BaseModel):
+    status: str
+
+
 @router.get("/companies/{company_id}/agents", response_model=list[AgentResponse])
 async def list_agents(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
@@ -122,7 +126,7 @@ async def get_agent(
     )
 
 
-@router.post("/agents/{agent_id}/pause")
+@router.post("/agents/{agent_id}/pause", response_model=AgentStatusResponse)
 async def pause_agent(
     agent_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -135,7 +139,7 @@ async def pause_agent(
     return {"status": "paused"}
 
 
-@router.post("/agents/{agent_id}/resume")
+@router.post("/agents/{agent_id}/resume", response_model=AgentStatusResponse)
 async def resume_agent(
     agent_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):

@@ -286,6 +286,11 @@ class LLMGateway:
         Prefers models that belong to a configured provider so the caller
         is less likely to encounter authentication errors.
         For SUBSCRIPTION mode g4f models are always considered available.
+
+        Auto-fallback: when no paid API key is configured, automatically
+        tries FREE and SUBSCRIPTION mode catalogs (g4f, Ollama) before
+        falling back to the first candidate.
+
         Returns the resolved API model ID (not family ID).
         """
         candidates = MODEL_CATALOG.get(mode, MODEL_CATALOG[ExecutionMode.QUALITY])
@@ -297,20 +302,41 @@ class LLMGateway:
                 if candidate.startswith("g4f/") or candidate in available:
                     return self._resolve_to_api_model(candidate)
 
+        # Auto-fallback: no paid provider matched — try free/subscription modes
+        # This ensures "no API key required" actually works out of the box
+        has_paid_key = any(
+            cfg.get("api_key")
+            for name, cfg in self._providers.items()
+            if name not in ("ollama", "g4f")
+        )
+        if not has_paid_key and mode not in (ExecutionMode.FREE, ExecutionMode.SUBSCRIPTION):
+            for fallback_mode in (ExecutionMode.FREE, ExecutionMode.SUBSCRIPTION):
+                fallback_candidates = MODEL_CATALOG.get(fallback_mode, [])
+                for candidate in fallback_candidates:
+                    if candidate.startswith("g4f/") or candidate.startswith("ollama/"):
+                        logger.info(
+                            "No paid API key configured — auto-falling back to %s", candidate
+                        )
+                        return self._resolve_to_api_model(candidate)
+
         # Fall back to first candidate regardless of configuration
         selected = candidates[0] if candidates else "openai/gpt-mini"
         return self._resolve_to_api_model(selected)
 
     @staticmethod
     def _sanitize_messages(messages: list[dict]) -> list[dict]:
-        """Scan messages for prompt injection and wrap external data markers.
+        """Scan messages for prompt injection, strip PII, and wrap external data.
 
-        This ensures all content sent to LLMs passes through the security
-        pipeline — CLAUDE.md rule: "When passing external data to LLMs:
-        always wrap with wrap_external_data() boundary markers".
+        Security pipeline (executed in order):
+        1. Prompt injection detection and boundary wrapping
+        2. PII detection and masking — prevents personal information from
+           being sent to external LLM providers (CLAUDE.md + user privacy policy)
         """
         try:
+            from app.security.pii_guard import PIIGuard
             from app.security.prompt_guard import scan_prompt_injection, wrap_external_data
+
+            pii_guard = PIIGuard()
 
             sanitized: list[dict] = []
             for msg in messages:
@@ -319,8 +345,18 @@ class LLMGateway:
                     sanitized.append(msg)
                     continue
 
-                # System messages are trusted; user/assistant messages may carry
-                # external data that was injected (e.g. web scrape, file content).
+                # --- Step 1: PII masking (all roles except system) ---
+                if msg.get("role") in ("user", "tool", "assistant"):
+                    pii_result = pii_guard.detect_and_mask(content)
+                    if pii_result.detections:
+                        logger.info(
+                            "PII masked before LLM call: %d items (%s)",
+                            len(pii_result.detections),
+                            ", ".join(d.category for d in pii_result.detections),
+                        )
+                        content = pii_result.masked_text
+
+                # --- Step 2: Prompt injection scan (user/tool messages) ---
                 if msg.get("role") in ("user", "tool"):
                     guard_result = scan_prompt_injection(content)
                     if not guard_result.is_safe:
@@ -329,18 +365,16 @@ class LLMGateway:
                             guard_result.threat_level.value,
                             guard_result.detections,
                         )
-                        # Wrap with boundary markers so the LLM can distinguish
                         content = wrap_external_data(content, source="user_input")
                         sanitized.append({**msg, "content": content})
                         continue
 
-                sanitized.append(msg)
+                sanitized.append({**msg, "content": content})
             return sanitized
         except Exception as exc:
             logger.critical(
                 "Message sanitization FAILED — refusing to send unsanitized messages: %s", exc
             )
-            # Return ONLY a security warning — never forward unsanitized messages
             warning_msg = {
                 "role": "system",
                 "content": (
@@ -507,6 +541,39 @@ class LLMGateway:
         except Exception as exc:
             logger.debug("Ollama model discovery failed: %s", exc)
         return []
+
+    async def auto_pull_ollama_model(self, model_name: str = "llama3.2") -> bool:
+        """Auto-pull an Ollama model if none are installed locally.
+
+        Called automatically when Ollama is reachable but has no models.
+        Implements the "zero config" promise for local LLM usage.
+        """
+        try:
+            import httpx
+
+            base = getattr(self, "_ollama_url", "http://localhost:11434")
+            async with httpx.AsyncClient(timeout=300.0) as client:
+                # Check if any models exist
+                resp = await client.get(f"{base}/api/tags")
+                if resp.status_code == 200:
+                    data = resp.json()
+                    if data.get("models"):
+                        return True  # Models already installed
+
+                # Pull the default model
+                logger.info("No Ollama models found — auto-pulling %s...", model_name)
+                resp = await client.post(
+                    f"{base}/api/pull",
+                    json={"name": model_name, "stream": False},
+                    timeout=600.0,
+                )
+                if resp.status_code == 200:
+                    logger.info("Successfully pulled Ollama model: %s", model_name)
+                    await self.discover_ollama_models()
+                    return True
+        except Exception as exc:
+            logger.debug("Ollama auto-pull failed (Ollama may not be running): %s", exc)
+        return False
 
     async def ollama_health(self) -> bool:
         """Check if Ollama is reachable."""

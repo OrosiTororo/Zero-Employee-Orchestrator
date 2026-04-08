@@ -84,9 +84,13 @@ export function DashboardPage() {
         setShowChat(true)
         navigate("/tickets")
       }
-    } catch (e) {
-      console.warn("NL command failed:", e)
-      navigate("/tickets")
+    } catch {
+      setChatHistory(prev => [
+        ...prev,
+        { role: "user", content: input.trim() },
+        { role: "system", content: "Could not process your request. Please check your connection and try again, or go to Settings to configure an AI provider." },
+      ])
+      setShowChat(true)
     } finally {
       setLoading(false)
     }
