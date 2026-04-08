@@ -222,7 +222,7 @@ Zero-Employee-Orchestrator/
 │   ├── desktop/              # Tauri v2 + React UI
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # 백그라운드 워커
-├── skills/                   # 내장 스킬 (8개)
+├── skills/                   # 내장 스킬 (11개: 6 시스템 + 5 도메인)
 ├── plugins/                  # 플러그인 매니페스트 (16개)
 ├── extensions/               # 익스텐션 매니페스트 (11개)
 │   └── browser-assist/

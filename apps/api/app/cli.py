@@ -716,13 +716,13 @@ def _get_api_headers() -> dict[str, str]:
 
 # Color/icon constants for task status display
 _STATUS_ICONS: dict[str, str] = {
-    "queued": "\033[38;5;245m\u25cb\033[0m",      # grey circle
-    "running": "\033[38;5;33m\u25cf\033[0m",       # blue circle
-    "completed": "\033[38;5;78m\u2714\033[0m",     # green check
-    "failed": "\033[38;5;196m\u2718\033[0m",       # red X
-    "cancelled": "\033[38;5;245m\u2718\033[0m",    # grey X
-    "needs_input": "\033[38;5;220m?\033[0m",       # yellow ?
-    "preview": "\033[38;5;141m\u25b7\033[0m",      # purple triangle
+    "queued": "\033[38;5;245m\u25cb\033[0m",  # grey circle
+    "running": "\033[38;5;33m\u25cf\033[0m",  # blue circle
+    "completed": "\033[38;5;78m\u2714\033[0m",  # green check
+    "failed": "\033[38;5;196m\u2718\033[0m",  # red X
+    "cancelled": "\033[38;5;245m\u2718\033[0m",  # grey X
+    "needs_input": "\033[38;5;220m?\033[0m",  # yellow ?
+    "preview": "\033[38;5;141m\u25b7\033[0m",  # purple triangle
 }
 
 
@@ -805,9 +805,7 @@ def _cli_task_status(task_id_prefix: str) -> str:
 
     try:
         # First try exact match, then prefix match via task list
-        resp = httpx.get(
-            f"{_API_BASE}/dispatch/{task_id_prefix}", headers=headers, timeout=10
-        )
+        resp = httpx.get(f"{_API_BASE}/dispatch/{task_id_prefix}", headers=headers, timeout=10)
         if resp.status_code == 404 and len(task_id_prefix) < 36:
             # Try prefix match: list all and find matching
             list_resp = httpx.get(f"{_API_BASE}/dispatch", headers=headers, timeout=10)
@@ -840,9 +838,7 @@ def _cli_task_status(task_id_prefix: str) -> str:
                 result_text = t["result"][:200]
                 lines.append(f"  Result:      {result_text}")
             if t.get("needs_input_reason"):
-                lines.append(
-                    f"  \033[38;5;220mNeeds input: {t['needs_input_reason']}\033[0m"
-                )
+                lines.append(f"  \033[38;5;220mNeeds input: {t['needs_input_reason']}\033[0m")
             plan = t.get("plan_preview")
             if plan:
                 lines.append("")
@@ -939,9 +935,7 @@ def _cli_cancel(task_id_prefix: str) -> str:
                 else:
                     return f"  \033[38;5;196mNo task matching '{task_id_prefix}'\033[0m"
 
-        resp = httpx.delete(
-            f"{_API_BASE}/dispatch/{full_id}", headers=headers, timeout=10
-        )
+        resp = httpx.delete(f"{_API_BASE}/dispatch/{full_id}", headers=headers, timeout=10)
         if resp.status_code == 200:
             return f"  \033[38;5;78m\u2714 Cancelled: {full_id[:8]}...\033[0m"
         return f"  \033[38;5;196mCancel failed ({resp.status_code}): {resp.text}\033[0m"
