@@ -683,6 +683,274 @@ def _build_system_prompt(language: str) -> str:
     return lang_instructions.get(language, lang_instructions["en"])
 
 
+# ---------------------------------------------------------------------------
+# Task management helpers (Dispatch API client for CLI slash commands)
+# ---------------------------------------------------------------------------
+
+_API_BASE = "http://127.0.0.1:18234/api/v1"
+_cli_auth_token: str | None = None
+
+
+def _get_api_headers() -> dict[str, str]:
+    """Get API request headers with cached anonymous session token.
+
+    Lazily creates an anonymous session on first call. Subsequent calls
+    reuse the cached token for the lifetime of the CLI process.
+    """
+    global _cli_auth_token
+    if _cli_auth_token:
+        return {"Authorization": f"Bearer {_cli_auth_token}"}
+
+    import httpx
+
+    try:
+        resp = httpx.post(f"{_API_BASE}/auth/anonymous-session", timeout=5)
+        if resp.status_code == 200:
+            data = resp.json()
+            _cli_auth_token = data.get("access_token", "")
+            return {"Authorization": f"Bearer {_cli_auth_token}"}
+    except httpx.ConnectError:
+        pass
+    return {}
+
+
+# Color/icon constants for task status display
+_STATUS_ICONS: dict[str, str] = {
+    "queued": "\033[38;5;245m\u25cb\033[0m",      # grey circle
+    "running": "\033[38;5;33m\u25cf\033[0m",       # blue circle
+    "completed": "\033[38;5;78m\u2714\033[0m",     # green check
+    "failed": "\033[38;5;196m\u2718\033[0m",       # red X
+    "cancelled": "\033[38;5;245m\u2718\033[0m",    # grey X
+    "needs_input": "\033[38;5;220m?\033[0m",       # yellow ?
+    "preview": "\033[38;5;141m\u25b7\033[0m",      # purple triangle
+}
+
+
+def _cli_dispatch(instruction: str) -> str:
+    """Fire a background task via the Dispatch API."""
+    import httpx
+
+    headers = _get_api_headers()
+    if not headers:
+        return "  \033[38;5;196mCannot connect to API server. Is it running on port 18234?\033[0m"
+
+    try:
+        resp = httpx.post(
+            f"{_API_BASE}/dispatch",
+            json={"instruction": instruction},
+            headers=headers,
+            timeout=10,
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            task_id = data.get("task_id", "?")
+            status = data.get("status", "?")
+            icon = _STATUS_ICONS.get(status, status)
+            return (
+                f"  {icon} Task dispatched: \033[38;5;75m{task_id[:8]}...\033[0m\n"
+                f"  Status: {status}\n"
+                f"  Use \033[38;5;245m/status {task_id[:8]}\033[0m to check progress"
+            )
+        return f"  \033[38;5;196mDispatch failed ({resp.status_code}): {resp.text}\033[0m"
+    except httpx.ConnectError:
+        return "  \033[38;5;196mCannot connect to API server. Is it running on port 18234?\033[0m"
+    except Exception as e:
+        return f"  \033[38;5;196mError: {e}\033[0m"
+
+
+def _cli_tasks() -> str:
+    """List active/completed/failed dispatch tasks."""
+    import httpx
+
+    headers = _get_api_headers()
+    if not headers:
+        return "  \033[38;5;196mCannot connect to API server. Is it running on port 18234?\033[0m"
+
+    try:
+        resp = httpx.get(f"{_API_BASE}/dispatch", headers=headers, timeout=10)
+        if resp.status_code == 200:
+            data = resp.json()
+            tasks = data.get("tasks", [])
+            total = data.get("total", 0)
+            if not tasks:
+                return "  \033[38;5;245mNo tasks found.\033[0m"
+
+            lines = [f"  \033[1mTasks ({total}):\033[0m", ""]
+            for t in tasks:
+                status = t.get("status", "?")
+                icon = _STATUS_ICONS.get(status, status)
+                task_id = t.get("task_id", "?")
+                instruction = t.get("instruction", "")[:60]
+                created = t.get("created_at", "")[:19]
+                lines.append(
+                    f"  {icon} \033[38;5;75m{task_id[:8]}\033[0m  "
+                    f"{status:12s}  {instruction}  "
+                    f"\033[38;5;245m{created}\033[0m"
+                )
+            return "\n".join(lines)
+        return f"  \033[38;5;196mFailed to list tasks ({resp.status_code}): {resp.text}\033[0m"
+    except httpx.ConnectError:
+        return "  \033[38;5;196mCannot connect to API server. Is it running on port 18234?\033[0m"
+    except Exception as e:
+        return f"  \033[38;5;196mError: {e}\033[0m"
+
+
+def _cli_task_status(task_id_prefix: str) -> str:
+    """Show detailed status for a task (supports prefix matching)."""
+    import httpx
+
+    headers = _get_api_headers()
+    if not headers:
+        return "  \033[38;5;196mCannot connect to API server. Is it running on port 18234?\033[0m"
+
+    try:
+        # First try exact match, then prefix match via task list
+        resp = httpx.get(
+            f"{_API_BASE}/dispatch/{task_id_prefix}", headers=headers, timeout=10
+        )
+        if resp.status_code == 404 and len(task_id_prefix) < 36:
+            # Try prefix match: list all and find matching
+            list_resp = httpx.get(f"{_API_BASE}/dispatch", headers=headers, timeout=10)
+            if list_resp.status_code == 200:
+                for t in list_resp.json().get("tasks", []):
+                    if t["task_id"].startswith(task_id_prefix):
+                        resp = httpx.get(
+                            f"{_API_BASE}/dispatch/{t['task_id']}",
+                            headers=headers,
+                            timeout=10,
+                        )
+                        break
+                else:
+                    return f"  \033[38;5;196mNo task matching '{task_id_prefix}'\033[0m"
+
+        if resp.status_code == 200:
+            t = resp.json()
+            status = t.get("status", "?")
+            icon = _STATUS_ICONS.get(status, status)
+            lines = [
+                "  \033[1mTask Detail\033[0m",
+                f"  ID:          \033[38;5;75m{t.get('task_id', '?')}\033[0m",
+                f"  Status:      {icon} {status}",
+                f"  Instruction: {t.get('instruction', '')}",
+                f"  Created:     {t.get('created_at', '')[:19]}",
+            ]
+            if t.get("completed_at"):
+                lines.append(f"  Completed:   {t['completed_at'][:19]}")
+            if t.get("result"):
+                result_text = t["result"][:200]
+                lines.append(f"  Result:      {result_text}")
+            if t.get("needs_input_reason"):
+                lines.append(
+                    f"  \033[38;5;220mNeeds input: {t['needs_input_reason']}\033[0m"
+                )
+            plan = t.get("plan_preview")
+            if plan:
+                lines.append("")
+                lines.append(f"  \033[1mPlan Steps ({len(plan)}):\033[0m")
+                for step in plan:
+                    step_icon = _STATUS_ICONS.get(step.get("status", "pending"), " ")
+                    title = step.get("title", "?")
+                    deps = step.get("depends_on", [])
+                    dep_str = f" (after: {', '.join(deps)})" if deps else ""
+                    lines.append(f"    {step_icon} {title}{dep_str}")
+            return "\n".join(lines)
+        return f"  \033[38;5;196mTask not found ({resp.status_code})\033[0m"
+    except httpx.ConnectError:
+        return "  \033[38;5;196mCannot connect to API server. Is it running on port 18234?\033[0m"
+    except Exception as e:
+        return f"  \033[38;5;196mError: {e}\033[0m"
+
+
+def _cli_approve(request_id: str) -> str:
+    """Approve a pending approval request."""
+    import httpx
+
+    headers = _get_api_headers()
+    if not headers:
+        return "  \033[38;5;196mCannot connect to API server. Is it running on port 18234?\033[0m"
+
+    try:
+        resp = httpx.post(
+            f"{_API_BASE}/approvals/{request_id}/approve",
+            headers=headers,
+            timeout=10,
+        )
+        if resp.status_code == 200:
+            return f"  \033[38;5;78m\u2714 Approved: {request_id}\033[0m"
+        return (
+            f"  \033[38;5;196mApproval failed ({resp.status_code}): "
+            f"{resp.json().get('detail', resp.text)}\033[0m"
+        )
+    except httpx.ConnectError:
+        return "  \033[38;5;196mCannot connect to API server. Is it running on port 18234?\033[0m"
+    except Exception as e:
+        return f"  \033[38;5;196mError: {e}\033[0m"
+
+
+def _cli_reject(request_id: str, reason: str = "") -> str:
+    """Reject a pending approval request."""
+    import httpx
+
+    headers = _get_api_headers()
+    if not headers:
+        return "  \033[38;5;196mCannot connect to API server. Is it running on port 18234?\033[0m"
+
+    try:
+        params = {"reason": reason} if reason else {}
+        resp = httpx.post(
+            f"{_API_BASE}/approvals/{request_id}/reject",
+            params=params,
+            headers=headers,
+            timeout=10,
+        )
+        if resp.status_code == 200:
+            msg = f"  \033[38;5;78m\u2714 Rejected: {request_id}\033[0m"
+            if reason:
+                msg += f"\n  Reason: {reason}"
+            return msg
+        return (
+            f"  \033[38;5;196mRejection failed ({resp.status_code}): "
+            f"{resp.json().get('detail', resp.text)}\033[0m"
+        )
+    except httpx.ConnectError:
+        return "  \033[38;5;196mCannot connect to API server. Is it running on port 18234?\033[0m"
+    except Exception as e:
+        return f"  \033[38;5;196mError: {e}\033[0m"
+
+
+def _cli_cancel(task_id_prefix: str) -> str:
+    """Cancel a running dispatch task (supports prefix matching)."""
+    import httpx
+
+    headers = _get_api_headers()
+    if not headers:
+        return "  \033[38;5;196mCannot connect to API server. Is it running on port 18234?\033[0m"
+
+    try:
+        # Resolve prefix to full task_id
+        full_id = task_id_prefix
+        if len(task_id_prefix) < 36:
+            list_resp = httpx.get(f"{_API_BASE}/dispatch", headers=headers, timeout=10)
+            if list_resp.status_code == 200:
+                for t in list_resp.json().get("tasks", []):
+                    if t["task_id"].startswith(task_id_prefix):
+                        full_id = t["task_id"]
+                        break
+                else:
+                    return f"  \033[38;5;196mNo task matching '{task_id_prefix}'\033[0m"
+
+        resp = httpx.delete(
+            f"{_API_BASE}/dispatch/{full_id}", headers=headers, timeout=10
+        )
+        if resp.status_code == 200:
+            return f"  \033[38;5;78m\u2714 Cancelled: {full_id[:8]}...\033[0m"
+        return f"  \033[38;5;196mCancel failed ({resp.status_code}): {resp.text}\033[0m"
+    except httpx.ConnectError:
+        return "  \033[38;5;196mCannot connect to API server. Is it running on port 18234?\033[0m"
+    except Exception as e:
+        return f"  \033[38;5;196mError: {e}\033[0m"
+
+
 def _cli_read_file(path: str) -> str:
     """Read and display a file."""
     from pathlib import Path
@@ -866,7 +1134,15 @@ def _handle_command(cmd: str, language: str) -> str | None:
                 "  /cd <path>     - ディレクトリ移動\n"
                 "  /pwd           - 現在のディレクトリ\n"
                 "  /find <pattern> - ファイル検索\n"
-                "  /grep <pattern> - ファイル内容検索"
+                "  /grep <pattern> - ファイル内容検索\n"
+                "\n"
+                "  \033[1mTask Management:\033[0m\n"
+                "  /dispatch <instruction> - バックグラウンドタスクを実行\n"
+                "  /tasks                  - タスク一覧を表示\n"
+                "  /status <task_id>       - タスクの詳細を表示\n"
+                "  /approve <request_id>   - 承認リクエストを承認\n"
+                "  /reject <request_id> [reason] - 承認リクエストを却下\n"
+                "  /cancel <task_id>       - 実行中のタスクをキャンセル"
             ),
             "en": (
                 "  /help      - Show help\n"
@@ -884,7 +1160,15 @@ def _handle_command(cmd: str, language: str) -> str | None:
                 "  /cd <path>     - Change directory\n"
                 "  /pwd           - Current directory\n"
                 "  /find <pattern> - Find files\n"
-                "  /grep <pattern> - Search file contents"
+                "  /grep <pattern> - Search file contents\n"
+                "\n"
+                "  \033[1mTask Management:\033[0m\n"
+                "  /dispatch <instruction> - Fire a background task\n"
+                "  /tasks                  - List tasks with status\n"
+                "  /status <task_id>       - Show detailed task status\n"
+                "  /approve <request_id>   - Approve a pending request\n"
+                "  /reject <request_id> [reason] - Reject a pending request\n"
+                "  /cancel <task_id>       - Cancel a running task"
             ),
             "zh": (
                 "  /help      - 显示帮助\n"
@@ -902,7 +1186,15 @@ def _handle_command(cmd: str, language: str) -> str | None:
                 "  /cd <path>     - 切换目录\n"
                 "  /pwd           - 当前目录\n"
                 "  /find <pattern> - 搜索文件\n"
-                "  /grep <pattern> - 搜索文件内容"
+                "  /grep <pattern> - 搜索文件内容\n"
+                "\n"
+                "  \033[1mTask Management:\033[0m\n"
+                "  /dispatch <instruction> - 启动后台任务\n"
+                "  /tasks                  - 列出任务及状态\n"
+                "  /status <task_id>       - 显示任务详情\n"
+                "  /approve <request_id>   - 批准待审请求\n"
+                "  /reject <request_id> [reason] - 拒绝待审请求\n"
+                "  /cancel <task_id>       - 取消运行中的任务"
             ),
         }
         print(help_text.get(language, help_text["en"]))
@@ -996,6 +1288,48 @@ def _handle_command(cmd: str, language: str) -> str | None:
             print(_cli_grep(pat, search_path))
         else:
             print("  Usage: /grep <pattern> [path]")
+        return None
+
+    # ── Task Management Commands ──
+    if command == "/dispatch":
+        if len(parts) > 1:
+            instruction = " ".join(parts[1:])
+            print(_cli_dispatch(instruction))
+        else:
+            print("  Usage: /dispatch <instruction>")
+        return None
+
+    if command == "/tasks":
+        print(_cli_tasks())
+        return None
+
+    if command == "/status":
+        if len(parts) > 1:
+            print(_cli_task_status(parts[1]))
+        else:
+            print("  Usage: /status <task_id>")
+        return None
+
+    if command == "/approve":
+        if len(parts) > 1:
+            print(_cli_approve(parts[1]))
+        else:
+            print("  Usage: /approve <request_id>")
+        return None
+
+    if command == "/reject":
+        if len(parts) > 1:
+            reason = " ".join(parts[2:]) if len(parts) > 2 else ""
+            print(_cli_reject(parts[1], reason))
+        else:
+            print("  Usage: /reject <request_id> [reason]")
+        return None
+
+    if command == "/cancel":
+        if len(parts) > 1:
+            print(_cli_cancel(parts[1]))
+        else:
+            print("  Usage: /cancel <task_id>")
         return None
 
     print(f"  Unknown command: {command}. Type /help for help.")

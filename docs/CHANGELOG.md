@@ -1,6 +1,33 @@
 # Changelog
 
-## [v0.1.5] (2026-04-07)
+## [v0.1.5] (2026-04-08)
+
+### New — Copilot Cowork-Inspired Task Management
+
+Dispatch system enhanced with features inspired by Microsoft Copilot Cowork and Claude Cowork:
+
+- **Plan Preview**: `preview_only=true` generates execution plan without running; user reviews steps then approves via `POST /dispatch/{id}/start`
+- **Needs Input Checkpoint**: Tasks auto-detect when LLM needs human input, pause with `needs_input` status and a reason message; resume via `POST /dispatch/{id}/resume`
+- **Mid-Execution Steering**: `POST /dispatch/{id}/steer` adds instructions to redirect a running task without cancelling
+- **Rich Approval Preview**: Approval responses now include `preview` field (human-readable impact description) and risk-level color badges
+- **CLI Task Management**: New slash commands in chat mode: `/dispatch`, `/tasks`, `/status`, `/approve`, `/reject`, `/cancel`
+- **DispatchPage Redesign**: Expandable task cards, Active/Done/All tabs, plan step display, steering input, resume input, status badges
+
+### New — ZEO Positioning Document
+
+- `docs/dev/POSITIONING.md` — Defines ZEO's identity as meta-orchestrator vs desktop agents (Claude Cowork) and enterprise graph agents (Copilot Cowork)
+- Adopted features (採長補短) matrix with rationale
+- Browser Assist roadmap (4 phases)
+- GUI/CLI/Web integration strategy
+
+### Endpoint Count Update
+
+- 3 new dispatch endpoints: `/dispatch/{id}/steer`, `/dispatch/{id}/resume`, `/dispatch/{id}/start`
+- Total: 46 route modules, **395 endpoints** (392 routes + 3 main.py)
+
+---
+
+## [v0.1.5-pre] (2026-04-07)
 
 ### New — End-to-End Task Execution Engine
 

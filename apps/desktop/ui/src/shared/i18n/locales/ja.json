@@ -526,6 +526,9 @@
     "risk": "リスク",
     "approve": "承認",
     "reject": "却下",
+    "previewLabel": "アクションプレビュー",
+    "taskLabel": "タスク",
+    "rejectReason": "却下理由:",
     "loadFailed": "承認リクエストを読み込めませんでした。接続を確認してください。",
     "approveFailed": "承認できませんでした。再度お試しください。",
     "rejectFailed": "却下できませんでした。再度お試しください。"

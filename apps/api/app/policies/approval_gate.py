@@ -122,6 +122,95 @@ def check_approval_required(operation: str) -> ApprovalGateResult:
     )
 
 
+def generate_action_preview(operation: str, payload: dict | None = None) -> str:
+    """Generate a human-readable preview of what an operation will do.
+
+    Inspired by Copilot Cowork's approval checkpoints: show the user
+    exactly what will happen before they approve.
+    """
+    payload = payload or {}
+
+    # Operation-specific preview templates
+    _PREVIEW_TEMPLATES: dict[str, str] = {
+        "send_email": "Will send email to {recipient_count} recipient(s)",
+        "post_sns": "Will post to {platform}",
+        "publish_content": "Will publish content to {destination}",
+        "delete_file": "Will delete {file_count} file(s): {files}",
+        "delete_data": "Will permanently delete {record_count} record(s) from {source}",
+        "charge_payment": "Will charge {amount} {currency} to {account}",
+        "git_push": "Will push {branch} to {remote}",
+        "git_release": "Will create release {version} on {remote}",
+        "overwrite_config": "Will overwrite configuration: {config_path}",
+        "change_permission": "Will change permissions for {subject} on {resource}",
+        "update_api_key": "Will update API key for {service}",
+        "rotate_secret": "Will rotate secret for {service}",
+        "create_agent": "Will create new agent: {agent_name}",
+        "create_team": "Will create new team: {team_name}",
+        "change_budget": "Will change budget limit to {new_limit} {currency}",
+        "change_policy": "Will modify policy: {policy_name}",
+        "expand_autonomy": "Will expand autonomy boundary: {boundary}",
+        "browser_navigate": "Will navigate to {url}",
+        "browser_screenshot": "Will take screenshot of {url}",
+        "browser_extract_data": "Will extract data from {url}",
+        "browser_click": "Will click element on {url}",
+        "browser_type": "Will type into form on {url}",
+        "browser_fill_form": "Will fill form on {url}",
+        "browser_submit_form": "Will submit form on {url}",
+        "browser_download": "Will download file from {url}",
+        "browser_login": "Will log in to {service}",
+        "browser_payment": "Will make payment on {service}",
+        "web_ai_session": "Will start AI session with {service}",
+        "web_ai_session_paid": "Will start paid AI session with {service}",
+    }
+
+    template = _PREVIEW_TEMPLATES.get(operation)
+    if not template:
+        entry = _DANGEROUS_OPERATIONS.get(operation)
+        if entry:
+            category, _ = entry
+            return f"Will perform {category.value} operation: {operation}"
+        return f"Will execute: {operation}"
+
+    # Fill template with payload data, using safe defaults
+    try:
+        return template.format_map(_PreviewDefaults(payload))
+    except (KeyError, ValueError):
+        return template
+
+
+class _PreviewDefaults(dict):
+    """Dict subclass that returns placeholder text for missing keys."""
+
+    _DEFAULTS: dict[str, str] = {
+        "recipient_count": "N",
+        "platform": "social media",
+        "destination": "target",
+        "file_count": "N",
+        "files": "(details pending)",
+        "record_count": "N",
+        "source": "database",
+        "amount": "N/A",
+        "currency": "",
+        "account": "default account",
+        "branch": "current branch",
+        "remote": "origin",
+        "version": "N/A",
+        "config_path": "(path pending)",
+        "subject": "user/role",
+        "resource": "resource",
+        "service": "service",
+        "agent_name": "(unnamed)",
+        "team_name": "(unnamed)",
+        "new_limit": "N/A",
+        "policy_name": "(unnamed)",
+        "boundary": "(details pending)",
+        "url": "(URL pending)",
+    }
+
+    def __missing__(self, key: str) -> str:
+        return self._DEFAULTS.get(key, f"<{key}>")
+
+
 def check_operations_batch(operations: list[str]) -> list[ApprovalGateResult]:
     """Batch check whether multiple operations require approval."""
     return [check_approval_required(op) for op in operations]

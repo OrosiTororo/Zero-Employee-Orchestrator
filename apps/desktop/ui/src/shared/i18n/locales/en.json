@@ -526,6 +526,9 @@
     "risk": "Risk",
     "approve": "Approve",
     "reject": "Reject",
+    "previewLabel": "Action Preview",
+    "taskLabel": "Task",
+    "rejectReason": "Reason for rejection:",
     "loadFailed": "Could not load approvals. Check your connection.",
     "approveFailed": "Could not approve. Try again.",
     "rejectFailed": "Could not reject. Try again."

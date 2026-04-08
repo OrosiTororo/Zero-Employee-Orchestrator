@@ -526,6 +526,9 @@
     "risk": "Risco",
     "approve": "Aprovar",
     "reject": "Rejeitar",
+    "previewLabel": "Visualizar Ação",
+    "taskLabel": "Tarefa",
+    "rejectReason": "Motivo da rejeição:",
     "loadFailed": "Não foi possível carregar aprovações. Verifique sua conexão.",
     "approveFailed": "Não foi possível aprovar. Tente novamente.",
     "rejectFailed": "Não foi possível rejeitar. Tente novamente."
