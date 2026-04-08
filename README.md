@@ -49,6 +49,7 @@ Pre-built desktop installers are available on the [Releases](https://github.com/
 | **macOS** | `.dmg` | macOS Universal (Intel + Apple Silicon) |
 | **Linux** | `.AppImage` | Portable (no install needed, amd64) |
 | **Linux** | `.deb` / `.rpm` | Debian/Ubuntu / Fedora/RHEL (amd64/x86_64) |
+| **Chrome** | `chrome-extension.zip` | Browser Assist extension (load unpacked) |
 
 After installation, a **setup wizard** will guide you through:
 1. **Language** — Choose English, 日本語, 中文, 한국어, Português, or Türkçe (changeable later in Settings)

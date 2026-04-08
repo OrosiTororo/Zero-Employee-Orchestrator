@@ -1,14 +1,16 @@
 /**
- * WorkflowBuilder — Visual DAG workflow editor (basic version).
+ * WorkflowBuilder — Visual DAG workflow editor with drag-and-drop.
  *
  * Renders plan steps as a visual graph with connections showing dependencies.
+ * Supports drag-and-drop node reordering and dependency editing.
  * Inspired by n8n's canvas and LangGraph's visual debugger.
  *
  * Usage:
  *   <WorkflowBuilder steps={planSteps} onStepClick={(id) => ...} />
+ *   <WorkflowBuilder steps={planSteps} editable onStepsChange={(steps) => ...} />
  */
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState, useRef } from "react";
 
 interface WorkflowStep {
   id: string;
@@ -21,6 +23,8 @@ interface WorkflowStep {
 interface WorkflowBuilderProps {
   steps: WorkflowStep[];
   onStepClick?: (stepId: string) => void;
+  onStepsChange?: (steps: WorkflowStep[]) => void;
+  editable?: boolean;
   className?: string;
 }
 
@@ -78,8 +82,56 @@ function computeLayout(steps: WorkflowStep[]): Map<string, { col: number; row: n
   return layout;
 }
 
-export default function WorkflowBuilder({ steps, onStepClick, className }: WorkflowBuilderProps) {
+export default function WorkflowBuilder({
+  steps,
+  onStepClick,
+  onStepsChange,
+  editable = false,
+  className,
+}: WorkflowBuilderProps) {
   const layout = useMemo(() => computeLayout(steps), [steps]);
+  const [dragSource, setDragSource] = useState<string | null>(null);
+  const [linkSource, setLinkSource] = useState<string | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  /** Drag-and-drop: swap two nodes' positions in the step array. */
+  const handleDrop = useCallback(
+    (targetId: string) => {
+      if (!editable || !dragSource || dragSource === targetId || !onStepsChange) return;
+      const newSteps = [...steps];
+      const srcIdx = newSteps.findIndex((s) => s.id === dragSource);
+      const tgtIdx = newSteps.findIndex((s) => s.id === targetId);
+      if (srcIdx >= 0 && tgtIdx >= 0) {
+        [newSteps[srcIdx], newSteps[tgtIdx]] = [newSteps[tgtIdx], newSteps[srcIdx]];
+        onStepsChange(newSteps);
+      }
+      setDragSource(null);
+    },
+    [dragSource, editable, onStepsChange, steps],
+  );
+
+  /** Link mode: shift+click source, then click target to add dependency. */
+  const handleNodeClick = useCallback(
+    (stepId: string, shiftKey: boolean) => {
+      if (editable && shiftKey && onStepsChange) {
+        if (!linkSource) {
+          setLinkSource(stepId);
+        } else if (linkSource !== stepId) {
+          const newSteps = steps.map((s) =>
+            s.id === stepId && !s.depends_on.includes(linkSource)
+              ? { ...s, depends_on: [...s.depends_on, linkSource] }
+              : s,
+          );
+          onStepsChange(newSteps);
+          setLinkSource(null);
+        }
+      } else {
+        setLinkSource(null);
+        onStepClick?.(stepId);
+      }
+    },
+    [editable, linkSource, onStepClick, onStepsChange, steps],
+  );
   const maxCol = useMemo(
     () => Math.max(0, ...Array.from(layout.values()).map((l) => l.col)),
     [layout],
@@ -116,7 +168,7 @@ export default function WorkflowBuilder({ steps, onStepClick, className }: Workf
       role="img"
       aria-label="Workflow execution graph"
     >
-      <svg width={svgW} height={svgH} style={{ minWidth: svgW, minHeight: svgH }}>
+      <svg ref={svgRef} width={svgW} height={svgH} style={{ minWidth: svgW, minHeight: svgH }}>
         {/* Edges */}
         {steps.flatMap((step) =>
           step.depends_on.map((dep) => {
@@ -151,10 +203,17 @@ export default function WorkflowBuilder({ steps, onStepClick, className }: Workf
           return (
             <g
               key={step.id}
-              onClick={() => onStepClick?.(step.id)}
-              style={{ cursor: onStepClick ? "pointer" : "default" }}
+              onClick={(e) => handleNodeClick(step.id, e.shiftKey)}
+              onDragStart={() => editable && setDragSource(step.id)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => handleDrop(step.id)}
+              draggable={editable}
+              style={{
+                cursor: editable ? "grab" : onStepClick ? "pointer" : "default",
+                outline: linkSource === step.id ? "2px dashed #007acc" : "none",
+              }}
               role="button"
-              aria-label={`Step: ${step.title}, Status: ${step.status}`}
+              aria-label={`Step: ${step.title}, Status: ${step.status}${editable ? ". Drag to reorder, Shift+click to link." : ""}`}
               tabIndex={0}
             >
               <rect

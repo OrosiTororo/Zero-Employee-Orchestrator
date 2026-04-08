@@ -220,19 +220,49 @@ class KnowledgeStore:
         result = await self._db.execute(stmt)
         records = list(result.scalars().all())
 
-        # TF-IDF-like relevance scoring when search_query is provided
+        # Relevance scoring: TF-IDF + cosine similarity (bag-of-words, no deps)
         if search_query and search_query.strip() and records:
-            terms = search_query.strip().lower().split()
+            import math
+            import re as _re
+
+            query_terms = search_query.strip().lower().split()
+
+            # Build document frequency map across all records for IDF
+            doc_count = len(records)
+            df: dict[str, int] = {}
+            for r in records:
+                text_tokens = set(
+                    _re.findall(r"[a-zA-Z0-9\u3040-\u9fff]+", f"{r.key} {r.value}".lower())
+                )
+                for t in text_tokens:
+                    df[t] = df.get(t, 0) + 1
+
             scored: list[tuple[float, KnowledgeRecord]] = []
             for r in records:
                 text = f"{r.key} {r.value}".lower()
-                tf_score = sum(text.count(t) for t in terms)
-                # Boost by inverse document frequency approximation (rarer = better)
-                unique_terms_matched = sum(1 for t in terms if t in text)
-                idf_boost = unique_terms_matched / max(len(terms), 1)
-                # Combine with usage popularity
+                text_tokens = _re.findall(r"[a-zA-Z0-9\u3040-\u9fff]+", text)
+                token_freq: dict[str, int] = {}
+                for t in text_tokens:
+                    token_freq[t] = token_freq.get(t, 0) + 1
+
+                # TF-IDF vector for query terms
+                tf_idf_score = 0.0
+                for qt in query_terms:
+                    tf = token_freq.get(qt, 0) / max(len(text_tokens), 1)
+                    idf = math.log((doc_count + 1) / (df.get(qt, 0) + 1)) + 1.0
+                    tf_idf_score += tf * idf
+
+                # Cosine similarity (bag-of-words)
+                all_terms = set(query_terms) | set(token_freq.keys())
+                dot = sum(query_terms.count(t) * token_freq.get(t, 0) for t in all_terms)
+                mag_q = math.sqrt(sum(query_terms.count(t) ** 2 for t in all_terms))
+                mag_d = math.sqrt(sum(token_freq.get(t, 0) ** 2 for t in all_terms))
+                cosine = dot / (mag_q * mag_d) if mag_q > 0 and mag_d > 0 else 0.0
+
+                # Popularity boost
                 popularity = min(r.use_count / 10.0, 1.0) if r.use_count else 0.0
-                final_score = tf_score * 0.5 + idf_boost * 0.4 + popularity * 0.1
+
+                final_score = tf_idf_score * 0.4 + cosine * 0.5 + popularity * 0.1
                 scored.append((final_score, r))
             scored.sort(key=lambda x: x[0], reverse=True)
             records = [r for _, r in scored]
