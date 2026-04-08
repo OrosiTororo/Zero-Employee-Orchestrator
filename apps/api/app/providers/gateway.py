@@ -286,6 +286,11 @@ class LLMGateway:
         Prefers models that belong to a configured provider so the caller
         is less likely to encounter authentication errors.
         For SUBSCRIPTION mode g4f models are always considered available.
+
+        Auto-fallback: when no paid API key is configured, automatically
+        tries FREE and SUBSCRIPTION mode catalogs (g4f, Ollama) before
+        falling back to the first candidate.
+
         Returns the resolved API model ID (not family ID).
         """
         candidates = MODEL_CATALOG.get(mode, MODEL_CATALOG[ExecutionMode.QUALITY])
@@ -296,6 +301,23 @@ class LLMGateway:
                 # g4f models are always "available" if g4f is installed
                 if candidate.startswith("g4f/") or candidate in available:
                     return self._resolve_to_api_model(candidate)
+
+        # Auto-fallback: no paid provider matched — try free/subscription modes
+        # This ensures "no API key required" actually works out of the box
+        has_paid_key = any(
+            cfg.get("api_key")
+            for name, cfg in self._providers.items()
+            if name not in ("ollama", "g4f")
+        )
+        if not has_paid_key and mode not in (ExecutionMode.FREE, ExecutionMode.SUBSCRIPTION):
+            for fallback_mode in (ExecutionMode.FREE, ExecutionMode.SUBSCRIPTION):
+                fallback_candidates = MODEL_CATALOG.get(fallback_mode, [])
+                for candidate in fallback_candidates:
+                    if candidate.startswith("g4f/") or candidate.startswith("ollama/"):
+                        logger.info(
+                            "No paid API key configured — auto-falling back to %s", candidate
+                        )
+                        return self._resolve_to_api_model(candidate)
 
         # Fall back to first candidate regardless of configuration
         selected = candidates[0] if candidates else "openai/gpt-mini"

@@ -23,7 +23,7 @@ Dispatch system enhanced with features inspired by Microsoft Copilot Cowork and 
 ### Endpoint Count Update
 
 - 3 new dispatch endpoints: `/dispatch/{id}/steer`, `/dispatch/{id}/resume`, `/dispatch/{id}/start`
-- Total: 46 route modules, **395 endpoints** (392 routes + 3 main.py)
+- Total: 46 route modules, **397 endpoints** (394 routes + 3 main.py)
 
 ---
 

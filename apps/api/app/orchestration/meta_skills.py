@@ -117,6 +117,43 @@ class MetaSkillEngine:
         complexity = context.get("complexity", 0.5)
         user_text = context.get("text", "")
 
+        # LLM-enhanced sentiment & urgency analysis when text is available
+        llm_analysis = None
+        if user_text and len(user_text) > 10:
+            try:
+                from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
+
+                resp = await llm_gateway.complete(
+                    CompletionRequest(
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": (
+                                    "Analyze this user message and return JSON with "
+                                    '"urgency" (0-1), "sentiment" (positive/neutral/'
+                                    'negative/frustrated), "complexity" (0-1), '
+                                    '"key_signals" (list of strings).\n\n'
+                                    f"Message: {user_text[:500]}"
+                                ),
+                            }
+                        ],
+                        mode=ExecutionMode.SPEED,
+                        temperature=0.2,
+                        max_tokens=256,
+                    )
+                )
+                import json
+
+                content = resp.content.strip()
+                if content.startswith("```"):
+                    content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+                llm_analysis = json.loads(content)
+                urgency = llm_analysis.get("urgency", urgency)
+                sentiment = llm_analysis.get("sentiment", sentiment)
+                complexity = llm_analysis.get("complexity", complexity)
+            except Exception as exc:
+                logger.debug("LLM feel analysis fallback to heuristic: %s", exc)
+
         # Intuition score calculation: combining urgency, complexity, and text length
         text_density = min(len(user_text) / 500.0, 1.0)
         intuition_score = urgency * 0.4 + complexity * 0.3 + text_density * 0.3
@@ -143,7 +180,10 @@ class MetaSkillEngine:
                 "text_density": round(text_density, 4),
             },
             "confidence": round(state.confidence, 4),
+            "llm_enhanced": llm_analysis is not None,
         }
+        if llm_analysis and "key_signals" in llm_analysis:
+            result["key_signals"] = llm_analysis["key_signals"]
 
         logger.debug("MetaSkill FEEL: intuition=%.3f", intuition_score)
         return result
@@ -293,6 +333,47 @@ class MetaSkillEngine:
                     "feasibility_score": 0.8,
                 }
             )
+
+        # LLM-enhanced creative ideation
+        if problem:
+            try:
+                import json
+
+                from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
+
+                prompt = (
+                    "You are a creative problem solver. Generate 2-3 novel solution "
+                    "hypotheses for this problem. Return a JSON array of objects with "
+                    '"description", "novelty_score" (0-1), "feasibility_score" (0-1).\n\n'
+                    f"Problem: {problem[:300]}\n"
+                    f"Constraints: {', '.join(constraints[:5])}\n"
+                    f"Known approaches: {', '.join(known_approaches[:5])}\n"
+                    "Return ONLY the JSON array."
+                )
+                resp = await llm_gateway.complete(
+                    CompletionRequest(
+                        messages=[{"role": "user", "content": prompt}],
+                        mode=ExecutionMode.SPEED,
+                        temperature=0.9,
+                        max_tokens=512,
+                    )
+                )
+                content = resp.content.strip()
+                if content.startswith("```"):
+                    content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+                llm_ideas = json.loads(content)
+                for idea in llm_ideas[:3]:
+                    hypotheses.append(
+                        {
+                            "hypothesis_id": str(uuid.uuid4()),
+                            "type": "llm_creative",
+                            "description": idea.get("description", ""),
+                            "novelty_score": idea.get("novelty_score", 0.7),
+                            "feasibility_score": idea.get("feasibility_score", 0.6),
+                        }
+                    )
+            except Exception as exc:
+                logger.debug("LLM dream ideation fallback to combinatorial: %s", exc)
 
         # Update confidence
         state.confidence = min(
@@ -446,11 +527,44 @@ class MetaSkillEngine:
                 }
             )
 
+        # LLM-enhanced lesson synthesis
+        if details or feedback:
+            try:
+                import json
+
+                from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
+
+                synthesis_prompt = (
+                    "Analyze this task outcome and extract 1-2 actionable lessons. "
+                    'Return JSON array of {"type", "description", "actionable"}.\n\n'
+                    f"Domain: {domain}\nApproach: {approach}\n"
+                    f"Success: {success}\nDetails: {details[:300]}\n"
+                    f"Feedback: {feedback[:200]}"
+                )
+                resp = await llm_gateway.complete(
+                    CompletionRequest(
+                        messages=[{"role": "user", "content": synthesis_prompt}],
+                        mode=ExecutionMode.SPEED,
+                        temperature=0.3,
+                        max_tokens=256,
+                    )
+                )
+                content = resp.content.strip()
+                if content.startswith("```"):
+                    content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+                llm_lessons = json.loads(content)
+                for ll in llm_lessons[:2]:
+                    ll["domain"] = domain
+                    ll["llm_synthesized"] = True
+                    lessons.append(ll)
+            except Exception as exc:
+                logger.debug("LLM learn synthesis fallback: %s", exc)
+
         # Generate and store insights
         for lesson in lessons:
             insight = Insight(
                 source_skill=MetaSkillType.LEARNING,
-                content=lesson["description"],
+                content=lesson.get("description", ""),
                 relevance_score=0.8 if success else 0.6,
             )
             state.insights.append(insight)

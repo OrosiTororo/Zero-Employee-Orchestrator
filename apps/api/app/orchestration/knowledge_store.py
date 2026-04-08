@@ -182,8 +182,15 @@ class KnowledgeStore:
         *,
         company_id: str | uuid.UUID | None = None,
         user_id: str | uuid.UUID | None = None,
+        search_query: str | None = None,
     ) -> list[KnowledgeRecord]:
-        """Search knowledge."""
+        """Search knowledge with optional full-text search.
+
+        Args:
+            search_query: Free-text query to search across key and value fields.
+                Uses SQL LIKE for broad matching, then ranks results by TF-IDF-like
+                term frequency scoring for relevance.
+        """
         stmt = select(KnowledgeRecord).where(KnowledgeRecord.is_active.is_(True))
 
         if category:
@@ -200,8 +207,35 @@ class KnowledgeStore:
             uid = uuid.UUID(str(user_id)) if not isinstance(user_id, uuid.UUID) else user_id
             stmt = stmt.where(KnowledgeRecord.user_id == uid)
 
+        # Full-text search across key and value fields
+        if search_query and search_query.strip():
+            terms = search_query.strip().lower().split()
+            for term in terms[:10]:  # Cap at 10 search terms
+                like_pattern = f"%{term}%"
+                stmt = stmt.where(
+                    (KnowledgeRecord.key.ilike(like_pattern))
+                    | (KnowledgeRecord.value.ilike(like_pattern))
+                )
+
         result = await self._db.execute(stmt)
         records = list(result.scalars().all())
+
+        # TF-IDF-like relevance scoring when search_query is provided
+        if search_query and search_query.strip() and records:
+            terms = search_query.strip().lower().split()
+            scored: list[tuple[float, KnowledgeRecord]] = []
+            for r in records:
+                text = f"{r.key} {r.value}".lower()
+                tf_score = sum(text.count(t) for t in terms)
+                # Boost by inverse document frequency approximation (rarer = better)
+                unique_terms_matched = sum(1 for t in terms if t in text)
+                idf_boost = unique_terms_matched / max(len(terms), 1)
+                # Combine with usage popularity
+                popularity = min(r.use_count / 10.0, 1.0) if r.use_count else 0.0
+                final_score = tf_score * 0.5 + idf_boost * 0.4 + popularity * 0.1
+                scored.append((final_score, r))
+            scored.sort(key=lambda x: x[0], reverse=True)
+            records = [r for _, r in scored]
 
         # Update usage count
         for r in records:

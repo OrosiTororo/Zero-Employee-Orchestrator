@@ -145,6 +145,9 @@ async def create_dispatch(
     if req.preview_only:
         # Generate plan preview without executing
         asyncio.create_task(_generate_preview(task_id))
+    elif req.schedule:
+        # Scheduled recurring task (Claude Cowork /schedule pattern)
+        asyncio.create_task(_register_scheduled_task(task_id, req.schedule))
     else:
         # Full async execution (production: enqueue to background worker)
         asyncio.create_task(_execute_dispatch(task_id))
@@ -536,3 +539,136 @@ async def _execute_dispatch(task_id: str) -> None:
         task["completed_at"] = datetime.now(UTC).isoformat()
         task["result"] = f"Task failed: {exc}"
         logger.error("Dispatch task failed: %s — %s", task_id, exc)
+
+
+# ---------------------------------------------------------------------------
+# Scheduled Tasks (Claude Cowork /schedule pattern)
+# ---------------------------------------------------------------------------
+
+# In-memory store of scheduled task definitions
+_scheduled_tasks: dict[str, dict] = {}
+_scheduler_lock = threading.Lock()
+
+
+class ScheduleRequest(BaseModel):
+    """Create or update a scheduled recurring task."""
+
+    instruction: str
+    cron: str = Field(description="Cron expression, e.g. '0 9 * * 1-5' for weekdays at 9am")
+    enabled: bool = True
+
+
+class ScheduleResponse(BaseModel):
+    """Scheduled task details."""
+
+    schedule_id: str
+    instruction: str
+    cron: str
+    enabled: bool
+    last_run_at: str | None = None
+    next_run_at: str | None = None
+    run_count: int = 0
+
+
+async def _register_scheduled_task(task_id: str, cron_expression: str) -> None:
+    """Register a dispatch task as a scheduled recurring job.
+
+    Uses APScheduler CronTrigger to periodically re-execute the task instruction.
+    """
+    with _dispatch_lock:
+        task = _dispatch_tasks.get(task_id)
+    if not task:
+        return
+
+    schedule_id = str(uuid.uuid4())
+    with _scheduler_lock:
+        _scheduled_tasks[schedule_id] = {
+            "schedule_id": schedule_id,
+            "task_id": task_id,
+            "instruction": task["instruction"],
+            "cron": cron_expression,
+            "user_id": task["user_id"],
+            "enabled": True,
+            "last_run_at": None,
+            "next_run_at": None,
+            "run_count": 0,
+            "created_at": datetime.now(UTC).isoformat(),
+        }
+
+    task["status"] = "scheduled"
+    task["result"] = f"Scheduled with cron: {cron_expression} (id: {schedule_id})"
+
+    # Register with APScheduler if available
+    try:
+        from apscheduler.schedulers.asyncio import AsyncIOScheduler
+        from apscheduler.triggers.cron import CronTrigger
+
+        scheduler = AsyncIOScheduler()
+        trigger = CronTrigger.from_crontab(cron_expression)
+
+        async def _run_scheduled() -> None:
+            sched = _scheduled_tasks.get(schedule_id)
+            if not sched or not sched["enabled"]:
+                return
+            sched["last_run_at"] = datetime.now(UTC).isoformat()
+            sched["run_count"] += 1
+            # Create a new dispatch task for this run
+            new_task_id = str(uuid.uuid4())
+            now = datetime.now(UTC).isoformat()
+            new_task = {
+                "task_id": new_task_id,
+                "user_id": sched["user_id"],
+                "instruction": sched["instruction"],
+                "priority": "medium",
+                "schedule": cron_expression,
+                "context": {"scheduled_from": schedule_id, "run_number": sched["run_count"]},
+                "status": "queued",
+                "created_at": now,
+                "completed_at": None,
+                "result": None,
+                "plan_preview": None,
+                "needs_input_reason": None,
+                "steering_instructions": [],
+                "resume_event": asyncio.Event(),
+                "resume_input": None,
+            }
+            with _dispatch_lock:
+                _dispatch_tasks[new_task_id] = new_task
+            asyncio.create_task(_execute_dispatch(new_task_id))
+            logger.info("Scheduled task %s triggered (run #%d)", schedule_id, sched["run_count"])
+
+        scheduler.add_job(_run_scheduled, trigger, id=schedule_id)
+        if not scheduler.running:
+            scheduler.start()
+        logger.info("Registered scheduled task %s with cron: %s", schedule_id, cron_expression)
+    except Exception as exc:
+        logger.warning("APScheduler not available for cron scheduling: %s", exc)
+        task["result"] += " (Note: APScheduler cron trigger unavailable, manual polling required)"
+
+
+@router.get("/schedules", response_model=list[ScheduleResponse])
+async def list_schedules(_user: User = Depends(get_current_user)):
+    """List all scheduled recurring tasks (Claude Cowork /schedule pattern)."""
+    with _scheduler_lock:
+        return [
+            ScheduleResponse(
+                schedule_id=s["schedule_id"],
+                instruction=s["instruction"],
+                cron=s["cron"],
+                enabled=s["enabled"],
+                last_run_at=s.get("last_run_at"),
+                next_run_at=s.get("next_run_at"),
+                run_count=s.get("run_count", 0),
+            )
+            for s in _scheduled_tasks.values()
+        ]
+
+
+@router.delete("/schedules/{schedule_id}")
+async def delete_schedule(schedule_id: str, _user: User = Depends(get_current_user)):
+    """Delete a scheduled recurring task."""
+    with _scheduler_lock:
+        if schedule_id not in _scheduled_tasks:
+            raise HTTPException(status_code=404, detail="Schedule not found")
+        del _scheduled_tasks[schedule_id]
+    return {"deleted": schedule_id}
