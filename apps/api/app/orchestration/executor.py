@@ -157,13 +157,55 @@ class TaskExecutor:
         logger.info("Generated plan %s with %d nodes", plan_id, len(dag.nodes))
         return dag
 
+    async def critique_output(
+        self,
+        draft_content: str,
+        node_title: str,
+        execution_mode: ExecutionMode = ExecutionMode.QUALITY,
+    ) -> dict:
+        """Critique pattern (inspired by Copilot Cowork): use a second model call
+        to review the draft output for errors, omissions, and improvements.
+
+        Returns dict with keys: approved (bool), issues (list[str]), revised (str|None).
+        """
+        critique_prompt = (
+            "You are a strict quality reviewer. Review this draft output and identify "
+            "any errors, omissions, logical flaws, or improvements needed.\n\n"
+            f"Task: {node_title}\n\n"
+            f"Draft output:\n{draft_content}\n\n"
+            "Respond in JSON: "
+            '{"approved": true/false, "issues": ["issue1", ...], '
+            '"revised": "improved version if not approved, null if approved"}'
+        )
+        try:
+            response = await self._gateway.complete(
+                CompletionRequest(
+                    messages=[{"role": "user", "content": critique_prompt}],
+                    mode=execution_mode,
+                    temperature=0.2,
+                    max_tokens=2048,
+                )
+            )
+            content = response.content.strip()
+            if content.startswith("```"):
+                content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+            return json.loads(content)
+        except Exception as exc:
+            logger.debug("Critique parsing failed, approving draft: %s", exc)
+            return {"approved": True, "issues": [], "revised": None}
+
     async def execute_node(
         self,
         node: TaskNode,
         context: str = "",
         execution_mode: ExecutionMode = ExecutionMode.QUALITY,
+        enable_critique: bool = False,
     ) -> ExecutionResult:
-        """Execute a single DAG node by calling the LLM Gateway."""
+        """Execute a single DAG node by calling the LLM Gateway.
+
+        When enable_critique=True, applies the Critique pattern: a second model
+        call reviews the draft and may revise it (inspired by Copilot Cowork).
+        """
         start = datetime.now(UTC)
         node.status = TaskNodeStatus.RUNNING
 
@@ -183,11 +225,24 @@ class TaskExecutor:
                 )
             )
 
+            final_content = response.content
+
+            # Critique pattern: review draft with a second pass
+            if enable_critique and final_content and not final_content.startswith("Error:"):
+                critique = await self.critique_output(final_content, node.title, execution_mode)
+                if not critique.get("approved", True) and critique.get("revised"):
+                    logger.info(
+                        "Critique revised node %s: %d issues found",
+                        node.id,
+                        len(critique.get("issues", [])),
+                    )
+                    final_content = critique["revised"]
+
             elapsed = int((datetime.now(UTC) - start).total_seconds() * 1000)
 
             # Judge the output
             judge_result = self._rule_judge.evaluate(
-                {"content": response.content},
+                {"content": final_content},
                 {"node_title": node.title, "verification": node.verification_criteria},
             )
 
@@ -201,7 +256,7 @@ class TaskExecutor:
             return ExecutionResult(
                 node_id=node.id,
                 success=node.status == TaskNodeStatus.SUCCEEDED,
-                content=response.content,
+                content=final_content,
                 model_used=response.model_used,
                 tokens_input=response.tokens_input,
                 tokens_output=response.tokens_output,
@@ -227,10 +282,28 @@ class TaskExecutor:
         dag: ExecutionDAG,
         execution_mode: ExecutionMode = ExecutionMode.QUALITY,
         on_progress: asyncio.coroutine | None = None,
+        enable_critique: bool = False,
+        checkpoint_store: dict | None = None,
     ) -> PlanExecutionResult:
-        """Execute the entire DAG plan, node by node, respecting dependencies."""
+        """Execute the entire DAG plan, node by node, respecting dependencies.
+
+        Args:
+            enable_critique: When True, each node output is reviewed by a second
+                model call (Critique pattern, inspired by Copilot Cowork).
+            checkpoint_store: Optional dict to persist execution state after each
+                node completes (LangGraph-inspired checkpointing). Keys written:
+                ``completed_nodes``, ``accumulated_context``, ``node_results``.
+                Enables pause/resume by restoring from a previous checkpoint.
+        """
         result = PlanExecutionResult(plan_id=dag.plan_id, status="running")
+
+        # Restore from checkpoint if available (LangGraph-style resume)
         accumulated_context = ""
+        if checkpoint_store and checkpoint_store.get("accumulated_context"):
+            accumulated_context = checkpoint_store["accumulated_context"]
+            for nr_data in checkpoint_store.get("node_results", []):
+                result.node_results.append(ExecutionResult(**nr_data))
+            logger.info("Resumed plan %s from checkpoint", dag.plan_id)
 
         max_iterations = len(dag.nodes) * (self.MAX_RETRIES + 1)
         iteration = 0
@@ -277,8 +350,11 @@ class TaskExecutor:
                 n: TaskNode,
                 ctx: str = accumulated_context,
                 mode: ExecutionMode = execution_mode,
+                critique: bool = enable_critique,
             ) -> tuple[TaskNode, ExecutionResult]:
-                nr = await self.execute_node(n, context=ctx, execution_mode=mode)
+                nr = await self.execute_node(
+                    n, context=ctx, execution_mode=mode, enable_critique=critique
+                )
                 return n, nr
 
             node_pairs = await asyncio.gather(
@@ -299,6 +375,29 @@ class TaskExecutor:
                 if node_result.success:
                     accumulated_context += f"\n\n--- {node.title} ---\n{node_result.content}"
                     dag.mark_completed(node.id, success=True)
+
+                    # Checkpoint after each successful node (LangGraph-inspired)
+                    if checkpoint_store is not None:
+                        checkpoint_store["accumulated_context"] = accumulated_context
+                        checkpoint_store["completed_nodes"] = [
+                            n.id for n in dag.nodes if n.status == TaskNodeStatus.SUCCEEDED
+                        ]
+                        checkpoint_store["node_results"] = [
+                            {
+                                "node_id": r.node_id,
+                                "success": r.success,
+                                "content": r.content,
+                                "model_used": r.model_used,
+                                "tokens_input": r.tokens_input,
+                                "tokens_output": r.tokens_output,
+                                "cost_usd": r.cost_usd,
+                                "judge_score": r.judge_score,
+                                "judge_verdict": r.judge_verdict,
+                                "duration_ms": r.duration_ms,
+                            }
+                            for r in result.node_results
+                            if r.success
+                        ]
                 else:
                     retry_count = sum(
                         1 for r in result.node_results if r.node_id == node.id and not r.success

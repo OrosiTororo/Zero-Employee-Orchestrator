@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Zero-Employee Browser Assist",
-  "version": "0.1.0",
+  "version": "0.1.5",
   "description": "AI browser assistant overlay — chat with AI while browsing",
+  "homepage_url": "https://github.com/OrosiTororo/Zero-Employee-Orchestrator",
   "permissions": [
     "activeTab",
     "storage"

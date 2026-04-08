@@ -145,4 +145,4 @@ Write about system behavior changes for end users. Do NOT write about docs/CI/co
 
 **Scoring**: 0-10 scale. Overall = (Relative × 0.35) + (Objective × 0.35) + (Additional × 0.30)
 
-**Latest evaluation**: `docs/dev/EVALUATION_v0.1.6.md` — 6.4/10 (2026-04-07, full automated verification + fixes)
+**Latest evaluation**: `docs/dev/EVALUATION_v0.1.5_final.md` — 5.7/10 (2026-04-08, exhaustive review + competitive analysis + fixes)
