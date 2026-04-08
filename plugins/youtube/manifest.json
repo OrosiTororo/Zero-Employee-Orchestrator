@@ -18,6 +18,7 @@
     "write_local": false,
     "external_send": false
   },
+  "type": "plugin",
   "required_providers": ["openrouter"],
   "note": "This Plugin serves as a representative demo theme for Zero-Employee Orchestrator. The platform's capabilities are not limited to this use case."
 }

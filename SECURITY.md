@@ -32,7 +32,7 @@ Instead, please use one of the following methods:
 
 ## Security Architecture
 
-Zero-Employee Orchestrator implements a **defense-in-depth** security model with 9 layers:
+Zero-Employee Orchestrator implements a **defense-in-depth** security model with 14 layers:
 
 ### 1. Prompt Injection Defense (`security/prompt_guard.py`)
 
@@ -100,6 +100,34 @@ Automatic detection and redaction of:
 
 - slowapi-based API rate limiting
 - Per-endpoint configurable limits
+
+### 10. PII Guard (`security/pii_guard.py`)
+
+- Detects 12 PII categories: email, phone, credit card, My Number, SSN, address, DOB, passport, driver's license, bank account, IP, passwords
+- Automatic masking with category-specific labels
+- Validates before AI processing
+
+### 11. File System Sandbox (`security/sandbox.py`)
+
+- Whitelist-based file access control
+- Path boundary enforcement (`startswith(allowed + "/")`)
+- Symlink attack prevention
+- Three security levels: STRICT, MODERATE, PERMISSIVE
+
+### 12. Workspace Isolation (`security/workspace_isolation.py`)
+
+- Per-company workspace boundaries
+- Prevents cross-tenant data access
+
+### 13. Data Protection (`security/data_protection.py`)
+
+- Transfer policies: LOCKDOWN, RESTRICTED, PERMISSIVE
+- Controls external data transmission
+
+### 14. Input Sanitization (`security/input_sanitization.py`)
+
+- HTML/script injection prevention
+- Path traversal blocking in user inputs
 
 ## Security Best Practices for Deployment
 
