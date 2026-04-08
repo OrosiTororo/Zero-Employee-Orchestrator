@@ -275,11 +275,23 @@ Zero-Employee-Orchestrator/
 | **Self-Healing / Re-Propose** | 실패 시 자동 재계획, 동적 DAG 재구성 |
 | **Experience Memory** | 과거 실행에서 학습하여 미래 성능 향상 |
 
+### 메타 오케스트레이션 (오케스트레이터의 오케스트레이터)
+
+| 기능 | 설명 |
+|------|------|
+| **Agent Adapter** | CrewAI, AutoGen, LangChain, Dify 에이전트를 ZEO 서브 워커로 통합 — 모두 승인 게이트와 감사 하에 |
+| **iPaaS Bridge** | n8n / Zapier / Make 워크플로우 연결 — ZEO가 기존 자동화의 판단 레이어가 됨 |
+| **MCP Server** | Model Context Protocol — MCP 호환 도구가 자동으로 ZEO 도구가 됨 |
+| **App Connector Hub** | 34+ 앱 (Obsidian, Notion, Google Workspace, Microsoft 365, Slack 등) — 커넥터의 커넥터 |
+| **Tool-of-Tools** | 도구를 연결하는 도구 (예: n8n → 400+ 앱 → ZEO → n8n 연결 → 하나의 통합으로 400+ 앱에 접근) |
+| **멀티 모델 자유** | LiteLLM 경유 22개 모델 패밀리, Ollama 로컬 모델, g4f 웹 세션 — 단일 제공자에 종속되지 않음 |
+
 ### 확장성
 
 | 기능 | 설명 |
 |------|------|
 | **Skill / Plugin / Extension** | 3계층 확장 체계 (완전한 CRUD 관리) |
+| **역할 기반 플러그인 팩** | 비즈니스 역할별 사전 구성된 플러그인: 영업, 재무, HR, 법무, 마케팅, 고객 지원 |
 | **자연어 스킬 생성** | 자연어로 설명 → AI가 자동 생성 (안전성 검사 포함) |
 | **Skill 마켓플레이스** | 커뮤니티 스킬 게시, 검색, 리뷰, 설치 |
 | **외부 스킬 가져오기** | GitHub 저장소에서 스킬 가져오기 |

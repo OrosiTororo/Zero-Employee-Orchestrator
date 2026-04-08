@@ -275,11 +275,23 @@ Zero-Employee-Orchestrator/
 | **Self-Healing / Re-Propose** | 障害時の自動再計画・動的 DAG 再構築 |
 | **Experience Memory** | 過去の実行から学習し、将来のパフォーマンスを改善 |
 
+### メタオーケストレーション（オーケストレーターのオーケストレーター）
+
+| 機能 | 説明 |
+|------|------|
+| **Agent Adapter** | CrewAI、AutoGen、LangChain、Dify のエージェントを ZEO のサブワーカーとして統合 — 全て承認ゲートと監査の下 |
+| **iPaaS Bridge** | n8n / Zapier / Make のワークフローを接続 — ZEO が既存の自動化の判断レイヤーになる |
+| **MCP Server** | Model Context Protocol — MCP 対応ツールが自動的に ZEO ツールになる |
+| **App Connector Hub** | 34+ アプリ（Obsidian、Notion、Google Workspace、Microsoft 365、Slack 等） — コネクタのコネクタ |
+| **Tool-of-Tools** | ツールを繋ぐツール（例: n8n → 400+ アプリ → ZEO → n8n 接続 → 1 統合で 400+ アプリにアクセス） |
+| **マルチモデル自由** | LiteLLM 経由 22 モデルファミリー、Ollama ローカルモデル、g4f ウェブセッション — 単一プロバイダーにロックインされない |
+
 ### 拡張性
 
 | 機能 | 説明 |
 |------|------|
 | **Skill / Plugin / Extension** | 3 層拡張体系（完全 CRUD 管理対応） |
+| **ロールベースプラグインパック** | ビジネスロール別の事前構成プラグイン: 営業、財務、HR、法務、マーケティング、サポート |
 | **自然言語スキル生成** | 自然言語で説明 → AI が自動生成（安全性チェック付き） |
 | **Skill マーケットプレイス** | コミュニティ Skill の公開・検索・レビュー・インストール |
 | **外部スキルインポート** | GitHub リポジトリからスキルをインポート |

@@ -275,11 +275,23 @@ Zero-Employee-Orchestrator/
 | **Self-Healing / Re-Propose** | 失敗時自動重新規劃，動態 DAG 重構 |
 | **Experience Memory** | 從歷史執行中學習，提升未來效能 |
 
+### 元編排（編排器的編排器）
+
+| 功能 | 說明 |
+|------|------|
+| **Agent Adapter** | 將 CrewAI、AutoGen、LangChain、Dify 代理作為 ZEO 子工作者整合 — 全部在審批閘門和稽核下 |
+| **iPaaS Bridge** | 連接 n8n / Zapier / Make 工作流 — ZEO 成為現有自動化的判斷層 |
+| **MCP Server** | Model Context Protocol — 任何 MCP 相容工具自動成為 ZEO 工具 |
+| **App Connector Hub** | 34+ 應用（Obsidian、Notion、Google Workspace、Microsoft 365、Slack 等）— 連接器的連接器 |
+| **Tool-of-Tools** | 連接工具的工具（例：n8n 連接 400+ 應用 → ZEO 連接 n8n → 透過一個整合存取所有 400+ 應用） |
+| **多模型自由** | 透過 LiteLLM 支援 22 個模型家族、Ollama 本地模型、g4f 網路會話 — 不鎖定任何單一供應商 |
+
 ### 可擴充性
 
 | 功能 | 描述 |
 |------|------|
 | **Skill / Plugin / Extension** | 三層可擴充體系（完整 CRUD 管理） |
+| **角色基礎外掛包** | 按業務角色預設的外掛：銷售、財務、HR、法務、行銷、客戶支援 |
 | **自然語言技能生成** | 用自然語言描述 → AI 自動生成（含安全性檢查） |
 | **Skill 市場** | 社群技能的發布、搜尋、評審和安裝 |
 | **外部技能匯入** | 從 GitHub 儲存庫匯入技能 |

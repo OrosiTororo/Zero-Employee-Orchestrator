@@ -275,11 +275,23 @@ Zero-Employee-Orchestrator/
 | **Self-Healing / Re-Propose** | Replanejamento automático em caso de falha com reconstrução dinâmica do DAG |
 | **Experience Memory** | Aprende com execuções passadas para melhorar o desempenho futuro |
 
+### Meta-Orquestração (Orquestrador de Orquestradores)
+
+| Recurso | Descrição |
+|---------|-----------|
+| **Agent Adapter** | Integre agentes CrewAI, AutoGen, LangChain, Dify como sub-trabalhadores ZEO — tudo sob portas de aprovação e auditoria |
+| **iPaaS Bridge** | Conecte workflows n8n / Zapier / Make — ZEO se torna a camada de julgamento para automações existentes |
+| **MCP Server** | Model Context Protocol — qualquer ferramenta compatível com MCP se torna automaticamente uma ferramenta ZEO |
+| **App Connector Hub** | 34+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, Slack, etc.) — conectores de conectores |
+| **Tool-of-Tools** | Ferramentas que conectam outras ferramentas (ex: n8n conecta 400+ apps → ZEO conecta n8n → acessa todos os 400+ apps por uma integração) |
+| **Liberdade Multi-Modelo** | 22 famílias de modelos via LiteLLM, modelos locais Ollama, sessões web g4f — sem lock-in em nenhum provedor |
+
 ### Extensibilidade
 
 | Funcionalidade | Descrição |
 |---------------|-----------|
 | **Skill / Plugin / Extension** | Extensibilidade em 3 níveis com gerenciamento CRUD completo |
+| **Pacotes de Plugins por Função** | Plugins pré-configurados por função: Vendas, Finanças, RH, Jurídico, Marketing, Suporte |
 | **Geração de Skills em Linguagem Natural** | Descreva em linguagem natural → IA gera automaticamente (com verificações de segurança) |
 | **Marketplace de Skills** | Publicação, busca, avaliação e instalação de skills da comunidade |
 | **Importação de Skills Externas** | Importar skills de repositórios GitHub |
