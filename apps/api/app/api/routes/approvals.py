@@ -18,15 +18,27 @@ from app.core.security import generate_uuid
 from app.models.audit import AuditLog
 from app.models.review import ApprovalRequest
 from app.models.user import User
-from app.policies.approval_gate import check_operations_batch, get_highest_risk
+from app.policies.approval_gate import (
+    check_operations_batch,
+    generate_action_preview,
+    get_highest_risk,
+)
 
 router = APIRouter()
+
+
+class OperationDetail(BaseModel):
+    """An operation with optional payload for preview generation."""
+
+    name: str
+    payload: dict | None = None
 
 
 class BatchApprovalRequest(BaseModel):
     """Plan approval at planning time: batch-check all operations."""
 
     operations: list[str]
+    operation_details: list[OperationDetail] | None = None
     plan_id: str | None = None
     auto_approve_safe: bool = False
 
@@ -70,6 +82,15 @@ async def list_approvals(
             "status": a.status,
             "reason": a.reason,
             "risk_level": a.risk_level,
+            "preview": generate_action_preview(
+                a.target_type,
+                a.payload_json if a.payload_json else None,
+            ),
+            "task_context": {
+                "task_id": (a.payload_json or {}).get("task_id"),
+                "ticket_id": (a.payload_json or {}).get("ticket_id"),
+                "task_name": (a.payload_json or {}).get("task_name"),
+            },
             "requested_at": a.requested_at.isoformat() if a.requested_at else None,
         }
         for a in approvals
@@ -93,6 +114,12 @@ async def batch_check_approvals(
     needs_approval = [r for r in results if r.requires_approval]
     highest_risk = get_highest_risk(results)
 
+    # Build per-operation previews from operation_details payloads if available
+    details_map: dict[int, dict | None] = {}
+    if req.operation_details:
+        for idx, detail in enumerate(req.operation_details):
+            details_map[idx] = detail.payload
+
     return {
         "plan_id": req.plan_id,
         "total_operations": len(req.operations),
@@ -105,6 +132,10 @@ async def batch_check_approvals(
                 "category": r.category.value if r.category else None,
                 "risk_level": r.risk_level.value,
                 "reason": r.reason,
+                "preview": generate_action_preview(
+                    req.operations[i],
+                    details_map.get(i),
+                ),
             }
             for i, r in enumerate(results)
         ],

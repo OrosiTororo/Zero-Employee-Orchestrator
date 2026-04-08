@@ -207,7 +207,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI 后端
 │   │   └── app/
 │   │       ├── core/               # 配置、数据库、安全、国际化
-│   │       ├── api/routes/         # 47 REST API 路由模块
+│   │       ├── api/routes/         # 46 REST API 路由模块
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -275,11 +275,23 @@ Zero-Employee-Orchestrator/
 | **Self-Healing / Re-Propose** | 失败时自动重新规划，动态 DAG 重构 |
 | **Experience Memory** | 从历史执行中学习，提升未来性能 |
 
+### 元编排（编排器的编排器）
+
+| 功能 | 说明 |
+|------|------|
+| **Agent Adapter** | 将 CrewAI、AutoGen、LangChain、Dify 代理作为 ZEO 子工作者集成 — 全部在审批门和审计下 |
+| **iPaaS Bridge** | 连接 n8n / Zapier / Make 工作流 — ZEO 成为现有自动化的判断层 |
+| **MCP Server** | Model Context Protocol — 任何 MCP 兼容工具自动成为 ZEO 工具 |
+| **App Connector Hub** | 34+ 应用（Obsidian、Notion、Google Workspace、Microsoft 365、Slack 等）— 连接器的连接器 |
+| **Tool-of-Tools** | 连接工具的工具（例：n8n 连接 400+ 应用 → ZEO 连接 n8n → 通过一个集成访问所有 400+ 应用） |
+| **多模型自由** | 通过 LiteLLM 支持 22 个模型家族、Ollama 本地模型、g4f 网络会话 — 不锁定任何单一提供商 |
+
 ### 可扩展性
 
 | 功能 | 描述 |
 |------|------|
 | **Skill / Plugin / Extension** | 三层可扩展体系（完整 CRUD 管理） |
+| **角色基础插件包** | 按业务角色预配置的插件：销售、财务、HR、法务、营销、客户支持 |
 | **自然语言技能生成** | 用自然语言描述 → AI 自动生成（含安全性检查） |
 | **Skill 市场** | 社区技能的发布、搜索、评审和安装 |
 | **外部技能导入** | 从 GitHub 仓库导入技能 |

@@ -526,6 +526,9 @@
     "risk": "风险",
     "approve": "批准",
     "reject": "拒绝",
+    "previewLabel": "操作预览",
+    "taskLabel": "任务",
+    "rejectReason": "拒绝原因：",
     "loadFailed": "无法加载审批请求。请检查连接。",
     "approveFailed": "无法批准。请重试。",
     "rejectFailed": "无法拒绝。请重试。"

@@ -714,7 +714,7 @@ export function SetupPage() {
                       </button>
                       {generateError && (
                         <div className="flex items-center gap-2 px-4 py-3 rounded-md text-[12px] text-[var(--error)] border border-[var(--error)]"
-                          style={{ background: "var(--error-subtle)" }}>
+                          style={{ background: "color-mix(in srgb, var(--error) 10%, transparent)" }}>
                           {generateError}
                         </div>
                       )}

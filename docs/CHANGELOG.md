@@ -1,6 +1,33 @@
 # Changelog
 
-## [v0.1.5] (2026-04-07)
+## [v0.1.5] (2026-04-08)
+
+### New — Copilot Cowork-Inspired Task Management
+
+Dispatch system enhanced with features inspired by Microsoft Copilot Cowork and Claude Cowork:
+
+- **Plan Preview**: `preview_only=true` generates execution plan without running; user reviews steps then approves via `POST /dispatch/{id}/start`
+- **Needs Input Checkpoint**: Tasks auto-detect when LLM needs human input, pause with `needs_input` status and a reason message; resume via `POST /dispatch/{id}/resume`
+- **Mid-Execution Steering**: `POST /dispatch/{id}/steer` adds instructions to redirect a running task without cancelling
+- **Rich Approval Preview**: Approval responses now include `preview` field (human-readable impact description) and risk-level color badges
+- **CLI Task Management**: New slash commands in chat mode: `/dispatch`, `/tasks`, `/status`, `/approve`, `/reject`, `/cancel`
+- **DispatchPage Redesign**: Expandable task cards, Active/Done/All tabs, plan step display, steering input, resume input, status badges
+
+### New — ZEO Positioning Document
+
+- `docs/dev/POSITIONING.md` — Defines ZEO's identity as meta-orchestrator vs desktop agents (Claude Cowork) and enterprise graph agents (Copilot Cowork)
+- Adopted features (採長補短) matrix with rationale
+- Browser Assist roadmap (4 phases)
+- GUI/CLI/Web integration strategy
+
+### Endpoint Count Update
+
+- 3 new dispatch endpoints: `/dispatch/{id}/steer`, `/dispatch/{id}/resume`, `/dispatch/{id}/start`
+- Total: 46 route modules, **395 endpoints** (392 routes + 3 main.py)
+
+---
+
+## [v0.1.5-pre] (2026-04-07)
 
 ### New — End-to-End Task Execution Engine
 
@@ -66,6 +93,15 @@ The desktop auto-update was completely non-functional for users who installed v0
 - **CI matrix testing**: Added Python 3.11 to lint-and-test matrix
 - **E2E test added**: `test_e2e_ticket_execution.py` — full ticket create → execute → verify flow
 - **Evaluation corrected**: v0.1.5 evaluation contained false claims about stub implementations; corrected in `EVALUATION_v0.1.5_corrected.md` (5.8 → 6.3)
+
+### v0.1.5 Final Audit & Release
+
+- **Model family count corrected**: 24 → 22 in README.md (verified: 22 active + 4 deprecated = 26 total entries in model_catalog.json)
+- **Route module count corrected**: 47 → 46 across README, CLAUDE.md, 6 translated READMEs, FEATURES.md, OVERVIEW.md, ROADMAP.md, architecture guide (47 was counting `__init__.py`)
+- **eslint peer dependency conflict fixed**: Downgraded eslint 10.x → 9.x and eslint-plugin-react-hooks 7.x → 5.x to resolve `npm install` failure without `--legacy-peer-deps`
+- **12 eslint errors resolved**: Removed unused catch variables in SecretaryPage, OrgChartPage, InterviewPage; fixed unused `_configLoading` and empty catch block in SettingsPage
+- **Hono version aligned**: edge/full ^4.12.10 → ^4.12.11 (matching edge/proxy)
+- **Full verification**: 467 tests pass, ruff lint clean, tsc clean, vite build clean, eslint 0 errors, server starts successfully
 
 ## [v0.1.4] (2026-04-07)
 

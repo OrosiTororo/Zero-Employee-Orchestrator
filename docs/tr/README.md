@@ -207,7 +207,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI arka ucu
 │   │   └── app/
 │   │       ├── core/               # Yapılandırma, VT, güvenlik, i18n
-│   │       ├── api/routes/         # 47 REST API rota modülü
+│   │       ├── api/routes/         # 46 REST API rota modülü
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -275,11 +275,23 @@ Zero-Employee-Orchestrator/
 | **Self-Healing / Re-Propose** | Başarısızlıkta otomatik yeniden planlama, dinamik DAG yeniden yapılandırma |
 | **Experience Memory** | Geçmiş yürütmelerden öğrenerek gelecek performansı iyileştirme |
 
+### Meta-Orkestrasyon (Orkestratorlerin Orkestratörü)
+
+| Özellik | Açıklama |
+|---------|----------|
+| **Agent Adapter** | CrewAI, AutoGen, LangChain, Dify ajanlarını ZEO alt çalışanları olarak entegre edin — tamamı onay kapıları ve denetim altında |
+| **iPaaS Bridge** | n8n / Zapier / Make iş akışlarını bağlayın — ZEO mevcut otomasyonlar için karar katmanı olur |
+| **MCP Server** | Model Context Protocol — herhangi bir MCP uyumlu araç otomatik olarak ZEO aracı olur |
+| **App Connector Hub** | 34+ uygulama (Obsidian, Notion, Google Workspace, Microsoft 365, Slack, vb.) — bağlayıcıların bağlayıcısı |
+| **Tool-of-Tools** | Araçları bağlayan araçlar (ör: n8n 400+ uygulamaya bağlanır → ZEO n8n'e bağlanır → tek entegrasyonla 400+ uygulamaya erişim) |
+| **Çoklu Model Özgürlüğü** | LiteLLM ile 22 model ailesi, Ollama yerel modeller, g4f web oturumları — tek bir sağlayıcıya kilitlenme yok |
+
 ### Genişletilebilirlik
 
 | Özellik | Açıklama |
 |---------|----------|
 | **Skill / Plugin / Extension** | Tam CRUD yönetimi ile 3 katmanlı genişletilebilirlik |
+| **Rol Tabanlı Eklenti Paketleri** | İş rolüne göre önceden yapılandırılmış eklentiler: Satış, Finans, İK, Hukuk, Pazarlama, Destek |
 | **Doğal Dilde Beceri Oluşturma** | Doğal dilde açıklayın → Yapay zeka otomatik oluşturur (güvenlik kontrolleriyle) |
 | **Beceri Pazaryeri** | Topluluk becerilerinin yayınlanması, aranması, incelenmesi ve kurulması |
 | **Harici Beceri İçe Aktarma** | GitHub depolarından beceri içe aktarma |

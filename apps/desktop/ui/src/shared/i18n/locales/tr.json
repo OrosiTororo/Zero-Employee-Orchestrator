@@ -526,6 +526,9 @@
     "risk": "Risk",
     "approve": "Onayla",
     "reject": "Reddet",
+    "previewLabel": "Eylem Önizleme",
+    "taskLabel": "Görev",
+    "rejectReason": "Ret nedeni:",
     "loadFailed": "Onay istekleri yüklenemedi. Bağlantınızı kontrol edin.",
     "approveFailed": "Onaylanamadı. Tekrar deneyin.",
     "rejectFailed": "Reddedilemedi. Tekrar deneyin."

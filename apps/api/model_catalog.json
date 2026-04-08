@@ -1,11 +1,7 @@
 {
   "version": "2.0.0",
-  "updated_at": "2026-03-29T00:00:00Z",
-  "description": "Zero-Employee Orchestrator model catalog. Models are managed by family name and versions are auto-resolved. Edit this file to add, remove, or update model costs. Changes take effect on app restart or API-triggered reload.",
-  "version_policy": {
-    "strategy": "latest",
-    "description": "Model IDs are managed by family name and auto-resolved to latest_model_id at API call time. When a provider updates a model, only latest_model_id needs to change — no code modifications required."
-  },
+  "updated_at": "2026-04-07T15:40:35Z",
+  "description": "Zero-Employee Orchestrator model catalog. Edit this file to add/remove models or update costs. Changes take effect on app restart or API-triggered reload.",
   "models": [
     {
       "id": "anthropic/claude-opus",
@@ -19,7 +15,10 @@
       "supports_vision": true,
       "deprecated": false,
       "successor": null,
-      "tags": ["quality", "critical"]
+      "tags": [
+        "quality",
+        "critical"
+      ]
     },
     {
       "id": "anthropic/claude-sonnet",
@@ -33,7 +32,10 @@
       "supports_vision": true,
       "deprecated": false,
       "successor": null,
-      "tags": ["quality", "standard"]
+      "tags": [
+        "quality",
+        "standard"
+      ]
     },
     {
       "id": "anthropic/claude-haiku",
@@ -47,7 +49,11 @@
       "supports_vision": true,
       "deprecated": false,
       "successor": null,
-      "tags": ["speed", "cost", "draft"]
+      "tags": [
+        "speed",
+        "cost",
+        "draft"
+      ]
     },
     {
       "id": "openai/gpt",
@@ -61,7 +67,10 @@
       "supports_vision": true,
       "deprecated": false,
       "successor": null,
-      "tags": ["quality", "critical"]
+      "tags": [
+        "quality",
+        "critical"
+      ]
     },
     {
       "id": "openai/gpt-mini",
@@ -75,7 +84,11 @@
       "supports_vision": true,
       "deprecated": false,
       "successor": null,
-      "tags": ["speed", "cost", "draft"]
+      "tags": [
+        "speed",
+        "cost",
+        "draft"
+      ]
     },
     {
       "id": "gemini/gemini-pro",
@@ -89,7 +102,9 @@
       "supports_vision": true,
       "deprecated": false,
       "successor": null,
-      "tags": ["quality"]
+      "tags": [
+        "quality"
+      ]
     },
     {
       "id": "google/gemini-pro",
@@ -103,7 +118,9 @@
       "supports_vision": true,
       "deprecated": false,
       "successor": null,
-      "tags": ["quality"]
+      "tags": [
+        "quality"
+      ]
     },
     {
       "id": "gemini/gemini-flash",
@@ -117,7 +134,10 @@
       "supports_vision": true,
       "deprecated": false,
       "successor": null,
-      "tags": ["speed", "free"]
+      "tags": [
+        "speed",
+        "free"
+      ]
     },
     {
       "id": "google/gemini-flash",
@@ -131,7 +151,9 @@
       "supports_vision": true,
       "deprecated": false,
       "successor": null,
-      "tags": ["speed"]
+      "tags": [
+        "speed"
+      ]
     },
     {
       "id": "gemini/gemini-flash-lite",
@@ -145,7 +167,9 @@
       "supports_vision": false,
       "deprecated": false,
       "successor": null,
-      "tags": ["cost"]
+      "tags": [
+        "cost"
+      ]
     },
     {
       "id": "deepseek/deepseek-chat",
@@ -159,7 +183,9 @@
       "supports_vision": false,
       "deprecated": false,
       "successor": null,
-      "tags": ["cost"]
+      "tags": [
+        "cost"
+      ]
     },
     {
       "id": "ollama/llama",
@@ -173,7 +199,10 @@
       "supports_vision": false,
       "deprecated": false,
       "successor": null,
-      "tags": ["free", "local"]
+      "tags": [
+        "free",
+        "local"
+      ]
     },
     {
       "id": "ollama/mistral",
@@ -187,7 +216,10 @@
       "supports_vision": false,
       "deprecated": false,
       "successor": null,
-      "tags": ["free", "local"]
+      "tags": [
+        "free",
+        "local"
+      ]
     },
     {
       "id": "ollama/phi",
@@ -201,7 +233,10 @@
       "supports_vision": false,
       "deprecated": false,
       "successor": null,
-      "tags": ["free", "local"]
+      "tags": [
+        "free",
+        "local"
+      ]
     },
     {
       "id": "g4f/GeminiPro",
@@ -215,7 +250,10 @@
       "supports_vision": false,
       "deprecated": false,
       "successor": null,
-      "tags": ["free", "subscription"]
+      "tags": [
+        "free",
+        "subscription"
+      ]
     },
     {
       "id": "g4f/Copilot",
@@ -229,7 +267,10 @@
       "supports_vision": false,
       "deprecated": false,
       "successor": null,
-      "tags": ["free", "subscription"]
+      "tags": [
+        "free",
+        "subscription"
+      ]
     },
     {
       "id": "g4f/OpenaiChat",
@@ -243,7 +284,9 @@
       "supports_vision": false,
       "deprecated": false,
       "successor": null,
-      "tags": ["subscription"]
+      "tags": [
+        "subscription"
+      ]
     },
     {
       "id": "g4f/Claude",
@@ -257,7 +300,9 @@
       "supports_vision": false,
       "deprecated": false,
       "successor": null,
-      "tags": ["subscription"]
+      "tags": [
+        "subscription"
+      ]
     },
     {
       "id": "g4f/Gemini",
@@ -271,7 +316,9 @@
       "supports_vision": false,
       "deprecated": false,
       "successor": null,
-      "tags": ["subscription"]
+      "tags": [
+        "subscription"
+      ]
     },
     {
       "id": "g4f/DeepInfra",
@@ -285,7 +332,9 @@
       "supports_vision": false,
       "deprecated": false,
       "successor": null,
-      "tags": ["subscription"]
+      "tags": [
+        "subscription"
+      ]
     },
     {
       "id": "openai/gpt-4o",
@@ -299,7 +348,9 @@
       "supports_vision": true,
       "deprecated": true,
       "successor": "openai/gpt",
-      "tags": ["legacy"]
+      "tags": [
+        "legacy"
+      ]
     },
     {
       "id": "openai/gpt-4o-mini",
@@ -313,7 +364,9 @@
       "supports_vision": true,
       "deprecated": true,
       "successor": "openai/gpt-mini",
-      "tags": ["legacy"]
+      "tags": [
+        "legacy"
+      ]
     },
     {
       "id": "gemini/gemini-2.5-pro",
@@ -327,7 +380,9 @@
       "supports_vision": true,
       "deprecated": true,
       "successor": "gemini/gemini-pro",
-      "tags": ["legacy"]
+      "tags": [
+        "legacy"
+      ]
     },
     {
       "id": "gemini/gemini-2.5-flash",
@@ -341,7 +396,43 @@
       "supports_vision": true,
       "deprecated": true,
       "successor": "gemini/gemini-flash",
-      "tags": ["legacy"]
+      "tags": [
+        "legacy"
+      ]
+    },
+    {
+      "id": "g4f/ApiAirforce",
+      "provider": "g4f",
+      "display_name": "Multi-model free relay (GPT-5-mini, no API key)",
+      "latest_model_id": "gpt-5-mini",
+      "cost_per_1k_input": 0.0,
+      "cost_per_1k_output": 0.0,
+      "max_tokens": 4096,
+      "supports_tools": false,
+      "supports_vision": false,
+      "deprecated": false,
+      "successor": null,
+      "tags": [
+        "free",
+        "subscription"
+      ]
+    },
+    {
+      "id": "g4f/CopilotAccount",
+      "provider": "g4f",
+      "display_name": "Microsoft Copilot Pro subscription (GPT)",
+      "latest_model_id": "gpt-5.4",
+      "cost_per_1k_input": 0.0,
+      "cost_per_1k_output": 0.0,
+      "max_tokens": 4096,
+      "supports_tools": false,
+      "supports_vision": false,
+      "deprecated": false,
+      "successor": null,
+      "tags": [
+        "free",
+        "subscription"
+      ]
     }
   ],
   "mode_catalog": {
@@ -382,50 +473,42 @@
   },
   "quality_sla": {
     "draft": {
-      "preferred": ["openai/gpt-mini", "anthropic/claude-haiku"],
-      "fallback": ["gemini/gemini-flash-lite"]
+      "preferred": [
+        "openai/gpt-mini",
+        "anthropic/claude-haiku"
+      ],
+      "fallback": [
+        "gemini/gemini-flash-lite"
+      ]
     },
     "standard": {
-      "preferred": ["openai/gpt", "anthropic/claude-sonnet"],
-      "fallback": ["openai/gpt-mini", "anthropic/claude-haiku"]
+      "preferred": [
+        "openai/gpt",
+        "anthropic/claude-sonnet"
+      ],
+      "fallback": [
+        "openai/gpt-mini",
+        "anthropic/claude-haiku"
+      ]
     },
     "high": {
-      "preferred": ["openai/gpt", "anthropic/claude-sonnet"],
-      "fallback": ["anthropic/claude-opus", "gemini/gemini-pro"]
+      "preferred": [
+        "openai/gpt",
+        "anthropic/claude-sonnet"
+      ],
+      "fallback": [
+        "anthropic/claude-opus",
+        "gemini/gemini-pro"
+      ]
     },
     "critical": {
-      "preferred": ["anthropic/claude-opus", "openai/gpt"],
-      "fallback": ["anthropic/claude-sonnet", "gemini/gemini-pro"]
-    }
-  },
-  "roadmap": {
-    "v0.2": {
-      "description": "接続性と実用性の強化",
-      "planned_models": [
-        "Tool Connector 実装完成 (REST API / MCP / GraphQL / CLI)",
-        "iPaaS 連携 (n8n / Zapier / Make)"
-      ]
-    },
-    "v0.3": {
-      "description": "AI 組織の高度化",
-      "planned_features": [
-        "Meta-Skills (Feeling / Seeing / Dreaming / Making / Learning)",
-        "RSS / ToS 自動更新パイプライン — モデル更新・料金変更を公式 RSS から自動検知し model_catalog.json を自動更新",
-        "AI 共創リパーパスエンジン"
-      ]
-    },
-    "v0.4": {
-      "description": "エコシステムとスケーラビリティ",
-      "planned_features": [
-        "Skill マーケットプレイス",
-        "マルチユーザー / チーム対応"
-      ]
-    },
-    "v1.0": {
-      "description": "プロダクション品質",
-      "planned_features": [
-        "24/365 ロングラン実行",
-        "ガバナンスとコンプライアンス"
+      "preferred": [
+        "anthropic/claude-opus",
+        "openai/gpt"
+      ],
+      "fallback": [
+        "anthropic/claude-sonnet",
+        "gemini/gemini-pro"
       ]
     }
   }

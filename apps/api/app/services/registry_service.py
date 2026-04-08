@@ -366,6 +366,7 @@ async def ensure_system_plugins(db: AsyncSession) -> list[Plugin]:
                     description=builtin["description"],
                     version="0.1.0",
                 ),
+                is_system_protected=True,
             )
             created.append(plugin)
     if created:
@@ -387,6 +388,7 @@ async def ensure_system_extensions(db: AsyncSession) -> list[Extension]:
                     description=builtin["description"],
                     version="0.1.0",
                 ),
+                is_system_protected=True,
             )
             created.append(ext)
     if created:

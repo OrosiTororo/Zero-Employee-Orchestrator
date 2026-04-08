@@ -201,7 +201,7 @@ async def execute_browser_task(req: BrowserTaskRequest, user: User = Depends(get
                 detail="Suspected prompt injection detected",
             )
     except ImportError:
-        pass
+        logger.warning("prompt_guard module not available — skipping injection check")
 
     task = BrowserTask(
         instruction=req.instruction,
@@ -262,7 +262,7 @@ async def web_ai_complete(req: WebSessionRequest, user: User = Depends(get_curre
                 detail="Suspected prompt injection detected",
             )
     except ImportError:
-        pass
+        logger.warning("prompt_guard module not available — skipping injection check")
 
     try:
         service = WebAIService(req.service)

@@ -385,8 +385,8 @@ function getFeatures(lang: Lang) {
   ]
 }
 
-const CURRENT_VERSION = "v0.1.0"
-const CURRENT_DATE = "2026-03-11"
+const CURRENT_VERSION = "v0.1.5"
+const CURRENT_DATE = "2026-04-07"
 
 interface BuiltinAsset {
   name: string

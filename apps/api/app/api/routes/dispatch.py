@@ -2,6 +2,12 @@
 
 Inspired by Claude Cowork Dispatch: assign tasks that run in the background
 while the user is away. Returns finished results when ready.
+
+Copilot Cowork-inspired features:
+- Plan preview: see execution steps before running
+- Needs-input status: tasks can pause and request human input
+- Steering: add instructions mid-execution to redirect a running task
+- Resume: continue a task paused at needs_input with user-provided input
 """
 
 from __future__ import annotations
@@ -30,6 +36,16 @@ _dispatch_lock = threading.Lock()
 _dispatch_tasks: dict[str, dict] = {}
 
 
+class PlanStep(BaseModel):
+    """A single step in a plan preview."""
+
+    id: str
+    title: str
+    depends_on: list[str] = Field(default_factory=list)
+    estimated_minutes: int = 0
+    status: str = "pending"
+
+
 class DispatchRequest(BaseModel):
     """Background task request."""
 
@@ -37,6 +53,19 @@ class DispatchRequest(BaseModel):
     priority: str = "medium"
     schedule: str | None = None  # cron expression for recurring tasks
     context: dict = Field(default_factory=dict)
+    preview_only: bool = False  # If True, generate plan preview without executing
+
+
+class SteerRequest(BaseModel):
+    """Mid-execution steering instruction."""
+
+    instruction: str
+
+
+class ResumeRequest(BaseModel):
+    """Input to resume a task paused at needs_input."""
+
+    user_input: str
 
 
 class DispatchResponse(BaseModel):
@@ -48,6 +77,8 @@ class DispatchResponse(BaseModel):
     created_at: str
     completed_at: str | None = None
     result: str | None = None
+    plan_preview: list[PlanStep] | None = None
+    needs_input_reason: str | None = None
 
 
 class DispatchListResponse(BaseModel):
@@ -86,6 +117,8 @@ async def create_dispatch(
     task_id = str(uuid.uuid4())
     now = datetime.now(UTC).isoformat()
 
+    initial_status = "preview" if req.preview_only else "queued"
+
     task = {
         "task_id": task_id,
         "user_id": str(user.id),
@@ -93,21 +126,32 @@ async def create_dispatch(
         "priority": req.priority,
         "schedule": req.schedule,
         "context": req.context,
-        "status": "queued",
+        "status": initial_status,
         "created_at": now,
         "completed_at": None,
         "result": None,
+        "plan_preview": None,
+        "needs_input_reason": None,
+        "steering_instructions": [],
+        "resume_event": asyncio.Event(),
+        "resume_input": None,
     }
     with _dispatch_lock:
         _dispatch_tasks[task_id] = task
-    logger.info("Dispatch task created: %s (user=%s)", task_id, user.id)
+    logger.info(
+        "Dispatch task created: %s (user=%s, preview_only=%s)", task_id, user.id, req.preview_only
+    )
 
-    # Simulate async execution (production: enqueue to background worker)
-    asyncio.create_task(_execute_dispatch(task_id))
+    if req.preview_only:
+        # Generate plan preview without executing
+        asyncio.create_task(_generate_preview(task_id))
+    else:
+        # Full async execution (production: enqueue to background worker)
+        asyncio.create_task(_execute_dispatch(task_id))
 
     return DispatchResponse(
         task_id=task_id,
-        status="queued",
+        status=initial_status,
         instruction=req.instruction,
         created_at=now,
     )
@@ -119,14 +163,7 @@ async def get_dispatch(task_id: str, _user: User = Depends(get_current_user)):
     task = _dispatch_tasks.get(task_id)
     if not task:
         raise HTTPException(status_code=404, detail=f"Dispatch task not found: {task_id}")
-    return DispatchResponse(
-        task_id=task["task_id"],
-        status=task["status"],
-        instruction=task["instruction"],
-        created_at=task["created_at"],
-        completed_at=task["completed_at"],
-        result=task["result"],
-    )
+    return _task_to_response(task)
 
 
 @router.get("", response_model=DispatchListResponse)
@@ -137,17 +174,7 @@ async def list_dispatches(status: str | None = None, user: User = Depends(get_cu
         user_tasks = [t for t in user_tasks if t["status"] == status]
     user_tasks.sort(key=lambda t: t["created_at"], reverse=True)
     return DispatchListResponse(
-        tasks=[
-            DispatchResponse(
-                task_id=t["task_id"],
-                status=t["status"],
-                instruction=t["instruction"],
-                created_at=t["created_at"],
-                completed_at=t["completed_at"],
-                result=t["result"],
-            )
-            for t in user_tasks[:50]
-        ],
+        tasks=[_task_to_response(t) for t in user_tasks[:50]],
         total=len(user_tasks),
     )
 
@@ -162,14 +189,260 @@ async def cancel_dispatch(task_id: str, _user: User = Depends(get_current_user))
     if task["status"] not in ("completed", "failed", "cancelled"):
         task["status"] = "cancelled"
         task["completed_at"] = datetime.now(UTC).isoformat()
+        # Unblock any resume waiter so the background task can exit cleanly
+        resume_event = task.get("resume_event")
+        if resume_event and isinstance(resume_event, asyncio.Event):
+            task["resume_input"] = None  # Signal cancellation, not real input
+            resume_event.set()
+    return _task_to_response(task)
+
+
+def _task_to_response(task: dict) -> DispatchResponse:
+    """Build a DispatchResponse from an internal task dict."""
     return DispatchResponse(
         task_id=task["task_id"],
         status=task["status"],
         instruction=task["instruction"],
         created_at=task["created_at"],
-        completed_at=task["completed_at"],
-        result=task["result"],
+        completed_at=task.get("completed_at"),
+        result=task.get("result"),
+        plan_preview=task.get("plan_preview"),
+        needs_input_reason=task.get("needs_input_reason"),
     )
+
+
+@router.post("/{task_id}/steer", response_model=DispatchResponse)
+@limiter.limit("20/minute")
+async def steer_dispatch(
+    request: Request,
+    task_id: str,
+    req: SteerRequest,
+    _user: User = Depends(get_current_user),
+):
+    """Add a steering instruction to a running or needs_input dispatch task.
+
+    Steering lets the user redirect a task mid-execution without cancelling it.
+    The instruction is appended to the task context and picked up by subsequent
+    execution steps.
+    """
+    # Prompt injection check on steering instruction
+    guard_result = scan_prompt_injection(req.instruction)
+    if guard_result.threat_level in (ThreatLevel.HIGH, ThreatLevel.CRITICAL):
+        raise HTTPException(
+            status_code=400,
+            detail="Request blocked: potentially unsafe content detected in instruction.",
+        )
+
+    with _dispatch_lock:
+        task = _dispatch_tasks.get(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Dispatch task not found: {task_id}")
+    if task["status"] not in ("running", "needs_input", "queued"):
+        raise HTTPException(
+            status_code=409,
+            detail=f"Cannot steer task in '{task['status']}' status. "
+            "Task must be queued, running, or needs_input.",
+        )
+
+    # PII detection on steering instruction
+    pii_result = detect_and_mask_pii(req.instruction)
+    if pii_result.has_pii:
+        logger.warning(
+            "PII detected in steering instruction (task=%s): %s",
+            task_id,
+            pii_result.detected_types,
+        )
+
+    with _dispatch_lock:
+        task["steering_instructions"].append(
+            {
+                "instruction": req.instruction,
+                "added_at": datetime.now(UTC).isoformat(),
+            }
+        )
+    logger.info("Steering instruction added to task %s", task_id)
+    return _task_to_response(task)
+
+
+@router.post("/{task_id}/resume", response_model=DispatchResponse)
+@limiter.limit("10/minute")
+async def resume_dispatch(
+    request: Request,
+    task_id: str,
+    req: ResumeRequest,
+    _user: User = Depends(get_current_user),
+):
+    """Resume a dispatch task that is paused at needs_input status.
+
+    Provides the requested user input so the task can continue execution.
+    """
+    # Prompt injection check on user input
+    guard_result = scan_prompt_injection(req.user_input)
+    if guard_result.threat_level in (ThreatLevel.HIGH, ThreatLevel.CRITICAL):
+        raise HTTPException(
+            status_code=400,
+            detail="Request blocked: potentially unsafe content detected in input.",
+        )
+
+    with _dispatch_lock:
+        task = _dispatch_tasks.get(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Dispatch task not found: {task_id}")
+    if task["status"] != "needs_input":
+        raise HTTPException(
+            status_code=409,
+            detail=f"Cannot resume task in '{task['status']}' status. "
+            "Task must be in 'needs_input' status.",
+        )
+
+    # PII detection on resume input
+    pii_result = detect_and_mask_pii(req.user_input)
+    if pii_result.has_pii:
+        logger.warning(
+            "PII detected in resume input (task=%s): %s",
+            task_id,
+            pii_result.detected_types,
+        )
+
+    with _dispatch_lock:
+        task["steering_instructions"].append(
+            {
+                "instruction": f"[user_input] {req.user_input}",
+                "added_at": datetime.now(UTC).isoformat(),
+            }
+        )
+        task["status"] = "running"
+        task["needs_input_reason"] = None
+        task["resume_input"] = req.user_input
+        # Signal the background execution to continue
+        resume_event = task.get("resume_event")
+        if resume_event and isinstance(resume_event, asyncio.Event):
+            resume_event.set()
+
+    logger.info("Task %s resumed with user input", task_id)
+    return _task_to_response(task)
+
+
+@router.post("/{task_id}/start", response_model=DispatchResponse)
+@limiter.limit("10/minute")
+async def start_previewed_dispatch(
+    request: Request,
+    task_id: str,
+    _user: User = Depends(get_current_user),
+):
+    """Start execution of a task that was created with preview_only=True.
+
+    After reviewing the plan_preview, the user can confirm execution via this
+    endpoint. The task transitions from 'preview' to 'running'.
+    """
+    with _dispatch_lock:
+        task = _dispatch_tasks.get(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Dispatch task not found: {task_id}")
+    if task["status"] != "preview":
+        raise HTTPException(
+            status_code=409,
+            detail=f"Cannot start task in '{task['status']}' status. "
+            "Task must be in 'preview' status.",
+        )
+
+    asyncio.create_task(_execute_dispatch(task_id))
+    logger.info("Preview task %s started by user", task_id)
+    return _task_to_response(task)
+
+
+# ---------------------------------------------------------------------------
+# Needs-input detection helpers
+# ---------------------------------------------------------------------------
+
+# Phrases that indicate the LLM is requesting human input rather than
+# producing a final answer.  Checked case-insensitively against node output.
+_NEEDS_INPUT_INDICATORS: list[str] = [
+    "please provide",
+    "i need more information",
+    "could you clarify",
+    "please clarify",
+    "what would you like",
+    "please specify",
+    "i need your input",
+    "waiting for input",
+    "need additional details",
+    "please confirm",
+]
+
+
+def _detect_needs_input(content: str) -> str | None:
+    """Return a reason string if the content looks like a request for human input.
+
+    Returns None when the content is a normal execution result.
+    """
+    lower = content.lower()
+    for indicator in _NEEDS_INPUT_INDICATORS:
+        if indicator in lower:
+            # Use the first matching sentence as the reason
+            for sentence in content.replace("\n", ". ").split(". "):
+                if indicator in sentence.lower():
+                    return sentence.strip().rstrip(".")
+            return f"Task is requesting input ({indicator})"
+    return None
+
+
+async def _pause_for_input(task: dict, reason: str) -> str | None:
+    """Transition task to needs_input and block until resumed or cancelled.
+
+    Returns the user-provided input string, or None if the task was cancelled.
+    """
+    with _dispatch_lock:
+        task["status"] = "needs_input"
+        task["needs_input_reason"] = reason
+        task["resume_input"] = None
+        # Reset the event so we can wait on it
+        task["resume_event"] = asyncio.Event()
+    logger.info("Task %s paused — needs_input: %s", task["task_id"], reason)
+
+    # Wait for resume or cancel (the event is set by resume_dispatch or cancel_dispatch)
+    await task["resume_event"].wait()
+
+    # After waking, check if it was a cancellation
+    if task["status"] == "cancelled":
+        return None
+    return task.get("resume_input")
+
+
+async def _generate_preview(task_id: str) -> None:
+    """Generate a plan preview without executing — for preview_only tasks."""
+    with _dispatch_lock:
+        task = _dispatch_tasks.get(task_id)
+    if not task:
+        return
+
+    try:
+        from app.orchestration.executor import get_executor
+
+        executor = get_executor()
+
+        dag = await executor.generate_plan(
+            ticket_title=task["instruction"][:100],
+            spec_text=task["instruction"],
+        )
+
+        with _dispatch_lock:
+            task["plan_preview"] = [
+                PlanStep(
+                    id=node.id,
+                    title=node.title,
+                    depends_on=node.depends_on,
+                    estimated_minutes=node.estimated_minutes,
+                    status=node.status.value,
+                )
+                for node in dag.nodes
+            ]
+        logger.info("Plan preview generated for task %s (%d steps)", task_id, len(dag.nodes))
+    except Exception as exc:
+        task["status"] = "failed"
+        task["completed_at"] = datetime.now(UTC).isoformat()
+        task["result"] = f"Plan generation failed: {exc}"
+        logger.error("Preview generation failed: %s — %s", task_id, exc)
 
 
 async def _execute_dispatch(task_id: str) -> None:
@@ -185,14 +458,68 @@ async def _execute_dispatch(task_id: str) -> None:
 
         executor = get_executor()
 
-        # Step 1: Generate plan from instruction
+        # Step 1: Generate plan from instruction (includes steering context)
+        full_instruction = task["instruction"]
+        steering = task.get("steering_instructions", [])
+        if steering:
+            steering_text = "\n".join(f"- {s['instruction']}" for s in steering)
+            full_instruction += f"\n\nAdditional instructions:\n{steering_text}"
+
         dag = await executor.generate_plan(
             ticket_title=task["instruction"][:100],
-            spec_text=task["instruction"],
+            spec_text=full_instruction,
         )
 
-        # Step 2: Execute plan
-        plan_result = await executor.execute_plan(dag)
+        # Step 1.5: Store plan preview so the user can inspect steps
+        with _dispatch_lock:
+            task["plan_preview"] = [
+                PlanStep(
+                    id=node.id,
+                    title=node.title,
+                    depends_on=node.depends_on,
+                    estimated_minutes=node.estimated_minutes,
+                    status=node.status.value,
+                )
+                for node in dag.nodes
+            ]
+
+        # Step 2: Execute plan with steering-aware progress callback
+        async def _on_progress(node_id: str, node_status: str, node_result: object) -> None:
+            """Update plan_preview step statuses, detect needs_input, and handle steering."""
+            with _dispatch_lock:
+                preview = task.get("plan_preview")
+                if preview:
+                    for step in preview:
+                        if step.id == node_id:
+                            step.status = node_status
+                            break
+
+            # Check if the node result indicates a need for human input
+            if node_result and hasattr(node_result, "content") and node_result.content:
+                reason = _detect_needs_input(node_result.content)
+                if reason:
+                    user_input = await _pause_for_input(task, reason)
+                    if user_input is None:
+                        # Task was cancelled while waiting
+                        return
+                    # Inject user input into steering for subsequent nodes
+                    logger.info("Task %s resumed — injecting user input into context", task_id)
+
+        plan_result = await executor.execute_plan(dag, on_progress=_on_progress)
+
+        # Bail out if the task was cancelled while we were running
+        if task["status"] == "cancelled":
+            return
+
+        # Update final plan_preview statuses from actual results
+        with _dispatch_lock:
+            preview = task.get("plan_preview")
+            if preview:
+                result_map = {r.node_id: r for r in plan_result.node_results}
+                for step in preview:
+                    if step.id in result_map:
+                        r = result_map[step.id]
+                        step.status = "completed" if r.success else "failed"
 
         task["status"] = "completed" if plan_result.status == "succeeded" else "failed"
         task["completed_at"] = datetime.now(UTC).isoformat()

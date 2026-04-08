@@ -14,7 +14,7 @@ import {
 import { useState, useEffect, useCallback } from "react"
 
 const REPO = "OrosiTororo/Zero-Employee-Orchestrator"
-const CURRENT_VERSION = "v0.1.0"
+const CURRENT_VERSION = "v0.1.5"
 
 interface ReleaseAsset {
   name: string
