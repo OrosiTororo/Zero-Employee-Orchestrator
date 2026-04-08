@@ -284,10 +284,9 @@ export default function WorkflowBuilder({
             <g
               key={step.id}
               onClick={(e) => handleNodeClick(step.id, e.shiftKey)}
-              onDragStart={() => editable && setDragSource(step.id)}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={() => handleDrop(step.id)}
-              draggable={editable}
+              onMouseDown={() => editable && setDragSource(step.id)}
+              onMouseUp={() => handleDrop(step.id)}
+              onMouseOver={(e) => e.preventDefault()}
               style={{
                 cursor: editable ? "grab" : onStepClick ? "pointer" : "default",
                 outline: linkSource === step.id ? "2px dashed #007acc" : "none",
