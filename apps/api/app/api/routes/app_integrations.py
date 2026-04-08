@@ -448,7 +448,9 @@ async def sync_connection(
     }
 
 
-@router.post("/connections/{connection_id}/import-knowledge", response_model=KnowledgeImportResponse)
+@router.post(
+    "/connections/{connection_id}/import-knowledge", response_model=KnowledgeImportResponse
+)
 async def import_to_knowledge(
     connection_id: str,
     req: ImportRequest,

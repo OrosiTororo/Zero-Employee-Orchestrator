@@ -357,7 +357,9 @@ class TaskExecutor:
                     await monitor.on_task_progress(
                         task_id=node.id,
                         progress_pct=100.0 if node.status == TaskNodeStatus.SUCCEEDED else 0.0,
-                        current_step="completed" if node.status == TaskNodeStatus.SUCCEEDED else "failed",
+                        current_step="completed"
+                        if node.status == TaskNodeStatus.SUCCEEDED
+                        else "failed",
                         company_id=company_id or "system",
                     )
                 except Exception:
@@ -374,7 +376,9 @@ class TaskExecutor:
                 judge_score=judge_result.score,
                 judge_verdict=judge_result.verdict.value,
                 judge_reasons=list(judge_result.reasons) if judge_result.reasons else [],
-                judge_suggestions=list(judge_result.suggestions) if judge_result.suggestions else [],
+                judge_suggestions=list(judge_result.suggestions)
+                if judge_result.suggestions
+                else [],
                 duration_ms=elapsed,
                 transparency_report=tb.to_dict(),
             )
@@ -470,8 +474,11 @@ class TaskExecutor:
                 cid: str = company_id,
             ) -> tuple[TaskNode, ExecutionResult]:
                 nr = await self.execute_node(
-                    n, context=ctx, execution_mode=mode,
-                    enable_critique=critique, company_id=cid,
+                    n,
+                    context=ctx,
+                    execution_mode=mode,
+                    enable_critique=critique,
+                    company_id=cid,
                 )
                 return n, nr
 
@@ -590,9 +597,7 @@ class TaskExecutor:
         )
         for nr in result.node_results:
             if not nr.success and nr.error:
-                plan_tb.add_uncertainty(
-                    f"Node '{nr.node_id}' failed: {nr.error}"
-                )
+                plan_tb.add_uncertainty(f"Node '{nr.node_id}' failed: {nr.error}")
         result.transparency_summary = plan_tb.to_dict()
 
         logger.info(

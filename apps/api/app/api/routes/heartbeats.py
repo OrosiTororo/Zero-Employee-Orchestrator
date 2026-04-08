@@ -74,7 +74,9 @@ async def list_policies(
     ]
 
 
-@router.post("/companies/{company_id}/heartbeat-policies", response_model=HeartbeatPolicyCreateResponse)
+@router.post(
+    "/companies/{company_id}/heartbeat-policies", response_model=HeartbeatPolicyCreateResponse
+)
 async def create_policy(
     company_id: str,
     req: HeartbeatPolicyCreate,

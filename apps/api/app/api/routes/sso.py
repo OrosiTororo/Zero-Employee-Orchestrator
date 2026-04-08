@@ -59,11 +59,21 @@ def _get_sso_providers() -> list[dict]:
     providers = []
     if os.environ.get("GOOGLE_CLIENT_ID"):
         providers.append(
-            {"id": "google-oauth", "name": "Google OAuth 2.0", "protocol": "oauth2", "enabled": True}
+            {
+                "id": "google-oauth",
+                "name": "Google OAuth 2.0",
+                "protocol": "oauth2",
+                "enabled": True,
+            }
         )
     else:
         providers.append(
-            {"id": "google-oauth", "name": "Google OAuth 2.0", "protocol": "oauth2", "enabled": False}
+            {
+                "id": "google-oauth",
+                "name": "Google OAuth 2.0",
+                "protocol": "oauth2",
+                "enabled": False,
+            }
         )
     if os.environ.get("SSO_SAML_IDP_METADATA_URL"):
         providers.append(
@@ -120,9 +130,7 @@ async def saml_acs(request: Request) -> SAMLAssertionResponse:
         form_data = await request.form()
         saml_response = form_data.get("SAMLResponse", "")
         if not saml_response:
-            return SAMLAssertionResponse(
-                status="error", error="No SAMLResponse in form data."
-            )
+            return SAMLAssertionResponse(status="error", error="No SAMLResponse in form data.")
 
         # Decode and validate SAML response
         import base64
@@ -138,9 +146,7 @@ async def saml_acs(request: Request) -> SAMLAssertionResponse:
         }
         name_id_elem = root.find(".//saml:NameID", ns)
         if name_id_elem is None or not name_id_elem.text:
-            return SAMLAssertionResponse(
-                status="error", error="No NameID found in SAML assertion."
-            )
+            return SAMLAssertionResponse(status="error", error="No NameID found in SAML assertion.")
 
         email = name_id_elem.text
         session_token = secrets.token_urlsafe(32)
@@ -192,18 +198,24 @@ async def google_oauth_callback(
     """Google OAuth callback — exchanges auth code for tokens."""
     if error:
         return OAuthCallbackResponse(
-            status="error", provider="google", error=error,
+            status="error",
+            provider="google",
+            error=error,
         )
     if not code:
         return OAuthCallbackResponse(
-            status="error", provider="google", error="No authorization code received",
+            status="error",
+            provider="google",
+            error="No authorization code received",
         )
 
     client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
     client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "")
     if not client_id or not client_secret:
         return OAuthCallbackResponse(
-            status="error", provider="google", error="Google OAuth not configured",
+            status="error",
+            provider="google",
+            error="Google OAuth not configured",
         )
 
     base = str(request.base_url).rstrip("/")
@@ -248,7 +260,9 @@ async def google_oauth_callback(
     except Exception as e:
         logger.error("Google OAuth callback failed: %s", e)
         return OAuthCallbackResponse(
-            status="error", provider="google", error=str(e),
+            status="error",
+            provider="google",
+            error=str(e),
         )
 
 
@@ -287,11 +301,15 @@ async def azure_oauth_callback(
     """Azure AD OIDC callback."""
     if error:
         return OAuthCallbackResponse(
-            status="error", provider="azure-ad", error=error,
+            status="error",
+            provider="azure-ad",
+            error=error,
         )
     if not code:
         return OAuthCallbackResponse(
-            status="error", provider="azure-ad", error="No authorization code",
+            status="error",
+            provider="azure-ad",
+            error="No authorization code",
         )
 
     tenant_id = os.environ.get("AZURE_AD_TENANT_ID", "")
@@ -339,7 +357,9 @@ async def azure_oauth_callback(
     except Exception as e:
         logger.error("Azure AD callback failed: %s", e)
         return OAuthCallbackResponse(
-            status="error", provider="azure-ad", error=str(e),
+            status="error",
+            provider="azure-ad",
+            error=str(e),
         )
 
 

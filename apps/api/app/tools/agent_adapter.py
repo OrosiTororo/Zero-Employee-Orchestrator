@@ -315,7 +315,9 @@ class LangChainAdapter(AgentFrameworkAdapter):
                 # No tools — direct LLM invocation
                 from langchain.schema import HumanMessage
 
-                response = await _aio.to_thread(llm.invoke, [HumanMessage(content=task.instruction)])
+                response = await _aio.to_thread(
+                    llm.invoke, [HumanMessage(content=task.instruction)]
+                )
                 result = response.content if hasattr(response, "content") else str(response)
 
             return {
@@ -357,9 +359,7 @@ class OpenClawAdapter(AgentFrameworkAdapter):
     async def execute_task(self, task: AgentTask) -> dict:
         import os
 
-        base_url = os.environ.get(
-            "OPENCLAW_URL", task.context.get("openclaw_url", "")
-        )
+        base_url = os.environ.get("OPENCLAW_URL", task.context.get("openclaw_url", ""))
         if not base_url:
             return {
                 "success": False,
@@ -512,7 +512,11 @@ class N8NAgentAdapter(AgentFrameworkAdapter):
                     },
                 )
                 resp.raise_for_status()
-                data = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {"result": resp.text}
+                data = (
+                    resp.json()
+                    if resp.headers.get("content-type", "").startswith("application/json")
+                    else {"result": resp.text}
+                )
             return {
                 "success": True,
                 "result": data.get("result", str(data)),

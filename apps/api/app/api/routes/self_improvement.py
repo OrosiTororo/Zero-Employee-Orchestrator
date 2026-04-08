@@ -68,6 +68,7 @@ _stats = {
     "tests_generated": 0,
 }
 
+
 class ImprovementApplyResponse(PydanticBaseModel):
     status: str
     skill_id: str

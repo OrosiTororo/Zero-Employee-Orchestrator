@@ -299,7 +299,9 @@ async def list_escalations(
     )
 
 
-@router.get("/communications/agent/{agent_id}/interactions", response_model=AgentInteractionsResponse)
+@router.get(
+    "/communications/agent/{agent_id}/interactions", response_model=AgentInteractionsResponse
+)
 async def get_agent_interactions(agent_id: str, user: User = Depends(get_current_user)):
     """Aggregated communication statistics for a specific agent.
 

@@ -111,6 +111,7 @@ class JudgmentRecordedResponse(BaseModel):
     id: str
     message: str
 
+
 router = APIRouter(prefix="/quality-insights")
 
 

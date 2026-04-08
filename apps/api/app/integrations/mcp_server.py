@@ -251,7 +251,11 @@ class MCPServer:
                     limit=args.get("limit", 20),
                 )
                 lines = [f"- [{t.status}] {t.title} (id={t.id})" for t in tickets]
-                return f"Found {len(tickets)} tickets:\n" + "\n".join(lines) if lines else "No tickets found."
+                return (
+                    f"Found {len(tickets)} tickets:\n" + "\n".join(lines)
+                    if lines
+                    else "No tickets found."
+                )
         except Exception as e:
             return f"Error listing tickets: {e}"
 
@@ -277,9 +281,7 @@ class MCPServer:
             from app.orchestration.knowledge_store import PersistentKnowledgeStore
 
             async for db in get_session():
-                store = PersistentKnowledgeStore(
-                    db, "00000000-0000-0000-0000-000000000000"
-                )
+                store = PersistentKnowledgeStore(db, "00000000-0000-0000-0000-000000000000")
                 results = await store.search(
                     query=args.get("query", ""),
                     category=args.get("category"),
@@ -312,7 +314,10 @@ class MCPServer:
                 )
                 if not logs:
                     return "No audit logs found."
-                lines = [f"- [{entry.event_type}] {entry.target_type}/{entry.target_id} by {entry.actor_type}" for entry in logs]
+                lines = [
+                    f"- [{entry.event_type}] {entry.target_type}/{entry.target_id} by {entry.actor_type}"
+                    for entry in logs
+                ]
                 return f"Found {len(logs)} audit entries:\n" + "\n".join(lines)
         except Exception as e:
             return f"Error fetching audit logs: {e}"

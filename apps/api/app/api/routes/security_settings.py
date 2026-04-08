@@ -470,13 +470,17 @@ async def update_data_protection_config(
 
 
 @router.get("/pii/categories", response_model=list[PIICategoryResponse])
-async def get_pii_categories_list(user: User = Depends(get_current_user)) -> list[PIICategoryResponse]:
+async def get_pii_categories_list(
+    user: User = Depends(get_current_user),
+) -> list[PIICategoryResponse]:
     """Return PII category list."""
     return get_pii_categories()
 
 
 @router.post("/pii/check", response_model=PIICheckResponse)
-async def check_pii(req: PIICheckRequest, user: User = Depends(get_current_user)) -> PIICheckResponse:
+async def check_pii(
+    req: PIICheckRequest, user: User = Depends(get_current_user)
+) -> PIICheckResponse:
     """Check text for PII."""
     result = detect_and_mask_pii(req.text)
     return {

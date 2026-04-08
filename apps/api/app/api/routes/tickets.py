@@ -523,9 +523,7 @@ async def list_interview_attachments(ticket_id: str, user: User = Depends(get_cu
     }
 
 
-@router.post(
-    "/tickets/{ticket_id}/interview/generate-spec", response_model=GenerateSpecResponse
-)
+@router.post("/tickets/{ticket_id}/interview/generate-spec", response_model=GenerateSpecResponse)
 async def generate_spec_from_interview_endpoint(
     ticket_id: str,
     db: AsyncSession = Depends(get_db),
