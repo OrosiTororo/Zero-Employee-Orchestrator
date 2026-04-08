@@ -3,6 +3,7 @@
 import uuid
 
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,7 +15,17 @@ from app.models.user import User
 router = APIRouter()
 
 
-@router.get("/companies/{company_id}/audit-logs")
+class AuditLogEntry(BaseModel):
+    id: str
+    actor_type: str | None = None
+    event_type: str | None = None
+    target_type: str | None = None
+    target_id: str | None = None
+    trace_id: str | None = None
+    created_at: str | None = None
+
+
+@router.get("/companies/{company_id}/audit-logs", response_model=list[AuditLogEntry])
 async def list_audit_logs(
     company_id: str,
     event_type: str | None = None,

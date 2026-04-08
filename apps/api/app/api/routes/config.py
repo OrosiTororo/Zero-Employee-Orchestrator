@@ -32,7 +32,37 @@ class ConfigBatchUpdateRequest(BaseModel):
     values: dict[str, str]
 
 
-@router.get("/config")
+class ConfigListResponse(BaseModel):
+    config: dict = {}
+    execution_mode: str | None = None
+
+
+class ProvidersResponse(BaseModel):
+    providers: dict | list = {}
+    execution_mode: str | None = None
+
+
+class ConfigUpdateResponse(BaseModel):
+    updated: bool
+    key: str
+
+
+class ConfigBatchResponse(BaseModel):
+    updated: list[str] = []
+    errors: list[str] = []
+    partial: bool = False
+
+
+class ConfigRemoveResponse(BaseModel):
+    removed: bool
+    key: str
+
+
+class ConfigKeysResponse(BaseModel):
+    keys: dict | list = {}
+
+
+@router.get("/config", response_model=ConfigListResponse)
 async def list_config(user: User = Depends(get_current_user)):
     """Get all configuration values (sensitive values are masked).
 
@@ -45,7 +75,7 @@ async def list_config(user: User = Depends(get_current_user)):
     }
 
 
-@router.get("/config/providers")
+@router.get("/config/providers", response_model=ProvidersResponse)
 async def list_providers(user: User = Depends(get_current_user)):
     """Get connection status for each LLM provider."""
     return {
@@ -54,7 +84,7 @@ async def list_providers(user: User = Depends(get_current_user)):
     }
 
 
-@router.put("/config")
+@router.put("/config", response_model=ConfigUpdateResponse)
 async def update_config(
     req: ConfigUpdateRequest,
     user: User = Depends(get_current_user),
@@ -74,7 +104,7 @@ async def update_config(
     return {"updated": True, "key": req.key}
 
 
-@router.put("/config/batch")
+@router.put("/config/batch", response_model=ConfigBatchResponse)
 async def update_config_batch(
     req: ConfigBatchUpdateRequest,
     user: User = Depends(get_current_user),
@@ -94,7 +124,7 @@ async def update_config_batch(
     return {"updated": updated, "errors": [], "partial": False}
 
 
-@router.delete("/config/{key}")
+@router.delete("/config/{key}", response_model=ConfigRemoveResponse)
 async def remove_config(key: str, user: User = Depends(get_current_user)):
     """Remove a runtime configuration value (revert to default)."""
     if key not in CONFIGURABLE_KEYS:
@@ -103,7 +133,7 @@ async def remove_config(key: str, user: User = Depends(get_current_user)):
     return {"removed": removed, "key": key}
 
 
-@router.get("/config/keys")
+@router.get("/config/keys", response_model=ConfigKeysResponse)
 async def list_configurable_keys(user: User = Depends(get_current_user)):
     """Return the list of configurable keys and their metadata."""
     return {"keys": CONFIGURABLE_KEYS}

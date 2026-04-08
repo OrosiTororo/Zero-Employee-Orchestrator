@@ -24,7 +24,36 @@ class BudgetPolicyCreate(BaseModel):
     stop_threshold_pct: int = 100
 
 
-@router.get("/companies/{company_id}/budgets")
+# ---------- Response Schemas ----------
+
+
+class BudgetPolicyItem(BaseModel):
+    """Single budget policy in list response."""
+
+    id: str
+    name: str
+    scope_type: str
+    period_type: str
+    limit_usd: float
+    warn_threshold_pct: int
+    stop_threshold_pct: int
+
+
+class BudgetPolicyCreateResponse(BaseModel):
+    """Response for budget policy creation."""
+
+    id: str
+    name: str
+
+
+class CostSummaryResponse(BaseModel):
+    """Response for cost summary."""
+
+    total_cost_usd: float
+    currency: str
+
+
+@router.get("/companies/{company_id}/budgets", response_model=list[BudgetPolicyItem])
 async def list_budgets(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -46,7 +75,7 @@ async def list_budgets(
     ]
 
 
-@router.post("/companies/{company_id}/budgets")
+@router.post("/companies/{company_id}/budgets", response_model=BudgetPolicyCreateResponse)
 async def create_budget(
     company_id: str,
     req: BudgetPolicyCreate,
@@ -69,7 +98,7 @@ async def create_budget(
     return {"id": str(policy.id), "name": policy.name}
 
 
-@router.get("/companies/{company_id}/costs/summary")
+@router.get("/companies/{company_id}/costs/summary", response_model=CostSummaryResponse)
 async def get_cost_summary(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):

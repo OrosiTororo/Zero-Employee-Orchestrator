@@ -6,6 +6,7 @@ Provides team creation, invitations, member management, and permission checks.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/teams", tags=["teams"])
 
 
-# ---------- Schemas ----------
+# ---------- Request Schemas ----------
 
 
 class CreateTeamRequest(BaseModel):
@@ -50,11 +51,65 @@ class RemoveMemberRequest(BaseModel):
     removed_by: str = Field(..., min_length=1)
 
 
+# ---------- Response Schemas ----------
+
+
+class TeamMemberResponse(BaseModel):
+    """Team member in a team response."""
+
+    user_id: str
+    email: str
+    role: str
+    joined_at: Any = None
+    is_active: bool
+
+
+class TeamResponse(BaseModel):
+    """Response for a single team."""
+
+    id: str
+    name: str
+    company_id: str
+    members: list[TeamMemberResponse]
+    created_at: Any = None
+    settings: dict | None = None
+
+
+class InvitationResponse(BaseModel):
+    """Response for a team invitation."""
+
+    id: str
+    team_id: str
+    email: str
+    role: str
+    invited_by: str
+    created_at: Any = None
+    expires_at: Any = None
+
+
+class AcceptedMemberResponse(BaseModel):
+    """Response for an accepted invitation."""
+
+    user_id: str
+    email: str
+    role: str
+    joined_at: Any = None
+    is_active: bool
+
+
+class RemoveMemberResponse(BaseModel):
+    """Response for member removal."""
+
+    status: str
+    team_id: str
+    user_id: str
+
+
 # ---------- Endpoints ----------
 
 
-@router.post("", status_code=201)
-async def create_team(req: CreateTeamRequest, user: User = Depends(get_current_user)) -> dict:
+@router.post("", status_code=201, response_model=TeamResponse)
+async def create_team(req: CreateTeamRequest, user: User = Depends(get_current_user)):
     """Create a team."""
     team = await team_service.create_team(
         name=req.name,
@@ -64,18 +119,18 @@ async def create_team(req: CreateTeamRequest, user: User = Depends(get_current_u
     return _team_to_dict(team)
 
 
-@router.get("")
+@router.get("", response_model=list[TeamResponse])
 async def list_teams(
     company_id: str = Query(..., min_length=1),
     user: User = Depends(get_current_user),
-) -> list[dict]:
+):
     """Get list of teams for a company."""
     teams = await team_service.list_teams(company_id)
     return [_team_to_dict(t) for t in teams]
 
 
-@router.get("/{team_id}")
-async def get_team(team_id: str, user: User = Depends(get_current_user)) -> dict:
+@router.get("/{team_id}", response_model=TeamResponse)
+async def get_team(team_id: str, user: User = Depends(get_current_user)):
     """Get a team by ID."""
     team = await team_service.get_team(team_id)
     if team is None:
@@ -83,10 +138,10 @@ async def get_team(team_id: str, user: User = Depends(get_current_user)) -> dict
     return _team_to_dict(team)
 
 
-@router.post("/{team_id}/invite", status_code=201)
+@router.post("/{team_id}/invite", status_code=201, response_model=InvitationResponse)
 async def invite_member(
     team_id: str, req: InviteMemberRequest, user: User = Depends(get_current_user)
-) -> dict:
+):
     """Invite a member to a team."""
     try:
         role = TeamRole(req.role)
@@ -119,10 +174,10 @@ async def invite_member(
     }
 
 
-@router.post("/invitations/{invitation_id}/accept")
+@router.post("/invitations/{invitation_id}/accept", response_model=AcceptedMemberResponse)
 async def accept_invitation(
     invitation_id: str, req: AcceptInvitationRequest, user: User = Depends(get_current_user)
-) -> dict:
+):
     """Accept invitation and join a team."""
     try:
         member = await team_service.accept_invitation(
@@ -141,10 +196,10 @@ async def accept_invitation(
     }
 
 
-@router.delete("/{team_id}/members/{user_id}")
+@router.delete("/{team_id}/members/{user_id}", response_model=RemoveMemberResponse)
 async def remove_member(
     team_id: str, user_id: str, req: RemoveMemberRequest, user: User = Depends(get_current_user)
-) -> dict:
+):
     """Remove a member from a team."""
     try:
         await team_service.remove_member(

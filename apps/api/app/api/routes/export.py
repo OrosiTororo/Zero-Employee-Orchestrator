@@ -41,12 +41,29 @@ class ArtifactExportRequest(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
+class ExportResultResponse(BaseModel):
+    success: bool
+    file_path: str | None = None
+    url: str | None = None
+    size_bytes: int = 0
+    format: str = ""
+    exported_at: str | None = None
+
+
+class FormatsResponse(BaseModel):
+    formats: list[dict[str, Any]]
+
+
+class TargetsResponse(BaseModel):
+    targets: list[dict[str, Any]]
+
+
 # ------------------------------------------------------------------ #
 #  Endpoints
 # ------------------------------------------------------------------ #
 
 
-@router.post("/artifact")
+@router.post("/artifact", response_model=ExportResultResponse)
 async def export_artifact(
     req: ArtifactExportRequest, user: User = Depends(get_current_user)
 ) -> dict:
@@ -90,13 +107,13 @@ async def export_artifact(
     }
 
 
-@router.get("/formats")
+@router.get("/formats", response_model=FormatsResponse)
 async def list_formats(user: User = Depends(get_current_user)) -> dict:
     """Return list of supported export formats."""
     return {"formats": artifact_exporter.get_supported_formats()}
 
 
-@router.get("/targets")
+@router.get("/targets", response_model=TargetsResponse)
 async def list_targets(user: User = Depends(get_current_user)) -> dict:
     """Return list of supported export targets."""
     return {"targets": artifact_exporter.get_supported_targets()}

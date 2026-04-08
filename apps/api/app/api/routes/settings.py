@@ -22,13 +22,37 @@ class ConnectionCreate(BaseModel):
     config_json: dict | None = None
 
 
-@router.get("/companies/{company_id}/settings")
+class CompanySettingsResponse(BaseModel):
+    company_id: str
+    settings: dict = {}
+
+
+class SettingsUpdateResponse(BaseModel):
+    company_id: str
+    status: str
+
+
+class ConnectionResponse(BaseModel):
+    id: str
+    name: str
+    connection_type: str = ""
+    status: str = "active"
+    auth_type: str = ""
+
+
+class ConnectionCreateResponse(BaseModel):
+    id: str
+    name: str
+    status: str
+
+
+@router.get("/companies/{company_id}/settings", response_model=CompanySettingsResponse)
 async def get_settings(company_id: str, user: User = Depends(get_current_user)):
     """Get company settings."""
     return {"company_id": company_id, "settings": {}}
 
 
-@router.patch("/companies/{company_id}/settings")
+@router.patch("/companies/{company_id}/settings", response_model=SettingsUpdateResponse)
 async def update_settings(
     company_id: str, settings: dict | None = None, user: User = Depends(get_current_user)
 ):
@@ -36,7 +60,7 @@ async def update_settings(
     return {"company_id": company_id, "status": "updated"}
 
 
-@router.get("/companies/{company_id}/tool-connections")
+@router.get("/companies/{company_id}/tool-connections", response_model=list[ConnectionResponse])
 async def list_connections(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -56,7 +80,7 @@ async def list_connections(
     ]
 
 
-@router.post("/companies/{company_id}/tool-connections")
+@router.post("/companies/{company_id}/tool-connections", response_model=ConnectionCreateResponse)
 async def create_connection(
     company_id: str,
     req: ConnectionCreate,

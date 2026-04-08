@@ -51,6 +51,59 @@ class BatchApprovalDecision(BaseModel):
     reason: str = ""
 
 
+# ---------- Response Schemas ----------
+
+
+class ApprovalItem(BaseModel):
+    """Single approval item in list response."""
+
+    id: str
+    target_type: str
+    target_id: str
+    status: str
+    reason: str | None = None
+    risk_level: str | None = None
+    preview: dict | None = None
+    task_context: dict | None = None
+    requested_at: str | None = None
+
+
+class BatchCheckOperationResult(BaseModel):
+    """Single operation result in batch check."""
+
+    operation: str
+    requires_approval: bool
+    category: str | None = None
+    risk_level: str
+    reason: str | None = None
+    preview: dict | None = None
+
+
+class BatchCheckResponse(BaseModel):
+    """Response for batch approval check."""
+
+    plan_id: str | None = None
+    total_operations: int
+    requires_approval_count: int
+    highest_risk: str
+    operations: list[BatchCheckOperationResult]
+
+
+class BatchDecideResponse(BaseModel):
+    """Response for batch decide."""
+
+    decided: list[str]
+    decision: str
+    count: int
+
+
+class ApprovalStatusResponse(BaseModel):
+    """Response for approve/reject actions."""
+
+    status: str
+    reason: str | None = None
+
+
 def _validate_uuid(value: str, name: str = "ID") -> uuid.UUID:
     """Safely parse a UUID string."""
     try:
@@ -59,7 +112,7 @@ def _validate_uuid(value: str, name: str = "ID") -> uuid.UUID:
         raise HTTPException(status_code=400, detail=f"Invalid {name}: {value}")
 
 
-@router.get("/companies/{company_id}/approvals")
+@router.get("/companies/{company_id}/approvals", response_model=list[ApprovalItem])
 async def list_approvals(
     company_id: str,
     status: str | None = None,
@@ -97,7 +150,7 @@ async def list_approvals(
     ]
 
 
-@router.post("/companies/{company_id}/approvals/batch-check")
+@router.post("/companies/{company_id}/approvals/batch-check", response_model=BatchCheckResponse)
 async def batch_check_approvals(
     company_id: str,
     req: BatchApprovalRequest,
@@ -142,7 +195,7 @@ async def batch_check_approvals(
     }
 
 
-@router.post("/companies/{company_id}/approvals/batch-decide")
+@router.post("/companies/{company_id}/approvals/batch-decide", response_model=BatchDecideResponse)
 async def batch_decide_approvals(
     company_id: str,
     req: BatchApprovalDecision,
@@ -191,7 +244,7 @@ async def batch_decide_approvals(
     return {"decided": decided, "decision": req.decision, "count": len(decided)}
 
 
-@router.post("/approvals/{approval_id}/approve")
+@router.post("/approvals/{approval_id}/approve", response_model=ApprovalStatusResponse)
 async def approve(
     approval_id: str,
     db: AsyncSession = Depends(get_db),
@@ -226,7 +279,7 @@ async def approve(
     return {"status": "approved"}
 
 
-@router.post("/approvals/{approval_id}/reject")
+@router.post("/approvals/{approval_id}/reject", response_model=ApprovalStatusResponse)
 async def reject(
     approval_id: str,
     reason: str = "",

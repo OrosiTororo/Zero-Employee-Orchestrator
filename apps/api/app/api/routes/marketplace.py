@@ -58,11 +58,52 @@ class InstallRequest(BaseModel):
     company_id: str = Field(..., min_length=1)
 
 
+# ---------- Response Schemas ----------
+
+
+class MarketplaceListingResponse(BaseModel):
+    """Single marketplace listing response."""
+
+    id: str
+    name: str
+    description: str
+    author: str
+    version: str
+    category: str
+    status: str
+    skill_type: str
+    downloads: int
+    rating: float
+    reviews_count: int
+    created_at: str | None = None
+    updated_at: str | None = None
+    tags: list[str] = Field(default_factory=list)
+
+
+class InstallListingResponse(BaseModel):
+    """Response for installing a listing."""
+
+    status: str
+    listing: MarketplaceListingResponse
+    company_id: str
+
+
+class ReviewItemResponse(BaseModel):
+    """Single review item response."""
+
+    id: str
+    listing_id: str
+    user_id: str
+    rating: int
+    comment: str
+    created_at: str | None = None
+
+
 # ---------- Endpoints ----------
 
 
 # No auth required: marketplace browsing is public
-@router.get("/search")
+@router.get("/search", response_model=list[MarketplaceListingResponse])
 async def search_listings(
     query: str = "",
     category: str | None = None,
@@ -89,7 +130,7 @@ async def search_listings(
 
 
 # No auth required: marketplace browsing is public
-@router.get("/trending")
+@router.get("/trending", response_model=list[MarketplaceListingResponse])
 async def get_trending(
     limit: int = Query(default=10, ge=1, le=50),
 ) -> list[dict]:
@@ -99,7 +140,7 @@ async def get_trending(
 
 
 # No auth required: marketplace browsing is public
-@router.get("/{listing_id}")
+@router.get("/{listing_id}", response_model=MarketplaceListingResponse)
 async def get_listing(listing_id: str) -> dict:
     """Get a listing by ID."""
     listing = await marketplace_service.get_listing(listing_id)
@@ -108,7 +149,7 @@ async def get_listing(listing_id: str) -> dict:
     return _listing_to_dict(listing)
 
 
-@router.post("/publish", status_code=201)
+@router.post("/publish", status_code=201, response_model=MarketplaceListingResponse)
 @limiter.limit("10/minute")
 async def publish_listing(
     request: Request, req: PublishRequest, user: User = Depends(get_current_user)
@@ -144,7 +185,7 @@ async def publish_listing(
     return _listing_to_dict(result)
 
 
-@router.post("/{listing_id}/install")
+@router.post("/{listing_id}/install", response_model=InstallListingResponse)
 async def install_listing(
     listing_id: str, req: InstallRequest, user: User = Depends(get_current_user)
 ) -> dict:
@@ -160,7 +201,7 @@ async def install_listing(
     }
 
 
-@router.post("/{listing_id}/review", status_code=201)
+@router.post("/{listing_id}/review", status_code=201, response_model=ReviewItemResponse)
 @limiter.limit("10/minute")
 async def add_review(
     request: Request,
@@ -199,7 +240,7 @@ async def add_review(
     }
 
 
-@router.get("/{listing_id}/reviews")
+@router.get("/{listing_id}/reviews", response_model=list[ReviewItemResponse])
 async def get_reviews(listing_id: str) -> list[dict]:
     """Get reviews for a listing."""
     reviews = await marketplace_service.get_reviews(listing_id)
@@ -216,7 +257,7 @@ async def get_reviews(listing_id: str) -> list[dict]:
     ]
 
 
-@router.post("/{listing_id}/approve")
+@router.post("/{listing_id}/approve", response_model=MarketplaceListingResponse)
 async def approve_listing(listing_id: str, user: User = Depends(get_current_user)) -> dict:
     """Approve a pending listing for publication."""
     try:
@@ -230,7 +271,7 @@ class RejectRequest(BaseModel):
     reason: str = Field(..., min_length=1, max_length=1000)
 
 
-@router.post("/{listing_id}/reject")
+@router.post("/{listing_id}/reject", response_model=MarketplaceListingResponse)
 async def reject_listing(
     listing_id: str, req: RejectRequest, user: User = Depends(get_current_user)
 ) -> dict:

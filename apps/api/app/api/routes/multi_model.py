@@ -192,6 +192,171 @@ class NaturalLanguageRequest(BaseModel):
     auto_execute: bool = False
 
 
+class ModelResponseUpdateResponse(BaseModel):
+    id: str
+    status: str
+    responses: dict | None = None
+
+
+class ComparisonSummaryResponse(BaseModel):
+    id: str
+    input_text: str
+    input_char_count: int
+    models_requested: list[str]
+    status: str
+    created_at: str
+
+
+class BrainstormMessageAddedResponse(BaseModel):
+    session_id: str
+    message_count: int
+    total_chars: int
+    latest_messages: list[dict]
+
+
+class BrainstormSessionDetailResponse(BaseModel):
+    id: str
+    title: str
+    topic: str | None = None
+    session_type: str
+    model_ids: list[str] | None = None
+    conversation_history: dict | None = None
+    insights: dict | None = None
+    status: str
+    message_count: int
+    total_chars: int
+    is_multi_model: bool
+    created_at: str
+
+
+class BrainstormStatusResponse(BaseModel):
+    session_id: str
+    status: str
+
+
+class BrainstormSearchResultResponse(BaseModel):
+    id: str
+    title: str
+    topic: str | None = None
+    status: str
+    message_count: int
+
+
+class ConversationMemorySearchResponse(BaseModel):
+    id: str
+    role: str
+    content: str
+    char_count: int
+    content_type: str
+    created_at: str
+
+
+class ConversationStatsResponse(BaseModel):
+    total_messages: int
+    total_characters: int
+    by_role: dict[str, int]
+    by_content_type: dict[str, int]
+
+
+class CharacterAnalysis(BaseModel):
+    total: int
+    total_excluding_spaces: int
+    hiragana: int
+    katakana: int
+    kanji: int
+    ascii: int
+    digits: int
+    spaces: int
+    newlines: int
+    other: int
+    words_estimate: int
+
+
+class LengthValidation(BaseModel):
+    length: int
+    min_required: int
+    max_allowed: int | None = None
+    is_valid: bool
+    over_by: int
+    under_by: int
+
+
+class TextAnalysisResponse(BaseModel):
+    analysis: CharacterAnalysis
+    validation: LengthValidation | None = None
+
+
+class DeletedResponse(BaseModel):
+    deleted: bool
+
+
+class AgentByRoleResponse(BaseModel):
+    id: str
+    name: str
+    title: str
+    description: str | None = None
+    status: str
+    model_name: str | None = None
+    autonomy_level: str | None = None
+
+
+class AgentRemovedResponse(BaseModel):
+    removed: bool
+    agent_id: str
+
+
+class AgentRoleUpdatedResponse(BaseModel):
+    id: str
+    name: str
+    title: str | None = None
+    description: str | None = None
+    model_name: str | None = None
+    autonomy_level: str | None = None
+
+
+class CustomRoleResponse(BaseModel):
+    id: str
+    role_key: str
+    name: str
+    title: str
+    description: str
+
+
+class CustomRoleListItemResponse(BaseModel):
+    id: str
+    role_key: str
+    name: str
+    title: str
+    description: str
+    autonomy_level: str | None = None
+    can_delegate: bool = False
+
+
+class AvailableRoleResponse(BaseModel):
+    role_key: str
+    name: str
+    title: str
+    description: str
+    is_preset: bool
+
+
+class FeatureRequestResponse(BaseModel):
+    id: str
+    request_text: str
+    interpreted_action: str | None = None
+    interpreted_details: dict | None = None
+    status: str
+    result: dict | None = None
+
+
+class FeatureRequestListItemResponse(BaseModel):
+    id: str
+    request_text: str
+    interpreted_action: str | None = None
+    status: str
+    created_at: str
+
+
 # ===================================================================
 # Multi-model comparison
 # ===================================================================
@@ -249,7 +414,7 @@ async def create_multi_model_comparison(
     )
 
 
-@router.post("/multi-model/{comparison_id}/response")
+@router.post("/multi-model/{comparison_id}/response", response_model=ModelResponseUpdateResponse)
 async def record_model_response(
     comparison_id: str,
     req: ModelResponseRecord,
@@ -279,7 +444,7 @@ async def record_model_response(
     }
 
 
-@router.get("/multi-model/{comparison_id}")
+@router.get("/multi-model/{comparison_id}", response_model=MultiModelCompareResponse)
 async def get_comparison(
     comparison_id: str,
     db: AsyncSession = Depends(get_db),
@@ -303,7 +468,10 @@ async def get_comparison(
     }
 
 
-@router.get("/companies/{company_id}/multi-model/comparisons")
+@router.get(
+    "/companies/{company_id}/multi-model/comparisons",
+    response_model=list[ComparisonSummaryResponse],
+)
 async def list_comparisons(
     company_id: str,
     offset: int = 0,
@@ -372,7 +540,7 @@ async def create_brainstorm_session(
     )
 
 
-@router.post("/brainstorm/{session_id}/message")
+@router.post("/brainstorm/{session_id}/message", response_model=BrainstormMessageAddedResponse)
 @limiter.limit("30/minute")
 async def add_brainstorm_message(
     request: Request,
@@ -420,7 +588,7 @@ async def add_brainstorm_message(
     }
 
 
-@router.get("/brainstorm/{session_id}")
+@router.get("/brainstorm/{session_id}", response_model=BrainstormSessionDetailResponse)
 async def get_brainstorm_session(
     session_id: str,
     db: AsyncSession = Depends(get_db),
@@ -449,7 +617,10 @@ async def get_brainstorm_session(
     }
 
 
-@router.get("/companies/{company_id}/brainstorm/sessions")
+@router.get(
+    "/companies/{company_id}/brainstorm/sessions",
+    response_model=list[BrainstormSessionResponse],
+)
 async def list_brainstorm_sessions(
     company_id: str,
     status: str | None = None,
@@ -482,7 +653,7 @@ async def list_brainstorm_sessions(
     ]
 
 
-@router.post("/brainstorm/{session_id}/status")
+@router.post("/brainstorm/{session_id}/status", response_model=BrainstormStatusResponse)
 async def update_brainstorm_status(
     session_id: str,
     status: str,
@@ -500,7 +671,10 @@ async def update_brainstorm_status(
     return {"session_id": str(record.id), "status": record.status}
 
 
-@router.get("/companies/{company_id}/brainstorm/search")
+@router.get(
+    "/companies/{company_id}/brainstorm/search",
+    response_model=list[BrainstormSearchResultResponse],
+)
 async def search_brainstorm_sessions(
     company_id: str,
     q: str = "",
@@ -532,7 +706,10 @@ async def search_brainstorm_sessions(
 # ===================================================================
 
 
-@router.post("/companies/{company_id}/conversation-memory")
+@router.post(
+    "/companies/{company_id}/conversation-memory",
+    response_model=ConversationMemoryResponse,
+)
 async def store_conversation_message(
     company_id: str,
     req: ConversationStoreRequest,
@@ -566,7 +743,10 @@ async def store_conversation_message(
     )
 
 
-@router.get("/companies/{company_id}/conversation-memory")
+@router.get(
+    "/companies/{company_id}/conversation-memory",
+    response_model=list[ConversationMemoryResponse],
+)
 async def get_conversation_history(
     company_id: str,
     user_id: str | None = None,
@@ -606,7 +786,10 @@ async def get_conversation_history(
     ]
 
 
-@router.get("/companies/{company_id}/conversation-memory/search")
+@router.get(
+    "/companies/{company_id}/conversation-memory/search",
+    response_model=list[ConversationMemorySearchResponse],
+)
 async def search_conversation_memory(
     company_id: str,
     q: str = "",
@@ -634,7 +817,10 @@ async def search_conversation_memory(
     ]
 
 
-@router.get("/companies/{company_id}/conversation-memory/stats")
+@router.get(
+    "/companies/{company_id}/conversation-memory/stats",
+    response_model=ConversationStatsResponse,
+)
 async def get_conversation_stats(
     company_id: str,
     user_id: str | None = None,
@@ -653,7 +839,7 @@ async def get_conversation_stats(
 # ===================================================================
 
 
-@router.post("/text/analyze")
+@router.post("/text/analyze", response_model=TextAnalysisResponse)
 async def analyze_text(req: TextAnalysisRequest, user: User = Depends(get_current_user)):
     """Analyze text (accurate character counting)."""
     from app.services.multi_model_service import TextAnalyzer
@@ -677,7 +863,7 @@ async def analyze_text(req: TextAnalysisRequest, user: User = Depends(get_curren
 # ===================================================================
 
 
-@router.put("/companies/{company_id}/role-models")
+@router.put("/companies/{company_id}/role-models", response_model=RoleModelConfigResponse)
 async def set_role_model(
     company_id: str,
     req: RoleModelConfigRequest,
@@ -712,7 +898,10 @@ async def set_role_model(
     )
 
 
-@router.get("/companies/{company_id}/role-models")
+@router.get(
+    "/companies/{company_id}/role-models",
+    response_model=list[RoleModelConfigResponse],
+)
 async def list_role_models(
     company_id: str,
     db: AsyncSession = Depends(get_db),
@@ -738,7 +927,10 @@ async def list_role_models(
     ]
 
 
-@router.get("/companies/{company_id}/role-models/{role_name}")
+@router.get(
+    "/companies/{company_id}/role-models/{role_name}",
+    response_model=RoleModelConfigResponse,
+)
 async def get_role_model(
     company_id: str,
     role_name: str,
@@ -765,7 +957,7 @@ async def get_role_model(
     )
 
 
-@router.delete("/role-models/{config_id}")
+@router.delete("/role-models/{config_id}", response_model=DeletedResponse)
 async def delete_role_model(
     config_id: str,
     db: AsyncSession = Depends(get_db),
@@ -787,7 +979,7 @@ async def delete_role_model(
 # ===================================================================
 
 
-@router.post("/companies/{company_id}/agents/by-role")
+@router.post("/companies/{company_id}/agents/by-role", response_model=AgentByRoleResponse)
 async def add_agent_by_role(
     company_id: str,
     req: AgentAddByRoleRequest,
@@ -819,7 +1011,7 @@ async def add_agent_by_role(
     }
 
 
-@router.delete("/agents/{agent_id}/remove")
+@router.delete("/agents/{agent_id}/remove", response_model=AgentRemovedResponse)
 async def remove_agent(
     agent_id: str,
     req: AgentRemoveRequest | None = None,
@@ -837,7 +1029,7 @@ async def remove_agent(
     return {"removed": True, "agent_id": agent_id}
 
 
-@router.patch("/agents/{agent_id}/role")
+@router.patch("/agents/{agent_id}/role", response_model=AgentRoleUpdatedResponse)
 async def update_agent_role(
     agent_id: str,
     req: AgentUpdateRoleRequest,
@@ -875,7 +1067,7 @@ async def update_agent_role(
 # ===================================================================
 
 
-@router.post("/companies/{company_id}/custom-roles")
+@router.post("/companies/{company_id}/custom-roles", response_model=CustomRoleResponse)
 async def create_custom_role(
     company_id: str,
     req: CustomRoleCreateRequest,
@@ -907,7 +1099,10 @@ async def create_custom_role(
     }
 
 
-@router.get("/companies/{company_id}/custom-roles")
+@router.get(
+    "/companies/{company_id}/custom-roles",
+    response_model=list[CustomRoleListItemResponse],
+)
 async def list_custom_roles(
     company_id: str,
     db: AsyncSession = Depends(get_db),
@@ -932,7 +1127,7 @@ async def list_custom_roles(
     ]
 
 
-@router.delete("/custom-roles/{role_id}")
+@router.delete("/custom-roles/{role_id}", response_model=DeletedResponse)
 async def delete_custom_role(
     role_id: str,
     db: AsyncSession = Depends(get_db),
@@ -949,7 +1144,10 @@ async def delete_custom_role(
     return {"deleted": True}
 
 
-@router.get("/companies/{company_id}/available-roles")
+@router.get(
+    "/companies/{company_id}/available-roles",
+    response_model=list[AvailableRoleResponse],
+)
 async def get_available_roles(
     company_id: str,
     db: AsyncSession = Depends(get_db),
@@ -967,7 +1165,7 @@ async def get_available_roles(
 # ===================================================================
 
 
-@router.post("/companies/{company_id}/feature-requests")
+@router.post("/companies/{company_id}/feature-requests", response_model=FeatureRequestResponse)
 @limiter.limit("20/minute")
 async def submit_natural_language_request(
     request: Request,
@@ -1013,7 +1211,10 @@ async def submit_natural_language_request(
     }
 
 
-@router.get("/companies/{company_id}/feature-requests")
+@router.get(
+    "/companies/{company_id}/feature-requests",
+    response_model=list[FeatureRequestListItemResponse],
+)
 async def list_feature_requests(
     company_id: str,
     status: str | None = None,

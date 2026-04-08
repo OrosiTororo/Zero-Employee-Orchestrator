@@ -24,7 +24,37 @@ class HeartbeatPolicyCreate(BaseModel):
     max_parallel_runs: int = 1
 
 
-@router.get("/companies/{company_id}/heartbeat-policies")
+# ---------- Response Schemas ----------
+
+
+class HeartbeatPolicyItem(BaseModel):
+    """Single heartbeat policy in list response."""
+
+    id: str
+    name: str
+    cron_expr: str
+    enabled: bool
+    timezone: str
+
+
+class HeartbeatPolicyCreateResponse(BaseModel):
+    """Response for heartbeat policy creation."""
+
+    id: str
+    name: str
+
+
+class HeartbeatRunItem(BaseModel):
+    """Single heartbeat run in list response."""
+
+    id: str
+    status: str
+    summary: dict | None = None
+    started_at: str | None = None
+    finished_at: str | None = None
+
+
+@router.get("/companies/{company_id}/heartbeat-policies", response_model=list[HeartbeatPolicyItem])
 async def list_policies(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -44,7 +74,7 @@ async def list_policies(
     ]
 
 
-@router.post("/companies/{company_id}/heartbeat-policies")
+@router.post("/companies/{company_id}/heartbeat-policies", response_model=HeartbeatPolicyCreateResponse)
 async def create_policy(
     company_id: str,
     req: HeartbeatPolicyCreate,
@@ -67,7 +97,7 @@ async def create_policy(
     return {"id": str(policy.id), "name": policy.name}
 
 
-@router.get("/companies/{company_id}/heartbeat-runs")
+@router.get("/companies/{company_id}/heartbeat-runs", response_model=list[HeartbeatRunItem])
 async def list_runs(
     company_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
