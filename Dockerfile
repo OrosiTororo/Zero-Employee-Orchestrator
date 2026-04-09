@@ -27,7 +27,7 @@ COPY apps/api/pyproject.toml apps/api/uv.lock* ./apps/api/
 
 # Upgrade pip/setuptools/wheel to fix known CVEs before installing project deps
 # (python:3.12-slim bundles older versions with CRITICAL/HIGH CVEs that have fixes)
-RUN pip install --upgrade "pip>=26.0" "setuptools>=78.1.1" "wheel>=0.46.2"
+RUN pip install --upgrade "pip>=26.0" "setuptools>=78.1.1" "wheel>=0.46.2" "PyJWT>=2.12.0"
 
 # Install Python dependencies
 WORKDIR /app/apps/api
