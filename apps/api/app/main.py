@@ -4,8 +4,9 @@ import logging
 import uuid
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
@@ -33,6 +34,45 @@ from app.security.security_headers import (
 configure_logging(json_format=not settings.DEBUG, level="DEBUG" if settings.DEBUG else "INFO")
 
 logger = logging.getLogger(__name__)
+
+
+_HTTP_ERROR_KEYS: dict[int, str] = {
+    400: "http_400_bad_request",
+    401: "http_401_unauthorized",
+    403: "http_403_forbidden",
+    404: "http_404_not_found",
+    409: "http_409_conflict",
+    422: "http_422_validation",
+    429: "http_429_rate_limit",
+    500: "http_500_internal",
+}
+
+
+async def i18n_http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    """Return HTTPException detail translated to the client's Accept-Language.
+
+    For status codes that have a generic key in the i18n table the translated
+    text replaces the English detail.  For unknown status codes (or when the
+    translated key is not found) the original ``exc.detail`` is returned as-is.
+    """
+    from app.core.i18n import t_from_accept_language
+
+    accept_lang = request.headers.get("Accept-Language", "")
+    i18n_key = _HTTP_ERROR_KEYS.get(exc.status_code)
+
+    if i18n_key:
+        detail_str = str(exc.detail) if exc.detail else ""
+        translated = t_from_accept_language(i18n_key, accept_lang, detail=detail_str)
+        # If the key was not found t() returns the key itself — fall back to original
+        detail = translated if translated != i18n_key else exc.detail
+    else:
+        detail = exc.detail
+
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": detail},
+        headers=dict(exc.headers) if exc.headers else None,
+    )
 
 
 class RequestIDMiddleware(BaseHTTPMiddleware):
@@ -150,6 +190,9 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)  # type: ignore[arg-type]
 
+# i18n HTTP exception handler — translates error messages to client's Accept-Language
+app.add_exception_handler(HTTPException, i18n_http_exception_handler)  # type: ignore[arg-type]
+
 # Request ID tracing -- assign unique ID to each request for correlation
 app.add_middleware(RequestIDMiddleware)
 
@@ -168,7 +211,7 @@ app.add_middleware(
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "Accept", "X-Request-ID"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "Accept-Language", "X-Request-ID"],
 )
 
 # API routes

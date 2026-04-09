@@ -40,9 +40,9 @@ export function MarketplacePage() {
     setLoading(true)
     try {
       const [skillsRes, pluginsRes, extensionsRes] = await Promise.all([
-        api.get<{ skills: RegistryItem[] }>("/registry/skills").catch(() => ({ skills: [] })),
-        api.get<{ plugins: RegistryItem[] }>("/registry/plugins").catch(() => ({ plugins: [] })),
-        api.get<{ extensions: RegistryItem[] }>("/registry/extensions").catch(() => ({ extensions: [] })),
+        api.get<{ skills: RegistryItem[] }>("/registry/skills").catch((e: unknown) => { console.warn("[Marketplace] skills fetch failed:", e); return { skills: [] } }),
+        api.get<{ plugins: RegistryItem[] }>("/registry/plugins").catch((e: unknown) => { console.warn("[Marketplace] plugins fetch failed:", e); return { plugins: [] } }),
+        api.get<{ extensions: RegistryItem[] }>("/registry/extensions").catch((e: unknown) => { console.warn("[Marketplace] extensions fetch failed:", e); return { extensions: [] } }),
       ])
 
       const mapped: MarketplaceItem[] = [

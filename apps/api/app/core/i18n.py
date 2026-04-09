@@ -241,6 +241,96 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "pt": "Erro de conexão: {detail}",
         "tr": "Bağlantı hatası: {detail}",
     },
+    # -- HTTP error responses (API i18n) --
+    "http_401_unauthorized": {
+        "ja": "認証が必要です。ログインしてください",
+        "en": "Authentication required. Please log in.",
+        "zh": "需要身份验证，请登录",
+        "ko": "인증이 필요합니다. 로그인해 주세요",
+        "pt": "Autenticação necessária. Por favor, faça login.",
+        "tr": "Kimlik doğrulama gerekli. Lütfen giriş yapın.",
+    },
+    "http_403_forbidden": {
+        "ja": "このリソースへのアクセス権がありません",
+        "en": "You do not have permission to access this resource.",
+        "zh": "您没有访问此资源的权限",
+        "ko": "이 리소스에 접근할 권한이 없습니다",
+        "pt": "Você não tem permissão para acessar este recurso.",
+        "tr": "Bu kaynağa erişim izniniz yok.",
+    },
+    "http_404_not_found": {
+        "ja": "リソースが見つかりません",
+        "en": "Resource not found.",
+        "zh": "资源未找到",
+        "ko": "리소스를 찾을 수 없습니다",
+        "pt": "Recurso não encontrado.",
+        "tr": "Kaynak bulunamadı.",
+    },
+    "http_400_bad_request": {
+        "ja": "リクエストが不正です: {detail}",
+        "en": "Bad request: {detail}",
+        "zh": "请求无效: {detail}",
+        "ko": "잘못된 요청: {detail}",
+        "pt": "Requisição inválida: {detail}",
+        "tr": "Geçersiz istek: {detail}",
+    },
+    "http_409_conflict": {
+        "ja": "リソースが競合しています: {detail}",
+        "en": "Resource conflict: {detail}",
+        "zh": "资源冲突: {detail}",
+        "ko": "리소스 충돌: {detail}",
+        "pt": "Conflito de recurso: {detail}",
+        "tr": "Kaynak çakışması: {detail}",
+    },
+    "http_422_validation": {
+        "ja": "入力データが無効です",
+        "en": "Validation error: the request data is invalid.",
+        "zh": "验证错误：请求数据无效",
+        "ko": "유효성 검사 오류: 요청 데이터가 잘못되었습니다",
+        "pt": "Erro de validação: os dados da requisição são inválidos.",
+        "tr": "Doğrulama hatası: istek verisi geçersiz.",
+    },
+    "http_429_rate_limit": {
+        "ja": "リクエストが多すぎます。しばらくしてから再試行してください",
+        "en": "Too many requests. Please try again later.",
+        "zh": "请求过多，请稍后再试",
+        "ko": "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요",
+        "pt": "Muitas requisições. Por favor, tente novamente mais tarde.",
+        "tr": "Çok fazla istek. Lütfen daha sonra tekrar deneyin.",
+    },
+    "http_500_internal": {
+        "ja": "サーバー内部エラーが発生しました",
+        "en": "An internal server error occurred.",
+        "zh": "发生内部服务器错误",
+        "ko": "내부 서버 오류가 발생했습니다",
+        "pt": "Ocorreu um erro interno no servidor.",
+        "tr": "Dahili bir sunucu hatası oluştu.",
+    },
+    # -- Ollama auto-pull --
+    "ollama_auto_pull_start": {
+        "ja": "Ollama にモデルがありません。{model} を自動でダウンロードします...",
+        "en": "No Ollama models found. Auto-pulling {model}...",
+        "zh": "未找到 Ollama 模型，正在自动拉取 {model}...",
+        "ko": "Ollama 모델을 찾을 수 없습니다. {model}을 자동으로 다운로드합니다...",
+        "pt": "Nenhum modelo Ollama encontrado. Baixando {model} automaticamente...",
+        "tr": "Ollama modeli bulunamadı. {model} otomatik olarak indiriliyor...",
+    },
+    "ollama_auto_pull_done": {
+        "ja": "{model} のダウンロードが完了しました",
+        "en": "Successfully pulled {model}.",
+        "zh": "{model} 拉取成功",
+        "ko": "{model} 다운로드가 완료되었습니다",
+        "pt": "{model} baixado com sucesso.",
+        "tr": "{model} başarıyla indirildi.",
+    },
+    "ollama_auto_pull_failed": {
+        "ja": "{model} の自動ダウンロードに失敗しました。手動で実行: ollama pull {model}",
+        "en": "Auto-pull of {model} failed. Run manually: ollama pull {model}",
+        "zh": "{model} 自动拉取失败，请手动运行: ollama pull {model}",
+        "ko": "{model} 자동 다운로드에 실패했습니다. 수동으로 실행: ollama pull {model}",
+        "pt": "Falha ao baixar {model} automaticamente. Execute manualmente: ollama pull {model}",
+        "tr": "{model} otomatik indirme başarısız. Manuel olarak çalıştırın: ollama pull {model}",
+    },
     # -- Orchestration --
     "orch_task_created": {
         "ja": "タスクを作成しました: {title}",
@@ -709,3 +799,63 @@ def init_language_from_env() -> None:
 
 
 init_language_from_env()
+
+
+def t_from_accept_language(key: str, accept_language: str = "", **kwargs: str) -> str:
+    """Translate ``key`` using an HTTP ``Accept-Language`` header value.
+
+    Parses the header (e.g. ``"ja,en-US;q=0.9,en;q=0.8"``) and selects the
+    highest-priority supported language code.  Falls back to English.
+
+    This is the preferred helper for translating API error responses so that
+    users receive error messages in their browser/client language.
+
+    Args:
+        key:             Translation key.
+        accept_language: Value of the ``Accept-Language`` HTTP header.
+        kwargs:          Format parameters forwarded to ``t()``.
+
+    Returns:
+        Translated string.
+    """
+    lang = _parse_accept_language(accept_language)
+    original = get_language()
+    set_language(lang)
+    try:
+        return t(key, **kwargs)
+    finally:
+        set_language(original)
+
+
+def _parse_accept_language(header: str) -> str:
+    """Return the best-matching supported language code from an Accept-Language header.
+
+    Normalises BCP 47 tags (e.g. ``zh-CN`` → ``zh``, ``en-US`` → ``en``)
+    and returns the first supported language, defaulting to English.
+    """
+    if not header:
+        return "en"
+
+    candidates: list[tuple[float, str]] = []
+    for part in header.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if ";q=" in part:
+            lang_tag, _, q_str = part.partition(";q=")
+            try:
+                weight = float(q_str.strip())
+            except ValueError:
+                weight = 1.0
+        else:
+            lang_tag = part
+            weight = 1.0
+        primary = lang_tag.strip().lower().split("-")[0]
+        candidates.append((weight, primary))
+
+    candidates.sort(key=lambda x: x[0], reverse=True)
+
+    for _, primary in candidates:
+        if primary in SUPPORTED_LANGUAGES:
+            return primary
+    return "en"

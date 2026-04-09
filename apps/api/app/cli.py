@@ -69,6 +69,32 @@ def _ensure_env_file() -> None:
     print("  .env file created with default settings")
 
 
+async def _check_and_auto_pull_ollama(model: str) -> None:
+    """Pull a default Ollama model if Ollama is running but has no models.
+
+    This gives first-time users a working free LLM immediately without needing
+    to run ``ollama pull`` manually.  Silently skips if Ollama is unavailable.
+    """
+    from app.core.i18n import t
+    from app.providers.ollama_provider import ollama_provider
+
+    try:
+        is_up = await ollama_provider.health_check()
+        if not is_up:
+            return
+        models = await ollama_provider.list_models()
+        if models:
+            return  # already has models, nothing to do
+        print(f"  {t('ollama_auto_pull_start', model=model)}")
+        ok = await ollama_provider.pull_model(model)
+        if ok:
+            print(f"  {t('ollama_auto_pull_done', model=model)}")
+        else:
+            print(f"  {t('ollama_auto_pull_failed', model=model)}")
+    except Exception:
+        pass  # non-blocking; never crash serve startup
+
+
 def cmd_serve(args: argparse.Namespace) -> None:
     """Start the API server."""
     import uvicorn
@@ -81,6 +107,10 @@ def cmd_serve(args: argparse.Namespace) -> None:
         from app.core.version_check import check_and_notify
 
         check_and_notify(quiet=True)
+
+    # Ollama auto-pull: if Ollama is running but has no models, pull default
+    if not args.no_auto_pull:
+        asyncio.run(_check_and_auto_pull_ollama(args.auto_pull_model))
 
     uvicorn.run(
         "app.main:app",
@@ -1411,6 +1441,19 @@ def build_parser() -> argparse.ArgumentParser:
         "--skip-update-check",
         action="store_true",
         help="Skip version check at startup",
+    )
+    serve_parser.add_argument(
+        "--no-auto-pull",
+        action="store_true",
+        dest="no_auto_pull",
+        help="Disable automatic Ollama model pull on startup",
+    )
+    serve_parser.add_argument(
+        "--auto-pull-model",
+        default="qwen3:8b",
+        dest="auto_pull_model",
+        metavar="MODEL",
+        help="Ollama model to auto-pull when none are installed (default: qwen3:8b)",
     )
     serve_parser.set_defaults(func=cmd_serve)
 
