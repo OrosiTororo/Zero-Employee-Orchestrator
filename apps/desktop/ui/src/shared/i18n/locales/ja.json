@@ -651,7 +651,8 @@
     "filterDone": "完了",
     "filterBlocked": "ブロック中",
     "filterCancelled": "キャンセル",
-    "emptyState": "チケットはまだありません。ダッシュボードからリクエストを送信してチケットを作成してください。"
+    "emptyState": "チケットはまだありません。ダッシュボードからリクエストを送信してチケットを作成してください。",
+    "noMatch": "検索条件に一致するチケットはありません。"
   },
   "ticketDetail": {
     "ticketLabel": "チケット",

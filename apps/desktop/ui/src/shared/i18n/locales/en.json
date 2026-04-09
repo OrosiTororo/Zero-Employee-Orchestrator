@@ -651,7 +651,8 @@
     "filterDone": "Done",
     "filterBlocked": "Blocked",
     "filterCancelled": "Cancelled",
-    "emptyState": "No tickets yet. Create a ticket by submitting a request from the Dashboard."
+    "emptyState": "No tickets yet. Create a ticket by submitting a request from the Dashboard.",
+    "noMatch": "No tickets match your search."
   },
   "ticketDetail": {
     "ticketLabel": "Ticket",

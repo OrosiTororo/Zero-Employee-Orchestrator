@@ -651,7 +651,8 @@
     "filterDone": "완료",
     "filterBlocked": "차단됨",
     "filterCancelled": "취소됨",
-    "emptyState": "아직 티켓이 없습니다. 대시보드에서 요청을 제출하여 티켓을 생성하세요."
+    "emptyState": "아직 티켓이 없습니다. 대시보드에서 요청을 제출하여 티켓을 생성하세요.",
+    "noMatch": "검색 조건에 맞는 티켓이 없습니다."
   },
   "ticketDetail": {
     "ticketLabel": "티켓",

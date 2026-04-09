@@ -651,7 +651,8 @@
     "filterDone": "已完成",
     "filterBlocked": "已阻塞",
     "filterCancelled": "已取消",
-    "emptyState": "暂无工单。请从仪表盘提交请求以创建工单。"
+    "emptyState": "暂无工单。请从仪表盘提交请求以创建工单。",
+    "noMatch": "没有与搜索条件匹配的工单。"
   },
   "ticketDetail": {
     "ticketLabel": "工单",

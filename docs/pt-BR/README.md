@@ -283,7 +283,7 @@ Zero-Employee-Orchestrator/
 | **Agent Adapter** | Integre agentes CrewAI, AutoGen, LangChain, Dify como sub-trabalhadores ZEO — tudo sob portas de aprovação e auditoria |
 | **iPaaS Bridge** | Conecte workflows n8n / Zapier / Make — ZEO se torna a camada de julgamento para automações existentes |
 | **MCP Server** | Model Context Protocol — qualquer ferramenta compatível com MCP se torna automaticamente uma ferramenta ZEO |
-| **App Connector Hub** | 34+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, Slack, etc.) — conectores de conectores |
+| **App Connector Hub** | 63+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, Slack, etc.) — conectores de conectores |
 | **Tool-of-Tools** | Ferramentas que conectam outras ferramentas (ex: n8n conecta 400+ apps → ZEO conecta n8n → acessa todos os 400+ apps por uma integração) |
 | **Liberdade Multi-Modelo** | 22 famílias de modelos via LiteLLM, modelos locais Ollama, sessões web g4f — sem lock-in em nenhum provedor |
 
@@ -305,7 +305,7 @@ Zero-Employee-Orchestrator/
 |---------------|-----------|
 | **Browser Assist** | Overlay de extensão Chrome — IA vê sua tela em tempo real |
 | **Geração de Mídia** | Imagem, vídeo, áudio, música, 3D — com registro dinâmico de provedores |
-| **Hub de Conectores de Apps** | 34+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, etc.) |
+| **Hub de Conectores de Apps** | 63+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, etc.) |
 | **Integração de Ferramentas de IA** | 21 categorias, 55+ ferramentas externas |
 | **Comunicação A2A** | Mensagens peer-to-peer entre agentes, canais e negociação |
 | **IA Avatar** | Aprende seus padrões de decisão e evolui com você |

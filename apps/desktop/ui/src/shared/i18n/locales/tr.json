@@ -651,7 +651,8 @@
     "filterDone": "Tamamlandı",
     "filterBlocked": "Engellendi",
     "filterCancelled": "İptal Edildi",
-    "emptyState": "Henüz bilet yok. Panodan bir istek göndererek bilet oluşturun."
+    "emptyState": "Henüz bilet yok. Panodan bir istek göndererek bilet oluşturun.",
+    "noMatch": "Aramanızla eşleşen bilet yok."
   },
   "ticketDetail": {
     "ticketLabel": "Bilet",

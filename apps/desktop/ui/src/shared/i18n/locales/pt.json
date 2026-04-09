@@ -651,7 +651,8 @@
     "filterDone": "Concluídos",
     "filterBlocked": "Bloqueados",
     "filterCancelled": "Cancelados",
-    "emptyState": "Nenhum ticket ainda. Crie um ticket enviando uma solicitação pelo Painel."
+    "emptyState": "Nenhum ticket ainda. Crie um ticket enviando uma solicitação pelo Painel.",
+    "noMatch": "Nenhum ticket corresponde à sua pesquisa."
   },
   "ticketDetail": {
     "ticketLabel": "Ticket",

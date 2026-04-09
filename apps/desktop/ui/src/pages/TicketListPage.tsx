@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { Ticket, Search, Plus, Circle, ArrowRight } from "lucide-react"
 import { useT } from "@/shared/i18n"
@@ -27,9 +27,11 @@ export function TicketListPage() {
   const [search, setSearch] = useState("")
   const [tickets, setTickets] = useState<TicketItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedIdx, setSelectedIdx] = useState(0)
   const navigate = useNavigate()
   const t = useT()
   const companyId = localStorage.getItem("company_id") || ""
+  const listRef = useRef<HTMLDivElement>(null)
 
   const fetchTickets = useCallback(async () => {
     if (!companyId) { setLoading(false); return }
@@ -46,6 +48,26 @@ export function TicketListPage() {
   }, [companyId, filter])
 
   useEffect(() => { fetchTickets() }, [fetchTickets])
+
+  // Keyboard navigation: ArrowUp/Down to select, Enter to open
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (filtered.length === 0) return
+      if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") return
+      if (e.key === "ArrowDown") {
+        e.preventDefault()
+        setSelectedIdx((i) => Math.min(i + 1, filtered.length - 1))
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault()
+        setSelectedIdx((i) => Math.max(i - 1, 0))
+      } else if (e.key === "Enter") {
+        const tk = filtered[selectedIdx]
+        if (tk) navigate(`/tickets/${tk.id}`)
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [filtered, selectedIdx, navigate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const statusFilterLabels: Record<string, string> = {
     all: t.ticketList?.filterAll ?? "All",
@@ -108,7 +130,12 @@ export function TicketListPage() {
           ))}
         </div>
 
-        <div className="flex flex-col gap-2">
+        {filtered.length > 0 && (
+          <div className="flex items-center justify-end mb-1">
+            <span className="text-[10px] text-[var(--text-muted)]">↑↓ navigate · <kbd className="font-mono">Enter</kbd> open</span>
+          </div>
+        )}
+        <div className="flex flex-col gap-2" ref={listRef} role="list" aria-label={t.ticketList?.title ?? "Tickets"}>
           {loading ? (
             <div className="rounded px-4 py-8 text-center text-[12px] border border-[var(--border)] text-[var(--text-muted)]">
               {t.common.loading}
@@ -128,11 +155,16 @@ export function TicketListPage() {
               )}
             </div>
           ) : (
-            filtered.map((ticket) => (
+            filtered.map((ticket, idx) => (
               <button
                 key={ticket.id}
+                role="listitem"
+                tabIndex={0}
                 onClick={() => navigate(`/tickets/${ticket.id}`)}
-                className="rounded px-4 py-3 text-left border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent)] transition-colors"
+                onFocus={() => setSelectedIdx(idx)}
+                aria-selected={idx === selectedIdx}
+                className="rounded px-4 py-3 text-left border bg-[var(--bg-surface)] hover:border-[var(--accent)] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                style={{ borderColor: idx === selectedIdx ? "var(--accent)" : "var(--border)" }}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">

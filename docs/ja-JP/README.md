@@ -283,7 +283,7 @@ Zero-Employee-Orchestrator/
 | **Agent Adapter** | CrewAI、AutoGen、LangChain、Dify のエージェントを ZEO のサブワーカーとして統合 — 全て承認ゲートと監査の下 |
 | **iPaaS Bridge** | n8n / Zapier / Make のワークフローを接続 — ZEO が既存の自動化の判断レイヤーになる |
 | **MCP Server** | Model Context Protocol — MCP 対応ツールが自動的に ZEO ツールになる |
-| **App Connector Hub** | 34+ アプリ（Obsidian、Notion、Google Workspace、Microsoft 365、Slack 等） — コネクタのコネクタ |
+| **App Connector Hub** | 63+ アプリ（Obsidian、Notion、Google Workspace、Microsoft 365、Slack 等） — コネクタのコネクタ |
 | **Tool-of-Tools** | ツールを繋ぐツール（例: n8n → 400+ アプリ → ZEO → n8n 接続 → 1 統合で 400+ アプリにアクセス） |
 | **マルチモデル自由** | LiteLLM 経由 22 モデルファミリー、Ollama ローカルモデル、g4f ウェブセッション — 単一プロバイダーにロックインされない |
 
@@ -305,7 +305,7 @@ Zero-Employee-Orchestrator/
 |------|------|
 | **ブラウザアシスト** | Chrome 拡張機能オーバーレイ — AI がリアルタイムで画面を確認 |
 | **メディア生成** | 画像・動画・音声・音楽・3D — 動的プロバイダー登録対応 |
-| **アプリコネクタハブ** | 34+ アプリ（Obsidian、Notion、Google Workspace、Microsoft 365 等） |
+| **アプリコネクタハブ** | 63+ アプリ（Obsidian、Notion、Google Workspace、Microsoft 365 等） |
 | **AI ツール統合** | 21 カテゴリ、55+ の外部ツール |
 | **A2A 通信** | エージェント間のピアツーピア通信・チャンネル・交渉 |
 | **分身 AI** | ユーザーの判断基準を学習し共に成長 |
