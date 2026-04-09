@@ -25,14 +25,18 @@ WORKDIR /app
 # Copy dependency files
 COPY apps/api/pyproject.toml apps/api/uv.lock* ./apps/api/
 
-# Upgrade pip/setuptools/wheel to fix known CVEs before installing project deps
-# (python:3.12-slim bundles older versions with CRITICAL/HIGH CVEs that have fixes)
-RUN pip install --upgrade "pip>=26.0" "setuptools>=78.1.1" "wheel>=0.46.2" "PyJWT>=2.12.0"
-
 # Install Python dependencies
 WORKDIR /app/apps/api
 RUN uv sync --frozen 2>/dev/null || uv pip install --system -r pyproject.toml 2>/dev/null || \
     pip install fastapi uvicorn sqlalchemy[asyncio] aiosqlite pydantic-settings python-jose httpx aiohttp || true
+
+# Pin security-critical build tools to fixed versions AFTER project install.
+# Runs last so dependency resolution cannot downgrade back to vulnerable versions:
+#   pip      < 26.0  → CVE-2025-8869, CVE-2026-1703
+#   setuptools < 78.1.1 → CVE-2024-6345, CVE-2025-47273
+#   wheel    < 0.46.2 → CVE-2026-24049
+#   PyJWT    < 2.12.0 → CVE-2026-32597 (transitive dep via litellm et al.)
+RUN pip install --upgrade "pip>=26.0" "setuptools>=78.1.1" "wheel>=0.46.2" "PyJWT>=2.12.0"
 
 WORKDIR /app
 
