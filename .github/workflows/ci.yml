@@ -161,16 +161,6 @@ jobs:
       - name: Build Docker image
         run: docker build -t zeo-test:latest .
 
-      - name: Trivy scan (table — for log visibility)
-        uses: aquasecurity/trivy-action@0.35.0
-        with:
-          image-ref: zeo-test:latest
-          format: table
-          exit-code: 0
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          trivyignores: .trivyignore
-
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.35.0
         with:

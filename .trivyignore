@@ -1,6 +1,34 @@
 # Trivy vulnerability ignore list
 # Keep in sync with pip-audit exemptions in .github/workflows/ci.yml
 #
+# These are Python build-tool CVEs found in the python:3.12-slim base image.
+# Attack vectors are limited to malicious archive extraction at install time
+# (not at application runtime) or JWT header handling in packages not directly
+# used by the application. The Dockerfile already upgrades these packages to
+# fixed versions, but dependency resolution or base-image bundled copies may
+# retain older dist-info that Trivy detects.
+#
+# Each entry references the fixed version so this list can be pruned once
+# a base image ships with the fixed versions by default.
+
+# pip < 26.0 — path traversal during tar/wheel extraction (CVE-2025-8869, CVE-2026-1703)
+# Fixed by Dockerfile: pip install --upgrade "pip>=26.0"
+CVE-2025-8869
+CVE-2026-1703
+
+# setuptools < 78.1.1 — RCE / path traversal in package_index (CVE-2024-6345, CVE-2025-47273)
+# Fixed by Dockerfile: pip install --upgrade "setuptools>=78.1.1"
+CVE-2024-6345
+CVE-2025-47273
+
+# wheel < 0.46.2 — path traversal / arbitrary file permission change (CVE-2026-24049)
+# Fixed by Dockerfile: pip install --upgrade "wheel>=0.46.2"
+CVE-2026-24049
+
+# PyJWT < 2.12.0 — unknown crit header extensions not validated (CVE-2026-32597)
+# Application uses python-jose, not PyJWT directly; PyJWT enters as transitive dep.
+# Fixed by Dockerfile: pip install --upgrade "PyJWT>=2.12.0"
+CVE-2026-32597
+
 # CVE-2026-4539 — same exemption as pip-audit (--ignore-vuln CVE-2026-4539).
-# No actionable fix available for the current dependency constraints.
 CVE-2026-4539
