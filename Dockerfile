@@ -10,8 +10,9 @@ FROM python:3.12-slim AS base
 RUN groupadd -r zeapp -g 1000 && \
     useradd -r -u 1000 -g zeapp -m -d /home/zeapp -s /bin/bash zeapp
 
-# System dependency packages
+# System dependency packages — upgrade all base packages first to fix OS-level CVEs
 RUN apt-get update && \
+    apt-get upgrade -y --no-install-recommends && \
     apt-get install -y --no-install-recommends \
         curl \
         git \
@@ -29,6 +30,14 @@ COPY apps/api/pyproject.toml apps/api/uv.lock* ./apps/api/
 WORKDIR /app/apps/api
 RUN uv sync --frozen 2>/dev/null || uv pip install --system -r pyproject.toml 2>/dev/null || \
     pip install fastapi uvicorn sqlalchemy[asyncio] aiosqlite pydantic-settings python-jose httpx aiohttp || true
+
+# Pin security-critical build tools to fixed versions AFTER project install.
+# Runs last so dependency resolution cannot downgrade back to vulnerable versions:
+#   pip      < 26.0  → CVE-2025-8869, CVE-2026-1703
+#   setuptools < 78.1.1 → CVE-2024-6345, CVE-2025-47273
+#   wheel    < 0.46.2 → CVE-2026-24049
+#   PyJWT    < 2.12.0 → CVE-2026-32597 (transitive dep via litellm et al.)
+RUN pip install --upgrade "pip>=26.0" "setuptools>=78.1.1" "wheel>=0.46.2" "PyJWT>=2.12.0"
 
 WORKDIR /app
 

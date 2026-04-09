@@ -74,7 +74,7 @@ The desktop auto-update was completely non-functional for users who installed v0
 
 - Fixed route count: 46 → 47 across README, CLAUDE.md, 6 translated READMEs, FEATURES.md, OVERVIEW.md, architecture guide
 - Fixed endpoint count: 387 → 396 (verified by counting @router decorators + main.py endpoints)
-- Fixed skill count: 8 → 11 (6 system + 5 domain) across all docs
+- Fixed skill count: 8 → 11 → 8 (6 system + 2 domain; domain-skills and browser-assist are the 2 domain skills)
 - Fixed `common.version` stuck at v0.1.2 in all 6 i18n locale files
 - Updated `bump-version.sh` to also update locale files and WhatsNew.tsx (prevents version drift)
 

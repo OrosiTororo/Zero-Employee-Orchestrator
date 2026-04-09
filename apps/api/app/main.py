@@ -220,6 +220,14 @@ app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)  # typ
 # i18n HTTP exception handler — translates error messages to client's Accept-Language
 app.add_exception_handler(HTTPException, i18n_http_exception_handler)  # type: ignore[arg-type]
 
+
+async def value_error_handler(request: Request, exc: ValueError) -> JSONResponse:
+    """Return 422 for ValueError (e.g., malformed UUID in path params)."""
+    return JSONResponse(status_code=422, content={"detail": str(exc)})
+
+
+app.add_exception_handler(ValueError, value_error_handler)  # type: ignore[arg-type]
+
 # Request ID tracing -- assign unique ID to each request for correlation
 app.add_middleware(RequestIDMiddleware)
 
