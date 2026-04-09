@@ -207,7 +207,9 @@ class PersistentExperienceMemory:
                 cosine = dot / (mag_q * mag_d) if mag_q > 0 and mag_d > 0 else 0.0
 
                 # Effectiveness score boost
-                effectiveness = min(r.effectiveness_score / 10.0, 1.0) if r.effectiveness_score else 0.0
+                effectiveness = (
+                    min(r.effectiveness_score / 10.0, 1.0) if r.effectiveness_score else 0.0
+                )
 
                 final_score = tf_idf_score * 0.45 + cosine * 0.45 + effectiveness * 0.10
                 scored.append((final_score, r))

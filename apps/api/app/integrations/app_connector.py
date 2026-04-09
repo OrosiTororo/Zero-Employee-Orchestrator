@@ -663,7 +663,13 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         description_en="Customer support tickets, knowledge base, and chat",
         auth_method=AppAuthMethod.API_KEY,
         env_key="ZENDESK_API_KEY",
-        capabilities=["create_ticket", "update_ticket", "list_tickets", "search_tickets", "send_reply"],
+        capabilities=[
+            "create_ticket",
+            "update_ticket",
+            "list_tickets",
+            "search_tickets",
+            "send_reply",
+        ],
     ),
     AppDefinition(
         id="intercom",

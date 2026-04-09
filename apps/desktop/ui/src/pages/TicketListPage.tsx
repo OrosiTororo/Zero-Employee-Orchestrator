@@ -49,6 +49,21 @@ export function TicketListPage() {
 
   useEffect(() => { fetchTickets() }, [fetchTickets])
 
+  const statusFilterLabels: Record<string, string> = {
+    all: t.ticketList?.filterAll ?? "All",
+    open: t.ticketList?.filterOpen ?? "Open",
+    in_progress: t.ticketList?.filterInProgress ?? "In Progress",
+    blocked: t.ticketList?.filterBlocked ?? "Blocked",
+    done: t.ticketList?.filterDone ?? "Done",
+    cancelled: t.ticketList?.filterCancelled ?? "Cancelled",
+  }
+
+  const filtered = tickets.filter(
+    (tk) =>
+      tk.title.toLowerCase().includes(search.toLowerCase()) ||
+      tk.id.toLowerCase().includes(search.toLowerCase()),
+  )
+
   // Keyboard navigation: ArrowUp/Down to select, Enter to open
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -68,21 +83,6 @@ export function TicketListPage() {
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [filtered, selectedIdx, navigate]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const statusFilterLabels: Record<string, string> = {
-    all: t.ticketList?.filterAll ?? "All",
-    open: t.ticketList?.filterOpen ?? "Open",
-    in_progress: t.ticketList?.filterInProgress ?? "In Progress",
-    blocked: t.ticketList?.filterBlocked ?? "Blocked",
-    done: t.ticketList?.filterDone ?? "Done",
-    cancelled: t.ticketList?.filterCancelled ?? "Cancelled",
-  }
-
-  const filtered = tickets.filter(
-    (tk) =>
-      tk.title.toLowerCase().includes(search.toLowerCase()) ||
-      tk.id.toLowerCase().includes(search.toLowerCase()),
-  )
 
   return (
     <div className="h-full overflow-auto">
