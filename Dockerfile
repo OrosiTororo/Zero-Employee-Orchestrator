@@ -10,8 +10,9 @@ FROM python:3.12-slim AS base
 RUN groupadd -r zeapp -g 1000 && \
     useradd -r -u 1000 -g zeapp -m -d /home/zeapp -s /bin/bash zeapp
 
-# System dependency packages
+# System dependency packages — upgrade all base packages first to fix OS-level CVEs
 RUN apt-get update && \
+    apt-get upgrade -y --no-install-recommends && \
     apt-get install -y --no-install-recommends \
         curl \
         git \
