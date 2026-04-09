@@ -477,10 +477,10 @@ class MetaSkillEngine:
                 failed += 1
                 continue
 
-            # Step execution — LLM-assisted when action is complex
+            # Step execution — LLM-assisted when action is meaningful
             step_output = "Execution completed"
             step_success = True
-            if step_action and len(step_action) > 20:
+            if step_action and len(step_action) > 5:
                 try:
                     from app.providers.gateway import (
                         CompletionRequest,
@@ -505,9 +505,16 @@ class MetaSkillEngine:
                             max_tokens=512,
                         )
                     )
-                    step_output = resp.content[:500] if resp.content else "Execution completed"
+                    if resp.content:
+                        step_output = resp.content[:500]
+                        step_success = True
+                    else:
+                        step_output = "LLM returned empty response"
+                        step_success = False
                 except Exception as exc:
                     logger.debug("LLM make step fallback to simulated: %s", exc)
+                    step_output = f"Execution simulated (LLM unavailable): {step_action[:100]}"
+                    step_success = False
 
             execution_results.append(
                 {

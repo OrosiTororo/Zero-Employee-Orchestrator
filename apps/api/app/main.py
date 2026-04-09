@@ -177,7 +177,34 @@ async def lifespan(application: FastAPI):
     except Exception as exc:
         logger.debug("Model catalog auto-refresh failed (non-fatal): %s", exc)
 
+    # Start self-improvement background scheduler (hourly, non-blocking)
+    scheduler = None
+    try:
+        from apscheduler.schedulers.asyncio import AsyncIOScheduler
+        from apscheduler.triggers.interval import IntervalTrigger
+
+        from app.services.self_improvement_service import run_improvement_cycle
+
+        scheduler = AsyncIOScheduler()
+        scheduler.add_job(
+            run_improvement_cycle,
+            trigger=IntervalTrigger(hours=1),
+            id="self_improvement_cycle",
+            replace_existing=True,
+            max_instances=1,
+        )
+        scheduler.start()
+        logger.info("Self-improvement background scheduler started (interval: 1h)")
+    except Exception as exc:
+        logger.debug("Self-improvement scheduler init failed (non-fatal): %s", exc)
+
     yield
+
+    if scheduler is not None:
+        try:
+            scheduler.shutdown(wait=False)
+        except Exception:
+            pass
 
 
 app = FastAPI(

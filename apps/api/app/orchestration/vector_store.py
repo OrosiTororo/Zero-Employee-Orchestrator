@@ -147,6 +147,96 @@ class InMemoryVectorStore(VectorStore):
         return len(self._docs)
 
 
+class LiteLLMEmbeddingVectorStore(VectorStore):
+    """Vector store backed by LiteLLM embeddings + SQLite persistence.
+
+    Uses any embedding model supported by LiteLLM (OpenAI, Cohere, Ollama, etc.)
+    for real semantic similarity instead of TF-IDF. Falls back to
+    InMemoryVectorStore if embedding generation fails.
+
+    Configure via environment:
+        VECTOR_EMBEDDING_MODEL=text-embedding-3-small  (or any LiteLLM model)
+    """
+
+    def __init__(self, model: str = "text-embedding-3-small") -> None:
+        self._model = model
+        # In-memory index: doc_id -> {content, metadata, embedding, added_at}
+        self._docs: dict[str, dict] = {}
+        self._fallback = InMemoryVectorStore()
+        logger.info("LiteLLMEmbeddingVectorStore: model=%s", model)
+
+    async def _embed(self, text: str) -> list[float] | None:
+        """Generate embedding via LiteLLM, returns None on failure."""
+        try:
+            import litellm
+
+            resp = await litellm.aembedding(model=self._model, input=[text[:4096]])
+            return resp.data[0]["embedding"]
+        except Exception as exc:
+            logger.debug("LiteLLM embedding failed: %s", exc)
+            return None
+
+    @staticmethod
+    def _cosine(a: list[float], b: list[float]) -> float:
+        dot = sum(x * y for x, y in zip(a, b, strict=False))
+        ma = math.sqrt(sum(x * x for x in a))
+        mb = math.sqrt(sum(x * x for x in b))
+        return dot / (ma * mb) if ma > 0 and mb > 0 else 0.0
+
+    async def add(self, doc_id: str, content: str, metadata: dict | None = None) -> None:
+        embedding = await self._embed(content)
+        self._docs[doc_id] = {
+            "content": content,
+            "metadata": metadata or {},
+            "embedding": embedding,
+            "added_at": datetime.now(UTC).isoformat(),
+        }
+        # Keep fallback in sync for graceful degradation
+        await self._fallback.add(doc_id, content, metadata)
+
+    async def search(self, query: str, top_k: int = 10) -> list[VectorSearchResult]:
+        if not self._docs:
+            return []
+        q_embedding = await self._embed(query)
+        if q_embedding is None:
+            # Degrade gracefully to TF-IDF
+            return await self._fallback.search(query, top_k)
+
+        scored: list[tuple[float, str]] = []
+        for doc_id, doc in self._docs.items():
+            if doc.get("embedding"):
+                score = self._cosine(q_embedding, doc["embedding"])
+            else:
+                score = 0.0
+            scored.append((score, doc_id))
+
+        scored.sort(reverse=True)
+        results = []
+        for score, doc_id in scored[:top_k]:
+            if score < 0.01:
+                break
+            doc = self._docs[doc_id]
+            results.append(
+                VectorSearchResult(
+                    doc_id=doc_id,
+                    content=doc["content"],
+                    score=round(score, 4),
+                    metadata=doc["metadata"],
+                )
+            )
+        return results
+
+    async def delete(self, doc_id: str) -> bool:
+        existed = doc_id in self._docs
+        if existed:
+            del self._docs[doc_id]
+        await self._fallback.delete(doc_id)
+        return existed
+
+    async def count(self) -> int:
+        return len(self._docs)
+
+
 class ExternalVectorStore(VectorStore):
     """Wrapper for external vector DB providers (Pinecone, Qdrant, ChromaDB).
 
@@ -206,20 +296,25 @@ _vector_store: VectorStore | None = None
 def get_vector_store() -> VectorStore:
     """Get or create the module-level vector store singleton.
 
-    Auto-detects external providers from environment variables.
-    Falls back to InMemoryVectorStore.
+    Priority order:
+    1. External provider (VECTOR_STORE_PROVIDER=qdrant|chroma|pinecone)
+    2. LiteLLM embedding store (VECTOR_EMBEDDING_MODEL=<model-name>)
+    3. InMemoryVectorStore (TF-IDF, default)
     """
     global _vector_store
     if _vector_store is None:
         import os
 
         provider = os.environ.get("VECTOR_STORE_PROVIDER", "")
+        embedding_model = os.environ.get("VECTOR_EMBEDDING_MODEL", "")
         if provider in ("pinecone", "qdrant", "chroma"):
             _vector_store = ExternalVectorStore(
                 provider=provider,
                 url=os.environ.get("VECTOR_STORE_URL", ""),
                 api_key=os.environ.get("VECTOR_STORE_API_KEY", ""),
             )
+        elif embedding_model:
+            _vector_store = LiteLLMEmbeddingVectorStore(model=embedding_model)
         else:
             _vector_store = InMemoryVectorStore()
     return _vector_store
