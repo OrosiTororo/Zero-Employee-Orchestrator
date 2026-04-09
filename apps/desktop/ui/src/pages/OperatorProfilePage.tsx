@@ -45,8 +45,8 @@ export function OperatorProfilePage() {
   const loadData = useCallback(async () => {
     try {
       const [p, ins] = await Promise.all([
-        api.get<Profile>("/operator-profile/profile").catch(() => null),
-        api.get<Instructions>("/operator-profile/instructions").catch(() => null),
+        api.get<Profile>("/operator-profile/profile").catch((e: unknown) => { console.warn("[OperatorProfile] profile fetch failed:", e); return null }),
+        api.get<Instructions>("/operator-profile/instructions").catch((e: unknown) => { console.warn("[OperatorProfile] instructions fetch failed:", e); return null }),
       ])
       if (p) setProfile(p)
       if (ins) setInstructions(ins.instructions)

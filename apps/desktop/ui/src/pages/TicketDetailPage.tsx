@@ -17,6 +17,7 @@ import {
 } from "lucide-react"
 import { useT } from "@/shared/i18n"
 import { api } from "@/shared/api/client"
+import { useToastStore } from "@/shared/ui/ErrorToast"
 
 interface TicketData {
   id: string
@@ -44,6 +45,7 @@ export function TicketDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const t = useT()
+  const addToast = useToastStore((s) => s.addToast)
 
   const [ticket, setTicket] = useState<TicketData | null>(null)
   const [executing, setExecuting] = useState(false)
@@ -52,8 +54,14 @@ export function TicketDetailPage() {
 
   useEffect(() => {
     if (!id) return
-    api.get(`/tickets/${id}`).then(d => setTicket(d as TicketData)).catch(() => setError("Failed to load ticket"))
-  }, [id])
+    api.get(`/tickets/${id}`)
+      .then(d => setTicket(d as TicketData))
+      .catch((e: unknown) => {
+        const msg = e instanceof Error ? e.message : String(e)
+        setError(msg)
+        addToast(msg, "error")
+      })
+  }, [id, addToast])
 
   const handleExecute = async () => {
     if (!id) return

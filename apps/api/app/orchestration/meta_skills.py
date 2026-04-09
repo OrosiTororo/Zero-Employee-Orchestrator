@@ -477,10 +477,10 @@ class MetaSkillEngine:
                 failed += 1
                 continue
 
-            # Step execution — LLM-assisted when action is complex
+            # Step execution — LLM-assisted when action is meaningful
             step_output = "Execution completed"
             step_success = True
-            if step_action and len(step_action) > 20:
+            if step_action and len(step_action) > 5:
                 try:
                     from app.providers.gateway import (
                         CompletionRequest,
@@ -505,9 +505,16 @@ class MetaSkillEngine:
                             max_tokens=512,
                         )
                     )
-                    step_output = resp.content[:500] if resp.content else "Execution completed"
+                    if resp.content:
+                        step_output = resp.content[:500]
+                        step_success = True
+                    else:
+                        step_output = "LLM returned empty response"
+                        step_success = False
                 except Exception as exc:
                     logger.debug("LLM make step fallback to simulated: %s", exc)
+                    step_output = f"Execution simulated (LLM unavailable): {step_action[:100]}"
+                    step_success = False
 
             execution_results.append(
                 {
@@ -701,15 +708,42 @@ class MetaSkillEngine:
             "; ".join(i.content[:50] for i in recent_insights) if recent_insights else "No insights"
         )
 
-        content = (
-            f"Meta-analysis: Most utilized skill is "
-            f"'{most_experienced.skill_type.value}' "
-            f"(experience count: {most_experienced.experience_count}). "
-            f"Lowest confidence skill is "
-            f"'{least_confident.skill_type.value}' "
-            f"(confidence: {least_confident.confidence:.2f}). "
-            f"Recent insights: {insight_summary}"
+        # Build context for LLM synthesis
+        context = (
+            f"Meta-analysis context:\n"
+            f"- Most utilized skill: '{most_experienced.skill_type.value}' "
+            f"(experience count: {most_experienced.experience_count}, "
+            f"confidence: {most_experienced.confidence:.2f})\n"
+            f"- Lowest confidence skill: '{least_confident.skill_type.value}' "
+            f"(confidence: {least_confident.confidence:.2f})\n"
+            f"- Recent insights: {insight_summary}\n"
+            f"- Total active skills: {len(active_skills)}"
         )
+
+        content = context  # fallback
+        try:
+            from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
+
+            resp = await llm_gateway.complete(
+                CompletionRequest(
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": (
+                                f"Synthesize the following AI meta-skill data into a concise "
+                                f"actionable insight (1-2 sentences):\n\n{context}"
+                            ),
+                        }
+                    ],
+                    mode=ExecutionMode.SPEED,
+                    temperature=0.4,
+                    max_tokens=200,
+                )
+            )
+            if resp.content:
+                content = resp.content[:400]
+        except Exception as exc:
+            logger.debug("generate_meta_insight LLM fallback: %s", exc)
 
         meta_insight = Insight(
             source_skill=MetaSkillType.LEARNING,

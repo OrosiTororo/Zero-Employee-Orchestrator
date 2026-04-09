@@ -432,7 +432,9 @@
     "systemRequired": "Sistem",
     "disable": "Devre Dışı Bırak",
     "enable": "Etkinleştir",
-    "marketplaceComingSoon": "Topluluk beceri mağazası yakında."
+    "marketplaceComingSoon": "Topluluk beceri mağazası yakında.",
+    "toggleFailed": "Geçiş başarısız oldu.",
+    "deleteFailed": "Silme başarısız oldu."
   },
   "plugins": {
     "title": "Eklentiler",
@@ -575,7 +577,9 @@
     "searchPlaceholder": "Beceri, eklenti, uzantı ara...",
     "comingSoon": "Mağaza Yakında",
     "comingSoonDesc": "Kullanıcılar tarafından oluşturulan becerileri, eklentileri ve uzantıları yayınlamak ve indirmek için bir mağaza geliştiriliyor. Temalar, dil paketleri, araç entegrasyonları ve yapay zeka becerileri sunulacak.",
-    "install": "Yükle"
+    "install": "Yükle",
+    "loadFailed": "Market öğeleri yüklenemedi.",
+    "installFailed": "Yükleme başarısız oldu."
   },
   "commandPalette": {
     "placeholder": "Komut ara... (gezinme, işlemler)",
@@ -651,7 +655,8 @@
     "filterDone": "Tamamlandı",
     "filterBlocked": "Engellendi",
     "filterCancelled": "İptal Edildi",
-    "emptyState": "Henüz bilet yok. Panodan bir istek göndererek bilet oluşturun."
+    "emptyState": "Henüz bilet yok. Panodan bir istek göndererek bilet oluşturun.",
+    "noMatch": "Aramanızla eşleşen bilet yok."
   },
   "ticketDetail": {
     "ticketLabel": "Bilet",

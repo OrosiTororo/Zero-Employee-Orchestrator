@@ -51,7 +51,11 @@ export function DashboardPage() {
     } catch { /* Stats will remain at defaults */ }
   }, [companyId])
 
-  useEffect(() => { fetchStats() }, [fetchStats])
+  useEffect(() => {
+    fetchStats()
+    const interval = setInterval(fetchStats, 30000)
+    return () => clearInterval(interval)
+  }, [fetchStats])
 
   const [chatHistory, setChatHistory] = useState<Array<{ role: "user" | "system"; content: string }>>([])
   const [showChat, setShowChat] = useState(false)

@@ -26,7 +26,7 @@
 - **Orchestrator of orchestrators**: doesn't replace AI tools, unifies them
 - Connects CrewAI, AutoGen, LangChain, Dify as sub-workers under approval gates
 - Connects n8n, Zapier, Make as automation backends
-- 34+ app connectors, 22 model families, multi-provider
+- 63+ app connectors, 22 model families, multi-provider
 - Free and open source; users pay LLM providers directly
 - Self-hostable (Docker, Cloudflare Workers, Tauri desktop)
 
@@ -44,7 +44,7 @@
 | **Security layers** | Sandbox + approval | M365 governance | 14-layer defense |
 | **Browser automation** | Chrome extension (full) | Within M365 apps | Browser Assist (guidance + tiered approval) |
 | **Enterprise governance** | Basic | Deep (Work IQ, RBAC) | Approval gates + autonomy boundaries |
-| **App ecosystem** | macOS local apps | M365 suite | 34+ apps via connectors |
+| **App ecosystem** | macOS local apps | M365 suite | 63+ apps via connectors |
 
 ---
 
@@ -123,6 +123,6 @@ All interfaces converge on the same FastAPI backend (port 18234), ensuring featu
 
 > **ZEO is not a desktop agent. ZEO is not a cloud agent. ZEO is the orchestration layer that connects, governs, and audits all agents.**
 
-Claude Cowork automates your desktop. Copilot Cowork automates your M365 suite. ZEO connects both — plus CrewAI, AutoGen, n8n, and 34+ apps — under unified approval gates, multi-model freedom, and full audit transparency.
+Claude Cowork automates your desktop. Copilot Cowork automates your M365 suite. ZEO connects both — plus CrewAI, AutoGen, n8n, and 63+ apps — under unified approval gates, multi-model freedom, and full audit transparency.
 
 The right answer is not "ZEO vs Cowork" — it's "ZEO + Cowork": ZEO can delegate tasks to Claude Cowork or Copilot Cowork as sub-workers while maintaining approval oversight and audit trails.

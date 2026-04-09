@@ -19,7 +19,7 @@
 
 **The orchestrator of orchestrators. One platform to command every AI framework, every LLM, every tool — under human approval and full audit.**
 
-ZEO doesn't replace your AI tools — it unifies them. Connect CrewAI, AutoGen, LangChain, Dify, Claude Cowork, n8n, Zapier, and 34+ business apps under a single approval gate, audit trail, and security layer. Define workflows in natural language. Let multiple AI agents plan, execute, verify, and improve — all under your control.
+ZEO doesn't replace your AI tools — it unifies them. Connect CrewAI, AutoGen, LangChain, Dify, Claude Cowork, n8n, Zapier, and 63+ business apps under a single approval gate, audit trail, and security layer. Define workflows in natural language. Let multiple AI agents plan, execute, verify, and improve — all under your control.
 
 ZEO itself is free and open source. LLM API costs are paid directly by users to each provider.
 
@@ -284,7 +284,7 @@ Zero-Employee-Orchestrator/
 | **Agent Adapter** | Integrate CrewAI, AutoGen, LangChain, Dify agents as ZEO sub-workers — all under approval gates and audit |
 | **iPaaS Bridge** | Connect n8n / Zapier / Make workflows — ZEO becomes the judgment layer for existing automations |
 | **MCP Server** | Model Context Protocol — any MCP-compatible tool becomes a ZEO tool automatically |
-| **App Connector Hub** | 34+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, Slack, etc.) — connectors for connectors |
+| **App Connector Hub** | 63+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, Slack, etc.) — connectors for connectors |
 | **Tool-of-Tools** | Tools that connect to other tools (e.g., n8n connects to 400+ apps → ZEO connects to n8n → ZEO accesses all 400+ apps through one integration) |
 | **Multi-Model Freedom** | 22 model families via LiteLLM, Ollama local models, g4f web sessions — not locked to any single provider |
 
@@ -306,7 +306,7 @@ Zero-Employee-Orchestrator/
 |---------|-------------|
 | **Browser Assist** | Chrome extension overlay — AI sees your screen in real-time |
 | **Media Generation** | Image, video, audio, music, 3D — with dynamic provider registration |
-| **App Connector Hub** | 34+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, etc.) |
+| **App Connector Hub** | 63+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, etc.) |
 | **AI Tool Integration** | 55+ external tools across 21 categories |
 | **A2A Communication** | Peer-to-peer agent messaging, channels, and negotiation |
 | **Avatar AI** | Learns your decision patterns and evolves with you |

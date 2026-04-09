@@ -40,9 +40,9 @@ export function MarketplacePage() {
     setLoading(true)
     try {
       const [skillsRes, pluginsRes, extensionsRes] = await Promise.all([
-        api.get<{ skills: RegistryItem[] }>("/registry/skills").catch(() => ({ skills: [] })),
-        api.get<{ plugins: RegistryItem[] }>("/registry/plugins").catch(() => ({ plugins: [] })),
-        api.get<{ extensions: RegistryItem[] }>("/registry/extensions").catch(() => ({ extensions: [] })),
+        api.get<{ skills: RegistryItem[] }>("/registry/skills").catch((e: unknown) => { console.warn("[Marketplace] skills fetch failed:", e); return { skills: [] } }),
+        api.get<{ plugins: RegistryItem[] }>("/registry/plugins").catch((e: unknown) => { console.warn("[Marketplace] plugins fetch failed:", e); return { plugins: [] } }),
+        api.get<{ extensions: RegistryItem[] }>("/registry/extensions").catch((e: unknown) => { console.warn("[Marketplace] extensions fetch failed:", e); return { extensions: [] } }),
       ])
 
       const mapped: MarketplaceItem[] = [
@@ -64,7 +64,7 @@ export function MarketplacePage() {
       ]
       setItems(mapped)
     } catch {
-      addToast("Could not load marketplace items.")
+      addToast(t.marketplace.loadFailed ?? "Could not load marketplace items.")
     } finally {
       setLoading(false)
     }
@@ -184,7 +184,7 @@ export function MarketplacePage() {
                           await api.post(`/registry/${item.type}s/install`, { slug: item.id, name: item.name, description: item.description })
                           await loadItems()
                         } catch {
-                          addToast("Install failed.")
+                          addToast(t.marketplace.installFailed ?? "Install failed.")
                         }
                       }}
                       className="flex items-center gap-1 px-2 py-1 rounded text-[11px] bg-[var(--accent)] text-[var(--accent-fg)]"

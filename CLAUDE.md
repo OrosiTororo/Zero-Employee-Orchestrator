@@ -30,7 +30,7 @@ apps/api/app/         # FastAPI backend
   providers/          # LLM gateway, Ollama, g4f, ModelRegistry
   security/           # sandbox, pii_guard, prompt_guard, iam, workspace_isolation
   policies/           # approval_gate, autonomy_boundary
-  integrations/       # app_connector (34 apps), media, MCP, browser-assist
+  integrations/       # app_connector (63 apps), media, MCP, browser-assist
   tools/              # MCP, browser_adapter, agent_adapter
   tests/              # pytest + pytest-asyncio
 apps/desktop/         # Tauri v2 + React (Cowork-style layout)
@@ -129,7 +129,7 @@ Write about system behavior changes for end users. Do NOT write about docs/CI/co
 # Security modules: sandbox boundary, PII guard, prompt guard
 ```
 
-14 items: server startup, auth flow, protected endpoints, ticket CRUD, security headers, registry (8/10/11), kill switch, models (22+), themes, languages (6), org setup, monitor, brainstorm, app integrations (34 apps)
+14 items: server startup, auth flow, protected endpoints, ticket CRUD, security headers, registry (8/10/11), kill switch, models (22+), themes, languages (6), org setup, monitor, brainstorm, app integrations (63 apps)
 
 ### Evaluation Criteria
 

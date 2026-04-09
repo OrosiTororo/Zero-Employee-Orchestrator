@@ -283,7 +283,7 @@ Zero-Employee-Orchestrator/
 | **Agent Adapter** | CrewAI, AutoGen, LangChain, Dify 에이전트를 ZEO 서브 워커로 통합 — 모두 승인 게이트와 감사 하에 |
 | **iPaaS Bridge** | n8n / Zapier / Make 워크플로우 연결 — ZEO가 기존 자동화의 판단 레이어가 됨 |
 | **MCP Server** | Model Context Protocol — MCP 호환 도구가 자동으로 ZEO 도구가 됨 |
-| **App Connector Hub** | 34+ 앱 (Obsidian, Notion, Google Workspace, Microsoft 365, Slack 등) — 커넥터의 커넥터 |
+| **App Connector Hub** | 63+ 앱 (Obsidian, Notion, Google Workspace, Microsoft 365, Slack 등) — 커넥터의 커넥터 |
 | **Tool-of-Tools** | 도구를 연결하는 도구 (예: n8n → 400+ 앱 → ZEO → n8n 연결 → 하나의 통합으로 400+ 앱에 접근) |
 | **멀티 모델 자유** | LiteLLM 경유 22개 모델 패밀리, Ollama 로컬 모델, g4f 웹 세션 — 단일 제공자에 종속되지 않음 |
 
@@ -305,7 +305,7 @@ Zero-Employee-Orchestrator/
 |------|------|
 | **브라우저 어시스트** | Chrome 확장 프로그램 오버레이 — AI가 실시간으로 화면 확인 |
 | **미디어 생성** | 이미지, 동영상, 음성, 음악, 3D — 동적 공급업체 등록 지원 |
-| **앱 커넥터 허브** | 34+ 앱 (Obsidian, Notion, Google Workspace, Microsoft 365 등) |
+| **앱 커넥터 허브** | 63+ 앱 (Obsidian, Notion, Google Workspace, Microsoft 365 등) |
 | **AI 도구 통합** | 21개 카테고리, 55+ 외부 도구 |
 | **A2A 통신** | 에이전트 간 P2P 메시징, 채널, 협상 |
 | **분신 AI** | 사용자의 판단 기준을 학습하고 함께 성장 |

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { ShieldCheck, AlertTriangle, CheckCircle, XCircle, ArrowRight, Eye, FileText } from "lucide-react"
 import { useT } from "@/shared/i18n"
@@ -54,6 +54,8 @@ export function ApprovalsPage() {
   const companyId = localStorage.getItem("company_id") || ""
   const [approvals, setApprovals] = useState<ApprovalItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedIdx, setSelectedIdx] = useState(0)
+  const listRef = useRef<HTMLDivElement>(null)
   const addToast = useToastStore((s) => s.addToast)
 
   const fetchApprovals = useCallback(async () => {
@@ -71,6 +73,29 @@ export function ApprovalsPage() {
   }, [companyId, addToast])
 
   useEffect(() => { fetchApprovals() }, [fetchApprovals])
+
+  // Keyboard navigation: ArrowUp/Down to select, A to approve, R to reject
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (approvals.length === 0) return
+      if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") return
+      if (e.key === "ArrowDown") {
+        e.preventDefault()
+        setSelectedIdx((i) => Math.min(i + 1, approvals.length - 1))
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault()
+        setSelectedIdx((i) => Math.max(i - 1, 0))
+      } else if (e.key === "a" || e.key === "A") {
+        const a = approvals[selectedIdx]
+        if (a && a.status === "requested") handleApprove(a.id)
+      } else if (e.key === "r" || e.key === "R") {
+        const a = approvals[selectedIdx]
+        if (a && a.status === "requested") handleReject(a.id)
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [approvals, selectedIdx]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleApprove = async (id: string) => {
     try {
@@ -95,9 +120,16 @@ export function ApprovalsPage() {
   return (
     <div className="h-full overflow-auto">
       <div className="max-w-[900px] mx-auto px-6 py-6">
-        <div className="flex items-center gap-2 mb-6">
-          <ShieldCheck size={18} className="text-[var(--accent)]" />
-          <h2 className="text-[14px] font-medium text-[var(--text-primary)]">{t.approvals.title}</h2>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <ShieldCheck size={18} className="text-[var(--accent)]" />
+            <h2 className="text-[14px] font-medium text-[var(--text-primary)]">{t.approvals.title}</h2>
+          </div>
+          {approvals.length > 0 && (
+            <span className="text-[10px] text-[var(--text-muted)]">
+              ↑↓ navigate · <kbd className="font-mono">A</kbd> approve · <kbd className="font-mono">R</kbd> reject
+            </span>
+          )}
         </div>
 
         {loading ? (
@@ -116,11 +148,21 @@ export function ApprovalsPage() {
             </button>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
-            {approvals.map((a) => {
+          <div className="flex flex-col gap-3" ref={listRef} role="list" aria-label={t.approvals.title}>
+            {approvals.map((a, idx) => {
               const hasTaskContext = a.task_context && (a.task_context.task_name || a.task_context.ticket_id)
+              const isSelected = idx === selectedIdx
               return (
-                <div key={a.id} className="rounded px-4 py-3 border border-[var(--border)] bg-[var(--bg-surface)]">
+                <div
+                  key={a.id}
+                  role="listitem"
+                  tabIndex={0}
+                  onClick={() => setSelectedIdx(idx)}
+                  onFocus={() => setSelectedIdx(idx)}
+                  aria-selected={isSelected}
+                  className="rounded px-4 py-3 border bg-[var(--bg-surface)] cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                  style={{ borderColor: isSelected ? "var(--accent)" : "var(--border)" }}
+                >
                   {/* Header row: risk badge + operation name + timestamp */}
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
