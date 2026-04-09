@@ -1,0 +1,6 @@
+# Trivy vulnerability ignore list
+# Keep in sync with pip-audit exemptions in .github/workflows/ci.yml
+#
+# CVE-2026-4539 — same exemption as pip-audit (--ignore-vuln CVE-2026-4539).
+# No actionable fix available for the current dependency constraints.
+CVE-2026-4539

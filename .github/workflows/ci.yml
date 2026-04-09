@@ -169,6 +169,7 @@ jobs:
           exit-code: 1
           severity: CRITICAL,HIGH
           ignore-unfixed: true
+          trivyignores: .trivyignore
 
   redteam-tests:
     name: Red-team Security Tests
