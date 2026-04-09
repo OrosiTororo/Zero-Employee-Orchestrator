@@ -432,7 +432,9 @@
     "systemRequired": "システム必須",
     "disable": "無効化",
     "enable": "有効化",
-    "marketplaceComingSoon": "コミュニティスキルマーケットプレイスは準備中です。"
+    "marketplaceComingSoon": "コミュニティスキルマーケットプレイスは準備中です。",
+    "toggleFailed": "切り替えに失敗しました。",
+    "deleteFailed": "削除に失敗しました。"
   },
   "plugins": {
     "title": "プラグイン",
@@ -575,7 +577,9 @@
     "searchPlaceholder": "スキル、プラグイン、拡張機能を検索...",
     "comingSoon": "マーケットプレイス準備中",
     "comingSoonDesc": "ユーザーが作成したスキル・プラグイン・拡張機能を公開・ダウンロードできるマーケットプレイスを準備中です。テーマ、言語パック、ツール連携、AIスキルなどが公開予定です。",
-    "install": "インストール"
+    "install": "インストール",
+    "loadFailed": "マーケットプレイスのアイテムを読み込めませんでした。",
+    "installFailed": "インストールに失敗しました。"
   },
   "commandPalette": {
     "placeholder": "コマンドを検索... (ページ移動、アクション)",

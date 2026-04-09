@@ -144,23 +144,78 @@ class PersistentExperienceMemory:
         category: str | None = None,
         limit: int = 20,
     ) -> list[ExperienceMemoryRecord]:
-        """Search Experience Memory by keyword."""
+        """Search Experience Memory by keyword with TF-IDF re-ranking.
+
+        Uses SQL ILIKE as the initial filter for efficiency, then applies an
+        in-memory TF-IDF + cosine similarity re-ranking pass to improve semantic
+        matching across different phrasings.
+        """
         stmt = select(ExperienceMemoryRecord).where(
             ExperienceMemoryRecord.company_id == self._company_id,
         )
         if category:
             stmt = stmt.where(ExperienceMemoryRecord.category == category)
 
-        # Simple LIKE search
+        # SQL ILIKE filter (initial candidate selection)
         pattern = f"%{query}%"
         stmt = stmt.where(
             ExperienceMemoryRecord.title.ilike(pattern)
             | ExperienceMemoryRecord.content.ilike(pattern)
         )
-        stmt = stmt.limit(limit)
+        stmt = stmt.limit(limit * 3)  # Fetch more candidates for re-ranking
 
         result = await self._db.execute(stmt)
-        return list(result.scalars().all())
+        records = list(result.scalars().all())
+
+        # TF-IDF + cosine similarity re-ranking (in-memory)
+        if query.strip() and records:
+            import math
+            import re as _re
+
+            query_terms = query.strip().lower().split()
+            doc_count = len(records)
+
+            # Build document frequency map for IDF
+            df: dict[str, int] = {}
+            for r in records:
+                text_tokens = set(
+                    _re.findall(r"[a-zA-Z0-9\u3040-\u9fff]+", f"{r.title} {r.content}".lower())
+                )
+                for t in text_tokens:
+                    df[t] = df.get(t, 0) + 1
+
+            scored: list[tuple[float, ExperienceMemoryRecord]] = []
+            for r in records:
+                text = f"{r.title} {r.content}".lower()
+                text_tokens = _re.findall(r"[a-zA-Z0-9\u3040-\u9fff]+", text)
+                token_freq: dict[str, int] = {}
+                for t in text_tokens:
+                    token_freq[t] = token_freq.get(t, 0) + 1
+
+                # TF-IDF score for query terms
+                tf_idf_score = 0.0
+                for qt in query_terms:
+                    tf = token_freq.get(qt, 0) / max(len(text_tokens), 1)
+                    idf = math.log((doc_count + 1) / (df.get(qt, 0) + 1)) + 1.0
+                    tf_idf_score += tf * idf
+
+                # Cosine similarity (bag-of-words)
+                all_terms = set(query_terms) | set(token_freq.keys())
+                dot = sum(query_terms.count(t) * token_freq.get(t, 0) for t in all_terms)
+                mag_q = math.sqrt(sum(query_terms.count(t) ** 2 for t in all_terms))
+                mag_d = math.sqrt(sum(token_freq.get(t, 0) ** 2 for t in all_terms))
+                cosine = dot / (mag_q * mag_d) if mag_q > 0 and mag_d > 0 else 0.0
+
+                # Effectiveness score boost
+                effectiveness = min(r.effectiveness_score / 10.0, 1.0) if r.effectiveness_score else 0.0
+
+                final_score = tf_idf_score * 0.45 + cosine * 0.45 + effectiveness * 0.10
+                scored.append((final_score, r))
+
+            scored.sort(key=lambda x: x[0], reverse=True)
+            records = [r for _, r in scored]
+
+        return records[:limit]
 
     async def get_frequent_failures(
         self,

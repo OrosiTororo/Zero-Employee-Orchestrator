@@ -539,6 +539,22 @@ class TaskExecutor:
                         logger.warning("Node %s failed after %d retries", node.id, self.MAX_RETRIES)
                         dag.mark_completed(node.id, success=False)
 
+                        # Track the failure as a hypothesis for investigation
+                        try:
+                            from app.orchestration.hypothesis_engine import hypothesis_engine
+
+                            hypothesis_engine.propose(
+                                title=f"Task node failed: {node.title}",
+                                description=(
+                                    f"Node '{node.title}' (id={node.id}) failed during execution. "
+                                    f"Error: {str(node_result.error or 'Quality check failed')[:200]}"
+                                ),
+                                proposer_agent_id="executor",
+                                task_id=dag.plan_id,
+                            )
+                        except Exception:
+                            pass  # Never block execution on hypothesis tracking
+
                         rework_reason = classify_failure(
                             None, node_result.error or "Quality check failed"
                         )

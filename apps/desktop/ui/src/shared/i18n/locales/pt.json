@@ -432,7 +432,9 @@
     "systemRequired": "Sistema",
     "disable": "Desativar",
     "enable": "Ativar",
-    "marketplaceComingSoon": "Marketplace de skills da comunidade em breve."
+    "marketplaceComingSoon": "Marketplace de skills da comunidade em breve.",
+    "toggleFailed": "Falha ao alternar.",
+    "deleteFailed": "Falha ao excluir."
   },
   "plugins": {
     "title": "Plugins",
@@ -575,7 +577,9 @@
     "searchPlaceholder": "Pesquisar skills, plugins, extensões...",
     "comingSoon": "Marketplace Em Breve",
     "comingSoonDesc": "Um marketplace para publicar e baixar skills, plugins e extensões criados por usuários está em desenvolvimento. Temas, pacotes de idioma, integrações de ferramentas e skills de IA estarão disponíveis.",
-    "install": "Instalar"
+    "install": "Instalar",
+    "loadFailed": "Não foi possível carregar os itens do marketplace.",
+    "installFailed": "Instalação falhou."
   },
   "commandPalette": {
     "placeholder": "Pesquisar comandos... (navegação, ações)",

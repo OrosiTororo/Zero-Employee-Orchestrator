@@ -432,7 +432,9 @@
     "systemRequired": "시스템",
     "disable": "비활성화",
     "enable": "활성화",
-    "marketplaceComingSoon": "커뮤니티 스킬 마켓플레이스가 곧 출시됩니다."
+    "marketplaceComingSoon": "커뮤니티 스킬 마켓플레이스가 곧 출시됩니다.",
+    "toggleFailed": "전환에 실패했습니다.",
+    "deleteFailed": "삭제에 실패했습니다."
   },
   "plugins": {
     "title": "플러그인",
@@ -575,7 +577,9 @@
     "searchPlaceholder": "스킬, 플러그인, 확장 기능 검색...",
     "comingSoon": "마켓플레이스 준비 중",
     "comingSoonDesc": "사용자가 만든 스킬, 플러그인, 확장 기능을 게시하고 다운로드할 수 있는 마켓플레이스를 개발 중입니다. 테마, 언어 팩, 도구 통합, AI 스킬 등이 제공될 예정입니다.",
-    "install": "설치"
+    "install": "설치",
+    "loadFailed": "마켓플레이스 항목을 불러올 수 없습니다.",
+    "installFailed": "설치에 실패했습니다."
   },
   "commandPalette": {
     "placeholder": "명령어 검색... (내비게이션, 작업)",

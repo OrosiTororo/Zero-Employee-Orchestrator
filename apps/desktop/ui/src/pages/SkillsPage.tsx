@@ -61,7 +61,7 @@ export function SkillsPage() {
       await api.patch(`/registry/skills/${skill.id}`, { enabled: !skill.enabled })
       await fetchSkills()
     } catch (e: unknown) {
-      addToast(e instanceof Error ? e.message : String(e) || "Toggle failed")
+      addToast(e instanceof Error ? e.message : String(e) || (t.skills.toggleFailed ?? "Toggle failed."))
     }
   }
 
@@ -75,7 +75,7 @@ export function SkillsPage() {
       await api.delete(`/registry/skills/${skill.id}`)
       await fetchSkills()
     } catch (e: unknown) {
-      addToast(e instanceof Error ? e.message : String(e) || "Delete failed")
+      addToast(e instanceof Error ? e.message : String(e) || (t.skills.deleteFailed ?? "Delete failed."))
     }
   }
 

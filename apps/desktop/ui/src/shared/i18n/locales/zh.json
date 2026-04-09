@@ -432,7 +432,9 @@
     "systemRequired": "系统",
     "disable": "禁用",
     "enable": "启用",
-    "marketplaceComingSoon": "社区技能市场即将推出。"
+    "marketplaceComingSoon": "社区技能市场即将推出。",
+    "toggleFailed": "切换失败。",
+    "deleteFailed": "删除失败。"
   },
   "plugins": {
     "title": "插件",
@@ -575,7 +577,9 @@
     "searchPlaceholder": "搜索技能、插件、扩展...",
     "comingSoon": "市场即将推出",
     "comingSoonDesc": "一个用于发布和下载用户创建的技能、插件和扩展的市场正在开发中。主题、语言包、工具集成和 AI 技能将会上线。",
-    "install": "安装"
+    "install": "安装",
+    "loadFailed": "无法加载市场项目。",
+    "installFailed": "安装失败。"
   },
   "commandPalette": {
     "placeholder": "搜索命令...（导航、操作）",

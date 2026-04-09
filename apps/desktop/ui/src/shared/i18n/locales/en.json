@@ -432,7 +432,9 @@
     "systemRequired": "System",
     "disable": "Disable",
     "enable": "Enable",
-    "marketplaceComingSoon": "Community skill marketplace coming soon."
+    "marketplaceComingSoon": "Community skill marketplace coming soon.",
+    "toggleFailed": "Toggle failed.",
+    "deleteFailed": "Delete failed."
   },
   "plugins": {
     "title": "Plugins",
@@ -575,7 +577,9 @@
     "searchPlaceholder": "Search skills, plugins, extensions...",
     "comingSoon": "Marketplace Coming Soon",
     "comingSoonDesc": "A marketplace for publishing and downloading user-created skills, plugins, and extensions is in development. Themes, language packs, tool integrations, and AI skills will be available.",
-    "install": "Install"
+    "install": "Install",
+    "loadFailed": "Could not load marketplace items.",
+    "installFailed": "Install failed."
   },
   "commandPalette": {
     "placeholder": "Search commands... (navigation, actions)",
