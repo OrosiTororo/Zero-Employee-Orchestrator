@@ -454,7 +454,10 @@ async def get_comparison(
     from app.services.multi_model_service import MultiModelService
 
     svc = MultiModelService(db)
-    record = await svc.get_comparison(comparison_id)
+    try:
+        record = await svc.get_comparison(comparison_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Comparison not found")
     if not record:
         raise HTTPException(status_code=404, detail="Comparison not found")
     return {
@@ -598,7 +601,10 @@ async def get_brainstorm_session(
     from app.services.multi_model_service import BrainstormService
 
     svc = BrainstormService(db)
-    record = await svc.get_session(session_id)
+    try:
+        record = await svc.get_session(session_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Session not found")
     if not record:
         raise HTTPException(status_code=404, detail="Session not found")
     return {

@@ -223,7 +223,7 @@ Zero-Employee-Orchestrator/
 │   ├── desktop/              # Tauri v2 + React UI
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # Workers em segundo plano
-├── skills/                   # 11 skills integradas (6 sistema + 5 domínio)
+├── skills/                   # 8 skills integradas (6 sistema + 2 domínio)
 ├── plugins/                  # 16 manifestos de plugins
 ├── extensions/               # 11 manifestos de extensões
 │   └── browser-assist/

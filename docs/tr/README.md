@@ -223,7 +223,7 @@ Zero-Employee-Orchestrator/
 │   ├── desktop/              # Tauri v2 + React UI
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # Arka plan çalışanları
-├── skills/                   # 11 yerleşik beceri (6 sistem + 5 alan)
+├── skills/                   # 8 yerleşik beceri (6 sistem + 2 alan)
 ├── plugins/                  # 16 eklenti bildirimi
 ├── extensions/               # 11 uzantı bildirimi
 │   └── browser-assist/

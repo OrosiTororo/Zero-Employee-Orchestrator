@@ -24,9 +24,9 @@ ls apps/api/app/
 ```
 apps/api/app/         # FastAPI backend
   core/               # Config, DB, rate limiting, i18n
-  api/routes/         # 46 route modules, 397 endpoints
+  api/routes/         # 46 route modules, 398 endpoints
   services/           # 25 services (business logic)
-  orchestration/      # DAG, Judge, transparency, CostGuard (23 modules)
+  orchestration/      # DAG, Judge, transparency, CostGuard (24 modules)
   providers/          # LLM gateway, Ollama, g4f, ModelRegistry
   security/           # sandbox, pii_guard, prompt_guard, iam, workspace_isolation
   policies/           # approval_gate, autonomy_boundary
@@ -35,7 +35,7 @@ apps/api/app/         # FastAPI backend
   tests/              # pytest + pytest-asyncio
 apps/desktop/         # Tauri v2 + React (Cowork-style layout)
 apps/edge/            # Cloudflare Workers
-skills/builtin/       # 11 Skills (6 system + 5 domain)
+skills/builtin/       # 8 Skills (6 system + 2 domain)
 plugins/              # 16 Plugins (10 general + 6 role-based packs)
 extensions/           # 11 Extensions
 ```
@@ -129,7 +129,7 @@ Write about system behavior changes for end users. Do NOT write about docs/CI/co
 # Security modules: sandbox boundary, PII guard, prompt guard
 ```
 
-14 items: server startup, auth flow, protected endpoints, ticket CRUD, security headers, registry (8/10/11), kill switch, models (22+), themes, languages (6), org setup, monitor, brainstorm, app integrations (63 apps)
+14 items: server startup, auth flow, protected endpoints, ticket CRUD, security headers, registry (8/16/11), kill switch, models (22+), themes, languages (6), org setup, monitor, brainstorm, app integrations (63 apps)
 
 ### Evaluation Criteria
 

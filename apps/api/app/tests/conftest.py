@@ -1,6 +1,6 @@
 """Test configuration and fixtures."""
 
-import asyncio
+import logging
 import os
 import uuid
 from collections.abc import AsyncGenerator
@@ -8,36 +8,44 @@ from collections.abc import AsyncGenerator
 # Allow tests to run with the default SECRET_KEY by enabling DEBUG mode.
 # config.py raises RuntimeError when SECRET_KEY is an insecure placeholder
 # and DEBUG=false, preventing accidental production use of default secrets.
+# Must be set before importing any app module that reads settings at import time.
 os.environ.setdefault("DEBUG", "true")
 
-import pytest
-import pytest_asyncio
-from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+# Suppress litellm's cleanup handler that tries to open a new event loop after
+# the session loop has been closed, producing a harmless "I/O operation on
+# closed file" log error at the end of the test suite.
+logging.getLogger("litellm").setLevel(logging.CRITICAL)
+
+import pytest_asyncio  # noqa: E402
+from httpx import ASGITransport, AsyncClient  # noqa: E402
+from sqlalchemy.ext.asyncio import (  # noqa: E402
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+from sqlalchemy.pool import StaticPool  # noqa: E402
 
 # Ensure all ORM models are registered with Base before create_all
-import app.models as _models  # noqa: F401
-from app.api.deps.database import get_db
-from app.api.routes.auth import get_current_user
-from app.core.database import Base
-from app.main import app
-from app.models.user import User
-from app.services.multi_model_service import BrainstormSessionRecord as _BSR  # noqa: F401
+import app.models as _models  # noqa: E402, F401
+from app.api.deps.database import get_db  # noqa: E402
+from app.api.routes.auth import get_current_user  # noqa: E402
+from app.core.database import Base  # noqa: E402
+from app.main import app  # noqa: E402
+from app.models.user import User  # noqa: E402
+from app.services.multi_model_service import BrainstormSessionRecord as _BSR  # noqa: E402, F401
 
-TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_zero_employee_orchestrator.db"
+TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
-engine = create_async_engine(TEST_DATABASE_URL, echo=False)
+engine = create_async_engine(
+    TEST_DATABASE_URL,
+    echo=False,
+    poolclass=StaticPool,
+    connect_args={"check_same_thread": False},
+)
 TestSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
-@pytest.fixture(scope="session")
-def event_loop():
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest_asyncio.fixture(autouse=True)
+@pytest_asyncio.fixture(autouse=True, loop_scope="session")
 async def setup_db():
     """Create tables before each test and drop after."""
     async with engine.begin() as conn:
@@ -78,14 +86,14 @@ async def override_get_current_user() -> User:
 app.dependency_overrides[get_current_user] = override_get_current_user
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(loop_scope="session")
 async def client() -> AsyncGenerator[AsyncClient, None]:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as c:
         yield c
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(loop_scope="session")
 async def db_session() -> AsyncGenerator[AsyncSession, None]:
     async with TestSessionLocal() as session:
         yield session

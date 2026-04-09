@@ -223,7 +223,7 @@ Zero-Employee-Orchestrator/
 │   ├── desktop/              # Tauri v2 + React UI
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # 后台工作进程
-├── skills/                   # 11 个内置技能（6 系统 + 5 领域）
+├── skills/                   # 8 个内置技能（6 系统 + 2 领域）
 ├── plugins/                  # 16 个插件清单
 ├── extensions/               # 11 个扩展清单
 │   └── browser-assist/

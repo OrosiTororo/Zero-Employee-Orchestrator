@@ -223,7 +223,7 @@ Zero-Employee-Orchestrator/
 │   ├── desktop/              # Tauri v2 + React UI
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # バックグラウンドワーカー
-├── skills/                   # ビルトインスキル（11 個：6 システム + 5 ドメイン）
+├── skills/                   # ビルトインスキル（8 個：6 システム + 2 ドメイン）
 ├── plugins/                  # プラグインマニフェスト（16 個）
 ├── extensions/               # エクステンションマニフェスト（11 個）
 │   └── browser-assist/
