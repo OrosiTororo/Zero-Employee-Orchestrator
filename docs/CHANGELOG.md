@@ -1,6 +1,45 @@
 # Changelog
 
-## [v0.1.5] (2026-04-08)
+## [v0.1.5] (2026-04-09)
+
+### Fix — Operator Profile broken in Docker / root-user deployments
+
+The sandbox's default denied list (`/root`, `/etc/*`, etc.) took precedence
+over explicitly-whitelisted sub-directories. Because the Operator Profile
+module stores data under `~/.zero-employee/`, any deployment running as root
+(the Docker image default) returned **403 Forbidden** on every
+`GET/PUT /operator-profile/profile` and `/operator-profile/instructions`
+call, silently breaking the "About Me + Global Instructions" feature.
+
+- `security/sandbox.py` — `check_access()` now evaluates the explicit
+  whitelist first. Directory-level denies (`/root`, `/etc/shadow`, ...) are
+  bypassed when the target is inside an `add_allowed_path()` directory.
+  Filename-pattern denies (`.env`, `.key`, `id_rsa`, `credentials.json`, ...)
+  continue to apply inside whitelisted directories, so secrets cannot be
+  smuggled in by opt-in whitelisting.
+- `security/sandbox.py` — Default denied entries for home dotfiles corrected
+  from the literal `/.ssh`, `/.gnupg`, `/.aws`, `/.config/gcloud`, `/.azure`
+  (which only matched the non-existent filesystem-root variants) to `~/.ssh`,
+  `~/.gnupg`, `~/.aws`, `~/.config/gcloud`, `~/.azure` — these are now
+  expanded through `Path.expanduser()` so the effective service user's home
+  secrets are actually protected (previously relied on the filename patterns
+  `id_rsa`, `credentials.json`, etc. for partial coverage only).
+- `tests/test_security.py` — New regression test
+  `test_explicit_whitelist_overrides_directory_deny` covering:
+  whitelisted sub-dir under `/root` allowed; non-whitelisted siblings denied;
+  filename-pattern denies (`.env`, `id_rsa`) still applied inside whitelist.
+
+### Doc sync — Endpoint count corrected to 402
+
+Authoritative count from the live `/api/v1/openapi.json` output is 402 (398
+from `@router` decorators across 46 route modules + 4 from `main.py`:
+`/healthz`, `/readyz`, `/.well-known/agent.json`, `/`). Previous docs
+undercounted.
+
+- CLAUDE.md: `398 endpoints` → `402 endpoints`
+- ROADMAP.md: `397 endpoints, 23 orchestration modules` → `402 endpoints, 24 orchestration modules`
+- docs/guides/architecture-guide.md: `397 endpoints` → `402 endpoints`
+- docs/dev/POSITIONING.md: `397 endpoints` → `402 endpoints`
 
 ### New — Copilot Cowork-Inspired Task Management
 

@@ -300,6 +300,32 @@ class TestSandbox:
         sandbox.remove_allowed_path("/tmp/test_dir")
         assert all("/tmp/test_dir" not in p for p in sandbox.get_allowed_paths())
 
+    def test_explicit_whitelist_overrides_directory_deny(self):
+        """Explicit add_allowed_path() must override directory-level denies.
+
+        Regression: Operator Profile API stores files under ``~/.zero-employee``
+        which on a root Docker container expands to ``/root/.zero-employee``.
+        With ``/root`` in the default denied list, the whitelist was ignored and
+        the API returned 403 on every GET/PUT.  Filename-pattern denies (e.g.
+        ``.env``, ``id_rsa``) must still apply inside the whitelisted dir.
+        """
+        sandbox = FileSystemSandbox(SandboxConfig(level=SandboxLevel.STRICT))
+        sandbox.add_allowed_path("/root/.zero-employee")
+
+        # Whitelisted sub-directory under /root is now accessible.
+        ok = sandbox.check_access("/root/.zero-employee/profile.json", AccessType.READ)
+        assert ok.allowed, ok.reason
+
+        # But paths outside the whitelist under /root are still blocked.
+        blocked = sandbox.check_access("/root/.bashrc", AccessType.READ)
+        assert not blocked.allowed
+
+        # Filename-pattern denies still apply inside whitelisted directories.
+        secret = sandbox.check_access("/root/.zero-employee/id_rsa", AccessType.READ)
+        assert not secret.allowed
+        env_blocked = sandbox.check_access("/root/.zero-employee/.env.backup", AccessType.READ)
+        assert not env_blocked.allowed
+
 
 # ---------------------------------------------------------------------------
 # Data Protection
