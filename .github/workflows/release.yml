@@ -160,6 +160,7 @@ jobs:
 
   # Package and upload Chrome extension (Browser Assist)
   build-chrome-extension:
+    needs: build-desktop
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -181,7 +182,6 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           TAG="${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}"
-          RELEASE_ID=$(gh api "repos/${GH_REPO}/releases/tags/${TAG}" --jq '.id')
           gh release upload "${TAG}" extensions/browser-assist/chrome-extension.zip \
             --clobber \
             --repo "${GH_REPO}"
