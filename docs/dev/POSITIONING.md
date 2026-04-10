@@ -112,7 +112,7 @@ ZEO Browser Assist is an **advisory overlay** — screenshot analysis + guidance
 | **CLI** | Developer-first — chat, dispatch, config, health | Slash commands, Ollama local mode |
 | **Web UI (Vite)** | Same React app, runs in browser | Dev server on port 5173 |
 | **Chrome Extension** | Browser-side advisory + screenshot analysis | Overlay chat widget |
-| **API** | Headless automation, CI/CD integration | 397 endpoints, full REST |
+| **API** | Headless automation, CI/CD integration | 402 endpoints, full REST |
 | **Edge (Cloudflare)** | Serverless proxy, 24/365 availability | Hono-based workers |
 
 All interfaces converge on the same FastAPI backend (port 18234), ensuring feature parity across GUI, CLI, and API consumers.

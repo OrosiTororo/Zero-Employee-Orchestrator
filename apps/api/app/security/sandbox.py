@@ -68,17 +68,27 @@ class SandboxConfig:
     allow_symlink_follow: bool = False
 
 
-# Default denied paths (common across all levels)
+# Default denied paths (common across all levels).
+# Notes:
+# * ``~/.ssh`` etc. are expanded through ``Path.expanduser()`` so they protect
+#   the effective service user's home dotfiles (/root/.ssh on a root Docker
+#   container, /home/<user>/.ssh on a developer workstation, ...).  Previously
+#   these were listed as ``/.ssh`` which only matched a literal ``/.ssh`` at
+#   the filesystem root and did not protect real secrets.
+# * Directory-level denies (``~``, ``/root``, ``/etc/*``) are overridden when
+#   the caller has explicitly whitelisted a sub-directory via
+#   ``add_allowed_path()`` — filename-pattern denies below still apply even
+#   inside whitelisted directories.
 _DEFAULT_DENIED_PATHS: list[str] = [
     "/etc/shadow",
     "/etc/passwd",
     "/etc/sudoers",
     "/root",
-    "/.ssh",
-    "/.gnupg",
-    "/.aws",
-    "/.config/gcloud",
-    "/.azure",
+    "~/.ssh",
+    "~/.gnupg",
+    "~/.aws",
+    "~/.config/gcloud",
+    "~/.azure",
     "/var/log/auth.log",
     "/var/log/secure",
     ".env",
@@ -238,10 +248,32 @@ class FileSystemSandbox:
                     sandbox_level=self._config.level,
                 )
 
+        # Determine whether the target is within an explicitly whitelisted
+        # directory.  Explicit whitelisting should override the *directory*
+        # level denies (e.g. /root) so that apps can opt-in sub-directories
+        # under otherwise-protected parents — the Operator Profile API adds
+        # ~/.zero-employee/ which lives under /root when running as root in
+        # Docker.  Filename-pattern denies (.env, .key, id_rsa, ...) still
+        # apply inside whitelisted directories to keep secrets out of reach.
+        in_whitelist = False
+        for allowed in self._config.allowed_paths:
+            try:
+                allowed_resolved = str(Path(allowed).expanduser().resolve())
+            except (ValueError, OSError):
+                continue
+            if resolved_path == allowed_resolved or resolved_path.startswith(
+                allowed_resolved + "/"
+            ):
+                in_whitelist = True
+                break
+
         # Denied path check (common across all levels)
         for denied in self._config.denied_paths:
             if denied.startswith("/") or denied.startswith("~"):
-                # Absolute path denial rule
+                # Absolute/directory denial rule — bypass when the caller
+                # has explicitly whitelisted a sub-directory.
+                if in_whitelist:
+                    continue
                 denied_resolved = str(Path(denied).expanduser().resolve())
                 if resolved_path == denied_resolved or resolved_path.startswith(
                     denied_resolved + "/"

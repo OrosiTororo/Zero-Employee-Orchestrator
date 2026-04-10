@@ -22,7 +22,7 @@
 
 ## Internationalization
 
-- **6 languages at full parity** — Japanese, English, Chinese, Korean, Portuguese, and Turkish locale files all contain 699 keys with identical section structures.
+- **6 languages at full parity** — Japanese, English, Chinese, Korean, Portuguese, and Turkish locale files all contain 766 keys with identical section structures.
 - **Backend interview i18n** — Organization setup interview questions respond to Accept-Language header. Returns English by default, Japanese when explicitly requested.
 
 ## Desktop UI
@@ -37,7 +37,7 @@
 
 ## AI Model Catalog
 
-- **22 models** across 8 providers. Family-based IDs with automatic latest version resolution.
+- **22 models** across 7 providers (Anthropic, OpenAI, Google Gemini, DeepSeek, Ollama, OpenRouter, g4f). Family-based IDs with automatic latest version resolution. 4 additional models marked deprecated for audit visibility.
 - **5 execution modes** — Quality, Speed, Cost, Free (Ollama), Subscription (g4f). Per-task model override supported via plan_json.
 
 ## Deployment

@@ -24,7 +24,7 @@ ls apps/api/app/
 ```
 apps/api/app/         # FastAPI backend
   core/               # Config, DB, rate limiting, i18n
-  api/routes/         # 46 route modules, 398 endpoints
+  api/routes/         # 46 route modules, 402 endpoints (incl. main.py)
   services/           # 25 services (business logic)
   orchestration/      # DAG, Judge, transparency, CostGuard (24 modules)
   providers/          # LLM gateway, Ollama, g4f, ModelRegistry
@@ -35,7 +35,7 @@ apps/api/app/         # FastAPI backend
   tests/              # pytest + pytest-asyncio
 apps/desktop/         # Tauri v2 + React (Cowork-style layout)
 apps/edge/            # Cloudflare Workers
-skills/builtin/       # 8 Skills (6 system + 2 domain)
+skills/builtin/       # 11 Skills (6 system + 5 domain)
 plugins/              # 16 Plugins (10 general + 6 role-based packs)
 extensions/           # 11 Extensions
 ```
@@ -129,7 +129,7 @@ Write about system behavior changes for end users. Do NOT write about docs/CI/co
 # Security modules: sandbox boundary, PII guard, prompt guard
 ```
 
-14 items: server startup, auth flow, protected endpoints, ticket CRUD, security headers, registry (8/16/11), kill switch, models (22+), themes, languages (6), org setup, monitor, brainstorm, app integrations (63 apps)
+14 items: server startup, auth flow, protected endpoints, ticket CRUD, security headers, registry (11/16/11), kill switch, models (22+), themes, languages (6), org setup, monitor, brainstorm, app integrations (63 apps)
 
 ### Evaluation Criteria
 
@@ -145,4 +145,4 @@ Write about system behavior changes for end users. Do NOT write about docs/CI/co
 
 **Scoring**: 0-10 scale. Overall = (Relative × 0.35) + (Objective × 0.35) + (Additional × 0.30)
 
-**Latest evaluation**: `docs/dev/EVALUATION_v0.1.5_final.md` — 7.5/10 (2026-04-08, 5-session review + all gaps + UX audit + non-engineer fixes)
+**Latest evaluation**: `docs/dev/EVALUATION_v0.1.5_final2.md` — 8.8/10 (2026-04-10, full audit + B-001 sandbox fix for Docker root + doc sync + competitor research)
