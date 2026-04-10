@@ -28,7 +28,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis", "dmg", "appimage", "deb", "rpm"],
+    "targets": ["nsis", "app", "dmg", "appimage", "deb", "rpm"],
     "resources": {
       "../../api/app": "api/app",
       "../../api/pyproject.toml": "api/pyproject.toml",
