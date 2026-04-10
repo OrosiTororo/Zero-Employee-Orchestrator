@@ -201,10 +201,30 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           TAG="${{ github.event_name == 'workflow_dispatch' && format('v{0}', github.event.inputs.version) || github.ref_name }}"
-          gh release upload "${TAG}" extensions/browser-assist/chrome-extension.zip \
-            --clobber \
-            --repo "${GH_REPO}"
-          echo "Uploaded chrome-extension.zip to release ${TAG}"
+          ZIP="extensions/browser-assist/chrome-extension.zip"
+
+          if [ ! -f "$ZIP" ]; then
+            echo "::error::$ZIP not found — the Package step may have failed"
+            exit 1
+          fi
+
+          # Retry up to 3 times with exponential backoff.
+          # The GitHub upload API can return transient 422/50x errors when
+          # concurrent release-asset operations are in flight.
+          for attempt in 1 2 3; do
+            if gh release upload "${TAG}" "$ZIP" \
+                --clobber \
+                --repo "${GH_REPO}"; then
+              echo "Uploaded chrome-extension.zip to release ${TAG}"
+              break
+            elif [ "$attempt" -lt 3 ]; then
+              echo "::warning::Upload attempt ${attempt} failed, retrying in $((attempt * 15))s..."
+              sleep $((attempt * 15))
+            else
+              echo "::error::All ${attempt} upload attempts failed"
+              exit 1
+            fi
+          done
 
   # Merge latest.json fragments from all platforms to prevent race conditions
   merge-updater-json:
@@ -256,9 +276,12 @@ jobs:
             esac
           done
           echo "Linux: $HAS_LINUX, Windows: $HAS_WINDOWS, macOS: $HAS_MACOS"
-          if [ "$HAS_LINUX" = false ] || [ "$HAS_WINDOWS" = false ] || [ "$HAS_MACOS" = false ]; then
-            echo "::error::Missing platform entries in latest.json (Linux=$HAS_LINUX, Windows=$HAS_WINDOWS, macOS=$HAS_MACOS)"
+          if [ "$HAS_LINUX" = false ] || [ "$HAS_WINDOWS" = false ]; then
+            echo "::error::Missing required platform entries in latest.json (Linux=$HAS_LINUX, Windows=$HAS_WINDOWS, macOS=$HAS_MACOS)"
             exit 1
+          fi
+          if [ "$HAS_MACOS" = false ]; then
+            echo "::warning::macOS (darwin) platform entry is missing from latest.json — macOS auto-updates will not work. Ensure 'app' is listed in bundle.targets in tauri.conf.json."
           fi
 
       - name: Upload merged latest.json to release
