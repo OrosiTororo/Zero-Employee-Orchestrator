@@ -78,6 +78,16 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Tauri app
+        # continue-on-error is required to work around tauri-action#1270:
+        # in parallel matrix builds, concurrent jobs race to delete/re-upload
+        # the shared latest.json in the release, causing 404 errors on the
+        # deleteReleaseAsset call. The action writes latest.json to disk
+        # (process.cwd()) BEFORE attempting the delete/upload, so the file
+        # exists locally even when the upload fails. The fragment step below
+        # copies it for the merge-updater-json job. If the build itself fails
+        # (compilation error, no .sig files), latest.json is never written and
+        # the fragment step exits 1 — correctly failing this job.
+        continue-on-error: true
         uses: tauri-apps/tauri-action@action-v0.6.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
