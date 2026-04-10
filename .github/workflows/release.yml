@@ -63,7 +63,16 @@ jobs:
         if: matrix.target == 'linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+
+      - name: Configure Linux AppImage build environment
+        if: matrix.target == 'linux'
+        run: |
+          # linuxdeploy (used by Tauri to build AppImages) is itself an AppImage.
+          # On ubuntu-24.04, FUSE 2 is not available, so we must use extract-and-run mode.
+          # NO_STRIP prevents failures caused by modern .relr.dyn ELF sections in Ubuntu 24.04 glibc.
+          echo "APPIMAGE_EXTRACT_AND_RUN=1" >> "$GITHUB_ENV"
+          echo "NO_STRIP=true" >> "$GITHUB_ENV"
 
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
