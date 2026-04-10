@@ -4,16 +4,20 @@ Exposes Zero-Employee Orchestrator's core capabilities (tickets, tasks, skills,
 knowledge, audit, autonomy, budgets, kill-switch, etc.) over the
 Model Context Protocol so that external AI agents and IDEs can drive ZEO.
 
-Two transports are provided by the route layer:
+Four transports are provided:
   - REST convenience wrapper: ``GET /mcp/tools``, ``POST /mcp/tools/call``, …
   - JSON-RPC 2.0 endpoint:    ``POST /mcp/rpc``         (spec-compliant)
   - Streaming (SSE) endpoint: ``GET  /mcp/sse``         (push notifications)
+  - stdio transport:          ``zero-employee mcp serve`` (Claude Desktop)
 
-The JSON-RPC endpoint implements the methods defined by the MCP
-2024-11-05 / 2025-11-25 specification — ``initialize``, ``ping``,
-``tools/list``, ``tools/call``, ``resources/list``, ``resources/read``,
-``prompts/list`` — so any MCP-compatible client (Claude Desktop, Cursor,
-Continue, custom agents) can connect with zero custom glue code.
+The JSON-RPC dispatch implements the methods defined by the MCP
+2025-11-25 specification — ``initialize``, ``ping``, ``tools/list``,
+``tools/call``, ``resources/list``, ``resources/read``, ``prompts/list``,
+``prompts/get``, ``logging/setLevel`` — so any MCP-compatible client
+(Claude Desktop, Cursor, Continue, custom agents) can connect with zero
+custom glue code. Tools advertise hint metadata (``readOnlyHint``,
+``destructiveHint``, ``idempotentHint``) per the spec so hosts can show
+safety affordances before invoking them.
 
 Reference: https://modelcontextprotocol.io/specification
 """
@@ -29,7 +33,22 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 # MCP protocol version we advertise on ``initialize``. Clients negotiate down.
-MCP_PROTOCOL_VERSION = "2024-11-05"
+# v0.1.6 ships the 2025-11-25 revision (adds tool annotations + logging).
+MCP_PROTOCOL_VERSION = "2025-11-25"
+# Previous revisions we still accept on ``initialize`` negotiation.
+MCP_SUPPORTED_PROTOCOL_VERSIONS = ("2025-11-25", "2024-11-05")
+
+# Python logging level aliases accepted by ``logging/setLevel``.
+_LOG_LEVEL_MAP: dict[str, int] = {
+    "debug": logging.DEBUG,
+    "info": logging.INFO,
+    "notice": logging.INFO,
+    "warning": logging.WARNING,
+    "error": logging.ERROR,
+    "critical": logging.CRITICAL,
+    "alert": logging.CRITICAL,
+    "emergency": logging.CRITICAL,
+}
 
 
 class MCPCapability(str, Enum):
@@ -40,19 +59,46 @@ class MCPCapability(str, Enum):
 
 @dataclass
 class MCPTool:
-    """MCP exposed tool."""
+    """MCP exposed tool.
+
+    ``title`` is a human-friendly label used by rich clients. The three
+    hint flags follow the MCP 2025-11-25 ``annotations`` object so host
+    applications can render safety affordances (read-only badge,
+    destructive-action warning) before invoking the tool.
+    """
 
     name: str
     description: str
     input_schema: dict[str, Any] = field(default_factory=dict)
     handler: Callable[[dict[str, Any]], Any] | None = None
+    title: str | None = None
+    read_only_hint: bool = False
+    destructive_hint: bool = False
+    idempotent_hint: bool = False
+    open_world_hint: bool = False
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "name": self.name,
             "description": self.description,
             "inputSchema": self.input_schema,
         }
+        if self.title:
+            out["title"] = self.title
+        annotations: dict[str, Any] = {}
+        if self.title:
+            annotations["title"] = self.title
+        if self.read_only_hint:
+            annotations["readOnlyHint"] = True
+        if self.destructive_hint:
+            annotations["destructiveHint"] = True
+        if self.idempotent_hint:
+            annotations["idempotentHint"] = True
+        if self.open_world_hint:
+            annotations["openWorldHint"] = True
+        if annotations:
+            out["annotations"] = annotations
+        return out
 
 
 @dataclass
@@ -168,10 +214,16 @@ class MCPServer:
         return cls._DEFAULT_VERSION
 
     def _register_builtin_tools(self) -> None:
-        """Register built-in tools."""
+        """Register built-in tools.
+
+        Tool annotations (``readOnlyHint``, ``destructiveHint``,
+        ``idempotentHint``) follow the MCP 2025-11-25 spec so clients can
+        render safety affordances before invoking a destructive action.
+        """
         tools = [
             MCPTool(
                 name="create_ticket",
+                title="Create Ticket",
                 description="Create a new business ticket in ZEO",
                 input_schema={
                     "type": "object",
@@ -185,9 +237,11 @@ class MCPServer:
                     },
                     "required": ["title"],
                 },
+                destructive_hint=True,
             ),
             MCPTool(
                 name="list_tickets",
+                title="List Tickets",
                 description="Retrieve the current ticket list",
                 input_schema={
                     "type": "object",
@@ -196,9 +250,12 @@ class MCPServer:
                         "limit": {"type": "integer", "default": 20},
                     },
                 },
+                read_only_hint=True,
+                idempotent_hint=True,
             ),
             MCPTool(
                 name="get_agent_status",
+                title="Get Agent Status",
                 description="Get the current status of a running agent",
                 input_schema={
                     "type": "object",
@@ -207,9 +264,12 @@ class MCPServer:
                     },
                     "required": ["agent_id"],
                 },
+                read_only_hint=True,
+                idempotent_hint=True,
             ),
             MCPTool(
                 name="search_knowledge",
+                title="Search Knowledge Base",
                 description="Search the persistent knowledge base (Experience Memory)",
                 input_schema={
                     "type": "object",
@@ -222,9 +282,12 @@ class MCPServer:
                     },
                     "required": ["query"],
                 },
+                read_only_hint=True,
+                idempotent_hint=True,
             ),
             MCPTool(
                 name="execute_skill",
+                title="Execute Skill",
                 description="Dispatch a registered skill by slug",
                 input_schema={
                     "type": "object",
@@ -234,9 +297,11 @@ class MCPServer:
                     },
                     "required": ["skill_slug"],
                 },
+                destructive_hint=True,
             ),
             MCPTool(
                 name="list_skills",
+                title="List Skills",
                 description="List all registered skills (built-in + imported)",
                 input_schema={
                     "type": "object",
@@ -244,9 +309,12 @@ class MCPServer:
                         "enabled_only": {"type": "boolean", "default": False},
                     },
                 },
+                read_only_hint=True,
+                idempotent_hint=True,
             ),
             MCPTool(
                 name="get_audit_logs",
+                title="Get Audit Logs",
                 description="Retrieve the audit log tail",
                 input_schema={
                     "type": "object",
@@ -258,14 +326,19 @@ class MCPServer:
                         },
                     },
                 },
+                read_only_hint=True,
+                idempotent_hint=True,
             ),
             MCPTool(
                 name="monitor_executions",
+                title="Monitor Executions",
                 description="Monitor running task executions",
                 input_schema={"type": "object", "properties": {}},
+                read_only_hint=True,
             ),
             MCPTool(
                 name="propose_hypothesis",
+                title="Propose Hypothesis",
                 description="Propose a hypothesis and kick off parallel verification",
                 input_schema={
                     "type": "object",
@@ -276,24 +349,35 @@ class MCPServer:
                     },
                     "required": ["title", "description"],
                 },
+                destructive_hint=True,
             ),
             MCPTool(
                 name="get_kill_switch_status",
+                title="Kill-Switch Status",
                 description="Inspect the global kill-switch that halts all agent execution",
                 input_schema={"type": "object", "properties": {}},
+                read_only_hint=True,
+                idempotent_hint=True,
             ),
             MCPTool(
                 name="get_autonomy_level",
+                title="Autonomy Level",
                 description="Read the current autonomy boundary level (0-10)",
                 input_schema={"type": "object", "properties": {}},
+                read_only_hint=True,
+                idempotent_hint=True,
             ),
             MCPTool(
                 name="get_budget_status",
+                title="Budget Status",
                 description="Get Cost Guard budget usage and daily/hourly spend",
                 input_schema={"type": "object", "properties": {}},
+                read_only_hint=True,
+                idempotent_hint=True,
             ),
             MCPTool(
                 name="list_approvals",
+                title="List Pending Approvals",
                 description="List pending approval requests awaiting human review",
                 input_schema={
                     "type": "object",
@@ -301,11 +385,16 @@ class MCPServer:
                         "limit": {"type": "integer", "default": 20},
                     },
                 },
+                read_only_hint=True,
+                idempotent_hint=True,
             ),
             MCPTool(
                 name="get_server_info",
+                title="Server Info",
                 description="Return ZEO version, endpoint count and uptime",
                 input_schema={"type": "object", "properties": {}},
+                read_only_hint=True,
+                idempotent_hint=True,
             ),
         ]
 
@@ -423,9 +512,7 @@ class MCPServer:
                     skills = [s for s in skills if getattr(s, "enabled", True)]
                 if not skills:
                     return "No skills registered."
-                lines = [
-                    f"- {getattr(s, 'slug', '?')} ({getattr(s, 'name', '?')})" for s in skills
-                ]
+                lines = [f"- {getattr(s, 'slug', '?')} ({getattr(s, 'name', '?')})" for s in skills]
                 return f"Found {len(skills)} skill(s):\n" + "\n".join(lines)
         except Exception as e:
             return f"Error listing skills: {e}"
@@ -653,9 +740,21 @@ class MCPServer:
     # --- MCP Protocol Handlers ---
 
     async def handle_initialize(self, params: dict[str, Any]) -> dict[str, Any]:
-        """MCP ``initialize`` handler."""
+        """MCP ``initialize`` handler.
+
+        Negotiates the protocol version with the client: if the client
+        requests one of our supported revisions we echo it back, otherwise
+        we fall back to the latest revision we ship so the client can
+        decide whether to proceed or abort.
+        """
+        requested = params.get("protocolVersion") if isinstance(params, dict) else None
+        negotiated = (
+            requested
+            if isinstance(requested, str) and requested in MCP_SUPPORTED_PROTOCOL_VERSIONS
+            else MCP_PROTOCOL_VERSION
+        )
         return {
-            "protocolVersion": MCP_PROTOCOL_VERSION,
+            "protocolVersion": negotiated,
             "capabilities": {
                 "tools": {"listChanged": True},
                 "resources": {"subscribe": True, "listChanged": True},
@@ -672,6 +771,23 @@ class MCPServer:
                 "audit, kill-switch, autonomy and budget tools."
             ),
         }
+
+    async def handle_set_log_level(self, level: str) -> dict[str, Any]:
+        """Implement the MCP ``logging/setLevel`` method.
+
+        Maps the RFC 5424 level names accepted by the spec onto Python's
+        ``logging`` module and applies the new level to the ZEO package
+        logger. Invalid levels return an error payload instead of raising.
+        """
+        normalized = (level or "").strip().lower()
+        if normalized not in _LOG_LEVEL_MAP:
+            return {
+                "error": f"Unknown log level: {level!r}. Valid: {sorted(_LOG_LEVEL_MAP)}",
+                "isError": True,
+            }
+        logging.getLogger("app").setLevel(_LOG_LEVEL_MAP[normalized])
+        logger.info("MCP logging level set to %s", normalized)
+        return {}
 
     async def handle_list_tools(self) -> dict[str, Any]:
         return {"tools": [t.to_dict() for t in self._tools.values()]}
@@ -801,6 +917,13 @@ class MCPServer:
                         rpc_id, JSONRPC_INVALID_PARAMS, "Missing 'name' parameter"
                     )
                 result = await self.handle_get_prompt(name, params.get("arguments"))
+            elif method == "logging/setLevel":
+                level = params.get("level")
+                if not isinstance(level, str):
+                    return self._jsonrpc_error(
+                        rpc_id, JSONRPC_INVALID_PARAMS, "Missing 'level' parameter"
+                    )
+                result = await self.handle_set_log_level(level)
             else:
                 return self._jsonrpc_error(
                     rpc_id, JSONRPC_METHOD_NOT_FOUND, f"Method not found: {method}"
@@ -838,6 +961,103 @@ class _SafeDict(dict):
 
     def __missing__(self, key: str) -> str:  # pragma: no cover - trivial
         return "{" + key + "}"
+
+
+# ----------------------------------------------------------------------
+# stdio transport — Claude Desktop / Cursor / Continue drop-in
+# ----------------------------------------------------------------------
+
+
+async def _parse_stdio_line(raw: str) -> dict[str, Any] | list[Any] | None:
+    """Parse a single line from stdio into a JSON-RPC payload."""
+    import json as _json
+
+    raw = raw.strip()
+    if not raw:
+        return None
+    try:
+        return _json.loads(raw)
+    except _json.JSONDecodeError:
+        return None
+
+
+async def run_stdio_server(
+    server: MCPServer | None = None,
+    *,
+    reader: Any | None = None,
+    writer: Any | None = None,
+) -> None:
+    """Run the MCP server over stdin/stdout using newline-delimited JSON.
+
+    This is the transport Claude Desktop, Cursor, and Continue use when
+    they are configured with ``{"command": "zero-employee", "args":
+    ["mcp", "serve"]}``. Each line on stdin is a JSON-RPC request (or a
+    batch); responses are written as newline-delimited JSON on stdout.
+
+    ``reader``/``writer`` can be injected for testing so the loop can run
+    against in-memory buffers instead of the real stdio file descriptors.
+    """
+    import asyncio as _asyncio
+    import json as _json
+    import sys as _sys
+
+    server = server or mcp_server
+
+    async def _read_line() -> str | None:
+        if reader is not None:
+            line = await reader.readline()
+            if not line:
+                return None
+            return line.decode("utf-8") if isinstance(line, (bytes, bytearray)) else line
+        # Fall back to blocking stdin read via a thread so we don't block
+        # the event loop. EOF returns ``""`` which we translate to None.
+        line = await _asyncio.to_thread(_sys.stdin.readline)
+        if line == "":
+            return None
+        return line
+
+    def _write(payload: Any) -> None:
+        text = _json.dumps(payload, ensure_ascii=False) + "\n"
+        if writer is not None:
+            writer.write(text.encode("utf-8") if hasattr(writer, "write") else text)
+            if hasattr(writer, "drain"):
+                # best-effort; callers using asyncio StreamWriter should await drain themselves
+                pass
+        else:
+            _sys.stdout.write(text)
+            _sys.stdout.flush()
+
+    logger.info("MCP stdio transport ready (%d tools)", len(server._tools))
+
+    while True:
+        line = await _read_line()
+        if line is None:
+            logger.info("MCP stdio transport: EOF, shutting down")
+            return
+        payload = await _parse_stdio_line(line)
+        if payload is None:
+            _write(
+                {
+                    "jsonrpc": "2.0",
+                    "id": None,
+                    "error": {"code": JSONRPC_PARSE_ERROR, "message": "Parse error"},
+                }
+            )
+            continue
+
+        if isinstance(payload, list):
+            responses: list[dict[str, Any]] = []
+            for item in payload:
+                resp = await server.handle_jsonrpc(item)
+                if resp is not None:
+                    responses.append(resp)
+            if responses:
+                _write(responses)
+            continue
+
+        response = await server.handle_jsonrpc(payload)
+        if response is not None:
+            _write(response)
 
 
 # Global singleton

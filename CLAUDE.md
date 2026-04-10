@@ -30,12 +30,12 @@ apps/api/app/         # FastAPI backend
   providers/          # LLM gateway, Ollama, g4f, ModelRegistry
   security/           # sandbox, pii_guard, prompt_guard, iam, workspace_isolation
   policies/           # approval_gate, autonomy_boundary
-  integrations/       # app_connector (63 apps), media, MCP (14 tools, JSON-RPC 2.0), browser-assist
+  integrations/       # app_connector (63 apps), media, MCP (14 tools, JSON-RPC 2.0 + stdio), browser-assist
   tools/              # MCP, browser_adapter, agent_adapter
   tests/              # pytest + pytest-asyncio
 apps/desktop/         # Tauri v2 + React (Cowork-style layout)
 apps/edge/            # Cloudflare Workers
-skills/builtin/       # 11 Skills (6 system + 5 domain)
+skills/builtin/       # 8 Skills (all system-protected: spec/plan/task/review/summarizer/local/domain/browser-assist)
 plugins/              # 16 Plugins (10 general + 6 role-based packs)
 extensions/           # 11 Extensions
 ```
@@ -46,8 +46,9 @@ extensions/           # 11 Extensions
 zero-employee serve --reload        # Dev server (port 18234)
 zero-employee chat                  # Interactive CLI (NL + slash commands)
 zero-employee mcp info              # Inspect the built-in MCP server
-zero-employee mcp tools             # List all MCP tools
+zero-employee mcp tools             # List all MCP tools (with annotations)
 zero-employee mcp call <name>       # Smoke-test an MCP tool locally
+zero-employee mcp serve             # stdio transport for Claude Desktop / Cursor / Continue
 pytest apps/api/app/tests/          # Tests
 ruff check apps/api/app/ && ruff format apps/api/app/  # Lint
 ./scripts/bump-version.sh X.Y.Z    # Update ALL 8 version files

@@ -11,14 +11,29 @@ drive ZEO natively — no custom glue code.
 - **JSON-RPC 2.0 transport** — new endpoint `POST /api/v1/mcp/rpc`
   implementing `initialize`, `ping`, `tools/list`, `tools/call`,
   `resources/list`, `resources/read`, `prompts/list`, `prompts/get`,
-  notifications, and JSON-RPC batch requests (`integrations/mcp_server.py`,
-  `api/routes/platform.py`).
+  `logging/setLevel`, notifications, and JSON-RPC batch requests
+  (`integrations/mcp_server.py`, `api/routes/platform.py`).
 - **Streaming transport** — new endpoint `GET /api/v1/mcp/sse` emits
   Server-Sent Events for push notifications and heartbeat.
+- **stdio transport** — new `zero-employee mcp serve` subcommand runs
+  the MCP server over stdin/stdout using newline-delimited JSON-RPC so
+  Claude Desktop, Cursor and Continue can be pointed at ZEO with a
+  `{"command": "zero-employee", "args": ["mcp", "serve"]}` config block
+  instead of an HTTP proxy.
+- **MCP protocol 2025-11-25** — `initialize` advertises the latest
+  spec revision and negotiates down to `2024-11-05` if a client asks
+  for the older version. Tools expose the new `annotations` object
+  (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `title`) so
+  hosts can render safety affordances before invoking destructive
+  actions (`create_ticket`, `execute_skill`, `propose_hypothesis`).
+- **`logging/setLevel` method** — clients can adjust the server-side
+  logging level at runtime; unknown levels return a clean error
+  payload instead of raising.
 - **14 built-in MCP tools** — tickets, tasks, skills, knowledge,
   audit, agent status, kill-switch status, autonomy level,
   Cost Guard budget, approval queue, hypothesis proposal, and
-  `get_server_info` (up from 8 in v0.1.5).
+  `get_server_info` (up from 8 in v0.1.5). All 14 now carry
+  annotation metadata.
 - **6 built-in resources** (dashboard, agents, skills, knowledge,
   kill-switch, autonomy) and **3 built-in prompts** (task planning,
   code review, security audit).
@@ -27,11 +42,17 @@ drive ZEO natively — no custom glue code.
   of a hard-coded string, so the MCP `initialize` handshake always
   matches the running build.
 - **CLI integration** — new `zero-employee mcp` subcommand with
-  `info`, `tools`, and `call` actions for local smoke testing.
-- **16 new tests** — `apps/api/app/tests/test_mcp_server.py` covers
-  every JSON-RPC method, notifications, parse errors, batch requests,
-  prompt rendering, and HTTP transport round-trips. Total test count:
-  **622 passing, 0 failing** (up from 467 in v0.1.5 final2).
+  `info`, `tools`, `call`, and `serve` actions. All three read
+  subcommands honor `--json` for clean scripting output, and
+  `mcp tools` prints the annotation hints inline. `mcp serve`
+  suppresses the banner so stdout stays a clean JSON-RPC channel.
+- **25 MCP tests** — `apps/api/app/tests/test_mcp_server.py` covers
+  every JSON-RPC method (including `logging/setLevel`), tool
+  annotations, protocol-version negotiation, prompt rendering with
+  missing arguments, invalid top-level payloads, and a full stdio
+  transport round-trip with an in-memory reader/writer. Total test
+  count: **631 passing, 0 failing** (up from 467 in v0.1.5 final2,
+  +164).
 - **Response-model fix** — `MCPCapabilitiesResponse` now declares
   `tools: list[str]` instead of `list[dict]`, unblocking the previously
   broken `GET /api/v1/mcp/capabilities` endpoint.
@@ -59,7 +80,11 @@ extend the platform.
 ### Fix — Documentation drift since v0.1.5
 
 - `CLAUDE.md` — endpoint count corrected from 402 to **408** and the
-  MCP integration line now reflects 14 tools + JSON-RPC 2.0.
+  MCP integration line now reflects 14 tools + JSON-RPC 2.0 + stdio.
+- `CLAUDE.md` — skill count drift corrected from the stale
+  "11 Skills (6 system + 5 domain)" claim back to the runtime-verified
+  **8 built-in skills (all system-protected)**. README's directory
+  map received the same fix.
 - `CLAUDE.md` — latest-evaluation pointer updated to
   `docs/dev/EVALUATION_v0.1.6_mcp.md`.
 - `/.well-known/agent.json` — A2A agent card version bumped

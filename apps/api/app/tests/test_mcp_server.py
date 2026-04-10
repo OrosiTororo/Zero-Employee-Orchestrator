@@ -2,17 +2,25 @@
 
 from __future__ import annotations
 
+import asyncio
+import json
+import logging
+
 import pytest
 from httpx import AsyncClient
 
 from app.integrations.mcp_server import (
     JSONRPC_INVALID_PARAMS,
+    JSONRPC_INVALID_REQUEST,
     JSONRPC_METHOD_NOT_FOUND,
+    JSONRPC_PARSE_ERROR,
     MCP_PROTOCOL_VERSION,
+    MCP_SUPPORTED_PROTOCOL_VERSIONS,
     MCPServer,
+    MCPTool,
     mcp_server,
+    run_stdio_server,
 )
-
 
 # ---------------------------------------------------------------------------
 # In-process MCPServer unit tests
@@ -107,9 +115,7 @@ async def test_jsonrpc_tools_call_missing_name_returns_invalid_params():
 
 @pytest.mark.asyncio
 async def test_jsonrpc_method_not_found():
-    resp = await mcp_server.handle_jsonrpc(
-        {"jsonrpc": "2.0", "id": 6, "method": "does_not_exist"}
-    )
+    resp = await mcp_server.handle_jsonrpc({"jsonrpc": "2.0", "id": 6, "method": "does_not_exist"})
     assert resp["error"]["code"] == JSONRPC_METHOD_NOT_FOUND
 
 
@@ -124,9 +130,7 @@ async def test_jsonrpc_notification_returns_none():
 
 @pytest.mark.asyncio
 async def test_jsonrpc_resources_list_and_read():
-    resp = await mcp_server.handle_jsonrpc(
-        {"jsonrpc": "2.0", "id": 7, "method": "resources/list"}
-    )
+    resp = await mcp_server.handle_jsonrpc({"jsonrpc": "2.0", "id": 7, "method": "resources/list"})
     resources = resp["result"]["resources"]
     assert any(r["uri"] == "zero-employee://dashboard" for r in resources)
 
@@ -240,3 +244,185 @@ async def test_http_mcp_jsonrpc_batch(client: AsyncClient):
     assert len(body) == 2
     assert body[0]["result"] == {}
     assert "tools" in body[1]["result"]
+
+
+# ---------------------------------------------------------------------------
+# v0.1.6 refinement tests — annotations, logging/setLevel, protocol negotiation,
+# malformed payloads, stdio transport loop
+# ---------------------------------------------------------------------------
+
+
+def test_protocol_version_is_2025_11_25():
+    """v0.1.6 advertises the MCP 2025-11-25 revision."""
+    assert MCP_PROTOCOL_VERSION == "2025-11-25"
+    assert "2024-11-05" in MCP_SUPPORTED_PROTOCOL_VERSIONS
+
+
+def test_tool_annotations_exposed_on_list():
+    """Each tool should advertise MCP 2025-11-25 annotation hints."""
+    tools = {t.name: t for t in mcp_server._tools.values()}
+    # Destructive actions
+    assert tools["create_ticket"].destructive_hint is True
+    assert tools["execute_skill"].destructive_hint is True
+    assert tools["propose_hypothesis"].destructive_hint is True
+    # Pure observability (read-only + idempotent)
+    for name in (
+        "list_tickets",
+        "search_knowledge",
+        "get_audit_logs",
+        "get_kill_switch_status",
+        "get_autonomy_level",
+        "get_budget_status",
+        "list_approvals",
+        "get_server_info",
+    ):
+        assert tools[name].read_only_hint is True, f"{name} should be read-only"
+
+    # to_dict should serialize annotations
+    payload = tools["create_ticket"].to_dict()
+    assert payload["annotations"]["destructiveHint"] is True
+    assert payload["annotations"]["title"] == "Create Ticket"
+
+    read_only_payload = tools["list_tickets"].to_dict()
+    assert read_only_payload["annotations"]["readOnlyHint"] is True
+    assert read_only_payload["annotations"]["idempotentHint"] is True
+
+
+@pytest.mark.asyncio
+async def test_jsonrpc_initialize_negotiates_old_protocol():
+    """A client that asks for 2024-11-05 must get 2024-11-05 echoed back."""
+    resp = await mcp_server.handle_jsonrpc(
+        {
+            "jsonrpc": "2.0",
+            "id": 11,
+            "method": "initialize",
+            "params": {"protocolVersion": "2024-11-05"},
+        }
+    )
+    assert resp["result"]["protocolVersion"] == "2024-11-05"
+
+
+@pytest.mark.asyncio
+async def test_jsonrpc_logging_set_level():
+    prev = logging.getLogger("app").level
+    try:
+        resp = await mcp_server.handle_jsonrpc(
+            {
+                "jsonrpc": "2.0",
+                "id": 12,
+                "method": "logging/setLevel",
+                "params": {"level": "debug"},
+            }
+        )
+        assert resp["result"] == {}
+        assert logging.getLogger("app").level == logging.DEBUG
+
+        bad = await mcp_server.handle_jsonrpc(
+            {
+                "jsonrpc": "2.0",
+                "id": 13,
+                "method": "logging/setLevel",
+                "params": {"level": "lol"},
+            }
+        )
+        assert bad["result"]["isError"] is True
+
+        missing = await mcp_server.handle_jsonrpc(
+            {"jsonrpc": "2.0", "id": 14, "method": "logging/setLevel", "params": {}}
+        )
+        assert missing["error"]["code"] == JSONRPC_INVALID_PARAMS
+    finally:
+        logging.getLogger("app").setLevel(prev)
+
+
+@pytest.mark.asyncio
+async def test_jsonrpc_rejects_non_dict_payload():
+    """A bare string / list / None at the top level is Invalid Request."""
+    for bad in ("not-a-dict", None, 42):
+        resp = await mcp_server.handle_jsonrpc(bad)  # type: ignore[arg-type]
+        assert resp is not None
+        assert resp["error"]["code"] == JSONRPC_INVALID_REQUEST
+
+
+@pytest.mark.asyncio
+async def test_jsonrpc_rejects_missing_jsonrpc_version():
+    """A payload without ``jsonrpc: "2.0"`` must be rejected."""
+    resp = await mcp_server.handle_jsonrpc({"id": 99, "method": "ping"})
+    assert resp["error"]["code"] == JSONRPC_INVALID_REQUEST
+
+
+@pytest.mark.asyncio
+async def test_prompt_format_map_tolerates_missing_arg():
+    """``prompts/get`` with a missing optional arg must not raise KeyError."""
+    resp = await mcp_server.handle_jsonrpc(
+        {
+            "jsonrpc": "2.0",
+            "id": 15,
+            "method": "prompts/get",
+            "params": {
+                "name": "task_planning",
+                "arguments": {"objective": "Only objective, no constraints"},
+            },
+        }
+    )
+    rendered = resp["result"]["messages"][0]["content"]["text"]
+    assert "Only objective" in rendered
+    # Missing key is preserved as a literal {constraints} placeholder
+    assert "{constraints}" in rendered
+
+
+class _FakeReader:
+    def __init__(self, lines: list[bytes]) -> None:
+        self._lines = list(lines)
+
+    async def readline(self) -> bytes:
+        if not self._lines:
+            return b""
+        return self._lines.pop(0)
+
+
+class _FakeWriter:
+    def __init__(self) -> None:
+        self.buffer: list[str] = []
+
+    def write(self, data) -> None:  # type: ignore[no-untyped-def]
+        self.buffer.append(data.decode("utf-8") if isinstance(data, (bytes, bytearray)) else data)
+
+
+@pytest.mark.asyncio
+async def test_stdio_transport_roundtrip():
+    """Feed a ping + tools/list + bogus JSON through the stdio loop."""
+    reader = _FakeReader(
+        [
+            b'{"jsonrpc":"2.0","id":1,"method":"ping"}\n',
+            b'{"jsonrpc":"2.0","id":2,"method":"tools/list"}\n',
+            b"not-json\n",
+            b'{"jsonrpc":"2.0","method":"notifications/initialized"}\n',
+            b"",  # EOF
+        ]
+    )
+    writer = _FakeWriter()
+    await asyncio.wait_for(run_stdio_server(mcp_server, reader=reader, writer=writer), timeout=5)
+    lines = [json.loads(line) for line in writer.buffer if line.strip()]
+    # 3 responses expected: ping, tools/list, parse error. Notification
+    # produces no output.
+    assert len(lines) == 3
+    assert lines[0]["result"] == {}
+    assert "tools" in lines[1]["result"]
+    assert lines[2]["error"]["code"] == JSONRPC_PARSE_ERROR
+
+
+def test_custom_tool_registration_preserves_annotations():
+    """Custom tools pushed through register_tool keep their hints."""
+    srv = MCPServer()
+    srv.register_tool(
+        MCPTool(
+            name="custom_delete",
+            description="Custom",
+            destructive_hint=True,
+            idempotent_hint=False,
+        )
+    )
+    assert srv._tools["custom_delete"].destructive_hint is True
+    payload = srv._tools["custom_delete"].to_dict()
+    assert payload["annotations"]["destructiveHint"] is True
