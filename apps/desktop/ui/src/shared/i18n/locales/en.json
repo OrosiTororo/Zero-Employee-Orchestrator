@@ -2,7 +2,7 @@
   "common": {
     "appName": "Zero-Employee Orchestrator",
     "appTagline": "AI Business Orchestration Platform",
-    "version": "v0.1.5",
+    "version": "v0.1.6",
     "back": "Back",
     "next": "Next",
     "save": "Save",

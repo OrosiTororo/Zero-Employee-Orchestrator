@@ -2,7 +2,7 @@
   "common": {
     "appName": "Zero-Employee Orchestrator",
     "appTagline": "Plataforma de Orquestração Empresarial com IA",
-    "version": "v0.1.5",
+    "version": "v0.1.6",
     "back": "Voltar",
     "next": "Avançar",
     "save": "Salvar",

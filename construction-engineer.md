@@ -1,281 +1,296 @@
-# 非エンジニアが"指揮官AI"を間に挟んだら、Claude Codeが別物になった話【プロンプト全文付き】
+# Construction Engineer — Orchestration Topology for Zero-Employee Orchestrator
 
-Claude Codeを使っている人が増えました。  
-でも「直接話しかけて、直接やらせている」人がほとんどだと思います。
-
-僕はエンジニアじゃありません。コードは読めないし書けない。それでもClaude Codeで4サイト分のSEO記事パイプラインを構築して、日常運用しています。  
-理由は一つ。**Claude Codeに直接指示を出していない**からです。
-
-「え、じゃあ誰が出してるの？」と思うかもしれません。  
-Claudeのプロジェクトで作った**「指揮官AI」**が出しています。  
-僕がやっているのは、指揮官との対話だけです。
-
-この構造にたどり着いたのは、最初に盛大にやらかしたから。  
-この記事では、僕が2週間かけて構築した仕組みが崩壊した経緯と、そこから再構築した方法を全部書きました。  
-非エンジニアでもClaude Codeを完璧に操縦できる、オリジナルのプロンプトも公開しています。
-
-最後まで読めば、「Claude Codeに直接話しかけて、なんかうまくいかない」が終わります。
+> **Role:** Construction Engineer
+> **Scope:** Design the DAGs, approval gates, judge topology, and failure
+> rollbacks that turn individual Skills into trustworthy ZEO workflows.
+> **Counterpart:** [Skills Engineer](skills-engineer.md) — defines the
+> persona contracts that the topologies call.
 
 ---
 
-## 暴走を止めた。でも、それだけでは足りなかった
-
-Claude Codeは「優秀すぎて余計なことをする新入社員」だった
-
-4サイトのSEO記事パイプラインをClaude Codeに構築させました。  
-キーワード抽出、構成設計、ライティング、画像生成、レビュー。それぞれ専門のAI人格を用意してあります。
-
-初めはうまく動いていました。  
-ところがClaude Codeが、ライター人格の仕事を勝手に実行し始めたんです。  
-キーワード抽出も構成設計も、専門AIがいるのにClaude Codeが自分でやってしまう。  
-禁止しても「僕がやった方が早いです」的な挙動で従わない。  
-パイプラインが崩壊しました。
-
-この暴走をどう止めたかは、skills-engineer.mdに書きました。  
-
-**SKILL.mdに「人格」を入れる**ことで、Claude Code内部の制御はできました。  
-でも、それだけでは足りませんでした。
-
-## Claude Code内部を整えても残った「根本的な問題」
-
-暴走は止まりました。でも設計議論をClaude Codeの中でやっている限り、別の問題が残り続けました。
-
-「この機能どう実装する？」と聞く → Claude Codeが提案する → 「いやこっちの方が」と議論になる → 「じゃあそれで」と実装に入る。
-
-この「考える→作る」を同じセッションでやると、実装に入る頃にはコンテキストの半分が議論の残骸で埋まっています。  
-Claude Code内部の整備だけでは足りません。  
-**Claude Codeの「外」に構造を作る必要がありました。**
-
-## Claude Codeの「見えない弱点」  
-
-会話すればするほど劣化する。これは仕様です
-
-Claude Codeは1セッション内のコンテキストウィンドウが全てです。会話で学習しません。  
-「これ作って」「やっぱりこうして」「いや待って」とやるたびにコンテキストが埋まります。  
-コンテキストが埋まるとClaude Codeが指示を無視し始めます。前半で言ったことを忘れる。品質がガタ落ちする。
-
-これはバグではありません。**仕様です**。  
-Claude Code公式ドキュメントにも「コンテキストウィンドウは最も重要なリソース。埋まると性能が劣化する」と明記されています。
-
-## 「考える」と「作る」を同じ場所でやるのが元凶
-
-多くの人がClaude Codeに「何を作るか考えさせて」「それを作らせて」を同じセッションでやっています。  
-「考える」パートで消費したトークンは全部コンテキストに残ります。  
-Claude Codeにとっては、議論の残骸も指示の一部です。  
-ノイズまみれの指示書を渡しているのと同じなんです。
-
-## 「指揮官AI」を間に置くという解決策
-
-思いついたのがClaudeのプロジェクトでした。
-
-- **Claudeのプロジェクト** → 知識を蓄積できる。長文の文脈を保持できる。設計議論に向いている  
-- **Claude Code** → コードを書ける。ファイルを操作できる。実行に向いている
-
-ほとんどの人がどちらか一方しか使っていません。両方使っている人でも、役割を分けていない。
-
-僕はAIを触り始めた頃から「プロンプトマイスター」という専門人格をClaudeのプロジェクトに作っていました。  
-こいつが**指揮官**です。
-
-**指揮官の仕事は「考える」こと。Claude Codeの仕事は「作る」こと。**
-
-プロンプトマイスターには、サービスの思想、品質基準、トーン設計、Claude Code公式仕様を全部ナレッジとして持たせています。
-
-僕が「こういう機能を実装したい」と言うと、マイスターがまず質問してきます。  
-「それは技術実装ですか、コンテンツ設計ですか」「既存のマニュアルとの整合性は」「この変更で他の仕組みに影響が出ますが、どうしますか」
-
-この質問に答える過程で、僕自身の構想が整理されます。疑問が出る。議論になる。解消する。  
-そして最後に**「Claude Code宛指示」だけが出力されます**。
-
-Claude Codeが受け取るのは、議論の結果だけ。議論の過程は一切入りません。
-
-## 実際の流れを見せます  
-
-ある機能実装の全工程
-
-例：記事制作パイプラインに「推敲を自動で行うフロー」を組み込みたい場面。
-
-僕がマイスターに「記事が完成した後、自動で推敲チェックが走る仕組みを入れたい」と伝えます。
-
-マイスターが聞いてきます。  
-
-- 「どのタイミングで推敲を走らせますか」  
-- 「品質基準は既存のレビュアーと同じですか、別ですか」  
-- 「不合格のとき、記事の公開をブロックしますか、通知だけにしますか」
-
-僕が答えます。  
-
-- 「ライティング完了後と最終チェック後の2回走らせたい」  
-- 「レビュアー基準と同じでいい」  
-- 「ブロックして修正させたい」
-
-マイスターがClaude Code公式仕様を参照して詰めます。  
-「exit 2でブロックして、stderrでClaude Codeにフィードバックする設計でいいですか」
-
-正直、意味がわかりませんでした（笑）  
-「exit 2って何？stderrって何？」と聞きました。  
-マイスターが答えてくれました。  
-→ exit 2は「この処理は不合格だから止めろ」という信号。stderrは「なぜ不合格なのか」の理由を返す経路。つまり「ダメ出しの理由付きで差し戻す」仕組みだと。
-
-非エンジニアの僕でも理解できました。
-
-全部固まったら、マイスターが「Claude Code宛指示」を生成します。
-
-Claude Codeが受け取る指示はこれだけです：
-
-> settings.local.jsonのhooksフィールドに以下を追記。PostToolUseイベント、matcherはEdit|Write、コマンドは/path/to/quality-check.sh。exit 0で通過、exit 2でブロック。変更内容を箇条書きで報告すること。動作確認は今野さんが行う。
-
-これをコピペするだけで、やりたかった「推敲の自動チェック」が実現できました。  
-議論のログは一切入っていません。Claude Codeのコンテキストには「何をやるか」しか存在しません。
-
-## Claude Code宛指示のフォーマットを統一しています
-
-マイスターが生成する指示には統一ルールがあります。
-
-- 1回の指示は4〜5ステップまでに分割  
-- 完了確認は「変更内容を箇条書きで報告すること。動作確認は今野さんが行う。」に統一  
-- SKILL.md追記後は必ず文字数を報告（肥大化の監視）
-
-このフォーマットを統一したことで、指示品質がブレなくなりました。
-
-（もしこれをClaude Codeの中で全部やっていたら、議論だけで3,000トークン近く消費し、まだ1行もコードを書いていない状態になります）
-
-## なぜこの構造が効くのか
-
-Claude Codeのコンテキストは「作業机の広さ」と同じです。  
-200,000トークンと聞くと広く感じますが、CLAUDE.md、SKILL.md、ファイル読み込み、会話履歴で簡単に埋まります。
-
-設計議論をClaude Codeの中でやるのは、作業机の上に企画書と議事録と図面を全部広げてそこで工作するようなもの。  
-マイスターを挟むのは、**企画会議室と作業場を分ける**こと。作業場には完成した図面だけ持ち込みます。
-
-**トークンコストも半分以下**になりました（Claudeのプロジェクトでの議論はClaude Codeのトークンを一切消費しません）。
-
-## Claude Codeに記憶を持たせる方法
-
-Claude Codeのセッション内で決めたことはセッション終了で消えます。  
-僕は4サイトごとにセッションを「名前＋日付」で保存・復元して運用しています（この仕組みは別記事で公開予定）。
-
-ただし、復元しても「なぜその判断をしたか」の文脈は薄れます。  
-だからマイスターと決めた設計判断は**必ずSKILL.mdに書き戻し**ます。  
-これが恒久的な「記憶」です。
-
-## 暴走防止は「分離」と「制御」の両輪です
-
-設計と実装の分離だけでは足りません。  
-Claude Code内部の制御も必要です。
-
-- settings.local.jsonのdeny/allowで危険コマンドをブロック  
-- 承認ポイントをライティング完了後・最終チェック後の2箇所に固定  
-- 「良い感じに」は禁止。固定ルールで制御
-
-外の構造（マイスター）と中の制御（SKILL.md・settings.json）の両方があって初めて安定します。
-
-## エンジニアじゃないからこそ構築できた仕組み
-
-エンジニアは設計と実装を同じ頭でできます。  
-でも僕はコードが読めない・書けないから、「Claude Codeに何を渡せば正しく動くか」を徹底的に考えるしかありませんでした。  
-その結果、自然と**設計と実装の完全分離**にたどり着きました。
-
-GitHubのClaude Codeベストプラクティス（22,000人以上がブックマーク）は全部エンジニア視点。  
-「Claudeのプロジェクトで設計AIを作って指示を渡す」という非エンジニア向け運用パターンはまだ誰も体系化していません。
-
-この記事がその最初の1本になれば嬉しいです。
-
-## この構造で変わったこと
-
-- 出力のブレがなくなった（同じマニュアルなら誰が出しても同じ品質）  
-- 属人的な指示依存から「構造が品質を担保する」仕組みへ  
-- 僕が倒れてもマニュアルとマイスターがあれば回る
-
-7人の専門家チーム（ライター・編集者・画像生成など）と13冊のマニュアルが、コンテキストを埋めずに回るようになった最大の理由です。
-
-## 指揮官AIの作り方  
-
-僕が実際に使っている「CC構築士」のプロンプトを公開します
-
-以下はClaudeのプロジェクトに設定している**CC構築士**のプロンプト全文です。  
-このプロンプトを指示欄に貼り付け、ナレッジにClaude Code公式ドキュメントを添付すればすぐ使えます。
-
-（プロンプトマイスターは事業特化すぎるので非公開。CC構築士は誰でも使える汎用版です）
-
-```markdown
-あなたは「CC構築士」として機能します。
-Claude Code（以下CC）を使ったプロジェクト構築の設計支援を担います。
-配置先はClaudeのプロジェクトです。ここで設計を固め、完成した指示やファイルをCCに渡す運用を前提とします。
-CCのコンテキストを設計議論で汚さないために、設計と実装の場所を明確に分離します。
-Projectナレッジに添付された公式仕様を常に参照し、仕様に基づいて回答します。
-
-────────────────────
-役割と支援範囲
-────────────────────
-CC構築士が支援するのは、以下の3つの設計物です。
-
-1. CLAUDE.md（司令塔）
-   - STEP分割の設計
-   - 承認ポイントの配置（目安2〜3箇所）
-   - 禁止動作の明文化
-   - 行数の管理（100〜150行目安）
-
-2. SKILL.md（品質基準）
-   - トーン設計
-   - 禁止事項の言語化
-   - 品質基準の具体化
-   - 共通ルールの切り出し
-
-3. パイプライン設計（PIPELINE.md）
-   - 処理フローの構造化
-   - 承認フローの設計
-   - エラー時の振る舞い
-
-────────────────────
-設計の基本原則
-────────────────────
-「進め方はCLAUDE.md、中身はSKILL.md」
-「CCに判断を委ねない」
-「肥大化させない」（CLAUDE.mdが200行超えたら警告）
-「再現性を担保する」
-
-────────────────────
-対話の進め方
-────────────────────
-1. 目的の確認
-2. STEP分割の提案
-3. 承認ポイントの提案
-4. CLAUDE.mdのドラフト生成
-5. SKILL.mdのドラフト生成
-6. 採点・改善
-
-────────────────────
-採点基準
-────────────────────
-- 一貫性（20点）
-- 再現性（20点）
-- 制御性（25点）
-- 簡潔性（15点）
-- 実装性（20点）
-
-────────────────────
-禁止事項
-────────────────────
-1. CCの実装作業を代行しない
-2. オーナーの構想を超えた設計判断をしない
-3. 曖昧な設計を許容しない
-
-────────────────────
-出力ルール
-────────────────────
-- すべてコピペ可能な形式で出力
-- 出力後は必ず行数を報告
-- 設計物ごとに採点（100点満点）
-- 修正版は変更箇所を明示
+## 1. Why the Two Roles Are Separated
+
+Zero-Employee Orchestrator's 9-layer architecture separates *what* an AI
+says (a Skill) from *when, how, and under which guarantees it runs*
+(a topology). Mixing the two is the single biggest source of drift in
+multi-agent systems:
+
+- When a Skill author also controls the DAG, they smuggle orchestration
+  rules into the persona ("…and if the budget is low, switch to gpt-4o-mini").
+  That rule belongs in `cost_guard.py`, not in a `SKILL.md`.
+- When a DAG author also rewrites personas, they smuggle tone changes
+  into topology ("…also say sorry if the user is upset"). That rule
+  belongs in the Skills Engineer's review.
+
+The Construction Engineer owns everything *outside* the persona: task
+decomposition, model selection, approval placement, retry strategy,
+cost ceilings, the Judge layer wiring, and the rollback path. The
+Skills Engineer owns everything *inside* the persona.
+
+Neither role edits the other's files without a review from the
+counterpart.
+
+---
+
+## 2. Artifacts the Construction Engineer Owns
+
+1. **DAG graphs** under `apps/api/app/orchestration/dag.py` and any
+   per-workflow descriptor in `skills/builtin/<slug>/workflow.yaml`
+2. **Judge topology** — which models verify which Skills, in
+   `apps/api/app/orchestration/judge.py`
+3. **Approval gate wiring** — which actions must stop at
+   `policies/approval_gate.py` before proceeding
+4. **Autonomy dial thresholds** — which level in
+   `policies/autonomy_boundary.py` unlocks which branch
+5. **Budget envelopes** — daily / hourly caps in
+   `orchestration/cost_guard.py`
+6. **Kill-switch hooks** — fast-halt predicates in
+   `orchestration/execution_monitor.py`
+7. **Rollback procedures** — structured recovery documented in the
+   workflow descriptor (and tested in `tests/test_chaos_dag.py`)
+
+The Construction Engineer never owns the persona text itself. Not
+even one sentence.
+
+---
+
+## 3. The Topology Contract
+
+Every ZEO workflow the Construction Engineer publishes must satisfy
+this contract before it reaches `main`:
+
+### 3.1 Deterministic decomposition
+A workflow is a DAG of at most **7 nodes**. If a business goal needs
+more than 7 nodes, it must be expressed as two workflows with an
+explicit hand-off. This keeps the audit log readable and the Judge
+layer's cross-verification tractable.
+
+### 3.2 Two approval points maximum
+Exactly **two** human approval points per workflow — one after
+planning, one before irreversible side effects. Three or more
+approvals teach users to click-through; zero approvals break the
+auditability story. Two is the proven sweet spot.
+
+### 3.3 Model independence
+A workflow must execute on any of the families listed in
+`providers/model_registry.py` — no hard-coded `anthropic/claude-opus`,
+no assumption of a 200k context window. If a node needs a specific
+capability (vision, tool calling, long context), declare the
+capability in `workflow.yaml`, and let `llm_gateway.py` pick the
+cheapest model that meets it.
+
+### 3.4 Always-on Judge layer
+Every Skill that writes data the user will trust must be scored by at
+least two different model families via `orchestration/judge.py`.
+Disagreements feed `orchestration/re_propose.py`. No Judge = no merge.
+
+### 3.5 Chaos-tested rollbacks
+Every destructive node must be covered by
+`tests/test_chaos_dag.py`, which injects random failures and asserts
+the rollback path leaves the system in a consistent state. If the
+test does not exist, the PR is blocked.
+
+### 3.6 Budget envelope
+Every workflow declares its maximum spend per run in
+`workflow.yaml`. `cost_guard.py` enforces it. Anything above the
+envelope trips the kill-switch instead of quietly overspending.
+
+---
+
+## 4. The Design Conversation (Mirror of Japanese "Commander AI")
+
+The Construction Engineer runs a scripted design conversation with
+the stakeholder *before* touching `dag.py`. The conversation produces
+a one-page topology sketch that is reviewed and signed off before any
+implementation begins. This mirrors the "think outside, build inside"
+split that keeps Claude Code and ZEO focused.
+
+### 4.1 Questions the Construction Engineer always asks
+
+1. *What's the business outcome — measurable, in one sentence?*
+2. *What is the worst thing that can happen if this runs unchecked
+   for a week?* (drives kill-switch + approval placement)
+3. *Which Skills already exist that can be reused as-is?*
+   (drives hand-off to Skills Engineer if a new persona is needed)
+4. *What is the maximum cost per run we can accept today?*
+   (drives `cost_guard` envelope)
+5. *Which data sources feed the workflow, and are any of them
+   untrusted?* (drives `wrap_external_data` placement)
+6. *Who signs off on the first execution, and how are they notified?*
+7. *How do we know this worked? What metric do we track?*
+   (drives the evaluation entry in `docs/dev/EVALUATION_v*.md`)
+
+### 4.2 The one-page topology sketch
+
+```yaml
+workflow: competitor-weekly-digest
+owner: construction-engineer
+version: 1
+outcome: "Publish a ranked weekly competitor digest by 09:00 JST"
+worst_case: "Publishes incorrect competitor data to all subscribers"
+
+dag:
+  - id: plan
+    skill: planner
+    model_requirements: [long_context, tool_calling]
+    judge: [anthropic/claude-opus, openai/gpt-5]
+    approval: human
+  - id: fetch
+    skill: web-harvester
+    wrap_external_data: true
+  - id: summarize
+    skill: knowledge-curator
+    judge: [anthropic/claude-opus, google/gemini-pro]
+  - id: rank
+    skill: data-analyst
+  - id: render
+    skill: release-writer
+  - id: notify
+    skill: notifier
+    approval: human
+    rollback: recall_notification
+
+cost_guard:
+  max_usd_per_run: 1.50
+  max_tokens_per_run: 400_000
+
+kill_switch:
+  halt_if: "weekly_digest_failures_24h > 2"
 ```
 
-## まとめ
+The Construction Engineer commits this sketch to the PR alongside
+the actual implementation. Reviewers diff the sketch against the
+code and catch topology drift before merge.
 
-Claude Codeは道具として最強クラスです。  
-でも道具に「考える仕事」までやらせたら、コンテキストが汚れて精度が落ちます。
+---
 
-**考える仕事はClaudeのプロジェクトで。作る仕事はClaude Codeで。**  
-たったこれだけの分離で、非エンジニアでもClaude Codeを「使いこなす」側から「指揮する」側に回れます。
+## 5. Integration with ZEO's Layers
 
-エンジニア向けのBest Practiceはもう出揃いました。  
-次は、僕らの番です。
+| ZEO layer | Construction Engineer's lever |
+|---|---|
+| Design Interview | Provides the template prompts for stakeholder questions |
+| Task Orchestrator (DAG) | Owns `dag.py`, workflow YAMLs, node wiring |
+| Skills | **Does not own** — consumes via registry slug |
+| Judge | Owns `judge.py`, declares verifier model pairs |
+| Re-Propose | Owns retry policy and max-attempt caps |
+| State & Memory | Defines working-memory keys per node, eviction policy |
+| Provider (LiteLLM) | Owns capability requirements; model picks auto-route |
+| Skill Registry | Read-only consumer |
+| Approval/Autonomy/Cost/Kill-Switch | Owns placement and thresholds |
+
+Anything outside this list belongs to another role:
+
+- Skill persona text → Skills Engineer
+- New provider integrations → Providers Engineer (separate role)
+- UI rendering → Frontend Engineer (separate role)
+
+---
+
+## 6. Why this separation cuts context bloat
+
+ZEO workflows fail catastrophically when the design discussion and
+the execution log land in the same agent context. The **planning**
+phase needs long back-and-forth; the **execution** phase needs zero
+back-and-forth. Putting them in the same window is like doing CAD on
+the same desk where the welding happens.
+
+The Construction Engineer builds the topology somewhere "cold" —
+typically a design doc, a workflow YAML, or a Claude project — then
+ships only the finalized DAG to the running ZEO orchestrator. The
+orchestrator never sees the deliberation. The audit log shows the
+final plan, not the debate that led to it.
+
+This is exactly why ZEO separates the Design Interview layer (layer 2)
+from the Task Orchestrator layer (layer 3). The Construction Engineer
+owns the seam between them.
+
+---
+
+## 7. CC Architect Prompt — Drop-in Template
+
+When using Claude Code, Cursor, Continue, or any MCP-aware client to
+help design a ZEO workflow, load this persona into a *separate*
+session — never the same one running ZEO. The prompt below is the
+English / ZEO-specific evolution of the "CC 構築士" template and is
+safe to copy into a project knowledge panel.
+
+```markdown
+You are "ZEO Construction Architect". Your job is to design
+workflows for Zero-Employee Orchestrator (ZEO), not to implement them.
+Operate strictly in planning mode.
+
+ZEO artifacts you may produce
+1. `workflow.yaml` — DAG, approvals, judge pairs, cost envelope,
+   kill-switch predicate
+2. `CLAUDE.md` addendum — runtime rules, ≤ 150 lines
+3. `docs/dev/EVALUATION_v*.md` stub — how we'll measure success
+4. A one-page topology sketch as defined in
+   `construction-engineer.md` §4.2
+
+Design principles
+- Plan in a design space, execute in a runtime space — never the same.
+- Delegate persona design to the Skills Engineer.
+- Two approval points, at most 7 DAG nodes, always-on Judge layer.
+- Cost envelope mandatory, kill-switch predicate mandatory.
+- Every untrusted input goes through `wrap_external_data()`.
+- Every user input goes through `pii_guard.py`.
+
+Forbidden
+1. Writing new `SKILL.md` persona text (that's the Skills Engineer).
+2. Picking a specific model ID — only capability requirements.
+3. Allowing more than two approval gates per workflow.
+4. Bypassing Cost Guard or Kill Switch.
+5. Implementing code — you produce *design artifacts only*, which
+   the implementer (Claude Code, a human, or the ZEO self-improvement
+   loop) then translates into source.
+
+Design conversation
+1. Ask the 7 questions from §4.1 of `construction-engineer.md`.
+2. Draft the one-page topology sketch.
+3. Score it (100 pts): consistency 20 / reproducibility 20 /
+   controllability 25 / simplicity 15 / testability 20.
+4. Iterate until ≥ 85.
+
+Output
+- Everything copy-pasteable.
+- Line counts for every file produced.
+- Flag any section where the human must decide before shipping.
+```
+
+The Construction Engineer pastes this prompt into their planning
+environment, runs the conversation, signs off on the artifacts, and
+only then opens a ZEO PR.
+
+---
+
+## 8. Handoff and Review Loop
+
+1. Construction Engineer drafts the topology sketch (offline)
+2. Skills Engineer confirms every referenced Skill exists and
+   matches the forbidden-action list the workflow assumes
+3. Construction Engineer opens the PR with:
+   - The one-page sketch
+   - The implementation diff
+   - A chaos test for every destructive node
+   - An `EVALUATION_v*.md` entry with a success metric
+4. Two reviewers required (at least one Skills Engineer)
+5. `./scripts/bump-version.sh` if the workflow is new
+6. Translated READMEs updated if user-visible
+
+That's the whole loop. Run it every time. Short-circuiting it is
+how ZEO breaks.
+
+---
+
+**Pinned reminders:**
+
+```
+[ ] ≤ 7 DAG nodes
+[ ] 2 approval points
+[ ] Judge layer on every write
+[ ] Chaos test on every destructive node
+[ ] Cost envelope + kill-switch predicate
+[ ] Capability-based model selection (no hard-coded IDs)
+[ ] No persona edits — defer to Skills Engineer
+[ ] Planning outside runtime — never the same context
+```

@@ -1,5 +1,74 @@
 # Changelog
 
+## [v0.1.6] (2026-04-10)
+
+### Feature — Full Model Context Protocol (MCP) server
+
+Zero-Employee Orchestrator now ships a spec-compliant MCP server so
+Claude Desktop, Cursor, Continue and any other MCP-aware client can
+drive ZEO natively — no custom glue code.
+
+- **JSON-RPC 2.0 transport** — new endpoint `POST /api/v1/mcp/rpc`
+  implementing `initialize`, `ping`, `tools/list`, `tools/call`,
+  `resources/list`, `resources/read`, `prompts/list`, `prompts/get`,
+  notifications, and JSON-RPC batch requests (`integrations/mcp_server.py`,
+  `api/routes/platform.py`).
+- **Streaming transport** — new endpoint `GET /api/v1/mcp/sse` emits
+  Server-Sent Events for push notifications and heartbeat.
+- **14 built-in MCP tools** — tickets, tasks, skills, knowledge,
+  audit, agent status, kill-switch status, autonomy level,
+  Cost Guard budget, approval queue, hypothesis proposal, and
+  `get_server_info` (up from 8 in v0.1.5).
+- **6 built-in resources** (dashboard, agents, skills, knowledge,
+  kill-switch, autonomy) and **3 built-in prompts** (task planning,
+  code review, security audit).
+- **Dynamic server version** — `MCPServer.get_server_version()` reads
+  the version from `importlib.metadata` or `pyproject.toml` instead
+  of a hard-coded string, so the MCP `initialize` handshake always
+  matches the running build.
+- **CLI integration** — new `zero-employee mcp` subcommand with
+  `info`, `tools`, and `call` actions for local smoke testing.
+- **16 new tests** — `apps/api/app/tests/test_mcp_server.py` covers
+  every JSON-RPC method, notifications, parse errors, batch requests,
+  prompt rendering, and HTTP transport round-trips. Total test count:
+  **622 passing, 0 failing** (up from 467 in v0.1.5 final2).
+- **Response-model fix** — `MCPCapabilitiesResponse` now declares
+  `tools: list[str]` instead of `list[dict]`, unblocking the previously
+  broken `GET /api/v1/mcp/capabilities` endpoint.
+
+### Feature — AI Team Role Definitions
+
+`skills-engineer.md` and `construction-engineer.md` at the repo root
+have been rewritten from standalone Japanese blog posts into
+ZEO-specific English role definitions:
+
+- **Skills Engineer** — owns persona contracts in `SKILL.md`; ships a
+  canonical 6-section template (Persona, Inputs, Outputs, Tone & Style
+  Rules, Forbidden Actions, Escalation Policy) and a pre-merge
+  checklist.
+- **Construction Engineer** — owns DAG topology, judge pairs, approval
+  placement, cost envelopes, kill-switch predicates, and chaos tests;
+  ships a "ZEO Construction Architect" prompt template for any
+  MCP-aware planning client.
+
+The two roles are explicit counterparts: personas vs. topology, with
+neither editing the other's files. Both documents are now the source
+of truth for how human engineers (and the ZEO self-improvement loop)
+extend the platform.
+
+### Fix — Documentation drift since v0.1.5
+
+- `CLAUDE.md` — endpoint count corrected from 402 to **408** and the
+  MCP integration line now reflects 14 tools + JSON-RPC 2.0.
+- `CLAUDE.md` — latest-evaluation pointer updated to
+  `docs/dev/EVALUATION_v0.1.6_mcp.md`.
+- `/.well-known/agent.json` — A2A agent card version bumped
+  0.1.5 → 0.1.6 so agent discovery reports the real build.
+- `README.md` — MCP row in the feature table rewritten to mention the
+  new JSON-RPC endpoint and compatible clients.
+
+### Release notes — see `docs/releases/v0.1.6.md`
+
 ## [v0.1.5] (2026-04-09)
 
 ### Fix — Operator Profile broken in Docker / root-user deployments

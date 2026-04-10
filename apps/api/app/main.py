@@ -284,7 +284,7 @@ async def a2a_agent_card():
             "and business tool under human approval, audit trail, and security."
         ),
         "url": f"http://localhost:{settings.PORT or 18234}",
-        "version": "0.1.5",
+        "version": "0.1.6",
         "protocol_version": "0.3",
         "capabilities": {
             "streaming": True,

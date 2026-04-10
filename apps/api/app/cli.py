@@ -205,6 +205,79 @@ def cmd_pull(args: argparse.Namespace) -> None:
     asyncio.run(_pull())
 
 
+def cmd_mcp(args: argparse.Namespace) -> None:
+    """Inspect and test the built-in Model Context Protocol (MCP) server.
+
+    Subcommands:
+        mcp info         — show ZEO's advertised MCP capabilities
+        mcp tools        — list registered MCP tools
+        mcp call <name>  — call a tool locally (for quick smoke tests)
+    """
+    _find_and_chdir_api()
+
+    action = getattr(args, "mcp_command", None) or "info"
+
+    async def _run() -> None:
+        from app.integrations.mcp_server import MCP_PROTOCOL_VERSION, mcp_server
+
+        if action == "info":
+            caps = mcp_server.get_capabilities()
+            print()
+            print("  \033[1mZero-Employee Orchestrator MCP Server\033[0m")
+            print(
+                f"  protocol:  \033[38;5;78m{MCP_PROTOCOL_VERSION}\033[0m"
+                f"   server:  \033[38;5;78mv{caps['server_version']}\033[0m"
+            )
+            print(
+                f"  tools:     {caps['tools_count']}   "
+                f"resources: {caps['resources_count']}   "
+                f"prompts:   {caps['prompts_count']}"
+            )
+            print()
+            print("  \033[2mJSON-RPC endpoint:\033[0m  POST /api/v1/mcp/rpc")
+            print("  \033[2mSSE endpoint:\033[0m       GET  /api/v1/mcp/sse")
+            print("  \033[2mREST wrapper:\033[0m       GET  /api/v1/mcp/tools")
+            print()
+            return
+
+        if action == "tools":
+            result = await mcp_server.handle_list_tools()
+            print()
+            print("  \033[1mMCP tools\033[0m")
+            for tool in result["tools"]:
+                print(f"    \033[38;5;78m{tool['name']:24s}\033[0m {tool['description']}")
+            print()
+            return
+
+        if action == "call":
+            name = getattr(args, "tool_name", "")
+            if not name:
+                print("  Usage: zero-employee mcp call <tool_name> [--args JSON]")
+                sys.exit(2)
+            import json
+
+            raw_args = getattr(args, "tool_args", "") or "{}"
+            try:
+                parsed = json.loads(raw_args)
+            except json.JSONDecodeError as exc:
+                print(f"  Invalid --args JSON: {exc}")
+                sys.exit(2)
+            result = await mcp_server.handle_call_tool(name, parsed)
+            print()
+            if result.get("isError"):
+                print(f"  \033[38;5;220m{result.get('error', 'error')}\033[0m")
+            else:
+                for item in result.get("content", []):
+                    print(f"  {item.get('text', '')}")
+            print()
+            return
+
+        print(f"  Unknown mcp subcommand: {action}")
+        sys.exit(2)
+
+    asyncio.run(_run())
+
+
 def cmd_security_status(args: argparse.Namespace) -> None:
     """Display security configuration summary."""
     from app.security.data_protection import data_protection_guard
@@ -1572,6 +1645,31 @@ def build_parser() -> argparse.ArgumentParser:
         help="Show pip output",
     )
     update_parser.set_defaults(func=cmd_update)
+
+    # mcp -- Model Context Protocol server inspection & testing
+    mcp_parser = subparsers.add_parser(
+        "mcp",
+        help="Model Context Protocol server: inspect, list tools, run tools",
+    )
+    mcp_sub = mcp_parser.add_subparsers(dest="mcp_command")
+
+    mcp_info = mcp_sub.add_parser("info", help="Show MCP server capabilities")
+    mcp_info.set_defaults(func=cmd_mcp)
+
+    mcp_tools = mcp_sub.add_parser("tools", help="List all MCP tools")
+    mcp_tools.set_defaults(func=cmd_mcp)
+
+    mcp_call = mcp_sub.add_parser("call", help="Invoke an MCP tool locally")
+    mcp_call.add_argument("tool_name", help="Tool name (e.g. get_server_info)")
+    mcp_call.add_argument(
+        "--args",
+        dest="tool_args",
+        default="{}",
+        help="JSON-encoded arguments (default: {})",
+    )
+    mcp_call.set_defaults(func=cmd_mcp)
+
+    mcp_parser.set_defaults(func=cmd_mcp)
 
     # security -- security management
     security_parser = subparsers.add_parser("security", help="Security configuration management")
