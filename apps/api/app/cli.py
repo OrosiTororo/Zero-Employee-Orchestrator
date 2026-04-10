@@ -205,6 +205,124 @@ def cmd_pull(args: argparse.Namespace) -> None:
     asyncio.run(_pull())
 
 
+def cmd_mcp(args: argparse.Namespace) -> None:
+    """Inspect and test the built-in Model Context Protocol (MCP) server.
+
+    Subcommands:
+        mcp info              — show ZEO's advertised MCP capabilities
+        mcp tools             — list registered MCP tools (with annotations)
+        mcp call <name>       — invoke a tool locally (optionally --json)
+        mcp serve             — run the stdio transport for Claude Desktop
+    """
+    _find_and_chdir_api()
+
+    action = getattr(args, "mcp_command", None) or "info"
+    as_json = bool(getattr(args, "json_output", False))
+
+    async def _run() -> None:
+        import json
+
+        from app.integrations.mcp_server import (
+            MCP_PROTOCOL_VERSION,
+            mcp_server,
+            run_stdio_server,
+        )
+
+        if action == "info":
+            caps = mcp_server.get_capabilities()
+            if as_json:
+                print(json.dumps(caps, indent=2))
+                return
+            print()
+            print("  \033[1mZero-Employee Orchestrator MCP Server\033[0m")
+            print(
+                f"  protocol:  \033[38;5;78m{MCP_PROTOCOL_VERSION}\033[0m"
+                f"   server:  \033[38;5;78mv{caps['server_version']}\033[0m"
+            )
+            print(
+                f"  tools:     {caps['tools_count']}   "
+                f"resources: {caps['resources_count']}   "
+                f"prompts:   {caps['prompts_count']}"
+            )
+            print()
+            print("  \033[2mstdio transport:\033[0m    zero-employee mcp serve")
+            print("  \033[2mJSON-RPC endpoint:\033[0m  POST /api/v1/mcp/rpc")
+            print("  \033[2mSSE endpoint:\033[0m       GET  /api/v1/mcp/sse")
+            print("  \033[2mREST wrapper:\033[0m       GET  /api/v1/mcp/tools")
+            print()
+            return
+
+        if action == "tools":
+            result = await mcp_server.handle_list_tools()
+            if as_json:
+                print(json.dumps(result, indent=2))
+                return
+            print()
+            print("  \033[1mMCP tools\033[0m")
+            for tool in result["tools"]:
+                hints: list[str] = []
+                annotations = tool.get("annotations") or {}
+                if annotations.get("readOnlyHint"):
+                    hints.append("read-only")
+                if annotations.get("destructiveHint"):
+                    hints.append("destructive")
+                if annotations.get("idempotentHint"):
+                    hints.append("idempotent")
+                hint_str = f"  \033[2m[{', '.join(hints)}]\033[0m" if hints else ""
+                print(f"    \033[38;5;78m{tool['name']:24s}\033[0m {tool['description']}{hint_str}")
+            print()
+            return
+
+        if action == "call":
+            name = getattr(args, "tool_name", "")
+            if not name:
+                print("  Usage: zero-employee mcp call <tool_name> [--args JSON] [--json]")
+                sys.exit(2)
+            raw_args = getattr(args, "tool_args", "") or "{}"
+            try:
+                parsed = json.loads(raw_args)
+            except json.JSONDecodeError as exc:
+                print(f"  Invalid --args JSON: {exc}")
+                sys.exit(2)
+            result = await mcp_server.handle_call_tool(name, parsed)
+            if as_json:
+                print(json.dumps(result, indent=2))
+                return
+            print()
+            if result.get("isError"):
+                err = result.get("error")
+                if err is None:
+                    for item in result.get("content", []):
+                        err = item.get("text", "error")
+                        break
+                print(f"  \033[38;5;220m{err or 'error'}\033[0m")
+            else:
+                for item in result.get("content", []):
+                    print(f"  {item.get('text', '')}")
+            print()
+            return
+
+        if action == "serve":
+            # stdio transport for Claude Desktop / Cursor / Continue.
+            # Any framing / logging must go to stderr so stdout stays a
+            # clean JSON-RPC channel.
+            import sys as _sys
+
+            print(
+                f"zero-employee mcp serve — stdio transport ready "
+                f"(protocol={MCP_PROTOCOL_VERSION}, tools={len(mcp_server._tools)})",
+                file=_sys.stderr,
+                flush=True,
+            )
+            await run_stdio_server(mcp_server)
+            return
+
+        print(f"  Unknown mcp subcommand: {action}")
+        sys.exit(2)
+
+    asyncio.run(_run())
+
+
 def cmd_security_status(args: argparse.Namespace) -> None:
     """Display security configuration summary."""
     from app.security.data_protection import data_protection_guard
@@ -1573,6 +1691,59 @@ def build_parser() -> argparse.ArgumentParser:
     )
     update_parser.set_defaults(func=cmd_update)
 
+    # mcp -- Model Context Protocol server inspection & testing
+    mcp_parser = subparsers.add_parser(
+        "mcp",
+        help="Model Context Protocol server: inspect, list tools, run tools, serve stdio",
+    )
+    mcp_sub = mcp_parser.add_subparsers(dest="mcp_command")
+
+    mcp_info = mcp_sub.add_parser("info", help="Show MCP server capabilities")
+    mcp_info.add_argument(
+        "--json",
+        dest="json_output",
+        action="store_true",
+        help="Emit the capability manifest as JSON for scripting",
+    )
+    mcp_info.set_defaults(func=cmd_mcp)
+
+    mcp_tools = mcp_sub.add_parser("tools", help="List all MCP tools")
+    mcp_tools.add_argument(
+        "--json",
+        dest="json_output",
+        action="store_true",
+        help="Emit the tool list as JSON",
+    )
+    mcp_tools.set_defaults(func=cmd_mcp)
+
+    mcp_call = mcp_sub.add_parser("call", help="Invoke an MCP tool locally")
+    mcp_call.add_argument("tool_name", help="Tool name (e.g. get_server_info)")
+    mcp_call.add_argument(
+        "--args",
+        dest="tool_args",
+        default="{}",
+        help="JSON-encoded arguments (default: {})",
+    )
+    mcp_call.add_argument(
+        "--json",
+        dest="json_output",
+        action="store_true",
+        help="Emit the raw tool result as JSON (for scripting / piping)",
+    )
+    mcp_call.set_defaults(func=cmd_mcp)
+
+    mcp_serve = mcp_sub.add_parser(
+        "serve",
+        help=(
+            "Run the MCP stdio transport (drop-in for Claude Desktop, "
+            "Cursor, Continue). Reads JSON-RPC from stdin, writes responses "
+            "to stdout, logs to stderr."
+        ),
+    )
+    mcp_serve.set_defaults(func=cmd_mcp)
+
+    mcp_parser.set_defaults(func=cmd_mcp)
+
     # security -- security management
     security_parser = subparsers.add_parser("security", help="Security configuration management")
     security_sub = security_parser.add_subparsers(dest="security_command")
@@ -1596,8 +1767,10 @@ def main() -> None:
         parser.print_help()
         sys.exit(0)
 
-    # local mode shows its own banner
-    if args.command != "local":
+    # local mode shows its own banner; ``mcp serve`` owns stdout as a
+    # clean JSON-RPC channel, so the banner must be suppressed entirely.
+    _is_mcp_serve = args.command == "mcp" and getattr(args, "mcp_command", None) == "serve"
+    if args.command != "local" and not _is_mcp_serve:
         print_banner(compact=True)
 
     if hasattr(args, "func"):

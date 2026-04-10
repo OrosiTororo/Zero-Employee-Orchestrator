@@ -224,7 +224,7 @@ Zero-Employee-Orchestrator/
 │   ├── desktop/              # Tauri v2 + React UI
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # Background workers
-├── skills/                   # 8 built-in skills (6 system + 2 domain)
+├── skills/                   # 8 built-in skills (all system-protected)
 ├── plugins/                  # 16 plugin manifests (10 general + 6 role-based)
 ├── extensions/               # 11 extension manifests
 │   └── browser-assist/
@@ -283,7 +283,7 @@ Zero-Employee-Orchestrator/
 |---------|-------------|
 | **Agent Adapter** | Integrate CrewAI, AutoGen, LangChain, Dify agents as ZEO sub-workers — all under approval gates and audit |
 | **iPaaS Bridge** | Connect n8n / Zapier / Make workflows — ZEO becomes the judgment layer for existing automations |
-| **MCP Server** | Model Context Protocol — any MCP-compatible tool becomes a ZEO tool automatically |
+| **MCP Server** | Full Model Context Protocol server (JSON-RPC 2.0, 14 built-in tools, SSE transport) — Claude Desktop, Cursor, Continue, and any MCP-compatible client can drive ZEO natively via `POST /api/v1/mcp/rpc` |
 | **App Connector Hub** | 63+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, Slack, etc.) — connectors for connectors |
 | **Tool-of-Tools** | Tools that connect to other tools (e.g., n8n connects to 400+ apps → ZEO connects to n8n → ZEO accesses all 400+ apps through one integration) |
 | **Multi-Model Freedom** | 22 model families via LiteLLM, Ollama local models, g4f web sessions — not locked to any single provider |

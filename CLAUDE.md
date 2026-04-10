@@ -24,18 +24,18 @@ ls apps/api/app/
 ```
 apps/api/app/         # FastAPI backend
   core/               # Config, DB, rate limiting, i18n
-  api/routes/         # 46 route modules, 402 endpoints (incl. main.py)
+  api/routes/         # 46 route modules, 408 endpoints (incl. main.py + MCP JSON-RPC/SSE)
   services/           # 25 services (business logic)
   orchestration/      # DAG, Judge, transparency, CostGuard (24 modules)
   providers/          # LLM gateway, Ollama, g4f, ModelRegistry
   security/           # sandbox, pii_guard, prompt_guard, iam, workspace_isolation
   policies/           # approval_gate, autonomy_boundary
-  integrations/       # app_connector (63 apps), media, MCP, browser-assist
+  integrations/       # app_connector (63 apps), media, MCP (14 tools, JSON-RPC 2.0 + stdio), browser-assist
   tools/              # MCP, browser_adapter, agent_adapter
   tests/              # pytest + pytest-asyncio
 apps/desktop/         # Tauri v2 + React (Cowork-style layout)
 apps/edge/            # Cloudflare Workers
-skills/builtin/       # 11 Skills (6 system + 5 domain)
+skills/builtin/       # 8 Skills (all system-protected: spec/plan/task/review/summarizer/local/domain/browser-assist)
 plugins/              # 16 Plugins (10 general + 6 role-based packs)
 extensions/           # 11 Extensions
 ```
@@ -45,6 +45,10 @@ extensions/           # 11 Extensions
 ```bash
 zero-employee serve --reload        # Dev server (port 18234)
 zero-employee chat                  # Interactive CLI (NL + slash commands)
+zero-employee mcp info              # Inspect the built-in MCP server
+zero-employee mcp tools             # List all MCP tools (with annotations)
+zero-employee mcp call <name>       # Smoke-test an MCP tool locally
+zero-employee mcp serve             # stdio transport for Claude Desktop / Cursor / Continue
 pytest apps/api/app/tests/          # Tests
 ruff check apps/api/app/ && ruff format apps/api/app/  # Lint
 ./scripts/bump-version.sh X.Y.Z    # Update ALL 8 version files
@@ -145,4 +149,4 @@ Write about system behavior changes for end users. Do NOT write about docs/CI/co
 
 **Scoring**: 0-10 scale. Overall = (Relative × 0.35) + (Objective × 0.35) + (Additional × 0.30)
 
-**Latest evaluation**: `docs/dev/EVALUATION_v0.1.5_final2.md` — 8.8/10 (2026-04-10, full audit + B-001 sandbox fix for Docker root + doc sync + competitor research)
+**Latest evaluation**: `docs/dev/EVALUATION_v0.1.6_mcp.md` — v0.1.6 MCP integration release (2026-04-10, JSON-RPC 2.0 transport, 14 MCP tools, `zero-employee mcp` CLI, Skills/Construction Engineer role docs, 16 new MCP tests)

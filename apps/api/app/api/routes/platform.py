@@ -5,7 +5,11 @@ API endpoints for cross-platform features added in v0.1.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+import asyncio
+import json
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -29,9 +33,16 @@ class StatusResponse(BaseModel):
 
 
 class MCPCapabilitiesResponse(BaseModel):
-    tools: list[dict] = []
-    resources: list[dict] = []
-    prompts: list[dict] = []
+    """MCP server capability summary — mirrors ``MCPServer.get_capabilities()``."""
+
+    tools_count: int = 0
+    resources_count: int = 0
+    prompts_count: int = 0
+    tools: list[str] = []
+    resources: list[str] = []
+    prompts: list[str] = []
+    protocol_version: str = ""
+    server_version: str = ""
 
 
 class MCPToolCallResponse(BaseModel):
@@ -285,6 +296,90 @@ async def mcp_list_prompts(user: User = Depends(get_current_user)):
     from app.integrations.mcp_server import mcp_server
 
     return await mcp_server.handle_list_prompts()
+
+
+# --- JSON-RPC 2.0 endpoint (MCP spec-compliant transport) ---
+
+
+@router.post("/mcp/rpc")
+async def mcp_jsonrpc(request: Request, user: User = Depends(get_current_user)):
+    """JSON-RPC 2.0 endpoint implementing the MCP wire protocol.
+
+    Accepts a JSON-RPC request per the MCP 2024-11-05 specification and
+    dispatches to ``initialize``, ``ping``, ``tools/list``, ``tools/call``,
+    ``resources/list``, ``resources/read``, ``prompts/list``, or
+    ``prompts/get``. Notifications (requests without an ``id``) return
+    HTTP 204. This is the transport that MCP-aware clients like Claude
+    Desktop, Cursor and Continue connect to.
+    """
+    from fastapi.responses import JSONResponse, Response
+
+    from app.integrations.mcp_server import mcp_server
+
+    try:
+        payload = await request.json()
+    except Exception:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "jsonrpc": "2.0",
+                "id": None,
+                "error": {"code": -32700, "message": "Parse error"},
+            },
+        )
+
+    # Batch requests (list of calls)
+    if isinstance(payload, list):
+        responses = []
+        for item in payload:
+            resp = await mcp_server.handle_jsonrpc(item)
+            if resp is not None:
+                responses.append(resp)
+        if not responses:
+            return Response(status_code=204)
+        return JSONResponse(content=responses)
+
+    response = await mcp_server.handle_jsonrpc(payload)
+    if response is None:
+        return Response(status_code=204)
+    return JSONResponse(content=response)
+
+
+# --- Streaming (SSE) endpoint for push notifications ---
+
+
+@router.get("/mcp/sse")
+async def mcp_sse(request: Request, user: User = Depends(get_current_user)):
+    """Server-Sent Events endpoint for MCP push notifications.
+
+    Emits a ``ready`` event with the server capabilities, then heart-beats
+    every 15 seconds until the client disconnects. Notification streaming
+    (tool list change, resource update) can be wired by publishing onto
+    an asyncio queue held in the MCPServer singleton.
+    """
+    from app.integrations.mcp_server import mcp_server
+
+    async def event_stream():
+        caps = mcp_server.get_capabilities()
+        yield f"event: ready\ndata: {json.dumps(caps)}\n\n"
+        try:
+            while True:
+                if await request.is_disconnected():
+                    break
+                await asyncio.sleep(15)
+                yield "event: ping\ndata: {}\n\n"
+        except asyncio.CancelledError:  # pragma: no cover - client disconnect
+            return
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 # ===================================================================

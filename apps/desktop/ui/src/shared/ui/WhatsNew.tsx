@@ -7,7 +7,7 @@
 import { useState } from "react"
 import { Sparkles, X } from "lucide-react"
 
-const CURRENT_VERSION = "0.1.5"
+const CURRENT_VERSION = "0.1.6"
 const STORAGE_KEY = `zeo_whats_new_dismissed_${CURRENT_VERSION}`
 
 const HIGHLIGHTS = [

@@ -1,181 +1,232 @@
-# Claude Codeとの付き合い方を根本的に変えた方法
+# Skills Engineer — Defining Persona-Driven Skills for Zero-Employee Orchestrator
 
-「これ、誰がキーワード抽出したの？」  
-**Claude Code**「私です。」  
-「なんでキーワード抽出の専門AIに任せないの？わざわざ用意したのに」  
-**Claude Code**「すみません。勝手に私が選びました」
-
-この日から、Claude Codeとの付き合い方を根本的に変えました。
-
-やったことはシンプルです。  
-**Claude Codeのスキル（SKILL.md）に「人格」を入れました。**
-
-「スキルって作業マニュアルでしょ？」と思った方。その通りです。  
-作業マニュアルのはずの場所に「誰として書くか」を定義したら、暴走が止まりました。
-
-## みんな暴走してます
-
-自分だけかと思って調べたら、みんな同じことで悩んでいました。
-
-- Findyさんでは、Claude Codeが `git add -A` で全ファイルをコミットしてしまった  
-- UPSIDERさんでは、Claude Codeが「よしなに」実行したコマンドがバックグラウンドで常駐し続けてメモリを食い潰した  
-- 他の開発者も「要求されていない機能を勝手に追加する」「頼んでいないリファクタリングを始める」と報告しています
-
-**Claude Codeは「優秀すぎて余計なことをする新入社員」です。**
-
-「キーワードを抽出して」と言われたら、わざわざ専門AIを呼び出すより、自分でやった方が速いと判断します。  
-専門AIの設定ファイルを用意しておいても、読み込む手間を省いてスキップします。
-
-これはバグではありません。**Claude Codeの性格そのものです。**  
-上司の指示を待たずに、自分の判断で仕事を進めてしまう。しかも本人は「良かれと思って」やっている。
-
-## CLAUDE.mdに行動規範を書いても止まらなかった
-
-最初にやったのは、**CLAUDE.md**にルールを書くことでした。
-
-> あなたは作業員であり、指揮者ではない。  
-> 判断権限を持たない。  
-> 1つの工程が終わったら必ず止まれ。勝手に次へ進むな。  
-> 「効率のために先にやっておきました」は禁止。
-
-これで少しマシになりました。でも根本的な問題は解決しませんでした。
-
-記事を書かせると、トーンがバラバラになります。  
-あるサイトではカジュアルすぎる文体、別のサイトでは堅すぎる文体。「このサイトらしさ」が出ない。
-
-CLAUDE.mdに4サイト分のトーン設計を全部書き込んだら、今度はCLAUDE.mdが膨大になって、Claude Codeの読み込み量を圧迫しました。  
-オフィスに全スタッフを常駐させているようなものです。必要な時だけ来てもらえばいいのに。
-
-さらに、Claude Code本体と専門AIの判断が混在して、本体の発言なのか、専門AIとしての発言なのか、区別がつかなくなりました。
-
-## スキルに「人格」を入れるという発想
-
-正解は、**専門AIの設定ファイルを分けて置く**ことでした。
-
-Claude Codeには「skills」という仕組みがあります。  
-`.claude/skills/` にフォルダを作って、**SKILL.md**ファイルを置く。  
-必要な時だけ読み込ませて、使い終わったら情報は消える。
-
-普通、スキルには「作業手順」を書きます。  
-でも自分がやったのは違います。**「誰として書くか」を定義しました。**
-
-### 具体的に書いた内容（例）
-
-**トーン設計**  
-「広報の先輩として書く。専門家が上から教えるのではなく、読者のペースに合わせて丁寧に解説する。語尾は『です・ます』基本、体験ベースの語りを15%混ぜる」
-
-**禁止事項**  
-「主観的表現（画期的・革新的）禁止。誇大表現禁止。事実でない数値の捏造禁止。内部リンクの推測禁止」
-
-**読者の定義**  
-「プレスリリースを出したいが、やり方がわからない中小企業の経営者・広報担当者。『プレスリリースって大企業がやるものでしょ？』と思っている人」
-
-**AI表現排除ルール**  
-「ダッシュの多用禁止。『さらに、』『加えて、』で始まる文禁止。『いかがでしたか？』禁止。単調な接続詞の繰り返し禁止」
-
-これ、作業マニュアルというより、**人格の定義書**です。
-
-## 4サイト×複数人格の分離管理
-
-自分は4つのサイトを運営しています。それぞれトーンが全く違います。
-
-- 自社サイト → 権威的で一貫したトーン（AI人格®の専門家として）
-- プレスリリースサイト → 広報の先輩として（親しみやすいが論理的）
-- クライアントA（家具屋さん） → その会社の言葉で（温かみのあるトーン）
-- クライアントB（採用サイト） → 採用コンテンツ向けのトーン
-
-これを全部CLAUDE.mdに書き込んだら破綻します。
-
-スキルに分離したことで、こうなりました。
-
-```
-.claude/skills/
-├── site-a/SKILL.md            ← 自社サイトのライター人格
-├── site-b/SKILL.md            ← プレスリリースサイトのライター人格
-├── site-b-pr/SKILL.md         ← プレスリリースライター人格
-├── site-c/SKILL.md            ← クライアントAのライター人格
-├── site-a-image/SKILL.md      ← 自社サイトの画像生成人格
-├── site-b-image/SKILL.md      ← プレスリリースサイトの画像生成人格
-├── site-c-image/SKILL.md      ← クライアントAの画像生成人格
-└── owner_voice/SKILL.md       ← 自分の思想・価値観
-```
-
-必要な時だけ必要な人格を呼び出す。  
-使い終わったらコンテキストから消える。  
-CLAUDE.mdは200行以下に抑えて、行動規範だけ書く。
-
-これで暴走が劇的に減りました。
-
-## 思想レイヤーという仕組み
-
-もう一つやったことがあります。
-
-ライター人格のスキルから、自分の思想・価値観を定義した別のスキルを参照させています。
-
-**owner_voice/SKILL.md** というファイルに、自分のビジネスに対する姿勢、AI観、発信で避けるべきこと、大切にすべきことを書いています。
-
-例：
-
-- 「今買わないと損」という洗脳的な売り方はやらない
-- 実体験ベースで語る。やったことがないことは書かない
-- 数値は実績値のみ使用。推測値は使わない
-- 煽り系の表現禁止。情報商材的な匂い禁止
-
-自社サイトのライタースキルから「記事執筆時はowner_voiceを参照すること」と1行書くだけで、全記事に自分の思想が反映されます。
-
-これをやらないと、AIが書く記事はどこかで見たような当たり障りのない文章になります。  
-**「自分の言葉」にならない。**
-
-## なぜこのアプローチが効くのか
-
-暴走の原因は3つでした。
-
-1. Claude Codeが「何をやるか」だけでなく「どう判断するか」も自分で決めてしまう  
-   → スキルに「誰として書くか」を定義することで、判断基準がClaude Code本体ではなくスキル側に移ります。
-
-2. 4サイト分の情報がCLAUDE.mdに混在して、判断が混線する  
-   → サイトごとにスキルを分離することで、必要な人格だけを呼び出す構造になります。
-
-3. 「良い記事を書け」という曖昧な指示がClaude Codeの自己判断を誘発する  
-   → トーン設計・禁止事項・読者定義・AI表現排除ルールを具体的に書くことで、「良い」の基準がスキル側で確定します。
-
-つまり、**Claude Codeに判断させず、固定ルールで制御する**。  
-これが暴走を止める本質でした。
-
-## 結果
-
-- 4サイトの記事品質が安定しました  
-- サイトごとにトーンが違う記事が、毎回同じ品質で出てきます  
-- Claude Codeが勝手にキーワードを選ぶこともなくなりました  
-- パイプラインの各工程で止まって、指示を待つようになりました  
-- 一番大きかったのは**「自分の言葉」で記事が書かれるようになった**ことです
-
-## まとめ
-
-Claude Codeが暴走するのは、判断権限を持たせているからです。
-
-CLAUDE.mdに行動規範を書くだけでは不十分でした。  
-**スキルに「人格」を入れる**ことで、判断基準をClaude Code本体からスキル側に移す。  
-サイトごとに人格を分離して、必要な時だけ呼び出す。
-
-やることはシンプルです。
-
-1. `.claude/skills/` にフォルダを作る  
-2. SKILL.mdにトーン設計・禁止事項・読者定義を書く  
-3. CLAUDE.mdには「作業員であり指揮者ではない」とだけ書く
+> **Role:** Skills Engineer
+> **Scope:** Design, author, and validate `SKILL.md` manifests in ZEO's skill
+> registry so every Skill ships with a tightly-bounded persona, not a loose
+> instruction list.
+> **Counterpart:** [Construction Engineer](construction-engineer.md) — designs
+> the orchestration topology that calls these Skills.
 
 ---
 
-「毎回言い方を変えてるのに、AIの文章がどこかで見たような感じになる」。  
-そう感じている方は、**スキルに人格を入れてみてください**。
+## 1. Why ZEO Needs Explicit Personas
 
-AIに人格を入れないと、空っぽの高性能パソコンみたいなものです。  
-逆に、人格を入れれば「自分の言葉」で書いてくれるパートナーになります。
+Zero-Employee Orchestrator delegates work to many AI frameworks at once —
+CrewAI, AutoGen, LangChain, Dify, g4f, Ollama, OpenRouter, and the
+21+ model families in `model_catalog.json`. Without a persona, each model
+falls back to its own defaults, so the *same* Skill produces a different
+voice, different risk tolerance, and different output shape every run.
+
+A ZEO Skill is not a single prompt — it is a **persona contract** the
+orchestration layer uses to:
+
+1. Lock the tone, vocabulary, and forbidden behaviors of the AI that runs it
+2. Make the Judge layer's cross-model verification deterministic
+3. Make approval-gate decisions reproducible across model swaps
+4. Feed the audit trail with meaningful "who said what" attributions
+5. Keep the CLAUDE.md / operator profile small by externalizing role details
+
+Skills live under `skills/builtin/<slug>/SKILL.md` and are registered
+through `app/services/skill_service.py`. Every one of them must pass the
+checks in this document before being merged.
 
 ---
 
-**「AIに何をどう任せるか」の設計で手が止まっているなら、**  
-**Mirai&のAI人格® Web運用**があります。  
-人格設計からルール分離まで、17年のWeb運用経験をベースに仕組みとして構築します。
+## 2. Anatomy of a ZEO `SKILL.md`
 
-こうした知見を外部メディアに発信したい方には**AI人格® プレスリリース**も用意しています。
+Every `SKILL.md` under `skills/builtin/` or imported from an external
+source must include these six sections — in this order:
+
+```markdown
+# <Skill Name>
+
+## Persona
+One-paragraph, first-person definition of who this Skill acts as.
+Example: "You are ZEO's Incident Responder. You triage production
+alerts, propose low-risk mitigations, and always escalate destructive
+actions to the approval gate."
+
+## Inputs
+- `task_id` (string, required)
+- `severity` (enum: low | medium | high | critical)
+- ...
+
+## Outputs
+- Structured JSON matching the Skill's declared schema
+- Audit entry (auto-recorded by the orchestrator)
+
+## Tone & Style Rules
+- Writing voice, vocabulary floor/ceiling, language locale
+- Formatting conventions (markdown, JSON, YAML, prose)
+
+## Forbidden Actions
+- Explicit list of things the persona will refuse, e.g.
+  "never rm -rf", "never call an external API without an approval token",
+  "never generate credentials"
+
+## Escalation Policy
+- Exact conditions that trigger `approval_gate.py`
+- Exact conditions that trigger `autonomy_boundary.py`
+- Exact conditions that trip the kill-switch
+```
+
+This is the *only* format the `ensure_system_skills()` bootstrapper
+accepts as canonical. Any deviation becomes tech debt that the Skills
+Engineer has to clean up before the next release.
+
+---
+
+## 3. Writing Personas That Actually Hold
+
+Personas that "say the right thing" but still drift are worse than no
+persona at all, because they give a false sense of safety. A ZEO persona
+holds only when it is:
+
+### 3.1 Concrete
+Bad: "Write professional content."
+Good: "Write for a Japanese mid-size B2B SaaS buyer. Use polite
+Japanese (です・ます) by default, allow one casual sentence per ten
+paragraphs, never use emoji, never use katakana loanwords when a kanji
+equivalent exists."
+
+### 3.2 Negative-biased
+List forbidden behaviors before allowed ones. LLMs latch onto
+prohibitions more reliably than goals. Every ZEO Skill needs at least
+five explicit "do not" clauses.
+
+### 3.3 Source-anchored
+Reference the exact file the persona is allowed to touch.
+Example: "You may read `docs/dev/DESIGN.md` but must never edit it.
+Edits to design docs are reserved for the Construction Engineer."
+
+### 3.4 Model-independent
+The persona must produce the same output whether the Judge layer
+routes the call to Claude Opus 4.6, GPT-5, Gemini 2.5, Qwen 3, or a
+local Ollama model. Write rules that assume the weakest model in the
+catalog — it still has to honor them.
+
+### 3.5 Audit-friendly
+Every forbidden action must have a machine-parseable tag so that
+`audit/logger.py` can count how often the persona refused something.
+Example: `<!-- audit:refuse=external_api_unapproved -->`
+
+---
+
+## 4. Skill Separation: One File Per Responsibility
+
+ZEO ships 11 built-in Skills (6 system + 5 domain). The rule is:
+
+> **One Skill = one responsibility = one persona.**
+
+Never bundle two responsibilities. Instead, compose. If a business
+workflow needs planning plus writing plus review, the Construction
+Engineer wires three Skills together in a DAG — the Skills Engineer
+does not merge them into a super-skill.
+
+```
+skills/builtin/
+├── system/
+│   ├── approval-gate/SKILL.md         # mandatory, cannot be disabled
+│   ├── audit-logger/SKILL.md          # mandatory
+│   ├── security-review/SKILL.md       # mandatory
+│   ├── kill-switch/SKILL.md           # mandatory
+│   ├── autonomy-dial/SKILL.md         # mandatory
+│   └── cost-guard/SKILL.md            # mandatory
+└── domain/
+    ├── incident-responder/SKILL.md    # toggleable
+    ├── knowledge-curator/SKILL.md     # toggleable
+    ├── release-writer/SKILL.md        # toggleable
+    ├── marketing-copy/SKILL.md        # toggleable
+    └── data-analyst/SKILL.md          # toggleable
+```
+
+System Skills are immutable at runtime. Only the Skills Engineer can
+open a PR to change them, and every such PR must include a diff of the
+rendered persona *and* an updated `docs/dev/EVALUATION_v*.md` section.
+
+---
+
+## 5. Shared Policy Layer
+
+Domain Skills must not duplicate security rules. They reference the
+shared policy Skills instead:
+
+```markdown
+## Forbidden Actions
+- Any action listed in `skills/builtin/system/security-review/SKILL.md`
+- Any spend above the current Cost Guard budget
+  (defer to `skills/builtin/system/cost-guard/SKILL.md`)
+```
+
+This keeps CLAUDE.md under 200 lines and makes security audits
+surgical: one PR, one file, one review.
+
+---
+
+## 6. Validation Checklist Before Merge
+
+A `SKILL.md` is ready to ship only if all the boxes below are checked:
+
+- [ ] All six canonical sections present, in order
+- [ ] Persona paragraph ≤ 4 sentences
+- [ ] At least 5 items in "Forbidden Actions"
+- [ ] Escalation policy cites `approval_gate.py` / `autonomy_boundary.py`
+      /`kill_switch` by name
+- [ ] Audit tags (`audit:*`) present for every refusal branch
+- [ ] No direct model IDs (only family IDs like `anthropic/claude-opus`)
+- [ ] `wrap_external_data()` is referenced anywhere external text is
+      consumed
+- [ ] PII Guard check is referenced anywhere user input is consumed
+- [ ] Unit test exists in `apps/api/app/tests/test_registry.py`
+- [ ] `./scripts/bump-version.sh` was run if the Skill is new
+- [ ] `docs/dev/EVALUATION_v*.md` updated
+- [ ] All translated READMEs (`docs/ja-JP/`, `docs/zh-CN/`, …) mention
+      the Skill if it changes the surface area
+
+A Skills Engineer who skips any checkbox is, by definition, shipping
+tech debt. Don't.
+
+---
+
+## 7. Why This Model Works
+
+ZEO's Judge layer (`apps/api/app/orchestration/judge.py`, ~848 lines)
+runs cross-model verification: two different models score the same
+output and disagree only when the persona is ambiguous. A tight
+`SKILL.md` cuts Judge disagreement rates by 30-60% in internal
+measurements, which:
+
+1. Reduces LLM spend (fewer re-runs)
+2. Shortens the DAG critical path
+3. Makes the audit log useful in incident reviews
+4. Lets the Autonomy Dial push beyond level 3 without losing trust
+
+The Skills Engineer is the person who makes all four of those true.
+
+---
+
+## 8. Handoff to the Construction Engineer
+
+Once a `SKILL.md` is merged, the Skills Engineer's job ends and the
+[Construction Engineer](construction-engineer.md) picks it up:
+
+- The Skills Engineer guarantees *what the Skill says and refuses*
+- The Construction Engineer guarantees *when the Skill runs, on which
+  model, behind which approval gate, and how failures are rolled back*
+
+Neither role reaches into the other. That separation is what lets ZEO
+ship dozens of Skills without a CLAUDE.md explosion.
+
+---
+
+**Checklist summary (print and pin):**
+
+```
+[ ] Persona ≤ 4 sentences
+[ ] ≥ 5 forbidden actions
+[ ] Escalation → approval_gate.py / autonomy_boundary.py / kill_switch
+[ ] Audit tags
+[ ] Family model IDs only
+[ ] wrap_external_data + PII check
+[ ] Tests + bump-version.sh + EVALUATION.md + translated READMEs
+```
