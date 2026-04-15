@@ -106,7 +106,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          # Upgrade build tools first (addresses pre-installed pip/setuptools/wheel CVEs)
+          python -m pip install --upgrade pip setuptools wheel
+          # Upgrade pre-installed PyJWT (CVE-2026-32597) — not a direct dep but present in the runner image
+          python -m pip install --upgrade 'pyjwt>=2.12.0'
           pip install ruff pytest pytest-asyncio httpx pytest-cov pip-audit
           pip install -e .
 
