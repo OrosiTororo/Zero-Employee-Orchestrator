@@ -142,6 +142,7 @@ def cmd_db_upgrade(args: argparse.Namespace) -> None:
     """Run DB migration."""
     _find_and_chdir_api()
     _ensure_env_file()
+    import app.models  # noqa: F401  # register all ORM models with Base.metadata
     from app.core.database import Base, engine
 
     async def _create_tables() -> None:

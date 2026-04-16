@@ -1,7 +1,7 @@
 # Roadmap
 
-> Last updated: 2026-04-08
-> Current version: v0.1.5
+> Last updated: 2026-04-16
+> Current version: v0.1.7
 
 ---
 
@@ -12,9 +12,9 @@ v0.1 includes all features originally planned for v0.2 through v1.0, implemented
 ### Implemented in v0.1
 
 **Foundation:**
-- Full 9-layer architecture (24 orchestration modules, 25 services)
+- Full 9-layer architecture (24 orchestration modules, 27 services)
 - ZEO-Bench, Self-Healing DAG, Experience Memory, AI Self-Improvement
-- 46 API route modules, 402 endpoints
+- 48 API route modules, 413 endpoints
 - 14 security defense layers
 
 **Connectivity:**
@@ -70,7 +70,7 @@ Items that can be implemented by the development team without large-scale commun
 | Done | **UI redesign** | Cowork-style layout, MIT-licensed colors, code split (48% reduction), theme extension API |
 | Done | **CLI Neovim-style modes** | NORMAL/INSERT/COMMAND mode switching, lualine-inspired status line |
 | Done | **Token auto-refresh** | 401 interceptor, periodic refresh, prevents auto-logout |
-| Done | **Plugin/Extension seeding** | 16 built-in plugins (10 general + 6 role-based packs) + 11 extensions seeded on startup |
+| Done | **Plugin/Extension seeding** | 18 built-in plugins (12 general + 6 role-based packs) + 11 extensions seeded on startup |
 | Done | **API client migration** | All pages use centralized api client (auth + Tauri URL) |
 | Done | **Frontend data connection** | TicketList, Approvals, Heartbeats, Costs, Audit connected to real API |
 | Done | **features/ module separation** | features/company/ with shared useCompanyId hook |

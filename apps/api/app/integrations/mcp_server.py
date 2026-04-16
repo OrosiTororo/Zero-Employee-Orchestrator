@@ -423,12 +423,13 @@ class MCPServer:
         """Create a ticket via the tickets service."""
         try:
             from app.core.database import get_session
-            from app.services.ticket_service import TicketService
+            from app.services.ticket_service import create_ticket
 
+            company_id = args.get("company_id") or "00000000-0000-0000-0000-000000000000"
             async for db in get_session():
-                svc = TicketService(db)
-                ticket = await svc.create(
-                    company_id="00000000-0000-0000-0000-000000000000",
+                ticket = await create_ticket(
+                    db,
+                    company_id=company_id,
                     title=args.get("title", "Untitled"),
                     description=args.get("description", ""),
                     priority=args.get("priority", "medium"),
@@ -438,24 +439,29 @@ class MCPServer:
             return f"Error creating ticket: {e}"
 
     async def _handle_list_tickets(self, args: dict) -> str:
-        """List tickets via the tickets service."""
+        """List tickets directly from the tickets table."""
         try:
-            from app.core.database import get_session
-            from app.services.ticket_service import TicketService
+            import uuid as _uuid
 
+            from sqlalchemy import select
+
+            from app.core.database import get_session
+            from app.models.ticket import Ticket
+
+            limit = int(args.get("limit", 20))
+            company_id = args.get("company_id")
+            status = args.get("status")
             async for db in get_session():
-                svc = TicketService(db)
-                tickets = await svc.list_tickets(
-                    company_id="00000000-0000-0000-0000-000000000000",
-                    status=args.get("status"),
-                    limit=args.get("limit", 20),
-                )
+                stmt = select(Ticket).order_by(Ticket.ticket_no.desc()).limit(limit)
+                if company_id:
+                    stmt = stmt.where(Ticket.company_id == _uuid.UUID(str(company_id)))
+                if status:
+                    stmt = stmt.where(Ticket.status == status)
+                tickets = list((await db.execute(stmt)).scalars().all())
+                if not tickets:
+                    return "No tickets found."
                 lines = [f"- [{t.status}] {t.title} (id={t.id})" for t in tickets]
-                return (
-                    f"Found {len(tickets)} tickets:\n" + "\n".join(lines)
-                    if lines
-                    else "No tickets found."
-                )
+                return f"Found {len(tickets)} tickets:\n" + "\n".join(lines)
         except Exception as e:
             return f"Error listing tickets: {e}"
 
@@ -465,32 +471,34 @@ class MCPServer:
             from app.orchestration.execution_monitor import get_execution_monitor
 
             monitor = get_execution_monitor()
-            summary = monitor.get_summary()
+            summary = monitor.get_system_summary()
             return (
                 f"Active executions: {summary.get('active_executions', 0)}, "
                 f"Active agents: {summary.get('active_agents', [])}, "
-                f"Kill switch: {'ON' if summary.get('kill_switch_active') else 'OFF'}"
+                f"Kill switch: {'ON' if monitor.is_killed else 'OFF'}"
             )
         except Exception as e:
             return f"Error getting agent status: {e}"
 
     async def _handle_search_knowledge(self, args: dict) -> str:
-        """Search the knowledge store."""
+        """Search the persistent knowledge store (Experience Memory)."""
         try:
             from app.core.database import get_session
-            from app.orchestration.knowledge_store import PersistentKnowledgeStore
+            from app.orchestration.knowledge_store import KnowledgeStore
 
+            limit = int(args.get("limit", 5))
             async for db in get_session():
-                store = PersistentKnowledgeStore(db, "00000000-0000-0000-0000-000000000000")
-                results = await store.search(
-                    query=args.get("query", ""),
+                store = KnowledgeStore(db)
+                records = await store.recall(
                     category=args.get("category"),
-                    limit=5,
+                    company_id=args.get("company_id"),
+                    search_query=args.get("query", ""),
                 )
-                if not results:
+                records = records[:limit]
+                if not records:
                     return "No knowledge entries found."
-                lines = [f"- [{r.category}] {r.title}: {r.content[:100]}..." for r in results]
-                return f"Found {len(results)} entries:\n" + "\n".join(lines)
+                lines = [f"- [{r.category}] {r.key}: {(r.value or '')[:100]}" for r in records]
+                return f"Found {len(records)} entries:\n" + "\n".join(lines)
         except Exception as e:
             return f"Error searching knowledge: {e}"
 
@@ -518,17 +526,22 @@ class MCPServer:
             return f"Error listing skills: {e}"
 
     async def _handle_get_audit_logs(self, args: dict) -> str:
-        """Retrieve audit logs."""
+        """Retrieve audit logs via the AuditLogRepository (append-only)."""
         try:
-            from app.core.database import get_session
-            from app.repositories.audit_repository import AuditRepository
+            import uuid as _uuid
 
+            from app.core.database import get_session
+            from app.repositories.audit_repository import AuditLogRepository
+
+            company_id = args.get("company_id") or "00000000-0000-0000-0000-000000000000"
+            limit = int(args.get("limit", 50))
             async for db in get_session():
-                repo = AuditRepository(db)
-                logs = await repo.list_logs(
-                    company_id="00000000-0000-0000-0000-000000000000",
-                    limit=args.get("limit", 50),
-                    action_type=args.get("action_type"),
+                repo = AuditLogRepository(db)
+                logs = await repo.get_by_company(
+                    _uuid.UUID(company_id),
+                    event_type=args.get("event_type"),
+                    target_type=args.get("target_type"),
+                    limit=limit,
                 )
                 if not logs:
                     return "No audit logs found."
@@ -580,51 +593,91 @@ class MCPServer:
             from app.orchestration.execution_monitor import get_execution_monitor
 
             monitor = get_execution_monitor()
-            summary = monitor.get_summary()
-            active = bool(summary.get("kill_switch_active"))
-            return f"Kill switch: {'ENGAGED (all execution halted)' if active else 'DISENGAGED'}"
+            active = bool(monitor.is_killed)
+            active_count = monitor.active_count
+            state = "ENGAGED (all execution halted)" if active else "DISENGAGED"
+            return f"Kill switch: {state} | active executions: {active_count}"
         except Exception as e:
             return f"Error reading kill switch: {e}"
 
     async def _handle_get_autonomy_level(self, args: dict) -> str:
-        """Read current autonomy level."""
-        try:
-            from app.policies.autonomy_boundary import get_autonomy_boundary
+        """Read current autonomy level.
 
-            boundary = get_autonomy_boundary()
-            level = getattr(boundary, "current_level", None)
-            if level is None and hasattr(boundary, "get_level"):
-                level = boundary.get_level()
-            return f"Current autonomy level: {level}"
+        Autonomy is tracked per agent in the database (see ``agents.autonomy_level``).
+        There is no global mutable boundary, so we return the policy default
+        and the supported levels for operator orientation.
+        """
+        try:
+            from app.policies.autonomy_boundary import AutonomyLevel
+
+            default = AutonomyLevel.SEMI_AUTO.value
+            levels = ", ".join(level.value for level in AutonomyLevel)
+            return (
+                f"Default agent autonomy level: {default}. "
+                f"Supported levels: {levels}. "
+                f"Per-agent levels are stored in the agents table."
+            )
         except Exception as e:
             return f"Error reading autonomy level: {e}"
 
     async def _handle_get_budget_status(self, args: dict) -> str:
-        """Get Cost Guard budget status."""
+        """Get Cost Guard budget status from the budget_policies / cost_ledger tables."""
         try:
-            from app.orchestration.cost_guard import get_cost_guard
+            from sqlalchemy import func, select
 
-            guard = get_cost_guard()
-            if hasattr(guard, "get_status"):
-                status = guard.get_status()
-                return f"Cost Guard status: {status}"
-            return "Cost Guard active (detailed status unavailable)"
+            from app.core.database import get_session
+            from app.models.budget import BudgetPolicy, CostLedger
+
+            async for db in get_session():
+                policy_count = await db.scalar(select(func.count(BudgetPolicy.id))) or 0
+                spend_total = (
+                    await db.scalar(select(func.coalesce(func.sum(CostLedger.cost_usd), 0)))
+                ) or 0
+                if not policy_count:
+                    return (
+                        f"Cost Guard active. No budget policies configured. "
+                        f"Total recorded spend: ${float(spend_total):.4f}."
+                    )
+                sample = (await db.execute(select(BudgetPolicy).limit(1))).scalar_one_or_none()
+                if sample is None:
+                    return (
+                        f"Cost Guard active. Policies configured: {policy_count}. "
+                        f"Total recorded spend: ${float(spend_total):.4f}."
+                    )
+                return (
+                    f"Cost Guard active. Policies configured: {policy_count}. "
+                    f"Sample policy id={sample.id}, name={sample.name}, "
+                    f"limit_usd={float(sample.limit_usd)}, period={sample.period_type}, "
+                    f"warn={sample.warn_threshold_pct}%, stop={sample.stop_threshold_pct}%. "
+                    f"Total recorded spend: ${float(spend_total):.4f}."
+                )
         except Exception as e:
-            return f"Error reading budget status: {e}"
+            return f"Cost Guard active (detail unavailable: {e})"
 
     async def _handle_list_approvals(self, args: dict) -> str:
-        """List pending approvals."""
+        """List pending approval requests from the approvals table."""
         try:
-            from app.policies.approval_gate import get_approval_gate
+            from sqlalchemy import select
 
-            gate = get_approval_gate()
-            if hasattr(gate, "list_pending"):
-                pending = gate.list_pending()[: args.get("limit", 20)]
+            from app.core.database import get_session
+            from app.models.review import ApprovalRequest
+
+            limit = int(args.get("limit", 20))
+            async for db in get_session():
+                result = await db.execute(
+                    select(ApprovalRequest)
+                    .where(ApprovalRequest.status == "requested")
+                    .order_by(ApprovalRequest.requested_at.desc())
+                    .limit(limit)
+                )
+                pending = list(result.scalars().all())
                 if not pending:
                     return "No pending approvals."
-                lines = [f"- {getattr(p, 'id', '?')}: {getattr(p, 'action', '?')}" for p in pending]
+                lines = [
+                    f"- {p.id}: {p.target_type} (risk={p.risk_level}, reason={p.reason})"
+                    for p in pending
+                ]
                 return f"{len(pending)} pending approval(s):\n" + "\n".join(lines)
-            return "Approval gate active (no pending queue accessor)"
         except Exception as e:
             return f"Error listing approvals: {e}"
 

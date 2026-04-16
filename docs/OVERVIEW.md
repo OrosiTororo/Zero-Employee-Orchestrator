@@ -592,13 +592,13 @@ Zero-Employee-Orchestrator/
 │   ├── api/                    # FastAPI backend
 │   │   ├── app/
 │   │   │   ├── core/           # Configuration, DB, security, i18n
-│   │   │   ├── api/routes/     # REST API (46 routes)
+│   │   │   ├── api/routes/     # REST API (48 routes, 413 endpoints)
 │   │   │   ├── api/ws/         # WebSocket
 │   │   │   ├── models/         # ORM models (29 tables / 18 files)
 │   │   │   ├── schemas/        # Pydantic DTO
 │   │   │   ├── services/       # Business logic
 │   │   │   ├── repositories/   # DB I/O abstraction
-│   │   │   ├── orchestration/  # DAG, Judge, state machine, Memory (18 modules)
+│   │   │   ├── orchestration/  # DAG, Judge, state machine, Memory (24 modules)
 │   │   │   ├── heartbeat/      # Periodic execution scheduler
 │   │   │   ├── providers/      # LLM Gateway, Ollama, g4f, RAG
 │   │   │   ├── tools/          # External tool connections (MCP/Webhook/API/CLI)

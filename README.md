@@ -225,7 +225,7 @@ Zero-Employee-Orchestrator/
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # Background workers
 ├── skills/                   # 8 built-in skills (all system-protected)
-├── plugins/                  # 16 plugin manifests (10 general + 6 role-based)
+├── plugins/                  # 18 plugin manifests (12 general + 6 role-based)
 ├── extensions/               # 11 extension manifests
 │   └── browser-assist/
 │       └── chrome-extension/ # Chrome extension for Browser Assist
