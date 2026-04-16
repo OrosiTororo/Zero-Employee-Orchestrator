@@ -100,9 +100,7 @@ async def _record_version(engine: AsyncEngine, version: str, note: str = "") -> 
         if exists.fetchone() is not None:
             return
         await conn.execute(
-            text(
-                f"INSERT INTO {SCHEMA_VERSION_TABLE} (version, note) VALUES (:v, :n)"
-            ),
+            text(f"INSERT INTO {SCHEMA_VERSION_TABLE} (version, note) VALUES (:v, :n)"),
             {"v": version, "n": note[:255]},
         )
 
@@ -143,9 +141,7 @@ async def _step_0_1_3_to_0_1_5(engine: AsyncEngine) -> None:
                 text("ALTER TABLE IF EXISTS operator_profiles ALTER COLUMN role TYPE VARCHAR(255)")
             )
         elif dialect == "mysql":
-            await conn.execute(
-                text("ALTER TABLE operator_profiles MODIFY role VARCHAR(255)")
-            )
+            await conn.execute(text("ALTER TABLE operator_profiles MODIFY role VARCHAR(255)"))
         # SQLite: VARCHAR length is advisory, nothing to do.
 
 

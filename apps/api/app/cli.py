@@ -1757,7 +1757,7 @@ def cmd_upgrade(args: argparse.Namespace) -> None:
             if result.returncode != 0:
                 print("  \033[38;5;196mpip install -U failed; leaving schema untouched\033[0m")
                 sys.exit(1)
-            print(f"  \033[38;5;78m✔ pip install -U complete\033[0m")
+            print("  \033[38;5;78m✔ pip install -U complete\033[0m")
     else:
         print("  \033[38;5;78m✔ Latest version already installed\033[0m")
 
@@ -1783,10 +1783,7 @@ def cmd_upgrade(args: argparse.Namespace) -> None:
                 f"(ran {len(steps)} step(s): {', '.join(steps)})"
             )
         else:
-            print(
-                f"  \033[38;5;78m✔ DB already current\033[0m  "
-                f"at {summary.get('to')}"
-            )
+            print(f"  \033[38;5;78m✔ DB already current\033[0m  at {summary.get('to')}")
 
     _find_and_chdir_api()
     _ensure_env_file()

@@ -142,9 +142,7 @@ class ContextEngineService:
         # Seed MyContext.md — the single entry-point every AI reads first.
         my_context = self.vault_path / self.CONTEXT_DIR / "MyContext.md"
         if not my_context.exists():
-            my_context.write_text(
-                self._starter_mycontext(language), encoding="utf-8"
-            )
+            my_context.write_text(self._starter_mycontext(language), encoding="utf-8")
 
         handoff = self.vault_path / self.CONTEXT_DIR / "AIHandoff.md"
         if not handoff.exists():
@@ -244,12 +242,7 @@ class ContextEngineService:
 
         # 6. Resync — write the session report.
         report.finished_at = datetime.now(UTC)
-        session_file = (
-            self.vault_path
-            / self.OPS_DIR
-            / "sessions"
-            / f"ralph-{report.session_id}.md"
-        )
+        session_file = self.vault_path / self.OPS_DIR / "sessions" / f"ralph-{report.session_id}.md"
         session_file.write_text(self._render_report(report), encoding="utf-8")
         report.report_path = str(session_file)
         return report
@@ -377,9 +370,7 @@ class ContextEngineService:
 
     def _render_report(self, report: RalphReport) -> str:
         duration = (
-            (report.finished_at - report.started_at).total_seconds()
-            if report.finished_at
-            else 0.0
+            (report.finished_at - report.started_at).total_seconds() if report.finished_at else 0.0
         )
         return (
             f"# Ralph session {report.session_id}\n\n"
@@ -393,9 +384,7 @@ class ContextEngineService:
             "## Details\n\n"
             f"Recorded: {', '.join(report.recorded) or '-'}\n\n"
             f"Atoms: {', '.join(report.atoms_created) or '-'}\n\n"
-            f"Warnings:\n"
-            + ("\n".join(f"- {w}" for w in report.warnings) or "- none")
-            + "\n"
+            f"Warnings:\n" + ("\n".join(f"- {w}" for w in report.warnings) or "- none") + "\n"
         )
 
     def _starter_mycontext(self, language: str) -> str:

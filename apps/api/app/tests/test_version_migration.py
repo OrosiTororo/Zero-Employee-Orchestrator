@@ -72,10 +72,7 @@ async def test_schema_version_table_created() -> None:
     async with engine.connect() as conn:
         row = (
             await conn.execute(
-                text(
-                    "SELECT name FROM sqlite_master "
-                    "WHERE type='table' AND name=:n"
-                ),
+                text("SELECT name FROM sqlite_master WHERE type='table' AND name=:n"),
                 {"n": SCHEMA_VERSION_TABLE},
             )
         ).fetchone()

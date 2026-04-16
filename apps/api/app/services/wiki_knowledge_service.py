@@ -91,10 +91,7 @@ class LintReport:
     @property
     def ok(self) -> bool:
         return not (
-            self.broken_links
-            or self.duplicate_titles
-            or self.empty_pages
-            or self.missing_backlinks
+            self.broken_links or self.duplicate_titles or self.empty_pages or self.missing_backlinks
         )
 
 
@@ -233,9 +230,7 @@ class WikiKnowledgeService:
                 tags=["qa", "auto"],
                 sources=citations,
             )
-            (self.wiki_dir / f"{slug}.md").write_text(
-                self._render_page(page), encoding="utf-8"
-            )
+            (self.wiki_dir / f"{slug}.md").write_text(self._render_page(page), encoding="utf-8")
             saved_slug = slug
             self._refresh_backlinks()
             self._refresh_index()
@@ -270,7 +265,7 @@ class WikiKnowledgeService:
                 if target_slug not in slugs:
                     report.broken_links.append((page.slug, link))
 
-        for title_key, owners in titles.items():
+        for _title_key, owners in titles.items():
             if len(owners) > 1:
                 report.duplicate_titles.extend(owners)
 
@@ -291,11 +286,7 @@ class WikiKnowledgeService:
                 if page_path.exists():
                     text = page_path.read_text(encoding="utf-8")
                     cleaned = self._WIKILINK_RE.sub(
-                        lambda m: (
-                            m.group(0)
-                            if self._slugify(m.group(1)) in slugs
-                            else m.group(1)
-                        ),
+                        lambda m: m.group(0) if self._slugify(m.group(1)) in slugs else m.group(1),
                         text,
                     )
                     page_path.write_text(cleaned, encoding="utf-8")
@@ -482,9 +473,7 @@ class WikiKnowledgeService:
         merged = WikiPage(
             slug=existing.slug,
             title=existing.title or incoming.title,
-            content=existing.content.rstrip()
-            + "\n\n---\n\n"
-            + incoming.content.strip(),
+            content=existing.content.rstrip() + "\n\n---\n\n" + incoming.content.strip(),
             tags=list(dict.fromkeys(existing.tags + incoming.tags)),
             sources=list(dict.fromkeys(existing.sources + incoming.sources)),
             backlinks=list(dict.fromkeys(existing.backlinks + incoming.backlinks)),
@@ -520,9 +509,7 @@ class WikiKnowledgeService:
         ]
         for p in pages:
             lines.append(f"- [[{p.title}]]")
-        (self.wiki_dir / self.INDEX_NAME).write_text(
-            "\n".join(lines) + "\n", encoding="utf-8"
-        )
+        (self.wiki_dir / self.INDEX_NAME).write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     @staticmethod
     def _slugify(value: str) -> str:
