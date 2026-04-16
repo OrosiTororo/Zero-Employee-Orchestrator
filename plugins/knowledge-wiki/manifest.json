@@ -1,0 +1,46 @@
+{
+  "slug": "knowledge-wiki",
+  "name": "Knowledge Wiki Plugin",
+  "description": "Karpathy-style LLM Wiki + arscontexta-style context engine bundled as a single plugin. Gives the operator /ingest, /query, /lint, /ralph, and /plan commands, backed by a Markdown vault that any AI (Claude, Gemini, local Qwen) can read — no vendor lock-in.",
+  "version": "0.1.7",
+  "status": "experimental",
+  "type": "plugin",
+  "skills": [
+    "wiki-ingest",
+    "wiki-query",
+    "wiki-lint",
+    "context-ralph",
+    "wiki-plan-proposer"
+  ],
+  "required_permissions": [
+    "read_local",
+    "file_write"
+  ],
+  "external_connections": [],
+  "dangerous_operations": false,
+  "approval_required_operations": [
+    "wiki_query_save",
+    "wiki_lint_fix"
+  ],
+  "use_cases": [
+    "Building a personal research vault from Web Clipper / YouTube transcripts / PDFs",
+    "Answering questions with citations without a vector DB or paid RAG service",
+    "Keeping multiple AI tools in sync by pointing them at the same Markdown vault",
+    "Daily /ralph run to sweep Inbox/ into atoms, refresh links, and log a session report"
+  ],
+  "capabilities": {
+    "ingest": "Compile a raw source (file, URL, paste) into atomic wiki pages with wikilinks",
+    "query": "Answer a question from the wiki, optionally saving the Q&A as a new concept page",
+    "lint": "Broken-link / duplicate-title / empty-page / missing-backlink health check",
+    "ralph": "Run the full Record → Reduce → Reflect → Retrieve → Verify → Resync pipeline",
+    "plan": "Propose a plan for a goal without executing (plan mode)"
+  },
+  "integration": {
+    "obsidian": "Vault layout is Obsidian-compatible — open the same folder as a Vault.",
+    "approval_gate": "`--save` and `--fix` paths are gated when they would touch shared vaults.",
+    "sandbox": "All vault paths are registered with filesystem_sandbox before writing.",
+    "prompt_guard": "Ingested content goes through wrap_external_data and PII masking."
+  },
+  "note": "Works fully offline. No LLM API call is made in the default extractor — users can override the _compile_atomic_pages / _synthesize_answer hooks to plug in a provider.",
+  "author": "Zero-Employee Orchestrator Team"
+}

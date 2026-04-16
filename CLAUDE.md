@@ -24,7 +24,7 @@ ls apps/api/app/
 ```
 apps/api/app/         # FastAPI backend
   core/               # Config, DB, rate limiting, i18n
-  api/routes/         # 46 route modules, 408 endpoints (incl. main.py + MCP JSON-RPC/SSE)
+  api/routes/         # 48 route modules, 419 endpoints (incl. main.py + MCP JSON-RPC/SSE + wiki/context-engine)
   services/           # 25 services (business logic)
   orchestration/      # DAG, Judge, transparency, CostGuard (24 modules)
   providers/          # LLM gateway, Ollama, g4f, ModelRegistry
@@ -36,7 +36,7 @@ apps/api/app/         # FastAPI backend
 apps/desktop/         # Tauri v2 + React (Cowork-style layout)
 apps/edge/            # Cloudflare Workers
 skills/builtin/       # 8 Skills (all system-protected: spec/plan/task/review/summarizer/local/domain/browser-assist)
-plugins/              # 16 Plugins (10 general + 6 role-based packs)
+plugins/              # 18 Plugins (12 general + 6 role-based packs, incl. ai-ceo, knowledge-wiki)
 extensions/           # 11 Extensions
 ```
 
@@ -49,6 +49,13 @@ zero-employee mcp info              # Inspect the built-in MCP server
 zero-employee mcp tools             # List all MCP tools (with annotations)
 zero-employee mcp call <name>       # Smoke-test an MCP tool locally
 zero-employee mcp serve             # stdio transport for Claude Desktop / Cursor / Continue
+zero-employee upgrade               # Cross-version schema upgrade for old (v0.1.x) installs
+# Knowledge/wiki slash commands (in `zero-employee chat`):
+#   /ingest <file|url>    Compile source into atomic wiki pages (Karpathy-style)
+#   /query <question>     Answer from the wiki vault with citations (add --save)
+#   /lint                 Health-check the vault (add --fix to clean empty pages)
+#   /ralph                Inbox → Reduce → Reflect → Retrieve → Verify → Resync pipeline
+#   /plan <goal>          Propose a plan without executing (plan mode)
 pytest apps/api/app/tests/          # Tests
 ruff check apps/api/app/ && ruff format apps/api/app/  # Lint
 ./scripts/bump-version.sh X.Y.Z    # Update ALL 8 version files
@@ -149,4 +156,4 @@ Write about system behavior changes for end users. Do NOT write about docs/CI/co
 
 **Scoring**: 0-10 scale. Overall = (Relative × 0.35) + (Objective × 0.35) + (Additional × 0.30)
 
-**Latest evaluation**: `docs/dev/EVALUATION_v0.1.6_mcp.md` — v0.1.6 MCP integration release (2026-04-10, JSON-RPC 2.0 transport, 14 MCP tools, `zero-employee mcp` CLI, Skills/Construction Engineer role docs, 16 new MCP tests)
+**Latest evaluation**: `docs/dev/EVALUATION_v0.1.7.md` — v0.1.7 harness-engineering release (2026-04-16, Karpathy-style wiki, arscontexta context engine, AI CEO plugin, cross-version upgrade ladder for pre-v0.1.3 installs, 8 new service/migration tests). Previous: `docs/dev/EVALUATION_v0.1.6_mcp.md` (MCP integration, JSON-RPC 2.0 transport, 14 MCP tools).

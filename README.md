@@ -314,6 +314,10 @@ Zero-Employee-Orchestrator/
 | **Operator Profile** | Cowork-style about-me + global instructions — AI personalizes responses based on your role, priorities, and work style |
 | **Task Dispatch** | Cowork Dispatch-inspired background tasks — fire-and-forget with status polling |
 | **Repurpose Engine** | Auto-convert 1 content to 10 media formats |
+| **Knowledge Wiki** | Karpathy-style LLM wiki — `/ingest` compiles raw sources into atomic Markdown pages, `/query` answers with citations, `/lint` keeps the vault healthy. No vector DB required. |
+| **Context Engine** | arscontexta-style Self/Knowledge/Ops vault with `/ralph` Record→Reduce→Reflect→Retrieve→Verify→Resync pipeline. Obsidian-compatible, cross-AI portable (Claude, Gemini, local Qwen). |
+| **AI CEO Pattern** | Owner→CEO→CMO/CTO/COO subagent delegation with per-role model tiering (Opus for planning, Sonnet for execution, Haiku for batch) — plugin-provided, auditable through approval gate. |
+| **Cross-Version Upgrade** | `zero-employee upgrade` walks a hand-written migration ladder so users on pre-v0.1.3 installs can jump straight to the latest schema without losing data. |
 
 ### Security
 
