@@ -49,6 +49,7 @@ from app.api.routes import (
     themes,
     tickets,
     user_input,
+    wiki,
 )
 
 api_router = APIRouter()
@@ -111,3 +112,4 @@ api_router.include_router(
 )
 api_router.include_router(sso.router, tags=["sso", "saml", "enterprise"])
 api_router.include_router(compliance.router, tags=["compliance", "audit-export", "enterprise"])
+api_router.include_router(wiki.router, tags=["wiki", "context-engine"])

@@ -1,0 +1,70 @@
+{
+  "slug": "ai-ceo",
+  "name": "AI CEO Plugin",
+  "description": "A Claude-Code-style 'AI CEO' pattern for solo founders: one senior AI (the CEO) takes all of the operator's directives, decomposes them into plans, and delegates to specialized subagents (CMO, CTO, COO) that run in parallel. The operator stays in the 'board / owner' seat and approves milestones, never writes every prompt.",
+  "version": "0.1.7",
+  "status": "experimental",
+  "type": "plugin",
+  "skills": [
+    "ceo-directive-interpreter",
+    "ceo-weekly-planner",
+    "ceo-delegation-router",
+    "ceo-board-briefing",
+    "ceo-post-mortem"
+  ],
+  "sub_agents": [
+    {
+      "role": "CEO",
+      "preferred_model": "anthropic/claude-opus",
+      "description": "Senior reasoning agent. Turns owner directives into weekly plans, decides which subagent gets each item, and writes the board briefing."
+    },
+    {
+      "role": "CMO",
+      "preferred_model": "anthropic/claude-sonnet",
+      "description": "Marketing subagent. Owns content calendar, SNS drafts, and campaign briefs."
+    },
+    {
+      "role": "CTO",
+      "preferred_model": "anthropic/claude-sonnet",
+      "description": "Engineering subagent. Owns product specs, code reviews, and infra decisions."
+    },
+    {
+      "role": "COO",
+      "preferred_model": "anthropic/claude-haiku",
+      "description": "Operations subagent. Owns scheduling, light research, and routine admin — runs on the cheapest tier for cost control."
+    }
+  ],
+  "required_permissions": [
+    "read_local",
+    "internet_access"
+  ],
+  "external_connections": [],
+  "dangerous_operations": false,
+  "approval_required_operations": [
+    "hire_subagent",
+    "spend_over_budget",
+    "publish_externally",
+    "rewrite_owner_directive"
+  ],
+  "use_cases": [
+    "Solo founder running multiple workstreams (marketing, product, ops) from one dashboard",
+    "Keeping the operator in the 'board member' seat — approves plans, does not micromanage",
+    "Parallel execution: CMO writes SNS, CTO drafts spec, COO schedules meetings, all at once",
+    "Cost control via model tiering: Opus for CEO/strategy, Haiku for routine COO work"
+  ],
+  "capabilities": {
+    "directive_parsing": "Interpret a short owner directive (e.g. 'launch v0.17 this week') into concrete tasks",
+    "subagent_routing": "Route each task to the CMO / CTO / COO pool",
+    "plan_approval_loop": "Every plan goes through approval_gate before execution",
+    "board_briefing": "End-of-day / end-of-week briefing back to the owner",
+    "post_mortem": "Failure analysis written back into experience_memory so the CEO doesn't repeat mistakes"
+  },
+  "integration": {
+    "approval_gate": "All 'hire_subagent' and 'spend_over_budget' calls are blocked until the owner approves.",
+    "experience_memory": "Post-mortems feed back into the interview → plan loop for future directives.",
+    "dispatch": "Subagent work runs as background dispatch tasks so the owner's CLI stays interactive.",
+    "wiki": "CEO reads /wiki before planning and writes board briefings back into it (/wiki/context/ralph)."
+  },
+  "note": "This plugin does NOT spawn real new LLM processes — it configures ZEO's existing a2a_communication + dispatch layers with the CEO/CMO/CTO/COO roles and a plan-approval policy. The 'subagents' are logical lanes, each pinned to a preferred model tier for cost control.",
+  "author": "Zero-Employee Orchestrator Team"
+}

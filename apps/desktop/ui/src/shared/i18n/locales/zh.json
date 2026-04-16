@@ -2,7 +2,7 @@
   "common": {
     "appName": "Zero-Employee Orchestrator",
     "appTagline": "AI 业务编排平台",
-    "version": "v0.1.6",
+    "version": "v0.1.7",
     "back": "返回",
     "next": "下一步",
     "save": "保存",

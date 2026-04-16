@@ -112,6 +112,24 @@ def cmd_serve(args: argparse.Namespace) -> None:
     if not args.no_auto_pull:
         asyncio.run(_check_and_auto_pull_ollama(args.auto_pull_model))
 
+    # Auto-run cross-version DB migration so legacy installs (v0.1.0 / v0.1.1
+    # / v0.1.2) self-heal on first boot of the new build. Failures are logged
+    # but never block startup — operators can re-run ``zero-employee upgrade``.
+    if not getattr(args, "skip_auto_migrate", False):
+        try:
+            from app.core.database import engine
+            from app.core.version_migration import run_migrations
+
+            summary = asyncio.run(run_migrations(engine))
+            if summary.get("steps_run"):
+                print(
+                    "  \033[38;5;78m✔ DB auto-migrated\033[0m  "
+                    f"{summary['from']} -> {summary['to']} "
+                    f"({len(summary['steps_run'])} step(s))"
+                )
+        except Exception as exc:  # pragma: no cover — keep serve resilient
+            print(f"  \033[38;5;220mAuto-migration skipped: {exc}\033[0m")
+
     uvicorn.run(
         "app.main:app",
         host=args.host,
@@ -1245,6 +1263,179 @@ def _cli_grep(pattern: str, path: str = ".") -> str:
         return f"  \033[38;5;196mError: {e}\033[0m"
 
 
+# ---------------------------------------------------------------------------
+# Wiki & context-engine CLI helpers (local, no API server required)
+# ---------------------------------------------------------------------------
+#
+# The server-backed endpoints in ``api/routes/wiki.py`` exist for the
+# desktop UI; the CLI operates on the vault directly so it works even
+# when the API server isn't running (offline-first).
+
+
+def _default_vault() -> str:
+    """Where the wiki / context vault lives when the user doesn't specify one."""
+    import pathlib
+
+    return str(pathlib.Path.home() / ".zero-employee" / "wiki")
+
+
+def _cli_ingest(raw_arg: str) -> str:
+    """/ingest <path-or-url> — compile a source into the wiki."""
+    import asyncio
+    import pathlib
+
+    from app.services.wiki_knowledge_service import WikiKnowledgeService
+
+    arg = raw_arg.strip()
+    if not arg:
+        return "  Usage: /ingest <file-or-url>   (--vault PATH optional)"
+
+    vault = _default_vault()
+    tokens = arg.split()
+    if "--vault" in tokens:
+        idx = tokens.index("--vault")
+        if idx + 1 < len(tokens):
+            vault = tokens[idx + 1]
+            tokens = tokens[:idx] + tokens[idx + 2 :]
+    source = " ".join(tokens)
+
+    # Resolve content: local file if it exists, otherwise treat as raw text.
+    content: str
+    path = pathlib.Path(source).expanduser()
+    if path.is_file():
+        try:
+            content = path.read_text(encoding="utf-8", errors="replace")
+        except OSError as exc:
+            return f"  \033[38;5;196mCannot read {path}: {exc}\033[0m"
+        source_id = str(path)
+        hint_title = path.stem
+    else:
+        content = source
+        source_id = "paste"
+        hint_title = None
+
+    service = WikiKnowledgeService(vault)
+    result = asyncio.run(service.ingest(source=source_id, content=content, title=hint_title))
+    return (
+        f"  \033[38;5;78m✔ Ingested\033[0m  vault={vault}\n"
+        f"  created={len(result.pages_created)} updated={len(result.pages_updated)} "
+        f"concepts={len(result.concepts_found)}\n"
+        f"  pages: {', '.join(result.pages_created + result.pages_updated)[:240]}"
+    )
+
+
+def _cli_query(raw_arg: str) -> str:
+    """/query [--save] <question> — answer a question from the wiki."""
+    import asyncio
+
+    from app.services.wiki_knowledge_service import WikiKnowledgeService
+
+    tokens = raw_arg.strip().split()
+    if not tokens:
+        return "  Usage: /query [--save] <question>   (--vault PATH optional)"
+
+    save = False
+    vault = _default_vault()
+    if "--save" in tokens:
+        save = True
+        tokens.remove("--save")
+    if "--vault" in tokens:
+        idx = tokens.index("--vault")
+        if idx + 1 < len(tokens):
+            vault = tokens[idx + 1]
+            tokens = tokens[:idx] + tokens[idx + 2 :]
+    question = " ".join(tokens)
+    if not question:
+        return "  Usage: /query [--save] <question>"
+
+    service = WikiKnowledgeService(vault)
+    result = asyncio.run(service.query(question, save=save))
+    tail = f"\n  \033[38;5;245msaved: {result.saved_page}\033[0m" if result.saved_page else ""
+    citations = ", ".join(result.citations) or "-"
+    return f"{result.answer}\n  \033[38;5;245mcitations: {citations}\033[0m{tail}"
+
+
+def _cli_lint(raw_arg: str) -> str:
+    """/lint [--fix] — run the wiki health check."""
+    import asyncio
+
+    from app.services.wiki_knowledge_service import WikiKnowledgeService
+
+    tokens = raw_arg.strip().split()
+    fix = "--fix" in tokens
+    vault = _default_vault()
+    if "--vault" in tokens:
+        idx = tokens.index("--vault")
+        if idx + 1 < len(tokens):
+            vault = tokens[idx + 1]
+
+    service = WikiKnowledgeService(vault)
+    report = asyncio.run(service.lint(fix=fix))
+    status_colour = "78" if report.ok else "220"
+    status_text = "ok" if report.ok else "issues"
+    lines = [
+        f"  \033[38;5;{status_colour}m{status_text}\033[0m  "
+        f"checked={report.checked} fixed={len(report.fixed)}",
+    ]
+    if report.broken_links:
+        lines.append(f"  broken_links: {len(report.broken_links)}")
+    if report.duplicate_titles:
+        lines.append(f"  duplicate_titles: {len(report.duplicate_titles)}")
+    if report.empty_pages:
+        lines.append(f"  empty_pages: {len(report.empty_pages)}")
+    if report.missing_backlinks:
+        lines.append(f"  missing_backlinks: {len(report.missing_backlinks)}")
+    return "\n".join(lines)
+
+
+def _cli_ralph(raw_arg: str) -> str:
+    """/ralph — run the Record/Reduce/Reflect/Retrieve/Verify/Resync pipeline."""
+    import asyncio
+
+    from app.services.context_engine_service import ContextEngineService
+
+    tokens = raw_arg.strip().split()
+    vault = _default_vault()
+    if "--vault" in tokens:
+        idx = tokens.index("--vault")
+        if idx + 1 < len(tokens):
+            vault = tokens[idx + 1]
+
+    service = ContextEngineService(vault)
+    service.setup()
+    report = asyncio.run(service.ralph())
+    return (
+        f"  \033[38;5;78m✔ ralph\033[0m  session={report.session_id}\n"
+        f"  recorded={len(report.recorded)} atoms={len(report.atoms_created)} "
+        f"links+={report.links_added} warnings={len(report.warnings)}\n"
+        f"  report: {report.report_path}"
+    )
+
+
+def _cli_plan(raw_arg: str) -> str:
+    """/plan <goal> — ask the plan_writer skill for a plan without executing."""
+    import asyncio
+
+    try:
+        from skills.builtin.plan_writer import PlanWriterSkill
+    except ImportError:
+        return "  \033[38;5;196mplan_writer skill not available in this install\033[0m"
+
+    goal = raw_arg.strip()
+    if not goal:
+        return "  Usage: /plan <goal>"
+
+    skill = PlanWriterSkill()
+    try:
+        run = getattr(skill, "run", None) or getattr(skill, "execute", None)
+        if run is None:
+            return "  plan_writer has no run/execute entrypoint; see /help"
+        plan = run(goal) if not asyncio.iscoroutinefunction(run) else asyncio.run(run(goal))
+    except Exception as exc:
+        return f"  \033[38;5;196mplan failed: {exc}\033[0m"
+    return f"  \033[1mPlan:\033[0m\n{plan}"
+
+
 def _handle_command(cmd: str, language: str) -> str | None:
     """Handle slash commands in local chat mode.
 
@@ -1284,7 +1475,14 @@ def _handle_command(cmd: str, language: str) -> str | None:
                 "  /status <task_id>       - タスクの詳細を表示\n"
                 "  /approve <request_id>   - 承認リクエストを承認\n"
                 "  /reject <request_id> [reason] - 承認リクエストを却下\n"
-                "  /cancel <task_id>       - 実行中のタスクをキャンセル"
+                "  /cancel <task_id>       - 実行中のタスクをキャンセル\n"
+                "\n"
+                "  \033[1mKnowledge Wiki / Context Engine:\033[0m\n"
+                "  /plan <goal>            - プランのみ提案 (実行しない)\n"
+                "  /ingest <file|paste>    - Karpathy 式で wiki にコンパイル\n"
+                "  /query [--save] <q>     - wiki を参照して回答 (--save で保存)\n"
+                "  /lint [--fix]           - wiki の整合性チェック (--fix で修復)\n"
+                "  /ralph                  - arscontexta 6R パイプラインを実行"
             ),
             "en": (
                 "  /help      - Show help\n"
@@ -1310,7 +1508,14 @@ def _handle_command(cmd: str, language: str) -> str | None:
                 "  /status <task_id>       - Show detailed task status\n"
                 "  /approve <request_id>   - Approve a pending request\n"
                 "  /reject <request_id> [reason] - Reject a pending request\n"
-                "  /cancel <task_id>       - Cancel a running task"
+                "  /cancel <task_id>       - Cancel a running task\n"
+                "\n"
+                "  \033[1mKnowledge Wiki / Context Engine:\033[0m\n"
+                "  /plan <goal>            - Propose a plan (plan-only, no execution)\n"
+                "  /ingest <file|paste>    - Compile a source into the wiki (Karpathy)\n"
+                "  /query [--save] <q>     - Answer from the wiki (--save persists Q&A)\n"
+                "  /lint [--fix]           - Wiki health check (--fix repairs)\n"
+                "  /ralph                  - Run the arscontexta 6R pipeline"
             ),
             "zh": (
                 "  /help      - 显示帮助\n"
@@ -1336,7 +1541,14 @@ def _handle_command(cmd: str, language: str) -> str | None:
                 "  /status <task_id>       - 显示任务详情\n"
                 "  /approve <request_id>   - 批准待审请求\n"
                 "  /reject <request_id> [reason] - 拒绝待审请求\n"
-                "  /cancel <task_id>       - 取消运行中的任务"
+                "  /cancel <task_id>       - 取消运行中的任务\n"
+                "\n"
+                "  \033[1mKnowledge Wiki / Context Engine:\033[0m\n"
+                "  /plan <goal>            - 仅提议计划 (不执行)\n"
+                "  /ingest <file|paste>    - 按 Karpathy 风格编译进 wiki\n"
+                "  /query [--save] <q>     - 从 wiki 回答 (--save 保存问答)\n"
+                "  /lint [--fix]           - wiki 健康检查 (--fix 自动修复)\n"
+                "  /ralph                  - 执行 arscontexta 6R 管线"
             ),
         }
         print(help_text.get(language, help_text["en"]))
@@ -1474,6 +1686,23 @@ def _handle_command(cmd: str, language: str) -> str | None:
             print("  Usage: /cancel <task_id>")
         return None
 
+    # ── Wiki & context-engine slash commands (offline-first) ──
+    if command == "/ingest":
+        print(_cli_ingest(" ".join(parts[1:])))
+        return None
+    if command == "/query":
+        print(_cli_query(" ".join(parts[1:])))
+        return None
+    if command == "/lint":
+        print(_cli_lint(" ".join(parts[1:])))
+        return None
+    if command == "/ralph":
+        print(_cli_ralph(" ".join(parts[1:])))
+        return None
+    if command == "/plan":
+        print(_cli_plan(" ".join(parts[1:])))
+        return None
+
     print(f"  Unknown command: {command}. Type /help for help.")
     return None
 
@@ -1494,6 +1723,71 @@ def _compress_context(conversation: list[dict]) -> list[dict]:
     )
     compressed = conversation[:2] + [{"role": "assistant", "content": summary}] + conversation[-4:]
     return compressed
+
+
+def cmd_upgrade(args: argparse.Namespace) -> None:
+    """End-to-end upgrade: pip install -U, then walk the DB migration ladder.
+
+    Designed for users on very old installs (v0.1.0 / v0.1.1 / v0.1.2) who
+    otherwise hit schema drift after ``pip install -U``. Safe to re-run.
+    """
+    import asyncio
+    import subprocess
+
+    from app.core.version_check import (
+        PACKAGE_NAME,
+        check_latest_version_sync,
+        get_current_version,
+        is_newer_version,
+    )
+
+    current = get_current_version()
+    print(f"  Current version: {current}")
+
+    latest = check_latest_version_sync(timeout=10.0)
+    if latest is None:
+        print("  \033[38;5;220mCould not reach PyPI (offline).\033[0m")
+    elif is_newer_version(current, latest):
+        print(f"  New version available: {current} -> \033[38;5;78m{latest}\033[0m")
+        if not args.skip_pip:
+            result = subprocess.run(
+                [sys.executable, "-m", "pip", "install", "-U", PACKAGE_NAME],
+                capture_output=not getattr(args, "verbose", False),
+            )
+            if result.returncode != 0:
+                print("  \033[38;5;196mpip install -U failed; leaving schema untouched\033[0m")
+                sys.exit(1)
+            print("  \033[38;5;78m✔ pip install -U complete\033[0m")
+    else:
+        print("  \033[38;5;78m✔ Latest version already installed\033[0m")
+
+    if args.skip_db:
+        print("  (skipping DB migration as requested)")
+        return
+
+    print("  Running cross-version DB migration...")
+
+    async def _run() -> None:
+        from app.core.database import engine
+        from app.core.version_migration import run_migrations
+
+        summary = await run_migrations(engine)
+        if "error" in summary:
+            print(f"  \033[38;5;196mMigration error: {summary['error']}\033[0m")
+            sys.exit(2)
+        steps = summary.get("steps_run") or []
+        if steps:
+            print(
+                f"  \033[38;5;78m✔ DB upgraded\033[0m  "
+                f"{summary.get('from')} -> {summary.get('to')} "
+                f"(ran {len(steps)} step(s): {', '.join(steps)})"
+            )
+        else:
+            print(f"  \033[38;5;78m✔ DB already current\033[0m  at {summary.get('to')}")
+
+    _find_and_chdir_api()
+    _ensure_env_file()
+    asyncio.run(_run())
 
 
 def cmd_update(args: argparse.Namespace) -> None:
@@ -1572,6 +1866,12 @@ def build_parser() -> argparse.ArgumentParser:
         dest="auto_pull_model",
         metavar="MODEL",
         help="Ollama model to auto-pull when none are installed (default: qwen3:8b)",
+    )
+    serve_parser.add_argument(
+        "--skip-auto-migrate",
+        action="store_true",
+        dest="skip_auto_migrate",
+        help="Skip the cross-version DB migration ladder at startup",
     )
     serve_parser.set_defaults(func=cmd_serve)
 
@@ -1690,6 +1990,28 @@ def build_parser() -> argparse.ArgumentParser:
         help="Show pip output",
     )
     update_parser.set_defaults(func=cmd_update)
+
+    # upgrade -- end-to-end upgrade (pip + DB migration) for legacy installs
+    upgrade_parser = subparsers.add_parser(
+        "upgrade",
+        help="End-to-end upgrade: pip install -U + cross-version DB migration",
+    )
+    upgrade_parser.add_argument(
+        "--skip-pip",
+        action="store_true",
+        help="Skip `pip install -U` (only run the DB migration ladder)",
+    )
+    upgrade_parser.add_argument(
+        "--skip-db",
+        action="store_true",
+        help="Skip the DB migration ladder (only run `pip install -U`)",
+    )
+    upgrade_parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Show pip output",
+    )
+    upgrade_parser.set_defaults(func=cmd_upgrade)
 
     # mcp -- Model Context Protocol server inspection & testing
     mcp_parser = subparsers.add_parser(

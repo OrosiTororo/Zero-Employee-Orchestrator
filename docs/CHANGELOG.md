@@ -1,5 +1,63 @@
 # Changelog
 
+## [v0.1.7] (2026-04-16)
+
+### Feature — Karpathy-style Knowledge Wiki + arscontexta Context Engine
+
+ZEO now ships a vendor-neutral, file-based knowledge layer that works fully
+offline — no vector DB, no paid RAG service, no vendor lock-in.
+
+- **`/ingest <source>`** — compiles a raw Markdown/text source into atomic
+  wiki pages with `[[wikilinks]]`, updates the vault index, and rebuilds
+  backlink maps (`services/wiki_knowledge_service.py`).
+- **`/query <question> [--save]`** — keyword search over the vault, returns
+  citations; `--save` persists the Q&A as a new concept page and triggers
+  approval gate (`wiki_query_save` permission).
+- **`/lint [--fix]`** — broken-link / empty-page / missing-backlink health
+  check; `--fix` deletes empty pages and is gated on `wiki_lint_fix`.
+- **`/ralph`** — arscontexta-inspired Record→Reduce→Reflect→Retrieve→Verify→
+  Resync pipeline: sweeps `Inbox/` into atomic pages, rebuilds cross-links,
+  writes a session report, archives processed notes to `ops/queue/`
+  (`services/context_engine_service.py`).
+- **`/plan <goal>`** — spec-then-execute plan mode; proposes a plan without
+  running it (existing `spec` skill, wired from CLI).
+- **HTTP endpoints** — `POST /wiki/ingest`, `POST /wiki/query`,
+  `GET /wiki/lint`, `POST /wiki/context/setup`, `POST /wiki/context/ralph`;
+  all go through sandbox path-boundary checks, `wrap_external_data()`, and
+  PII masking (`api/routes/wiki.py`).
+- **knowledge-wiki plugin** — bundles all five skills into a single
+  installable plugin (`plugins/knowledge-wiki/manifest.json`).
+- **Obsidian-compatible layout** — vault written as Self/Knowledge/Ops;
+  any AI (Claude, Gemini, local Qwen) can read it; cross-AI portable.
+
+### Feature — AI CEO Organizational Pattern
+
+- **ai-ceo plugin** (`plugins/ai-ceo/manifest.json`) — maps the
+  Owner→CEO→CMO/CTO/COO delegation pattern onto ZEO subagents, with
+  per-role model tiering (Opus for strategic planning, Sonnet for
+  execution, Haiku for batch/reporting). All sub-CEO actions pass through
+  the approval gate and audit log.
+
+### Feature — Cross-Version Upgrade Ladder
+
+- **`zero-employee upgrade`** CLI subcommand — walks a hand-written
+  migration ladder (`core/version_migration.py`) so users on any pre-v0.1.3
+  install can jump straight to the current schema. Additive-only (no data
+  loss), fully idempotent, uses semver-max bookmarking to survive fast
+  hardware where timestamps collide.
+- Four ladder steps: `0.0.0→0.1.3` (knowledge store, approvals, audit),
+  `0.1.3→0.1.5` (widen operator profile columns), `0.1.5→0.1.6` (MCP
+  tool-registration table), `0.1.6→0.1.7` (wiki/context-engine scaffolding).
+
+### Tests
+
+- **8 new tests** — `test_wiki_knowledge_service.py` (5 tests: ingest,
+  query/save, lint/fix, ralph pipeline, setup idempotency) and
+  `test_version_migration.py` (3 tests: fresh-DB recording, idempotency,
+  table-name stability).
+
+---
+
 ## [v0.1.6] (2026-04-10)
 
 ### Feature — Full Model Context Protocol (MCP) server
