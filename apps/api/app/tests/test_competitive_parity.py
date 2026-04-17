@@ -17,6 +17,7 @@ from app.integrations.app_connector import app_connector_hub
 from app.orchestration.dag import TaskNode
 from app.orchestration.executor import NodeResultCache, TaskExecutor
 
+
 async def _auth_headers(client: AsyncClient, _email: str) -> dict:
     """conftest overrides get_current_user to a stub, so any header works."""
     return {"Authorization": "Bearer test-token"}
