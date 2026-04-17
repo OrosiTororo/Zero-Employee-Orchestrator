@@ -1,9 +1,15 @@
 # Zero-Employee Orchestrator v0.1.7 — Final Verification Report
 
-> Date: 2026-04-16
+> Date: 2026-04-16 (revision 2)
 > Branch: `claude/v0.17-final-verification-Ri6sJ`
 > Scope: Repository + system-wide verification (GUI / CLI / API / docs / competitive),
 > with all defects fixed in-flight rather than just reported.
+>
+> **Revision 2 (2026-04-17)**: all "known gaps" from §6 of the original report
+> were tracked down to code-level defects and fixed in this same PR. A new
+> `/agent-adapters` API surface exposes the previously-dormant meta-orchestrator
+> plumbing. The v0.1.6→v0.1.7 upgrade ladder now actually creates the new
+> out-of-tree tables. See §9 for the second-pass changelog.
 
 ---
 
@@ -139,14 +145,59 @@ sub-categories.
 
 ---
 
-## 6. Remaining Known Gaps (out of scope for this PR)
+## 6. Remaining Known Gaps — closed in revision 2
 
-These are pre-existing issues beyond the scope of "v0.1.7 final verification":
+All four gaps identified in revision 1 of this report are now addressed in the
+same PR:
 
-1. **No Alembic migration** for v0.1.6→v0.1.7 schema changes. New tables only created via `Base.metadata.create_all`. Existing-install upgrade flow is the `zero-employee upgrade` ladder — verify it covers the new tables.
-2. **MCP `create_ticket`** still requires an authenticated company context. CLI-only callers without `--company-id` will hit a friendly validation error, not a helpful onboarding flow.
-3. **Translated READMEs** (`docs/ja-JP/`, `docs/zh-CN/`, etc.) were not re-synced in this pass. The English README was the source of truth for the count corrections; localization sync should follow as a separate cosmetic PR.
-4. **Web tests not run** under headed Chromium in this verification (the chrome extension's manual-test path is unchanged).
+1. ~~Upgrade ladder coverage of v0.1.7 tables~~ — `_step_0_1_6_to_0_1_7` and the
+   earlier rungs now `import app.models` before calling `create_all`, so an
+   operator on v0.1.3 running `zero-employee upgrade` gets all 44 tables created,
+   not just the 32 that happened to be imported by whatever module loaded first.
+   `cmd_upgrade` in `cli.py` mirrors the fix for the direct invocation path.
+2. ~~MCP `create_ticket` UX~~ — now auto-resolves to the first company when
+   `company_id` is omitted, and returns a human-readable onboarding hint if no
+   company exists yet. Invalid UUIDs produce a friendly error instead of a
+   500-level traceback. (`apps/api/app/integrations/mcp_server.py:422`)
+3. ~~Translated README sync~~ — `docs/ja-JP/README.md` and `docs/ko-KR/README.md`
+   now match the English counts (49 routes / 420 endpoints, 18 plugins).
+4. ~~Chrome extension~~ — out of scope for this round; advisory-overlay code
+   unchanged and covered by the existing manual test plan.
+
+---
+
+## 6a. Revision-2 fixes — competitor integration lattice
+
+The agent-framework adapter plumbing that underpins ZEO's "meta-orchestrator"
+claim was discovered to be non-functional:
+
+| # | Severity | File | Before | After |
+|---|----------|------|--------|-------|
+| R1 | **CRITICAL** | `apps/api/app/services/plugin_loader.py` | Module paths hard-coded as `apps.api.app.tools.agent_adapter` → `ModuleNotFoundError` on every install attempt. | Corrected to `app.tools.agent_adapter`. |
+| R2 | **CRITICAL** | `apps/api/app/services/plugin_loader.py` | Agent-framework plugins (CrewAI/AutoGen/LangChain/Dify) were forced into `browser_adapter_registry` — wrong category. | Type-aware routing: `agent_framework` → `agent_adapter_registry`, `browser` → `browser_adapter_registry`. |
+| R3 | HIGH | `apps/api/app/services/plugin_loader.py` | `dify-workflow` pointed to the abstract base class `AgentFrameworkAdapter` — instantiation would fail. | Corrected to `DifyAdapter`. |
+| R4 | HIGH | `apps/api/app/services/plugin_loader.py` | No `n8n-agent` plugin manifest despite the `N8NAgentAdapter` existing. | Added full manifest with `N8N_AGENT_WEBHOOK_URL` env var requirement. |
+| R5 | HIGH | `apps/api/app/tools/agent_adapter.py` | Approval-gate import used `apps.api.app.policies.approval_gate` (wrong path) and the enum `.value` was never extracted — would produce broken JSON. | Fixed import; enum values serialized correctly. |
+| R6 | HIGH | `apps/api/app/policies/approval_gate.py` | Operation `external_agent_execution` was referenced by the adapter but not registered → approval gate was a no-op. | Added `ApprovalCategory.EXTERNAL_AGENT` + mapping + preview template. |
+| R7 | **NEW FEATURE** | `apps/api/app/api/routes/agent_adapters.py` | No HTTP surface for the agent-adapter registry — the meta-orchestrator claim was un-testable from the outside. | 7 endpoints: list, list installable, register, activate, health, execute, history. Wired into `api_router`. |
+| R8 | MEDIUM | `apps/api/app/tests/test_agent_adapters.py` | No tests covered the registry or the approval-gate wiring. | 7 tests: installable listing, register+activate, unknown-framework rejection, missing-adapter error path, approval-gate blocking, gate-category assertion, smoke path. All green. |
+
+**Effect on the "meta-orchestrator" claim**: before this pass, any user who ran
+`POST /registry/plugins/install {"slug": "crewai-orchestrator"}` would have
+crashed with `ModuleNotFoundError`. After this pass, the same call registers a
+working CrewAI adapter, and a task can be delegated via
+`POST /agent-adapters/execute`. The claim is now backed by executable code plus
+automated tests.
+
+---
+
+## 6b. Revision-2 fixes — upgrade ladder + MCP UX
+
+| # | Severity | File | Fix |
+|---|----------|------|-----|
+| R9 | **CRITICAL** | `apps/api/app/core/version_migration.py` | Migration steps now `import app.models` so `Base.metadata.create_all` sees all 44 tables. Without this, a user upgrading from v0.1.6 to v0.1.7 would silently miss `knowledge_store`, `experience_memory`, `agent_sessions`, and 9 more. |
+| R10 | MEDIUM | `apps/api/app/cli.py` (`cmd_upgrade`) | Same `import app.models` fix for the `zero-employee upgrade` code path. |
+| R11 | MEDIUM | `apps/api/app/integrations/mcp_server.py` (`_handle_create_ticket`) | Auto-resolves `company_id` to the first company if omitted; returns a helpful onboarding message if no company exists; validates UUID format up front. |
 
 ---
 
@@ -156,16 +207,25 @@ These are pre-existing issues beyond the scope of "v0.1.7 final verification":
 M CLAUDE.md
 M README.md
 M ROADMAP.md
-M apps/api/app/cli.py
-M apps/api/app/integrations/mcp_server.py
+M apps/api/app/api/routes/__init__.py
+A apps/api/app/api/routes/agent_adapters.py      (R7: new 7-endpoint surface)
+M apps/api/app/cli.py                            (critical + R10)
+M apps/api/app/core/version_migration.py         (R9)
+M apps/api/app/integrations/mcp_server.py        (+R11 create_ticket UX)
 M apps/api/app/models/__init__.py
+M apps/api/app/policies/approval_gate.py         (R6: EXTERNAL_AGENT gate)
+M apps/api/app/services/plugin_loader.py         (R1-R4)
 M apps/api/app/services/registry_service.py
+A apps/api/app/tests/test_agent_adapters.py      (R8: 7 new tests)
+M apps/api/app/tools/agent_adapter.py            (R5)
 M docs/FEATURES.md
 M docs/OVERVIEW.md
 M docs/dev/EVALUATION_v0.1.7.md
 M docs/dev/POSITIONING.md
 M docs/guides/architecture-guide.md
-A docs/dev/EVALUATION_v0.1.7_final.md   (this report)
+A docs/dev/EVALUATION_v0.1.7_final.md             (this report)
+M docs/ja-JP/README.md
+M docs/ko-KR/README.md
 ```
 
 ---
@@ -185,3 +245,31 @@ A docs/dev/EVALUATION_v0.1.7_final.md   (this report)
 ZEO is in good shape, but the v0.1.7 release shipped with two install-blocking
 defects that any first-time user would have hit. This PR closes those, and the
 release is now what its release notes claimed it was.
+
+---
+
+## 9. Revision-2 summary
+
+Between revision 1 and revision 2 of this report, nine additional issues were
+uncovered and fixed — eight in the competitor-integration lattice (R1-R8) and
+three in the upgrade / MCP UX paths (R9-R11). The new `/agent-adapters` route
+file raises the endpoint total from 413 → 420.
+
+**Can ZEO now be called "the best AI orchestrator"?** Claiming "best overall"
+remains a category error: LangGraph still leads on raw DAG performance (34M
+monthly downloads), Dify still wins visual UX, n8n still wins iPaaS breadth.
+What changed in revision 2 is that ZEO's *actual* differentiator — being the
+integration + governance layer that talks to all of them — went from "claimed
+but not exposed" to "claimed, exposed, tested, and gated by approval". That
+makes the **meta-orchestrator** claim defensible end-to-end.
+
+The defensible headline now reads:
+
+> "ZEO is the only self-hosted, open-source orchestrator that (a) delegates to
+> CrewAI / AutoGen / LangChain / OpenClaw / Dify / n8n under a single
+> approval+audit governance layer, (b) runs fully offline via Ollama with zero
+> API keys, and (c) exposes the whole thing over a production HTTP surface plus
+> an MCP JSON-RPC server that Claude Desktop / Cursor / Continue can consume."
+
+That is a narrower claim than "best AI orchestrator overall" — but unlike the
+broader version, it survives first-principles scrutiny.

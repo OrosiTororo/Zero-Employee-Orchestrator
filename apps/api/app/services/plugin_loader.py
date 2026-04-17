@@ -666,7 +666,7 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         "adapter": {
             "type": "agent_framework",
             "framework": "crewai",
-            "module": "apps.api.app.tools.agent_adapter",
+            "module": "app.tools.agent_adapter",
             "class": "CrewAIAdapter",
         },
     },
@@ -692,7 +692,7 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         "adapter": {
             "type": "agent_framework",
             "framework": "autogen",
-            "module": "apps.api.app.tools.agent_adapter",
+            "module": "app.tools.agent_adapter",
             "class": "AutoGenAdapter",
         },
     },
@@ -718,7 +718,7 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         "adapter": {
             "type": "agent_framework",
             "framework": "langchain",
-            "module": "apps.api.app.tools.agent_adapter",
+            "module": "app.tools.agent_adapter",
             "class": "LangChainAdapter",
         },
     },
@@ -737,7 +737,7 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         "adapter": {
             "type": "agent_framework",
             "framework": "openclaw",
-            "module": "apps.api.app.tools.agent_adapter",
+            "module": "app.tools.agent_adapter",
             "class": "OpenClawAdapter",
         },
     },
@@ -763,8 +763,34 @@ _KNOWN_PLUGIN_TEMPLATES: dict[str, dict] = {
         "adapter": {
             "type": "agent_framework",
             "framework": "dify",
-            "module": "apps.api.app.tools.agent_adapter",
-            "class": "AgentFrameworkAdapter",
+            "module": "app.tools.agent_adapter",
+            "class": "DifyAdapter",
+        },
+    },
+    "n8n-agent": {
+        "slug": "n8n-agent",
+        "name": "n8n Workflow-as-Agent",
+        "name_ja": "n8n ワークフローエージェント",
+        "description": "Delegate tasks to an n8n workflow that behaves as an AI agent via webhook.",
+        "description_ja": "n8n の Webhook を介して、ワークフローを AI エージェントとして実行します。",
+        "version": "latest",
+        "source_uri": "https://github.com/n8n-io/n8n",
+        "pypi_package": None,
+        "category": "agent-framework",
+        "license": "Sustainable Use License",
+        "requirements": [
+            {
+                "type": "env_var",
+                "name": "N8N_AGENT_WEBHOOK_URL",
+                "required": True,
+                "install_hint": "Point this to an n8n webhook that accepts {instruction, context}.",
+            },
+        ],
+        "adapter": {
+            "type": "agent_framework",
+            "framework": "n8n",
+            "module": "app.tools.agent_adapter",
+            "class": "N8NAgentAdapter",
         },
     },
 }
@@ -1393,12 +1419,19 @@ class PluginLoader:
                 adapter_cls = getattr(module, adapter_config["class"])
                 adapter_instance = adapter_cls()
 
-                # Register in browser adapter registry
-                from app.tools.browser_adapter import browser_adapter_registry
+                adapter_type = adapter_config.get("type", "browser")
+                if adapter_type == "agent_framework":
+                    from app.tools.agent_adapter import agent_adapter_registry
 
-                browser_adapter_registry.register(slug, adapter_instance)
+                    framework = adapter_config.get("framework", slug)
+                    agent_adapter_registry.register(framework, adapter_instance)
+                    logger.info("Agent-framework adapter registered: %s", framework)
+                else:
+                    from app.tools.browser_adapter import browser_adapter_registry
+
+                    browser_adapter_registry.register(slug, adapter_instance)
+                    logger.info("Browser adapter registered: %s", slug)
                 adapter_registered = True
-                logger.info("Adapter registered: %s", slug)
             except Exception as exc:
                 logger.warning("Adapter registration failed: %s — %s", slug, exc)
 

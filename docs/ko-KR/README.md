@@ -208,7 +208,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI 백엔드
 │   │   └── app/
 │   │       ├── core/               # 설정, DB, 보안, i18n
-│   │       ├── api/routes/         # 46 REST API 라우트 모듈
+│   │       ├── api/routes/         # 49 REST API 라우트 모듈 (420 엔드포인트)
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -224,7 +224,7 @@ Zero-Employee-Orchestrator/
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # 백그라운드 워커
 ├── skills/                   # 내장 스킬 (8개: 6 시스템 + 2 도메인)
-├── plugins/                  # 플러그인 매니페스트 (16개)
+├── plugins/                  # 플러그인 매니페스트 (18개: 12 일반 + 6 역할별)
 ├── extensions/               # 익스텐션 매니페스트 (11개)
 │   └── browser-assist/
 │       └── chrome-extension/ # 브라우저 어시스트용 Chrome 확장 프로그램

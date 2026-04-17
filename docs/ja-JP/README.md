@@ -208,7 +208,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI バックエンド
 │   │   └── app/
 │   │       ├── core/               # 設定・DB・セキュリティ・i18n
-│   │       ├── api/routes/         # 46 REST API ルートモジュール
+│   │       ├── api/routes/         # 49 REST API ルートモジュール（420 エンドポイント）
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -224,7 +224,7 @@ Zero-Employee-Orchestrator/
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # バックグラウンドワーカー
 ├── skills/                   # ビルトインスキル（8 個：6 システム + 2 ドメイン）
-├── plugins/                  # プラグインマニフェスト（16 個）
+├── plugins/                  # プラグインマニフェスト（18 個：12 汎用 + 6 役職別）
 ├── extensions/               # エクステンションマニフェスト（11 個）
 │   └── browser-assist/
 │       └── chrome-extension/ # ブラウザアシスト用 Chrome 拡張機能

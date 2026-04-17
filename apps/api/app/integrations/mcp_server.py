@@ -420,13 +420,38 @@ class MCPServer:
     # --- Tool Handler Implementations ---
 
     async def _handle_create_ticket(self, args: dict) -> str:
-        """Create a ticket via the tickets service."""
+        """Create a ticket via the tickets service.
+
+        If no ``company_id`` is supplied, resolve to the first company in the
+        database. This keeps single-tenant CLI / Claude-Desktop setups from
+        bouncing off FK errors against a placeholder UUID.
+        """
         try:
+            import uuid as _uuid
+
+            from sqlalchemy import select
+
             from app.core.database import get_session
+            from app.models.company import Company
             from app.services.ticket_service import create_ticket
 
-            company_id = args.get("company_id") or "00000000-0000-0000-0000-000000000000"
             async for db in get_session():
+                company_id = args.get("company_id")
+                if not company_id:
+                    first = (
+                        await db.execute(select(Company.id).order_by(Company.created_at).limit(1))
+                    ).scalar_one_or_none()
+                    if first is None:
+                        return (
+                            "No companies exist yet. Create one first — "
+                            "e.g. `POST /api/v1/companies` or run `zero-employee chat` "
+                            "→ /setup — then retry `create_ticket`."
+                        )
+                    company_id = str(first)
+                try:
+                    _uuid.UUID(str(company_id))
+                except ValueError:
+                    return f"Invalid company_id: {company_id!r} is not a UUID."
                 ticket = await create_ticket(
                     db,
                     company_id=company_id,

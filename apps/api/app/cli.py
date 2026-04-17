@@ -1769,6 +1769,7 @@ def cmd_upgrade(args: argparse.Namespace) -> None:
     print("  Running cross-version DB migration...")
 
     async def _run() -> None:
+        import app.models  # noqa: F401  # register all ORM models with Base.metadata
         from app.core.database import engine
         from app.core.version_migration import run_migrations
 

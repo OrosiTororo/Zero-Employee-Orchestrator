@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from app.api.routes import (
+    agent_adapters,
     agents,
     ai_tools,
     app_integrations,
@@ -90,6 +91,7 @@ api_router.include_router(file_upload.router, tags=["files"])
 api_router.include_router(user_input.router, tags=["user-input"])
 api_router.include_router(resource_import.router, tags=["resources"])
 api_router.include_router(ipaas.router, tags=["ipaas"])
+api_router.include_router(agent_adapters.router, tags=["agent-adapters"])
 api_router.include_router(export.router, tags=["export"])
 api_router.include_router(marketplace.router, tags=["marketplace"])
 api_router.include_router(team.router, tags=["teams"])
