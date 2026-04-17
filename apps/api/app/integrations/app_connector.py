@@ -837,6 +837,52 @@ _APP_DEFINITIONS: list[AppDefinition] = [
         env_key="DATADOG_API_KEY",
         capabilities=["get_metrics", "list_alerts", "create_monitor", "get_logs"],
     ),
+    # n8n-inspired "catch-all" connector: when none of the named apps match,
+    # the user supplies method/url/headers/body and ZEO runs it through the
+    # same approval+audit pipeline as a first-class integration.
+    AppDefinition(
+        id="generic_http",
+        name="Generic HTTP",
+        category=AppCategory.CUSTOM,
+        description="Call any REST API via user-supplied method/URL/headers/body.",
+        description_en="Call any REST API via user-supplied method/URL/headers/body.",
+        auth_method=AppAuthMethod.NONE,
+        data_direction=AppDataDirection.BIDIRECTIONAL,
+        capabilities=["http_get", "http_post", "http_put", "http_delete", "http_patch"],
+        requires_approval=True,
+        config_schema={
+            "method": {"type": "string", "enum": ["GET", "POST", "PUT", "DELETE", "PATCH"]},
+            "url": {"type": "string", "format": "uri"},
+            "headers": {"type": "object"},
+            "body": {"type": "object"},
+            "timeout_seconds": {"type": "integer", "default": 30},
+        },
+    ),
+    # Microsoft Agent Framework-inspired: full M365 surface as a single app.
+    # The stub previously defined only `microsoft_365` with no sync handler.
+    AppDefinition(
+        id="microsoft_graph",
+        name="Microsoft Graph (M365)",
+        category=AppCategory.PRODUCTIVITY,
+        description="Unified Microsoft 365 surface: Outlook, Excel, OneDrive, Teams, SharePoint.",
+        description_en="Unified Microsoft 365 surface: Outlook, Excel, OneDrive, Teams, SharePoint.",
+        auth_method=AppAuthMethod.OAUTH2,
+        env_key="MICROSOFT_GRAPH_TOKEN",
+        base_url="https://graph.microsoft.com/v1.0",
+        capabilities=[
+            "read_mail",
+            "send_mail",
+            "list_calendar",
+            "create_event",
+            "read_excel",
+            "write_excel",
+            "read_onedrive",
+            "write_onedrive",
+            "post_teams_message",
+            "list_sharepoint_sites",
+            "read_sharepoint_list",
+        ],
+    ),
 ]
 
 
@@ -1223,6 +1269,8 @@ class AppConnectorHub:
             "discord": self._sync_generic_api,
             "hubspot": self._sync_generic_api,
             "salesforce": self._sync_generic_api,
+            "generic_http": self._sync_http_step,
+            "microsoft_graph": self._sync_microsoft_graph,
         }
         return handlers.get(app_id)
 
@@ -1352,6 +1400,86 @@ class AppConnectorHub:
         """Generic API sync handler."""
         logger.info("Generic API sync for %s (delegated to ToolConnector)", conn.app_id)
         return {"items_read": 0, "items_written": 0, "items_skipped": 0}
+
+    async def _sync_http_step(
+        self,
+        conn: AppConnection,
+        direction: AppDataDirection,
+        options: dict[str, Any],
+    ) -> dict[str, int]:
+        """n8n-style generic HTTP step: caller supplies method/url/headers/body."""
+        cfg = {**(conn.config or {}), **(options or {})}
+        url = cfg.get("url")
+        if not url:
+            logger.warning("generic_http sync: no url supplied")
+            return {"items_read": 0, "items_written": 0, "items_skipped": 1}
+        method = str(cfg.get("method", "GET")).upper()
+        if method not in {"GET", "POST", "PUT", "DELETE", "PATCH"}:
+            return {"items_read": 0, "items_written": 0, "items_skipped": 1}
+        try:
+            import httpx
+
+            async with httpx.AsyncClient(timeout=cfg.get("timeout_seconds", 30)) as client:
+                resp = await client.request(
+                    method,
+                    url,
+                    headers=cfg.get("headers") or {},
+                    json=cfg.get("body"),
+                    params=cfg.get("params"),
+                )
+            if 200 <= resp.status_code < 300:
+                read = 1 if method == "GET" else 0
+                written = 0 if method == "GET" else 1
+                return {"items_read": read, "items_written": written, "items_skipped": 0}
+            logger.warning("generic_http %s %s -> %s", method, url, resp.status_code)
+            return {"items_read": 0, "items_written": 0, "items_skipped": 1}
+        except Exception as e:  # noqa: BLE001
+            logger.error("generic_http sync failed: %s", e)
+            return {"items_read": 0, "items_written": 0, "items_skipped": 1}
+
+    async def _sync_microsoft_graph(
+        self,
+        conn: AppConnection,
+        direction: AppDataDirection,
+        options: dict[str, Any],
+    ) -> dict[str, int]:
+        """Microsoft Graph handler — read M365 surface via user-supplied resource path.
+
+        Microsoft-Agent-Framework-inspired: one adapter exposes the full M365
+        surface (Outlook / Excel / OneDrive / Teams / SharePoint) through
+        Graph REST. Caller passes ``resource`` (e.g. ``/me/messages``,
+        ``/me/drive/root/children``) in options.
+        """
+        import os
+
+        token = (conn.config or {}).get("access_token") or os.getenv("MICROSOFT_GRAPH_TOKEN")
+        if not token:
+            logger.warning("microsoft_graph sync: no access_token configured")
+            return {"items_read": 0, "items_written": 0, "items_skipped": 1}
+        resource = (options or {}).get("resource", "/me/messages")
+        if not resource.startswith("/"):
+            resource = "/" + resource
+        try:
+            import httpx
+
+            headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
+            async with httpx.AsyncClient(timeout=30) as client:
+                resp = await client.get(
+                    f"https://graph.microsoft.com/v1.0{resource}",
+                    headers=headers,
+                    params=(options or {}).get("params"),
+                )
+                if resp.status_code == 401:
+                    logger.warning("microsoft_graph: token expired or invalid")
+                    return {"items_read": 0, "items_written": 0, "items_skipped": 1}
+                resp.raise_for_status()
+                data = resp.json()
+            items = data.get("value", data) if isinstance(data, dict) else data
+            count = len(items) if isinstance(items, list) else 1
+            return {"items_read": count, "items_written": 0, "items_skipped": 0}
+        except Exception as e:  # noqa: BLE001
+            logger.error("microsoft_graph sync failed: %s", e)
+            return {"items_read": 0, "items_written": 0, "items_skipped": 1}
 
     async def _sync_local_files(
         self,

@@ -255,6 +255,54 @@ uncovered and fixed — eight in the competitor-integration lattice (R1-R8) and
 three in the upgrade / MCP UX paths (R9-R11). The new `/agent-adapters` route
 file raises the endpoint total from 413 → 420.
 
+---
+
+## 10. Revision-3 — adopting 5 competitor strengths
+
+Revision 2 closed the *integration* gap (we can now call competitors). Revision
+3 closes the *feature-envy* gap: each of the five most-cited competitor
+strengths now has a first-class equivalent in ZEO, so a user who picks ZEO
+does not have to leave the box to get the thing the competitor is famous for.
+
+| # | Competitor strength | ZEO v0.1.7-rev3 answer | Files | Surface |
+|---|---------------------|------------------------|-------|---------|
+| E1 | **LangGraph** — node-graph runtime performance | `NodeResultCache` — SHA-256-keyed LRU memoization of deterministic node outputs, opt-in via `ZEO_DAG_CACHE=1`. Skips the LLM call on cache hit and reuses the judge verdict + transparency report. | `apps/api/app/orchestration/executor.py` | Internal DAG speedup (zero-cost on cache hit) |
+| E2 | **Dify** — reusable visual workflow templates | `/workflow-templates` — 5 built-in templates (research-brief, weekly-report, customer-onboarding, incident-response, content-repurpose) + save/list/delete/instantiate API. Variables are `{name}`-substituted into node titles. | `apps/api/app/api/routes/workflow_templates.py` | 5 endpoints |
+| E3 | **n8n** — iPaaS breadth via "HTTP Request" step | `generic_http` AppDefinition + `_sync_http_step` handler. Any REST API becomes a first-class ZEO connector under the approval+audit layer — no new plugin install required. | `apps/api/app/integrations/app_connector.py` | New AppCategory entry |
+| E4 | **CrewAI** — one-liner `Crew(agents=[...])` role prototyping | `/crews` — 4 role presets (`startup-founding-team`, `research-squad`, `content-studio`, `sre-response`) + dispatch API that fans a single instruction out to every role in parallel via the LLM gateway. No plugin install required. | `apps/api/app/api/routes/crews.py` | 6 endpoints |
+| E5 | **Microsoft Agent Framework** — native M365 surface | `microsoft_graph` AppDefinition + `_sync_microsoft_graph` handler. One OAuth2 token unlocks Outlook, Excel, OneDrive, Teams, SharePoint via `/me/...` Graph paths. Token expiry is logged and returned as skipped items, not exceptions. | `apps/api/app/integrations/app_connector.py` | New AppDefinition |
+
+### Test evidence
+
+`app/tests/test_competitive_parity.py` — 13 tests, all green:
+
+| Test | Surface exercised |
+|------|-------------------|
+| `test_node_cache_stores_and_retrieves`, `test_node_cache_is_bounded` | E1: cache hit + eviction |
+| `test_executor_cache_disabled_by_default`, `..._enabled_via_env` | E1: opt-in flag |
+| `test_workflow_templates_builtin_list` | E2: 3+ builtin templates surfaced |
+| `test_workflow_template_instantiate` | E2: variable substitution + node chain |
+| `test_workflow_template_save_reject_reserved_slug` | E2: builtin-slug conflict 409 |
+| `test_generic_http_app_registered`, `test_generic_http_handler_resolves` | E3 + E5: definitions wired, handlers resolvable |
+| `test_crew_presets_surface`, `test_crew_spawn_from_preset`, `test_crew_spawn_requires_roles` | E4: preset registry + 400 on empty role list |
+
+### "ZEO as a box" — framing
+
+The five additions above do **not** compete with CrewAI / Dify / n8n on their
+home turf. LangGraph still wins a raw throughput benchmark; Dify still wins a
+visual-builder beauty contest. The point is that a ZEO user now has:
+
+1. A **first-class** version of each named feature inside ZEO (no context
+   switch required).
+2. A **first-class** adapter to the competitor itself (revision 2 work) for
+   cases where the user prefers the competitor's implementation.
+3. The same **approval + audit + PII + sandbox** governance layer wrapping
+   both paths.
+
+That is the "box-with-competitors-inside" story made concrete: every
+competitor is either embedded (as a native feature) or embeddable (as a
+sub-worker). Neither half was fully true before this revision.
+
 **Can ZEO now be called "the best AI orchestrator"?** Claiming "best overall"
 remains a category error: LangGraph still leads on raw DAG performance (34M
 monthly downloads), Dify still wins visual UX, n8n still wins iPaaS breadth.

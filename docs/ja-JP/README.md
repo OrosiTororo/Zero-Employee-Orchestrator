@@ -208,7 +208,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI バックエンド
 │   │   └── app/
 │   │       ├── core/               # 設定・DB・セキュリティ・i18n
-│   │       ├── api/routes/         # 49 REST API ルートモジュール（420 エンドポイント）
+│   │       ├── api/routes/         # 51 REST API ルートモジュール（429 エンドポイント）
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO

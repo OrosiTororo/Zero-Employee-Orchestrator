@@ -17,6 +17,7 @@ from app.api.routes import (
     companies,
     compliance,
     config,
+    crews,
     dispatch,
     export,
     file_upload,
@@ -51,6 +52,7 @@ from app.api.routes import (
     tickets,
     user_input,
     wiki,
+    workflow_templates,
 )
 
 api_router = APIRouter()
@@ -115,3 +117,5 @@ api_router.include_router(
 api_router.include_router(sso.router, tags=["sso", "saml", "enterprise"])
 api_router.include_router(compliance.router, tags=["compliance", "audit-export", "enterprise"])
 api_router.include_router(wiki.router, tags=["wiki", "context-engine"])
+api_router.include_router(workflow_templates.router, tags=["workflow-templates"])
+api_router.include_router(crews.router, tags=["crews"])
