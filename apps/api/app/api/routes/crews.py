@@ -7,6 +7,11 @@ each role. Mirrors CrewAI's ``Crew(agents=[...])`` one-liner.
 Ephemeral by design: crews live in memory for the duration of a session. They
 inherit ZEO's approval-gate + audit-log chain automatically, so a crew
 spawned here is still governed by the same policies as a long-lived plugin.
+
+Every crew is owned by exactly one user (``user_id``). List/get/dispatch
+operations filter by owner to keep one user's crews invisible to another.
+Spawn, dispatch and disband all emit audit-log rows when the caller belongs
+to a company.
 """
 
 from __future__ import annotations
@@ -17,11 +22,18 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps.database import get_db
 from app.api.routes.auth import get_current_user
-from app.models.user import User
+from app.core.rate_limit import limiter
+from app.core.security import generate_uuid
+from app.models.audit import AuditLog
+from app.models.user import CompanyMember, User
+from app.security.prompt_guard import ThreatLevel, scan_prompt_injection
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +59,7 @@ class CrewMember:
 class Crew:
     id: str
     name: str
+    user_id: str
     members: list[CrewMember]
     execution_mode: str = "parallel"
     created_at: str = ""
@@ -123,6 +136,42 @@ def _serialize(crew: Crew) -> dict:
     }
 
 
+def _owned_by(crew: Crew, user: User) -> bool:
+    return crew.user_id == str(user.id)
+
+
+async def _resolve_company_id(db: AsyncSession, user: User) -> uuid.UUID | None:
+    result = await db.execute(
+        select(CompanyMember.company_id).where(CompanyMember.user_id == user.id).limit(1)
+    )
+    return result.scalar_one_or_none()
+
+
+async def _audit(
+    db: AsyncSession,
+    user: User,
+    event_type: str,
+    target_id: str | None,
+    details: dict,
+) -> None:
+    company_id = await _resolve_company_id(db, user)
+    if company_id is None:
+        return
+    db.add(
+        AuditLog(
+            id=generate_uuid(),
+            company_id=company_id,
+            actor_type="user",
+            actor_user_id=user.id,
+            event_type=event_type,
+            target_type="crew",
+            target_id=uuid.UUID(target_id) if target_id else None,
+            details_json=details,
+        )
+    )
+    await db.commit()
+
+
 @router.get("/presets")
 async def list_presets(_: User = Depends(get_current_user)) -> dict:
     """List built-in role presets (CrewAI-style kits)."""
@@ -135,58 +184,81 @@ async def list_presets(_: User = Depends(get_current_user)) -> dict:
 
 
 @router.post("")
+@limiter.limit("30/minute")
 async def spawn_crew(
-    request: SpawnCrewRequest,
-    _: User = Depends(get_current_user),
+    request: Request,
+    req: SpawnCrewRequest,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ) -> dict:
     """Instantiate a crew in one call — no plugin install required."""
     roles: list[CrewRole] = []
-    if request.preset:
-        if request.preset not in _ROLE_PRESETS:
+    if req.preset:
+        if req.preset not in _ROLE_PRESETS:
             raise HTTPException(
                 status_code=400,
-                detail=f"Unknown preset '{request.preset}'. Available: {sorted(_ROLE_PRESETS)}",
+                detail=(
+                    f"Unknown preset '{req.preset}'. Available: {sorted(_ROLE_PRESETS)}. "
+                    "List via GET /crews/presets."
+                ),
             )
-        roles.extend(_ROLE_PRESETS[request.preset])
+        roles.extend(_ROLE_PRESETS[req.preset])
     roles.extend(
         CrewRole(name=r.name, preferred_model=r.preferred_model, description=r.description)
-        for r in request.roles
+        for r in req.roles
     )
     if not roles:
         raise HTTPException(
             status_code=400,
-            detail="Supply at least one role (via 'roles' or 'preset').",
+            detail="Supply at least one role via 'roles' or 'preset'. See GET /crews/presets.",
         )
     crew_id = str(uuid.uuid4())
     crew = Crew(
         id=crew_id,
-        name=request.name,
+        name=req.name,
+        user_id=str(user.id),
         members=[CrewMember(role=r) for r in roles],
-        execution_mode=request.execution_mode,
+        execution_mode=req.execution_mode,
         created_at=datetime.now(UTC).isoformat(),
     )
     _CREWS[crew_id] = crew
+
+    await _audit(
+        db,
+        user,
+        "crew.spawned",
+        crew_id,
+        {"name": req.name, "preset": req.preset, "member_count": len(roles)},
+    )
     return {"crew": _serialize(crew)}
 
 
 @router.get("")
-async def list_crews(_: User = Depends(get_current_user)) -> dict:
-    return {"crews": [_serialize(c) for c in _CREWS.values()]}
+async def list_crews(user: User = Depends(get_current_user)) -> dict:
+    return {"crews": [_serialize(c) for c in _CREWS.values() if _owned_by(c, user)]}
 
 
 @router.get("/{crew_id}")
-async def get_crew(crew_id: str, _: User = Depends(get_current_user)) -> dict:
+async def get_crew(crew_id: str, user: User = Depends(get_current_user)) -> dict:
     crew = _CREWS.get(crew_id)
-    if not crew:
+    if not crew or not _owned_by(crew, user):
         raise HTTPException(status_code=404, detail=f"Crew not found: {crew_id}")
     return {"crew": _serialize(crew)}
 
 
 @router.delete("/{crew_id}")
-async def disband_crew(crew_id: str, _: User = Depends(get_current_user)) -> dict:
-    if crew_id not in _CREWS:
+@limiter.limit("30/minute")
+async def disband_crew(
+    request: Request,
+    crew_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    crew = _CREWS.get(crew_id)
+    if not crew or not _owned_by(crew, user):
         raise HTTPException(status_code=404, detail=f"Crew not found: {crew_id}")
     _CREWS.pop(crew_id)
+    await _audit(db, user, "crew.disbanded", crew_id, {"name": crew.name})
     return {"disbanded": crew_id}
 
 
@@ -232,10 +304,13 @@ async def _run_one(member: CrewMember, instruction: str, extra_context: str) -> 
 
 
 @router.post("/{crew_id}/dispatch")
+@limiter.limit("30/minute")
 async def dispatch_task(
+    request: Request,
     crew_id: str,
-    request: DispatchTaskRequest,
-    _: User = Depends(get_current_user),
+    req: DispatchTaskRequest,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ) -> dict:
     """Fan a single instruction out to every crew member.
 
@@ -243,21 +318,38 @@ async def dispatch_task(
     was spawned with ``execution_mode=sequential``.
     """
     crew = _CREWS.get(crew_id)
-    if not crew:
+    if not crew or not _owned_by(crew, user):
         raise HTTPException(status_code=404, detail=f"Crew not found: {crew_id}")
+
+    guard = scan_prompt_injection(req.instruction)
+    if guard.threat_level in (ThreatLevel.HIGH, ThreatLevel.CRITICAL):
+        raise HTTPException(
+            status_code=400,
+            detail="Dispatch blocked: instruction contains potentially unsafe content.",
+        )
+
     crew.last_run_at = datetime.now(UTC).isoformat()
     crew.last_run_results = []
 
     if crew.execution_mode == "sequential":
         results = []
         for member in crew.members:
-            ctx = request.per_role_context.get(member.role.name, "")
-            results.append(await _run_one(member, request.instruction, ctx))
+            ctx = req.per_role_context.get(member.role.name, "")
+            results.append(await _run_one(member, req.instruction, ctx))
     else:
         coros = [
-            _run_one(m, request.instruction, request.per_role_context.get(m.role.name, ""))
+            _run_one(m, req.instruction, req.per_role_context.get(m.role.name, ""))
             for m in crew.members
         ]
         results = await asyncio.gather(*coros)
     crew.last_run_results = results
+
+    succeeded = sum(1 for r in results if r.get("status") == "succeeded")
+    await _audit(
+        db,
+        user,
+        "crew.dispatched",
+        crew_id,
+        {"members": len(results), "succeeded": succeeded},
+    )
     return {"crew_id": crew_id, "results": results}
