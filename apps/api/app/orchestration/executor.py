@@ -140,6 +140,16 @@ class NodeResultCache:
         return {"hits": self.hits, "misses": self.misses, "size": len(self._store)}
 
 
+# Process-wide default cache so stats span requests. Individual TaskExecutor
+# instances may still pass their own cache for tests or sharded deployments.
+_DEFAULT_NODE_CACHE = NodeResultCache()
+
+
+def get_default_cache() -> NodeResultCache:
+    """Return the process-wide DAG node-result cache (LangGraph-inspired)."""
+    return _DEFAULT_NODE_CACHE
+
+
 class TaskExecutor:
     """Central execution engine that orchestrates the full task lifecycle."""
 
@@ -154,7 +164,7 @@ class TaskExecutor:
         self._gateway = gateway or LLMGateway()
         self._rule_judge = RuleBasedJudge()
         self._cross_judge = CrossModelJudge()
-        self._cache = cache or NodeResultCache()
+        self._cache = cache or _DEFAULT_NODE_CACHE
         self._cache_enabled = os.getenv("ZEO_DAG_CACHE", "0") in {"1", "true", "True"}
         # Add default quality rules
         self._rule_judge.add_rule(

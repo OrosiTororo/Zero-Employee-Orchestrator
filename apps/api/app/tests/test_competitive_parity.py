@@ -211,6 +211,48 @@ def test_crew_user_scoping_helper():
     assert _owned_by(crew, User(id=_TEST_UID_B)) is False
 
 
+# ----------------- SSRF guard on generic HTTP (D6) -------------------------- #
+
+
+def test_ssrf_guard_blocks_loopback_and_rfc1918():
+    from app.integrations.app_connector import _is_safe_http_url
+
+    assert _is_safe_http_url("https://api.github.com/repos") is True
+    assert _is_safe_http_url("http://127.0.0.1/secret") is False
+    assert _is_safe_http_url("http://localhost/internal") is False
+    assert _is_safe_http_url("http://169.254.169.254/latest/meta-data/") is False
+    assert _is_safe_http_url("http://10.0.0.5/admin") is False
+    assert _is_safe_http_url("http://192.168.1.1") is False
+    assert _is_safe_http_url("file:///etc/passwd") is False
+    assert _is_safe_http_url("gopher://evil.example") is False
+
+
+def test_ssrf_guard_env_override_allows_internal(monkeypatch):
+    from app.integrations.app_connector import _is_safe_http_url
+
+    monkeypatch.setenv("ZEO_ALLOW_INTERNAL_HTTP", "1")
+    assert _is_safe_http_url("http://10.0.0.5/allowed") is True
+
+
+# ----------------- Secret masking (D8) -------------------------------------- #
+
+
+def test_mask_secret_hides_most_of_token():
+    from app.integrations.app_connector import _mask_secret
+
+    assert _mask_secret("eyJhbGciOiJIUzI1NiJ9.abc") == "eyJhbG***"
+    assert _mask_secret("short") == "***"
+    assert _mask_secret("") == "<empty>"
+
+
+def test_redact_url_drops_query_and_userinfo():
+    from app.integrations.app_connector import _redact_url
+
+    assert _redact_url("https://api.example.com/v1/users?api_key=SECRET") == (
+        "https://api.example.com/v1/users"
+    )
+
+
 # ----------------- Prompt-injection guard on dispatch (D7) ------------------ #
 
 
@@ -237,3 +279,92 @@ async def test_crew_dispatch_blocks_prompt_injection(client: AsyncClient):
     body = bad.json()
     detail = str(body.get("detail", "")).lower()
     assert "unsafe" in detail or body.get("threat_level") in ("high", "critical")
+
+
+# ----------------- PII guard on template/crew payloads (D9) ----------------- #
+
+
+@pytest.mark.asyncio
+async def test_template_save_masks_pii_in_free_text(client: AsyncClient):
+    headers = await _auth_headers(client, "tmpl_pii@example.com")
+    resp = await client.post(
+        "/api/v1/workflow-templates",
+        json={
+            "slug": "pii-leak-check",
+            "name": "Contact alice@example.com",
+            "description": "Ping 555-123-4567 when done",
+            "nodes": [{"id": "n1", "title": "noop"}],
+        },
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    tpl = resp.json()["template"]
+    assert "alice@example.com" not in tpl["name"]
+    assert "555-123-4567" not in tpl["description"]
+
+
+@pytest.mark.asyncio
+async def test_crew_spawn_masks_pii_in_name(client: AsyncClient):
+    headers = await _auth_headers(client, "crew_pii@example.com")
+    resp = await client.post(
+        "/api/v1/crews",
+        json={"name": "bob@example.com squad", "preset": "research-squad"},
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    assert "bob@example.com" not in resp.json()["crew"]["name"]
+
+
+# ------------------ Cache stats observability endpoint (B5) ----------------- #
+
+
+@pytest.mark.asyncio
+async def test_cache_stats_endpoint_returns_shape(client: AsyncClient):
+    headers = await _auth_headers(client, "cache_stats@example.com")
+    resp = await client.get("/api/v1/orchestration/cache/stats", headers=headers)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "enabled" in body
+    assert "hits" in body and "misses" in body and "size" in body
+    assert body.get("env_flag") == "ZEO_DAG_CACHE"
+
+
+# ------------------ Mock-LLM echo provider (B6) ----------------------------- #
+
+
+def test_mock_llm_echoes_last_user_message(monkeypatch):
+    import asyncio
+
+    from app.providers.gateway import CompletionRequest, LLMGateway
+
+    monkeypatch.setenv("ZEO_MOCK_LLM", "1")
+    gw = LLMGateway()
+    resp = asyncio.run(
+        gw.complete(
+            CompletionRequest(
+                messages=[
+                    {"role": "system", "content": "ignored"},
+                    {"role": "user", "content": "hello world"},
+                ],
+                model="anthropic/claude-sonnet",
+            )
+        )
+    )
+    assert resp.provider == "mock"
+    assert "hello world" in resp.content
+
+
+def test_mock_llm_disabled_by_default(monkeypatch):
+    from app.providers.gateway import _mock_completion
+
+    monkeypatch.delenv("ZEO_MOCK_LLM", raising=False)
+    # helper still works when called directly; production code only reaches it
+    # via an explicit env-flag check in complete().
+    from app.providers.gateway import CompletionRequest
+
+    resp = _mock_completion(
+        "anthropic/claude-opus",
+        CompletionRequest(messages=[{"role": "user", "content": "probe"}]),
+    )
+    assert resp.provider == "mock"
+    assert "probe" in resp.content

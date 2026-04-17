@@ -34,6 +34,7 @@ from app.api.routes import (
     observability,
     ollama,
     operator_profile,
+    orchestration_cache,
     org_setup,
     platform,
     projects,
@@ -119,3 +120,4 @@ api_router.include_router(compliance.router, tags=["compliance", "audit-export",
 api_router.include_router(wiki.router, tags=["wiki", "context-engine"])
 api_router.include_router(workflow_templates.router, tags=["workflow-templates"])
 api_router.include_router(crews.router, tags=["crews"])
+api_router.include_router(orchestration_cache.router, tags=["orchestration"])

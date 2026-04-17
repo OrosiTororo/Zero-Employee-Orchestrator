@@ -133,6 +133,29 @@ def _load_model_catalog() -> dict[ExecutionMode, list[str]]:
 MODEL_CATALOG: dict[ExecutionMode, list[str]] = _load_model_catalog()
 
 
+def _mock_completion(model: str, request: "CompletionRequest") -> "CompletionResponse":
+    """Echo-style completion used when ZEO_MOCK_LLM=1.
+
+    Returns the last user message prefixed with ``[mock]`` so demos and tests
+    can exercise template instantiation, crew dispatch, and CLI slash commands
+    without any external LLM keys.
+    """
+    last_user = next(
+        (m.get("content", "") for m in reversed(request.messages) if m.get("role") == "user"),
+        "",
+    )
+    content = f"[mock:{model}] {last_user}".strip()
+    return CompletionResponse(
+        content=content,
+        model_used=model,
+        provider="mock",
+        tokens_input=sum(len(str(m.get("content", ""))) for m in request.messages) // 4,
+        tokens_output=len(content) // 4,
+        cost_usd=0.0,
+        finish_reason="stop",
+    )
+
+
 class LLMGateway:
     """Unified LLM gateway using LiteLLM for multi-provider support."""
 
@@ -388,6 +411,14 @@ class LLMGateway:
     async def complete(self, request: CompletionRequest) -> CompletionResponse:
         """Send completion request, routing to appropriate provider."""
         model = request.model or self.select_model(request.mode)
+
+        # ── Mock echo provider for local/offline demos (ZEO_MOCK_LLM=1) ─────
+        # Lets the golden path (template instantiate, crew dispatch, /template,
+        # /crew) walk without external keys or Ollama.  Bypasses sanitisation
+        # because the mock never leaves the process — it echoes the user's
+        # own content back, and any sanitisation would corrupt the echo.
+        if os.getenv("ZEO_MOCK_LLM", "0") in {"1", "true", "True"}:
+            return _mock_completion(model, request)
 
         # Security: scan messages for prompt injection and apply boundary markers
         request.messages = self._sanitize_messages(request.messages)

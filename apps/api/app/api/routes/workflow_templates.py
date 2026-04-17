@@ -27,6 +27,7 @@ from app.core.rate_limit import limiter
 from app.core.security import generate_uuid
 from app.models.audit import AuditLog
 from app.models.user import CompanyMember, User
+from app.security.pii_guard import detect_and_mask_pii
 
 logger = logging.getLogger(__name__)
 
@@ -179,6 +180,13 @@ def _user_templates(user: User) -> dict[str, WorkflowTemplate]:
     return _USER_TEMPLATES.setdefault(str(user.id), {})
 
 
+def _scrub_pii(text: str) -> str:
+    """Mask PII in a free-text user-supplied field before persistence."""
+    if not text:
+        return text
+    return detect_and_mask_pii(text).masked_text
+
+
 async def _resolve_company_id(db: AsyncSession, user: User) -> uuid.UUID | None:
     """Best-effort lookup of the user's first company for audit purposes.
 
@@ -213,8 +221,7 @@ async def get_template(slug: str, user: User = Depends(get_current_user)) -> dic
         raise HTTPException(
             status_code=404,
             detail=(
-                f"Template not found: {slug}. "
-                "List available templates via GET /workflow-templates."
+                f"Template not found: {slug}. List available templates via GET /workflow-templates."
             ),
         )
     return _serialize(tpl)
@@ -240,8 +247,8 @@ async def save_template(
     nodes = [TemplateNode(**n) for n in req.nodes]
     tpl = WorkflowTemplate(
         slug=req.slug,
-        name=req.name,
-        description=req.description,
+        name=_scrub_pii(req.name),
+        description=_scrub_pii(req.description),
         category=req.category,
         nodes=nodes,
         tags=req.tags,
@@ -280,8 +287,7 @@ async def delete_template(
         raise HTTPException(
             status_code=404,
             detail=(
-                f"Template not found: {slug}. "
-                "List available templates via GET /workflow-templates."
+                f"Template not found: {slug}. List available templates via GET /workflow-templates."
             ),
         )
     user_map.pop(slug)
@@ -320,8 +326,7 @@ async def instantiate_template(
         raise HTTPException(
             status_code=404,
             detail=(
-                f"Template not found: {slug}. "
-                "List available templates via GET /workflow-templates."
+                f"Template not found: {slug}. List available templates via GET /workflow-templates."
             ),
         )
     plan_id = str(uuid.uuid4())
@@ -341,7 +346,7 @@ async def instantiate_template(
         )
     return {
         "plan_id": plan_id,
-        "ticket_title": req.ticket_title,
+        "ticket_title": _scrub_pii(req.ticket_title),
         "template_slug": slug,
         "nodes": nodes,
         "ready_to_execute": True,

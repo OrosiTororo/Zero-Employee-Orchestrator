@@ -18,14 +18,92 @@ Safety:
 
 from __future__ import annotations
 
+import ipaddress
 import logging
+import os
+import socket
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
+from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
+
+
+def _mask_secret(value: str, visible: int = 6) -> str:
+    """Return a log-safe view of a secret: first N chars + ``***``."""
+    if not value:
+        return "<empty>"
+    if len(value) <= visible:
+        return "***"
+    return f"{value[:visible]}***"
+
+
+def _redact_url(url: str) -> str:
+    """Strip query string and userinfo from a URL for safe logging."""
+    try:
+        parsed = urlparse(url)
+        host = parsed.hostname or ""
+        port = f":{parsed.port}" if parsed.port else ""
+        return f"{parsed.scheme}://{host}{port}{parsed.path}"
+    except Exception:  # noqa: BLE001
+        return "<unparseable-url>"
+
+
+def _is_safe_http_url(url: str) -> bool:
+    """SSRF guard: reject URLs pointing to internal networks.
+
+    Blocks:
+    - Non-http(s) schemes (file://, ftp://, gopher://, ...)
+    - Loopback (127.0.0.0/8, ::1)
+    - Link-local (169.254.0.0/16 — includes EC2/GCE/Azure IMDS)
+    - RFC 1918 private ranges (10/8, 172.16/12, 192.168/16)
+    - IPv6 unique-local (fc00::/7) and link-local (fe80::/10)
+    - Hostnames that resolve to any of the above
+
+    Set ``ZEO_ALLOW_INTERNAL_HTTP=1`` to bypass (for trusted self-hosted
+    integrations inside a private network).
+    """
+    if os.getenv("ZEO_ALLOW_INTERNAL_HTTP") == "1":
+        return True
+    try:
+        parsed = urlparse(url)
+    except Exception:  # noqa: BLE001
+        return False
+    if parsed.scheme not in ("http", "https"):
+        return False
+    host = parsed.hostname
+    if not host:
+        return False
+    # Resolve hostname to every address family so DNS-rebind-style attacks
+    # that map a public name to 127.0.0.1 are caught too.
+    candidates: list[str] = []
+    try:
+        ipaddress.ip_address(host)
+        candidates.append(host)
+    except ValueError:
+        try:
+            infos = socket.getaddrinfo(host, None)
+            candidates.extend({info[4][0] for info in infos})
+        except socket.gaierror:
+            return False
+    for ip_str in candidates:
+        try:
+            ip = ipaddress.ip_address(ip_str)
+        except ValueError:
+            return False
+        if (
+            ip.is_loopback
+            or ip.is_link_local
+            or ip.is_private
+            or ip.is_reserved
+            or ip.is_multicast
+            or ip.is_unspecified
+        ):
+            return False
+    return True
 
 
 class AppCategory(str, Enum):
@@ -1407,11 +1485,19 @@ class AppConnectorHub:
         direction: AppDataDirection,
         options: dict[str, Any],
     ) -> dict[str, int]:
-        """n8n-style generic HTTP step: caller supplies method/url/headers/body."""
+        """n8n-style generic HTTP step: caller supplies method/url/headers/body.
+
+        URLs are validated to prevent SSRF: only http(s) to non-internal hosts
+        are permitted. Set ``ZEO_ALLOW_INTERNAL_HTTP=1`` to bypass for trusted
+        self-hosted internal integrations.
+        """
         cfg = {**(conn.config or {}), **(options or {})}
         url = cfg.get("url")
         if not url:
             logger.warning("generic_http sync: no url supplied")
+            return {"items_read": 0, "items_written": 0, "items_skipped": 1}
+        if not _is_safe_http_url(url):
+            logger.warning("generic_http sync: url blocked by SSRF guard (%s)", _redact_url(url))
             return {"items_read": 0, "items_written": 0, "items_skipped": 1}
         method = str(cfg.get("method", "GET")).upper()
         if method not in {"GET", "POST", "PUT", "DELETE", "PATCH"}:
@@ -1431,7 +1517,7 @@ class AppConnectorHub:
                 read = 1 if method == "GET" else 0
                 written = 0 if method == "GET" else 1
                 return {"items_read": read, "items_written": written, "items_skipped": 0}
-            logger.warning("generic_http %s %s -> %s", method, url, resp.status_code)
+            logger.warning("generic_http %s %s -> %s", method, _redact_url(url), resp.status_code)
             return {"items_read": 0, "items_written": 0, "items_skipped": 1}
         except Exception as e:  # noqa: BLE001
             logger.error("generic_http sync failed: %s", e)
@@ -1450,8 +1536,6 @@ class AppConnectorHub:
         Graph REST. Caller passes ``resource`` (e.g. ``/me/messages``,
         ``/me/drive/root/children``) in options.
         """
-        import os
-
         token = (conn.config or {}).get("access_token") or os.getenv("MICROSOFT_GRAPH_TOKEN")
         if not token:
             logger.warning("microsoft_graph sync: no access_token configured")
@@ -1459,6 +1543,7 @@ class AppConnectorHub:
         resource = (options or {}).get("resource", "/me/messages")
         if not resource.startswith("/"):
             resource = "/" + resource
+        masked = _mask_secret(token)
         try:
             import httpx
 
@@ -1470,7 +1555,7 @@ class AppConnectorHub:
                     params=(options or {}).get("params"),
                 )
                 if resp.status_code == 401:
-                    logger.warning("microsoft_graph: token expired or invalid")
+                    logger.warning("microsoft_graph: token expired or invalid (token=%s)", masked)
                     return {"items_read": 0, "items_written": 0, "items_skipped": 1}
                 resp.raise_for_status()
                 data = resp.json()
@@ -1478,7 +1563,7 @@ class AppConnectorHub:
             count = len(items) if isinstance(items, list) else 1
             return {"items_read": count, "items_written": 0, "items_skipped": 0}
         except Exception as e:  # noqa: BLE001
-            logger.error("microsoft_graph sync failed: %s", e)
+            logger.error("microsoft_graph sync failed (token=%s): %s", masked, e)
             return {"items_read": 0, "items_written": 0, "items_skipped": 1}
 
     async def _sync_local_files(

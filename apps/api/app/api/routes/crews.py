@@ -33,6 +33,7 @@ from app.core.rate_limit import limiter
 from app.core.security import generate_uuid
 from app.models.audit import AuditLog
 from app.models.user import CompanyMember, User
+from app.security.pii_guard import detect_and_mask_pii
 from app.security.prompt_guard import ThreatLevel, scan_prompt_injection
 
 logger = logging.getLogger(__name__)
@@ -140,6 +141,13 @@ def _owned_by(crew: Crew, user: User) -> bool:
     return crew.user_id == str(user.id)
 
 
+def _scrub_pii(text: str) -> str:
+    """Mask PII in a free-text user-supplied field before persistence."""
+    if not text:
+        return text
+    return detect_and_mask_pii(text).masked_text
+
+
 async def _resolve_company_id(db: AsyncSession, user: User) -> uuid.UUID | None:
     result = await db.execute(
         select(CompanyMember.company_id).where(CompanyMember.user_id == user.id).limit(1)
@@ -215,7 +223,7 @@ async def spawn_crew(
     crew_id = str(uuid.uuid4())
     crew = Crew(
         id=crew_id,
-        name=req.name,
+        name=_scrub_pii(req.name),
         user_id=str(user.id),
         members=[CrewMember(role=r) for r in roles],
         execution_mode=req.execution_mode,
@@ -328,6 +336,8 @@ async def dispatch_task(
             detail="Dispatch blocked: instruction contains potentially unsafe content.",
         )
 
+    instruction = _scrub_pii(req.instruction)
+
     crew.last_run_at = datetime.now(UTC).isoformat()
     crew.last_run_results = []
 
@@ -335,10 +345,10 @@ async def dispatch_task(
         results = []
         for member in crew.members:
             ctx = req.per_role_context.get(member.role.name, "")
-            results.append(await _run_one(member, req.instruction, ctx))
+            results.append(await _run_one(member, instruction, ctx))
     else:
         coros = [
-            _run_one(m, req.instruction, req.per_role_context.get(m.role.name, ""))
+            _run_one(m, instruction, req.per_role_context.get(m.role.name, ""))
             for m in crew.members
         ]
         results = await asyncio.gather(*coros)
