@@ -30,9 +30,16 @@ import app.models as _models  # noqa: E402, F401
 from app.api.deps.database import get_db  # noqa: E402
 from app.api.routes.auth import get_current_user  # noqa: E402
 from app.core.database import Base  # noqa: E402
+from app.core.rate_limit import limiter  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models.user import User  # noqa: E402
 from app.services.multi_model_service import BrainstormSessionRecord as _BSR  # noqa: E402, F401
+
+# Disable slowapi rate limiting during tests — per-endpoint limits like
+# `5/minute` on /auth/register otherwise leak across tests (limiter key is
+# client IP, which is constant for ASGITransport), making test ordering
+# dependent and causing spurious 429 failures in CI.
+limiter.enabled = False
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
