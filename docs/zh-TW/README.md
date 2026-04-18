@@ -208,7 +208,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI 後端
 │   │   └── app/
 │   │       ├── core/               # 設定、資料庫、安全、國際化
-│   │       ├── api/routes/         # 51 REST API 路由模組（429 端點）
+│   │       ├── api/routes/         # 51 REST API 路由模組（428 端點）
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO

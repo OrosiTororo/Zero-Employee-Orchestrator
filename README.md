@@ -209,7 +209,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI backend
 │   │   └── app/
 │   │       ├── core/               # Config, DB, security, i18n
-│   │       ├── api/routes/         # 51 REST API route modules (429 endpoints)
+│   │       ├── api/routes/         # 51 REST API route modules (428 endpoints)
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO

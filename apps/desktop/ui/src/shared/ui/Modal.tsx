@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react"
 import { X } from "lucide-react"
+import { useT } from "@/shared/i18n"
 
 interface ModalProps {
   open: boolean
@@ -17,12 +18,16 @@ interface ModalProps {
  * - `role="dialog"` + `aria-modal="true"` + focus trap on mount
  * - Esc closes, backdrop click closes
  * - Tab stays inside the dialog
+ * - Restores focus to the previously-focused element on close
  */
 export function Modal({ open, onClose, title, children, footer, labelledBy, widthPx = 480 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null)
+  const previouslyFocused = useRef<HTMLElement | null>(null)
+  const t = useT()
 
   useEffect(() => {
     if (!open) return
+    previouslyFocused.current = document.activeElement as HTMLElement | null
     const el = dialogRef.current
     el?.focus()
     function onKey(e: KeyboardEvent) {
@@ -47,7 +52,10 @@ export function Modal({ open, onClose, title, children, footer, labelledBy, widt
       }
     }
     window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
+    return () => {
+      window.removeEventListener("keydown", onKey)
+      previouslyFocused.current?.focus?.()
+    }
   }, [open, onClose])
 
   if (!open) return null
@@ -76,7 +84,7 @@ export function Modal({ open, onClose, title, children, footer, labelledBy, widt
           <button
             onClick={onClose}
             className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-            aria-label="Close dialog"
+            aria-label={t.common.close ?? "Close"}
           >
             <X size={14} />
           </button>

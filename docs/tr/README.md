@@ -208,7 +208,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI arka ucu
 │   │   └── app/
 │   │       ├── core/               # Yapılandırma, VT, güvenlik, i18n
-│   │       ├── api/routes/         # 51 REST API rota modülü (429 uç nokta)
+│   │       ├── api/routes/         # 51 REST API rota modülü (428 uç nokta)
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
