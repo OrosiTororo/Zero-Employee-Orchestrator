@@ -27,7 +27,9 @@
     "view": "Ver",
     "download": "Baixar",
     "connected": "Conectado",
-    "jobs": "Tarefas"
+    "jobs": "Tarefas",
+    "done": "Concluído",
+    "working": "Processando..."
   },
   "auth": {
     "login": "Entrar",
@@ -117,7 +119,9 @@
     "permissions": "Permissões",
     "settings": "Configurações",
     "dispatch": "Despachar",
-    "operatorProfile": "Operator Profile"
+    "operatorProfile": "Operator Profile",
+    "templates": "Modelos",
+    "crews": "Equipes"
   },
   "setup": {
     "steps": {
@@ -587,7 +591,10 @@
     "catNavigation": "Navegação",
     "catActions": "Ações",
     "newSkill": "Criar Nova Skill",
-    "newTicket": "Criar Novo Ticket"
+    "newTicket": "Criar Novo Ticket",
+    "instantiateTemplate": "Instanciar modelo de fluxo de trabalho",
+    "spawnCrew": "Criar equipe a partir de predefinição",
+    "browsePresets": "Navegar predefinições de equipe"
   },
   "releases": {
     "title": "Downloads",
@@ -853,5 +860,52 @@
     "brainstormAgentFailed": "Falha ao adicionar agente",
     "pluginsFetchFailed": "Falha ao buscar plugins",
     "extensionsFetchFailed": "Falha ao buscar extensões"
+  },
+  "templates": {
+    "title": "Modelos de Fluxo de Trabalho",
+    "subtitle": "Padrões DAG reutilizáveis — internos e salvos pelo usuário.",
+    "countLabel": "modelos",
+    "refresh": "Atualizar",
+    "empty": "Nenhum modelo disponível.",
+    "builtin": "interno",
+    "userSaved": "salvo",
+    "nodes": "nós",
+    "instantiate": "Instanciar",
+    "ticketTitle": "Título do ticket",
+    "ticketTitlePlaceholder": "ex.: Análise de mercado do 2º tri",
+    "titleRequired": "O título do ticket é obrigatório.",
+    "preview": "Pré-visualização",
+    "planId": "ID do plano",
+    "ticket": "Ticket",
+    "nodesReady": "Nós prontos para executar:",
+    "loadFailed": "Não foi possível carregar os modelos.",
+    "instantiateFailed": "Não foi possível instanciar o modelo."
+  },
+  "crews": {
+    "title": "Equipes",
+    "subtitle": "Equipes de agentes multipapel únicas — criadas a partir de uma predefinição.",
+    "refresh": "Atualizar",
+    "active": "ativas",
+    "empty": "Nenhuma equipe ainda. Crie uma a partir das predefinições acima.",
+    "presetsHeading": "Predefinições",
+    "activeHeading": "Suas Equipes",
+    "preset": "predefinição",
+    "roles": "papéis",
+    "spawn": "Criar",
+    "dispatch": "Despachar",
+    "disband": "Desfazer",
+    "crewName": "Nome da equipe",
+    "crewNamePlaceholder": "ex.: esquadrão de lançamento ACME",
+    "nameRequired": "O nome da equipe é obrigatório.",
+    "instruction": "Instrução",
+    "instructionPlaceholder": "O que cada membro deve fazer?",
+    "instructionRequired": "A instrução é obrigatória.",
+    "rolesInPreset": "Papéis nesta predefinição:",
+    "lastRun": "Última execução",
+    "membersResponded": "membros responderam",
+    "loadFailed": "Não foi possível carregar as equipes.",
+    "spawnFailed": "Não foi possível criar a equipe.",
+    "dispatchFailed": "Não foi possível despachar a tarefa.",
+    "disbandFailed": "Não foi possível desfazer a equipe."
   }
 }

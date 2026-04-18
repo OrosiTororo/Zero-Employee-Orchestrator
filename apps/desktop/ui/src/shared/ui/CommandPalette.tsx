@@ -38,9 +38,14 @@ export function CommandPalette() {
     { id: "settings", label: t.nav.settings, path: "/settings", category: t.commandPalette.catNavigation },
     { id: "dispatch", label: t.nav.dispatch, path: "/dispatch", category: t.commandPalette.catNavigation },
     { id: "marketplace", label: t.nav.marketplace, path: "/marketplace", category: t.commandPalette.catNavigation },
+    { id: "templates", label: t.nav.templates, path: "/templates", category: t.commandPalette.catNavigation },
+    { id: "crews", label: t.nav.crews, path: "/crews", category: t.commandPalette.catNavigation },
     { id: "operator-profile", label: t.nav.operatorProfile, path: "/operator-profile", category: t.commandPalette.catNavigation },
     { id: "new-skill", label: t.commandPalette.newSkill, path: "/skills/create", category: t.commandPalette.catActions },
     { id: "new-ticket", label: t.commandPalette.newTicket, path: "/tickets", category: t.commandPalette.catActions },
+    { id: "instantiate-template", label: t.commandPalette.instantiateTemplate, path: "/templates", category: t.commandPalette.catActions },
+    { id: "spawn-crew", label: t.commandPalette.spawnCrew, path: "/crews", category: t.commandPalette.catActions },
+    { id: "browse-presets", label: t.commandPalette.browsePresets, path: "/crews", category: t.commandPalette.catActions },
   ]
 
   const filtered = query.trim()

@@ -208,7 +208,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI arka ucu
 │   │   └── app/
 │   │       ├── core/               # Yapılandırma, VT, güvenlik, i18n
-│   │       ├── api/routes/         # 46 REST API rota modülü
+│   │       ├── api/routes/         # 51 REST API rota modülü (429 uç nokta)
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -286,6 +286,7 @@ Zero-Employee-Orchestrator/
 | **App Connector Hub** | 34+ uygulama (Obsidian, Notion, Google Workspace, Microsoft 365, Slack, vb.) — bağlayıcıların bağlayıcısı |
 | **Tool-of-Tools** | Araçları bağlayan araçlar (ör: n8n 400+ uygulamaya bağlanır → ZEO n8n'e bağlanır → tek entegrasyonla 400+ uygulamaya erişim) |
 | **Çoklu Model Özgürlüğü** | LiteLLM ile 22 model ailesi, Ollama yerel modeller, g4f web oturumları — tek bir sağlayıcıya kilitlenme yok |
+| **Rakip Eşdeğeri Yapı Taşları** | İş akışı şablonları (Dify tarzı), ekipler (CrewAI tarzı), DAG düğüm sonuç önbelleği (LangGraph tarzı), genel HTTP bağlayıcısı (n8n tarzı), Microsoft Graph adaptörü (M365) — tümüne masaüstü UI'dan tek tıkla ulaşılabilir |
 
 ### Genişletilebilirlik
 

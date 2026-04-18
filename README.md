@@ -209,7 +209,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI backend
 │   │   └── app/
 │   │       ├── core/               # Config, DB, security, i18n
-│   │       ├── api/routes/         # 46 REST API route modules
+│   │       ├── api/routes/         # 51 REST API route modules (429 endpoints)
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -287,6 +287,7 @@ Zero-Employee-Orchestrator/
 | **App Connector Hub** | 63+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, Slack, etc.) — connectors for connectors |
 | **Tool-of-Tools** | Tools that connect to other tools (e.g., n8n connects to 400+ apps → ZEO connects to n8n → ZEO accesses all 400+ apps through one integration) |
 | **Multi-Model Freedom** | 22 model families via LiteLLM, Ollama local models, g4f web sessions — not locked to any single provider |
+| **Competitor-Parity Primitives** | Workflow templates (Dify-style), crews (CrewAI-style), DAG node-result cache (LangGraph-style), generic HTTP connector (n8n-style), Microsoft Graph adapter (M365) — all reachable from the desktop UI in one click |
 
 ### Extensibility
 

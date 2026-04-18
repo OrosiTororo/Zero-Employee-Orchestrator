@@ -27,7 +27,9 @@
     "view": "表示",
     "download": "ダウンロード",
     "connected": "接続済み",
-    "jobs": "ジョブ"
+    "jobs": "ジョブ",
+    "done": "完了",
+    "working": "処理中..."
   },
   "auth": {
     "login": "ログイン",
@@ -117,7 +119,9 @@
     "permissions": "権限管理",
     "settings": "設定",
     "dispatch": "ディスパッチ",
-    "operatorProfile": "オペレータープロファイル"
+    "operatorProfile": "オペレータープロファイル",
+    "templates": "テンプレート",
+    "crews": "クルー"
   },
   "setup": {
     "steps": {
@@ -587,7 +591,10 @@
     "catNavigation": "ページ移動",
     "catActions": "アクション",
     "newSkill": "新規スキルを作成",
-    "newTicket": "新規チケットを作成"
+    "newTicket": "新規チケットを作成",
+    "instantiateTemplate": "ワークフローテンプレートをインスタンス化",
+    "spawnCrew": "プリセットからクルーを生成",
+    "browsePresets": "クループリセットを表示"
   },
   "releases": {
     "title": "ダウンロード",
@@ -853,5 +860,52 @@
     "brainstormAgentFailed": "エージェントの追加に失敗しました",
     "pluginsFetchFailed": "プラグインの取得に失敗しました",
     "extensionsFetchFailed": "拡張機能の取得に失敗しました"
+  },
+  "templates": {
+    "title": "ワークフローテンプレート",
+    "subtitle": "再利用可能な DAG パターン — 組み込みおよびユーザー保存",
+    "countLabel": "件",
+    "refresh": "更新",
+    "empty": "テンプレートがありません。",
+    "builtin": "組み込み",
+    "userSaved": "保存済み",
+    "nodes": "ノード",
+    "instantiate": "インスタンス化",
+    "ticketTitle": "チケットタイトル",
+    "ticketTitlePlaceholder": "例: Q2 市場調査",
+    "titleRequired": "チケットタイトルは必須です。",
+    "preview": "プレビュー",
+    "planId": "プラン ID",
+    "ticket": "チケット",
+    "nodesReady": "実行可能なノード:",
+    "loadFailed": "テンプレートを読み込めませんでした。",
+    "instantiateFailed": "テンプレートをインスタンス化できませんでした。"
+  },
+  "crews": {
+    "title": "クルー",
+    "subtitle": "ワンショットのマルチロール・エージェントチーム — プリセットから生成",
+    "refresh": "更新",
+    "active": "アクティブ",
+    "empty": "まだクルーがありません。上のプリセットから生成してください。",
+    "presetsHeading": "プリセット",
+    "activeHeading": "マイクルー",
+    "preset": "プリセット",
+    "roles": "ロール",
+    "spawn": "生成",
+    "dispatch": "発火",
+    "disband": "解散",
+    "crewName": "クルー名",
+    "crewNamePlaceholder": "例: ACME 立ち上げ分隊",
+    "nameRequired": "クルー名は必須です。",
+    "instruction": "指示",
+    "instructionPlaceholder": "各メンバーに何をさせますか?",
+    "instructionRequired": "指示は必須です。",
+    "rolesInPreset": "このプリセットのロール:",
+    "lastRun": "最終実行",
+    "membersResponded": "件の応答",
+    "loadFailed": "クルーを読み込めませんでした。",
+    "spawnFailed": "クルーを生成できませんでした。",
+    "dispatchFailed": "タスクを発火できませんでした。",
+    "disbandFailed": "クルーを解散できませんでした。"
   }
 }

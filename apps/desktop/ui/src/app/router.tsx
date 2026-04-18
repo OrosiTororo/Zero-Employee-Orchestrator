@@ -27,6 +27,8 @@ const SkillDetailPage = lazy(() => import('@/pages/SkillDetailPage').then(m => (
 const PluginsPage = lazy(() => import('@/pages/PluginsPage').then(m => ({ default: m.PluginsPage })))
 const ExtensionsPage = lazy(() => import('@/pages/ExtensionsPage').then(m => ({ default: m.ExtensionsPage })))
 const MarketplacePage = lazy(() => import('@/pages/MarketplacePage').then(m => ({ default: m.MarketplacePage })))
+const TemplatesPage = lazy(() => import('@/pages/TemplatesPage').then(m => ({ default: m.TemplatesPage })))
+const CrewsPage = lazy(() => import('@/pages/CrewsPage').then(m => ({ default: m.CrewsPage })))
 const SettingsPage = lazy(() => import('@/pages/SettingsPage').then(m => ({ default: m.SettingsPage })))
 const PermissionsPage = lazy(() => import('@/pages/PermissionsPage').then(m => ({ default: m.PermissionsPage })))
 const AgentMonitorPage = lazy(() => import('@/pages/AgentMonitorPage').then(m => ({ default: m.AgentMonitorPage })))
@@ -79,6 +81,8 @@ export const router = createBrowserRouter([
       { path: 'plugins', element: <L><PluginsPage /></L> },
       { path: 'extensions', element: <L><ExtensionsPage /></L> },
       { path: 'marketplace', element: <L><MarketplacePage /></L> },
+      { path: 'templates', element: <L><TemplatesPage /></L> },
+      { path: 'crews', element: <L><CrewsPage /></L> },
       { path: 'settings', element: <L><SettingsPage /></L> },
       { path: 'permissions', element: <L><PermissionsPage /></L> },
       { path: 'monitor', element: <L><AgentMonitorPage /></L> },

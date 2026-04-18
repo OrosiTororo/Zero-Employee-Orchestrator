@@ -208,7 +208,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI 後端
 │   │   └── app/
 │   │       ├── core/               # 設定、資料庫、安全、國際化
-│   │       ├── api/routes/         # 46 REST API 路由模組
+│   │       ├── api/routes/         # 51 REST API 路由模組（429 端點）
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -286,6 +286,7 @@ Zero-Employee-Orchestrator/
 | **App Connector Hub** | 34+ 應用（Obsidian、Notion、Google Workspace、Microsoft 365、Slack 等）— 連接器的連接器 |
 | **Tool-of-Tools** | 連接工具的工具（例：n8n 連接 400+ 應用 → ZEO 連接 n8n → 透過一個整合存取所有 400+ 應用） |
 | **多模型自由** | 透過 LiteLLM 支援 22 個模型家族、Ollama 本地模型、g4f 網路會話 — 不鎖定任何單一供應商 |
+| **競品同等原語** | 工作流程範本（Dify 風格）、Crew（CrewAI 風格）、DAG 節點結果快取（LangGraph 風格）、通用 HTTP 連接器（n8n 風格）、Microsoft Graph 轉接器（M365） — 全部可在桌面 UI 中一鍵呼叫 |
 
 ### 可擴充性
 

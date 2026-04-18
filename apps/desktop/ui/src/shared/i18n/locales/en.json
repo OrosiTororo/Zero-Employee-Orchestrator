@@ -27,7 +27,9 @@
     "view": "View",
     "download": "Download",
     "connected": "Connected",
-    "jobs": "Jobs"
+    "jobs": "Jobs",
+    "done": "Done",
+    "working": "Working..."
   },
   "auth": {
     "login": "Log in",
@@ -117,7 +119,9 @@
     "permissions": "Permissions",
     "settings": "Settings",
     "dispatch": "Dispatch",
-    "operatorProfile": "Operator Profile"
+    "operatorProfile": "Operator Profile",
+    "templates": "Templates",
+    "crews": "Crews"
   },
   "setup": {
     "steps": {
@@ -587,7 +591,10 @@
     "catNavigation": "Navigation",
     "catActions": "Actions",
     "newSkill": "Create New Skill",
-    "newTicket": "Create New Ticket"
+    "newTicket": "Create New Ticket",
+    "instantiateTemplate": "Instantiate Workflow Template",
+    "spawnCrew": "Spawn Crew from Preset",
+    "browsePresets": "Browse Crew Presets"
   },
   "releases": {
     "title": "Downloads",
@@ -853,5 +860,52 @@
     "brainstormAgentFailed": "Failed to add agent",
     "pluginsFetchFailed": "Failed to fetch plugins",
     "extensionsFetchFailed": "Failed to fetch extensions"
+  },
+  "templates": {
+    "title": "Workflow Templates",
+    "subtitle": "Reusable DAG patterns — built-in and user-saved.",
+    "countLabel": "templates",
+    "refresh": "Refresh",
+    "empty": "No templates available.",
+    "builtin": "built-in",
+    "userSaved": "saved",
+    "nodes": "nodes",
+    "instantiate": "Instantiate",
+    "ticketTitle": "Ticket title",
+    "ticketTitlePlaceholder": "e.g. Market scan for Q2",
+    "titleRequired": "Ticket title is required.",
+    "preview": "Preview",
+    "planId": "Plan ID",
+    "ticket": "Ticket",
+    "nodesReady": "Nodes ready to execute:",
+    "loadFailed": "Could not load templates.",
+    "instantiateFailed": "Could not instantiate template."
+  },
+  "crews": {
+    "title": "Crews",
+    "subtitle": "One-shot multi-role agent teams — spawn from a preset.",
+    "refresh": "Refresh",
+    "active": "active",
+    "empty": "No crews yet. Spawn one from a preset above.",
+    "presetsHeading": "Presets",
+    "activeHeading": "Your Crews",
+    "preset": "preset",
+    "roles": "roles",
+    "spawn": "Spawn",
+    "dispatch": "Dispatch",
+    "disband": "Disband",
+    "crewName": "Crew name",
+    "crewNamePlaceholder": "e.g. ACME launch squad",
+    "nameRequired": "Crew name is required.",
+    "instruction": "Instruction",
+    "instructionPlaceholder": "What should every member do?",
+    "instructionRequired": "Instruction is required.",
+    "rolesInPreset": "Roles in this preset:",
+    "lastRun": "Last run",
+    "membersResponded": "members responded",
+    "loadFailed": "Could not load crews.",
+    "spawnFailed": "Could not spawn crew.",
+    "dispatchFailed": "Could not dispatch task.",
+    "disbandFailed": "Could not disband crew."
   }
 }

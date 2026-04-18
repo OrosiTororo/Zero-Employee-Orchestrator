@@ -286,6 +286,7 @@ Zero-Employee-Orchestrator/
 | **App Connector Hub** | 63+ 앱 (Obsidian, Notion, Google Workspace, Microsoft 365, Slack 등) — 커넥터의 커넥터 |
 | **Tool-of-Tools** | 도구를 연결하는 도구 (예: n8n → 400+ 앱 → ZEO → n8n 연결 → 하나의 통합으로 400+ 앱에 접근) |
 | **멀티 모델 자유** | LiteLLM 경유 22개 모델 패밀리, Ollama 로컬 모델, g4f 웹 세션 — 단일 제공자에 종속되지 않음 |
+| **경쟁 제품 동등 프리미티브** | 워크플로 템플릿(Dify 스타일), 크루(CrewAI 스타일), DAG 노드 결과 캐시(LangGraph 스타일), 범용 HTTP 커넥터(n8n 스타일), Microsoft Graph 어댑터(M365) — 모두 데스크톱 UI에서 원클릭으로 도달 가능 |
 
 ### 확장성
 

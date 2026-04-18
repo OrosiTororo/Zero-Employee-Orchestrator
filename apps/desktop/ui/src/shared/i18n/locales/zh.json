@@ -27,7 +27,9 @@
     "view": "查看",
     "download": "下载",
     "connected": "已连接",
-    "jobs": "任务"
+    "jobs": "任务",
+    "done": "完成",
+    "working": "处理中..."
   },
   "auth": {
     "login": "登录",
@@ -117,7 +119,9 @@
     "permissions": "权限管理",
     "settings": "设置",
     "dispatch": "调度",
-    "operatorProfile": "Operator Profile"
+    "operatorProfile": "Operator Profile",
+    "templates": "模板",
+    "crews": "团队"
   },
   "setup": {
     "steps": {
@@ -587,7 +591,10 @@
     "catNavigation": "导航",
     "catActions": "操作",
     "newSkill": "创建新技能",
-    "newTicket": "创建新工单"
+    "newTicket": "创建新工单",
+    "instantiateTemplate": "实例化工作流模板",
+    "spawnCrew": "从预设生成团队",
+    "browsePresets": "浏览团队预设"
   },
   "releases": {
     "title": "下载",
@@ -853,5 +860,52 @@
     "brainstormAgentFailed": "添加代理失败",
     "pluginsFetchFailed": "获取插件失败",
     "extensionsFetchFailed": "获取扩展失败"
+  },
+  "templates": {
+    "title": "工作流模板",
+    "subtitle": "可重用 DAG 模式 — 内置与用户保存。",
+    "countLabel": "个",
+    "refresh": "刷新",
+    "empty": "没有可用模板。",
+    "builtin": "内置",
+    "userSaved": "已保存",
+    "nodes": "节点",
+    "instantiate": "实例化",
+    "ticketTitle": "工单标题",
+    "ticketTitlePlaceholder": "例如:Q2 市场调研",
+    "titleRequired": "工单标题必填。",
+    "preview": "预览",
+    "planId": "计划 ID",
+    "ticket": "工单",
+    "nodesReady": "可执行节点:",
+    "loadFailed": "无法加载模板。",
+    "instantiateFailed": "无法实例化模板。"
+  },
+  "crews": {
+    "title": "团队",
+    "subtitle": "一次性多角色智能体团队 — 从预设生成。",
+    "refresh": "刷新",
+    "active": "活动",
+    "empty": "尚无团队。从上方预设生成一个。",
+    "presetsHeading": "预设",
+    "activeHeading": "我的团队",
+    "preset": "预设",
+    "roles": "角色",
+    "spawn": "生成",
+    "dispatch": "发送",
+    "disband": "解散",
+    "crewName": "团队名称",
+    "crewNamePlaceholder": "例如:ACME 发布小队",
+    "nameRequired": "团队名称必填。",
+    "instruction": "指令",
+    "instructionPlaceholder": "每位成员应做什么?",
+    "instructionRequired": "指令必填。",
+    "rolesInPreset": "此预设中的角色:",
+    "lastRun": "上次运行",
+    "membersResponded": "位成员响应",
+    "loadFailed": "无法加载团队。",
+    "spawnFailed": "无法生成团队。",
+    "dispatchFailed": "无法发送任务。",
+    "disbandFailed": "无法解散团队。"
   }
 }

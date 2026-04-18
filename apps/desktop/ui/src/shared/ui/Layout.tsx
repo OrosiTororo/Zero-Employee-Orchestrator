@@ -25,6 +25,8 @@ import {
   Gauge,
   Send,
   UserCircle,
+  BookTemplate,
+  UsersRound,
 } from "lucide-react"
 import { LogoMark } from "@/shared/ui/Logo"
 import { UpdateBanner } from "@/shared/ui/UpdateBanner"
@@ -121,6 +123,8 @@ export function Layout({ children }: LayoutProps) {
   /* Management items — collapsed by default */
   const manageItems = [
     { icon: Network, path: "/org-chart", label: t.nav.orgChart },
+    { icon: BookTemplate, path: "/templates", label: t.nav.templates },
+    { icon: UsersRound, path: "/crews", label: t.nav.crews },
     { icon: ShieldCheck, path: "/approvals", label: t.nav.approvals },
     { icon: FileBox, path: "/artifacts", label: t.nav.artifacts },
     { icon: HeartPulse, path: "/heartbeats", label: t.nav.heartbeats },
@@ -163,6 +167,8 @@ export function Layout({ children }: LayoutProps) {
     "/plugins": t.nav.plugins,
     "/extensions": t.nav.extensions,
     "/marketplace": t.nav.marketplace,
+    "/templates": t.nav.templates,
+    "/crews": t.nav.crews,
     "/brainstorm": t.nav.brainstorm,
     "/monitor": t.nav.monitor,
     "/permissions": t.nav.permissions,
