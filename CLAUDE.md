@@ -24,8 +24,8 @@ ls apps/api/app/
 ```
 apps/api/app/         # FastAPI backend
   core/               # Config, DB, rate limiting, i18n
-  api/routes/         # 48 route modules, 419 endpoints (incl. main.py + MCP JSON-RPC/SSE + wiki/context-engine)
-  services/           # 25 services (business logic)
+  api/routes/         # 51 route modules, 428 endpoints (incl. main.py + MCP + wiki/context-engine + agent-adapters + workflow-templates + crews)
+  services/           # 27 services (business logic)
   orchestration/      # DAG, Judge, transparency, CostGuard (24 modules)
   providers/          # LLM gateway, Ollama, g4f, ModelRegistry
   security/           # sandbox, pii_guard, prompt_guard, iam, workspace_isolation
@@ -140,7 +140,7 @@ Write about system behavior changes for end users. Do NOT write about docs/CI/co
 # Security modules: sandbox boundary, PII guard, prompt guard
 ```
 
-14 items: server startup, auth flow, protected endpoints, ticket CRUD, security headers, registry (11/16/11), kill switch, models (22+), themes, languages (6), org setup, monitor, brainstorm, app integrations (63 apps)
+14 items: server startup, auth flow, protected endpoints, ticket CRUD, security headers, registry (8/18/11), kill switch, models (22+), themes, languages (6), org setup, monitor, brainstorm, app integrations (63 apps)
 
 ### Evaluation Criteria
 

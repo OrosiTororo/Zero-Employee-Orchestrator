@@ -15,6 +15,10 @@ const HIGHLIGHTS = [
   "Desktop auto-update fixed — automatic download & install on launch",
   "Execute button on ticket detail page with real-time result display",
   "Dispatch runs tasks through the execution engine (not just ticket creation)",
+  "Workflow templates (Dify-style) — one-click instantiation into a plan draft",
+  "Crews (CrewAI-style) — spawn a multi-role agent team from a preset in one call",
+  "DAG node-result cache (LangGraph-style) — set ZEO_DAG_CACHE=1 to reuse node outputs",
+  "Generic HTTP + Microsoft Graph connectors for n8n / M365 parity",
 ]
 
 export function WhatsNew() {

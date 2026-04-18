@@ -27,7 +27,9 @@
     "view": "Görüntüle",
     "download": "İndir",
     "connected": "Bağlı",
-    "jobs": "İşler"
+    "jobs": "İşler",
+    "done": "Tamam",
+    "working": "Çalışıyor..."
   },
   "auth": {
     "login": "Giriş yap",
@@ -117,7 +119,9 @@
     "permissions": "İzin Yönetimi",
     "settings": "Ayarlar",
     "dispatch": "Gönder",
-    "operatorProfile": "Operator Profile"
+    "operatorProfile": "Operator Profile",
+    "templates": "Şablonlar",
+    "crews": "Ekipler"
   },
   "setup": {
     "steps": {
@@ -587,7 +591,10 @@
     "catNavigation": "Gezinme",
     "catActions": "İşlemler",
     "newSkill": "Yeni Beceri Oluştur",
-    "newTicket": "Yeni Talep Oluştur"
+    "newTicket": "Yeni Talep Oluştur",
+    "instantiateTemplate": "İş akışı şablonunu başlat",
+    "spawnCrew": "Ön ayardan ekip oluştur",
+    "browsePresets": "Ekip ön ayarlarına göz at"
   },
   "releases": {
     "title": "İndirmeler",
@@ -853,5 +860,52 @@
     "brainstormAgentFailed": "Ajan eklenemedi",
     "pluginsFetchFailed": "Eklentiler getirilemedi",
     "extensionsFetchFailed": "Uzantılar getirilemedi"
+  },
+  "templates": {
+    "title": "İş Akışı Şablonları",
+    "subtitle": "Yeniden kullanılabilir DAG desenleri — yerleşik ve kullanıcı tarafından kaydedilenler.",
+    "countLabel": "şablon",
+    "refresh": "Yenile",
+    "empty": "Kullanılabilir şablon yok.",
+    "builtin": "yerleşik",
+    "userSaved": "kaydedildi",
+    "nodes": "düğüm",
+    "instantiate": "Başlat",
+    "ticketTitle": "Bilet başlığı",
+    "ticketTitlePlaceholder": "örn. 2. Çeyrek pazar taraması",
+    "titleRequired": "Bilet başlığı zorunludur.",
+    "preview": "Önizleme",
+    "planId": "Plan kimliği",
+    "ticket": "Bilet",
+    "nodesReady": "Yürütmeye hazır düğümler:",
+    "loadFailed": "Şablonlar yüklenemedi.",
+    "instantiateFailed": "Şablon başlatılamadı."
+  },
+  "crews": {
+    "title": "Ekipler",
+    "subtitle": "Tek seferlik çok rollü ajan ekipleri — bir ön ayardan oluşturun.",
+    "refresh": "Yenile",
+    "active": "aktif",
+    "empty": "Henüz ekip yok. Yukarıdaki ön ayarlardan birini oluşturun.",
+    "presetsHeading": "Ön ayarlar",
+    "activeHeading": "Ekipleriniz",
+    "preset": "ön ayar",
+    "roles": "rol",
+    "spawn": "Oluştur",
+    "dispatch": "Gönder",
+    "disband": "Dağıt",
+    "crewName": "Ekip adı",
+    "crewNamePlaceholder": "örn. ACME lansman ekibi",
+    "nameRequired": "Ekip adı zorunludur.",
+    "instruction": "Talimat",
+    "instructionPlaceholder": "Her üye ne yapmalı?",
+    "instructionRequired": "Talimat zorunludur.",
+    "rolesInPreset": "Bu ön ayardaki roller:",
+    "lastRun": "Son çalışma",
+    "membersResponded": "üye yanıt verdi",
+    "loadFailed": "Ekipler yüklenemedi.",
+    "spawnFailed": "Ekip oluşturulamadı.",
+    "dispatchFailed": "Görev gönderilemedi.",
+    "disbandFailed": "Ekip dağıtılamadı."
   }
 }

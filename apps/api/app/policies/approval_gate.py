@@ -43,6 +43,7 @@ class ApprovalCategory(str, Enum):
     AUTONOMY_EXPAND = "autonomy_expand"
     BROWSER_AUTOMATION = "browser_automation"
     WEB_AI_SESSION = "web_ai_session"
+    EXTERNAL_AGENT = "external_agent"
 
 
 class RiskLevel(str, Enum):
@@ -104,6 +105,8 @@ _DANGEROUS_OPERATIONS: dict[str, tuple[ApprovalCategory, RiskLevel]] = {
     # Web AI sessions — per-service (Cowork per-app approval pattern)
     "web_ai_session": (ApprovalCategory.WEB_AI_SESSION, RiskLevel.MEDIUM),
     "web_ai_session_paid": (ApprovalCategory.WEB_AI_SESSION, RiskLevel.HIGH),
+    # External agent frameworks (CrewAI, AutoGen, LangChain, Dify, n8n, …)
+    "external_agent_execution": (ApprovalCategory.EXTERNAL_AGENT, RiskLevel.HIGH),
 }
 
 
@@ -161,6 +164,7 @@ def generate_action_preview(operation: str, payload: dict | None = None) -> str:
         "browser_payment": "Will make payment on {service}",
         "web_ai_session": "Will start AI session with {service}",
         "web_ai_session_paid": "Will start paid AI session with {service}",
+        "external_agent_execution": "Will delegate task to external agent framework: {framework}",
     }
 
     template = _PREVIEW_TEMPLATES.get(operation)

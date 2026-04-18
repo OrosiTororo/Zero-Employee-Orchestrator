@@ -18,8 +18,10 @@ Anti-black-box design: every decision is traceable.
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import logging
+import os
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -97,16 +99,73 @@ class PlanExecutionResult:
     transparency_summary: dict | None = None
 
 
+class NodeResultCache:
+    """In-memory LRU cache for deterministic DAG-node results.
+
+    LangGraph-inspired: avoids re-executing a node when the same (prompt,
+    context, mode) tuple has already produced an accepted result. Cache is
+    opt-in per executor and bypassed entirely unless ``ZEO_DAG_CACHE=1``.
+    """
+
+    def __init__(self, maxsize: int = 256) -> None:
+        self._maxsize = maxsize
+        self._store: dict[str, ExecutionResult] = {}
+        self._order: list[str] = []
+        self.hits = 0
+        self.misses = 0
+
+    @staticmethod
+    def make_key(node_title: str, prompt: str, context: str, mode: str) -> str:
+        payload = f"{mode}\0{node_title}\0{prompt}\0{context}".encode()
+        return hashlib.sha256(payload).hexdigest()
+
+    def get(self, key: str) -> ExecutionResult | None:
+        hit = self._store.get(key)
+        if hit is not None:
+            self.hits += 1
+            return hit
+        self.misses += 1
+        return None
+
+    def put(self, key: str, value: ExecutionResult) -> None:
+        if key in self._store:
+            return
+        if len(self._store) >= self._maxsize:
+            oldest = self._order.pop(0)
+            self._store.pop(oldest, None)
+        self._store[key] = value
+        self._order.append(key)
+
+    def stats(self) -> dict[str, int]:
+        return {"hits": self.hits, "misses": self.misses, "size": len(self._store)}
+
+
+# Process-wide default cache so stats span requests. Individual TaskExecutor
+# instances may still pass their own cache for tests or sharded deployments.
+_DEFAULT_NODE_CACHE = NodeResultCache()
+
+
+def get_default_cache() -> NodeResultCache:
+    """Return the process-wide DAG node-result cache (LangGraph-inspired)."""
+    return _DEFAULT_NODE_CACHE
+
+
 class TaskExecutor:
     """Central execution engine that orchestrates the full task lifecycle."""
 
     MAX_RETRIES = 2
     JUDGE_PASS_THRESHOLD = 0.6
 
-    def __init__(self, gateway: LLMGateway | None = None) -> None:
+    def __init__(
+        self,
+        gateway: LLMGateway | None = None,
+        cache: NodeResultCache | None = None,
+    ) -> None:
         self._gateway = gateway or LLMGateway()
         self._rule_judge = RuleBasedJudge()
         self._cross_judge = CrossModelJudge()
+        self._cache = cache or _DEFAULT_NODE_CACHE
+        self._cache_enabled = os.getenv("ZEO_DAG_CACHE", "0") in {"1", "true", "True"}
         # Add default quality rules
         self._rule_judge.add_rule(
             "non_empty",
@@ -255,6 +314,29 @@ class TaskExecutor:
             messages.append({"role": "system", "content": f"Previous context:\n{context}"})
         messages.append({"role": "user", "content": prompt})
 
+        # --- Cache lookup (LangGraph-style deterministic memoization) ---
+        cache_key = NodeResultCache.make_key(node.title, prompt, context, execution_mode.value)
+        if self._cache_enabled:
+            cached = self._cache.get(cache_key)
+            if cached is not None and cached.success:
+                node.status = TaskNodeStatus.SUCCEEDED
+                logger.info("DAG cache hit for node %s", node.id)
+                return ExecutionResult(
+                    node_id=node.id,
+                    success=True,
+                    content=cached.content,
+                    model_used=cached.model_used + " (cached)",
+                    tokens_input=0,
+                    tokens_output=0,
+                    cost_usd=0.0,
+                    judge_score=cached.judge_score,
+                    judge_verdict=cached.judge_verdict,
+                    judge_reasons=list(cached.judge_reasons),
+                    judge_suggestions=list(cached.judge_suggestions),
+                    duration_ms=0,
+                    transparency_report=cached.transparency_report,
+                )
+
         # --- Monitor: notify task started ---
         monitor = _get_monitor()
         if monitor:
@@ -365,7 +447,7 @@ class TaskExecutor:
                 except Exception:
                     pass
 
-            return ExecutionResult(
+            result = ExecutionResult(
                 node_id=node.id,
                 success=node.status == TaskNodeStatus.SUCCEEDED,
                 content=final_content,
@@ -382,6 +464,9 @@ class TaskExecutor:
                 duration_ms=elapsed,
                 transparency_report=tb.to_dict(),
             )
+            if self._cache_enabled and result.success:
+                self._cache.put(cache_key, result)
+            return result
 
         except Exception as exc:
             elapsed = int((datetime.now(UTC) - start).total_seconds() * 1000)

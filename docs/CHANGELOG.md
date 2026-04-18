@@ -1,5 +1,65 @@
 # Changelog
 
+## [v0.1.7-final] (2026-04-17)
+
+### Feature — Competitor-Parity Primitives (revision-3)
+
+Five backends that close the feature gap with CrewAI / Dify / LangGraph / n8n /
+Microsoft 365 tooling, all reachable from the desktop UI in one click and
+wrapped in the existing approval gate + audit trail:
+
+- **Workflow templates** (Dify-style) — `POST /workflow-templates/{slug}/instantiate`
+  turns a preset DAG into a ticket with variable substitution; ships with five
+  built-in templates (`research-brief`, `social-post`, etc.).
+- **Crews** (CrewAI-style) — `POST /crews` spawns a multi-role agent team from
+  a preset in one call; `POST /crews/{id}/dispatch` fans instruction out across
+  members with per-role model tiering.
+- **DAG node-result cache** (LangGraph-style) — `ZEO_DAG_CACHE=1` enables
+  deterministic reuse of identical node outputs across runs;
+  `GET /orchestration/cache/stats` exposes hit/miss/eviction counters.
+- **Generic HTTP connector** (n8n-style) — `_sync_http_step` brings any REST
+  API into the approval-gated connector layer without a new plugin. SSRF guard
+  blocks RFC1918 / link-local / cloud-metadata targets.
+- **Microsoft Graph adapter** — M365 mail / calendar / files / Teams under one
+  Bearer token; tokens masked before any log call.
+
+### Desktop UI
+
+- **Templates page** (`/templates`) — preset gallery, variable-form
+  instantiation modal, DAG preview, result card with ticket link.
+- **Crews page** (`/crews`) — preset gallery (4 cards), spawn + dispatch
+  modals, active-crew list with per-member status.
+- **Sidebar** — "Templates" and "Crews" added under the Manage group.
+- **Command Palette** — 5 new commands (navigate Templates / Crews,
+  Instantiate Template, Spawn Crew, Browse Presets).
+- **What's New** banner — v0.1.7 revision-3 bullets surfaced on first launch.
+- **i18n** — keys added for all six locales (en, ja, zh-CN, ko, pt-BR, tr);
+  all modals are `role="dialog"` with focus trap and Esc handler.
+
+### Security
+
+- Rate limits (`30/minute`) on template save/delete and crew spawn/dispatch.
+- Templates and crews now scoped per `user_id`; cross-tenant read/delete
+  eliminated.
+- Prompt-injection scan on crew dispatch instructions.
+- PII masking on user-supplied template name/description and crew name/
+  instruction via `detect_and_mask_pii`.
+- AuditLog rows written for `template.saved`, `template.deleted`,
+  `crew.spawned`, `crew.dispatched`, `crew.disbanded`.
+
+### Developer Experience
+
+- **`ZEO_MOCK_LLM=1`** echo-provider — lets the golden path
+  (template instantiate, crew dispatch, `/template`, `/crew`) run without
+  Ollama or any external API key. Intended for demos + tests only; bypasses
+  the LLM gateway's usual sanitize/observe pipeline.
+- **CLI slash commands** — `/template <slug>` and `/crew <preset>` mirror the
+  HTTP endpoints; `/help` documents them.
+- **Actionable error messages** — 404/409 from templates and crews now point
+  users at the relevant list endpoint.
+
+---
+
 ## [v0.1.7] (2026-04-16)
 
 ### Feature — Karpathy-style Knowledge Wiki + arscontexta Context Engine

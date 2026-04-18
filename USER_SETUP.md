@@ -23,6 +23,11 @@ zero-employee pull qwen3:8b
 
 # Method 3: Multi-LLM platform (access multiple models with a single key)
 zero-employee config set OPENROUTER_API_KEY <your-key>
+
+# Method 4: Mock-LLM echo mode (demos / tests, no network, no key)
+# Makes every LLM call echo the user prompt so the golden path
+# (workflow templates, crew dispatch, /template, /crew) walks cleanly.
+export ZEO_MOCK_LLM=1
 ```
 
 > **ZEO itself does not charge any fees.** LLM API costs are paid directly by users to each provider.

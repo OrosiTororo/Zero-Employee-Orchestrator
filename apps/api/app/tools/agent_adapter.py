@@ -638,14 +638,14 @@ class AgentAdapterRegistry:
 
         # Check approval if required
         if task.require_approval:
-            from apps.api.app.policies.approval_gate import check_approval_required
+            from app.policies.approval_gate import check_approval_required
 
             gate = check_approval_required("external_agent_execution")
             if gate.requires_approval:
                 task.status = AgentTaskStatus.APPROVAL_REQUIRED
                 task.result = {
-                    "approval_category": gate.category,
-                    "risk_level": gate.risk_level,
+                    "approval_category": gate.category.value if gate.category else None,
+                    "risk_level": gate.risk_level.value,
                     "reason": gate.reason,
                 }
                 return task

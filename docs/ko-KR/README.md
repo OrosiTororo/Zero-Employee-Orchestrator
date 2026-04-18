@@ -208,7 +208,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI 백엔드
 │   │   └── app/
 │   │       ├── core/               # 설정, DB, 보안, i18n
-│   │       ├── api/routes/         # 46 REST API 라우트 모듈
+│   │       ├── api/routes/         # 51 REST API 라우트 모듈 (428 엔드포인트)
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -224,7 +224,7 @@ Zero-Employee-Orchestrator/
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # 백그라운드 워커
 ├── skills/                   # 내장 스킬 (8개: 6 시스템 + 2 도메인)
-├── plugins/                  # 플러그인 매니페스트 (16개)
+├── plugins/                  # 플러그인 매니페스트 (18개: 12 일반 + 6 역할별)
 ├── extensions/               # 익스텐션 매니페스트 (11개)
 │   └── browser-assist/
 │       └── chrome-extension/ # 브라우저 어시스트용 Chrome 확장 프로그램
@@ -286,6 +286,7 @@ Zero-Employee-Orchestrator/
 | **App Connector Hub** | 63+ 앱 (Obsidian, Notion, Google Workspace, Microsoft 365, Slack 등) — 커넥터의 커넥터 |
 | **Tool-of-Tools** | 도구를 연결하는 도구 (예: n8n → 400+ 앱 → ZEO → n8n 연결 → 하나의 통합으로 400+ 앱에 접근) |
 | **멀티 모델 자유** | LiteLLM 경유 22개 모델 패밀리, Ollama 로컬 모델, g4f 웹 세션 — 단일 제공자에 종속되지 않음 |
+| **경쟁 제품 동등 프리미티브** | 워크플로 템플릿(Dify 스타일), 크루(CrewAI 스타일), DAG 노드 결과 캐시(LangGraph 스타일), 범용 HTTP 커넥터(n8n 스타일), Microsoft Graph 어댑터(M365) — 모두 데스크톱 UI에서 원클릭으로 도달 가능 |
 
 ### 확장성
 

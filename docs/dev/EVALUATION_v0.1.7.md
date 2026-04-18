@@ -288,7 +288,7 @@ Overall = (8.5 × 0.35) + (8.1 × 0.35) + (8.5 × 0.30)
 | 8 new tests | `apps/api/app/tests/test_wiki_knowledge_service.py`, `test_version_migration.py` |
 | Version bump (all 8 files) | `scripts/bump-version.sh 0.1.7` |
 | CHANGELOG entry | `docs/CHANGELOG.md` |
-| CLAUDE.md, README.md sync | Updated counts (48 routes, 419 endpoints, 18 plugins) |
+| CLAUDE.md, README.md sync | Updated counts (51 routes, 429 endpoints, 18 plugins) |
 
 ---
 

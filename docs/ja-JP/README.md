@@ -208,7 +208,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI バックエンド
 │   │   └── app/
 │   │       ├── core/               # 設定・DB・セキュリティ・i18n
-│   │       ├── api/routes/         # 46 REST API ルートモジュール
+│   │       ├── api/routes/         # 51 REST API ルートモジュール（428 エンドポイント）
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -224,7 +224,7 @@ Zero-Employee-Orchestrator/
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # バックグラウンドワーカー
 ├── skills/                   # ビルトインスキル（8 個：6 システム + 2 ドメイン）
-├── plugins/                  # プラグインマニフェスト（16 個）
+├── plugins/                  # プラグインマニフェスト（18 個：12 汎用 + 6 役職別）
 ├── extensions/               # エクステンションマニフェスト（11 個）
 │   └── browser-assist/
 │       └── chrome-extension/ # ブラウザアシスト用 Chrome 拡張機能
@@ -286,6 +286,7 @@ Zero-Employee-Orchestrator/
 | **App Connector Hub** | 63+ アプリ（Obsidian、Notion、Google Workspace、Microsoft 365、Slack 等） — コネクタのコネクタ |
 | **Tool-of-Tools** | ツールを繋ぐツール（例: n8n → 400+ アプリ → ZEO → n8n 接続 → 1 統合で 400+ アプリにアクセス） |
 | **マルチモデル自由** | LiteLLM 経由 22 モデルファミリー、Ollama ローカルモデル、g4f ウェブセッション — 単一プロバイダーにロックインされない |
+| **競合同等プリミティブ** | ワークフローテンプレート（Dify 風）、クルー（CrewAI 風）、DAG ノード結果キャッシュ（LangGraph 風）、汎用 HTTP コネクタ（n8n 風）、Microsoft Graph アダプタ（M365）— すべてデスクトップ UI からワンクリックで到達可能 |
 
 ### 拡張性
 

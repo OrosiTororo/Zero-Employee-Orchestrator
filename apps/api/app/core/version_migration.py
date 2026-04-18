@@ -119,9 +119,10 @@ async def _step_0_1_0_to_0_1_3(engine: AsyncEngine) -> None:
     make absolutely sure old DBs gain these tables before the app tries
     to write to them.
     """
-    # create_all() on the metadata covers us — but we still need the
-    # Base import to register tables before calling it.
-    from app.core.database import Base  # noqa: F401 — registers metadata
+    # create_all() on the metadata covers us — import app.models so every
+    # Base subclass (including orchestration/service tables) is attached first.
+    import app.models  # noqa: F401
+    from app.core.database import Base
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -151,6 +152,7 @@ async def _step_0_1_5_to_0_1_6(engine: AsyncEngine) -> None:
     The MCP JSON-RPC server added in v0.1.6 persists tool annotations so
     clients can resume mid-session. Install the table via metadata.
     """
+    import app.models  # noqa: F401 — populate Base.metadata with every ORM class
     from app.core.database import Base
 
     async with engine.begin() as conn:
@@ -158,12 +160,14 @@ async def _step_0_1_5_to_0_1_6(engine: AsyncEngine) -> None:
 
 
 async def _step_0_1_6_to_0_1_7(engine: AsyncEngine) -> None:
-    """v0.1.6 → v0.1.7 — add columns backing the wiki/context engine.
+    """v0.1.6 → v0.1.7 — install orchestration / service tables.
 
-    The wiki and context-engine services are file-based, so no new SQL
-    tables are required. We only bump the recorded schema version and
-    make sure the metadata call has run for any late additions.
+    v0.1.7 introduced ORM tables declared outside ``app/models/`` (knowledge
+    store, experience memory, agent sessions, multi-model comparisons,
+    secretary summaries, etc.). Importing ``app.models`` runs the side-effect
+    imports that register every Base subclass, so ``create_all`` picks them up.
     """
+    import app.models  # noqa: F401
     from app.core.database import Base
 
     async with engine.begin() as conn:

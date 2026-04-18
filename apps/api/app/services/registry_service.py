@@ -291,6 +291,24 @@ BUILTIN_PLUGINS: list[dict] = [
         "name": "Customer Support Pack",
         "description": "Ticket triage, FAQ auto-response, escalation routing, sentiment analysis",
     },
+    {
+        "slug": "ai-ceo",
+        "name": "AI CEO Plugin",
+        "description": (
+            "Claude-Code-style AI CEO pattern: a senior reasoning agent decomposes operator "
+            "directives into weekly plans and delegates to CMO/CTO/COO subagents under "
+            "human board-level approval."
+        ),
+    },
+    {
+        "slug": "knowledge-wiki",
+        "name": "Knowledge Wiki Plugin",
+        "description": (
+            "Karpathy-style LLM Wiki + arscontexta context engine bundled together. "
+            "Adds /ingest, /query, /lint, /ralph, and /plan commands backed by a "
+            "Markdown vault any AI can read (no vendor lock-in)."
+        ),
+    },
 ]
 
 BUILTIN_EXTENSIONS: list[dict] = [

@@ -27,7 +27,9 @@
     "view": "보기",
     "download": "다운로드",
     "connected": "연결됨",
-    "jobs": "작업"
+    "jobs": "작업",
+    "done": "완료",
+    "working": "처리 중..."
   },
   "auth": {
     "login": "로그인",
@@ -117,7 +119,9 @@
     "permissions": "권한 관리",
     "settings": "설정",
     "dispatch": "디스패치",
-    "operatorProfile": "Operator Profile"
+    "operatorProfile": "Operator Profile",
+    "templates": "템플릿",
+    "crews": "크루"
   },
   "setup": {
     "steps": {
@@ -587,7 +591,10 @@
     "catNavigation": "내비게이션",
     "catActions": "작업",
     "newSkill": "새 스킬 생성",
-    "newTicket": "새 티켓 생성"
+    "newTicket": "새 티켓 생성",
+    "instantiateTemplate": "워크플로우 템플릿 인스턴스화",
+    "spawnCrew": "프리셋으로 크루 생성",
+    "browsePresets": "크루 프리셋 보기"
   },
   "releases": {
     "title": "다운로드",
@@ -853,5 +860,52 @@
     "brainstormAgentFailed": "에이전트 추가 실패",
     "pluginsFetchFailed": "플러그인을 가져오지 못했습니다",
     "extensionsFetchFailed": "확장 프로그램을 가져오지 못했습니다"
+  },
+  "templates": {
+    "title": "워크플로우 템플릿",
+    "subtitle": "재사용 가능한 DAG 패턴 — 내장 및 사용자 저장.",
+    "countLabel": "개",
+    "refresh": "새로 고침",
+    "empty": "사용 가능한 템플릿이 없습니다.",
+    "builtin": "내장",
+    "userSaved": "저장됨",
+    "nodes": "노드",
+    "instantiate": "인스턴스화",
+    "ticketTitle": "티켓 제목",
+    "ticketTitlePlaceholder": "예: 2분기 시장 조사",
+    "titleRequired": "티켓 제목은 필수입니다.",
+    "preview": "미리보기",
+    "planId": "플랜 ID",
+    "ticket": "티켓",
+    "nodesReady": "실행 가능한 노드:",
+    "loadFailed": "템플릿을 불러올 수 없습니다.",
+    "instantiateFailed": "템플릿을 인스턴스화할 수 없습니다."
+  },
+  "crews": {
+    "title": "크루",
+    "subtitle": "원샷 멀티 역할 에이전트 팀 — 프리셋에서 생성.",
+    "refresh": "새로 고침",
+    "active": "활성",
+    "empty": "아직 크루가 없습니다. 위 프리셋에서 생성하세요.",
+    "presetsHeading": "프리셋",
+    "activeHeading": "내 크루",
+    "preset": "프리셋",
+    "roles": "역할",
+    "spawn": "생성",
+    "dispatch": "실행",
+    "disband": "해체",
+    "crewName": "크루 이름",
+    "crewNamePlaceholder": "예: ACME 출시 팀",
+    "nameRequired": "크루 이름은 필수입니다.",
+    "instruction": "지시 사항",
+    "instructionPlaceholder": "각 멤버가 무엇을 해야 하나요?",
+    "instructionRequired": "지시 사항은 필수입니다.",
+    "rolesInPreset": "이 프리셋의 역할:",
+    "lastRun": "마지막 실행",
+    "membersResponded": "명의 멤버 응답",
+    "loadFailed": "크루를 불러올 수 없습니다.",
+    "spawnFailed": "크루를 생성할 수 없습니다.",
+    "dispatchFailed": "작업을 실행할 수 없습니다.",
+    "disbandFailed": "크루를 해체할 수 없습니다."
   }
 }

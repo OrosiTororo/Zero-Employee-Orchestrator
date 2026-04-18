@@ -142,6 +142,7 @@ def cmd_db_upgrade(args: argparse.Namespace) -> None:
     """Run DB migration."""
     _find_and_chdir_api()
     _ensure_env_file()
+    import app.models  # noqa: F401  # register all ORM models with Base.metadata
     from app.core.database import Base, engine
 
     async def _create_tables() -> None:
@@ -1436,6 +1437,146 @@ def _cli_plan(raw_arg: str) -> str:
     return f"  \033[1mPlan:\033[0m\n{plan}"
 
 
+def _cli_template(raw_arg: str) -> str:
+    """/template <slug> [ticket_title] — instantiate a Dify-style workflow template."""
+    import httpx
+
+    arg = raw_arg.strip()
+    if not arg:
+        # Empty arg lists available templates.
+        headers = _get_api_headers()
+        if not headers:
+            return (
+                "  \033[38;5;196mCannot connect to API server. Is it running on port 18234?\033[0m"
+            )
+        try:
+            resp = httpx.get(f"{_API_BASE}/workflow-templates", headers=headers, timeout=10)
+            if resp.status_code != 200:
+                return f"  \033[38;5;196mList failed ({resp.status_code}): {resp.text}\033[0m"
+            items = resp.json().get("templates", [])
+            if not items:
+                return "  (no templates available)"
+            lines = [f"  \033[1m{len(items)} templates\033[0m"]
+            for t in items:
+                builtin = "builtin" if t.get("builtin") else "user"
+                lines.append(
+                    f"  \033[38;5;75m{t['slug']:<22}\033[0m  "
+                    f"{t.get('name', '')}  \033[38;5;245m({builtin})\033[0m"
+                )
+            lines.append("  Usage: /template <slug> [ticket_title]")
+            return "\n".join(lines)
+        except httpx.ConnectError:
+            return (
+                "  \033[38;5;196mCannot connect to API server. Is it running on port 18234?\033[0m"
+            )
+
+    parts = arg.split(maxsplit=1)
+    slug = parts[0]
+    ticket_title = parts[1] if len(parts) > 1 else f"Run template {slug}"
+
+    headers = _get_api_headers()
+    if not headers:
+        return "  \033[38;5;196mCannot connect to API server. Is it running on port 18234?\033[0m"
+
+    try:
+        resp = httpx.post(
+            f"{_API_BASE}/workflow-templates/{slug}/instantiate",
+            json={"ticket_title": ticket_title, "variables": {}},
+            headers=headers,
+            timeout=15,
+        )
+        if resp.status_code == 404:
+            return (
+                f"  \033[38;5;196mUnknown template: {slug}\033[0m\n"
+                f"  Run \033[38;5;245m/template\033[0m to see available templates."
+            )
+        if resp.status_code != 200:
+            return f"  \033[38;5;196mInstantiate failed ({resp.status_code}): {resp.text}\033[0m"
+        body = resp.json()
+        nodes = body.get("nodes", [])
+        lines = [
+            f"  \033[1mTemplate '{slug}' instantiated\033[0m",
+            f"  Ticket: {body.get('ticket_title', '')}",
+            f"  Plan ID: \033[38;5;75m{body.get('plan_id', '?')[:8]}...\033[0m",
+            f"  Nodes ({len(nodes)}):",
+        ]
+        for n in nodes:
+            deps = ("<-" + ",".join(n.get("depends_on", []))) if n.get("depends_on") else ""
+            lines.append(f"    \u2022 {n.get('id', '?')} {n.get('title', '')} {deps}".rstrip())
+        return "\n".join(lines)
+    except httpx.ConnectError:
+        return "  \033[38;5;196mCannot connect to API server. Is it running on port 18234?\033[0m"
+    except Exception as e:  # noqa: BLE001
+        return f"  \033[38;5;196mError: {e}\033[0m"
+
+
+def _cli_crew(raw_arg: str) -> str:
+    """/crew <preset> [name] — spawn a CrewAI-style crew from a named preset."""
+    import httpx
+
+    arg = raw_arg.strip()
+    headers = _get_api_headers()
+    if not headers:
+        return "  \033[38;5;196mCannot connect to API server. Is it running on port 18234?\033[0m"
+
+    if not arg:
+        # List presets.
+        try:
+            resp = httpx.get(f"{_API_BASE}/crews/presets", headers=headers, timeout=10)
+            if resp.status_code != 200:
+                return f"  \033[38;5;196mList failed ({resp.status_code}): {resp.text}\033[0m"
+            presets = resp.json().get("presets", {})
+            if not presets:
+                return "  (no presets available)"
+            lines = [f"  \033[1m{len(presets)} crew presets\033[0m"]
+            for slug, roles in presets.items():
+                role_names = ", ".join(r.get("name", "?") for r in roles)
+                lines.append(f"  \033[38;5;75m{slug:<26}\033[0m  {role_names}")
+            lines.append("  Usage: /crew <preset> [crew_name]")
+            return "\n".join(lines)
+        except httpx.ConnectError:
+            return (
+                "  \033[38;5;196mCannot connect to API server. Is it running on port 18234?\033[0m"
+            )
+
+    parts = arg.split(maxsplit=1)
+    preset = parts[0]
+    name = parts[1] if len(parts) > 1 else f"{preset} crew"
+
+    try:
+        resp = httpx.post(
+            f"{_API_BASE}/crews",
+            json={"name": name, "preset": preset},
+            headers=headers,
+            timeout=15,
+        )
+        if resp.status_code == 400:
+            return (
+                f"  \033[38;5;196m{resp.json().get('detail', resp.text)}\033[0m\n"
+                f"  Run \033[38;5;245m/crew\033[0m to see available presets."
+            )
+        if resp.status_code != 200:
+            return f"  \033[38;5;196mSpawn failed ({resp.status_code}): {resp.text}\033[0m"
+        crew = resp.json().get("crew", {})
+        members = crew.get("members", [])
+        lines = [
+            f"  \033[1mCrew '{crew.get('name', '?')}' spawned\033[0m",
+            f"  ID: \033[38;5;75m{crew.get('id', '?')[:8]}...\033[0m  "
+            f"(\033[38;5;245m{crew.get('execution_mode', 'parallel')}\033[0m)",
+            f"  Members ({len(members)}):",
+        ]
+        for m in members:
+            lines.append(
+                f"    \u2022 {m.get('role', '?')} \033[38;5;245m<- {m.get('preferred_model', '?')}\033[0m"
+            )
+        lines.append("  Dispatch: POST /crews/<id>/dispatch with an instruction")
+        return "\n".join(lines)
+    except httpx.ConnectError:
+        return "  \033[38;5;196mCannot connect to API server. Is it running on port 18234?\033[0m"
+    except Exception as e:  # noqa: BLE001
+        return f"  \033[38;5;196mError: {e}\033[0m"
+
+
 def _handle_command(cmd: str, language: str) -> str | None:
     """Handle slash commands in local chat mode.
 
@@ -1482,7 +1623,11 @@ def _handle_command(cmd: str, language: str) -> str | None:
                 "  /ingest <file|paste>    - Karpathy 式で wiki にコンパイル\n"
                 "  /query [--save] <q>     - wiki を参照して回答 (--save で保存)\n"
                 "  /lint [--fix]           - wiki の整合性チェック (--fix で修復)\n"
-                "  /ralph                  - arscontexta 6R パイプラインを実行"
+                "  /ralph                  - arscontexta 6R パイプラインを実行\n"
+                "\n"
+                "  \033[1mCompetitive Parity:\033[0m\n"
+                "  /template [slug [title]] - Dify 風テンプレートを一覧/インスタンス化\n"
+                "  /crew [preset [name]]    - CrewAI 風クルーを一覧/生成"
             ),
             "en": (
                 "  /help      - Show help\n"
@@ -1515,7 +1660,11 @@ def _handle_command(cmd: str, language: str) -> str | None:
                 "  /ingest <file|paste>    - Compile a source into the wiki (Karpathy)\n"
                 "  /query [--save] <q>     - Answer from the wiki (--save persists Q&A)\n"
                 "  /lint [--fix]           - Wiki health check (--fix repairs)\n"
-                "  /ralph                  - Run the arscontexta 6R pipeline"
+                "  /ralph                  - Run the arscontexta 6R pipeline\n"
+                "\n"
+                "  \033[1mCompetitive Parity:\033[0m\n"
+                "  /template [slug [title]] - Dify-style workflow templates (list / instantiate)\n"
+                "  /crew [preset [name]]    - CrewAI-style one-shot crew (list / spawn)"
             ),
             "zh": (
                 "  /help      - 显示帮助\n"
@@ -1548,7 +1697,11 @@ def _handle_command(cmd: str, language: str) -> str | None:
                 "  /ingest <file|paste>    - 按 Karpathy 风格编译进 wiki\n"
                 "  /query [--save] <q>     - 从 wiki 回答 (--save 保存问答)\n"
                 "  /lint [--fix]           - wiki 健康检查 (--fix 自动修复)\n"
-                "  /ralph                  - 执行 arscontexta 6R 管线"
+                "  /ralph                  - 执行 arscontexta 6R 管线\n"
+                "\n"
+                "  \033[1mCompetitive Parity:\033[0m\n"
+                "  /template [slug [title]] - Dify 风格工作流模板 (列出/实例化)\n"
+                "  /crew [preset [name]]    - CrewAI 风格一次性团队 (列出/生成)"
             ),
         }
         print(help_text.get(language, help_text["en"]))
@@ -1703,6 +1856,13 @@ def _handle_command(cmd: str, language: str) -> str | None:
         print(_cli_plan(" ".join(parts[1:])))
         return None
 
+    if command == "/template":
+        print(_cli_template(" ".join(parts[1:])))
+        return None
+    if command == "/crew":
+        print(_cli_crew(" ".join(parts[1:])))
+        return None
+
     print(f"  Unknown command: {command}. Type /help for help.")
     return None
 
@@ -1768,6 +1928,7 @@ def cmd_upgrade(args: argparse.Namespace) -> None:
     print("  Running cross-version DB migration...")
 
     async def _run() -> None:
+        import app.models  # noqa: F401  # register all ORM models with Base.metadata
         from app.core.database import engine
         from app.core.version_migration import run_migrations
 
