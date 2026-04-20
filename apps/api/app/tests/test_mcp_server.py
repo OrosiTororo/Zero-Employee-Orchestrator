@@ -426,3 +426,88 @@ def test_custom_tool_registration_preserves_annotations():
     assert srv._tools["custom_delete"].destructive_hint is True
     payload = srv._tools["custom_delete"].to_dict()
     assert payload["annotations"]["destructiveHint"] is True
+
+
+# ---------------------------------------------------------------------------
+# Coverage for all 14 MCP tools — happy path (read-only) + invalid-params
+# ---------------------------------------------------------------------------
+
+
+# Tools whose handler can be smoked with no required arguments.
+_READ_ONLY_ZERO_ARG_TOOLS = [
+    "list_tickets",
+    "search_knowledge",
+    "list_skills",
+    "get_audit_logs",
+    "monitor_executions",
+    "get_kill_switch_status",
+    "get_autonomy_level",
+    "get_budget_status",
+    "list_approvals",
+    "get_server_info",
+]
+
+
+@pytest.mark.parametrize("tool_name", _READ_ONLY_ZERO_ARG_TOOLS)
+@pytest.mark.asyncio
+async def test_tools_call_zero_arg_read_only(tool_name: str):
+    """Each zero-arg read-only tool must return a valid JSON-RPC result."""
+    resp = await mcp_server.handle_jsonrpc(
+        {
+            "jsonrpc": "2.0",
+            "id": 100,
+            "method": "tools/call",
+            "params": {"name": tool_name, "arguments": {}},
+        }
+    )
+    assert resp is not None
+    assert "result" in resp, f"{tool_name} returned error: {resp.get('error')}"
+    content = resp["result"].get("content")
+    assert isinstance(content, list) and content, f"{tool_name} returned empty content"
+
+
+@pytest.mark.parametrize(
+    "tool_name,required_field",
+    [
+        ("create_ticket", "title"),
+        ("execute_skill", "slug"),
+        ("propose_hypothesis", "question"),
+        ("get_agent_status", "agent_id"),
+    ],
+)
+@pytest.mark.asyncio
+async def test_tools_call_missing_required_arg(tool_name: str, required_field: str):
+    """Tools that declare a required argument must surface an isError=True
+    response (never a generic 500) when the argument is missing."""
+    resp = await mcp_server.handle_jsonrpc(
+        {
+            "jsonrpc": "2.0",
+            "id": 200,
+            "method": "tools/call",
+            "params": {"name": tool_name, "arguments": {}},
+        }
+    )
+    assert resp is not None
+    # Either an MCP tool-level isError flag or a JSON-RPC error is acceptable.
+    if "error" in resp:
+        assert resp["error"]["code"] in (JSONRPC_INVALID_PARAMS, -32000, -32602, -32603)
+    else:
+        result = resp["result"]
+        assert result.get("isError") is True or required_field.lower() in (
+            result.get("content", [{}])[0].get("text", "").lower()
+        )
+
+
+@pytest.mark.asyncio
+async def test_tools_call_unknown_tool_returns_error():
+    resp = await mcp_server.handle_jsonrpc(
+        {
+            "jsonrpc": "2.0",
+            "id": 300,
+            "method": "tools/call",
+            "params": {"name": "no_such_tool", "arguments": {}},
+        }
+    )
+    assert resp is not None
+    # Unknown tool is either a tool-level error or a JSON-RPC error.
+    assert "error" in resp or resp["result"].get("isError") is True
