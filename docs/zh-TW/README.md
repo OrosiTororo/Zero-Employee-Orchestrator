@@ -2,6 +2,9 @@
 
 # Zero-Employee Orchestrator
 
+<!-- version-stamp: updated by scripts/bump-version.sh · keep this block in sync across all translated READMEs -->
+> **v0.1.7** · 51 route modules · 428 endpoints · 27 services · 24 orchestration modules · 14 MCP tools · 18 plugins · 11 extensions · 63+ app connectors · 26 models · 6 locales
+
 [![Stars](https://img.shields.io/github/stars/OrosiTororo/Zero-Employee-Orchestrator?style=flat)](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/stargazers)
 [![Forks](https://img.shields.io/github/forks/OrosiTororo/Zero-Employee-Orchestrator?style=flat)](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/network/members)
 [![Contributors](https://img.shields.io/github/contributors/OrosiTororo/Zero-Employee-Orchestrator?style=flat)](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/graphs/contributors)
