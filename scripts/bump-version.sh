@@ -66,6 +66,9 @@ LOCALE_FILES=(
 # WhatsNew component (CURRENT_VERSION)
 WHATS_NEW="$REPO_ROOT/apps/desktop/ui/src/shared/ui/WhatsNew.tsx"
 
+# Python package __init__.py fallback (used when package is not installed)
+API_INIT="$REPO_ROOT/apps/api/app/__init__.py"
+
 # ────────────────────────────────────────────
 # Helper functions
 # ────────────────────────────────────────────
@@ -143,6 +146,12 @@ done
 if [ -f "$WHATS_NEW" ]; then
   sed -i "s/const CURRENT_VERSION = \"[^\"]*\"/const CURRENT_VERSION = \"$NEW_VERSION\"/" "$WHATS_NEW"
   echo "  Updated ${WHATS_NEW#$REPO_ROOT/}"
+fi
+
+# Update apps/api/app/__init__.py fallback version
+if [ -f "$API_INIT" ]; then
+  sed -i "s/__version__ = \"[^\"]*\"/__version__ = \"$NEW_VERSION\"/" "$API_INIT"
+  echo "  Updated ${API_INIT#$REPO_ROOT/}"
 fi
 
 # ────────────────────────────────────────────
