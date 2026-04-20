@@ -39,6 +39,7 @@ Plugin installation flow:
 
 from __future__ import annotations
 
+import asyncio
 import importlib
 import logging
 import subprocess
@@ -1387,6 +1388,31 @@ class PluginLoader:
 
         # Auto-install pip packages
         if auto_install_packages and not env_report.all_satisfied:
+            from app.policies.approval_gate import check_approval_required
+
+            gate = check_approval_required("plugin_install")
+            if gate.requires_approval:
+                logger.warning(
+                    "Plugin install '%s' requires approval (%s); "
+                    "skipping auto-install of pip packages.",
+                    slug,
+                    gate.risk_level.value,
+                )
+                return {
+                    "success": False,
+                    "message": (
+                        f"Plugin '{slug}' pip install requires approval "
+                        f"({gate.category.value if gate.category else 'plugin_install'} · "
+                        f"{gate.risk_level.value}). Approve the request and retry."
+                    ),
+                    "slug": slug,
+                    "approval_required": True,
+                    "approval_category": (
+                        gate.category.value if gate.category else "plugin_install"
+                    ),
+                    "risk_level": gate.risk_level.value,
+                }
+
             for result in env_report.results:
                 if (
                     result.status == RequirementStatus.MISSING
@@ -1395,7 +1421,8 @@ class PluginLoader:
                     package = result.requirement.name
                     logger.info("Auto-installing: %s", package)
                     try:
-                        subprocess.check_call(
+                        await asyncio.to_thread(
+                            subprocess.check_call,
                             [sys.executable, "-m", "pip", "install", package],
                             stdout=subprocess.DEVNULL,
                             stderr=subprocess.DEVNULL,
