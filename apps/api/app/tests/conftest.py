@@ -67,6 +67,7 @@ async def rate_limit_enabled():
     finally:
         limiter.enabled = False
 
+
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
 engine = create_async_engine(
