@@ -17,6 +17,8 @@ import logging
 from dataclasses import dataclass, field
 from enum import Enum
 
+from app.security.sandbox import AccessType, filesystem_sandbox
+
 logger = logging.getLogger(__name__)
 
 
@@ -721,6 +723,10 @@ class LSPIntegration:
     @staticmethod
     def _read_file_content(file_path: str) -> str | None:
         """Read the contents of a file."""
+        check = filesystem_sandbox.check_access(file_path, AccessType.READ)
+        if not check.allowed:
+            logger.warning("LSP sandbox denied read: %s — %s", file_path, check.reason)
+            return None
         try:
             with open(file_path, encoding="utf-8") as f:
                 return f.read()

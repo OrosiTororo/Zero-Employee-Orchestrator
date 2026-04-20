@@ -45,6 +45,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from app.security.sandbox import AccessType, filesystem_sandbox
+
 logger = logging.getLogger(__name__)
 
 
@@ -112,6 +114,19 @@ class ContextEngineService:
 
     def __init__(self, vault_path: str | Path) -> None:
         self.vault_path = Path(vault_path).resolve()
+        # Vault must be within the sandbox whitelist — all read/write
+        # operations below target paths rooted under self.vault_path, so a single
+        # check here covers the entire service surface. Log a warning instead of
+        # raising so admins configuring a fresh install can register the vault
+        # path with the sandbox before the next operation attempts.
+        check = filesystem_sandbox.check_access(str(self.vault_path), AccessType.WRITE)
+        if not check.allowed:
+            logger.warning(
+                "Context-engine vault outside sandbox whitelist: %s (%s). "
+                "Register it via FileSystemSandbox.add_allowed_path() before writes.",
+                self.vault_path,
+                check.reason,
+            )
 
     # ── Lifecycle ────────────────────────────────────────────────────────
 
