@@ -38,6 +38,16 @@ logger = logging.getLogger(__name__)
 
 SCHEMA_VERSION_TABLE = "zeo_schema_version"
 
+# The Alembic revision that represents the schema produced by
+# Base.metadata.create_all() at the time of the current release. After the
+# version-migration ladder rebuilds a pre-Alembic install, the alembic_version
+# table is stamped to this revision so subsequent ``alembic upgrade head``
+# commands do not attempt to re-run the 001-003 revisions that are already
+# reflected in the freshly-created schema.
+#
+# Update this constant when a new Alembic revision is added.
+ALEMBIC_HEAD_REVISION = "003_add_setup_completed"
+
 
 @dataclass
 class MigrationStep:
@@ -86,6 +96,51 @@ async def _get_recorded_version(engine: AsyncEngine) -> str | None:
             best = v
             best_v = parsed
     return best or rows[-1]
+
+
+async def _stamp_alembic_head(engine: AsyncEngine) -> bool:
+    """Stamp the alembic_version table to the current head revision.
+
+    Called at the end of the migration ladder so pre-Alembic installs that
+    ran the hand-written steps can subsequently use ``alembic upgrade head``
+    without Alembic attempting to re-apply the 001-003 revisions.
+
+    Behaviour:
+
+    * Creates ``alembic_version`` if it does not exist.
+    * If the table is empty, inserts ``ALEMBIC_HEAD_REVISION``.
+    * If the table already holds ``ALEMBIC_HEAD_REVISION``, no-ops.
+    * If it holds a different revision (future or manual entry), logs a
+      warning and leaves it untouched — overriding an operator's explicit
+      revision pin would be worse than the mismatch.
+
+    Returns ``True`` iff the stamp was written.
+    """
+    async with engine.begin() as conn:
+        await conn.execute(
+            text(
+                "CREATE TABLE IF NOT EXISTS alembic_version ("
+                "  version_num VARCHAR(32) NOT NULL PRIMARY KEY"
+                ")"
+            )
+        )
+        result = await conn.execute(text("SELECT version_num FROM alembic_version"))
+        rows = [row[0] for row in result.fetchall() if row and row[0]]
+        if rows:
+            if ALEMBIC_HEAD_REVISION in rows:
+                return False
+            logger.warning(
+                "alembic_version already pinned to %s; not overwriting with %s",
+                rows[0],
+                ALEMBIC_HEAD_REVISION,
+            )
+            return False
+        await conn.execute(
+            text("INSERT INTO alembic_version (version_num) VALUES (:v)"),
+            {"v": ALEMBIC_HEAD_REVISION},
+        )
+    logger.info("Stamped alembic_version to %s", ALEMBIC_HEAD_REVISION)
+    return True
 
 
 async def _record_version(engine: AsyncEngine, version: str, note: str = "") -> None:
@@ -262,6 +317,16 @@ async def run_migrations(engine: AsyncEngine) -> dict[str, Any]:
                 recorded = current
         except InvalidVersion:
             pass
+
+    # After the hand-written ladder has rebuilt the schema, stamp the Alembic
+    # head revision so subsequent ``alembic upgrade head`` calls no-op instead
+    # of double-applying migrations that are already reflected in the tables.
+    try:
+        stamped = await _stamp_alembic_head(engine)
+        summary["alembic_stamped"] = ALEMBIC_HEAD_REVISION if stamped else None
+    except Exception as exc:  # pragma: no cover — defensive
+        logger.warning("Alembic stamp failed (non-fatal): %s", exc)
+        summary["alembic_stamped"] = None
 
     summary["to"] = recorded
     return summary
