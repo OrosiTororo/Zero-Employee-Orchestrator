@@ -430,7 +430,8 @@ class AvatarCoevolution:
     def get_alignment_score(self, user_id: str) -> float:
         """Return a score (0.0-1.0) of how well AI understands the user.
 
-        Comprehensively evaluates preference confidence, decision criteria success rate, and interaction count.
+        Comprehensively evaluates preference confidence, decision criteria
+        success rate, and interaction count.
         """
         prefs = self._preferences.get(user_id, {})
         criteria = self._criteria.get(user_id, [])

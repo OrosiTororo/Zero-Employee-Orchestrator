@@ -390,7 +390,7 @@ async def web_ai_complete(req: WebSessionRequest, user: User = Depends(get_curre
     except ValueError:
         raise HTTPException(
             status_code=400,
-            detail=f"Unsupported service: {req.service}. Available: {[s.value for s in WebAIService]}",
+            detail=f"Unsupported service: {req.service}. Available: {[s.value for s in WebAIService]}",  # noqa: E501
         )
 
     messages = [{"role": "user", "content": req.message}]

@@ -388,7 +388,7 @@ def build_plugin_install_transparency(
         builder.add_approval_info(
             info_type=ApprovalInfoType.DATA_FLOW,
             title="Communication with external services",
-            detail="This plugin sends data to external services. Sent content is recorded in audit logs.",
+            detail="This plugin sends data to external services. Sent content is recorded in audit logs.",  # noqa: E501
             severity="warning",
         )
 

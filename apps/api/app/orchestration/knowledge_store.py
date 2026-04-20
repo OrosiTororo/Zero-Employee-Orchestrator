@@ -291,7 +291,7 @@ class KnowledgeStore:
                                     "role": "user",
                                     "content": (
                                         "Rank these knowledge items by relevance to the query. "
-                                        "Return a JSON array of idx values, most relevant first.\n\n"
+                                        "Return a JSON array of idx values, most relevant first.\n\n"  # noqa: E501
                                         f"Query:\n{wrapped_query}\n\n"
                                         f"Items:\n{wrapped_candidates}"
                                     ),

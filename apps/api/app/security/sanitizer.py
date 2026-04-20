@@ -5,7 +5,7 @@ at each stage of storage, sharing, and publication rather than handling data as-
 
 Processing policy:
 - API keys, OAuth tokens, and secret values are masked or replaced with reference IDs
-- Personal information such as names, addresses, and payment details are removed or anonymized during sharing
+- Personal information (names, addresses, payment details) are removed or anonymized on share
 - Confidential documents, unpublished information, and contract data are excluded from publication
 - When using conversation logs or improvement logs for learning or sharing, users control the scope
 """

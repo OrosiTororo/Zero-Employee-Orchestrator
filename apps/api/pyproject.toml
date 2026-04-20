@@ -92,7 +92,6 @@ select = ["E", "F", "W", "I", "UP", "B", "SIM"]
 ignore = [
     "B008",
     "UP042",
-    "E501",
     "B904",
     "SIM105",
     "SIM102",
@@ -101,6 +100,25 @@ ignore = [
     "SIM110",
     "UP046",
 ]
+
+[tool.ruff.lint.per-file-ignores]
+# Existing modules that carry pre-v0.1.8 line-length debt (Japanese-heavy
+# strings, large inline manifests, multi-line f-strings). E501 is enforced on
+# all other files — new code must stay within 100 columns. Revisit and shrink
+# this list as each file is split / wrapped in follow-up refactors.
+"app/banner.py" = ["E501"]
+"app/cli.py" = ["E501"]
+"app/core/config.py" = ["E501"]
+"app/api/routes/registry.py" = ["E501"]
+"app/api/routes/security_settings.py" = ["E501"]
+"app/orchestration/executor.py" = ["E501"]
+"app/orchestration/meta_skills.py" = ["E501"]
+"app/security/redteam.py" = ["E501"]
+"app/security/prompt_guard.py" = ["E501"]
+"app/services/nl_command_service.py" = ["E501"]
+"app/services/plugin_loader.py" = ["E501"]
+"app/services/registry_service.py" = ["E501"]
+"app/services/self_improvement_service.py" = ["E501"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]

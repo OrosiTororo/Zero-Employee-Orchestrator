@@ -320,7 +320,7 @@ class LSPIntegration:
         )
 
         # Diagnostics are returned as async notifications, so waiting is needed
-        # In actual implementation, they are accumulated in a notification handler; placeholder returned here
+        # In actual implementation, they are accumulated in a notification handler; placeholder returned here  # noqa: E501
         logger.info("Diagnostic request sent: %s", file_path)
         return []
 

@@ -82,7 +82,7 @@ async def activate_adapter(framework: str, _: User = Depends(get_current_user)) 
     if not agent_adapter_registry.set_active(framework):
         raise HTTPException(
             status_code=404,
-            detail=f"Adapter not registered: {framework}. Register it first via POST /agent-adapters/register.",
+            detail=f"Adapter not registered: {framework}. Register it first via POST /agent-adapters/register.",  # noqa: E501
         )
     return {"active": framework}
 

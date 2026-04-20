@@ -107,7 +107,7 @@ STANDARD_INTERVIEW_TEMPLATE = [
         category="objective",
     ),
     InterviewQuestion(
-        question="Are there any constraints to follow? (budget, deadlines, quality standards, etc.)",
+        question="Are there any constraints to follow? (budget, deadlines, quality standards, etc.)",  # noqa: E501
         category="constraint",
     ),
     InterviewQuestion(

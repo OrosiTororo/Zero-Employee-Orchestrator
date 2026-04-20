@@ -463,7 +463,7 @@ async def attach_file_to_interview(
     if ext not in _ALL_ALLOWED:
         raise HTTPException(
             status_code=400,
-            detail=f"File format '{ext}' is not supported. Supported formats: {sorted(_ALL_ALLOWED)}",
+            detail=f"File format '{ext}' is not supported. Supported formats: {sorted(_ALL_ALLOWED)}",  # noqa: E501
         )
 
     # Size check

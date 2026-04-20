@@ -89,7 +89,7 @@ async def get_current_user(
 @router.post("/register", response_model=LoginResponse)
 @limiter.limit("5/minute")
 async def register(request: Request, req: RegisterRequest, db: AsyncSession = Depends(get_db)):
-    """Register a new account - register with email and password, auto-create default organization."""
+    """Register a new account — email + password, auto-create default organization."""
     # Check if email already exists
     result = await db.execute(select(User).where(User.email == req.email))
     if result.scalar_one_or_none():

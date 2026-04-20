@@ -114,7 +114,7 @@ SECRETARY_DEPT = DepartmentTemplate(
                 AgentTemplate(
                     name="秘書",
                     title="Chief Secretary",
-                    description="CEO の思考・アイデア・ToDo の整理、スケジュール管理、情報の蓄積と活用を担当。"
+                    description="CEO の思考・アイデア・ToDo の整理、スケジュール管理、情報の蓄積と活用を担当。"  # noqa: E501
                     "CEO の脳内を理解し、コンテキストを活用して最適な提案を行う。",
                     autonomy_level="semi-autonomous",
                     can_delegate=True,

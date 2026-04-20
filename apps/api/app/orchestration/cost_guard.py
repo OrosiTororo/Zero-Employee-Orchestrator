@@ -139,7 +139,7 @@ def check_budget(
         message = f"Budget warning: {usage_pct:.1f}% (limit ${budget_limit_usd:.2f})"
     else:
         decision = CostDecision.ALLOW
-        message = f"Within budget: {usage_pct:.1f}% (remaining ${budget_limit_usd - current_usage_usd:.2f})"
+        message = f"Within budget: {usage_pct:.1f}% (remaining ${budget_limit_usd - current_usage_usd:.2f})"  # noqa: E501
 
     return CostGuardResult(
         decision=decision,

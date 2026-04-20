@@ -532,7 +532,7 @@ class OllamaProvider:
             )
         except httpx.TimeoutException:
             return OllamaResponse(
-                content="[Ollama request timed out — model may be loading or too large for available RAM]",
+                content="[Ollama request timed out — model may be loading or too large for available RAM]",  # noqa: E501
                 model_used=model,
                 provider="ollama_timeout",
                 finish_reason="error",

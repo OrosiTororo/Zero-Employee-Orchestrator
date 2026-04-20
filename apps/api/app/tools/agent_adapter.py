@@ -363,7 +363,7 @@ class OpenClawAdapter(AgentFrameworkAdapter):
         if not base_url:
             return {
                 "success": False,
-                "error": "OPENCLAW_URL not configured. Set env var or pass openclaw_url in context.",
+                "error": "OPENCLAW_URL not configured. Set env var or pass openclaw_url in context.",  # noqa: E501
             }
         try:
             import httpx

@@ -124,7 +124,7 @@ def check_approval_required(operation: str) -> ApprovalGateResult:
         requires_approval=True,
         category=category,
         risk_level=risk_level,
-        reason=f"Operation '{operation}' falls under the {category.value} category and requires human approval",
+        reason=f"Operation '{operation}' falls under the {category.value} category and requires human approval",  # noqa: E501
     )
 
 

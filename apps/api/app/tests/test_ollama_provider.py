@@ -64,10 +64,12 @@ class TestToolCallExtraction:
     def test_multiple_invocations(self):
         from app.providers.ollama_provider import extract_tool_calls_from_text
 
-        text = """
-<invoke name="Read"><parameter name="file">/a.txt</parameter></invoke>
-<invoke name="Write"><parameter name="file">/b.txt</parameter><parameter name="content">hello</parameter></invoke>
-"""
+        text = (
+            "\n"
+            '<invoke name="Read"><parameter name="file">/a.txt</parameter></invoke>\n'
+            '<invoke name="Write"><parameter name="file">/b.txt</parameter>'
+            '<parameter name="content">hello</parameter></invoke>\n'
+        )
         calls = extract_tool_calls_from_text(text)
         assert len(calls) == 2
         assert calls[0]["function"] == "Read"

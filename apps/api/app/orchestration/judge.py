@@ -592,7 +592,7 @@ class CrossModelJudge:
 
         if structural_score < self.agreement_threshold:
             reasons.append(
-                f"Low structural agreement: {structural_score:.0%} (threshold {self.agreement_threshold:.0%})"
+                f"Low structural agreement: {structural_score:.0%} (threshold {self.agreement_threshold:.0%})"  # noqa: E501
             )
 
         if semantic_value_score < self.agreement_threshold:
