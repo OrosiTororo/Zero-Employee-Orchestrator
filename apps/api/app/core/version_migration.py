@@ -42,11 +42,70 @@ SCHEMA_VERSION_TABLE = "zeo_schema_version"
 # Base.metadata.create_all() at the time of the current release. After the
 # version-migration ladder rebuilds a pre-Alembic install, the alembic_version
 # table is stamped to this revision so subsequent ``alembic upgrade head``
-# commands do not attempt to re-run the 001-003 revisions that are already
-# reflected in the freshly-created schema.
+# commands do not attempt to re-run the revisions that are already reflected
+# in the freshly-created schema.
 #
-# Update this constant when a new Alembic revision is added.
-ALEMBIC_HEAD_REVISION = "003_add_setup_completed"
+# The value is resolved dynamically from ``apps/api/alembic/versions/`` at
+# import time so adding a new revision does not require touching this file.
+# The constant is only a fallback for environments where the Alembic
+# directory is not reachable (e.g. a pure pip install without the repo).
+_ALEMBIC_FALLBACK_REVISION = "003_add_setup_completed"
+
+
+def _discover_alembic_head() -> str:
+    """Read ``alembic/versions/`` and return the head revision id.
+
+    The head is the revision that is not listed as any other revision's
+    ``down_revision`` — i.e. the tip of the linear chain. Falls back to
+    :data:`_ALEMBIC_FALLBACK_REVISION` when the Alembic directory is missing
+    or no revisions can be parsed (pip-installed wheels ship without
+    ``alembic/versions/``).
+    """
+    import re
+    from pathlib import Path
+
+    # apps/api/app/core/version_migration.py -> apps/api/alembic/versions/
+    versions_dir = Path(__file__).resolve().parents[2] / "alembic" / "versions"
+    if not versions_dir.is_dir():
+        return _ALEMBIC_FALLBACK_REVISION
+
+    rev_re = re.compile(r"^revision[^=]*=\s*['\"]([^'\"]+)['\"]", re.MULTILINE)
+    down_re = re.compile(r"^down_revision[^=]*=\s*['\"]([^'\"]+)['\"]", re.MULTILINE)
+
+    revisions: set[str] = set()
+    down_revisions: set[str] = set()
+    for script in versions_dir.glob("*.py"):
+        try:
+            text = script.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        rev_match = rev_re.search(text)
+        if rev_match:
+            revisions.add(rev_match.group(1))
+        down_match = down_re.search(text)
+        if down_match:
+            down_revisions.add(down_match.group(1))
+
+    if not revisions:
+        return _ALEMBIC_FALLBACK_REVISION
+
+    # Head is the revision that nothing points to via down_revision.
+    heads = revisions - down_revisions
+    if len(heads) == 1:
+        return next(iter(heads))
+    # Multiple heads (branching) or zero (cycle) — fall back to the fallback
+    # constant so the admin gets a stable, audited value rather than a
+    # non-deterministic pick.
+    logger.warning(
+        "Alembic head resolution ambiguous (%d heads: %s); falling back to %s",
+        len(heads),
+        sorted(heads),
+        _ALEMBIC_FALLBACK_REVISION,
+    )
+    return _ALEMBIC_FALLBACK_REVISION
+
+
+ALEMBIC_HEAD_REVISION = _discover_alembic_head()
 
 
 @dataclass
