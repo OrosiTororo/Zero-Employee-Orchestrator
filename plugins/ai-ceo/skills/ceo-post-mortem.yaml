@@ -1,0 +1,81 @@
+slug: ceo-post-mortem
+name: CEO Post-Mortem
+version: 0.1.7
+plugin: ai-ceo
+role: CEO
+preferred_model: anthropic/claude-opus
+execution_mode: quality
+autonomy_level: semi-autonomous
+
+description: >
+  After a failed task, a rejected approval, or a budget excursion, write
+  a short post-mortem back into experience_memory so the directive
+  interpreter and the delegation router don't repeat the mistake. This
+  is the feedback loop that makes the AI CEO actually learn — without it
+  the plugin is just a fancier dispatch pattern.
+
+input_schema:
+  trigger:
+    type: string
+    enum: [task_failed, approval_rejected, budget_exceeded, poor_outcome]
+    required: true
+  context:
+    type: object
+    fields:
+      task_id: { type: string }
+      assigned_to: { type: string }
+      failure_taxonomy: { type: string }
+      observed_behaviour: { type: string }
+      desired_behaviour: { type: string }
+    required: true
+  owner_feedback:
+    type: string
+    description: Optional free-form comment from the owner.
+    required: false
+
+output_schema:
+  type: object
+  fields:
+    one_liner: { type: string, description: What went wrong, in <= 140 chars. }
+    root_cause: { type: string }
+    corrective_actions:
+      type: array
+      items:
+        type: object
+        fields:
+          target: { type: string, enum: [directive_interpreter, delegation_router, weekly_planner, prompt] }
+          change: { type: string }
+          confidence: { type: number }
+    memory_record:
+      type: object
+      fields:
+        category: { type: string }
+        lesson: { type: string }
+        avoid_pattern: { type: string }
+        prefer_pattern: { type: string }
+
+prompts:
+  system: |
+    You are the Post-Mortem lane of the AI CEO. Your job is to produce
+    actionable corrections the router and planner will actually pick up
+    on the next run. Bad post-mortems are vague narratives ("the CMO
+    underperformed") — good ones attach a concrete pattern ("avoid
+    routing single-source research to Haiku when the source is > 5
+    pages"). Prefer specific to general. If the trigger is
+    budget_exceeded, always write at least one corrective action
+    targeting the delegation_router's cost heuristic.
+
+approval_requirements:
+  - operation: update_memory_record
+    reason: Post-mortems mutate experience_memory, which steers every
+      future CEO decision; owner should confirm a one-liner before the
+      record is persisted.
+
+security:
+  wrap_external_data: true
+  pii_guard: true
+  sandbox: read_only
+
+telemetry:
+  record_audit_event: true
+  event_type: ceo.post_mortem.written

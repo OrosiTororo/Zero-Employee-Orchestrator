@@ -1,0 +1,78 @@
+# Zero-Employee Orchestrator — AI CEO skill manifest
+# One YAML per skill. The plugin loader reads every *.yaml under
+# plugins/<slug>/skills/ and registers the skill into the SkillRegistry.
+
+slug: ceo-directive-interpreter
+name: CEO Directive Interpreter
+version: 0.1.7
+plugin: ai-ceo
+role: CEO
+preferred_model: anthropic/claude-opus
+execution_mode: quality
+autonomy_level: semi-autonomous
+
+description: >
+  Turn a short, often-ambiguous owner directive ("launch v0.17 this week",
+  "fix the bleeding churn") into an explicit, testable list of tasks —
+  each with a clear owner, a rough time estimate, and a proposed delegation
+  to the CMO / CTO / COO lane.
+
+input_schema:
+  directive:
+    type: string
+    description: Free-form owner directive.
+    required: true
+  current_priorities:
+    type: array
+    items: { type: string }
+    description: Optional list of active priorities so the CEO doesn't
+      propose work that conflicts with what's already in flight.
+    required: false
+
+output_schema:
+  type: object
+  fields:
+    goal: { type: string, description: Concise restatement of the directive. }
+    tasks:
+      type: array
+      items:
+        type: object
+        fields:
+          title: { type: string }
+          assigned_to: { type: string, enum: [CMO, CTO, COO, CEO] }
+          estimated_hours: { type: number }
+          dependencies: { type: array, items: { type: string } }
+          requires_approval: { type: boolean }
+    risks: { type: array, items: { type: string } }
+    success_criteria: { type: array, items: { type: string } }
+
+prompts:
+  system: |
+    You are the CEO lane of the Zero-Employee Orchestrator AI-CEO plugin.
+    Your job is to translate one short owner directive into a board-ready
+    plan that the CMO / CTO / COO lanes can execute without further
+    clarification. Be explicit about who owns what, what has to happen
+    before what, and which items need the human owner's approval.
+
+    Hard rules:
+      - Route marketing / content to CMO.
+      - Route engineering / product / infra to CTO.
+      - Route scheduling / research / admin to COO — these are the
+        cheapest and run on Haiku.
+      - Escalate anything that touches external publishing, the
+        production budget, or hiring to approval_required: true.
+
+approval_requirements:
+  - operation: assign_external_publish_task
+    reason: Public-facing publish drafts must be approved before drafting.
+  - operation: assign_over_budget_task
+    reason: Any task whose estimate exceeds the active budget policy.
+
+security:
+  wrap_external_data: true
+  pii_guard: true
+  sandbox: none  # read-only — no disk side-effects
+
+telemetry:
+  record_audit_event: true
+  event_type: ceo.directive.interpreted

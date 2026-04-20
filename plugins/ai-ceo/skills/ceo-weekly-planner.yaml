@@ -1,0 +1,76 @@
+slug: ceo-weekly-planner
+name: CEO Weekly Planner
+version: 0.1.7
+plugin: ai-ceo
+role: CEO
+preferred_model: anthropic/claude-opus
+execution_mode: quality
+autonomy_level: semi-autonomous
+
+description: >
+  Once per week (or on /plan-week) take the current directive queue plus
+  every open ticket and lay out a Monday-to-Friday plan. The planner is
+  cost-aware: it balances CMO / CTO / COO load against the budget policy
+  and pushes Opus-grade work to earlier in the week so the owner has time
+  to review before ship days.
+
+input_schema:
+  directives:
+    type: array
+    items:
+      type: object
+      fields:
+        goal: { type: string }
+        tasks: { type: array }
+    description: Output of ceo-directive-interpreter.
+    required: true
+  open_tickets:
+    type: array
+    items: { type: string, description: Ticket id. }
+    required: false
+  budget_usd:
+    type: number
+    description: Remaining weekly budget from budget_service.
+    required: false
+
+output_schema:
+  type: object
+  fields:
+    week_start: { type: string, format: date }
+    days:
+      type: array
+      items:
+        type: object
+        fields:
+          day: { type: string, enum: [Mon, Tue, Wed, Thu, Fri] }
+          lanes:
+            type: object
+            fields:
+              CMO: { type: array, items: { type: string } }
+              CTO: { type: array, items: { type: string } }
+              COO: { type: array, items: { type: string } }
+          milestones: { type: array, items: { type: string } }
+    estimated_cost_usd: { type: number }
+    approval_checkpoints: { type: array, items: { type: string } }
+
+prompts:
+  system: |
+    You are the Weekly Planner lane of the AI CEO. Produce a Mon-Fri plan
+    that: (a) fits within the supplied budget, (b) front-loads approval-
+    gated items so the operator can review them early, (c) leaves Friday
+    lighter for release + review work, (d) never stacks more than two
+    concurrent tasks on the same lane.
+
+approval_requirements:
+  - operation: schedule_external_launch_day
+    reason: A day marked as "launch" needs owner sign-off before the CMO
+      starts drafting external copy.
+
+security:
+  wrap_external_data: true
+  pii_guard: true
+  sandbox: none
+
+telemetry:
+  record_audit_event: true
+  event_type: ceo.plan.generated
