@@ -228,7 +228,7 @@ export function Layout({ children }: LayoutProps) {
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-[var(--bg-base)]">
       {/* Skip-link: WCAG 2.4.1 bypass-blocks. Tab reveals it, Enter jumps to <main>. */}
       <a href="#main-content" className="skip-link">
-        {t("a11y.skip_to_main") || "Skip to main content"}
+        {t.a11y?.skip_to_main ?? "Skip to main content"}
       </a>
       {/* Title Bar — 30px */}
       <header
