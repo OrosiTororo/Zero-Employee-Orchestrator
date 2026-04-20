@@ -323,7 +323,7 @@ class JudgmentReviewService:
                 patterns.append(
                     JudgmentPattern(
                         pattern_type="category_concentration",
-                        description=f"判断の {ci.total / total * 100:.0f}% が「{ci.category}」カテゴリに集中しています",
+                        description=f"判断の {ci.total / total * 100:.0f}% が「{ci.category}」カテゴリに集中しています",  # noqa: E501
                         confidence=0.7,
                         suggestion="特定カテゴリの自律実行範囲を拡大することで判断負荷を軽減できます",
                     )

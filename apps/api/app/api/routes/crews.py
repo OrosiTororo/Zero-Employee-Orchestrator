@@ -285,7 +285,7 @@ async def _run_one(member: CrewMember, instruction: str, extra_context: str) -> 
                 messages=[
                     {
                         "role": "system",
-                        "content": f"You are acting as the {member.role.name}. {member.role.description}".strip(),
+                        "content": f"You are acting as the {member.role.name}. {member.role.description}".strip(),  # noqa: E501
                     },
                     {"role": "user", "content": prompt},
                 ],

@@ -120,7 +120,7 @@ async def analyze_screen(
     guard_result = scan_prompt_injection(req.user_question)
     if not guard_result.is_safe:
         logger.warning(
-            "Prompt injection detected in browser-assist request: user=%s, threat=%s, detections=%s",
+            "Prompt injection detected in browser-assist request: user=%s, threat=%s, detections=%s",  # noqa: E501
             req.user_id,
             guard_result.threat_level.value,
             guard_result.detections,

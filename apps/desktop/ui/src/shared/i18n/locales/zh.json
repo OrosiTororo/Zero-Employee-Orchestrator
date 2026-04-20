@@ -907,5 +907,8 @@
     "spawnFailed": "无法生成团队。",
     "dispatchFailed": "无法发送任务。",
     "disbandFailed": "无法解散团队。"
+  },
+  "a11y": {
+    "skip_to_main": "跳转到主要内容"
   }
 }

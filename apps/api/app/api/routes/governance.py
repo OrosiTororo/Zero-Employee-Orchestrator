@@ -132,7 +132,7 @@ async def add_policy(req: AddPolicyRequest, user: User = Depends(get_current_use
     except ValueError:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid severity: {req.severity}. Valid values: {[s.value for s in ViolationSeverity]}",
+            detail=f"Invalid severity: {req.severity}. Valid values: {[s.value for s in ViolationSeverity]}",  # noqa: E501
         )
 
     rule = PolicyRule(

@@ -128,10 +128,21 @@ class WikiKnowledgeService:
     # Minimum concept-word length — "AI" (2 chars) survives, "a" (1 char) doesn't
     _MIN_CONCEPT_LEN = 2
 
-    def __init__(self, vault_path: str | Path) -> None:
+    def __init__(
+        self,
+        vault_path: str | Path,
+        *,
+        use_llm_synthesis: bool = False,
+    ) -> None:
         self.vault_path = Path(vault_path).resolve()
         self.raw_dir = self.vault_path / self.RAW_DIR
         self.wiki_dir = self.vault_path / self.WIKI_DIR
+        # Opt-in LLM-backed query synthesis. When False (the default), /query
+        # returns the deterministic excerpt-plus-citations answer so offline
+        # installs, CI, and unit tests do not hit a provider. When True, the
+        # service calls llm_gateway.complete with wrap_external_data and falls
+        # back to the deterministic answer on any error.
+        self.use_llm_synthesis = use_llm_synthesis
         # Vault is server-configured — log a warning (do not block) if the
         # sandbox does not yet whitelist it so admins can fix the config
         # before the first write attempt.
@@ -230,7 +241,11 @@ class WikiKnowledgeService:
         self.initialize()
 
         matches = self._search(question)
-        answer = self._synthesize_answer(question, matches)
+        answer = None
+        if self.use_llm_synthesis and matches:
+            answer = await self._synthesize_answer_llm(question, matches)
+        if answer is None:
+            answer = self._synthesize_answer(question, matches)
         citations = [p.slug for p in matches]
 
         saved_slug: str | None = None
@@ -418,6 +433,61 @@ class WikiKnowledgeService:
             lines.append(f"- [[{page.title}]] — {excerpt[:240]}")
         lines.append("\n**Citations:** " + ", ".join(f"[[{p.title}]]" for p in pages[:5]))
         return "\n".join(lines)
+
+    async def _synthesize_answer_llm(self, question: str, pages: list[WikiPage]) -> str | None:
+        """Call the LLM gateway to compose a citation-grounded answer.
+
+        Only reached when ``use_llm_synthesis`` is True and at least one page
+        matched. Returns ``None`` on any failure so the caller can fall back
+        to the deterministic synthesiser.
+
+        External page text is wrapped with ``wrap_external_data`` before being
+        embedded in the prompt (CLAUDE.md rule #1). The assistant is
+        instructed to cite wiki pages by ``[[slug]]`` only, so the output is
+        grounded in the local wiki rather than the model's own training data.
+        """
+        try:
+            from app.providers.gateway import (
+                CompletionRequest,
+                ExecutionMode,
+                llm_gateway,
+            )
+            from app.security.prompt_guard import wrap_external_data
+
+            bullets = []
+            for page in pages[:5]:
+                excerpt = page.content.strip()[:800]
+                bullets.append(f"## [[{page.slug}]] {page.title}\n{excerpt}")
+            wrapped_pages = wrap_external_data("\n\n".join(bullets), source="wiki_pages")
+
+            system_prompt = (
+                "You are the Zero-Employee Orchestrator wiki synthesiser. "
+                "Answer the question using ONLY the supplied wiki pages. "
+                "Cite every claim with a [[slug]] link. If the pages do not "
+                "cover the question, say so explicitly instead of guessing."
+            )
+            user_prompt = f"Question: {question}\n\nWiki pages:\n{wrapped_pages}"
+            response = await llm_gateway.complete(
+                CompletionRequest(
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                    mode=ExecutionMode.QUALITY,
+                    temperature=0.2,
+                    max_tokens=1024,
+                )
+            )
+            text = (response.content or "").strip()
+            if not text:
+                return None
+            return (
+                f"**Q:** {question}\n\n**A (llm-synthesised):**\n{text}\n\n"
+                "**Citations:** " + ", ".join(f"[[{p.title}]]" for p in pages[:5])
+            )
+        except Exception as exc:
+            logger.debug("LLM wiki synthesis failed, falling back: %s", exc)
+            return None
 
     # ── Internal helpers ─────────────────────────────────────────────────
 

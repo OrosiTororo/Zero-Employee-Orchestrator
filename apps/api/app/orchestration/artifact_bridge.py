@@ -266,7 +266,8 @@ class ArtifactBridge:
             dag: List of DAG nodes (any objects with task_id, skill_id, depends_on)
 
         Returns:
-            List of created links [{"from_task": ..., "to_task": ..., "artifact_id": ..., "type": ...}, ...]
+            List of created link dicts with keys ``from_task``, ``to_task``,
+            ``artifact_id``, ``type``.
         """
         links_created: list[dict[str, str]] = []
 

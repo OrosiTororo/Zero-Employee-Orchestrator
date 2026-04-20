@@ -300,7 +300,7 @@ async def a2a_agent_card():
             {
                 "id": "task_orchestration",
                 "name": "Task Orchestration",
-                "description": "Decompose tasks into DAG, execute with multi-model LLMs, verify via Judge layer",
+                "description": "Decompose tasks into DAG, execute with multi-model LLMs, verify via Judge layer",  # noqa: E501
                 "tags": ["orchestration", "planning", "execution"],
             },
             {

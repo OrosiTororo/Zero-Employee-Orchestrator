@@ -907,5 +907,8 @@
     "spawnFailed": "Ekip oluşturulamadı.",
     "dispatchFailed": "Görev gönderilemedi.",
     "disbandFailed": "Ekip dağıtılamadı."
+  },
+  "a11y": {
+    "skip_to_main": "Ana içeriğe atla"
   }
 }

@@ -161,7 +161,7 @@ def refresh_context(
         context_entries=selected,
         total_tokens_estimated=total_tokens,
         truncated=truncated,
-        summary=f"Retrieved {len(selected)} relevant knowledge entries (estimated {total_tokens} tokens)",
+        summary=f"Retrieved {len(selected)} relevant knowledge entries (estimated {total_tokens} tokens)",  # noqa: E501
     )
 
 

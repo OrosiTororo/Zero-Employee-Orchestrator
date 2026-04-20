@@ -226,7 +226,7 @@ class TaskReplayService:
                 winner_execution_id=best_quality.id,
                 winner_model=best_quality.config.model_id,
                 scores=quality_scores,
-                details=f"最高品質スコア: {best_quality.quality_score:.3f} ({best_quality.config.model_id})",
+                details=f"最高品質スコア: {best_quality.quality_score:.3f} ({best_quality.config.model_id})",  # noqa: E501
             )
         )
 

@@ -1,4 +1,4 @@
-"""Multi-model comparison, brainstorming, conversation memory, and agent organization management API.
+"""Multi-model comparison, brainstorming, conversation memory, and agent organization API.
 
 Provides same-input comparison across multiple LLM models, brainstorming sessions,
 conversation memory, per-role model configuration for agents, and dynamic organization management.

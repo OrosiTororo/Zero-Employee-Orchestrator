@@ -1,0 +1,82 @@
+{
+  "name": "zero-employee-orchestrator",
+  "displayName": "Zero-Employee Orchestrator",
+  "description": "In-editor chat, ticket sidebar, and MCP bridge to a locally-running ZEO daemon.",
+  "version": "0.1.7",
+  "publisher": "zeo",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["AI", "Chat", "Other"],
+  "keywords": ["ai", "orchestrator", "mcp", "zero-employee-orchestrator"],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "zeo.openChat",
+        "title": "ZEO: Open Chat",
+        "category": "Zero-Employee Orchestrator"
+      },
+      {
+        "command": "zeo.createTicketFromSelection",
+        "title": "ZEO: Create Ticket from Selection",
+        "category": "Zero-Employee Orchestrator"
+      },
+      {
+        "command": "zeo.listTickets",
+        "title": "ZEO: Show Active Tickets",
+        "category": "Zero-Employee Orchestrator"
+      },
+      {
+        "command": "zeo.killSwitch",
+        "title": "ZEO: Engage Kill Switch",
+        "category": "Zero-Employee Orchestrator"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "zeo.createTicketFromSelection",
+          "when": "editorHasSelection",
+          "group": "zeo"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Zero-Employee Orchestrator",
+      "properties": {
+        "zeo.endpoint": {
+          "type": "string",
+          "default": "http://localhost:18234",
+          "description": "Base URL of the local ZEO daemon."
+        },
+        "zeo.autonomyLevel": {
+          "type": "string",
+          "enum": ["supervised", "semi-autonomous", "autonomous"],
+          "default": "supervised",
+          "description": "Autonomy setting for in-editor agent actions. Matches the ZEO Autonomy Dial."
+        },
+        "zeo.showApprovalInStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Surface pending approvals as a badge on the status bar."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -p ./ --watch",
+    "package": "vsce package --out dist/"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.2.0",
+    "typescript": "^5.7.0"
+  }
+}

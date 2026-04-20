@@ -1,0 +1,74 @@
+slug: ceo-delegation-router
+name: CEO Delegation Router
+version: 0.1.7
+plugin: ai-ceo
+role: CEO
+preferred_model: anthropic/claude-sonnet
+execution_mode: speed
+autonomy_level: autonomous
+
+description: >
+  Given a single atomic task and the roster of available subagents (CMO,
+  CTO, COO), pick the right lane, the right model tier, and the right
+  approval gate. This is the router that actually dispatches work — it
+  doesn't decide what to do, only who does it.
+
+input_schema:
+  task:
+    type: object
+    fields:
+      title: { type: string }
+      description: { type: string }
+      estimated_hours: { type: number }
+      tags: { type: array, items: { type: string } }
+    required: true
+  available_lanes:
+    type: array
+    items: { type: string, enum: [CMO, CTO, COO] }
+    default: [CMO, CTO, COO]
+
+output_schema:
+  type: object
+  fields:
+    assigned_to: { type: string, enum: [CMO, CTO, COO] }
+    reasoning: { type: string }
+    model_tier: { type: string, enum: [opus, sonnet, haiku] }
+    approval_category:
+      type: string
+      description: >
+        One of the ApprovalCategory enum values from
+        app.policies.approval_gate; empty if the task needs no gate.
+    dispatch_config:
+      type: object
+      fields:
+        priority: { type: string, enum: [low, medium, high] }
+        timeout_minutes: { type: integer }
+
+prompts:
+  system: |
+    You are the Delegation Router. For each task you receive, pick the
+    cheapest lane + model tier that can plausibly do the work well. Route
+    rules:
+      - Pure drafting / admin / calendar / research → COO on Haiku.
+      - Marketing content + SNS + campaign briefs → CMO on Sonnet.
+      - Technical spec + code review + infra → CTO on Sonnet.
+      - Cross-lane strategy / hiring / budget → CEO on Opus.
+    Never route the same task to two lanes. Never upgrade the model tier
+    beyond what the task actually needs — cost control is a hard goal.
+
+approval_requirements:
+  - operation: hire_subagent
+    reason: Adding a new permanent subagent is a persistent autonomy
+      expansion — the owner must opt in.
+  - operation: spend_over_budget
+    reason: Any dispatch whose estimated cost pushes the active budget
+      over its stop threshold.
+
+security:
+  wrap_external_data: true
+  pii_guard: false       # router sees structured task metadata only
+  sandbox: none
+
+telemetry:
+  record_audit_event: true
+  event_type: ceo.task.dispatched

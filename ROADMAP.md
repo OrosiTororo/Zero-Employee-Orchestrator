@@ -1,7 +1,7 @@
 # Roadmap
 
-> Last updated: 2026-04-16
-> Current version: v0.1.7
+> Last updated: 2026-04-20
+> Current version: v0.1.7 (polish)
 
 ---
 
@@ -86,6 +86,13 @@ Items that can be implemented by the development team without large-scale commun
 | Done | **Tool Connector UI** | SettingsPage Provider Connections (12+ services, category filter) |
 | Done | **Knowledge Feed UI** | SecretaryPage brain-dumps + knowledge store + PermissionsPage |
 | Done | **Contributor Guide** | CONTRIBUTING.md with dev setup, CI checks, design guidelines |
+| Done | **VS Code IDE extension** | `extensions/vscode/` — chat, ticket-from-selection, kill-switch, status bar |
+| Done | **Hyperagent + Comet bridges** | Two new AgentFrameworkAdapter subclasses under approval gate |
+| Done | **AI CEO skill YAMLs** | 5-skill manifest set + plugin-skill-loader with drift report |
+| Done | **self_improvement split** | 6 skill modules + facade; main file 1,332 → 55 lines |
+| Done | **Dynamic Alembic head** | `version_migration` walks `alembic/versions/` to pick the tip |
+| Done | **WCAG 2.2 a11y pass** | 2px focus ring, prefers-reduced-motion, skip-link in 6 locales |
+| Done | **Design tokens** | Spacing / typography / motion scales, Skeleton + EmptyState primitives |
 
 ---
 

@@ -1,6 +1,7 @@
 """Skill management service -- CRUD, natural language generation, and system protection.
 
-Provides skill creation from natural language, safety checks, and protection of system-required skills.
+Provides skill creation from natural language, safety checks, and protection of
+system-required skills.
 """
 
 from __future__ import annotations

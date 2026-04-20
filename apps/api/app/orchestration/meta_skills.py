@@ -20,6 +20,7 @@ from enum import Enum
 from typing import Any
 
 from app.security.prompt_guard import wrap_external_data
+from app.utils.json_parser import safe_extract_json
 
 logger = logging.getLogger(__name__)
 
@@ -145,12 +146,7 @@ class MetaSkillEngine:
                         max_tokens=256,
                     )
                 )
-                import json
-
-                content = resp.content.strip()
-                if content.startswith("```"):
-                    content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
-                llm_analysis = json.loads(content)
+                llm_analysis = safe_extract_json(resp.content) or {}
                 urgency = llm_analysis.get("urgency", urgency)
                 sentiment = llm_analysis.get("sentiment", sentiment)
                 complexity = llm_analysis.get("complexity", complexity)
@@ -261,8 +257,6 @@ class MetaSkillEngine:
         # LLM-enhanced pattern discovery across experiences
         if len(matching_experiences) >= 3:
             try:
-                import json
-
                 from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
 
                 exp_summaries = [
@@ -291,10 +285,8 @@ class MetaSkillEngine:
                         max_tokens=256,
                     )
                 )
-                content = resp.content.strip()
-                if content.startswith("```"):
-                    content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
-                for p in json.loads(content)[:3]:
+                extracted = safe_extract_json(resp.content) or []
+                for p in extracted[:3] if isinstance(extracted, list) else []:
                     p["domain"] = context_domain
                     patterns_found.append(p)
             except Exception as exc:
@@ -382,8 +374,6 @@ class MetaSkillEngine:
         # LLM-enhanced creative ideation
         if problem:
             try:
-                import json
-
                 from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
 
                 wrapped_problem = wrap_external_data(problem[:300], source="problem_statement")
@@ -404,10 +394,9 @@ class MetaSkillEngine:
                         max_tokens=512,
                     )
                 )
-                content = resp.content.strip()
-                if content.startswith("```"):
-                    content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
-                llm_ideas = json.loads(content)
+                llm_ideas = safe_extract_json(resp.content) or []
+                if not isinstance(llm_ideas, list):
+                    llm_ideas = []
                 for idea in llm_ideas[:3]:
                     hypotheses.append(
                         {
@@ -617,8 +606,6 @@ class MetaSkillEngine:
         # LLM-enhanced lesson synthesis
         if details or feedback:
             try:
-                import json
-
                 from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
 
                 wrapped_details = wrap_external_data(details[:300], source="task_details")
@@ -638,10 +625,9 @@ class MetaSkillEngine:
                         max_tokens=256,
                     )
                 )
-                content = resp.content.strip()
-                if content.startswith("```"):
-                    content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
-                llm_lessons = json.loads(content)
+                llm_lessons = safe_extract_json(resp.content) or []
+                if not isinstance(llm_lessons, list):
+                    llm_lessons = []
                 for ll in llm_lessons[:2]:
                     ll["domain"] = domain
                     ll["llm_synthesized"] = True

@@ -907,5 +907,8 @@
     "spawnFailed": "クルーを生成できませんでした。",
     "dispatchFailed": "タスクを発火できませんでした。",
     "disbandFailed": "クルーを解散できませんでした。"
+  },
+  "a11y": {
+    "skip_to_main": "メインコンテンツにスキップ"
   }
 }

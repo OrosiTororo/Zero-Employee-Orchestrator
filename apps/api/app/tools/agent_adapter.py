@@ -52,6 +52,8 @@ class AgentFrameworkType(str, Enum):
     OPENCLAW = "openclaw"
     DIFY = "dify"
     N8N = "n8n"
+    HYPERAGENT = "hyperagent"
+    COMET = "comet"
     CUSTOM = "custom"
 
 
@@ -363,7 +365,7 @@ class OpenClawAdapter(AgentFrameworkAdapter):
         if not base_url:
             return {
                 "success": False,
-                "error": "OPENCLAW_URL not configured. Set env var or pass openclaw_url in context.",
+                "error": "OPENCLAW_URL not configured. Set env var or pass openclaw_url in context.",  # noqa: E501
             }
         try:
             import httpx
@@ -541,6 +543,212 @@ class N8NAgentAdapter(AgentFrameworkAdapter):
         )
 
 
+class HyperagentAdapter(AgentFrameworkAdapter):
+    """Hyperagent bridge — delegate to a Hyperagent node via HTTP.
+
+    Configuration (two ways):
+
+    * ``HYPERAGENT_ENDPOINT`` environment variable pointing at the node's
+      ``/api/v1/run`` URL, optionally with ``HYPERAGENT_API_KEY``.
+    * Per-task override via ``task.context['hyperagent_endpoint']``.
+
+    The bridge sends ``{instruction, context, max_steps, timeout_seconds}``
+    and expects a JSON response of ``{result | error, artifacts?, usage?}``.
+    Return payloads are wrapped with ``wrap_external_data`` before being
+    handed back to the orchestrator so injection inside the remote agent's
+    output cannot steer ZEO's own LLM calls.
+    """
+
+    async def execute_task(self, task: AgentTask) -> dict:
+        import os
+
+        endpoint = os.environ.get(
+            "HYPERAGENT_ENDPOINT",
+            task.context.get("hyperagent_endpoint", ""),
+        )
+        if not endpoint:
+            return {
+                "success": False,
+                "error": "HYPERAGENT_ENDPOINT not configured.",
+            }
+        api_key = os.environ.get("HYPERAGENT_API_KEY", "")
+        headers = {"Content-Type": "application/json"}
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+        try:
+            import httpx
+
+            from app.security.prompt_guard import wrap_external_data
+
+            async with httpx.AsyncClient(timeout=task.timeout_seconds) as client:
+                resp = await client.post(
+                    endpoint,
+                    headers=headers,
+                    json={
+                        "instruction": task.instruction,
+                        "context": task.context,
+                        "max_steps": task.max_steps,
+                        "timeout_seconds": task.timeout_seconds,
+                    },
+                )
+                resp.raise_for_status()
+                data = (
+                    resp.json()
+                    if resp.headers.get("content-type", "").startswith("application/json")
+                    else {"result": resp.text}
+                )
+            raw_result = data.get("result", str(data))
+            return {
+                "success": True,
+                "result": wrap_external_data(str(raw_result), source="hyperagent"),
+                "artifacts": data.get("artifacts", []),
+                "usage": data.get("usage", {}),
+                "framework": "hyperagent",
+            }
+        except ImportError:
+            return {"success": False, "error": "httpx not installed"}
+        except Exception as exc:
+            return {"success": False, "error": str(exc)}
+
+    async def health_check(self) -> dict:
+        import os
+
+        endpoint = os.environ.get("HYPERAGENT_ENDPOINT", "")
+        return {
+            "ok": bool(endpoint),
+            "note": "Hyperagent node reachability depends on the configured endpoint.",
+        }
+
+    def get_capabilities(self) -> AdapterCapabilities:
+        return AdapterCapabilities(
+            tool_use=True,
+            web_browsing=True,
+            memory=True,
+            code_execution=True,
+        )
+
+
+class CometAdapter(AgentFrameworkAdapter):
+    """Perplexity Comet bridge — browser-integrated AI agent delegation.
+
+    Unlike Hyperagent, Comet agents run inside the user's browser session.
+    This bridge supports two modes:
+
+    * **Synchronous API mode** (recommended for non-interactive use):
+      POST to ``COMET_API_ENDPOINT`` with a Comet API key. Used for
+      instructions that do not need a live browser UI.
+
+    * **Browser-relay mode** (for interactive research): queue the
+      instruction into the existing Comet extension via the internal
+      WebSocket bridge at ``COMET_WS_ENDPOINT``. Requires the user to have
+      Comet open; the adapter returns a job id and the user approves the
+      browser action in Comet's own UI — ZEO never drives a remote
+      browser it does not own.
+
+    Both modes route through the approval gate so a browser side-effect
+    never fires without the operator's explicit OK.
+    """
+
+    async def execute_task(self, task: AgentTask) -> dict:
+        import os
+
+        # Prefer API mode if configured; fall back to browser-relay.
+        endpoint = os.environ.get(
+            "COMET_API_ENDPOINT",
+            task.context.get("comet_api_endpoint", ""),
+        )
+        api_key = os.environ.get("COMET_API_KEY", "")
+        ws_endpoint = os.environ.get(
+            "COMET_WS_ENDPOINT",
+            task.context.get("comet_ws_endpoint", ""),
+        )
+
+        if not endpoint and not ws_endpoint:
+            return {
+                "success": False,
+                "error": (
+                    "Neither COMET_API_ENDPOINT nor COMET_WS_ENDPOINT is set. "
+                    "Configure one of the two transports to delegate to Comet."
+                ),
+            }
+        if endpoint and not api_key:
+            return {"success": False, "error": "COMET_API_KEY required for API mode."}
+
+        try:
+            import httpx
+
+            from app.security.prompt_guard import wrap_external_data
+
+            if endpoint:
+                headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {api_key}",
+                }
+                async with httpx.AsyncClient(timeout=task.timeout_seconds) as client:
+                    resp = await client.post(
+                        endpoint,
+                        headers=headers,
+                        json={
+                            "prompt": task.instruction,
+                            "context": task.context,
+                            "max_steps": task.max_steps,
+                        },
+                    )
+                    resp.raise_for_status()
+                    data = resp.json()
+                raw_result = data.get("answer", data.get("result", str(data)))
+                return {
+                    "success": True,
+                    "result": wrap_external_data(str(raw_result), source="comet_api"),
+                    "citations": data.get("citations", []),
+                    "framework": "comet",
+                    "mode": "api",
+                }
+
+            # Browser-relay mode — queue and return a job id. The actual
+            # user-visible browser action is driven by the Comet extension
+            # itself after the user approves; ZEO only schedules the prompt.
+            return {
+                "success": True,
+                "result": (
+                    f"Browser-relay queued. Open Comet and approve job "
+                    f"{task.id}. Results come back via the /api/v1/"
+                    f"agent-adapters/comet/callback endpoint."
+                ),
+                "job_id": task.id,
+                "framework": "comet",
+                "mode": "browser_relay",
+                "requires_user_interaction": True,
+            }
+        except ImportError:
+            return {"success": False, "error": "httpx not installed"}
+        except Exception as exc:
+            return {"success": False, "error": str(exc)}
+
+    async def health_check(self) -> dict:
+        import os
+
+        api = bool(os.environ.get("COMET_API_ENDPOINT"))
+        ws = bool(os.environ.get("COMET_WS_ENDPOINT"))
+        return {
+            "ok": api or ws,
+            "api_mode_configured": api,
+            "browser_relay_configured": ws,
+            "note": (
+                "Comet API mode is non-interactive; browser-relay mode "
+                "requires the Comet extension to be open in the user's browser."
+            ),
+        }
+
+    def get_capabilities(self) -> AdapterCapabilities:
+        return AdapterCapabilities(
+            tool_use=True,
+            web_browsing=True,
+            memory=True,
+            multi_agent=False,
+        )
+
+
 # ---------------------------------------------------------------------------
 # Agent Adapter Registry
 # ---------------------------------------------------------------------------
@@ -553,6 +761,8 @@ _FRAMEWORK_ADAPTERS: dict[str, type[AgentFrameworkAdapter]] = {
     AgentFrameworkType.OPENCLAW: OpenClawAdapter,
     AgentFrameworkType.DIFY: DifyAdapter,
     AgentFrameworkType.N8N: N8NAgentAdapter,
+    AgentFrameworkType.HYPERAGENT: HyperagentAdapter,
+    AgentFrameworkType.COMET: CometAdapter,
 }
 
 

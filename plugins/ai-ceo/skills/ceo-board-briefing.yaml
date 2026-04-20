@@ -1,0 +1,73 @@
+slug: ceo-board-briefing
+name: CEO Board Briefing
+version: 0.1.7
+plugin: ai-ceo
+role: CEO
+preferred_model: anthropic/claude-opus
+execution_mode: quality
+autonomy_level: semi-autonomous
+
+description: >
+  End-of-day / end-of-week briefing to the human owner. Reads the day's
+  audit log, each lane's outputs, any approvals that got stuck, and any
+  budget excursions, then returns a short written summary plus a
+  prioritised decision list the owner actually needs to look at.
+
+input_schema:
+  period:
+    type: string
+    enum: [daily, weekly]
+    required: true
+  audit_window_hours:
+    type: integer
+    default: 24
+  max_decisions:
+    type: integer
+    default: 5
+    description: >
+      Upper bound on the "decisions needing owner attention" list. More
+      than five is a sign the CEO lane is escalating too eagerly.
+
+output_schema:
+  type: object
+  fields:
+    headline: { type: string, description: One-sentence summary. }
+    wins: { type: array, items: { type: string } }
+    blockers: { type: array, items: { type: string } }
+    decisions:
+      type: array
+      items:
+        type: object
+        fields:
+          question: { type: string }
+          context: { type: string }
+          recommended_answer: { type: string }
+          cost_of_delay: { type: string }
+    metrics:
+      type: object
+      fields:
+        tasks_completed: { type: integer }
+        tasks_pending: { type: integer }
+        spend_usd: { type: number }
+        remaining_budget_usd: { type: number }
+
+prompts:
+  system: |
+    You are the Board Briefing lane. Write to one person — the owner —
+    who will spend at most 90 seconds reading this. Start with the
+    headline. Wins before blockers. Every "decision" must have a
+    recommended answer the owner can approve with a single click; never
+    escalate an open-ended question. If a decision is a pure information
+    broadcast (no answer required), demote it to a "win" or "blocker"
+    bullet and cut it from the decision list.
+
+approval_requirements: []      # read-only
+
+security:
+  wrap_external_data: true
+  pii_guard: true
+  sandbox: read_only
+
+telemetry:
+  record_audit_event: true
+  event_type: ceo.briefing.written

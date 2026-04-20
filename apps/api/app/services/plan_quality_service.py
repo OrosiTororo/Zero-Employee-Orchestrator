@@ -265,7 +265,7 @@ class PlanQualityVerifier:
                 QualityIssue(
                     type=IssueType.DUPLICATE_TASK,
                     severity=IssueSeverity.WARNING,
-                    description=f"類似タスクを検出: 「{dup.task_a_title}」と「{dup.task_b_title}」(類似度: {dup.similarity:.0%})",
+                    description=f"類似タスクを検出: 「{dup.task_a_title}」と「{dup.task_b_title}」(類似度: {dup.similarity:.0%})",  # noqa: E501
                     affected_items=[dup.task_a_id, dup.task_b_id],
                     suggestion="タスクを統合するか、差異を明確にしてください",
                 )

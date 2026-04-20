@@ -1,6 +1,7 @@
 """AI Self-Improvement API schemas -- Level 2: Seeds of self-improvement.
 
-DTOs for Skill analysis, improvement, Judge tuning, failure learning, A/B testing, and auto test generation.
+DTOs for Skill analysis, improvement, Judge tuning, failure learning,
+A/B testing, and auto test generation.
 """
 
 from __future__ import annotations

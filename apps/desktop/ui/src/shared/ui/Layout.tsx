@@ -226,6 +226,10 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-[var(--bg-base)]">
+      {/* Skip-link: WCAG 2.4.1 bypass-blocks. Tab reveals it, Enter jumps to <main>. */}
+      <a href="#main-content" className="skip-link">
+        {t.a11y?.skip_to_main ?? "Skip to main content"}
+      </a>
       {/* Title Bar — 30px */}
       <header
         className="flex items-center shrink-0 select-none border-b border-[var(--border)]"
@@ -295,7 +299,11 @@ export function Layout({ children }: LayoutProps) {
         </nav>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto bg-[var(--bg-base)]">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="flex-1 overflow-auto bg-[var(--bg-base)] outline-none"
+        >
           {children}
         </main>
       </div>
