@@ -46,7 +46,9 @@ export function DashboardPage() {
       ])
       setActiveTickets(tickets.length)
       setPendingApprovals(approvals.length)
-      const active = agents.filter((a: any) => a.status === "active").length
+      const active = agents.filter(
+        (a: { status?: string }) => a.status === "active",
+      ).length
       setAgentStatus(`${active} / ${agents.length}`)
     } catch { /* Stats will remain at defaults */ }
   }, [companyId])
