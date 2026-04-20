@@ -36,6 +36,7 @@ from app.orchestration.judge import (
 )
 from app.security.prompt_guard import wrap_external_data
 from app.services.skill_service import analyze_code_safety
+from app.utils.json_parser import safe_extract_json
 
 logger = logging.getLogger(__name__)
 
@@ -466,9 +467,8 @@ async def _llm_analyze(code: str) -> list[AnalysisFinding]:
 
     findings: list[AnalysisFinding] = []
     try:
-        json_match = re.search(r"```json\s*\n(.*?)\n```", response.content, re.DOTALL)
-        if json_match:
-            data = json.loads(json_match.group(1))
+        data = safe_extract_json(response.content)
+        if isinstance(data, dict):
             for item in data.get("findings", []):
                 try:
                     findings.append(
@@ -596,9 +596,8 @@ async def improve_skill(
         if py_match:
             improved_code = py_match.group(1)
 
-        json_match = re.search(r"```json\s*\n(.*?)\n```", response.content, re.DOTALL)
-        if json_match:
-            meta = json.loads(json_match.group(1))
+        meta = safe_extract_json(response.content)
+        if isinstance(meta, dict):
             changes = meta.get("changes", [])
             expected = meta.get("expected_improvements", [])
 
@@ -895,9 +894,8 @@ Output as a JSON array:
 
     rules: list[JudgeTuningRule] = []
     try:
-        json_match = re.search(r"```json\s*\n(.*?)\n```", response.content, re.DOTALL)
-        if json_match:
-            items = json.loads(json_match.group(1))
+        items = safe_extract_json(response.content)
+        if isinstance(items, list):
             for item in items[:5]:  # Maximum 5 rules
                 rules.append(
                     JudgeTuningRule(
@@ -1459,9 +1457,8 @@ async def _llm_generate_tests(slug: str, code: str) -> list[GeneratedTestCase]:
 
     tests: list[GeneratedTestCase] = []
     try:
-        json_match = re.search(r"```json\s*\n(.*?)\n```", response.content, re.DOTALL)
-        if json_match:
-            data = json.loads(json_match.group(1))
+        data = safe_extract_json(response.content)
+        if isinstance(data, dict):
             for item in data.get("test_cases", []):
                 tests.append(
                     GeneratedTestCase(
