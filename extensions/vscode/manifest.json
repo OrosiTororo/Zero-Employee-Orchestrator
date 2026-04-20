@@ -1,0 +1,29 @@
+{
+  "name": "vscode",
+  "version": "0.1.7",
+  "description": "VS Code IDE integration — in-editor chat, MCP bridge, ticket sidebar, and selection-to-task dispatch to the Zero-Employee Orchestrator daemon.",
+  "type": "extension",
+  "status": "experimental",
+  "required_permissions": ["ide_integration", "read_workspace"],
+  "external_connections": ["http://localhost:18234"],
+  "dangerous_operations": false,
+  "approval_required_operations": ["create_ticket_from_selection", "execute_skill_from_editor"],
+  "capabilities": {
+    "chat_panel": "Inline chat panel bound to the local ZEO daemon.",
+    "mcp_bridge": "Uses the built-in MCP stdio transport (`zero-employee mcp serve`).",
+    "ticket_sidebar": "Lists in-progress ZEO tickets and approvals, refresh every 30s.",
+    "selection_dispatch": "Right-click → 'Send to ZEO as ticket' — wraps the editor selection with wrap_external_data on the backend.",
+    "inline_suggestions": "Uses the local LLM gateway for quick-pick code transforms; no editor text ever leaves the operator's machine unless an external provider is explicitly configured."
+  },
+  "integration": {
+    "approval_gate": "Every 'execute_skill_from_editor' call surfaces the approval dialog in VS Code's notification area.",
+    "kill_switch": "ZEO's global kill switch disables all extension commands immediately.",
+    "operator_profile": "Respects the operator's language + autonomy level when suggesting inline completions."
+  },
+  "distribution": {
+    "marketplace": "https://marketplace.visualstudio.com/items?itemName=zeo.zero-employee-orchestrator",
+    "build": "cd extensions/vscode && pnpm install && pnpm run package",
+    "artefact": "extensions/vscode/dist/zero-employee-orchestrator-0.1.7.vsix"
+  },
+  "author": "Zero-Employee Orchestrator Team"
+}
