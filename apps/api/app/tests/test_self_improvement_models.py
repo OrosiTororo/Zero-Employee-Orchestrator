@@ -13,7 +13,6 @@ import pytest
 from app.services import self_improvement_models as models
 from app.services import self_improvement_service as facade
 
-
 _EXPECTED_NAMES = (
     "ABTestConfig",
     "ABTestResult",
