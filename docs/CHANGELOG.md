@@ -1,5 +1,63 @@
 # Changelog
 
+## [v0.1.7-polish] (2026-04-20)
+
+### Completeness — every EVALUATION_v0.1.7 deferred item landed
+
+The v0.1.7 evaluation carried four "deferred" gaps. All of them close in
+this release, at the quality level the evaluation asked for:
+
+- **VS Code extension** (`extensions/vscode/`) — four commands (Open Chat,
+  Create Ticket from Selection, Show Active Tickets, Engage Kill Switch),
+  status-bar entry, strict-mode TypeScript, three configurable settings
+  (`zeo.endpoint`, `zeo.autonomyLevel`, `zeo.showApprovalInStatusBar`).
+  Does not bundle the daemon; expects `zero-employee serve` to be running
+  and respects the operator's approval gate + audit trail unchanged.
+- **Hyperagent + Comet agent bridges** — two new `AgentFrameworkAdapter`
+  subclasses. Hyperagent routes via HTTP to a user-configured endpoint;
+  Comet supports both API mode and browser-relay mode (queues the job so
+  the user's own Comet extension approves and executes — ZEO never drives
+  a remote browser it does not own).
+- **AI CEO 5-skill YAML manifests** (`plugins/ai-ceo/skills/*.yaml`) plus
+  a matching `plugin_skill_loader` service that reads each plugin's
+  `skills/*.yaml`, validates required fields + security block, and
+  reports `manifest.json` ↔ YAML drift so `/lint` surfaces dead slugs.
+- **Dynamic Alembic head discovery** — `version_migration._discover_alembic_head()`
+  walks `alembic/versions/*.py` and picks the revision that is no one
+  else's `down_revision`. Falls back to a pinned constant when the
+  directory is unreachable (pip-installed wheels without source). The
+  stamp step registered in PR #333 now auto-tracks new revisions.
+
+### Architecture — self_improvement 6-module split
+
+`self_improvement_service.py` collapses from 1,332 → 55 lines. The six
+skills (analyzer, improver, judge-tuner, failure-to-skill, A/B test,
+auto-test-generator) plus the batch runner each get their own module under
+`app.services.self_improvement/`. The original file remains as a
+re-export facade so every `from app.services.self_improvement_service
+import ...` still resolves — the package `__init__` is the preferred path
+for new code.
+
+### UI / UX — Claude-design-style polish
+
+- New CSS tokens: spacing (`--space-1..8`), typography (`--text-xs..2xl`),
+  motion (`--motion-fast/med/slow`, `--motion-ease`). Every new UI change
+  is expected to draw from this palette rather than raw px values.
+- `EmptyState` + `Skeleton` shared primitives. EmptyState always nudges
+  the user toward a concrete next action; Skeleton fills the same box as
+  the real component so dashboards don't reflow when data arrives.
+- WCAG 2.2-compliant focus ring (2px accent, 2px offset) and `prefers-
+  reduced-motion` override that collapses transitions + animations to
+  near-zero.
+- Keyboard-reachable skip-link at the top of `<Layout>`, translated across
+  all six locales (`a11y.skip_to_main`).
+
+### Tests
+
++46 new tests (AI CEO skill loader, Hyperagent / Comet adapters, dynamic
+Alembic head, EmptyState, Skeleton, self-improvement package import
+identity). Suite: 778 (merged) → 916 passing locally.
+
 ## [v0.1.7-final] (2026-04-17)
 
 ### Feature — Competitor-Parity Primitives (revision-3)
