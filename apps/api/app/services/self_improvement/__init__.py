@@ -1,18 +1,25 @@
-"""Backward-compatible facade for the self-improvement skill package.
+"""AI Self-Improvement package — six skill modules.
 
-v0.1.7 split the 1,500-line module into the ``app.services.self_improvement``
-package (one sub-module per skill). Existing callers importing from
-``app.services.self_improvement_service`` keep working because this file
-re-exports everything.
+Re-exports the public functions and data classes so legacy callers can still::
 
-For new code, import directly from the package::
+    from app.services.self_improvement_service import analyze_skill
 
-    from app.services.self_improvement import analyze_skill, improve_skill
+after the v0.1.7 split without code changes.
 """
 
 from __future__ import annotations
 
-from app.services.self_improvement import (
+from app.services.self_improvement.ab_test import run_skill_ab_test
+from app.services.self_improvement.batch import run_improvement_cycle
+from app.services.self_improvement.failure_to_skill import generate_skills_from_failures
+from app.services.self_improvement.judge_tuner import (
+    apply_judge_tuning,
+    tune_judge_from_experience,
+)
+from app.services.self_improvement.skill_analyzer import analyze_skill
+from app.services.self_improvement.skill_improver import apply_improvement, improve_skill
+from app.services.self_improvement.test_generator import generate_tests_for_skill
+from app.services.self_improvement_models import (
     ABTestConfig,
     ABTestResult,
     AnalysisCategory,
@@ -25,15 +32,6 @@ from app.services.self_improvement import (
     JudgeTuningRule,
     SkillAnalysisResult,
     SkillImprovementProposal,
-    analyze_skill,
-    apply_improvement,
-    apply_judge_tuning,
-    generate_skills_from_failures,
-    generate_tests_for_skill,
-    improve_skill,
-    run_improvement_cycle,
-    run_skill_ab_test,
-    tune_judge_from_experience,
 )
 
 __all__ = [

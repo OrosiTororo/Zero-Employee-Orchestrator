@@ -119,6 +119,15 @@ ignore = [
 "app/services/plugin_loader.py" = ["E501"]
 "app/services/registry_service.py" = ["E501"]
 "app/services/self_improvement_service.py" = ["E501"]
+# The v0.1.7 self-improvement package split preserves the original string
+# literals (long f-string prompts, Japanese log messages). Cleaning those up
+# is a separate pass.
+"app/services/self_improvement/skill_analyzer.py" = ["E501"]
+"app/services/self_improvement/skill_improver.py" = ["E501"]
+"app/services/self_improvement/judge_tuner.py" = ["E501"]
+"app/services/self_improvement/failure_to_skill.py" = ["E501"]
+"app/services/self_improvement/ab_test.py" = ["E501"]
+"app/services/self_improvement/test_generator.py" = ["E501"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
