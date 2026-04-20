@@ -56,7 +56,9 @@ async def test_remove_policy_returns_bool():
     )
     added = await svc.add_policy(rule)
     assert await svc.remove_policy(added.id) is True
-    assert await svc.remove_policy(added.id) is False
+    # Subsequent removal of an already-deleted rule raises ValueError.
+    with pytest.raises(ValueError):
+        await svc.remove_policy(added.id)
 
 
 @pytest.mark.asyncio

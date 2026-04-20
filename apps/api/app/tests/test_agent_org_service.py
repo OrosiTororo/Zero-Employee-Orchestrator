@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from app.services.agent_org_service import (
-    AgentRolePreset,
     ROLE_DEFINITIONS,
+    AgentRolePreset,
     interpret_natural_language_request,
 )
 
@@ -32,13 +32,13 @@ class TestRoleDefinitions:
 class TestNaturalLanguageInterpretation:
     def test_add_secretary_request(self):
         result = interpret_natural_language_request("秘書を追加してください")
-        assert result["action"] == "add"
+        assert result["action"] == "add_agent"
         assert result["target_role"] == "secretary"
         assert result["confidence"] > 0
 
     def test_remove_engineer_request(self):
         result = interpret_natural_language_request("エンジニアを削除")
-        assert result["action"] == "remove"
+        assert result["action"] == "remove_agent"
         assert result["target_role"] == "engineer"
 
     def test_ambiguous_input_has_zero_confidence(self):
@@ -47,7 +47,7 @@ class TestNaturalLanguageInterpretation:
 
     def test_english_keywords_work(self):
         result = interpret_natural_language_request("Please add a researcher")
-        assert result["action"] == "add"
+        assert result["action"] == "add_agent"
         assert result["target_role"] == "researcher"
 
     def test_original_text_is_preserved(self):

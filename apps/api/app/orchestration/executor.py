@@ -316,9 +316,7 @@ class TaskExecutor:
         messages = []
         if context:
             wrapped_context = wrap_external_data(context, source="prior_node_output")
-            messages.append(
-                {"role": "system", "content": f"Previous context:\n{wrapped_context}"}
-            )
+            messages.append({"role": "system", "content": f"Previous context:\n{wrapped_context}"})
         messages.append({"role": "user", "content": prompt})
 
         # --- Cache lookup (LangGraph-style deterministic memoization) ---

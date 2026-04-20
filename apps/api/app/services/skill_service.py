@@ -163,8 +163,6 @@ async def generate_skill_from_description(
     Uses LLM to generate manifest and execution code, then performs safety checks.
     Falls back to template-based generation when LLM is unavailable.
     """
-    import json
-
     manifest: dict = {}
     code: str = ""
 

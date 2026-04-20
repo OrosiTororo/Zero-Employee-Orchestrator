@@ -36,7 +36,9 @@ async def test_ralph_ingests_inbox_note(vault):
     svc = ContextEngineService(vault)
     svc.setup()
     inbox_note = vault / "Inbox" / "hello.md"
-    inbox_note.write_text("# First\n\nWelcome to ZEO.\n\n# Second\n\nAtoms everywhere.", encoding="utf-8")
+    inbox_note.write_text(
+        "# First\n\nWelcome to ZEO.\n\n# Second\n\nAtoms everywhere.", encoding="utf-8"
+    )
 
     report = await svc.ralph()
     assert "hello.md" in report.recorded

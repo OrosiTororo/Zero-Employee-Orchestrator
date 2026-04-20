@@ -38,25 +38,19 @@ class TestGenerateReproposal:
         cost_reason = ReworkReason(
             category="cost", description="Budget exceeded", severity="medium"
         )
-        result = generate_reproposal(
-            {"plan_id": "p-1"}, [cost_reason]
-        )
+        result = generate_reproposal({"plan_id": "p-1"}, [cost_reason])
         assert result.original_plan_id == "p-1"
         assert any("lower-cost" in m for m in result.diff.modified_tasks)
         assert any("Optional" in r for r in result.diff.removed_tasks)
 
     def test_critical_severity_lowers_confidence_and_requires_approval(self):
-        reason = ReworkReason(
-            category="policy", description="policy broken", severity="critical"
-        )
+        reason = ReworkReason(category="policy", description="policy broken", severity="critical")
         result = generate_reproposal({"plan_id": "p-1"}, [reason])
         assert result.confidence_score <= 0.3
         assert result.requires_approval is True
 
     def test_low_severity_still_requires_approval_only_if_high_critical(self):
-        reason = ReworkReason(
-            category="error", description="minor error", severity="low"
-        )
+        reason = ReworkReason(category="error", description="minor error", severity="low")
         result = generate_reproposal({"plan_id": "p-1"}, [reason])
         assert result.requires_approval is False
 

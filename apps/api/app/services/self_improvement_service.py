@@ -453,10 +453,7 @@ async def _llm_analyze(code: str) -> list[AnalysisFinding]:
                 {"role": "system", "content": _ANALYSIS_SYSTEM_PROMPT},
                 {
                     "role": "user",
-                    "content": (
-                        "Please analyze the following skill code:\n\n"
-                        f"{wrapped_code}"
-                    ),
+                    "content": (f"Please analyze the following skill code:\n\n{wrapped_code}"),
                 },
             ],
             temperature=0.2,
@@ -855,12 +852,8 @@ async def _llm_propose_judge_rules(
         for f in failures[:20]
     )
 
-    wrapped_success = wrap_external_data(
-        success_summary or "(no data)", source="success_patterns"
-    )
-    wrapped_failures = wrap_external_data(
-        failure_summary or "(no data)", source="failure_patterns"
-    )
+    wrapped_success = wrap_external_data(success_summary or "(no data)", source="success_patterns")
+    wrapped_failures = wrap_external_data(failure_summary or "(no data)", source="failure_patterns")
     prompt = f"""Please propose quality check rules for the Judge Layer from the following data.
 
 ## Success patterns
@@ -1443,10 +1436,7 @@ async def _llm_generate_tests(slug: str, code: str) -> list[GeneratedTestCase]:
                 {"role": "system", "content": _TEST_GEN_SYSTEM_PROMPT},
                 {
                     "role": "user",
-                    "content": (
-                        "Generate tests for the following skill code:\n\n"
-                        f"{wrapped_code}"
-                    ),
+                    "content": (f"Generate tests for the following skill code:\n\n{wrapped_code}"),
                 },
             ],
             temperature=0.3,

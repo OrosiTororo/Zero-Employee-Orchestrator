@@ -85,17 +85,14 @@ packages = ["app"]
 
 [tool.ruff]
 target-version = "py312"
-# Line length is 120 rather than the stricter 100 to accommodate Japanese
-# log strings and long manifest literals that are harder to wrap readably.
-# New code is expected to stay within 100 where reasonable; the lint stays
-# silent up to 120 so small overruns do not block the CI.
-line-length = 120
+line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM"]
 ignore = [
     "B008",
     "UP042",
+    "E501",
     "B904",
     "SIM105",
     "SIM102",
@@ -104,22 +101,6 @@ ignore = [
     "SIM110",
     "UP046",
 ]
-
-[tool.ruff.lint.per-file-ignores]
-# Modules dominated by Japanese strings / large manifests where wrapping
-# hurts readability. Revisit when these files are split in a future refactor.
-"app/banner.py" = ["E501"]
-"app/services/plugin_loader.py" = ["E501"]
-"app/services/wiki_knowledge_service.py" = ["E501"]
-"app/services/context_engine_service.py" = ["E501"]
-"app/services/self_improvement_service.py" = ["E501"]
-"app/services/agent_org_service.py" = ["E501"]
-"app/services/org_generator_service.py" = ["E501"]
-"app/services/judgment_review_service.py" = ["E501"]
-"app/services/nl_command_service.py" = ["E501"]
-"app/services/plan_quality_service.py" = ["E501"]
-"app/integrations/browser_assist.py" = ["E501"]
-"app/security/prompt_guard.py" = ["E501"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]

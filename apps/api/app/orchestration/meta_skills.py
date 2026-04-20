@@ -125,9 +125,7 @@ class MetaSkillEngine:
             try:
                 from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
 
-                wrapped_user_text = wrap_external_data(
-                    user_text[:500], source="user_message"
-                )
+                wrapped_user_text = wrap_external_data(user_text[:500], source="user_message")
                 resp = await llm_gateway.complete(
                     CompletionRequest(
                         messages=[

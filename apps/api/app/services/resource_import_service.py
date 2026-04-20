@@ -28,6 +28,7 @@ def _require_path_access(path: str | Path, access_type: AccessType) -> None:
             f"Sandbox denied {access_type.value} access to {path}: {check.reason}"
         )
 
+
 # File extensions that support text extraction
 TEXT_EXTENSIONS: set[str] = {
     ".txt",
