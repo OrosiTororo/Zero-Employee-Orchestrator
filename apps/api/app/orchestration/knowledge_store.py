@@ -23,6 +23,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
 from app.security.prompt_guard import wrap_external_data
+from app.utils.json_parser import safe_extract_json
 
 logger = logging.getLogger(__name__)
 
@@ -302,10 +303,7 @@ class KnowledgeStore:
                             max_tokens=128,
                         )
                     )
-                    content = resp.content.strip()
-                    if content.startswith("```"):
-                        content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
-                    ranked_ids = _json.loads(content)
+                    ranked_ids = safe_extract_json(resp.content)
                     if isinstance(ranked_ids, list) and all(isinstance(x, int) for x in ranked_ids):
                         reranked = [records[i] for i in ranked_ids if i < len(records)]
                         remaining = [r for i, r in enumerate(records) if i not in ranked_ids]

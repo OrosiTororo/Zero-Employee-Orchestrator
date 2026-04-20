@@ -41,6 +41,7 @@ from app.orchestration.transparency import (
 )
 from app.providers.gateway import CompletionRequest, ExecutionMode, LLMGateway
 from app.security.prompt_guard import wrap_external_data
+from app.utils.json_parser import safe_extract_json
 
 logger = logging.getLogger(__name__)
 
@@ -220,11 +221,9 @@ class TaskExecutor:
         # Parse LLM response into DAG nodes
         dag = ExecutionDAG(plan_id=plan_id)
         try:
-            # Extract JSON from response (handle markdown code blocks)
-            content = response.content.strip()
-            if content.startswith("```"):
-                content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
-            steps = json.loads(content)
+            steps = safe_extract_json(response.content)
+            if not isinstance(steps, list):
+                raise ValueError("planner response was not a JSON array")
 
             for step in steps:
                 node = TaskNode(
@@ -282,10 +281,10 @@ class TaskExecutor:
                     max_tokens=2048,
                 )
             )
-            content = response.content.strip()
-            if content.startswith("```"):
-                content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
-            return json.loads(content)
+            parsed = safe_extract_json(response.content)
+            if isinstance(parsed, dict):
+                return parsed
+            return {"approved": True, "issues": [], "revised": None}
         except Exception as exc:
             logger.debug("Critique parsing failed, approving draft: %s", exc)
             return {"approved": True, "issues": [], "revised": None}
