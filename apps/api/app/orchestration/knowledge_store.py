@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
+from app.security.prompt_guard import wrap_external_data
 
 logger = logging.getLogger(__name__)
 
@@ -278,6 +279,11 @@ class KnowledgeStore:
                         {"idx": i, "key": r.key, "value": r.value[:100]}
                         for i, r in enumerate(records[:10])
                     ]
+                    wrapped_candidates = wrap_external_data(
+                        _json.dumps(candidates, ensure_ascii=False),
+                        source="knowledge_candidates",
+                    )
+                    wrapped_query = wrap_external_data(search_query, source="search_query")
                     resp = await llm_gateway.complete(
                         CompletionRequest(
                             messages=[
@@ -286,8 +292,8 @@ class KnowledgeStore:
                                     "content": (
                                         "Rank these knowledge items by relevance to the query. "
                                         "Return a JSON array of idx values, most relevant first.\n\n"
-                                        f"Query: {search_query}\n\n"
-                                        f"Items: {_json.dumps(candidates, ensure_ascii=False)}"
+                                        f"Query:\n{wrapped_query}\n\n"
+                                        f"Items:\n{wrapped_candidates}"
                                     ),
                                 }
                             ],

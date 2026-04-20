@@ -19,6 +19,8 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
+from app.security.prompt_guard import wrap_external_data
+
 logger = logging.getLogger(__name__)
 
 
@@ -123,6 +125,9 @@ class MetaSkillEngine:
             try:
                 from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
 
+                wrapped_user_text = wrap_external_data(
+                    user_text[:500], source="user_message"
+                )
                 resp = await llm_gateway.complete(
                     CompletionRequest(
                         messages=[
@@ -133,7 +138,7 @@ class MetaSkillEngine:
                                     '"urgency" (0-1), "sentiment" (positive/neutral/'
                                     'negative/frustrated), "complexity" (0-1), '
                                     '"key_signals" (list of strings).\n\n'
-                                    f"Message: {user_text[:500]}"
+                                    f"Message:\n{wrapped_user_text}"
                                 ),
                             }
                         ],
@@ -267,6 +272,9 @@ class MetaSkillEngine:
                     f"{e.get('approach', '?')} in {e.get('domain', '?')}"
                     for e in matching_experiences[:10]
                 ]
+                wrapped_experiences = wrap_external_data(
+                    "\n".join(exp_summaries), source="experience_memory"
+                )
                 resp = await llm_gateway.complete(
                     CompletionRequest(
                         messages=[
@@ -276,7 +284,7 @@ class MetaSkillEngine:
                                     "Analyze these past experiences and identify non-obvious patterns. "
                                     'Return JSON array of {"pattern_type": "llm_insight", '
                                     '"description": "...", "confidence": 0-1}.\n\n'
-                                    "Experiences:\n" + "\n".join(exp_summaries)
+                                    f"Experiences:\n{wrapped_experiences}"
                                 ),
                             }
                         ],
@@ -380,11 +388,12 @@ class MetaSkillEngine:
 
                 from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
 
+                wrapped_problem = wrap_external_data(problem[:300], source="problem_statement")
                 prompt = (
                     "You are a creative problem solver. Generate 2-3 novel solution "
                     "hypotheses for this problem. Return a JSON array of objects with "
                     '"description", "novelty_score" (0-1), "feasibility_score" (0-1).\n\n'
-                    f"Problem: {problem[:300]}\n"
+                    f"Problem:\n{wrapped_problem}\n"
                     f"Constraints: {', '.join(constraints[:5])}\n"
                     f"Known approaches: {', '.join(known_approaches[:5])}\n"
                     "Return ONLY the JSON array."
@@ -488,6 +497,9 @@ class MetaSkillEngine:
                         llm_gateway,
                     )
 
+                    wrapped_action = wrap_external_data(
+                        step_action[:300], source="plan_step_action"
+                    )
                     resp = await llm_gateway.complete(
                         CompletionRequest(
                             messages=[
@@ -495,7 +507,7 @@ class MetaSkillEngine:
                                     "role": "user",
                                     "content": (
                                         f"Execute this step and return the result.\n"
-                                        f"Step: {step_name}\nAction: {step_action[:300]}\n"
+                                        f"Step: {step_name}\nAction:\n{wrapped_action}\n"
                                         f"Expected output: {expected_output[:200]}"
                                     ),
                                 }
@@ -611,12 +623,14 @@ class MetaSkillEngine:
 
                 from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
 
+                wrapped_details = wrap_external_data(details[:300], source="task_details")
+                wrapped_feedback = wrap_external_data(feedback[:200], source="user_feedback")
                 synthesis_prompt = (
                     "Analyze this task outcome and extract 1-2 actionable lessons. "
                     'Return JSON array of {"type", "description", "actionable"}.\n\n'
                     f"Domain: {domain}\nApproach: {approach}\n"
-                    f"Success: {success}\nDetails: {details[:300]}\n"
-                    f"Feedback: {feedback[:200]}"
+                    f"Success: {success}\nDetails:\n{wrapped_details}\n"
+                    f"Feedback:\n{wrapped_feedback}"
                 )
                 resp = await llm_gateway.complete(
                     CompletionRequest(
@@ -724,6 +738,7 @@ class MetaSkillEngine:
         try:
             from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
 
+            wrapped_context = wrap_external_data(context, source="meta_skill_state")
             resp = await llm_gateway.complete(
                 CompletionRequest(
                     messages=[
@@ -731,7 +746,7 @@ class MetaSkillEngine:
                             "role": "user",
                             "content": (
                                 f"Synthesize the following AI meta-skill data into a concise "
-                                f"actionable insight (1-2 sentences):\n\n{context}"
+                                f"actionable insight (1-2 sentences):\n\n{wrapped_context}"
                             ),
                         }
                     ],

@@ -40,6 +40,7 @@ from app.orchestration.transparency import (
     TransparencyBuilder,
 )
 from app.providers.gateway import CompletionRequest, ExecutionMode, LLMGateway
+from app.security.prompt_guard import wrap_external_data
 
 logger = logging.getLogger(__name__)
 
@@ -192,10 +193,12 @@ class TaskExecutor:
         """Generate an execution plan (DAG) from a ticket spec using LLM."""
         plan_id = str(uuid.uuid4())
 
+        wrapped_spec = wrap_external_data(spec_text, source="ticket_spec")
+        wrapped_title = wrap_external_data(ticket_title, source="ticket_title")
         prompt = (
             "You are a task planner. Decompose this task into sequential steps.\n\n"
-            f"Task: {ticket_title}\n\n"
-            f"Specification:\n{spec_text}\n\n"
+            f"Task:\n{wrapped_title}\n\n"
+            f"Specification:\n{wrapped_spec}\n\n"
             "Return a JSON array of steps. Each step has:\n"
             '- "id": unique string (e.g. "step_1")\n'
             '- "title": short description of what to do\n'
@@ -260,11 +263,12 @@ class TaskExecutor:
 
         Returns dict with keys: approved (bool), issues (list[str]), revised (str|None).
         """
+        wrapped_draft = wrap_external_data(draft_content, source="llm_draft")
         critique_prompt = (
             "You are a strict quality reviewer. Review this draft output and identify "
             "any errors, omissions, logical flaws, or improvements needed.\n\n"
             f"Task: {node_title}\n\n"
-            f"Draft output:\n{draft_content}\n\n"
+            f"Draft output:\n{wrapped_draft}\n\n"
             "Respond in JSON: "
             '{"approved": true/false, "issues": ["issue1", ...], '
             '"revised": "improved version if not approved, null if approved"}'
@@ -311,7 +315,10 @@ class TaskExecutor:
         prompt = (node.provider_override or {}).get("prompt", node.title)
         messages = []
         if context:
-            messages.append({"role": "system", "content": f"Previous context:\n{context}"})
+            wrapped_context = wrap_external_data(context, source="prior_node_output")
+            messages.append(
+                {"role": "system", "content": f"Previous context:\n{wrapped_context}"}
+            )
         messages.append({"role": "user", "content": prompt})
 
         # --- Cache lookup (LangGraph-style deterministic memoization) ---
