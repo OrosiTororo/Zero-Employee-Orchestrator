@@ -907,5 +907,8 @@
     "spawnFailed": "크루를 생성할 수 없습니다.",
     "dispatchFailed": "작업을 실행할 수 없습니다.",
     "disbandFailed": "크루를 해체할 수 없습니다."
+  },
+  "a11y": {
+    "skip_to_main": "본문으로 바로가기"
   }
 }

@@ -907,5 +907,8 @@
     "spawnFailed": "Could not spawn crew.",
     "dispatchFailed": "Could not dispatch task.",
     "disbandFailed": "Could not disband crew."
+  },
+  "a11y": {
+    "skip_to_main": "Skip to main content"
   }
 }

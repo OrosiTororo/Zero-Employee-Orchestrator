@@ -907,5 +907,8 @@
     "spawnFailed": "Não foi possível criar a equipe.",
     "dispatchFailed": "Não foi possível despachar a tarefa.",
     "disbandFailed": "Não foi possível desfazer a equipe."
+  },
+  "a11y": {
+    "skip_to_main": "Ir para o conteúdo principal"
   }
 }
