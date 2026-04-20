@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
 import { App } from './App'
+import { ErrorBoundary } from '@/shared/ui/ErrorBoundary'
 import { LogoMark } from '@/shared/ui/Logo'
 
 /* Eagerly loaded — critical path */
@@ -46,8 +47,17 @@ function PageLoader() {
   )
 }
 
+/**
+ * Wraps a lazy-loaded route with per-route Suspense + ErrorBoundary so a
+ * single page failure cannot tear down the whole shell (sidebar, nav, etc.).
+ * The top-level ErrorBoundary in main.tsx remains as a last-resort fallback.
+ */
 function L({ children }: { children: React.ReactNode }) {
-  return <Suspense fallback={<PageLoader />}>{children}</Suspense>
+  return (
+    <ErrorBoundary>
+      <Suspense fallback={<PageLoader />}>{children}</Suspense>
+    </ErrorBoundary>
+  )
 }
 
 export const router = createBrowserRouter([

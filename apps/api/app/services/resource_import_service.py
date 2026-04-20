@@ -15,7 +15,19 @@ from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 
+from app.security.sandbox import AccessType, filesystem_sandbox
+
 logger = logging.getLogger(__name__)
+
+
+def _require_path_access(path: str | Path, access_type: AccessType) -> None:
+    """Raise PermissionError if the sandbox denies access to ``path``."""
+    check = filesystem_sandbox.check_access(str(path), access_type)
+    if not check.allowed:
+        raise PermissionError(
+            f"Sandbox denied {access_type.value} access to {path}: {check.reason}"
+        )
+
 
 # File extensions that support text extraction
 TEXT_EXTENSIONS: set[str] = {
@@ -145,6 +157,7 @@ class ResourceImportService:
         Raises:
             FileNotFoundError: If the file does not exist
         """
+        _require_path_access(file_path, AccessType.READ)
         path = Path(file_path)
         if not path.exists():
             raise FileNotFoundError(f"File not found: {file_path}")
@@ -203,6 +216,7 @@ class ResourceImportService:
         Raises:
             FileNotFoundError: If the folder does not exist
         """
+        _require_path_access(folder_path, AccessType.LIST)
         path = Path(folder_path)
         if not path.is_dir():
             raise FileNotFoundError(f"Folder not found: {folder_path}")
@@ -370,6 +384,7 @@ class ResourceImportService:
         path = Path(resource.source_path)
         if not path.exists():
             return ""
+        _require_path_access(path, AccessType.READ)
 
         ext = path.suffix.lower()
         if ext in TEXT_EXTENSIONS:

@@ -17,6 +17,7 @@ import app.orchestration.agent_session  # noqa: F401
 import app.orchestration.experience_memory  # noqa: F401
 import app.orchestration.knowledge_store  # noqa: F401
 import app.security.iam  # noqa: F401
+from app import __version__
 from app.api.routes import api_router
 from app.api.ws.browser_assist_ws import router as browser_assist_ws_router
 from app.api.ws.events import router as ws_router
@@ -284,7 +285,7 @@ async def a2a_agent_card():
             "and business tool under human approval, audit trail, and security."
         ),
         "url": f"http://localhost:{settings.PORT or 18234}",
-        "version": "0.1.6",
+        "version": __version__,
         "protocol_version": "0.3",
         "capabilities": {
             "streaming": True,

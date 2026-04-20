@@ -34,6 +34,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from app.security.sandbox import AccessType, filesystem_sandbox
+
 logger = logging.getLogger(__name__)
 
 
@@ -130,6 +132,17 @@ class WikiKnowledgeService:
         self.vault_path = Path(vault_path).resolve()
         self.raw_dir = self.vault_path / self.RAW_DIR
         self.wiki_dir = self.vault_path / self.WIKI_DIR
+        # Vault is server-configured — log a warning (do not block) if the
+        # sandbox does not yet whitelist it so admins can fix the config
+        # before the first write attempt.
+        check = filesystem_sandbox.check_access(str(self.vault_path), AccessType.WRITE)
+        if not check.allowed:
+            logger.warning(
+                "Wiki vault outside sandbox whitelist: %s (%s). "
+                "Register it via FileSystemSandbox.add_allowed_path() before writes.",
+                self.vault_path,
+                check.reason,
+            )
 
     # ── Lifecycle ────────────────────────────────────────────────────────
 

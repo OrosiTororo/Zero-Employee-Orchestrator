@@ -293,7 +293,10 @@ class TaskReplayService:
                 winner_execution_id=best_overall.id,
                 winner_model=best_overall.config.model_id,
                 scores=overall_scores,
-                details=f"総合勝者: {best_overall.config.model_id} (スコア: {overall_scores.get(best_overall.id, 0):.3f})",
+                details=(
+                    f"総合勝者: {best_overall.config.model_id} "
+                    f"(スコア: {overall_scores.get(best_overall.id, 0):.3f})"
+                ),
             )
         )
 

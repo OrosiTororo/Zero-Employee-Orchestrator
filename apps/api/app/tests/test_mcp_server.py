@@ -426,3 +426,92 @@ def test_custom_tool_registration_preserves_annotations():
     assert srv._tools["custom_delete"].destructive_hint is True
     payload = srv._tools["custom_delete"].to_dict()
     assert payload["annotations"]["destructiveHint"] is True
+
+
+# ---------------------------------------------------------------------------
+# Coverage for all 14 MCP tools — happy path (read-only) + invalid-params
+# ---------------------------------------------------------------------------
+
+
+# Tools whose handler can be smoked with no required arguments.
+_READ_ONLY_ZERO_ARG_TOOLS = [
+    "list_tickets",
+    "search_knowledge",
+    "list_skills",
+    "get_audit_logs",
+    "monitor_executions",
+    "get_kill_switch_status",
+    "get_autonomy_level",
+    "get_budget_status",
+    "list_approvals",
+    "get_server_info",
+]
+
+
+@pytest.mark.parametrize("tool_name", _READ_ONLY_ZERO_ARG_TOOLS)
+@pytest.mark.asyncio
+async def test_tools_call_zero_arg_read_only(tool_name: str):
+    """Each zero-arg read-only tool must return a valid JSON-RPC result."""
+    resp = await mcp_server.handle_jsonrpc(
+        {
+            "jsonrpc": "2.0",
+            "id": 100,
+            "method": "tools/call",
+            "params": {"name": tool_name, "arguments": {}},
+        }
+    )
+    assert resp is not None
+    assert "result" in resp, f"{tool_name} returned error: {resp.get('error')}"
+    content = resp["result"].get("content")
+    assert isinstance(content, list) and content, f"{tool_name} returned empty content"
+
+
+@pytest.mark.parametrize(
+    "tool_name",
+    [
+        "create_ticket",
+        "execute_skill",
+        "propose_hypothesis",
+        "get_agent_status",
+    ],
+)
+@pytest.mark.asyncio
+async def test_tools_call_with_required_field_never_crashes(tool_name: str):
+    """Tools that declare a required argument must return a well-formed JSON-RPC
+    response — never raise an uncaught exception — when the argument is missing.
+
+    Schema-level validation of required fields is left to the caller; the
+    handlers themselves accept empty inputs, either returning an error content
+    block or gracefully dispatching a no-op. Either is fine as long as the
+    response envelope is valid.
+    """
+    resp = await mcp_server.handle_jsonrpc(
+        {
+            "jsonrpc": "2.0",
+            "id": 200,
+            "method": "tools/call",
+            "params": {"name": tool_name, "arguments": {}},
+        }
+    )
+    assert resp is not None
+    if "error" in resp:
+        assert resp["error"]["code"] in (JSONRPC_INVALID_PARAMS, -32000, -32602, -32603)
+    else:
+        # tools/call must always return a ``content`` list per the MCP spec.
+        assert isinstance(resp["result"].get("content"), list)
+        assert len(resp["result"]["content"]) >= 1
+
+
+@pytest.mark.asyncio
+async def test_tools_call_unknown_tool_returns_error():
+    resp = await mcp_server.handle_jsonrpc(
+        {
+            "jsonrpc": "2.0",
+            "id": 300,
+            "method": "tools/call",
+            "params": {"name": "no_such_tool", "arguments": {}},
+        }
+    )
+    assert resp is not None
+    # Unknown tool is either a tool-level error or a JSON-RPC error.
+    assert "error" in resp or resp["result"].get("isError") is True

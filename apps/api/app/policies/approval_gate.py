@@ -44,6 +44,7 @@ class ApprovalCategory(str, Enum):
     BROWSER_AUTOMATION = "browser_automation"
     WEB_AI_SESSION = "web_ai_session"
     EXTERNAL_AGENT = "external_agent"
+    PLUGIN_INSTALL = "plugin_install"
 
 
 class RiskLevel(str, Enum):
@@ -107,6 +108,8 @@ _DANGEROUS_OPERATIONS: dict[str, tuple[ApprovalCategory, RiskLevel]] = {
     "web_ai_session_paid": (ApprovalCategory.WEB_AI_SESSION, RiskLevel.HIGH),
     # External agent frameworks (CrewAI, AutoGen, LangChain, Dify, n8n, …)
     "external_agent_execution": (ApprovalCategory.EXTERNAL_AGENT, RiskLevel.HIGH),
+    # Plugin install (pip install of third-party packages requested by a plugin manifest)
+    "plugin_install": (ApprovalCategory.PLUGIN_INSTALL, RiskLevel.HIGH),
 }
 
 

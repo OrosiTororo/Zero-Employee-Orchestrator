@@ -21,6 +21,7 @@ from app.schemas.registry import (
     SkillGenerateResponse,
     SkillUpdate,
 )
+from app.utils.json_parser import safe_extract_json
 
 logger = logging.getLogger(__name__)
 
@@ -162,8 +163,6 @@ async def generate_skill_from_description(
     Uses LLM to generate manifest and execution code, then performs safety checks.
     Falls back to template-based generation when LLM is unavailable.
     """
-    import json
-
     manifest: dict = {}
     code: str = ""
 
@@ -185,9 +184,9 @@ async def generate_skill_from_description(
         content = llm_response.content
 
         # Extract JSON block
-        json_match = re.search(r"```json\s*\n(.*?)\n```", content, re.DOTALL)
-        if json_match:
-            manifest = json.loads(json_match.group(1))
+        parsed = safe_extract_json(content)
+        if isinstance(parsed, dict):
+            manifest = parsed
 
         # Extract Python block
         py_match = re.search(r"```python\s*\n(.*?)\n```", content, re.DOTALL)

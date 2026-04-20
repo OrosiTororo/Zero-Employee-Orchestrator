@@ -706,7 +706,8 @@ def cmd_chat(args: argparse.Namespace) -> None:
 
         print(f"  \033[38;5;245mMode: {mode.value} | Model: {model}\033[0m")
         print(
-            "  \033[38;5;245mAll operations available via natural language. Ask 'What can you do?' to get started.\033[0m"
+            "  \033[38;5;245mAll operations available via natural language. "
+            "Ask 'What can you do?' to get started.\033[0m"
         )
         print()
 

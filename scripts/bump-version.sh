@@ -66,6 +66,19 @@ LOCALE_FILES=(
 # WhatsNew component (CURRENT_VERSION)
 WHATS_NEW="$REPO_ROOT/apps/desktop/ui/src/shared/ui/WhatsNew.tsx"
 
+# Python package __init__.py fallback (used when package is not installed)
+API_INIT="$REPO_ROOT/apps/api/app/__init__.py"
+
+# Translated README version stamps (one-liner badge under the title)
+TRANSLATED_READMES=(
+  "$REPO_ROOT/docs/ja-JP/README.md"
+  "$REPO_ROOT/docs/zh-CN/README.md"
+  "$REPO_ROOT/docs/zh-TW/README.md"
+  "$REPO_ROOT/docs/ko-KR/README.md"
+  "$REPO_ROOT/docs/pt-BR/README.md"
+  "$REPO_ROOT/docs/tr/README.md"
+)
+
 # ────────────────────────────────────────────
 # Helper functions
 # ────────────────────────────────────────────
@@ -144,6 +157,21 @@ if [ -f "$WHATS_NEW" ]; then
   sed -i "s/const CURRENT_VERSION = \"[^\"]*\"/const CURRENT_VERSION = \"$NEW_VERSION\"/" "$WHATS_NEW"
   echo "  Updated ${WHATS_NEW#$REPO_ROOT/}"
 fi
+
+# Update apps/api/app/__init__.py fallback version
+if [ -f "$API_INIT" ]; then
+  sed -i "s/__version__ = \"[^\"]*\"/__version__ = \"$NEW_VERSION\"/" "$API_INIT"
+  echo "  Updated ${API_INIT#$REPO_ROOT/}"
+fi
+
+# Update translated README version stamps (only the `**vX.Y.Z**` token,
+# leave the feature-count suffix untouched so a count edit isn't lost).
+for f in "${TRANSLATED_READMES[@]}"; do
+  if [ -f "$f" ]; then
+    sed -i "s/^> \*\*v[0-9][^*]*\*\* \(·.*\)$/> **v$NEW_VERSION** \1/" "$f"
+    echo "  Updated ${f#$REPO_ROOT/}"
+  fi
+done
 
 # ────────────────────────────────────────────
 # Post-update verification

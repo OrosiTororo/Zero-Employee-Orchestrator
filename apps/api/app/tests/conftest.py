@@ -35,11 +35,38 @@ from app.main import app  # noqa: E402
 from app.models.user import User  # noqa: E402
 from app.services.multi_model_service import BrainstormSessionRecord as _BSR  # noqa: E402, F401
 
-# Disable slowapi rate limiting during tests — per-endpoint limits like
-# `5/minute` on /auth/register otherwise leak across tests (limiter key is
-# client IP, which is constant for ASGITransport), making test ordering
-# dependent and causing spurious 429 failures in CI.
+# slowapi rate limiting is disabled by default during tests — per-endpoint
+# limits like `5/minute` on /auth/register otherwise leak across tests because
+# the limiter key is the client IP and ASGITransport always reports the same
+# one. Tests that specifically verify rate-limit behaviour must opt back in via
+# the ``rate_limit_enabled`` fixture (see below).
 limiter.enabled = False
+
+
+@pytest_asyncio.fixture
+async def rate_limit_enabled():
+    """Opt-in fixture for tests that exercise real rate-limit enforcement.
+
+    Usage::
+
+        async def test_something(client, rate_limit_enabled):
+            ...
+
+    The fixture flips the shared slowapi limiter on for the test body, resets
+    its internal storage to avoid leakage from previous requests, and flips it
+    back off on teardown so unrelated tests keep their blanket bypass.
+    """
+    limiter.enabled = True
+    try:
+        # Best-effort reset so prior requests in the same session do not
+        # pre-consume the test's budget.
+        reset = getattr(limiter, "reset", None)
+        if callable(reset):
+            reset()
+        yield
+    finally:
+        limiter.enabled = False
+
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 

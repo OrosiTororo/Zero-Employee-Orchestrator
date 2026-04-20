@@ -406,7 +406,10 @@ def build_plugin_install_transparency(
     builder.add_approval_info(
         info_type=ApprovalInfoType.REVERSIBILITY,
         title="Can be uninstalled",
-        detail="This plugin can be uninstalled at any time. The pip package will remain, but registration from ZEO will be removed.",
+        detail=(
+            "This plugin can be uninstalled at any time. The pip package will "
+            "remain, but registration from ZEO will be removed."
+        ),
         severity="info",
     )
 

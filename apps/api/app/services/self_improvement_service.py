@@ -34,7 +34,9 @@ from app.orchestration.judge import (
     RuleBasedJudge,
     rule_judge,
 )
+from app.security.prompt_guard import wrap_external_data
 from app.services.skill_service import analyze_code_safety
+from app.utils.json_parser import safe_extract_json
 
 logger = logging.getLogger(__name__)
 
@@ -444,13 +446,14 @@ async def _llm_analyze(code: str) -> list[AnalysisFinding]:
     """Code analysis using LLM."""
     from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
 
+    wrapped_code = wrap_external_data(code, source="skill_code")
     response = await llm_gateway.complete(
         CompletionRequest(
             messages=[
                 {"role": "system", "content": _ANALYSIS_SYSTEM_PROMPT},
                 {
                     "role": "user",
-                    "content": f"Please analyze the following skill code:\n\n```python\n{code}\n```",
+                    "content": (f"Please analyze the following skill code:\n\n{wrapped_code}"),
                 },
             ],
             temperature=0.2,
@@ -461,9 +464,8 @@ async def _llm_analyze(code: str) -> list[AnalysisFinding]:
 
     findings: list[AnalysisFinding] = []
     try:
-        json_match = re.search(r"```json\s*\n(.*?)\n```", response.content, re.DOTALL)
-        if json_match:
-            data = json.loads(json_match.group(1))
+        data = safe_extract_json(response.content)
+        if isinstance(data, dict):
             for item in data.get("findings", []):
                 try:
                     findings.append(
@@ -565,6 +567,8 @@ async def improve_skill(
     try:
         from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
 
+        wrapped_original = wrap_external_data(original_code, source="skill_code")
+        wrapped_findings = wrap_external_data(findings_text, source="analysis_findings")
         response = await llm_gateway.complete(
             CompletionRequest(
                 messages=[
@@ -572,8 +576,9 @@ async def improve_skill(
                     {
                         "role": "user",
                         "content": (
-                            f"## Original code\n```python\n{original_code}\n```\n\n"
-                            f"## Analysis results (score: {analysis.overall_score:.0%})\n{findings_text}\n\n"
+                            f"## Original code\n{wrapped_original}\n\n"
+                            f"## Analysis results (score: {analysis.overall_score:.0%})\n"
+                            f"{wrapped_findings}\n\n"
                             "Please improve the code based on the above analysis results."
                         ),
                     },
@@ -588,9 +593,8 @@ async def improve_skill(
         if py_match:
             improved_code = py_match.group(1)
 
-        json_match = re.search(r"```json\s*\n(.*?)\n```", response.content, re.DOTALL)
-        if json_match:
-            meta = json.loads(json_match.group(1))
+        meta = safe_extract_json(response.content)
+        if isinstance(meta, dict):
             changes = meta.get("changes", [])
             expected = meta.get("expected_improvements", [])
 
@@ -848,13 +852,15 @@ async def _llm_propose_judge_rules(
         for f in failures[:20]
     )
 
+    wrapped_success = wrap_external_data(success_summary or "(no data)", source="success_patterns")
+    wrapped_failures = wrap_external_data(failure_summary or "(no data)", source="failure_patterns")
     prompt = f"""Please propose quality check rules for the Judge Layer from the following data.
 
 ## Success patterns
-{success_summary or "(no data)"}
+{wrapped_success}
 
 ## Failure patterns
-{failure_summary or "(no data)"}
+{wrapped_failures}
 
 Output as a JSON array:
 ```json
@@ -881,9 +887,8 @@ Output as a JSON array:
 
     rules: list[JudgeTuningRule] = []
     try:
-        json_match = re.search(r"```json\s*\n(.*?)\n```", response.content, re.DOTALL)
-        if json_match:
-            items = json.loads(json_match.group(1))
+        items = safe_extract_json(response.content)
+        if isinstance(items, list):
             for item in items[:5]:  # Maximum 5 rules
                 rules.append(
                     JudgeTuningRule(
@@ -1002,14 +1007,16 @@ async def _generate_prevention_skill_code(
     """Generate prevention skill code using LLM."""
     from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
 
+    wrapped_failure = wrap_external_data(
+        f"Category: {failure.category}\nSubcategory: {failure.subcategory}\n"
+        f"Description: {failure.description}\nPrevention strategy: {failure.prevention_strategy}\n"
+        f"Occurrences: {failure.occurrence_count}",
+        source="failure_taxonomy",
+    )
     prompt = f"""Generate Python code for a skill that prevents the following failure pattern.
 
 ## Failure pattern
-- Category: {failure.category}
-- Subcategory: {failure.subcategory}
-- Description: {failure.description}
-- Prevention strategy: {failure.prevention_strategy}
-- Occurrences: {failure.occurrence_count}
+{wrapped_failure}
 
 ## Rules
 - Implement `async def execute(context: dict) -> dict`
@@ -1422,13 +1429,14 @@ async def _llm_generate_tests(slug: str, code: str) -> list[GeneratedTestCase]:
     """Test case generation using LLM."""
     from app.providers.gateway import CompletionRequest, ExecutionMode, llm_gateway
 
+    wrapped_code = wrap_external_data(code, source="skill_code")
     response = await llm_gateway.complete(
         CompletionRequest(
             messages=[
                 {"role": "system", "content": _TEST_GEN_SYSTEM_PROMPT},
                 {
                     "role": "user",
-                    "content": f"Generate tests for the following skill code:\n\n```python\n{code}\n```",
+                    "content": (f"Generate tests for the following skill code:\n\n{wrapped_code}"),
                 },
             ],
             temperature=0.3,
@@ -1439,9 +1447,8 @@ async def _llm_generate_tests(slug: str, code: str) -> list[GeneratedTestCase]:
 
     tests: list[GeneratedTestCase] = []
     try:
-        json_match = re.search(r"```json\s*\n(.*?)\n```", response.content, re.DOTALL)
-        if json_match:
-            data = json.loads(json_match.group(1))
+        data = safe_extract_json(response.content)
+        if isinstance(data, dict):
             for item in data.get("test_cases", []):
                 tests.append(
                     GeneratedTestCase(
