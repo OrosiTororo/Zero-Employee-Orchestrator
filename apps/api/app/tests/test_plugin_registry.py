@@ -24,7 +24,7 @@ def test_registry_file_is_valid_json():
 def test_loaded_registry_matches_file_on_disk():
     with _REGISTRY_PATH.open(encoding="utf-8") as fh:
         on_disk = json.load(fh)
-    assert _KNOWN_PLUGIN_TEMPLATES == on_disk
+    assert on_disk == _KNOWN_PLUGIN_TEMPLATES
 
 
 @pytest.mark.parametrize("slug", list(_KNOWN_PLUGIN_TEMPLATES.keys()))

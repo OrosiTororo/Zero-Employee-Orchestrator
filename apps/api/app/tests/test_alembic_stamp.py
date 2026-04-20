@@ -46,9 +46,7 @@ async def test_stamp_is_idempotent(fresh_engine: AsyncEngine):
 async def test_stamp_respects_existing_pin(fresh_engine: AsyncEngine):
     async with fresh_engine.begin() as conn:
         await conn.execute(
-            text(
-                "CREATE TABLE alembic_version (version_num VARCHAR(32) PRIMARY KEY)"
-            )
+            text("CREATE TABLE alembic_version (version_num VARCHAR(32) PRIMARY KEY)")
         )
         await conn.execute(
             text("INSERT INTO alembic_version (version_num) VALUES ('manual_pin_v999')")
