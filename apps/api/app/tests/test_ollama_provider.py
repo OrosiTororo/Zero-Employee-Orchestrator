@@ -22,9 +22,13 @@ class TestToolCallExtraction:
     def test_invoke_pattern(self):
         from app.providers.ollama_provider import extract_tool_calls_from_text
 
-        text = """Here's the result:
-<invoke name="ReadFile"><parameter name="path">/tmp/test.py</parameter><parameter name="encoding">utf-8</parameter></invoke>
-"""
+        text = (
+            "Here's the result:\n"
+            '<invoke name="ReadFile">'
+            '<parameter name="path">/tmp/test.py</parameter>'
+            '<parameter name="encoding">utf-8</parameter>'
+            "</invoke>\n"
+        )
         calls = extract_tool_calls_from_text(text)
         assert len(calls) == 1
         assert calls[0]["function"] == "ReadFile"
