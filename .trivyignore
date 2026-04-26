@@ -32,3 +32,10 @@ CVE-2026-32597
 
 # CVE-2026-4539 — same exemption as pip-audit (--ignore-vuln CVE-2026-4539).
 CVE-2026-4539
+
+# pip — concatenated tar+ZIP archive handling (CVE-2026-3219)
+# No upstream fix released yet (pip 26.0.1 is the latest as of 2026-04-26).
+# Attack surface: malicious archive extraction at install time only, not runtime.
+# Same exemption as pip-audit (--ignore-vuln CVE-2026-3219). Remove once pip
+# ships a fixed version.
+CVE-2026-3219
