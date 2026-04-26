@@ -37,6 +37,8 @@ RUN uv sync --frozen 2>/dev/null || uv pip install --system -r pyproject.toml 2>
 #   setuptools < 78.1.1 → CVE-2024-6345, CVE-2025-47273
 #   wheel    < 0.46.2 → CVE-2026-24049
 #   PyJWT    < 2.12.0 → CVE-2026-32597 (transitive dep via litellm et al.)
+# CVE-2026-3219 (pip concatenated tar+ZIP handling) has no fix yet — exempted
+# in .trivyignore and the pip-audit step.
 RUN pip install --upgrade "pip>=26.0" "setuptools>=78.1.1" "wheel>=0.46.2" "PyJWT>=2.12.0"
 
 WORKDIR /app

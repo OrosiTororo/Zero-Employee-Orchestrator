@@ -135,7 +135,11 @@ jobs:
           path: apps/api/coverage.xml
 
       - name: Dependency security audit
-        run: pip-audit --desc --skip-editable --ignore-vuln CVE-2026-4539
+        # CVE-2026-3219: pip mishandles concatenated tar+ZIP archives during install.
+        # No fix released yet (pip 26.0.1 is the latest); attack surface is malicious
+        # archive extraction at install-time only, not application runtime.
+        # Mirrored in .trivyignore.
+        run: pip-audit --desc --skip-editable --ignore-vuln CVE-2026-4539 --ignore-vuln CVE-2026-3219
 
       - name: Verify Alembic migrations
         run: |
@@ -164,7 +168,36 @@ jobs:
       - name: Build Docker image
         run: docker build -t zeo-test:latest .
 
-      - name: Run Trivy vulnerability scanner
+      - name: Run Trivy (full report — diagnostic, never fails the job)
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          image-ref: zeo-test:latest
+          format: table
+          exit-code: 0
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          trivyignores: .trivyignore
+          output: trivy-report.txt
+
+      - name: Append Trivy report to step summary
+        if: always()
+        run: |
+          {
+            echo "## Trivy CRITICAL/HIGH (ignore-unfixed, with .trivyignore)"
+            echo ""
+            echo '```'
+            cat trivy-report.txt 2>/dev/null || echo "(no report file)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Trivy report artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: trivy-report
+          path: trivy-report.txt
+
+      - name: Run Trivy vulnerability scanner (gating)
         uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: zeo-test:latest
