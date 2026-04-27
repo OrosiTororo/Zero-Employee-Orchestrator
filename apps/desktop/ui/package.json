@@ -12,7 +12,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.2.2",
+    "@tailwindcss/vite": "^4.2.4",
     "@tanstack/react-query": "^5.100.5",
     "@tauri-apps/plugin-process": "^2.2.0",
     "@tauri-apps/plugin-updater": "^2.5.0",
@@ -22,7 +22,7 @@
     "react-dom": "^19.2.5",
     "react-router-dom": "^7.14.1",
     "tailwind-merge": "^3.5.0",
-    "tailwindcss": "^4.2.2",
+    "tailwindcss": "^4.2.4",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
