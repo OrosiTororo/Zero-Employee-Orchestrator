@@ -43,7 +43,7 @@ dependencies = [
     "alembic>=1.14",
     "pydantic[email]>=2.10",
     "pydantic-settings>=2.7",
-    "litellm>=1.60,!=1.82.7,!=1.82.8",
+    "litellm>=1.83.7",
     "aiohttp>=3.13.4",
     "python-jose[cryptography]>=3.3",
     "cryptography>=46.0.6",

@@ -135,7 +135,11 @@ jobs:
           path: apps/api/coverage.xml
 
       - name: Dependency security audit
-        run: pip-audit --desc --skip-editable --ignore-vuln CVE-2026-4539
+        # CVE-2026-3219: pip mishandles concatenated tar+ZIP archives during install.
+        # No fix released yet (pip 26.0.1 is the latest); attack surface is malicious
+        # archive extraction at install-time only, not application runtime.
+        # Mirrored in .trivyignore.
+        run: pip-audit --desc --skip-editable --ignore-vuln CVE-2026-4539 --ignore-vuln CVE-2026-3219
 
       - name: Verify Alembic migrations
         run: |
