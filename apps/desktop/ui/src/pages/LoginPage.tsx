@@ -283,12 +283,12 @@ export function LoginPage() {
               }
             }}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-[14px] font-medium bg-[var(--accent)] text-white hover:opacity-90 transition-opacity"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded text-[12px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors disabled:opacity-50"
           >
-            <ArrowRight size={15} />
+            <ArrowRight size={13} />
             {t.auth.startWithoutLogin}
           </button>
-          <p className="text-[10px] text-[var(--text-muted)] mt-1.5 text-center">
+          <p className="text-[10px] text-[var(--text-muted)] mt-1 text-center">
             {t.auth.startWithoutLoginNote}
           </p>
         </div>
@@ -318,10 +318,12 @@ export function LoginPage() {
               </>
             )}
           </p>
-          <p className="text-[11px] text-[var(--text-muted)] mt-2">
-            {t.auth.apiKeyNote}
-          </p>
         </div>
+
+        {/* Footnote */}
+        <p className="text-[11px] text-[var(--text-muted)] mt-4 text-center leading-relaxed">
+          {t.auth.apiKeyNote}
+        </p>
       </div>
     </div>
   )
