@@ -168,36 +168,7 @@ jobs:
       - name: Build Docker image
         run: docker build -t zeo-test:latest .
 
-      - name: Run Trivy (full report — diagnostic, never fails the job)
-        uses: aquasecurity/trivy-action@0.35.0
-        with:
-          image-ref: zeo-test:latest
-          format: table
-          exit-code: 0
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          trivyignores: .trivyignore
-          output: trivy-report.txt
-
-      - name: Append Trivy report to step summary
-        if: always()
-        run: |
-          {
-            echo "## Trivy CRITICAL/HIGH (ignore-unfixed, with .trivyignore)"
-            echo ""
-            echo '```'
-            cat trivy-report.txt 2>/dev/null || echo "(no report file)"
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Upload Trivy report artifact
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: trivy-report
-          path: trivy-report.txt
-
-      - name: Run Trivy vulnerability scanner (gating)
+      - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: zeo-test:latest
