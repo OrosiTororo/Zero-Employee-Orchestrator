@@ -24,7 +24,7 @@ ls apps/api/app/
 ```
 apps/api/app/         # FastAPI backend
   core/               # Config, DB, rate limiting, i18n
-  api/routes/         # 51 route modules, 428 endpoints (incl. main.py + MCP + wiki/context-engine + agent-adapters + workflow-templates + crews)
+  api/routes/         # 53 route modules, 432 endpoints (incl. plans, autonomy, MCP + wiki/context-engine + agent-adapters + workflow-templates + crews)
   services/           # 27 services (business logic)
   orchestration/      # DAG, Judge, transparency, CostGuard (24 modules)
   providers/          # LLM gateway, Ollama, g4f, ModelRegistry

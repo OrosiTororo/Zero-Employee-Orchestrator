@@ -675,3 +675,48 @@ Zero-Employee-Orchestrator/
 - `docs/dev/MASTER_GUIDE.md`: Reference for execution order, reference relationships, and task allocation for AI agents
 
 This document is not a summary of the reference document but a derived design document that codifies the structures needed for implementation.
+
+---
+
+## 15. Claude Design Handoff Bundles
+
+Claude Design (claude.ai/design) round-trips with this repository through
+two parallel artifacts that live in the repository root:
+
+- `ZEO Design System.zip` — flat snapshot used as the **reference baseline**
+  for the design canvas. Generated when the user first connects the repo
+  to Claude Design or syncs the canvas to the latest TSX. Contents
+  shadow `apps/desktop/ui/src/{pages,shared/ui}/` plus `assets/`.
+- `ZEO Design System-handoff.zip` — same payload wrapped in
+  `zeo-design-system/project/` with a top-level `README.md` produced by
+  the canvas's "Send to Claude Code" / "Export handoff" command. The
+  README inside the bundle explains that the contents are **prototypes,
+  not production code** — coding agents should recreate the visual
+  intent, not literally swap files in.
+
+### Source-of-truth rule
+
+**The committed code under `apps/desktop/ui/` is always the source of
+truth.** Bundles in master are point-in-time snapshots that the canvas
+consumes; if the bundle drifts behind the live code (typical, because we
+ship faster than the canvas re-syncs), do not regress the live code to
+match the bundle. Examples of "do not regress" deltas the bundle
+intentionally lags on:
+
+- `apps/desktop/ui/src/index.css` — design tokens (`--space-*`,
+  `--text-*`, `--motion-*`), `prefers-reduced-motion`, skip-link CSS,
+  WCAG 2.2 focus rings (added v0.1.7+).
+- `apps/desktop/ui/src/shared/ui/Layout.tsx` — `AutonomyDial` popover
+  replaced the inline cycle button (added v0.1.8); skip-link target
+  (`<main id="main-content" tabIndex={-1}>`) WCAG 2.4.1.
+
+### When to re-sync
+
+Re-export the bundle from Claude Design only after the canvas itself
+has been iterated (new screens drawn, design tokens edited). Pure
+TSX-level changes in this repo do not require a bundle re-export.
+
+### `.gitattributes`
+
+ZIP and PNG artefacts are marked `binary` in `.gitattributes` so git
+diff does not pollute review noise when the bundles re-sync.

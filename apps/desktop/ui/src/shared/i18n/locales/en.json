@@ -766,7 +766,16 @@
     "baseline": "Baseline",
     "latest": "Latest",
     "generateSpec": "Generate Spec",
-    "generating": "Generating..."
+    "generating": "Generating...",
+    "diff": {
+      "added": "added",
+      "removed": "removed",
+      "modified": "modified",
+      "base": "Base plan",
+      "against": "Compare against",
+      "costDelta": "Cost delta {n}",
+      "timeDelta": "Time delta {n}"
+    }
   },
   "skillCreate": {
     "naturalLanguageGen": "Natural Language Generation",
@@ -910,5 +919,21 @@
   },
   "a11y": {
     "skip_to_main": "Skip to main content"
+  },
+  "autonomy": {
+    "tooltip": "Autonomy level",
+    "observe": "Observe",
+    "assist": "Assist",
+    "semiAuto": "Semi-Auto",
+    "autonomous": "Autonomous",
+    "companyDefault": "Company default",
+    "overrideFor": "Override for",
+    "override15m": "15 min",
+    "override30m": "30 min",
+    "override1h": "1 hour",
+    "overrideUntilEnd": "Until session end",
+    "overrideActive": "Override active",
+    "overrideExpiresIn": "left",
+    "clearOverride": "Clear override"
   }
 }

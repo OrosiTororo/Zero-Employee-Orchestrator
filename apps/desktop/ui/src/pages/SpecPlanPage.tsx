@@ -43,6 +43,33 @@ interface TaskNode {
   estimated_minutes: number
 }
 
+interface PlanListItem {
+  id: string
+  version_no: number
+  status: string
+  summary: string | null
+  goal: string | null
+  estimated_cost_usd: number
+  estimated_minutes: number
+  risk_level: string
+  parent_plan_id: string | null
+}
+
+interface PlanDiffPayload {
+  base_plan_id: string
+  against_plan_id: string
+  added_tasks: string[]
+  removed_tasks: string[]
+  modified_tasks: string[]
+  added_task_ids: string[]
+  removed_task_ids: string[]
+  modified_task_ids: string[]
+  cost_change_usd: number
+  time_change_minutes: number
+}
+
+type DiffMark = "added" | "removed" | "modified" | "unchanged"
+
 export function SpecPlanPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -53,10 +80,73 @@ export function SpecPlanPage() {
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState("")
+  const [companyPlans, setCompanyPlans] = useState<PlanListItem[]>([])
+  const [basePlanId, setBasePlanId] = useState<string>("")
+  const [againstPlanId, setAgainstPlanId] = useState<string>("")
+  const [diff, setDiff] = useState<PlanDiffPayload | null>(null)
+  const [diffLoading, setDiffLoading] = useState(false)
 
   useEffect(() => {
     loadData()
+    loadCompanyPlans()
   }, [id])
+
+  async function loadCompanyPlans() {
+    const companyId = localStorage.getItem("company_id") || ""
+    if (!companyId) return
+    try {
+      const list = await api.get<PlanListItem[]>(`/companies/${companyId}/plans?include_attached=true`)
+      setCompanyPlans(list)
+      if (list.length >= 2) {
+        setBasePlanId(list[0].id)
+        setAgainstPlanId(list[1].id)
+      } else if (list.length === 1) {
+        setBasePlanId(list[0].id)
+      }
+    } catch {
+      /* plan list is optional */
+    }
+  }
+
+  async function loadDiff() {
+    if (!basePlanId || !againstPlanId || basePlanId === againstPlanId) {
+      setDiff(null)
+      return
+    }
+    const companyId = localStorage.getItem("company_id") || ""
+    setDiffLoading(true)
+    try {
+      const result = await api.get<PlanDiffPayload>(
+        `/companies/${companyId}/plans/${basePlanId}/diff?against=${againstPlanId}`
+      )
+      setDiff(result)
+    } catch {
+      setDiff(null)
+    } finally {
+      setDiffLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadDiff()
+  }, [basePlanId, againstPlanId])
+
+  function diffMarkFor(taskId: string, taskTitle: string): DiffMark {
+    if (!diff) return "unchanged"
+    if (diff.added_task_ids.includes(taskId) || diff.added_tasks.includes(taskTitle)) return "added"
+    if (diff.removed_task_ids.includes(taskId) || diff.removed_tasks.includes(taskTitle))
+      return "removed"
+    if (diff.modified_task_ids.includes(taskId) || diff.modified_tasks.includes(taskTitle))
+      return "modified"
+    return "unchanged"
+  }
+
+  const diffRowClasses: Record<DiffMark, string> = {
+    added: "border-[var(--success-fg)]/40 bg-[var(--success-fg)]/8",
+    removed: "border-[var(--error)]/40 bg-[var(--error)]/8 opacity-70",
+    modified: "border-[var(--warning)]/40 bg-[var(--warning)]/8",
+    unchanged: "border-[var(--border)]",
+  }
 
   async function loadData() {
     setLoading(true)
@@ -147,7 +237,7 @@ export function SpecPlanPage() {
             <button
               onClick={handleGenerateSpec}
               disabled={generating}
-              className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded text-[12px] bg-[var(--accent)] text-white hover:opacity-90 disabled:opacity-50"
+              className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded text-[12px] bg-[var(--accent)] text-[var(--accent-fg)] hover:opacity-90 disabled:opacity-50"
             >
               {generating ? (
                 <Loader2 size={14} className="animate-spin" />
@@ -198,28 +288,77 @@ export function SpecPlanPage() {
           </div>
         )}
 
-        {/* Spec Version Comparison */}
+        {/* Plan Version Comparison */}
         <div className="mb-6 rounded border border-[var(--border)] bg-[var(--bg-surface)]">
           <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border)]">
             <GitCompare size={14} className="text-[var(--accent)]" />
             <span className="text-[12px] font-medium text-[var(--text-primary)]">
-              {t.specPlan?.versionComparison ?? "Spec Version Comparison"}
+              {t.specPlan?.versionComparison ?? "Plan Version Comparison"}
             </span>
           </div>
           <div className="px-4 py-4">
-            <div className="flex gap-3 mb-3">
-              <select className="px-2 py-1 rounded text-[12px] bg-[var(--bg-active)] text-[var(--text-primary)] border border-[var(--border)] outline-none">
-                <option>v{spec?.version || 1} ({t.specPlan?.latest ?? "Latest"})</option>
-              </select>
-              <span className="text-[var(--text-muted)] flex items-center">vs</span>
-              <select className="px-2 py-1 rounded text-[12px] bg-[var(--bg-active)] text-[var(--text-primary)] border border-[var(--border)] outline-none">
-                <option>{t.specPlan?.baseline ?? "Baseline"}</option>
-              </select>
-            </div>
-            {!spec && (
+            {companyPlans.length < 2 ? (
               <div className="rounded p-3 text-[12px] text-[var(--text-muted)] border border-[var(--border)] bg-[var(--bg-base)] text-center">
-                {t.specPlan?.noVersions ?? "No spec versions yet."}
+                {t.specPlan?.noVersions ?? "Not enough plan revisions to compare yet."}
               </div>
+            ) : (
+              <>
+                <div className="flex gap-3 mb-3 items-center flex-wrap">
+                  <select
+                    aria-label={t.specPlan?.diff?.base ?? "Base plan"}
+                    value={basePlanId}
+                    onChange={(e) => setBasePlanId(e.target.value)}
+                    className="px-2 py-1 rounded text-[12px] bg-[var(--bg-active)] text-[var(--text-primary)] border border-[var(--border)] outline-none"
+                  >
+                    {companyPlans.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        v{p.version_no} — {(p.summary || p.goal || p.id).slice(0, 40)}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-[var(--text-muted)]">vs</span>
+                  <select
+                    aria-label={t.specPlan?.diff?.against ?? "Compare against"}
+                    value={againstPlanId}
+                    onChange={(e) => setAgainstPlanId(e.target.value)}
+                    className="px-2 py-1 rounded text-[12px] bg-[var(--bg-active)] text-[var(--text-primary)] border border-[var(--border)] outline-none"
+                  >
+                    {companyPlans.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        v{p.version_no} — {(p.summary || p.goal || p.id).slice(0, 40)}
+                      </option>
+                    ))}
+                  </select>
+                  {diffLoading && <Loader2 size={12} className="animate-spin text-[var(--text-muted)]" />}
+                </div>
+                {diff && (
+                  <div className="grid grid-cols-3 gap-2 text-[11px]">
+                    <div className="rounded px-2 py-1.5 border border-[var(--success-fg)]/40 bg-[var(--success-fg)]/8 text-[var(--success-fg)]">
+                      <span className="font-semibold">+{diff.added_tasks.length}</span>{" "}
+                      {t.specPlan?.diff?.added ?? "added"}
+                    </div>
+                    <div className="rounded px-2 py-1.5 border border-[var(--warning)]/40 bg-[var(--warning)]/8 text-[var(--warning)]">
+                      <span className="font-semibold">~{diff.modified_tasks.length}</span>{" "}
+                      {t.specPlan?.diff?.modified ?? "modified"}
+                    </div>
+                    <div className="rounded px-2 py-1.5 border border-[var(--error)]/40 bg-[var(--error)]/8 text-[var(--error)]">
+                      <span className="font-semibold">−{diff.removed_tasks.length}</span>{" "}
+                      {t.specPlan?.diff?.removed ?? "removed"}
+                    </div>
+                    <div className="col-span-3 text-[11px] text-[var(--text-muted)]">
+                      {(t.specPlan?.diff?.costDelta ?? "Cost delta").replace(
+                        "{n}",
+                        `${diff.cost_change_usd >= 0 ? "+" : ""}$${diff.cost_change_usd.toFixed(2)}`
+                      )}
+                      {" · "}
+                      {(t.specPlan?.diff?.timeDelta ?? "Time delta").replace(
+                        "{n}",
+                        `${diff.time_change_minutes >= 0 ? "+" : ""}${diff.time_change_minutes} ${t.specPlan?.minutes ?? "min"}`
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -272,10 +411,12 @@ export function SpecPlanPage() {
           </div>
           {tasks.length > 0 ? (
             <div className="px-4 py-3 space-y-2">
-              {tasks.map((task) => (
+              {tasks.map((task) => {
+                const mark = diffMarkFor(task.id, task.title)
+                return (
                 <div
                   key={task.id}
-                  className="flex items-center gap-3 px-3 py-2 rounded bg-[var(--bg-base)] border border-[var(--border)]"
+                  className={`flex items-center gap-3 px-3 py-2 rounded bg-[var(--bg-base)] border ${diffRowClasses[mark]}`}
                 >
                   <span
                     className={`text-[11px] font-mono ${statusColors[task.status] || "text-[var(--text-muted)]"}`}
@@ -283,6 +424,15 @@ export function SpecPlanPage() {
                     {task.status}
                   </span>
                   <span className="text-[12px] text-[var(--text-primary)] flex-1">
+                    {mark !== "unchanged" && (
+                      <span
+                        className="mr-2 text-[10px] font-mono"
+                        aria-label={mark}
+                        title={mark}
+                      >
+                        {mark === "added" ? "+" : mark === "removed" ? "−" : "~"}
+                      </span>
+                    )}
                     {task.title}
                   </span>
                   {task.requires_approval && (
@@ -299,7 +449,8 @@ export function SpecPlanPage() {
                     ${(task.estimated_cost_usd || 0).toFixed(3)}
                   </span>
                 </div>
-              ))}
+                )
+              })}
             </div>
           ) : (
             <div className="px-4 py-6 text-center text-[12px] text-[var(--text-muted)]">

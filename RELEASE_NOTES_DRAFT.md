@@ -1,3 +1,11 @@
+## Plan-First UX (v0.1.8)
+
+- **Goal-only Plan proposals** — `POST /companies/{cid}/plans` accepts `{goal, autonomy}` and returns a structured Plan with markdown summary, task list, cost/time estimate, and approval-required flag. Wraps the same `PlanWriterSkill` the CLI `/plan` command uses, persisting each proposal as a `Plan` row so the UI can list, diff, and approve it.
+- **Plan version diff** — `GET /companies/{cid}/plans/{id}/diff?against={prev_id}` returns task-level added/removed/modified arrays plus task-id arrays for in-place row highlighting. The Spec & Plan page replaces its placeholder version-comparison block with a working diff that colours Task DAG rows green/amber/red.
+- **Sub-orchestrator audit trail** — `AgentTask` now carries `sub_plan_json`, `sub_plan_steps`, and `delegation_reasoning`. CrewAI and Dify adapters surface their intermediate steps via `step_callback` / workflow-node parsing, and `AgentAdapterRegistry` persists each delegation as an `audit_logs` row plus an optional child `Plan` linked to the parent via `parent_plan_id`. New `GET /companies/{cid}/plans/{id}/tree` returns the full delegation tree.
+- **Autonomy Dial** — Status-bar control replaces the old single-click cycler with a popover that shows the current company default and offers transient overrides (15 min / 30 min / 1 hour / until session end). Overrides persist in a new `autonomy_session_overrides` table; `policies/autonomy_boundary.resolve_effective_autonomy` consults a non-expired override before falling back to the company default. Override start/end events are written to `audit_logs`.
+- **Endpoint count** — 53 route modules / 432 endpoints (was 51 / 428).
+
 ## Security
 
 - **Kill Switch** — Emergency halt mechanism for all active AI executions. Activate via Agent Monitor UI button or `POST /kill-switch/activate` API. Blocks all new executions until explicitly resumed. Designed for immediate response to unexpected agent behavior.

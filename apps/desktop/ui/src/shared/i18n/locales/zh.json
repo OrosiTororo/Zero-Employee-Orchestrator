@@ -766,7 +766,16 @@
     "baseline": "基线",
     "latest": "最新",
     "generateSpec": "生成规格",
-    "generating": "生成中..."
+    "generating": "生成中...",
+    "diff": {
+      "added": "新增",
+      "removed": "移除",
+      "modified": "修改",
+      "base": "基准计划",
+      "against": "对比对象",
+      "costDelta": "成本变化 {n}",
+      "timeDelta": "时间变化 {n}"
+    }
   },
   "skillCreate": {
     "naturalLanguageGen": "自然语言生成",
@@ -910,5 +919,21 @@
   },
   "a11y": {
     "skip_to_main": "跳转到主要内容"
+  },
+  "autonomy": {
+    "tooltip": "自主级别",
+    "observe": "观察",
+    "assist": "辅助",
+    "semiAuto": "半自动",
+    "autonomous": "自主",
+    "companyDefault": "组织默认",
+    "overrideFor": "临时覆盖",
+    "override15m": "15 分钟",
+    "override30m": "30 分钟",
+    "override1h": "1 小时",
+    "overrideUntilEnd": "直到会话结束",
+    "overrideActive": "覆盖生效中",
+    "overrideExpiresIn": "剩余",
+    "clearOverride": "清除覆盖"
   }
 }

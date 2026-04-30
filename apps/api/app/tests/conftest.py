@@ -2,8 +2,18 @@
 
 import logging
 import os
+import pathlib
+import sys
 import uuid
 from collections.abc import AsyncGenerator
+
+# Ensure the repository root is importable so ``skills.builtin.*`` resolves
+# during tests; production code reaches the same path via app/cli.py's
+# bootstrap. apps/api/app/tests/conftest.py -> repo root is parents[4]
+# (tests -> app -> api -> apps -> repo root).
+_REPO_ROOT = str(pathlib.Path(__file__).resolve().parents[4])
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
 
 # Allow tests to run with the default SECRET_KEY by enabling DEBUG mode.
 # config.py raises RuntimeError when SECRET_KEY is an insecure placeholder

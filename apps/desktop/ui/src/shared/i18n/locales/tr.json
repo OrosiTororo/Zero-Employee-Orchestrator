@@ -766,7 +766,16 @@
     "baseline": "Temel",
     "latest": "En Son",
     "generateSpec": "Şartname Oluştur",
-    "generating": "Oluşturuluyor..."
+    "generating": "Oluşturuluyor...",
+    "diff": {
+      "added": "eklendi",
+      "removed": "kaldırıldı",
+      "modified": "değiştirildi",
+      "base": "Temel plan",
+      "against": "Karşılaştır",
+      "costDelta": "Maliyet farkı {n}",
+      "timeDelta": "Süre farkı {n}"
+    }
   },
   "skillCreate": {
     "naturalLanguageGen": "Doğal Dil ile Oluşturma",
@@ -910,5 +919,21 @@
   },
   "a11y": {
     "skip_to_main": "Ana içeriğe atla"
+  },
+  "autonomy": {
+    "tooltip": "Özerklik düzeyi",
+    "observe": "Gözlem",
+    "assist": "Destek",
+    "semiAuto": "Yarı otomatik",
+    "autonomous": "Otonom",
+    "companyDefault": "Şirket varsayılanı",
+    "overrideFor": "Geçici geçersiz kıl",
+    "override15m": "15 dk",
+    "override30m": "30 dk",
+    "override1h": "1 saat",
+    "overrideUntilEnd": "Oturum sonuna kadar",
+    "overrideActive": "Geçersiz kılma aktif",
+    "overrideExpiresIn": "kaldı",
+    "clearOverride": "Geçersiz kılmayı kaldır"
   }
 }

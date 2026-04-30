@@ -85,6 +85,17 @@ class AgentTask:
     completed_at: str | None = None
     token_usage: int = 0
     cost_estimate: float = 0.0
+    # ZEO meta-orchestrator hooks: when delegating a Plan-tracked goal to an
+    # external framework, the parent ZEO Plan id is carried so the sub-plan
+    # extracted from the framework's intermediate output can be persisted as
+    # a child Plan and joined back to the parent's audit trail.
+    parent_plan_id: str | None = None
+    company_id: str | None = None
+    # Populated by ``_extract_sub_plan`` after execution; serialised into the
+    # AuditLog so reviewers can see exactly what the sub-orchestrator did.
+    sub_plan_steps: list[str] = field(default_factory=list)
+    sub_plan_json: dict | None = None
+    delegation_reasoning: str = ""
 
 
 @dataclass
@@ -171,25 +182,52 @@ class CrewAIAdapter(AgentFrameworkAdapter):
             from crewai import Agent, Crew
             from crewai import Task as CrewTask
 
+            # Capture intermediate reasoning steps so the orchestrator can
+            # persist them as a sub-plan and surface them in audit trails.
+            sub_plan_steps: list[str] = []
+
+            def _step_callback(step_output) -> None:  # pragma: no cover - depends on crewai version
+                try:
+                    sub_plan_steps.append(str(step_output)[:1000])
+                except Exception:
+                    pass
+
             # Map ZEO task to CrewAI task
-            agent = Agent(
-                role=task.context.get("role", "Assistant"),
-                goal=task.instruction,
-                backstory=task.context.get("backstory", ""),
-                verbose=False,
-            )
+            agent_kwargs: dict = {
+                "role": task.context.get("role", "Assistant"),
+                "goal": task.instruction,
+                "backstory": task.context.get("backstory", ""),
+                "verbose": False,
+            }
+            agent = Agent(**agent_kwargs)
             crew_task = CrewTask(
                 description=task.instruction,
                 agent=agent,
                 expected_output=task.context.get("expected_output", ""),
             )
-            crew = Crew(agents=[agent], tasks=[crew_task], verbose=False)
+            crew_kwargs: dict = {"agents": [agent], "tasks": [crew_task], "verbose": False}
+            try:
+                crew = Crew(step_callback=_step_callback, **crew_kwargs)
+            except TypeError:
+                # Older crewai builds don't accept step_callback at the Crew
+                # level; fall back to the basic constructor.
+                crew = Crew(**crew_kwargs)
             result = crew.kickoff()
             return {
                 "success": True,
                 "result": str(result),
                 "token_usage": getattr(result, "token_usage", 0),
                 "framework": "crewai",
+                "sub_plan_steps": sub_plan_steps,
+                "sub_plan_json": {
+                    "framework": "crewai",
+                    "agent_role": agent_kwargs["role"],
+                    "task_description": task.instruction,
+                    "step_count": len(sub_plan_steps),
+                },
+                "delegation_reasoning": (
+                    f"Delegated to CrewAI with {len(sub_plan_steps)} intermediate step(s)."
+                ),
             }
         except ImportError:
             return {"success": False, "error": "crewai not installed. Run: pip install crewai"}
@@ -447,11 +485,34 @@ class DifyAdapter(AgentFrameworkAdapter):
                 )
                 resp.raise_for_status()
                 data = resp.json()
+            metadata = data.get("metadata", {}) or {}
+            usage = metadata.get("usage", {}) or {}
+            sub_plan_steps: list[str] = []
+            for node in metadata.get("retriever_resources", []) or []:
+                src = node.get("source") if isinstance(node, dict) else None
+                if src:
+                    sub_plan_steps.append(str(src)[:500])
+            for node in (data.get("workflow_run", {}) or {}).get("nodes", []) or []:
+                title = node.get("title") if isinstance(node, dict) else None
+                if title:
+                    sub_plan_steps.append(str(title)[:500])
             return {
                 "success": True,
                 "result": data.get("answer", str(data)),
                 "conversation_id": data.get("conversation_id"),
                 "framework": "dify",
+                "token_usage": int(usage.get("total_tokens", 0) or 0),
+                "sub_plan_steps": sub_plan_steps,
+                "sub_plan_json": {
+                    "framework": "dify",
+                    "conversation_id": data.get("conversation_id"),
+                    "message_id": data.get("message_id"),
+                    "step_count": len(sub_plan_steps),
+                },
+                "delegation_reasoning": (
+                    f"Delegated to Dify (mode={data.get('mode', 'chat')}); "
+                    f"{len(sub_plan_steps)} retrieval/workflow node(s) reported."
+                ),
             }
         except ImportError:
             return {"success": False, "error": "httpx not installed"}
@@ -878,6 +939,12 @@ class AgentAdapterRegistry:
                 task.result = result
                 task.token_usage = result.get("token_usage", 0)
                 task.cost_estimate = result.get("cost", 0.0)
+                # Hoist provenance fields onto the task itself so callers
+                # (audit logger, plan tree builder) don't have to dig into
+                # the framework-specific ``result`` dict.
+                task.sub_plan_steps = list(result.get("sub_plan_steps", []) or [])
+                task.sub_plan_json = result.get("sub_plan_json")
+                task.delegation_reasoning = result.get("delegation_reasoning", "")
             else:
                 task.status = AgentTaskStatus.FAILED
                 task.error = result.get("error", "Unknown error")
@@ -889,7 +956,82 @@ class AgentAdapterRegistry:
 
         task.completed_at = datetime.now(UTC).isoformat()
         self._task_history.append(task)
+        await self._persist_audit(task)
         return task
+
+    async def _persist_audit(self, task: AgentTask) -> None:
+        """Write the delegation outcome to ``audit_logs`` (best-effort).
+
+        Skipped silently when called outside an app context (e.g. unit tests
+        for the adapter classes themselves) so the registry remains usable
+        without a live database session.
+        """
+        if not task.company_id:
+            return
+        try:
+            from app.core.database import async_session_factory
+            from app.models.audit import AuditLog
+            from app.models.plan import Plan
+        except Exception:
+            return
+
+        try:
+            company_uuid = uuid.UUID(task.company_id)
+        except (TypeError, ValueError):
+            return
+
+        try:
+            async with async_session_factory() as session:
+                child_plan_id: uuid.UUID | None = None
+                if task.parent_plan_id and task.sub_plan_json:
+                    try:
+                        parent_uuid = uuid.UUID(task.parent_plan_id)
+                    except (TypeError, ValueError):
+                        parent_uuid = None
+                    if parent_uuid is not None:
+                        child = Plan(
+                            id=uuid.uuid4(),
+                            company_id=company_uuid,
+                            ticket_id=None,
+                            spec_id=None,
+                            version_no=1,
+                            status="delegated",
+                            summary=task.delegation_reasoning or f"Sub-plan from {task.framework}",
+                            risk_level="low",
+                            plan_json={
+                                "tasks": [{"title": s} for s in task.sub_plan_steps],
+                                "framework": task.framework,
+                            },
+                            parent_plan_id=parent_uuid,
+                            delegation_metadata=task.sub_plan_json,
+                        )
+                        session.add(child)
+                        await session.flush()
+                        child_plan_id = child.id
+
+                audit = AuditLog(
+                    id=uuid.uuid4(),
+                    company_id=company_uuid,
+                    actor_type="agent",
+                    event_type=f"agent_adapter.{task.framework}.executed",
+                    target_type="agent_task",
+                    target_id=None,
+                    details_json={
+                        "task_id": task.id,
+                        "framework": task.framework,
+                        "status": task.status.value,
+                        "token_usage": task.token_usage,
+                        "sub_plan_steps": task.sub_plan_steps[:50],
+                        "sub_plan_json": task.sub_plan_json,
+                        "delegation_reasoning": task.delegation_reasoning,
+                        "parent_plan_id": task.parent_plan_id,
+                        "child_plan_id": str(child_plan_id) if child_plan_id else None,
+                    },
+                )
+                session.add(audit)
+                await session.commit()
+        except Exception:  # pragma: no cover - audit must never block execution
+            logger.debug("agent_adapter audit persistence failed", exc_info=True)
 
     async def health_check(self, framework: str | None = None) -> dict:
         """Check health of an adapter or all adapters."""

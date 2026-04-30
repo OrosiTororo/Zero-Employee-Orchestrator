@@ -22,7 +22,6 @@ import {
   Zap,
   ChevronDown,
   ChevronRight,
-  Gauge,
   Send,
   UserCircle,
   BookTemplate,
@@ -32,6 +31,7 @@ import { LogoMark } from "@/shared/ui/Logo"
 import { UpdateBanner } from "@/shared/ui/UpdateBanner"
 import { CommandPalette } from "@/shared/ui/CommandPalette"
 import { WelcomeTour } from "@/shared/ui/WelcomeTour"
+import { AutonomyDial } from "@/shared/ui/AutonomyDial"
 import { useT, useI18n } from "@/shared/i18n"
 import { api } from "@/shared/api/client"
 
@@ -60,20 +60,13 @@ export function Layout({ children }: LayoutProps) {
   const { locale } = useI18n()
 
   const [dispatchCount, setDispatchCount] = useState(0)
-  const [autonomyLevel, setAutonomyLevel] = useState("semi-auto")
 
   const fetchStatusBar = useCallback(async () => {
     try {
-      const [dispatches, config] = await Promise.all([
-        api.get<{ total: number }>("/dispatch").catch(() => ({ total: 0 })),
-        api
-          .get<{ config: Record<string, { value: string }> }>("/config")
-          .catch(() => null),
-      ])
+      const dispatches = await api
+        .get<{ total: number }>("/dispatch")
+        .catch(() => ({ total: 0 }))
       setDispatchCount(dispatches.total)
-      if (config?.config?.AUTONOMY_LEVEL?.value) {
-        setAutonomyLevel(config.config.AUTONOMY_LEVEL.value)
-      }
     } catch {
       /* status bar data is non-critical */
     }
@@ -85,24 +78,6 @@ export function Layout({ children }: LayoutProps) {
     return () => clearInterval(interval)
   }, [fetchStatusBar])
 
-  const autonomyLabels: Record<string, string> = {
-    observe: "Observe",
-    assist: "Assist",
-    "semi-auto": "Semi-Auto",
-    autonomous: "Autonomous",
-  }
-
-  const cycleAutonomy = async () => {
-    const levels = ["observe", "assist", "semi-auto", "autonomous"]
-    const idx = levels.indexOf(autonomyLevel)
-    const next = levels[(idx + 1) % levels.length]
-    setAutonomyLevel(next)
-    try {
-      await api.put("/config", { key: "AUTONOMY_LEVEL", value: next })
-    } catch {
-      /* Config save failure is non-fatal */
-    }
-  }
   const [showManage, setShowManage] = useState(false)
   const [showExtend, setShowExtend] = useState(false)
 
@@ -329,15 +304,8 @@ export function Layout({ children }: LayoutProps) {
         </div>
         <div className="flex-1" />
         <div className="flex items-center h-full text-[var(--statusbar-fg)]">
-          {/* Autonomy Dial — Cowork/Smashing Magazine agentic UX pattern */}
-          <button
-            onClick={cycleAutonomy}
-            className="flex items-center gap-1 px-2 h-full hover:bg-[rgba(255,255,255,0.12)]"
-            title="Click to change autonomy level"
-          >
-            <Gauge size={11} />
-            <span>{autonomyLabels[autonomyLevel]}</span>
-          </button>
+          {/* Autonomy Dial — per-company default + per-session override */}
+          <AutonomyDial />
           <button
             onClick={() => navigate("/settings")}
             className="flex items-center gap-1 px-2 h-full hover:bg-[rgba(255,255,255,0.12)]"

@@ -22,8 +22,12 @@ class Plan(Base, TimestampMixin):
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     company_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("companies.id"), index=True)
-    ticket_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("tickets.id"), index=True)
-    spec_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("specs.id"), index=True)
+    ticket_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("tickets.id"), nullable=True, index=True
+    )
+    spec_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("specs.id"), nullable=True, index=True
+    )
     version_no: Mapped[int] = mapped_column(Integer)
     status: Mapped[str] = mapped_column(String(30))
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -35,3 +39,16 @@ class Plan(Base, TimestampMixin):
     created_by_agent_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid, ForeignKey("agents.id"), nullable=True
     )
+    # Standalone proposal mode: original natural-language goal stored when the
+    # plan was generated via /plans without a ticket/spec attached.
+    goal: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Sub-orchestrator parent plan — when a delegated agent (CrewAI, Dify, …)
+    # returns its own plan, ZEO persists it as a child Plan and links the
+    # parent via this column so the full delegation tree is auditable.
+    parent_plan_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("plans.id"), nullable=True, index=True
+    )
+    # Free-form provenance metadata: originating framework name, sub-plan
+    # extraction source, intermediate reasoning. Kept loose so adapters can
+    # write whatever the upstream framework exposes without a schema rev.
+    delegation_metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)

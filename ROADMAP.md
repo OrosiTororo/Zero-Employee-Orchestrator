@@ -14,7 +14,7 @@ v0.1 includes all features originally planned for v0.2 through v1.0, implemented
 **Foundation:**
 - Full 9-layer architecture (24 orchestration modules, 27 services)
 - ZEO-Bench, Self-Healing DAG, Experience Memory, AI Self-Improvement
-- 51 API route modules, 428 endpoints
+- 53 API route modules, 432 endpoints
 - 14 security defense layers
 
 **Connectivity:**

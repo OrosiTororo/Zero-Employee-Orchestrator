@@ -11,8 +11,14 @@ Approval required:
 
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from enum import Enum
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class AutonomyLevel(str, Enum):
@@ -83,6 +89,41 @@ class AutonomyCheckResult:
     reason: str
     operation: str
     autonomy_level: AutonomyLevel
+
+
+async def resolve_effective_autonomy(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    company_default: AutonomyLevel = AutonomyLevel.SEMI_AUTO,
+) -> tuple[AutonomyLevel, datetime | None]:
+    """Return ``(effective_level, override_expires_at)`` for the given user.
+
+    A non-expired :class:`AutonomySessionOverride` always wins over the
+    company-level default. If no override (or only expired ones) exists, the
+    company default is returned with ``None`` for the expiry.
+    """
+    from sqlalchemy import select
+
+    from app.models.autonomy_override import AutonomySessionOverride
+
+    now = datetime.now(UTC).replace(tzinfo=None)
+    stmt = (
+        select(AutonomySessionOverride)
+        .where(AutonomySessionOverride.user_id == user_id)
+        .where(AutonomySessionOverride.expires_at > now)
+        .order_by(AutonomySessionOverride.created_at.desc())
+        .limit(1)
+    )
+    res = await db.execute(stmt)
+    override = res.scalar_one_or_none()
+    if override:
+        try:
+            return AutonomyLevel(override.autonomy_level), override.expires_at
+        except ValueError:
+            # Stored value is no longer a recognised level — fall through to
+            # the company default rather than raising on every request.
+            pass
+    return company_default, None
 
 
 def check_autonomy(
