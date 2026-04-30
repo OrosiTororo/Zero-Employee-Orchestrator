@@ -19,9 +19,63 @@ class PlanDiff:
     added_tasks: list[str] = field(default_factory=list)
     removed_tasks: list[str] = field(default_factory=list)
     modified_tasks: list[str] = field(default_factory=list)
+    # Task IDs the UI can highlight against an actual Task DAG. Populated by
+    # :func:`diff_persisted_plans`; left empty for human-readable reproposals.
+    added_task_ids: list[str] = field(default_factory=list)
+    removed_task_ids: list[str] = field(default_factory=list)
+    modified_task_ids: list[str] = field(default_factory=list)
     cost_change_usd: float = 0.0
     time_change_minutes: int = 0
     reason: str = ""
+
+
+def diff_persisted_plans(prev_plan: dict, new_plan: dict) -> PlanDiff:
+    """Compute a :class:`PlanDiff` between two persisted Plan rows.
+
+    Each side is expected to be the dict shape used by
+    ``/companies/{cid}/plans/{plan_id}/tasks`` — a list of task records that
+    each have ``id`` and ``title``. Tasks are matched by title (slug-friendly,
+    works across version_no bumps); IDs are reported separately for the UI
+    so the existing Task DAG row can be highlighted in place.
+    """
+
+    def _index(plan: dict) -> dict[str, dict]:
+        return {(t.get("title") or "").strip(): t for t in plan.get("tasks", []) if t.get("title")}
+
+    prev_idx = _index(prev_plan)
+    new_idx = _index(new_plan)
+
+    prev_titles = set(prev_idx)
+    new_titles = set(new_idx)
+
+    added_titles = sorted(new_titles - prev_titles)
+    removed_titles = sorted(prev_titles - new_titles)
+    common_titles = sorted(new_titles & prev_titles)
+    modified_titles = [
+        title
+        for title in common_titles
+        if (
+            (prev_idx[title].get("description") or "")
+            != (new_idx[title].get("description") or "")
+            or prev_idx[title].get("requires_approval")
+            != new_idx[title].get("requires_approval")
+            or prev_idx[title].get("task_type") != new_idx[title].get("task_type")
+        )
+    ]
+
+    return PlanDiff(
+        added_tasks=added_titles,
+        removed_tasks=removed_titles,
+        modified_tasks=modified_titles,
+        added_task_ids=[str(new_idx[t].get("id", "")) for t in added_titles],
+        removed_task_ids=[str(prev_idx[t].get("id", "")) for t in removed_titles],
+        modified_task_ids=[str(new_idx[t].get("id", "")) for t in modified_titles],
+        cost_change_usd=float(new_plan.get("estimated_cost_usd", 0) or 0)
+        - float(prev_plan.get("estimated_cost_usd", 0) or 0),
+        time_change_minutes=int(new_plan.get("estimated_minutes", 0) or 0)
+        - int(prev_plan.get("estimated_minutes", 0) or 0),
+        reason=new_plan.get("reason", ""),
+    )
 
 
 @dataclass

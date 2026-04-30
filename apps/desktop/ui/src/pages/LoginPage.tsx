@@ -283,7 +283,7 @@ export function LoginPage() {
               }
             }}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-[14px] font-medium bg-[var(--accent)] text-white hover:opacity-90 transition-opacity"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-[14px] font-medium bg-[var(--accent)] text-[var(--accent-fg)] hover:opacity-90 transition-opacity"
           >
             <ArrowRight size={15} />
             {t.auth.startWithoutLogin}

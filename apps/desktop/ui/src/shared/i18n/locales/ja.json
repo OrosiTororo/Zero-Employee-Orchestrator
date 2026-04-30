@@ -766,7 +766,16 @@
     "baseline": "ベースライン",
     "latest": "最新",
     "generateSpec": "仕様を生成",
-    "generating": "生成中..."
+    "generating": "生成中...",
+    "diff": {
+      "added": "追加",
+      "removed": "削除",
+      "modified": "変更",
+      "base": "基準計画",
+      "against": "比較対象",
+      "costDelta": "コスト差分 {n}",
+      "timeDelta": "時間差分 {n}"
+    }
   },
   "skillCreate": {
     "naturalLanguageGen": "自然言語生成",
@@ -910,5 +919,21 @@
   },
   "a11y": {
     "skip_to_main": "メインコンテンツにスキップ"
+  },
+  "autonomy": {
+    "tooltip": "自律度",
+    "observe": "観察のみ",
+    "assist": "アシスト",
+    "semiAuto": "半自動",
+    "autonomous": "自律",
+    "companyDefault": "組織デフォルト",
+    "overrideFor": "一時的に上書き",
+    "override15m": "15分",
+    "override30m": "30分",
+    "override1h": "1時間",
+    "overrideUntilEnd": "セッション終了まで",
+    "overrideActive": "上書き中",
+    "overrideExpiresIn": "残",
+    "clearOverride": "上書き解除"
   }
 }

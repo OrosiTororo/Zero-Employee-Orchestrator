@@ -82,6 +82,14 @@ CONFIGURABLE_KEYS: dict[str, dict[str, str]] = {
         "category": "general",
         "sensitive": "false",
     },
+    "AUTONOMY_LEVEL": {
+        "description": (
+            "Default autonomy level for the operator: observe | assist | semi_auto | autonomous"
+        ),
+        "description_ja": "操作者のデフォルト自律度: observe | assist | semi_auto | autonomous",
+        "category": "general",
+        "sensitive": "false",
+    },
     "SENTRY_DSN": {
         "description": "Sentry DSN for error monitoring",
         "description_ja": "Sentry DSN（エラー監視）",

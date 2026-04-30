@@ -766,7 +766,16 @@
     "baseline": "베이스라인",
     "latest": "최신",
     "generateSpec": "사양 생성",
-    "generating": "생성 중..."
+    "generating": "생성 중...",
+    "diff": {
+      "added": "추가",
+      "removed": "제거",
+      "modified": "수정",
+      "base": "기준 계획",
+      "against": "비교 대상",
+      "costDelta": "비용 차이 {n}",
+      "timeDelta": "시간 차이 {n}"
+    }
   },
   "skillCreate": {
     "naturalLanguageGen": "자연어 생성",
@@ -910,5 +919,21 @@
   },
   "a11y": {
     "skip_to_main": "본문으로 바로가기"
+  },
+  "autonomy": {
+    "tooltip": "자율 수준",
+    "observe": "관찰",
+    "assist": "지원",
+    "semiAuto": "반자동",
+    "autonomous": "자율",
+    "companyDefault": "조직 기본값",
+    "overrideFor": "임시 오버라이드",
+    "override15m": "15분",
+    "override30m": "30분",
+    "override1h": "1시간",
+    "overrideUntilEnd": "세션 종료까지",
+    "overrideActive": "오버라이드 적용 중",
+    "overrideExpiresIn": "남음",
+    "clearOverride": "오버라이드 해제"
   }
 }

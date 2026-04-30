@@ -766,7 +766,16 @@
     "baseline": "Base",
     "latest": "Mais Recente",
     "generateSpec": "Gerar Especificação",
-    "generating": "Gerando..."
+    "generating": "Gerando...",
+    "diff": {
+      "added": "adicionado",
+      "removed": "removido",
+      "modified": "modificado",
+      "base": "Plano base",
+      "against": "Comparar com",
+      "costDelta": "Variação de custo {n}",
+      "timeDelta": "Variação de tempo {n}"
+    }
   },
   "skillCreate": {
     "naturalLanguageGen": "Geração por Linguagem Natural",
@@ -910,5 +919,21 @@
   },
   "a11y": {
     "skip_to_main": "Ir para o conteúdo principal"
+  },
+  "autonomy": {
+    "tooltip": "Nível de autonomia",
+    "observe": "Observar",
+    "assist": "Assistir",
+    "semiAuto": "Semi-Auto",
+    "autonomous": "Autônomo",
+    "companyDefault": "Padrão da empresa",
+    "overrideFor": "Substituir por",
+    "override15m": "15 min",
+    "override30m": "30 min",
+    "override1h": "1 hora",
+    "overrideUntilEnd": "Até o fim da sessão",
+    "overrideActive": "Substituição ativa",
+    "overrideExpiresIn": "restantes",
+    "clearOverride": "Cancelar substituição"
   }
 }

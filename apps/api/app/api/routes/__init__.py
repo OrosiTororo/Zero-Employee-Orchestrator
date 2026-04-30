@@ -11,6 +11,7 @@ from app.api.routes import (
     artifacts,
     audit,
     auth,
+    autonomy,
     browser_assist,
     browser_automation,
     budgets,
@@ -36,6 +37,7 @@ from app.api.routes import (
     operator_profile,
     orchestration_cache,
     org_setup,
+    plans,
     platform,
     projects,
     quality_insights,
@@ -64,6 +66,8 @@ api_router.include_router(agents.router, tags=["agents"])
 api_router.include_router(projects.router, tags=["projects"])
 api_router.include_router(tickets.router, tags=["tickets"])
 api_router.include_router(specs_plans.router, tags=["specs-plans"])
+api_router.include_router(plans.router, tags=["plans"])
+api_router.include_router(autonomy.router, tags=["autonomy"])
 api_router.include_router(tasks.router, tags=["tasks"])
 api_router.include_router(artifacts.router, tags=["artifacts"])
 api_router.include_router(approvals.router, tags=["approvals"])
