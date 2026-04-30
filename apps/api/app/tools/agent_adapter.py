@@ -996,8 +996,7 @@ class AgentAdapterRegistry:
                             spec_id=None,
                             version_no=1,
                             status="delegated",
-                            summary=task.delegation_reasoning
-                            or f"Sub-plan from {task.framework}",
+                            summary=task.delegation_reasoning or f"Sub-plan from {task.framework}",
                             risk_level="low",
                             plan_json={
                                 "tasks": [{"title": s} for s in task.sub_plan_steps],

@@ -55,10 +55,8 @@ def diff_persisted_plans(prev_plan: dict, new_plan: dict) -> PlanDiff:
         title
         for title in common_titles
         if (
-            (prev_idx[title].get("description") or "")
-            != (new_idx[title].get("description") or "")
-            or prev_idx[title].get("requires_approval")
-            != new_idx[title].get("requires_approval")
+            (prev_idx[title].get("description") or "") != (new_idx[title].get("description") or "")
+            or prev_idx[title].get("requires_approval") != new_idx[title].get("requires_approval")
             or prev_idx[title].get("task_type") != new_idx[title].get("task_type")
         )
     ]
