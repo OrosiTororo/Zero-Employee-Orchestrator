@@ -9,7 +9,7 @@
     "db:init": "wrangler d1 execute zeo-orchestrator --file=src/db/schema.sql"
   },
   "dependencies": {
-    "hono": "^4.12.15",
+    "hono": "^4.12.16",
     "jose": "^6.2.2"
   },
   "devDependencies": {
