@@ -1,15 +1,24 @@
 name: Dependabot Auto-Merge
 
 # Dependabot の patch/minor アップデートを CI 通過後に自動マージする。
-# メジャーバージョンアップは dependabot.yml で ignore しているた���到達しない。
+# メジャーバージョンアップは dependabot.yml で ignore しているため到達しない。
 # セキュリティアップデートは常に自動マージ対象。
 
 on:
   pull_request_target:
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
   pull-requests: write
+
+# 同一PRに対する重複実行を抑止する。
+# Dependabot の synchronize 連発（rebase）時に複数の workflow run が並走し、
+# `gh pr merge --auto` が「PR の HEAD SHA が変更された」「auto-merge 既設定」等で
+# exit 1 となるレースを防ぐ。
+concurrency:
+  group: dependabot-auto-merge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   dependabot-auto-merge:
@@ -26,7 +35,19 @@ jobs:
         if: >-
           steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
           steps.metadata.outputs.update-type == 'version-update:semver-minor'
-        run: gh pr merge --auto --squash "$PR_URL"
+        # `gh pr merge --auto` が exit 1 を返す典型ケースを許容する:
+        #   1. 同一 lockfile を更新する別の Dependabot PR が先にマージされ、
+        #      この PR がコンフリクト状態になった (Dependabot が rebase 後に再実行)
+        #   2. PR が既にマージ/クローズされた (synchronize イベント遅延)
+        #   3. PR の HEAD SHA がコマンド実行中に変わった
+        #   4. auto-merge が既に有効化済みで重複実行された
+        # いずれも recoverable のためジョブを失敗扱いにせず、警告ログのみ残す。
+        run: |
+          if gh pr merge --auto --squash "$PR_URL"; then
+            echo "::notice::Auto-merge enabled for $PR_URL"
+          else
+            echo "::warning::Failed to enable auto-merge for $PR_URL. Likely a transient state (concurrent Dependabot PR conflict, rebase in flight, or auto-merge already enabled). Dependabot will retry on next sync."
+          fi
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
