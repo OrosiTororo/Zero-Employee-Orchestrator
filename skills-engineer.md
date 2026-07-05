@@ -114,7 +114,7 @@ Example: `<!-- audit:refuse=external_api_unapproved -->`
 
 ## 4. Skill Separation: One File Per Responsibility
 
-ZEO ships 11 built-in Skills (6 system + 5 domain). The rule is:
+ZEO ships 8 built-in Skills (all system-protected). The rule is:
 
 > **One Skill = one responsibility = one persona.**
 

@@ -3,7 +3,7 @@
 # Zero-Employee Orchestrator
 
 <!-- version-stamp: updated by scripts/bump-version.sh · keep this block in sync across all translated READMEs -->
-> **v0.1.7** · 51 route modules · 428 endpoints · 27 services · 24 orchestration modules · 14 MCP tools · 18 plugins · 11 extensions · 63+ app connectors · 26 models · 6 locales
+> **v0.1.7** · 53 route modules · 432 endpoints · 29 services · 24 orchestration modules · 14 MCP tools · 18 plugins · 12 extensions · 65+ app connectors · 26 models · 6 locales
 
 [![Stars](https://img.shields.io/github/stars/OrosiTororo/Zero-Employee-Orchestrator?style=flat)](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/stargazers)
 [![Forks](https://img.shields.io/github/forks/OrosiTororo/Zero-Employee-Orchestrator?style=flat)](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/network/members)
@@ -211,7 +211,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI 後端
 │   │   └── app/
 │   │       ├── core/               # 設定、資料庫、安全、國際化
-│   │       ├── api/routes/         # 51 REST API 路由模組（428 端點）
+│   │       ├── api/routes/         # 53 REST API 路由模組（432 端點）
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -226,9 +226,9 @@ Zero-Employee-Orchestrator/
 │   ├── desktop/              # Tauri v2 + React UI
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # 背景工作程序
-├── skills/                   # 8 個內建技能（6 系統 + 2 領域）
-├── plugins/                  # 16 個外掛清單
-├── extensions/               # 11 個擴充清單
+├── skills/                   # 8 個內建技能（全部系統保護）
+├── plugins/                  # 18 個外掛清單
+├── extensions/               # 12 個擴充清單
 │   └── browser-assist/
 │       └── chrome-extension/ # 瀏覽器輔助 Chrome 擴充功能
 ├── packages/                 # 共享 NPM 套件
