@@ -88,13 +88,12 @@ jobs:
         working-directory: apps/desktop/ui
         run: pnpm build
 
-      - name: Install Wrangler (pages)
-        if: inputs.mode == 'pages'
-        run: pnpm add -w wrangler@latest
-
       - name: Deploy to Cloudflare Pages
         if: inputs.mode == 'pages'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: pnpm wrangler pages deploy apps/desktop/ui/dist --project-name=zeo-ui --commit-dirty=true
+        # pnpm dlx keeps the workspace lockfile untouched (a plain `pnpm add
+        # wrangler@latest` mutated it after `pnpm install --frozen-lockfile`).
+        # Version pinned to match apps/edge/*/package.json (^4.105.0).
+        run: pnpm dlx wrangler@4.105.0 pages deploy apps/desktop/ui/dist --project-name=zeo-ui --commit-dirty=true

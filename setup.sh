@@ -61,16 +61,16 @@ install_with_pkg_manager() {
 
 FAILED=()
 
-# --- Python 3.12+ ---
-# Find Python >= 3.12 binary (tries python3.13, python3.12, python3 in order)
-find_python312() {
-    for cmd in python3.13 python3.12 python3; do
+# --- Python 3.11+ (per requires-python in pyproject.toml) ---
+# Find Python >= 3.11 binary (tries python3.13, python3.12, python3.11, python3 in order)
+find_python311() {
+    for cmd in python3.13 python3.12 python3.11 python3; do
         if command -v "$cmd" &> /dev/null; then
             local ver
             ver=$("$cmd" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
             local minor
             minor=$(echo "$ver" | cut -d. -f2)
-            if [ "$minor" -ge 12 ]; then
+            if [ "$minor" -ge 11 ]; then
                 echo "$cmd"
                 return 0
             fi
@@ -79,14 +79,14 @@ find_python312() {
     return 1
 }
 
-PYTHON_CMD=$(find_python312 || true)
+PYTHON_CMD=$(find_python311 || true)
 
 if [ -n "$PYTHON_CMD" ]; then
     PY_VER=$("$PYTHON_CMD" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
     ok "Python $PY_VER ($PYTHON_CMD)"
 elif command -v python3 &> /dev/null; then
     PY_VER=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
-    warn "Found Python $PY_VER but 3.12 or higher is required"
+    warn "Found Python $PY_VER but 3.11 or higher is required"
     info "Attempting to install Python 3.12..."
     case "$PKG_MANAGER" in
         brew)   install_with_pkg_manager "Python 3.12" python@3.12 ;;
@@ -95,11 +95,11 @@ elif command -v python3 &> /dev/null; then
         pacman) install_with_pkg_manager "Python 3.12" python ;;
         *)      ;;
     esac
-    PYTHON_CMD=$(find_python312 || true)
+    PYTHON_CMD=$(find_python311 || true)
     if [ -n "$PYTHON_CMD" ]; then
-        ok "Installed Python 3.12+ ($PYTHON_CMD)"
+        ok "Installed Python ($PYTHON_CMD)"
     else
-        FAILED+=("python3.12+ (currently $PY_VER -- 3.12 or higher required)")
+        FAILED+=("python3.11+ (currently $PY_VER -- 3.11 or higher required)")
     fi
 else
     info "Python not found. Attempting to install..."
@@ -110,11 +110,11 @@ else
         pacman) install_with_pkg_manager "Python" python python-pip ;;
         *)      ;;
     esac
-    PYTHON_CMD=$(find_python312 || true)
+    PYTHON_CMD=$(find_python311 || true)
     if [ -n "$PYTHON_CMD" ]; then
         ok "Installed Python ($PYTHON_CMD)"
     else
-        FAILED+=("python3 (3.12+) -- no package manager found")
+        FAILED+=("python3 (3.11+) -- no package manager found")
     fi
 fi
 
@@ -223,7 +223,7 @@ info "Setting up Python backend..."
 
 cd "$ROOT_DIR/apps/api"
 
-# Create virtual environment (using Python 3.12+)
+# Create virtual environment (using Python 3.11+)
 PYTHON_CMD="${PYTHON_CMD:-python3}"
 if [ ! -d ".venv" ]; then
     "$PYTHON_CMD" -m venv .venv
@@ -231,8 +231,8 @@ if [ ! -d ".venv" ]; then
 else
     # Check Python version of existing venv
     VENV_PY_VER=$(.venv/bin/python -c 'import sys; print(sys.version_info.minor)' 2>/dev/null || echo "0")
-    if [ "$VENV_PY_VER" -lt 12 ]; then
-        warn "Existing virtual environment uses Python 3.$VENV_PY_VER. Recreating with 3.12+..."
+    if [ "$VENV_PY_VER" -lt 11 ]; then
+        warn "Existing virtual environment uses Python 3.$VENV_PY_VER. Recreating with 3.11+..."
         rm -rf .venv
         "$PYTHON_CMD" -m venv .venv
         ok "Recreated virtual environment ($PYTHON_CMD)"

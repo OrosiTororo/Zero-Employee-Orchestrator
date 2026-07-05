@@ -36,22 +36,22 @@ if [ "$NEED_SETUP" = true ]; then
     warn "Setup is not complete. Running automatic setup..."
     echo ""
 
-    # Python venv + dependencies (Python 3.12+ required)
+    # Python venv + dependencies (Python 3.11+ required, per pyproject.toml)
     if [ ! -d "$ROOT_DIR/apps/api/.venv" ]; then
         info "Creating Python virtual environment..."
-        # Find Python 3.12+
+        # Find Python 3.11+
         PYTHON_CMD=""
-        for cmd in python3.13 python3.12 python3; do
+        for cmd in python3.13 python3.12 python3.11 python3; do
             if command -v "$cmd" &> /dev/null; then
                 ver=$("$cmd" -c 'import sys; print(sys.version_info.minor)' 2>/dev/null || echo "0")
-                if [ "$ver" -ge 12 ]; then
+                if [ "$ver" -ge 11 ]; then
                     PYTHON_CMD="$cmd"
                     break
                 fi
             fi
         done
         if [ -z "$PYTHON_CMD" ]; then
-            error "Python 3.12 or higher is required. Please install python3.12."
+            error "Python 3.11 or higher is required. Please install python3.11 or newer."
         fi
         cd "$ROOT_DIR/apps/api"
         if command -v uv &> /dev/null; then
@@ -140,11 +140,12 @@ info "Starting backend API server (port 18234)..."
 cd "$ROOT_DIR/apps/api"
 # Use the venv Python directly to ensure correct environment
 .venv/bin/python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 18234 &
-PIDS+=($!)
+# Capture the PID directly — ${PIDS[-1]} needs bash 4+, but macOS ships bash 3.2.
+BACKEND_PID=$!
+PIDS+=("$BACKEND_PID")
 cd "$ROOT_DIR"
 
 # Wait for backend to be ready before starting frontend
-BACKEND_PID=${PIDS[-1]}
 info "Waiting for backend to be ready..."
 for i in $(seq 1 30); do
     if curl -sf http://127.0.0.1:18234/healthz > /dev/null 2>&1; then

@@ -18,18 +18,18 @@ RUN apt-get update && \
         git \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+# Install uv (pinned minor version for reproducible builds)
+COPY --from=ghcr.io/astral-sh/uv:0.11 /uv /usr/local/bin/uv
 
 WORKDIR /app
 
 # Copy dependency files
-COPY apps/api/pyproject.toml apps/api/uv.lock* ./apps/api/
+COPY apps/api/pyproject.toml ./apps/api/
 
-# Install Python dependencies
+# Install Python dependencies — must fail the build on error so a broken
+# dependency set can never ship as a "green" image.
 WORKDIR /app/apps/api
-RUN uv sync --frozen 2>/dev/null || uv pip install --system -r pyproject.toml 2>/dev/null || \
-    pip install fastapi uvicorn sqlalchemy[asyncio] aiosqlite pydantic-settings python-jose httpx aiohttp || true
+RUN uv pip install --system -r pyproject.toml
 
 # Pin security-critical build tools to fixed versions AFTER project install.
 # Runs last so dependency resolution cannot downgrade back to vulnerable versions:
@@ -46,6 +46,9 @@ WORKDIR /app
 # Copy application code
 COPY apps/api/ ./apps/api/
 COPY skills/ ./skills/
+# Plugin manifests + skill YAMLs are read from disk at runtime
+# (app/services/plugin_skill_loader.py resolves <repo root>/plugins)
+COPY plugins/ ./plugins/
 
 # Create data directories (writable by non-root user)
 RUN mkdir -p /app/data /app/.zero_employee /home/zeapp/.zero_employee && \
