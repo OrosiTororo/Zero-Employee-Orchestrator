@@ -284,6 +284,21 @@ class TestSandbox:
         result = sandbox.check_access("/tmp/some_file.txt", AccessType.READ)
         assert result.allowed
 
+    def test_strict_mode_allows_tilde_allowed_path(self):
+        """許可パスに ``~`` を含む場合も deny-override と同様に展開される.
+
+        Regression: _check_strict/_check_moderate が expanduser() せず、
+        SandboxConfig に直接 ``~/...`` を渡すと正当な許可パスが拒否されていた。
+        """
+        from pathlib import Path
+
+        sandbox = FileSystemSandbox(
+            SandboxConfig(level=SandboxLevel.STRICT, allowed_paths=["~/zeo_tilde_test"])
+        )
+        target = str(Path.home() / "zeo_tilde_test" / "file.txt")
+        result = sandbox.check_access(target, AccessType.READ)
+        assert result.allowed
+
     def test_path_traversal_blocked(self):
         """Path traversal attempts should be caught by resolve."""
         result = filesystem_sandbox.check_access("/etc/../etc/shadow", AccessType.READ)
