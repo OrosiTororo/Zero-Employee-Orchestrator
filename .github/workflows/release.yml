@@ -88,7 +88,7 @@ jobs:
         # (compilation error, no .sig files), latest.json is never written and
         # the fragment step exits 1 — correctly failing this job.
         continue-on-error: true
-        uses: tauri-apps/tauri-action@action-v0.6.2
+        uses: tauri-apps/tauri-action@action-v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
