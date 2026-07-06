@@ -77,7 +77,9 @@ _DANGEROUS_PATTERNS: list[tuple[str, str, str, str]] = [
     (r"\bsmtplib\b", "email sending", "has_external_communication", "medium"),
     (r"\bsocket\b", "socket communication", "has_external_communication", "medium"),
     (
-        r"(api_key|secret|password|token|credential)",
+        # ``token(?!s)`` avoids flagging ordinary LLM params such as
+        # ``max_tokens`` while still catching auth tokens (``access_token``).
+        r"(api_key|secret|password|token(?!s)|credential)",
         "credential access",
         "has_credential_access",
         "high",

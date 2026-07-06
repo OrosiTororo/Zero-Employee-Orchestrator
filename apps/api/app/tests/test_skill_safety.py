@@ -34,6 +34,11 @@ class TestHighRiskExecutionVectors:
         assert report.risk_level == "high"
         assert report.has_credential_access is True
 
+    def test_auth_token_is_high_risk(self):
+        report = analyze_code_safety("headers = {'Authorization': access_token}")
+        assert report.risk_level == "high"
+        assert report.has_credential_access is True
+
     def test_destructive_operation_is_high_risk(self):
         report = analyze_code_safety("import shutil\nshutil.rmtree(path)")
         assert report.risk_level == "high"
@@ -59,5 +64,13 @@ class TestMediumRiskCapabilities:
 class TestLowRisk:
     def test_clean_code_is_low(self):
         report = analyze_code_safety("def execute(context):\n    return {'status': 'success'}")
+        assert report.risk_level == "low"
+
+    def test_max_tokens_is_not_flagged_as_credential(self):
+        # Regression: the credential regex must not match the ``token``
+        # substring inside ordinary LLM params like ``max_tokens`` — the
+        # fallback skill generator always emits ``max_tokens=2048``.
+        report = analyze_code_safety("result = provider.complete(messages=m, max_tokens=2048)")
+        assert report.has_credential_access is False
         assert report.risk_level == "low"
         assert report.summary == "No safety issues detected"

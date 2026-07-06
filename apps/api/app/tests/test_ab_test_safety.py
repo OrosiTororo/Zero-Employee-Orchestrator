@@ -36,3 +36,17 @@ async def test_execute_skill_runs_safe_code():
     result, _ = await _execute_skill_for_test(_skill(code), {"input": "hello"})
     assert result["status"] == "success"
     assert result["output"] == "hello"
+
+
+@pytest.mark.asyncio
+async def test_execute_skill_allows_max_tokens_param():
+    # Regression: generated skills carrying normal LLM params like max_tokens
+    # must not be blocked by the safety gate (credential false-positive).
+    code = (
+        "def execute(context):\n"
+        "    max_tokens = 2048\n"
+        "    return {'status': 'success', 'output': str(max_tokens)}"
+    )
+    result, _ = await _execute_skill_for_test(_skill(code), {"input": "x"})
+    assert result["status"] == "success"
+    assert result["output"] == "2048"
