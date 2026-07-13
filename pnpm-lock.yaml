@@ -54,8 +54,8 @@ importers:
         version: 5.0.14(@types/react@19.2.17)(immer@11.1.4)(react@19.2.7)(use-sync-external-store@1.6.0(react@19.2.7))
     devDependencies:
       '@eslint/js':
-        specifier: ^9.28.0
-        version: 9.39.4
+        specifier: ^9.39.5
+        version: 9.39.5
       '@testing-library/dom':
         specifier: ^10.4.0
         version: 10.4.1
