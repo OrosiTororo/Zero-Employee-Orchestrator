@@ -119,7 +119,7 @@ If the Judge rejects a result, the Re-Propose layer kicks in -- it rebuilds the 
 
 ### Approval Gates
 
-ZEO requires human approval before executing dangerous operations. There are 14 categories of gated actions:
+ZEO requires human approval before executing dangerous operations. There are 16 categories of gated actions:
 
 | Category | Examples |
 |----------|---------|
@@ -294,7 +294,7 @@ Additional settings:
 | **Plugin** | A bundle of related Skills that work together | ai-secretary, ai-avatar, research, browser-use |
 | **Extension** | System-level integration or infrastructure | MCP, OAuth, notifications, language-pack, Obsidian, Chrome extension |
 
-ZEO ships with 11 built-in Skills (6 system + 5 domain), 16 Plugins, and 11 Extensions. Built-in system Skills (like spec-writer and review-assistant) are always active and cannot be disabled.
+ZEO ships with 8 built-in Skills (all system-protected), 18 Plugins, and 12 Extensions. Built-in system Skills (like spec-writer and review-assistant) are always active and cannot be disabled.
 
 ### Creating Custom Skills
 
@@ -334,7 +334,7 @@ ZEO detects and blocks attempts to manipulate AI agents through injected instruc
 
 ### Approval Gates
 
-As described in Core Concepts, 14 categories of dangerous operations require your explicit approval. The AI cannot bypass these gates regardless of autonomy level. Each approval request includes context about cost, risk, permissions, data flow, and reversibility.
+As described in Core Concepts, 16 categories of dangerous operations require your explicit approval. The AI cannot bypass these gates regardless of autonomy level. Each approval request includes context about cost, risk, permissions, data flow, and reversibility.
 
 ### Role-Based Tool Permissions
 

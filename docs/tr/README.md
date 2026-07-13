@@ -3,7 +3,7 @@
 # Zero-Employee Orchestrator
 
 <!-- version-stamp: updated by scripts/bump-version.sh · keep this block in sync across all translated READMEs -->
-> **v0.1.7** · 51 route modules · 428 endpoints · 27 services · 24 orchestration modules · 14 MCP tools · 18 plugins · 11 extensions · 63+ app connectors · 26 models · 6 locales
+> **v0.1.7** · 53 route modules · 432 endpoints · 29 services · 24 orchestration modules · 14 MCP tools · 18 plugins · 12 extensions · 65+ app connectors · 26 models · 6 locales
 
 [![Stars](https://img.shields.io/github/stars/OrosiTororo/Zero-Employee-Orchestrator?style=flat)](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/stargazers)
 [![Forks](https://img.shields.io/github/forks/OrosiTororo/Zero-Employee-Orchestrator?style=flat)](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/network/members)
@@ -211,7 +211,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI arka ucu
 │   │   └── app/
 │   │       ├── core/               # Yapılandırma, VT, güvenlik, i18n
-│   │       ├── api/routes/         # 51 REST API rota modülü (428 uç nokta)
+│   │       ├── api/routes/         # 53 REST API rota modülü (432 uç nokta)
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -226,9 +226,9 @@ Zero-Employee-Orchestrator/
 │   ├── desktop/              # Tauri v2 + React UI
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # Arka plan çalışanları
-├── skills/                   # 8 yerleşik beceri (6 sistem + 2 alan)
-├── plugins/                  # 16 eklenti bildirimi
-├── extensions/               # 11 uzantı bildirimi
+├── skills/                   # 8 yerleşik beceri (tümü sistem korumalı)
+├── plugins/                  # 18 eklenti bildirimi
+├── extensions/               # 12 uzantı bildirimi
 │   └── browser-assist/
 │       └── chrome-extension/ # Tarayıcı Asistanı Chrome uzantısı
 ├── packages/                 # Paylaşılan NPM paketleri

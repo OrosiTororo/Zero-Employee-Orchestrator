@@ -46,11 +46,12 @@ Detects and blocks instruction injection from external sources (web pages, email
 
 ### 2. Approval Gate (`policies/approval_gate.py`)
 
-14 categories of dangerous operations require human approval:
+16 categories of dangerous operations require human approval:
 - External send / publish / delete / billing
 - Git push / release / file overwrite
 - Permission change / credential change
 - Agent creation / budget change / policy change / autonomy expansion
+- Browser automation / web AI session / external agent execution / plugin install
 
 ### 3. Autonomy Boundary (`policies/autonomy_boundary.py`)
 
@@ -103,7 +104,7 @@ Automatic detection and redaction of:
 
 ### 10. PII Guard (`security/pii_guard.py`)
 
-- Detects 12 PII categories: email, phone, credit card, My Number, SSN, address, DOB, passport, driver's license, bank account, IP, passwords
+- Detects 13 PII categories: email, phone, credit card, My Number, SSN, address, DOB, passport, driver's license, bank account, IP, passwords, Japanese names
 - Automatic masking with category-specific labels
 - Validates before AI processing
 

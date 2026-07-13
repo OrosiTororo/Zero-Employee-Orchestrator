@@ -184,21 +184,34 @@ class WikiKnowledgeService:
         """Compile a raw source into one or more wiki pages.
 
         ``source`` is a free-form identifier (URL, file path, "paste-1"...).
-        ``content`` is the raw text — it is **always** wrapped with
-        :func:`wrap_external_data` before being touched so that injection
-        attempts inside the source cannot steer the agent.
+        ``content`` is scanned with :func:`scan_prompt_injection` at ingest
+        time: detections are recorded in ``IngestResult.warnings`` and
+        HIGH/CRITICAL threats are refused outright. Wrapping with
+        :func:`wrap_external_data` happens at LLM boundaries (see
+        :meth:`_synthesize_answer_llm`); stored pages stay unwrapped.
 
         This implementation uses a deterministic extractor suitable for
         offline / test runs. Production callers can subclass and override
-        :meth:`_compile_atomic_pages` to call an LLM provider.
+        :meth:`_compile_atomic_pages` to call an LLM provider — such
+        overrides must wrap the text with ``wrap_external_data`` before
+        the LLM call.
         """
-        from app.security.prompt_guard import wrap_external_data
+        from app.security.prompt_guard import ThreatLevel, scan_prompt_injection
 
         self.initialize()
+        result = IngestResult(source=source)
 
-        # Defend against prompt injection in the ingested raw text.
-        wrapped = wrap_external_data(content, source=source)
-        logger.debug("Ingest wrapped payload: %d chars from %s", len(wrapped), source)
+        # Scan the ingested raw text for prompt injection: record detections
+        # and refuse HIGH/CRITICAL threats before anything is stored.
+        scan = scan_prompt_injection(content)
+        if not scan.is_safe:
+            result.warnings.append(
+                f"injection-risk:{source}:{scan.threat_level.value}:"
+                + ";".join(scan.detections[:3])
+            )
+            if scan.threat_level in (ThreatLevel.HIGH, ThreatLevel.CRITICAL):
+                logger.warning("Ingest refused for %s: %s", source, scan.detections[:3])
+                return result
 
         # Archive the raw source so re-compilation is always possible.
         raw_file = self.raw_dir / f"{self._slugify(title or source)}.md"
@@ -210,7 +223,6 @@ class WikiKnowledgeService:
             )
 
         pages = self._compile_atomic_pages(content, source=source, hint_title=title, tags=tags)
-        result = IngestResult(source=source)
 
         for page in pages:
             target = self.wiki_dir / f"{page.slug}.md"

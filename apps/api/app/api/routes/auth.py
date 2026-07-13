@@ -381,19 +381,18 @@ async def password_reset_request(
 ):
     """Request a password reset.
 
-    Generates a short-lived reset token.  In production this token
-    would be sent via email; in the current implementation it is
-    returned directly in the response for development convenience.
+    Generates a short-lived reset token. The token is included in the
+    response only when ``DEBUG`` is enabled (development convenience,
+    since no email delivery exists yet); in production (``DEBUG=false``)
+    the response never exposes it.
     """
     token = await request_password_reset(db, req.email)
-    # Always return 200 to prevent email enumeration attacks
-    if token is None:
-        return {"message": "If an account with this email exists, a reset link has been sent."}
-    # NOTE: In production, send the token via email instead of returning it.
-    return {
-        "message": "If an account with this email exists, a reset link has been sent.",
-        "reset_token": token,  # Remove in production — send via email instead
-    }
+    message = "If an account with this email exists, a reset link has been sent."
+    # Always return the same 200 body to prevent email enumeration attacks.
+    if token is None or not settings.DEBUG:
+        return {"message": message}
+    # DEBUG-only developer convenience — remove once email delivery exists.
+    return {"message": message, "reset_token": token}
 
 
 @router.post("/password-reset/confirm", response_model=MessageResponse)

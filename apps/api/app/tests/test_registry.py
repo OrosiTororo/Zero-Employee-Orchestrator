@@ -39,3 +39,35 @@ async def test_install_and_list_skills(client: AsyncClient):
     assert list_resp.status_code == 200
     skills = list_resp.json()
     assert len(skills) >= 1
+
+
+@pytest.mark.asyncio
+async def test_install_skill_with_dangerous_code_is_blocked(client: AsyncClient):
+    """exec/subprocess 入りコードは high リスクとして 422、force=true でのみ通る."""
+    reg_resp = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "registry_safety@example.com",
+            "password": "TestPassword123!",
+            "display_name": "Safety Tester",
+        },
+    )
+    token = reg_resp.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+    payload = {
+        "slug": "dangerous-skill",
+        "name": "危険スキル",
+        "description": "安全チェックのテスト",
+        "skill_type": "custom",
+        "manifest_json": {"executor_code": "import subprocess\nsubprocess.run(['ls'])"},
+    }
+
+    blocked = await client.post("/api/v1/registry/skills/install", json=payload, headers=headers)
+    # 422 detail is flattened to a translated string by i18n_http_exception_handler,
+    # so assert on status codes rather than the structured safety report.
+    assert blocked.status_code == 422
+
+    forced = await client.post(
+        "/api/v1/registry/skills/install?force=true", json=payload, headers=headers
+    )
+    assert forced.status_code == 201
