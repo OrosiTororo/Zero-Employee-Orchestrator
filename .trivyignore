@@ -39,3 +39,11 @@ CVE-2026-4539
 # Same exemption as pip-audit (--ignore-vuln CVE-2026-3219). Remove once pip
 # ships a fixed version.
 CVE-2026-3219
+
+# ecdsa — Minerva timing attack on P-256 (PYSEC-2026-1325)
+# Transitive dep via python-jose; not used directly by the application.
+# No fixed release exists: upstream (python-ecdsa) declares side-channel
+# attacks out of scope with no planned fix (per pip-audit description).
+# Same exemption as pip-audit (--ignore-vuln PYSEC-2026-1325). Remove if a
+# fixed release or a python-jose backend switch lands.
+PYSEC-2026-1325
