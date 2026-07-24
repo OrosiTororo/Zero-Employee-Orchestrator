@@ -672,10 +672,10 @@ class TaskExecutor:
         failed_results = [r for r in result.node_results if not r.success]
         if failed_results:
             try:
-                from app.core.database import get_session
+                from app.core.database import async_session_factory
                 from app.orchestration.experience_memory import PersistentExperienceMemory
 
-                async for db in get_session():
+                async with async_session_factory() as db:
                     # Use a placeholder company_id for system-level memory
                     memory = PersistentExperienceMemory(db, "00000000-0000-0000-0000-000000000000")
                     for fr in failed_results:
@@ -687,7 +687,6 @@ class TaskExecutor:
                             prevention_strategy=f"Consider model={fr.model_used}, "
                             f"judge_score={fr.judge_score}",
                         )
-                    break
             except Exception as exc:
                 logger.debug("Experience memory recording skipped: %s", exc)
 
