@@ -30,11 +30,7 @@ export function UpdateBanner() {
 
   return (
     <div
-      className="fixed bottom-8 right-8 z-50 max-w-sm rounded-lg border shadow-2xl"
-      style={{
-        background: "var(--bg-surface, #1e1e1e)",
-        borderColor: "var(--border, #333)",
-      }}
+      className="menu-surface fixed bottom-8 right-8 z-50 max-w-sm animate-slide-up"
     >
       <div className="p-4">
         {/* Header */}
@@ -107,17 +103,7 @@ export function UpdateBanner() {
                   {t.updater.restarting}
                 </span>
               ) : (
-                <button
-                  onClick={downloadAndInstall}
-                  className="px-3 py-1.5 rounded text-[12px] font-medium text-white transition-colors"
-                  style={{ background: "var(--accent)" }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "var(--accent-hover)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "var(--accent)")
-                  }
-                >
+                <button onClick={downloadAndInstall} className="btn btn-primary btn-sm">
                   {t.updater.downloadRestart}
                 </button>
               )}

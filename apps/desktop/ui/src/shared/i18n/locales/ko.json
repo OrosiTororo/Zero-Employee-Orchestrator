@@ -121,7 +121,11 @@
     "dispatch": "디스패치",
     "operatorProfile": "Operator Profile",
     "templates": "템플릿",
-    "crews": "크루"
+    "crews": "크루",
+    "sectionManage": "관리",
+    "sectionExtend": "확장",
+    "collapseSidebar": "사이드바 접기",
+    "expandSidebar": "사이드바 펼치기"
   },
   "setup": {
     "steps": {

@@ -111,7 +111,7 @@ export function PluginsPage() {
             </button>
             <button
               onClick={() => setShowInstall(!showInstall)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[12px] bg-[var(--accent)] text-white"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[12px] bg-[var(--accent)] text-[var(--accent-fg)]"
             >
               <Plus size={14} />
               {t.plugins.add}
@@ -155,7 +155,7 @@ export function PluginsPage() {
               <button
                 onClick={handleInstall}
                 disabled={!installForm.slug.trim() || !installForm.name.trim()}
-                className="px-3 py-1.5 rounded text-[12px] bg-[var(--accent)] text-white disabled:opacity-40"
+                className="px-3 py-1.5 rounded text-[12px] bg-[var(--accent)] text-[var(--accent-fg)] disabled:opacity-40"
               >
                 {t.plugins.add}
               </button>

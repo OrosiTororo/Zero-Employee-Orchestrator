@@ -66,7 +66,7 @@ export function Modal({ open, onClose, title, children, footer, labelledBy, widt
       className="fixed inset-0 z-[120] flex items-start justify-center pt-[12vh]"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-black/55" />
+      <div className="absolute inset-0" style={{ background: "var(--scrim)" }} />
       <div
         ref={dialogRef}
         role="dialog"
@@ -74,24 +74,24 @@ export function Modal({ open, onClose, title, children, footer, labelledBy, widt
         aria-labelledby={labelId}
         tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
-        className="relative flex flex-col rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden outline-none"
+        className="relative flex flex-col rounded-xl border border-[var(--border)] bg-[var(--bg-overlay)] overflow-hidden outline-none animate-scale-in"
         style={{ width: widthPx, maxWidth: "92vw", boxShadow: "var(--shadow-modal)" }}
       >
-        <header className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)]">
-          <h2 id={labelId} className="text-[13px] font-medium text-[var(--text-primary)]">
+        <header className="flex items-center justify-between px-5 pt-4 pb-3">
+          <h2 id={labelId} className="text-[15px] font-semibold text-[var(--text-primary)]">
             {title}
           </h2>
           <button
             onClick={onClose}
-            className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            className="flex items-center justify-center w-6 h-6 rounded-full text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
             aria-label={t.common.close ?? "Close"}
           >
             <X size={14} />
           </button>
         </header>
-        <div className="px-4 py-3 overflow-auto max-h-[60vh]">{children}</div>
+        <div className="px-5 pb-4 overflow-auto max-h-[60vh]">{children}</div>
         {footer ? (
-          <footer className="flex items-center justify-end gap-2 px-4 py-3 border-t border-[var(--border)]">
+          <footer className="flex items-center justify-end gap-2 px-5 py-3.5 border-t border-[var(--border)] bg-[var(--bg-raised)]">
             {footer}
           </footer>
         ) : null}

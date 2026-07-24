@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
-import { Search, ArrowRight } from "lucide-react"
+import { Search, CornerDownLeft } from "lucide-react"
 import { useT } from "@/shared/i18n"
+import { useCommandPalette } from "@/shared/hooks/use-command-palette"
 
 interface CommandItem {
   id: string
@@ -12,7 +13,8 @@ interface CommandItem {
 }
 
 export function CommandPalette() {
-  const [open, setOpen] = useState(false)
+  const open = useCommandPalette((s) => s.open)
+  const setOpen = useCommandPalette((s) => s.setOpen)
   const [query, setQuery] = useState("")
   const [selectedIndex, setSelectedIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -58,14 +60,14 @@ export function CommandPalette() {
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && e.key === "k") {
       e.preventDefault()
-      setOpen(prev => !prev)
+      useCommandPalette.getState().toggle()
       setQuery("")
       setSelectedIndex(0)
     }
     if (e.key === "Escape" && open) {
       setOpen(false)
     }
-  }, [open])
+  }, [open, setOpen])
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown)
@@ -73,7 +75,11 @@ export function CommandPalette() {
   }, [handleKeyDown])
 
   useEffect(() => {
-    if (open) inputRef.current?.focus()
+    if (open) {
+      setQuery("")
+      setSelectedIndex(0)
+      inputRef.current?.focus()
+    }
   }, [open])
 
   const execute = (item: CommandItem) => {
@@ -102,32 +108,32 @@ export function CommandPalette() {
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh]"
       onClick={() => setOpen(false)}>
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50" />
+      {/* Scrim */}
+      <div className="absolute inset-0" style={{ background: "var(--scrim)" }} />
 
       {/* Palette */}
-      <div className="relative w-[500px] max-h-[400px] flex flex-col rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden animate-fade-in"
+      <div className="relative w-[540px] max-h-[420px] flex flex-col rounded-xl border border-[var(--border)] bg-[var(--bg-overlay)] overflow-hidden animate-scale-in"
         style={{ boxShadow: "var(--shadow-modal)" }}
         onClick={e => e.stopPropagation()}>
         {/* Search input */}
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border)]">
-          <Search size={16} className="text-[var(--text-muted)] shrink-0" />
+        <div className="flex items-center gap-2.5 px-4 py-3.5 border-b border-[var(--border)]">
+          <Search size={17} className="text-[var(--text-muted)] shrink-0" />
           <input
             ref={inputRef}
             value={query}
             onChange={e => { setQuery(e.target.value); setSelectedIndex(0) }}
             onKeyDown={handleInputKeyDown}
             placeholder={t.commandPalette.placeholder}
-            className="flex-1 text-[14px] outline-none bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
+            className="flex-1 text-[15px] outline-none bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
             aria-label={t.commandPalette.placeholder}
           />
-          <kbd className="text-[10px] text-[var(--text-muted)] border border-[var(--border)] rounded px-1.5 py-0.5">ESC</kbd>
+          <kbd className="text-[10px] text-[var(--text-muted)] border border-[var(--border)] rounded-[4px] px-1.5 py-0.5">ESC</kbd>
         </div>
 
         {/* Results */}
-        <div className="overflow-auto max-h-[320px]">
+        <div className="overflow-auto max-h-[330px] px-1.5 pb-1.5">
           {filtered.length === 0 ? (
-            <div className="px-4 py-6 text-center text-[12px] text-[var(--text-muted)]">
+            <div className="px-4 py-8 text-center text-[12px] text-[var(--text-muted)]">
               {t.commandPalette.noResults}
             </div>
           ) : (
@@ -138,21 +144,21 @@ export function CommandPalette() {
               return (
                 <div key={item.id}>
                   {showCategory && (
-                    <div className="px-4 pt-3 pb-1 text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-medium">
+                    <div className="px-3 pt-3 pb-1 text-[10px] uppercase tracking-[0.08em] text-[var(--text-muted)] font-semibold">
                       {item.category}
                     </div>
                   )}
                   <button
                     onClick={() => execute(item)}
                     onMouseEnter={() => setSelectedIndex(i)}
-                    className="w-full flex items-center justify-between px-4 py-2 text-[13px] text-left transition-colors"
+                    className="w-full flex items-center justify-between px-3 py-2 text-[13px] text-left rounded-md transition-colors"
                     style={{
-                      background: i === selectedIndex ? "var(--bg-active)" : "transparent",
-                      color: "var(--text-primary)",
+                      background: i === selectedIndex ? "var(--accent-subtle)" : "transparent",
+                      color: i === selectedIndex ? "var(--accent)" : "var(--text-primary)",
                     }}
                   >
                     <span>{item.label}</span>
-                    {i === selectedIndex && <ArrowRight size={12} className="text-[var(--text-muted)]" />}
+                    {i === selectedIndex && <CornerDownLeft size={12} className="opacity-70" />}
                   </button>
                 </div>
               )

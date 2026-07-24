@@ -50,7 +50,7 @@ export function AutonomyDial() {
   const [status, setStatus] = useState<AutonomyStatus | null>(null)
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [_tick, setTick] = useState(0)
+  const [, setTick] = useState(0)
   const popoverRef = useRef<HTMLDivElement | null>(null)
 
   const fetchStatus = useCallback(async () => {
@@ -133,7 +133,7 @@ export function AutonomyDial() {
   if (!companyId || !status) {
     return (
       <button
-        className="flex items-center gap-1 px-2 h-full hover:bg-[rgba(255,255,255,0.12)]"
+        className="flex items-center gap-1.5 px-3 h-full"
         title={t.autonomy?.tooltip ?? "Autonomy level"}
         disabled
       >
@@ -144,15 +144,16 @@ export function AutonomyDial() {
   }
 
   const overrideRemaining = status.override_active ? formatRemaining(status.override_expires_at) : ""
-  const badgeClass = status.override_active
-    ? "bg-[var(--warning)]/30 border border-[var(--warning)]/60"
-    : ""
+  const badgeStyle: React.CSSProperties = status.override_active
+    ? { background: "color-mix(in srgb, var(--warning) 18%, transparent)", color: "var(--warning-fg)" }
+    : {}
 
   return (
     <div className="relative h-full">
       <button
         onClick={() => setOpen((v) => !v)}
-        className={`flex items-center gap-1 px-2 h-full hover:bg-[rgba(255,255,255,0.12)] ${badgeClass}`}
+        className="flex items-center gap-1.5 px-3 h-full transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+        style={{ color: "inherit", ...badgeStyle }}
         title={t.autonomy?.tooltip ?? "Click to change autonomy level"}
         aria-haspopup="dialog"
         aria-expanded={open}
@@ -161,7 +162,7 @@ export function AutonomyDial() {
         <span>{labelMap[status.effective]}</span>
         {status.override_active && (
           <span
-            className="ml-1 text-[10px] text-[var(--warning)]"
+            className="ml-1 text-[10px]"
             aria-label={t.autonomy?.overrideActive ?? "Override active"}
           >
             ({overrideRemaining})
@@ -174,11 +175,10 @@ export function AutonomyDial() {
           ref={popoverRef}
           role="dialog"
           aria-label={t.autonomy?.tooltip ?? "Autonomy level"}
-          className="absolute bottom-full right-0 mb-1 w-[280px] rounded border border-[var(--border)] bg-[var(--bg-overlay)] text-[var(--text-primary)] z-50"
-          style={{ boxShadow: "var(--shadow-popup)" }}
+          className="menu-surface absolute bottom-full right-0 mb-1.5 w-[288px] text-[var(--text-primary)] z-50 animate-scale-in overflow-hidden"
         >
-          <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border)]">
-            <span className="text-[11px] font-medium">
+          <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-[var(--border)]">
+            <span className="text-[12px] font-semibold">
               {t.autonomy?.tooltip ?? "Autonomy level"}
             </span>
             <button
@@ -190,11 +190,11 @@ export function AutonomyDial() {
             </button>
           </div>
 
-          <div className="px-3 py-2 space-y-2">
-            <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+          <div className="px-3.5 py-2.5 space-y-2">
+            <div className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[var(--text-muted)]">
               {t.autonomy?.companyDefault ?? "Company default"}
             </div>
-            <div className="grid grid-cols-2 gap-1">
+            <div className="grid grid-cols-2 gap-1.5">
               {LEVEL_ORDER.map((level) => {
                 const active = status.company_default === level
                 return (
@@ -202,9 +202,9 @@ export function AutonomyDial() {
                     key={level}
                     onClick={() => setDefault(level)}
                     disabled={busy}
-                    className={`text-[11px] px-2 py-1 rounded border ${
+                    className={`text-[11.5px] px-2 py-1.5 rounded-md border transition-colors ${
                       active
-                        ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]"
+                        ? "border-transparent bg-[var(--accent-subtle)] text-[var(--accent)] font-semibold"
                         : "border-[var(--border)] hover:bg-[var(--bg-hover)]"
                     }`}
                   >
@@ -215,17 +215,17 @@ export function AutonomyDial() {
             </div>
           </div>
 
-          <div className="px-3 py-2 border-t border-[var(--border)] space-y-2">
-            <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+          <div className="px-3.5 py-2.5 border-t border-[var(--border)] space-y-2">
+            <div className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[var(--text-muted)]">
               {t.autonomy?.overrideFor ?? "Override for"}
             </div>
-            <div className="grid grid-cols-2 gap-1">
+            <div className="grid grid-cols-2 gap-1.5">
               {TTL_OPTIONS.map((opt) => (
                 <button
                   key={opt.key}
                   onClick={() => setOverride(status.company_default, opt.ttlMinutes)}
                   disabled={busy}
-                  className="text-[11px] px-2 py-1 rounded border border-[var(--border)] hover:bg-[var(--bg-hover)]"
+                  className="text-[11.5px] px-2 py-1.5 rounded-md border border-[var(--border)] transition-colors hover:bg-[var(--bg-hover)]"
                 >
                   {(t.autonomy as Record<string, string> | undefined)?.[opt.key] ?? opt.key}
                 </button>
@@ -235,7 +235,11 @@ export function AutonomyDial() {
               <button
                 onClick={clearOverride}
                 disabled={busy}
-                className="w-full text-[11px] px-2 py-1 rounded border border-[var(--warning)]/60 text-[var(--warning)] hover:bg-[var(--warning)]/10"
+                className="w-full text-[11.5px] px-2 py-1.5 rounded-md transition-colors"
+                style={{
+                  background: "color-mix(in srgb, var(--warning) 14%, transparent)",
+                  color: "var(--warning-fg)",
+                }}
               >
                 {t.autonomy?.clearOverride ?? "Clear override"} (
                 {overrideRemaining} {t.autonomy?.overrideExpiresIn ?? "left"})

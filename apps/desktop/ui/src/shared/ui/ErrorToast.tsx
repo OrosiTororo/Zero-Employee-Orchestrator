@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { create } from 'zustand'
+import { CircleAlert, TriangleAlert, Info, X } from 'lucide-react'
 
 interface ToastMessage {
   id: number
@@ -36,26 +37,29 @@ function ToastItem({ toast, onDismiss }: { toast: ToastMessage; onDismiss: () =>
     return () => clearTimeout(timer)
   }, [onDismiss])
 
-  const bgColor =
+  const Icon =
+    toast.type === 'error' ? CircleAlert : toast.type === 'warning' ? TriangleAlert : Info
+  const iconColor =
     toast.type === 'error'
-      ? 'bg-red-600'
+      ? 'var(--error)'
       : toast.type === 'warning'
-        ? 'bg-amber-600'
-        : 'bg-blue-600'
+        ? 'var(--warning-fg)'
+        : 'var(--info)'
 
   return (
     <div
-      className={`${bgColor} text-white text-[13px] px-4 py-3 rounded-lg shadow-lg max-w-sm animate-[slideIn_0.2s_ease-out]`}
+      className="menu-surface max-w-sm rounded-lg px-3.5 py-3 text-[13px] text-[var(--text-primary)] animate-slide-up"
       role="alert"
     >
-      <div className="flex items-start gap-2">
+      <div className="flex items-start gap-2.5">
+        <Icon size={16} className="mt-px shrink-0" style={{ color: iconColor }} />
         <span className="flex-1 break-words">{toast.message}</span>
         <button
           onClick={onDismiss}
-          className="shrink-0 opacity-70 hover:opacity-100"
+          className="shrink-0 flex items-center justify-center w-5 h-5 rounded-full text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
           aria-label="Dismiss"
         >
-          &times;
+          <X size={13} />
         </button>
       </div>
     </div>

@@ -10,7 +10,7 @@ export function NotFoundPage() {
         </p>
         <Link
           to="/"
-          className="px-4 py-2 text-[13px] rounded-md bg-[var(--accent)] text-white hover:opacity-90 transition-opacity"
+          className="px-4 py-2 text-[13px] rounded-md bg-[var(--accent)] text-[var(--accent-fg)] hover:opacity-90 transition-opacity"
         >
           Return to Dashboard
         </Link>

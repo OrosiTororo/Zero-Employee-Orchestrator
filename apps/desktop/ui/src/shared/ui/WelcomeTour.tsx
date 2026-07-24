@@ -62,9 +62,9 @@ export function WelcomeTour() {
   const current = STEPS[step]
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: "var(--scrim)" }}>
       <div
-        className="relative w-[420px] rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] shadow-xl"
+        className="relative w-[420px] rounded-xl border border-[var(--border)] bg-[var(--bg-overlay)] animate-scale-in"
         style={{ boxShadow: "var(--shadow-modal)" }}
       >
         {/* Close button */}
@@ -93,10 +93,10 @@ export function WelcomeTour() {
 
           {/* Icon */}
           <div
-            className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
+            className="w-11 h-11 rounded-lg flex items-center justify-center mb-3"
             style={{ background: "var(--accent-subtle)" }}
           >
-            <current.icon size={20} className="text-[var(--accent)]" />
+            <current.icon size={22} className="text-[var(--accent)]" />
           </div>
 
           {/* Text */}
@@ -116,11 +116,7 @@ export function WelcomeTour() {
           >
             Skip tour
           </button>
-          <button
-            onClick={next}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded text-[12px] font-medium text-white"
-            style={{ background: "var(--accent)" }}
-          >
+          <button onClick={next} className="btn btn-primary">
             {step < STEPS.length - 1 ? (
               <>
                 Next <ArrowRight size={12} />

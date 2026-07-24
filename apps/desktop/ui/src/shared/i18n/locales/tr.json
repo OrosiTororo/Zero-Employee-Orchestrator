@@ -121,7 +121,11 @@
     "dispatch": "Gönder",
     "operatorProfile": "Operator Profile",
     "templates": "Şablonlar",
-    "crews": "Ekipler"
+    "crews": "Ekipler",
+    "sectionManage": "Yönet",
+    "sectionExtend": "Genişlet",
+    "collapseSidebar": "Kenar çubuğunu daralt",
+    "expandSidebar": "Kenar çubuğunu genişlet"
   },
   "setup": {
     "steps": {

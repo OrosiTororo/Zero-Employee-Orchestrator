@@ -245,7 +245,7 @@ export function AgentMonitorPage() {
               <Icon size={13} />
               {label}
               {badge !== undefined && badge > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 text-[9px] rounded-full bg-[var(--accent)] text-white font-medium">
+                <span className="ml-1 px-1.5 py-0.5 text-[9px] rounded-full bg-[var(--accent)] text-[var(--accent-fg)] font-medium">
                   {badge}
                 </span>
               )}
@@ -269,7 +269,7 @@ export function AgentMonitorPage() {
                       <span className="text-[12px] font-medium text-[var(--text-primary)]">
                         {exec.task_id.slice(0, 8)}
                       </span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--accent)] text-white">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--accent)] text-[var(--accent-fg)]">
                         {exec.status}
                       </span>
                     </div>

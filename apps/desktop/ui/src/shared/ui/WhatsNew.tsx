@@ -34,7 +34,7 @@ export function WhatsNew() {
   }
 
   return (
-    <div className="rounded border border-[var(--accent)] bg-[var(--accent-subtle)] px-4 py-3 mb-4">
+    <div className="rounded-lg border border-[var(--border)] bg-[var(--accent-subtle)] px-4 py-3 mb-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-2 min-w-0">
           <Sparkles size={14} className="text-[var(--accent)] mt-0.5 shrink-0" />

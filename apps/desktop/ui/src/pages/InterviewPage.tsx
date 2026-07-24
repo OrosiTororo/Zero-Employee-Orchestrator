@@ -222,7 +222,7 @@ export function InterviewPage() {
           />
           <button
             onClick={handleAnswer}
-            className="px-4 py-2.5 rounded bg-[var(--accent)] text-white"
+            className="px-4 py-2.5 rounded bg-[var(--accent)] text-[var(--accent-fg)]"
           >
             <Send size={16} />
           </button>

@@ -121,7 +121,11 @@
     "dispatch": "Dispatch",
     "operatorProfile": "Operator Profile",
     "templates": "Templates",
-    "crews": "Crews"
+    "crews": "Crews",
+    "sectionManage": "Manage",
+    "sectionExtend": "Extend",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar"
   },
   "setup": {
     "steps": {

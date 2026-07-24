@@ -121,7 +121,11 @@
     "dispatch": "Despachar",
     "operatorProfile": "Operator Profile",
     "templates": "Modelos",
-    "crews": "Equipes"
+    "crews": "Equipes",
+    "sectionManage": "Gerenciar",
+    "sectionExtend": "Estender",
+    "collapseSidebar": "Recolher barra lateral",
+    "expandSidebar": "Expandir barra lateral"
   },
   "setup": {
     "steps": {

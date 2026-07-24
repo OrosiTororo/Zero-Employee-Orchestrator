@@ -118,7 +118,7 @@ export function ExtensionsPage() {
               <RefreshCw size={12} />
             </button>
             <button onClick={() => setShowInstall(!showInstall)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[12px] bg-[var(--accent)] text-white">
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[12px] bg-[var(--accent)] text-[var(--accent-fg)]">
               <Plus size={14} />
               {t.extensions.add}
             </button>
@@ -158,7 +158,7 @@ export function ExtensionsPage() {
               <button onClick={() => setShowInstall(false)}
                 className="px-3 py-1.5 rounded text-[12px] text-[var(--text-muted)] border border-[var(--border)]">{t.common.cancel}</button>
               <button onClick={handleInstall} disabled={!installForm.slug.trim() || !installForm.name.trim()}
-                className="px-3 py-1.5 rounded text-[12px] bg-[var(--accent)] text-white disabled:opacity-40">{t.extensions.add}</button>
+                className="px-3 py-1.5 rounded text-[12px] bg-[var(--accent)] text-[var(--accent-fg)] disabled:opacity-40">{t.extensions.add}</button>
             </div>
           </div>
         )}
