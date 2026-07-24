@@ -1,6 +1,8 @@
 """Auth-related DTOs."""
 
-from pydantic import BaseModel, EmailStr
+from typing import Literal
+
+from pydantic import BaseModel, EmailStr, Field
 
 
 class RegisterRequest(BaseModel):
@@ -23,9 +25,7 @@ class LoginResponse(BaseModel):
 
 
 class OAuthLoginRequest(BaseModel):
-    provider: str
-    code: str
-    redirect_uri: str | None = None
+    provider: Literal["google"]
 
 
 class PasswordResetRequest(BaseModel):
@@ -65,12 +65,25 @@ class GoogleAuthorizeResponse(BaseModel):
     state: str
 
 
+class GooglePollRequest(BaseModel):
+    state: str = Field(
+        min_length=32,
+        max_length=256,
+        pattern=r"^[A-Za-z0-9_-]+$",
+    )
+
+
 class GooglePollPendingResponse(BaseModel):
-    status: str  # "pending"
+    status: Literal["pending"]
+
+
+class GooglePollFailedResponse(BaseModel):
+    status: Literal["failed"]
+    error: Literal["oauth_failed", "account_link_required", "not_configured"]
 
 
 class GooglePollCompleteResponse(BaseModel):
-    status: str  # "complete"
+    status: Literal["complete"]
     access_token: str
     user_id: str
     display_name: str

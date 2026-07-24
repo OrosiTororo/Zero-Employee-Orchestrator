@@ -26,7 +26,7 @@ from app.models.skill import Extension, Plugin, Skill
 from app.models.spec import Spec
 from app.models.task import Task, TaskRun
 from app.models.ticket import Ticket, TicketThread
-from app.models.user import CompanyMember, User
+from app.models.user import CompanyMember, OAuthIdentity, User
 
 # Side-effect imports: register ORM tables declared outside app/models/.
 # These modules attach classes to ``Base.metadata`` on import.
@@ -54,6 +54,7 @@ __all__ = [
     "Goal",
     "HeartbeatPolicy",
     "HeartbeatRun",
+    "OAuthIdentity",
     "Plan",
     "Plugin",
     "PolicyPack",

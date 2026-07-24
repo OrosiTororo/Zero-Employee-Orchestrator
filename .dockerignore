@@ -25,6 +25,7 @@ dist
 # Test & dev databases
 *.db
 *.db-journal
+*.log
 
 # IDE
 .vscode

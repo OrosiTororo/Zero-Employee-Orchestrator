@@ -72,6 +72,7 @@ cd Zero-Employee-Orchestrator && pip install .
 
 # or Docker (see Docker section below for details)
 docker compose -f docker/docker-compose.yml up -d
+# → Open the Web UI at http://localhost:5173
 ```
 
 ### Step 2: Configure

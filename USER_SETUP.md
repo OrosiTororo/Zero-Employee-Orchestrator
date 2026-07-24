@@ -172,14 +172,37 @@ POST /api/v1/ipaas/workflows
 
 ---
 
-## 3. Google Workspace Integration (OAuth2)
+## 3. Google OAuth
 
-To integrate with Google Docs, Sheets, etc.:
+### 3.1 Google sign-in for the Web UI and Tauri
+
+Google sign-in is optional and uses the Authorization Code flow with PKCE.
+
+1. In Google Cloud Console, create an OAuth 2.0 **Web application** client.
+2. Register `http://localhost:18234/api/v1/auth/google/callback` as an authorized
+   redirect URI.
+3. Configure:
+
+```bash
+zero-employee config set GOOGLE_LOGIN_CLIENT_ID <client-id>
+zero-employee config set GOOGLE_LOGIN_CLIENT_SECRET <client-secret>
+zero-employee config set GOOGLE_LOGIN_REDIRECT_URI http://localhost:18234/api/v1/auth/google/callback
+```
+
+The API hosts the callback and the Web UI or Tauri client polls the one-time result.
+The server-generated state and PKCE verifier expire after 10 minutes. For a public
+deployment, replace the redirect URI with the exact HTTPS API callback URL, for example
+`https://app.example.com/api/v1/auth/google/callback`.
+
+### 3.2 Google Workspace Integration (OAuth2)
+
+Connector credentials for Google Docs, Sheets, and other Workspace services are
+configured separately from user sign-in:
 
 1. Create a project in [Google Cloud Console](https://console.cloud.google.com)
 2. Go to "APIs & Services" -> "Credentials" -> Create an OAuth 2.0 Client ID
-3. Add `http://localhost:18234/api/v1/auth/google/callback` as a redirect URI
-4. Configure:
+3. Register the redirect URI required by the connector you are configuring.
+4. Configure the connector credentials:
 
 ```bash
 zero-employee config set GOOGLE_CLIENT_ID <client-id>

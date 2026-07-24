@@ -282,6 +282,24 @@ CONFIGURABLE_KEYS: dict[str, dict[str, str]] = {
         "category": "integration",
         "sensitive": "true",
     },
+    "GOOGLE_LOGIN_CLIENT_ID": {
+        "description": "Google Web UI and Tauri sign-in client ID",
+        "description_ja": "Google Web UI・Tauri ログイン用クライアント ID",
+        "category": "authentication",
+        "sensitive": "false",
+    },
+    "GOOGLE_LOGIN_CLIENT_SECRET": {
+        "description": "Google Web UI and Tauri sign-in client secret",
+        "description_ja": "Google Web UI・Tauri ログイン用クライアントシークレット",
+        "category": "authentication",
+        "sensitive": "true",
+    },
+    "GOOGLE_LOGIN_REDIRECT_URI": {
+        "description": "Exact Google sign-in API callback URI",
+        "description_ja": "Google ログイン用 API コールバック URI（完全一致）",
+        "category": "authentication",
+        "sensitive": "false",
+    },
     # --- Production ---
     "SECRET_KEY": {
         "description": "Secret key for JWT / encryption (required for production)",

@@ -114,6 +114,11 @@ class Settings(BaseSettings):
         "credentials",
     )
 
+    # Google sign-in (optional; separate from Google Workspace connector credentials)
+    GOOGLE_LOGIN_CLIENT_ID: str = ""
+    GOOGLE_LOGIN_CLIENT_SECRET: str = ""
+    GOOGLE_LOGIN_REDIRECT_URI: str = "http://localhost:18234/api/v1/auth/google/callback"
+
 
 settings = Settings()
 

@@ -49,7 +49,7 @@ SCHEMA_VERSION_TABLE = "zeo_schema_version"
 # import time so adding a new revision does not require touching this file.
 # The constant is only a fallback for environments where the Alembic
 # directory is not reachable (e.g. a pure pip install without the repo).
-_ALEMBIC_FALLBACK_REVISION = "003_add_setup_completed"
+_ALEMBIC_FALLBACK_REVISION = "005_add_oauth_identities"
 
 
 def _discover_alembic_head() -> str:

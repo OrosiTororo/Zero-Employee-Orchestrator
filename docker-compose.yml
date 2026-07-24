@@ -19,11 +19,14 @@ services:
     environment:
       - DEBUG=${DEBUG:-false}
       - DATABASE_URL=sqlite+aiosqlite:///./data/zero_employee_orchestrator.db
-      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set. Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"}
+      - 'SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set. Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"}'
       - SENTRY_DSN=${SENTRY_DSN:-}
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - GOOGLE_LOGIN_CLIENT_ID=${GOOGLE_LOGIN_CLIENT_ID:-}
+      - GOOGLE_LOGIN_CLIENT_SECRET=${GOOGLE_LOGIN_CLIENT_SECRET:-}
+      - GOOGLE_LOGIN_REDIRECT_URI=${GOOGLE_LOGIN_REDIRECT_URI:-http://localhost:18234/api/v1/auth/google/callback}
       - LANGUAGE=${LANGUAGE:-en}
     volumes:
       - app-data:/app/data
