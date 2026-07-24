@@ -108,7 +108,6 @@ async def lifespan(application: FastAPI):
 
     # Ensure all ORM models are imported before create_all
     import app.models  # noqa: F401
-    from app.services.multi_model_service import BrainstormSessionRecord  # noqa: F401
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
