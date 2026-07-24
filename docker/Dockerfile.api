@@ -20,6 +20,9 @@ RUN pip install --no-cache-dir -e apps/api/
 # Copy application code
 COPY apps/api/ apps/api/
 COPY skills/ skills/
+# Plugin manifests + skill YAMLs are read from disk at runtime
+# (app/services/plugin_skill_loader.py resolves <repo root>/plugins)
+COPY plugins/ plugins/
 
 # Create data directories (writable by non-root user)
 RUN mkdir -p /app/data /app/.zero_employee /home/zeapp/.zero_employee && \

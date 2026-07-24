@@ -3,7 +3,7 @@
 # Zero-Employee Orchestrator
 
 <!-- version-stamp: updated by scripts/bump-version.sh · keep this block in sync across all translated READMEs -->
-> **v0.1.7** · 51 route modules · 428 endpoints · 27 services · 24 orchestration modules · 14 MCP tools · 18 plugins · 11 extensions · 63+ app connectors · 26 models · 6 locales
+> **v0.1.7** · 53 route modules · 432 endpoints · 29 services · 24 orchestration modules · 14 MCP tools · 18 plugins · 12 extensions · 65+ app connectors · 26 models · 6 locales
 
 [![Stars](https://img.shields.io/github/stars/OrosiTororo/Zero-Employee-Orchestrator?style=flat)](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/stargazers)
 [![Forks](https://img.shields.io/github/forks/OrosiTororo/Zero-Employee-Orchestrator?style=flat)](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/network/members)
@@ -211,7 +211,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # FastAPI 백엔드
 │   │   └── app/
 │   │       ├── core/               # 설정, DB, 보안, i18n
-│   │       ├── api/routes/         # 51 REST API 라우트 모듈 (428 엔드포인트)
+│   │       ├── api/routes/         # 53 REST API 라우트 모듈 (432 엔드포인트)
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -226,9 +226,9 @@ Zero-Employee-Orchestrator/
 │   ├── desktop/              # Tauri v2 + React UI
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # 백그라운드 워커
-├── skills/                   # 내장 스킬 (8개: 6 시스템 + 2 도메인)
+├── skills/                   # 내장 스킬 (8개, 모두 시스템 보호)
 ├── plugins/                  # 플러그인 매니페스트 (18개: 12 일반 + 6 역할별)
-├── extensions/               # 익스텐션 매니페스트 (11개)
+├── extensions/               # 익스텐션 매니페스트 (12개)
 │   └── browser-assist/
 │       └── chrome-extension/ # 브라우저 어시스트용 Chrome 확장 프로그램
 ├── packages/                 # 공유 NPM 패키지
@@ -286,7 +286,7 @@ Zero-Employee-Orchestrator/
 | **Agent Adapter** | CrewAI, AutoGen, LangChain, Dify 에이전트를 ZEO 서브 워커로 통합 — 모두 승인 게이트와 감사 하에 |
 | **iPaaS Bridge** | n8n / Zapier / Make 워크플로우 연결 — ZEO가 기존 자동화의 판단 레이어가 됨 |
 | **MCP Server** | Model Context Protocol — MCP 호환 도구가 자동으로 ZEO 도구가 됨 |
-| **App Connector Hub** | 63+ 앱 (Obsidian, Notion, Google Workspace, Microsoft 365, Slack 등) — 커넥터의 커넥터 |
+| **App Connector Hub** | 65+ 앱 (Obsidian, Notion, Google Workspace, Microsoft 365, Slack 등) — 커넥터의 커넥터 |
 | **Tool-of-Tools** | 도구를 연결하는 도구 (예: n8n → 400+ 앱 → ZEO → n8n 연결 → 하나의 통합으로 400+ 앱에 접근) |
 | **멀티 모델 자유** | LiteLLM 경유 22개 모델 패밀리, Ollama 로컬 모델, g4f 웹 세션 — 단일 제공자에 종속되지 않음 |
 | **경쟁 제품 동등 프리미티브** | 워크플로 템플릿(Dify 스타일), 크루(CrewAI 스타일), DAG 노드 결과 캐시(LangGraph 스타일), 범용 HTTP 커넥터(n8n 스타일), Microsoft Graph 어댑터(M365) — 모두 데스크톱 UI에서 원클릭으로 도달 가능 |
@@ -309,7 +309,7 @@ Zero-Employee-Orchestrator/
 |------|------|
 | **브라우저 어시스트** | Chrome 확장 프로그램 오버레이 — AI가 실시간으로 화면 확인 |
 | **미디어 생성** | 이미지, 동영상, 음성, 음악, 3D — 동적 공급업체 등록 지원 |
-| **앱 커넥터 허브** | 63+ 앱 (Obsidian, Notion, Google Workspace, Microsoft 365 등) |
+| **앱 커넥터 허브** | 65+ 앱 (Obsidian, Notion, Google Workspace, Microsoft 365 등) |
 | **AI 도구 통합** | 21개 카테고리, 55+ 외부 도구 |
 | **A2A 통신** | 에이전트 간 P2P 메시징, 채널, 협상 |
 | **분신 AI** | 사용자의 판단 기준을 학습하고 함께 성장 |

@@ -12,7 +12,7 @@ v0.1 includes all features originally planned for v0.2 through v1.0, implemented
 ### Implemented in v0.1
 
 **Foundation:**
-- Full 9-layer architecture (24 orchestration modules, 27 services)
+- Full 9-layer architecture (24 orchestration modules, 29 services)
 - ZEO-Bench, Self-Healing DAG, Experience Memory, AI Self-Improvement
 - 53 API route modules, 432 endpoints
 - 14 security defense layers
@@ -26,13 +26,13 @@ v0.1 includes all features originally planned for v0.2 through v1.0, implemented
 - Meta-Skills (Feeling/Seeing/Dreaming/Making/Learning)
 - AI Repurpose Engine, RSS/ToS Monitor, A2A Communication, Avatar Co-evolution
 - Secretary AI, Browser Assist, Media Generation (5 types)
-- 45+ AI tool integrations across 19 categories
+- 55+ AI tool integrations across 21 categories
 
 **Ecosystem:**
 - Skill/Plugin/Extension Registry with marketplace service
-- Natural language skill generation (16 safety checks)
+- Natural language skill generation (18 safety checks)
 - Browser Automation (Playwright + plugin adapters)
-- 34+ app integrations via App Connector Hub
+- 65 app integrations via App Connector Hub
 
 **Desktop UI (Tauri v2 + React):**
 - Cowork-style task-first layout with nav sidebar + progressive disclosure

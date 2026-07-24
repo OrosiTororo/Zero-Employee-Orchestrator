@@ -58,36 +58,8 @@ services:
     tmpfs:
       - /tmp:size=100M
 
-  # Cloudflare Workers Edge (optional)
-  edge:
-    build:
-      context: ./apps/edge/full
-      dockerfile: Dockerfile
-    ports:
-      - "8787:8787"
-    environment:
-      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set for edge worker}
-      - API_BACKEND_URL=http://api:18234
-    user: "1000:1000"
-    depends_on:
-      api:
-        condition: service_healthy
-    profiles:
-      - edge
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: "1.0"
-    networks:
-      - zeo-internal
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-    security_opt:
-      - no-new-privileges:true
+# NOTE: the Cloudflare Workers edge (apps/edge/) is not containerized —
+# run it locally with `wrangler dev` or deploy it with `wrangler deploy`.
 
 networks:
   zeo-internal:

@@ -19,7 +19,7 @@
 
 **The orchestrator of orchestrators. One platform to command every AI framework, every LLM, every tool — under human approval and full audit.**
 
-ZEO doesn't replace your AI tools — it unifies them. Connect CrewAI, AutoGen, LangChain, Dify, Claude Cowork, n8n, Zapier, and 63+ business apps under a single approval gate, audit trail, and security layer. Define workflows in natural language. Let multiple AI agents plan, execute, verify, and improve — all under your control.
+ZEO doesn't replace your AI tools — it unifies them. Connect CrewAI, AutoGen, LangChain, Dify, Claude Cowork, n8n, Zapier, and 65+ business apps under a single approval gate, audit trail, and security layer. Define workflows in natural language. Let multiple AI agents plan, execute, verify, and improve — all under your control.
 
 ZEO itself is free and open source. LLM API costs are paid directly by users to each provider.
 
@@ -226,7 +226,7 @@ Zero-Employee-Orchestrator/
 │   └── worker/               # Background workers
 ├── skills/                   # 8 built-in skills (all system-protected)
 ├── plugins/                  # 18 plugin manifests (12 general + 6 role-based)
-├── extensions/               # 11 extension manifests
+├── extensions/               # 12 extension manifests
 │   └── browser-assist/
 │       └── chrome-extension/ # Chrome extension for Browser Assist
 ├── packages/                 # Shared NPM packages
@@ -284,7 +284,7 @@ Zero-Employee-Orchestrator/
 | **Agent Adapter** | Integrate CrewAI, AutoGen, LangChain, Dify agents as ZEO sub-workers — all under approval gates and audit |
 | **iPaaS Bridge** | Connect n8n / Zapier / Make workflows — ZEO becomes the judgment layer for existing automations |
 | **MCP Server** | Full Model Context Protocol server (JSON-RPC 2.0, 14 built-in tools, SSE transport) — Claude Desktop, Cursor, Continue, and any MCP-compatible client can drive ZEO natively via `POST /api/v1/mcp/rpc` |
-| **App Connector Hub** | 63+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, Slack, etc.) — connectors for connectors |
+| **App Connector Hub** | 65+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, Slack, etc.) — connectors for connectors |
 | **Tool-of-Tools** | Tools that connect to other tools (e.g., n8n connects to 400+ apps → ZEO connects to n8n → ZEO accesses all 400+ apps through one integration) |
 | **Multi-Model Freedom** | 22 model families via LiteLLM, Ollama local models, g4f web sessions — not locked to any single provider |
 | **Competitor-Parity Primitives** | Workflow templates (Dify-style), crews (CrewAI-style), DAG node-result cache (LangGraph-style), generic HTTP connector (n8n-style), Microsoft Graph adapter (M365) — all reachable from the desktop UI in one click |
@@ -307,7 +307,7 @@ Zero-Employee-Orchestrator/
 |---------|-------------|
 | **Browser Assist** | Chrome extension overlay — AI sees your screen in real-time |
 | **Media Generation** | Image, video, audio, music, 3D — with dynamic provider registration |
-| **App Connector Hub** | 63+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, etc.) |
+| **App Connector Hub** | 65+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, etc.) |
 | **AI Tool Integration** | 55+ external tools across 21 categories |
 | **A2A Communication** | Peer-to-peer agent messaging, channels, and negotiation |
 | **Avatar AI** | Learns your decision patterns and evolves with you |
@@ -325,7 +325,7 @@ Zero-Employee-Orchestrator/
 | Feature | Description |
 |---------|-------------|
 | **Prompt Injection Defense** | 5 categories, 28+ detection patterns |
-| **Approval Gates** | 14 categories — including tiered browser automation (10 levels: navigate < click < type < submit < login < payment) |
+| **Approval Gates** | 16 categories — including tiered browser automation (10 levels: navigate < click < type < submit < login < payment) |
 | **File Sandbox** | AI can only access user-permitted folders (default: STRICT) |
 | **Data Protection** | Upload/download policy control (default: LOCKDOWN) |
 | **PII Protection** | Auto-detect and mask 13 categories of personal information |
@@ -353,7 +353,7 @@ ZEO is designed **security-first** with multi-layered defense:
 | Layer | Description |
 |-------|-------------|
 | **Prompt Injection Defense** | Detects and blocks instruction injection from external inputs (5 categories, 28+ patterns) |
-| **Approval Gates** | 14 categories of dangerous operations (send, delete, billing, permission changes) require human approval |
+| **Approval Gates** | 16 categories of dangerous operations (send, delete, billing, permission changes) require human approval |
 | **Autonomy Boundaries** | Explicitly limits what AI can do autonomously |
 | **IAM & Tool Permissions** | Separate human/AI accounts; role-based tool permissions (5 default policies: secretary, researcher, reviewer, executor, admin) enforce least privilege per agent |
 | **Kill Switch** | Emergency halt of all active executions via UI button or API (`/kill-switch/activate`). Blocks new executions until resumed. |

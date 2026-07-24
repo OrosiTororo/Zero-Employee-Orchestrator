@@ -45,40 +45,54 @@ SYSTEM_PROTECTED_SLUGS: set[str] = frozenset(
 # Safety check patterns
 # ---------------------------------------------------------------------------
 
-_DANGEROUS_PATTERNS: list[tuple[str, str, str]] = [
-    (r"\bos\.system\b", "os.system call", "has_dangerous_code"),
-    (r"\bsubprocess\b", "subprocess module usage", "has_dangerous_code"),
-    (r"\b__import__\b", "dynamic import (__import__)", "has_dangerous_code"),
-    (r"\beval\s*\(", "eval() usage", "has_dangerous_code"),
-    (r"\bexec\s*\(", "exec() usage", "has_dangerous_code"),
-    (r"\bcompile\s*\(", "compile() usage", "has_dangerous_code"),
-    (r"\bopen\s*\(.*(w|a)", "file write operation", "has_dangerous_code"),
+# (pattern, description, report flag, severity). Severity "high" marks
+# arbitrary-code-execution vectors that must fail the acceptance gates;
+# "medium" marks capabilities that are risky but sandbox-governed.
+_DANGEROUS_PATTERNS: list[tuple[str, str, str, str]] = [
+    (r"\bos\.system\b", "os.system call", "has_dangerous_code", "high"),
+    (r"\bsubprocess\b", "subprocess module usage", "has_dangerous_code", "high"),
+    (r"\b__import__\b", "dynamic import (__import__)", "has_dangerous_code", "high"),
+    (r"\beval\s*\(", "eval() usage", "has_dangerous_code", "high"),
+    (r"\bexec\s*\(", "exec() usage", "has_dangerous_code", "high"),
+    (r"\bcompile\s*\(", "compile() usage", "has_dangerous_code", "medium"),
+    (r"\bopen\s*\(.*(w|a)", "file write operation", "has_dangerous_code", "medium"),
     (
         r"\brequests\.(post|put|delete|patch)\b",
         "external HTTP send",
         "has_external_communication",
+        "medium",
     ),
     (
         r"\bhttpx\.(post|put|delete|patch)\b",
         "external HTTP send",
         "has_external_communication",
+        "medium",
     ),
-    (r"\baiohttp\b", "external HTTP communication library", "has_external_communication"),
-    (r"\bsmtplib\b", "email sending", "has_external_communication"),
-    (r"\bsocket\b", "socket communication", "has_external_communication"),
     (
-        r"(api_key|secret|password|token|credential)",
+        r"\baiohttp\b",
+        "external HTTP communication library",
+        "has_external_communication",
+        "medium",
+    ),
+    (r"\bsmtplib\b", "email sending", "has_external_communication", "medium"),
+    (r"\bsocket\b", "socket communication", "has_external_communication", "medium"),
+    (
+        # ``token(?!s)`` avoids flagging ordinary LLM params such as
+        # ``max_tokens`` while still catching auth tokens (``access_token``).
+        r"(api_key|secret|password|token(?!s)|credential)",
         "credential access",
         "has_credential_access",
+        "high",
     ),
-    (r"\bos\.environ\b", "environment variable access", "has_credential_access"),
-    (r"\bshutil\.rmtree\b", "directory deletion", "has_destructive_operations"),
-    (r"\bos\.remove\b", "file deletion", "has_destructive_operations"),
-    (r"\bos\.unlink\b", "file deletion", "has_destructive_operations"),
+    (r"\bos\.environ\b", "environment variable access", "has_credential_access", "high"),
+    (r"\bshutil\.rmtree\b", "directory deletion", "has_destructive_operations", "high"),
+    (r"\bos\.remove\b", "file deletion", "has_destructive_operations", "high"),
+    (r"\bos\.unlink\b", "file deletion", "has_destructive_operations", "high"),
     (
         r"DROP\s+TABLE|DELETE\s+FROM|TRUNCATE",
         "SQL destructive operation",
         "has_destructive_operations",
+        "high",
     ),
 ]
 
@@ -90,10 +104,13 @@ def analyze_code_safety(code: str) -> RegistrySafetyReport:
     permissions: list[str] = []
     externals: list[str] = []
 
-    for pattern, desc, category in _DANGEROUS_PATTERNS:
+    high_severity_hit = False
+    for pattern, desc, category, severity in _DANGEROUS_PATTERNS:
         if re.search(pattern, code, re.IGNORECASE):
             setattr(report, category, True)
             issues.append(desc)
+            if severity == "high":
+                high_severity_hit = True
             if category == "has_external_communication":
                 externals.append(desc)
             if category == "has_credential_access":
@@ -104,7 +121,7 @@ def analyze_code_safety(code: str) -> RegistrySafetyReport:
     report.required_permissions = list(set(permissions))
     report.external_connections = externals
 
-    if report.has_destructive_operations or report.has_credential_access:
+    if high_severity_hit:
         report.risk_level = "high"
     elif report.has_external_communication or report.has_dangerous_code:
         report.risk_level = "medium"

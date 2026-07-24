@@ -25,19 +25,19 @@ ls apps/api/app/
 apps/api/app/         # FastAPI backend
   core/               # Config, DB, rate limiting, i18n
   api/routes/         # 53 route modules, 432 endpoints (incl. plans, autonomy, MCP + wiki/context-engine + agent-adapters + workflow-templates + crews)
-  services/           # 27 services (business logic)
+  services/           # 29 services (business logic)
   orchestration/      # DAG, Judge, transparency, CostGuard (24 modules)
   providers/          # LLM gateway, Ollama, g4f, ModelRegistry
   security/           # sandbox, pii_guard, prompt_guard, iam, workspace_isolation
   policies/           # approval_gate, autonomy_boundary
-  integrations/       # app_connector (63 apps), media, MCP (14 tools, JSON-RPC 2.0 + stdio), browser-assist
+  integrations/       # app_connector (65 apps), media, MCP (14 tools, JSON-RPC 2.0 + stdio), browser-assist
   tools/              # MCP, browser_adapter, agent_adapter
   tests/              # pytest + pytest-asyncio
 apps/desktop/         # Tauri v2 + React (Cowork-style layout)
 apps/edge/            # Cloudflare Workers
 skills/builtin/       # 8 Skills (all system-protected: spec/plan/task/review/summarizer/local/domain/browser-assist)
 plugins/              # 18 Plugins (12 general + 6 role-based packs, incl. ai-ceo, knowledge-wiki)
-extensions/           # 11 Extensions
+extensions/           # 12 Extensions
 ```
 
 ## Commands
@@ -140,7 +140,7 @@ Write about system behavior changes for end users. Do NOT write about docs/CI/co
 # Security modules: sandbox boundary, PII guard, prompt guard
 ```
 
-14 items: server startup, auth flow, protected endpoints, ticket CRUD, security headers, registry (8/18/11), kill switch, models (22+), themes, languages (6), org setup, monitor, brainstorm, app integrations (63 apps)
+14 items: server startup, auth flow, protected endpoints, ticket CRUD, security headers, registry (8/18/11), kill switch, models (22+), themes, languages (6), org setup, monitor, brainstorm, app integrations (65 apps)
 
 ### Evaluation Criteria
 

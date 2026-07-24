@@ -29,10 +29,10 @@ if ($NeedSetup) {
         foreach ($cmd in @("python3", "python")) {
             try {
                 $ver = & $cmd -c "import sys; print(sys.version_info.minor)" 2>$null
-                if ([int]$ver -ge 12) { $PythonCmd = $cmd; break }
+                if ([int]$ver -ge 11) { $PythonCmd = $cmd; break }
             } catch { }
         }
-        if (-not $PythonCmd) { Err "Python 3.12 or higher is required." }
+        if (-not $PythonCmd) { Err "Python 3.11 or higher is required." }
 
         Push-Location "$ROOT_DIR\apps\api"
         try {

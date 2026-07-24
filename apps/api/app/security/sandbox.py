@@ -181,14 +181,14 @@ class FileSystemSandbox:
 
     def add_allowed_path(self, path: str) -> None:
         """Add an allowed path."""
-        resolved = str(Path(path).resolve())
+        resolved = str(Path(path).expanduser().resolve())
         if resolved not in self._config.allowed_paths:
             self._config.allowed_paths.append(resolved)
             logger.info("Sandbox: allowed path added: %s", resolved)
 
     def remove_allowed_path(self, path: str) -> None:
         """Remove an allowed path."""
-        resolved = str(Path(path).resolve())
+        resolved = str(Path(path).expanduser().resolve())
         self._config.allowed_paths = [p for p in self._config.allowed_paths if p != resolved]
         logger.info("Sandbox: allowed path removed: %s", resolved)
 
@@ -314,7 +314,7 @@ class FileSystemSandbox:
     def _check_strict(self, resolved_path: str, access_type: AccessType) -> AccessCheckResult:
         """STRICT mode: whitelisted folders only."""
         for allowed in self._config.allowed_paths:
-            allowed_resolved = str(Path(allowed).resolve())
+            allowed_resolved = str(Path(allowed).expanduser().resolve())
             if resolved_path == allowed_resolved or resolved_path.startswith(
                 allowed_resolved + "/"
             ):
@@ -338,7 +338,7 @@ class FileSystemSandbox:
         """MODERATE mode: whitelist + common public directories."""
         # Allowlist check
         for allowed in self._config.allowed_paths:
-            allowed_resolved = str(Path(allowed).resolve())
+            allowed_resolved = str(Path(allowed).expanduser().resolve())
             if resolved_path == allowed_resolved or resolved_path.startswith(
                 allowed_resolved + "/"
             ):

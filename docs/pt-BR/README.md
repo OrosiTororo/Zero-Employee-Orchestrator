@@ -3,7 +3,7 @@
 # Zero-Employee Orchestrator
 
 <!-- version-stamp: updated by scripts/bump-version.sh · keep this block in sync across all translated READMEs -->
-> **v0.1.7** · 51 route modules · 428 endpoints · 27 services · 24 orchestration modules · 14 MCP tools · 18 plugins · 11 extensions · 63+ app connectors · 26 models · 6 locales
+> **v0.1.7** · 53 route modules · 432 endpoints · 29 services · 24 orchestration modules · 14 MCP tools · 18 plugins · 12 extensions · 65+ app connectors · 26 models · 6 locales
 
 [![Stars](https://img.shields.io/github/stars/OrosiTororo/Zero-Employee-Orchestrator?style=flat)](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/stargazers)
 [![Forks](https://img.shields.io/github/forks/OrosiTororo/Zero-Employee-Orchestrator?style=flat)](https://github.com/OrosiTororo/Zero-Employee-Orchestrator/network/members)
@@ -211,7 +211,7 @@ Zero-Employee-Orchestrator/
 │   ├── api/                  # Backend FastAPI
 │   │   └── app/
 │   │       ├── core/               # Config, DB, segurança, i18n
-│   │       ├── api/routes/         # 51 módulos de rotas REST API (428 endpoints)
+│   │       ├── api/routes/         # 53 módulos de rotas REST API (432 endpoints)
 │   │       ├── api/ws/             # WebSocket
 │   │       ├── models/             # SQLAlchemy ORM
 │   │       ├── schemas/            # Pydantic DTO
@@ -226,9 +226,9 @@ Zero-Employee-Orchestrator/
 │   ├── desktop/              # Tauri v2 + React UI
 │   ├── edge/                 # Cloudflare Workers
 │   └── worker/               # Workers em segundo plano
-├── skills/                   # 8 skills integradas (6 sistema + 2 domínio)
-├── plugins/                  # 16 manifestos de plugins
-├── extensions/               # 11 manifestos de extensões
+├── skills/                   # 8 skills integradas (todas protegidas pelo sistema)
+├── plugins/                  # 18 manifestos de plugins
+├── extensions/               # 12 manifestos de extensões
 │   └── browser-assist/
 │       └── chrome-extension/ # Extensão Chrome para Browser Assist
 ├── packages/                 # Pacotes NPM compartilhados
@@ -286,7 +286,7 @@ Zero-Employee-Orchestrator/
 | **Agent Adapter** | Integre agentes CrewAI, AutoGen, LangChain, Dify como sub-trabalhadores ZEO — tudo sob portas de aprovação e auditoria |
 | **iPaaS Bridge** | Conecte workflows n8n / Zapier / Make — ZEO se torna a camada de julgamento para automações existentes |
 | **MCP Server** | Model Context Protocol — qualquer ferramenta compatível com MCP se torna automaticamente uma ferramenta ZEO |
-| **App Connector Hub** | 63+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, Slack, etc.) — conectores de conectores |
+| **App Connector Hub** | 65+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, Slack, etc.) — conectores de conectores |
 | **Tool-of-Tools** | Ferramentas que conectam outras ferramentas (ex: n8n conecta 400+ apps → ZEO conecta n8n → acessa todos os 400+ apps por uma integração) |
 | **Liberdade Multi-Modelo** | 22 famílias de modelos via LiteLLM, modelos locais Ollama, sessões web g4f — sem lock-in em nenhum provedor |
 | **Primitivas de Paridade Competitiva** | Templates de workflow (estilo Dify), crews (estilo CrewAI), cache de resultados de nós DAG (estilo LangGraph), conector HTTP genérico (estilo n8n), adaptador Microsoft Graph (M365) — todos acessíveis pela UI desktop em um clique |
@@ -309,7 +309,7 @@ Zero-Employee-Orchestrator/
 |---------------|-----------|
 | **Browser Assist** | Overlay de extensão Chrome — IA vê sua tela em tempo real |
 | **Geração de Mídia** | Imagem, vídeo, áudio, música, 3D — com registro dinâmico de provedores |
-| **Hub de Conectores de Apps** | 63+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, etc.) |
+| **Hub de Conectores de Apps** | 65+ apps (Obsidian, Notion, Google Workspace, Microsoft 365, etc.) |
 | **Integração de Ferramentas de IA** | 21 categorias, 55+ ferramentas externas |
 | **Comunicação A2A** | Mensagens peer-to-peer entre agentes, canais e negociação |
 | **IA Avatar** | Aprende seus padrões de decisão e evolui com você |

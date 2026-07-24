@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.skill import Skill
 from app.services.self_improvement_models import ABTestResult
+from app.services.skill_service import analyze_code_safety
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +114,13 @@ async def _execute_skill_for_test(
     if not code.strip():
         return {"status": "error", "output": "No code"}, 0.0
 
+    # Refuse to execute code that fails the static safety analysis. This is
+    # NOT an OS-level sandbox: exec() below runs in-process with full
+    # builtins, so dangerous code must never reach it.
+    safety = analyze_code_safety(code)
+    if safety.has_dangerous_code or safety.risk_level == "high":
+        return {"status": "error", "output": f"Blocked by safety check: {safety.summary}"}, 0.0
+
     context = {
         "input": test_input.get("input", ""),
         "local_context": test_input.get("local_context", {}),
@@ -122,10 +130,11 @@ async def _execute_skill_for_test(
 
     start = time.monotonic()
     try:
-        # Sandbox execution: extract execute function via compile + exec and run safely
+        # In-process execution of safety-screened code (gated above by
+        # analyze_code_safety) — not an isolated sandbox.
         namespace: dict[str, Any] = {}
         compiled = compile(code, f"<skill:{skill.slug}>", "exec")
-        exec(compiled, namespace)  # noqa: S102 — sandbox execution
+        exec(compiled, namespace)  # noqa: S102 — gated by analyze_code_safety above
 
         execute_fn = namespace.get("execute")
         if execute_fn is None:

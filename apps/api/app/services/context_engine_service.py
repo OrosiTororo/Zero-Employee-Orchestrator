@@ -200,7 +200,7 @@ class ContextEngineService:
         Drops everything in ``Inbox/`` into the knowledge graph and writes
         a session report.
         """
-        from app.security.prompt_guard import wrap_external_data
+        from app.security.prompt_guard import ThreatLevel, scan_prompt_injection
 
         self.setup()
         report = RalphReport(
@@ -223,8 +223,19 @@ class ContextEngineService:
             except OSError as exc:
                 report.warnings.append(f"read-failed:{note.name}:{exc}")
                 continue
-            # Defend against prompt injection inside ingested text.
-            _ = wrap_external_data(raw, source=f"inbox:{note.name}")
+            # Scan for prompt injection inside ingested text: record every
+            # detection in the report and quarantine high-threat notes (they
+            # stay in Inbox/ for manual review). LLM-powered _reduce_note
+            # overrides must wrap the text with wrap_external_data themselves
+            # at the LLM boundary — stored atoms stay unwrapped by design.
+            scan = scan_prompt_injection(raw)
+            if not scan.is_safe:
+                report.warnings.append(
+                    f"injection-risk:{note.name}:{scan.threat_level.value}:"
+                    + ";".join(scan.detections[:3])
+                )
+                if scan.threat_level in (ThreatLevel.HIGH, ThreatLevel.CRITICAL):
+                    continue
             atoms = self._reduce_note(raw, note.stem)
             for atom in atoms:
                 path = atoms_dir / f"{atom.slug}.md"
@@ -268,7 +279,9 @@ class ContextEngineService:
         """Split ``raw`` into atomic notes.
 
         Strategy: one atom per H1/H2 heading; fallback to the whole note.
-        Subclass and override for LLM-powered extraction.
+        Subclass and override for LLM-powered extraction. Overrides that
+        send ``raw`` to an LLM must wrap it with
+        :func:`app.security.prompt_guard.wrap_external_data` first.
         """
         atoms: list[Atom] = []
 

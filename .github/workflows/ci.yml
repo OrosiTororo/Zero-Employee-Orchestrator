@@ -241,7 +241,11 @@ jobs:
 
       - name: Type check
         working-directory: apps/desktop/ui
-        run: pnpm tsc --noEmit
+        # tsconfig.json is solution-style (files: [] + references), so plain
+        # `tsc --noEmit` compiles zero files. Build mode follows the project
+        # references; both referenced tsconfigs set noEmit, so this is a pure
+        # type check.
+        run: pnpm tsc -b
 
       - name: Run frontend tests
         working-directory: apps/desktop/ui
