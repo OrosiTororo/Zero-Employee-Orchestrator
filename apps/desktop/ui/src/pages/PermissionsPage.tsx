@@ -144,7 +144,7 @@ export function PermissionsPage() {
                 <option value="execute">実行</option>
                 <option value="full">フルアクセス</option>
               </select>
-              <button onClick={addPermission} className="px-3 py-2 rounded-md bg-[var(--accent)] text-white text-[12px] flex items-center gap-1">
+              <button onClick={addPermission} className="px-3 py-2 rounded-md bg-[var(--accent)] text-[var(--accent-fg)] text-[12px] flex items-center gap-1">
                 <Plus size={12} /> 追加
               </button>
             </div>
@@ -190,7 +190,7 @@ export function PermissionsPage() {
                 placeholder="パス（例: /Documents/Work）"
                 className="flex-1 px-3 py-2 text-[12px] rounded-md border border-[var(--border)] bg-[var(--bg-input)] text-[var(--text-primary)] outline-none"
               />
-              <button onClick={addFolder} className="px-3 py-2 rounded-md bg-[var(--accent)] text-white text-[12px] flex items-center gap-1">
+              <button onClick={addFolder} className="px-3 py-2 rounded-md bg-[var(--accent)] text-[var(--accent-fg)] text-[12px] flex items-center gap-1">
                 <Plus size={12} /> 追加
               </button>
             </div>

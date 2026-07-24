@@ -34,7 +34,10 @@ import { UpdateBanner } from "@/shared/ui/UpdateBanner"
 import { CommandPalette } from "@/shared/ui/CommandPalette"
 import { WelcomeTour } from "@/shared/ui/WelcomeTour"
 import { AutonomyDial } from "@/shared/ui/AutonomyDial"
-import { useCommandPalette } from "@/shared/hooks/use-command-palette"
+import {
+  getCommandPaletteShortcutLabel,
+  useCommandPalette,
+} from "@/shared/hooks/use-command-palette"
 import { useT, useI18n } from "@/shared/i18n"
 import { api } from "@/shared/api/client"
 
@@ -61,6 +64,7 @@ export function Layout({ children }: LayoutProps) {
   const t = useT()
   const { locale } = useI18n()
   const openPalette = useCommandPalette((s) => s.setOpen)
+  const commandPaletteShortcut = getCommandPaletteShortcutLabel()
 
   const [dispatchCount, setDispatchCount] = useState(0)
   const [collapsed, setCollapsed] = useState(
@@ -334,7 +338,7 @@ export function Layout({ children }: LayoutProps) {
           <Search size={13} />
           <span className="hidden text-[12px] sm:inline">{t.common.search}</span>
           <kbd className="rounded-[4px] border border-[var(--border)] px-1 py-px text-[10px]">
-            ⌘K
+            {commandPaletteShortcut}
           </kbd>
         </button>
       </header>

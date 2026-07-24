@@ -239,7 +239,7 @@ export function SecretaryPage() {
             <button
               onClick={handleSubmit}
               disabled={isSubmitting || !inputText.trim()}
-              className="flex items-center gap-2 px-4 py-2 rounded-md text-[13px] font-medium text-white disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 rounded-md text-[13px] font-medium text-[var(--accent-fg)] disabled:opacity-50"
               style={{ background: "var(--accent)" }}
             >
               {isSubmitting ? (

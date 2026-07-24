@@ -339,7 +339,7 @@ export default function BrainstormPage() {
                   )}
                   <div className="flex gap-2 mt-2">
                     <button onClick={createSession}
-                      className="flex-1 px-3 py-1.5 rounded text-[12px] bg-[var(--accent)] text-white">{t.common.create}</button>
+                      className="flex-1 px-3 py-1.5 rounded text-[12px] bg-[var(--accent)] text-[var(--accent-fg)]">{t.common.create}</button>
                     <button onClick={() => setShowNewSession(false)}
                       className="px-3 py-1.5 rounded text-[12px] text-[var(--text-muted)] border border-[var(--border)]">{t.common.cancel}</button>
                   </div>
@@ -368,7 +368,7 @@ export default function BrainstormPage() {
                   <div className="px-3 py-2 bg-[var(--bg-surface)] border border-[var(--border)] rounded mb-3">
                     <span className="text-[13px] font-medium text-[var(--text-primary)]">{currentSession.title}</span>
                     {currentSession.is_multi_model && (
-                      <span className="ml-2 px-2 py-0.5 text-[10px] rounded bg-[var(--accent)] text-white">{t.brainstorm.multiModel}</span>
+                      <span className="ml-2 px-2 py-0.5 text-[10px] rounded bg-[var(--accent)] text-[var(--accent-fg)]">{t.brainstorm.multiModel}</span>
                     )}
                   </div>
 
@@ -406,7 +406,7 @@ export default function BrainstormPage() {
                       placeholder={t.brainstorm.inputPlaceholder} rows={3}
                       className="flex-1 px-3 py-2 rounded text-[13px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)] resize-none" />
                     <button onClick={sendMessage} disabled={loading || !input.trim()}
-                      className="px-4 rounded bg-[var(--accent)] text-white disabled:opacity-40 flex items-center">
+                      className="px-4 rounded bg-[var(--accent)] text-[var(--accent-fg)] disabled:opacity-40 flex items-center">
                       {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                     </button>
                   </div>
@@ -439,7 +439,7 @@ export default function BrainstormPage() {
 
             <div className="flex gap-3 items-center mb-6">
               <button onClick={runMultiModelComparison} disabled={comparing || compareModels.length < 2 || !compareInput.trim()}
-                className="flex items-center gap-1.5 px-4 py-2 rounded text-[12px] bg-[var(--accent)] text-white disabled:opacity-40">
+                className="flex items-center gap-1.5 px-4 py-2 rounded text-[12px] bg-[var(--accent)] text-[var(--accent-fg)] disabled:opacity-40">
                 {comparing ? <Loader2 size={14} className="animate-spin" /> : <GitCompare size={14} />}
                 {t.brainstorm.runCompare}
               </button>
@@ -525,7 +525,7 @@ export default function BrainstormPage() {
                   </div>
                   <div className="text-[11px] text-[var(--text-muted)] mb-2">{r.description.slice(0, 120)}{r.description.length > 120 ? "..." : ""}</div>
                   <button onClick={() => addAgentByRole(r.role_key)}
-                    className="flex items-center gap-1 text-[11px] px-2 py-1 rounded border border-[var(--accent)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white transition-colors">
+                    className="flex items-center gap-1 text-[11px] px-2 py-1 rounded border border-[var(--accent)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--accent-fg)] transition-colors">
                     <Plus size={12} /> {t.brainstorm.addAgent}
                   </button>
                 </div>
@@ -548,7 +548,7 @@ export default function BrainstormPage() {
                 placeholder={t.brainstorm.orgRequestPlaceholder} rows={3}
                 className="w-full px-3 py-2 rounded text-[13px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)] resize-none mb-3" />
               <button onClick={submitFeatureRequest} disabled={!featureRequest.trim()}
-                className="flex items-center gap-1.5 px-4 py-2 rounded text-[12px] bg-[var(--accent)] text-white disabled:opacity-40">
+                className="flex items-center gap-1.5 px-4 py-2 rounded text-[12px] bg-[var(--accent)] text-[var(--accent-fg)] disabled:opacity-40">
                 <Send size={14} /> {t.brainstorm.submitRequest}
               </button>
             </div>
@@ -619,7 +619,7 @@ function ModelSelector({ models, onToggle, customValue, onCustomChange, onCustom
               onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); onCustomAdd() } }}
               className="flex-1 px-2 py-1 rounded text-[11px] outline-none bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] focus:border-[var(--accent)] font-mono" />
             <button onClick={onCustomAdd} disabled={!customValue.trim()}
-              className="px-2 py-1 rounded text-[11px] bg-[var(--accent)] text-white disabled:opacity-40">
+              className="px-2 py-1 rounded text-[11px] bg-[var(--accent)] text-[var(--accent-fg)] disabled:opacity-40">
               <Plus size={12} />
             </button>
           </div>

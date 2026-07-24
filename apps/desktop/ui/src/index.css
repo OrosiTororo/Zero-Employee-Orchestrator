@@ -47,16 +47,16 @@
 
   --border: rgba(255, 255, 255, 0.09);        /* hairline           */
   --border-strong: rgba(255, 255, 255, 0.16); /* emphasized outline */
-  --border-focus: #0A84FF;
+  --border-focus: #3B9BFF;
 
   --text-primary: #F2F2F5;
   --text-secondary: #A9A9B2;
   --text-muted: #74747E;
 
-  /* Accent — Apple system blue (dark variant) */
-  --accent: #0A84FF;
-  --accent-hover: #3B9BFF;
-  --accent-fg: #FFFFFF;
+  /* Accent — accessible system-blue variant for dark surfaces */
+  --accent: #3B9BFF;
+  --accent-hover: #5AACFF;
+  --accent-fg: #000000;
   --accent-subtle: rgba(10, 132, 255, 0.14);
   --accent-secondary: #BF5AF2;
 
@@ -128,28 +128,28 @@
 
   --border: rgba(0, 0, 0, 0.1);
   --border-strong: rgba(0, 0, 0, 0.18);
-  --border-focus: #007AFF;
+  --border-focus: #0066CC;
 
   --text-primary: #1D1D1F;
   --text-secondary: #55555C;
   --text-muted: #86868B;
 
-  /* Accent — Apple system blue */
-  --accent: #007AFF;
-  --accent-hover: #0071E3;
+  /* Accent — accessible system-blue variant for light surfaces */
+  --accent: #0066CC;
+  --accent-hover: #005BB5;
   --accent-fg: #FFFFFF;
-  --accent-subtle: rgba(0, 122, 255, 0.1);
+  --accent-subtle: rgba(0, 102, 204, 0.1);
   --accent-secondary: #AF52DE;
 
   --statusbar-fg: #55555C;
 
   /* Status — accessible variants for text on light surfaces */
-  --success: #248A3D;
-  --success-fg: #248A3D;
+  --success: #1C7433;
+  --success-fg: #1C7433;
   --error: #D70015;
   --warning: #B45309;
   --warning-fg: #B45309;
-  --info: #0071E3;
+  --info: #0066CC;
 
   --shadow-card: 0 1px 2px rgba(16, 17, 20, 0.04), 0 1px 6px rgba(16, 17, 20, 0.04);
   --shadow-popup: 0 12px 32px rgba(16, 17, 20, 0.14), 0 2px 8px rgba(16, 17, 20, 0.08);

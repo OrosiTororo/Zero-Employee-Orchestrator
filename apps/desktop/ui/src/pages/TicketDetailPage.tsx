@@ -108,7 +108,7 @@ export function TicketDetailPage() {
             </button>
             <button
               onClick={() => navigate(`/tickets/${id}/spec-plan`)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[12px] bg-[var(--accent)] text-white"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[12px] bg-[var(--accent)] text-[var(--accent-fg)]"
             >
               <FileText size={14} />
               {t.ticketDetail?.viewSpecPlan ?? "View Spec & Plan"}

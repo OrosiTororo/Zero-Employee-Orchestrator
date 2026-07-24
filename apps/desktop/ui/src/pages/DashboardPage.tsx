@@ -22,6 +22,7 @@ import {
   Settings as SettingsIcon,
 } from "lucide-react"
 import { api } from "../shared/api/client"
+import { getCommandPaletteShortcutLabel } from "@/shared/hooks/use-command-palette"
 import { useT } from "@/shared/i18n"
 import { WhatsNew } from "@/shared/ui/WhatsNew"
 
@@ -35,6 +36,7 @@ export function DashboardPage() {
   const navigate = useNavigate()
   const t = useT()
   const companyId = localStorage.getItem("company_id") || ""
+  const commandPaletteShortcut = getCommandPaletteShortcutLabel()
 
   const fetchStats = useCallback(async () => {
     if (!companyId) return
@@ -160,7 +162,7 @@ export function DashboardPage() {
                     >
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold"
-                          style={{ background: "var(--accent)", color: "white" }}>{s.step}</span>
+                          style={{ background: "var(--accent)", color: "var(--accent-fg)" }}>{s.step}</span>
                         <s.icon size={13} className="text-[var(--text-muted)]" />
                         <span className="text-[12px] font-medium text-[var(--text-primary)]">{s.label}</span>
                       </div>
@@ -186,7 +188,7 @@ export function DashboardPage() {
               {t.dashboard.requestTask}
             </h2>
             <kbd className="ml-auto text-[10px] text-[var(--text-muted)] border border-[var(--border)] rounded-[4px] px-1.5 py-0.5 bg-[var(--bg-raised)]">
-              Ctrl+K
+              {commandPaletteShortcut}
             </kbd>
           </div>
           <div

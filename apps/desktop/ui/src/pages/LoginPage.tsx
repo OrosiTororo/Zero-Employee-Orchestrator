@@ -243,8 +243,11 @@ export function LoginPage() {
           <button
             onClick={mode === "login" ? handleLogin : handleRegister}
             disabled={loading}
-            className="flex items-center justify-center gap-2 px-6 py-2.5 rounded text-[13px] font-medium text-[var(--accent-fg)] disabled:opacity-50"
-            style={{ background: loading ? "var(--bg-active)" : "var(--accent)" }}
+            className="flex items-center justify-center gap-2 px-6 py-2.5 rounded text-[13px] font-medium disabled:opacity-50"
+            style={{
+              background: loading ? "var(--bg-active)" : "var(--accent)",
+              color: loading ? "var(--text-muted)" : "var(--accent-fg)",
+            }}
           >
             {mode === "login" ? (
               <>

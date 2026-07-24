@@ -358,7 +358,7 @@ export function BackendGuard({ children }: { children: React.ReactNode }) {
             )}
             <button
               onClick={handleRetry}
-              className="mt-2 px-5 py-2 rounded-md text-[13px] font-medium text-white"
+              className="mt-2 px-5 py-2 rounded-md text-[13px] font-medium text-[var(--accent-fg)]"
               style={{ background: "var(--accent)" }}
             >
               {t.backend.retry}

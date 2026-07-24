@@ -645,7 +645,7 @@ export function SetupPage() {
                     <div className="text-center py-4">
                       <button
                         onClick={handlePreview}
-                        className="px-6 py-2.5 rounded-md text-[13px] font-medium text-white"
+                        className="px-6 py-2.5 rounded-md text-[13px] font-medium text-[var(--accent-fg)]"
                         style={{ background: "var(--accent)" }}
                       >
                         {t.orgSetup.previewStructure}
@@ -796,7 +796,7 @@ export function SetupPage() {
           {currentStep === "complete" ? (
             <button
               onClick={finishSetup}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-md text-[13px] font-medium text-white"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-md text-[13px] font-medium text-[var(--accent-fg)]"
               style={{ background: "var(--accent)" }}
             >
               <Sparkles size={16} />
@@ -810,7 +810,7 @@ export function SetupPage() {
                 }
                 next()
               }}
-              className="flex items-center gap-1 px-6 py-2.5 rounded-md text-[13px] font-medium text-white"
+              className="flex items-center gap-1 px-6 py-2.5 rounded-md text-[13px] font-medium text-[var(--accent-fg)]"
               style={{ background: "var(--accent)" }}
             >
               {t.common.next}

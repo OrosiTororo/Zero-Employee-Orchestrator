@@ -206,7 +206,7 @@ export function OperatorProfilePage() {
             <button
               onClick={saveProfile}
               disabled={saving}
-              className="flex items-center gap-1.5 px-4 py-2 rounded text-[12px] font-medium text-white disabled:opacity-40"
+              className="flex items-center gap-1.5 px-4 py-2 rounded text-[12px] font-medium text-[var(--accent-fg)] disabled:opacity-40"
               style={{ background: "var(--accent)" }}
             >
               {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
@@ -233,7 +233,7 @@ export function OperatorProfilePage() {
             <button
               onClick={saveInstructions}
               disabled={saving}
-              className="flex items-center gap-1.5 px-4 py-2 rounded text-[12px] font-medium text-white disabled:opacity-40"
+              className="flex items-center gap-1.5 px-4 py-2 rounded text-[12px] font-medium text-[var(--accent-fg)] disabled:opacity-40"
               style={{ background: "var(--accent)" }}
             >
               {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
