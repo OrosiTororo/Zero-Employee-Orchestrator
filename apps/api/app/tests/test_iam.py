@@ -291,7 +291,10 @@ class TestCredentialProtection:
         mode = os.stat(filepath).st_mode
         assert mode & stat.S_IRUSR  # owner can read
         assert not (mode & stat.S_IWUSR)  # owner cannot write
-        assert not (mode & stat.S_IRGRP)  # group cannot read
+        # Windows chmod exposes only the read-only flag; POSIX group bits are
+        # reported but cannot be configured independently.
+        if os.name != "nt":
+            assert not (mode & stat.S_IRGRP)  # group cannot read
 
     def test_protect_nonexistent_file(self, iam: IAMManager):
         result = iam.protect_credential_file("/nonexistent/path/file.key")

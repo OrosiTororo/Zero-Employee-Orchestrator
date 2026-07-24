@@ -184,8 +184,11 @@ class TestSecretStorePersistent:
         # Should be 0o600 (owner read/write only)
         assert mode & stat.S_IRUSR
         assert mode & stat.S_IWUSR
-        assert not (mode & stat.S_IRGRP)
-        assert not (mode & stat.S_IROTH)
+        # Windows chmod exposes only the read-only flag; POSIX group/other
+        # bits are reported but cannot be configured independently.
+        if os.name != "nt":
+            assert not (mode & stat.S_IRGRP)
+            assert not (mode & stat.S_IROTH)
 
     def test_salt_file_created(self, tmp_path: Path):
         path = tmp_path / "secrets"

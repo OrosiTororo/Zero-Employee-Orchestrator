@@ -13,6 +13,7 @@ Tests for:
 """
 
 import base64
+from pathlib import Path
 
 from app.policies.approval_gate import (
     ApprovalCategory,
@@ -296,9 +297,10 @@ class TestSandbox:
     def test_add_and_remove_path(self):
         sandbox = FileSystemSandbox(SandboxConfig(level=SandboxLevel.STRICT))
         sandbox.add_allowed_path("/tmp/test_dir")
-        assert any("/tmp/test_dir" in p for p in sandbox.get_allowed_paths())
+        resolved = str(Path("/tmp/test_dir").resolve())
+        assert resolved in sandbox.get_allowed_paths()
         sandbox.remove_allowed_path("/tmp/test_dir")
-        assert all("/tmp/test_dir" not in p for p in sandbox.get_allowed_paths())
+        assert resolved not in sandbox.get_allowed_paths()
 
     def test_explicit_whitelist_overrides_directory_deny(self):
         """Explicit add_allowed_path() must override directory-level denies.
