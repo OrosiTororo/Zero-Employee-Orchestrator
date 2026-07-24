@@ -172,6 +172,11 @@ class MCPServer:
         self._register_builtin_resources()
         self._register_builtin_prompts()
 
+    @property
+    def tool_count(self) -> int:
+        """Return the number of registered MCP tools."""
+        return len(self._tools)
+
     # ------------------------------------------------------------------
     # Version resolution (dynamic so it always matches pyproject.toml)
     # ------------------------------------------------------------------
@@ -431,11 +436,11 @@ class MCPServer:
 
             from sqlalchemy import select
 
-            from app.core.database import get_session
+            from app.core.database import async_session_factory
             from app.models.company import Company
             from app.services.ticket_service import create_ticket
 
-            async for db in get_session():
+            async with async_session_factory() as db:
                 company_id = args.get("company_id")
                 if not company_id:
                     first = (
@@ -470,13 +475,13 @@ class MCPServer:
 
             from sqlalchemy import select
 
-            from app.core.database import get_session
+            from app.core.database import async_session_factory
             from app.models.ticket import Ticket
 
             limit = int(args.get("limit", 20))
             company_id = args.get("company_id")
             status = args.get("status")
-            async for db in get_session():
+            async with async_session_factory() as db:
                 stmt = select(Ticket).order_by(Ticket.ticket_no.desc()).limit(limit)
                 if company_id:
                     stmt = stmt.where(Ticket.company_id == _uuid.UUID(str(company_id)))
@@ -508,11 +513,11 @@ class MCPServer:
     async def _handle_search_knowledge(self, args: dict) -> str:
         """Search the persistent knowledge store (Experience Memory)."""
         try:
-            from app.core.database import get_session
+            from app.core.database import async_session_factory
             from app.orchestration.knowledge_store import KnowledgeStore
 
             limit = int(args.get("limit", 5))
-            async for db in get_session():
+            async with async_session_factory() as db:
                 store = KnowledgeStore(db)
                 records = await store.recall(
                     category=args.get("category"),
@@ -555,12 +560,12 @@ class MCPServer:
         try:
             import uuid as _uuid
 
-            from app.core.database import get_session
+            from app.core.database import async_session_factory
             from app.repositories.audit_repository import AuditLogRepository
 
             company_id = args.get("company_id") or "00000000-0000-0000-0000-000000000000"
             limit = int(args.get("limit", 50))
-            async for db in get_session():
+            async with async_session_factory() as db:
                 repo = AuditLogRepository(db)
                 logs = await repo.get_by_company(
                     _uuid.UUID(company_id),
@@ -650,10 +655,10 @@ class MCPServer:
         try:
             from sqlalchemy import func, select
 
-            from app.core.database import get_session
+            from app.core.database import async_session_factory
             from app.models.budget import BudgetPolicy, CostLedger
 
-            async for db in get_session():
+            async with async_session_factory() as db:
                 policy_count = await db.scalar(select(func.count(BudgetPolicy.id))) or 0
                 spend_total = (
                     await db.scalar(select(func.coalesce(func.sum(CostLedger.cost_usd), 0)))
@@ -684,11 +689,11 @@ class MCPServer:
         try:
             from sqlalchemy import select
 
-            from app.core.database import get_session
+            from app.core.database import async_session_factory
             from app.models.review import ApprovalRequest
 
             limit = int(args.get("limit", 20))
-            async for db in get_session():
+            async with async_session_factory() as db:
                 result = await db.execute(
                     select(ApprovalRequest)
                     .where(ApprovalRequest.status == "requested")

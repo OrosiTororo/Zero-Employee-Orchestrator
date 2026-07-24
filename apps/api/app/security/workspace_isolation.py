@@ -32,6 +32,11 @@ logger = logging.getLogger(__name__)
 _DEFAULT_INTERNAL_STORAGE = os.path.join(os.path.expanduser("~"), ".zero_employee", "workspace")
 
 
+def _is_path_within(path: str, directory: str) -> bool:
+    """Return whether a resolved path is inside a resolved directory."""
+    return Path(path).is_relative_to(Path(directory))
+
+
 class StorageLocation(str, Enum):
     """Artifact storage location."""
 
@@ -188,7 +193,7 @@ class WorkspaceIsolation:
 
         # 1. Access to internal storage is always allowed
         internal_resolved = str(Path(self._config.internal_storage_path).resolve())
-        if resolved == internal_resolved or resolved.startswith(internal_resolved + "/"):
+        if _is_path_within(resolved, internal_resolved):
             return WorkspaceAccessResult(
                 allowed=True,
                 path=resolved,
@@ -201,7 +206,7 @@ class WorkspaceIsolation:
             if override.approved_by_user:
                 for allowed in override.additional_local_paths:
                     allowed_resolved = str(Path(allowed).resolve())
-                    if resolved == allowed_resolved or resolved.startswith(allowed_resolved + "/"):
+                    if _is_path_within(resolved, allowed_resolved):
                         return WorkspaceAccessResult(
                             allowed=True,
                             path=resolved,
@@ -229,7 +234,7 @@ class WorkspaceIsolation:
         # 4. Check if path is within allowed local paths
         for allowed in self._config.allowed_local_paths:
             allowed_resolved = str(Path(allowed).resolve())
-            if resolved == allowed_resolved or resolved.startswith(allowed_resolved + "/"):
+            if _is_path_within(resolved, allowed_resolved):
                 return WorkspaceAccessResult(
                     allowed=True,
                     path=resolved,

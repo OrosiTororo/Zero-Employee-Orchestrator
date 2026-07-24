@@ -6,12 +6,13 @@ import uuid
 from datetime import UTC, datetime
 
 import httpx
-from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps.auth import get_current_user, get_optional_user  # noqa: F401
 from app.api.deps.database import get_db
 from app.core.config import settings
 from app.core.rate_limit import limiter
@@ -43,8 +44,6 @@ from app.services.auth_service import (
     change_password,
     confirm_password_reset,
     create_access_token,
-    decode_access_token,
-    get_user_by_id,
     oauth_login_or_register,
     register_user,
     request_password_reset,
@@ -67,23 +66,6 @@ async def _get_user_setup_completed(db: AsyncSession, user_id: str) -> bool:
     if company is None:
         return False
     return bool(company.setup_completed)
-
-
-async def get_current_user(
-    db: AsyncSession = Depends(get_db),
-    authorization: str | None = Header(None),
-) -> User:
-    """Extract current user from Authorization header."""
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Authentication required")
-    token = authorization.replace("Bearer ", "")
-    user_id = decode_access_token(token)
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    user = await get_user_by_id(db, user_id)
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
-    return user
 
 
 @router.post("/register", response_model=LoginResponse)
@@ -555,17 +537,3 @@ async def mark_setup_complete(
     company.setup_completed = True
     await db.commit()
     return {"setup_completed": True}
-
-
-async def get_optional_user(
-    db: AsyncSession = Depends(get_db),
-    authorization: str | None = Header(None),
-) -> User | None:
-    """Authentication is optional — returns user if token is present, otherwise None."""
-    if not authorization:
-        return None
-    token = authorization.replace("Bearer ", "")
-    user_id = decode_access_token(token)
-    if not user_id:
-        return None
-    return await get_user_by_id(db, user_id)

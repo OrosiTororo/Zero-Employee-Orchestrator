@@ -108,7 +108,6 @@ async def lifespan(application: FastAPI):
 
     # Ensure all ORM models are imported before create_all
     import app.models  # noqa: F401
-    from app.services.multi_model_service import BrainstormSessionRecord  # noqa: F401
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -163,7 +162,7 @@ async def lifespan(application: FastAPI):
     try:
         from app.integrations.mcp_server import mcp_server
 
-        logger.info("MCP server ready (%d tools)", len(mcp_server._tools))
+        logger.info("MCP server ready (%d tools)", mcp_server.tool_count)
     except Exception as exc:
         logger.debug("MCP init failed (non-fatal): %s", exc)
 

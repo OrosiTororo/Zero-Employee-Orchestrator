@@ -12,6 +12,7 @@ from app.models.agent import Agent
 from app.models.artifact import Artifact
 from app.models.audit import AuditLog
 from app.models.autonomy_override import AutonomySessionOverride
+from app.models.brainstorm import BrainstormSessionRecord
 from app.models.budget import BudgetPolicy, CostLedger
 from app.models.company import Company
 from app.models.connection import ToolCallTrace, ToolConnection
@@ -43,6 +44,7 @@ __all__ = [
     "Artifact",
     "AuditLog",
     "AutonomySessionOverride",
+    "BrainstormSessionRecord",
     "BudgetPolicy",
     "Company",
     "CompanyMember",

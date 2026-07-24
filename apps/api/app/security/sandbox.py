@@ -27,6 +27,11 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
+def _is_path_within(path: str, directory: str) -> bool:
+    """Return whether a resolved path is inside a resolved directory."""
+    return Path(path).is_relative_to(Path(directory))
+
+
 class SandboxLevel(str, Enum):
     """Sandbox level."""
 
@@ -261,9 +266,7 @@ class FileSystemSandbox:
                 allowed_resolved = str(Path(allowed).expanduser().resolve())
             except (ValueError, OSError):
                 continue
-            if resolved_path == allowed_resolved or resolved_path.startswith(
-                allowed_resolved + "/"
-            ):
+            if _is_path_within(resolved_path, allowed_resolved):
                 in_whitelist = True
                 break
 
@@ -275,9 +278,7 @@ class FileSystemSandbox:
                 if in_whitelist:
                     continue
                 denied_resolved = str(Path(denied).expanduser().resolve())
-                if resolved_path == denied_resolved or resolved_path.startswith(
-                    denied_resolved + "/"
-                ):
+                if _is_path_within(resolved_path, denied_resolved):
                     return AccessCheckResult(
                         allowed=False,
                         path=resolved_path,
@@ -315,9 +316,7 @@ class FileSystemSandbox:
         """STRICT mode: whitelisted folders only."""
         for allowed in self._config.allowed_paths:
             allowed_resolved = str(Path(allowed).resolve())
-            if resolved_path == allowed_resolved or resolved_path.startswith(
-                allowed_resolved + "/"
-            ):
+            if _is_path_within(resolved_path, allowed_resolved):
                 return AccessCheckResult(
                     allowed=True,
                     path=resolved_path,
@@ -339,9 +338,7 @@ class FileSystemSandbox:
         # Allowlist check
         for allowed in self._config.allowed_paths:
             allowed_resolved = str(Path(allowed).resolve())
-            if resolved_path == allowed_resolved or resolved_path.startswith(
-                allowed_resolved + "/"
-            ):
+            if _is_path_within(resolved_path, allowed_resolved):
                 return AccessCheckResult(
                     allowed=True,
                     path=resolved_path,
