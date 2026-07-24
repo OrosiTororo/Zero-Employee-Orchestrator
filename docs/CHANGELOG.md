@@ -1,5 +1,33 @@
 # Changelog
 
+## [Unreleased]
+
+### Desktop UI — "Clarity" redesign (Material Design 3 × Apple HIG)
+
+The desktop app's visual language is rebuilt around Material Design 3
+tonal surfaces and Apple Human Interface Guidelines hierarchy:
+
+- **Labeled sidebar** — the icon-only nav rail is now a full sidebar with
+  labels and grouped sections (Manage / Extend), collapsible back to an
+  icon rail; your choice persists across launches. Section names are
+  localized in all six languages.
+- **Calmer chrome** — the blue status bar is replaced by a quiet hairline
+  bar that matches the window; the title bar gains a Search button that
+  opens the Command Palette (in addition to Ctrl/Cmd+K).
+- **New theme tokens** — Apple system-blue accent, tonal dark/light
+  surface ramps (light mode: white cards on soft grey), hairline borders,
+  softer larger corner radii applied app-wide, layered elevation shadows
+  reserved for floating layers, and accessible status colors on light
+  backgrounds.
+- **Refined components** — dialogs, Command Palette, autonomy dial
+  popover, toasts, and the update banner share one floating-surface
+  style with a gentle scale-in entrance; toasts are now theme-aware
+  instead of solid red/amber. Reduced-motion preference is still
+  honoured.
+- **Dashboard** — the task input is a prominent elevated card and its
+  Submit button is now a proper filled primary button (it previously
+  rendered without a background).
+
 ## [v0.1.7-polish] (2026-04-20)
 
 ### Completeness — every EVALUATION_v0.1.7 deferred item landed

@@ -74,20 +74,12 @@ export function EmptyState({
       {action || secondaryAction ? (
         <div className="mt-4 flex items-center gap-2">
           {action ? (
-            <button
-              type="button"
-              onClick={action.onClick}
-              className="px-3 py-1.5 text-[12px] rounded-md bg-[var(--accent)] text-[var(--accent-fg)] hover:opacity-90"
-            >
+            <button type="button" onClick={action.onClick} className="btn btn-primary">
               {action.label}
             </button>
           ) : null}
           {secondaryAction ? (
-            <button
-              type="button"
-              onClick={secondaryAction.onClick}
-              className="px-3 py-1.5 text-[12px] rounded-md text-[var(--accent)] hover:bg-[var(--accent-subtle)]"
-            >
+            <button type="button" onClick={secondaryAction.onClick} className="btn btn-tonal">
               {secondaryAction.label}
             </button>
           ) : null}

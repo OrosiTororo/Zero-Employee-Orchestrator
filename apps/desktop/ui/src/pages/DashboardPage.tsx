@@ -126,7 +126,7 @@ export function DashboardPage() {
 
         {/* Welcome Tour - step-by-step onboarding for first-time users */}
         {showWelcome && (
-          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)] p-5 animate-slide-in relative">
+          <div className="card p-5 animate-slide-in relative">
             <button
               onClick={dismissWelcome}
               className="absolute top-3 right-3 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
@@ -179,25 +179,27 @@ export function DashboardPage() {
           </div>
         )}
 
-        {/* Task Input */}
+        {/* Task Input — the front door: one prominent, elevated field */}
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Send size={15} className="text-[var(--accent)]" />
-            <h2 className="text-[13px] font-semibold text-[var(--text-primary)]">
+          <div className="flex items-center gap-2 mb-2.5">
+            <h2 className="text-[16px] font-semibold text-[var(--text-primary)]">
               {t.dashboard.requestTask}
             </h2>
-            <kbd className="ml-auto text-[10px] text-[var(--text-muted)] border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--bg-raised)]">
+            <kbd className="ml-auto text-[10px] text-[var(--text-muted)] border border-[var(--border)] rounded-[4px] px-1.5 py-0.5 bg-[var(--bg-raised)]">
               Ctrl+K
             </kbd>
           </div>
-          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden focus-within:border-[var(--accent)] transition-colors">
+          <div
+            className="card overflow-hidden transition-shadow focus-within:border-[var(--accent)]"
+            style={{ borderRadius: "var(--radius-lg)" }}
+          >
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={t.dashboard.inputPlaceholder}
-              className="w-full resize-none px-4 py-3 text-[13px] outline-none bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
-              style={{ minHeight: "72px" }}
+              className="w-full resize-none px-4 py-3.5 text-[14px] outline-none bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
+              style={{ minHeight: "76px", boxShadow: "none" }}
               rows={3}
               aria-label={t.dashboard.requestTask}
             />
@@ -208,9 +210,9 @@ export function DashboardPage() {
               <button
                 onClick={handleSubmit}
                 disabled={!input.trim() || loading}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-[12px] font-medium disabled:opacity-40"
+                className="btn btn-primary"
               >
-                <Send size={12} />
+                <Send size={13} />
                 {loading ? t.dashboard.submitting : t.dashboard.submit}
               </button>
             </div>
@@ -236,7 +238,7 @@ export function DashboardPage() {
           {quickActions.map((qa, i) => (
             <button key={i}
               onClick={() => { setInput(qa.example); }}
-              className="rounded border border-[var(--border)] bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] transition-colors group rounded-lg px-3.5 py-3.5 text-left"
+              className="card hover:bg-[var(--bg-hover)] transition-colors group px-3.5 py-3.5 text-left"
             >
               <div className="w-8 h-8 rounded-md flex items-center justify-center mb-2.5"
                 style={{ background: `color-mix(in srgb, ${qa.color} 12%, transparent)` }}>
@@ -262,9 +264,9 @@ export function DashboardPage() {
 
         <div className="grid grid-cols-3 gap-3">
           {/* Cost */}
-          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)] p-4">
+          <div className="card p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Coins size={14} style={{ color: "var(--warning)" }} />
+              <Coins size={14} style={{ color: "var(--warning-fg)" }} />
               <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
                 {t.dashboard.costSummary}
               </span>
@@ -274,7 +276,7 @@ export function DashboardPage() {
           </div>
 
           {/* Mission */}
-          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)] p-4">
+          <div className="card p-4">
             <div className="flex items-center gap-2 mb-2">
               <Target size={14} style={{ color: "var(--accent)" }} />
               <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
@@ -285,7 +287,7 @@ export function DashboardPage() {
           </div>
 
           {/* Errors */}
-          <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)] p-4">
+          <div className="card p-4">
             <div className="flex items-center gap-2 mb-2">
               <AlertTriangle size={14} style={{ color: "var(--success)" }} />
               <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
@@ -297,7 +299,7 @@ export function DashboardPage() {
         </div>
 
         {/* Quick Start Templates */}
-        <div className="rounded border border-[var(--border)] bg-[var(--bg-surface)] p-4">
+        <div className="card p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Sparkles size={14} style={{ color: "var(--accent-secondary)" }} />
@@ -361,7 +363,7 @@ export function DashboardPage() {
                     navigate("/setup")
                   }
                 }}
-                className="rounded border border-[var(--border)] bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] transition-colors group rounded-lg px-3 py-3 text-left"
+                className="rounded-lg border border-[var(--border)] bg-[var(--bg-base)] hover:bg-[var(--bg-hover)] transition-colors group px-3 py-3 text-left"
               >
                 <tpl.icon size={16} className="text-[var(--text-muted)] group-hover:text-[var(--accent)] mb-2 transition-colors" />
                 <div className="text-[12px] font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] mb-0.5 transition-colors">
@@ -383,12 +385,12 @@ function StatusCard({ icon: Icon, label, value, accent, onClick }: {
 }) {
   return (
     <button onClick={onClick}
-      className="rounded border border-[var(--border)] bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] transition-colors rounded-lg px-3.5 py-3.5 text-left">
+      className="card hover:bg-[var(--bg-hover)] transition-colors px-3.5 py-3.5 text-left">
       <div className="flex items-center gap-1.5 mb-1.5">
         <Icon size={13} style={{ color: accent }} />
-        <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold truncate">{label}</span>
+        <span className="text-[10px] uppercase tracking-[0.08em] text-[var(--text-muted)] font-semibold truncate">{label}</span>
       </div>
-      <div className="text-[18px] font-bold text-[var(--text-primary)]">{value}</div>
+      <div className="text-[20px] font-bold text-[var(--text-primary)]" style={{ letterSpacing: "-0.01em" }}>{value}</div>
     </button>
   )
 }

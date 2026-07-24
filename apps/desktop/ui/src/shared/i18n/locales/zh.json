@@ -121,7 +121,11 @@
     "dispatch": "调度",
     "operatorProfile": "Operator Profile",
     "templates": "模板",
-    "crews": "团队"
+    "crews": "团队",
+    "sectionManage": "管理",
+    "sectionExtend": "扩展",
+    "collapseSidebar": "折叠侧栏",
+    "expandSidebar": "展开侧栏"
   },
   "setup": {
     "steps": {

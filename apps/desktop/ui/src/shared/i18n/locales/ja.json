@@ -121,7 +121,11 @@
     "dispatch": "ディスパッチ",
     "operatorProfile": "オペレータープロファイル",
     "templates": "テンプレート",
-    "crews": "クルー"
+    "crews": "クルー",
+    "sectionManage": "管理",
+    "sectionExtend": "拡張",
+    "collapseSidebar": "サイドバーを折りたたむ",
+    "expandSidebar": "サイドバーを展開する"
   },
   "setup": {
     "steps": {

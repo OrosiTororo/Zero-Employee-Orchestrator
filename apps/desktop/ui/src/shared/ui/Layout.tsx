@@ -17,7 +17,6 @@ import {
   Activity,
   Shield,
   Sparkles,
-  Circle,
   Globe,
   Zap,
   ChevronDown,
@@ -26,12 +25,16 @@ import {
   UserCircle,
   BookTemplate,
   UsersRound,
+  Search,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react"
 import { LogoMark } from "@/shared/ui/Logo"
 import { UpdateBanner } from "@/shared/ui/UpdateBanner"
 import { CommandPalette } from "@/shared/ui/CommandPalette"
 import { WelcomeTour } from "@/shared/ui/WelcomeTour"
 import { AutonomyDial } from "@/shared/ui/AutonomyDial"
+import { useCommandPalette } from "@/shared/hooks/use-command-palette"
 import { useT, useI18n } from "@/shared/i18n"
 import { api } from "@/shared/api/client"
 
@@ -39,18 +42,17 @@ interface LayoutProps {
   children: React.ReactNode
 }
 
-/* Layout dimensions (Cowork nav bar) */
-const NAV_BAR_WIDTH = 48
-const TITLE_BAR_HEIGHT = 30
-const STATUS_BAR_HEIGHT = 22
+/* Shell dimensions — HIG-style chrome: roomy title bar, labeled sidebar
+   that collapses to an icon rail, quiet hairline status bar. */
+const SIDEBAR_WIDTH = 228
+const RAIL_WIDTH = 56
+const TITLE_BAR_HEIGHT = 40
+const STATUS_BAR_HEIGHT = 26
 
-function NavBarDivider() {
-  return (
-    <div
-      className="mx-auto my-[6px]"
-      style={{ width: 28, height: 1, background: "rgba(255,255,255,0.12)" }}
-    />
-  )
+interface NavItem {
+  icon: React.ElementType
+  path: string
+  label: string
 }
 
 export function Layout({ children }: LayoutProps) {
@@ -58,8 +60,12 @@ export function Layout({ children }: LayoutProps) {
   const location = useLocation()
   const t = useT()
   const { locale } = useI18n()
+  const openPalette = useCommandPalette((s) => s.setOpen)
 
   const [dispatchCount, setDispatchCount] = useState(0)
+  const [collapsed, setCollapsed] = useState(
+    () => localStorage.getItem("zeo_sidebar_collapsed") === "1",
+  )
 
   const fetchStatusBar = useCallback(async () => {
     try {
@@ -78,25 +84,52 @@ export function Layout({ children }: LayoutProps) {
     return () => clearInterval(interval)
   }, [fetchStatusBar])
 
-  const [showManage, setShowManage] = useState(false)
-  const [showExtend, setShowExtend] = useState(false)
+  const [showManage, setShowManage] = useState(
+    () => localStorage.getItem("zeo_nav_manage") === "1",
+  )
+  const [showExtend, setShowExtend] = useState(
+    () => localStorage.getItem("zeo_nav_extend") === "1",
+  )
+
+  const toggleCollapsed = () => {
+    setCollapsed((v) => {
+      localStorage.setItem("zeo_sidebar_collapsed", v ? "0" : "1")
+      return !v
+    })
+  }
+
+  const toggleManage = () => {
+    setShowManage((v) => {
+      localStorage.setItem("zeo_nav_manage", v ? "0" : "1")
+      return !v
+    })
+  }
+
+  const toggleExtend = () => {
+    setShowExtend((v) => {
+      localStorage.setItem("zeo_nav_extend", v ? "0" : "1")
+      return !v
+    })
+  }
 
   function isActive(path: string) {
     return path === "/" ? location.pathname === "/" : location.pathname.startsWith(path)
   }
 
+  const navStrings = t.nav as Record<string, string>
+
   /* Core items — always visible (progressive disclosure: primary actions) */
-  const coreItems = [
+  const coreItems: NavItem[] = [
     { icon: LayoutDashboard, path: "/", label: t.nav.dashboard },
     { icon: Ticket, path: "/tickets", label: t.nav.tickets },
     { icon: BrainCircuit, path: "/secretary", label: t.nav.secretary },
     { icon: Sparkles, path: "/brainstorm", label: t.nav.brainstorm },
-    { icon: Send, path: "/dispatch", label: (t.nav as Record<string, string>).dispatch ?? "Dispatch" },
+    { icon: Send, path: "/dispatch", label: navStrings.dispatch ?? "Dispatch" },
     { icon: Activity, path: "/monitor", label: t.nav.monitor },
   ]
 
   /* Management items — collapsed by default */
-  const manageItems = [
+  const manageItems: NavItem[] = [
     { icon: Network, path: "/org-chart", label: t.nav.orgChart },
     { icon: BookTemplate, path: "/templates", label: t.nav.templates },
     { icon: UsersRound, path: "/crews", label: t.nav.crews },
@@ -108,7 +141,7 @@ export function Layout({ children }: LayoutProps) {
   ]
 
   /* Extension items — collapsed by default */
-  const extendItems = [
+  const extendItems: NavItem[] = [
     { icon: Blocks, path: "/skills", label: t.nav.skills },
     { icon: Puzzle, path: "/plugins", label: t.nav.plugins },
     { icon: Blocks, path: "/extensions", label: t.nav.extensions },
@@ -121,8 +154,8 @@ export function Layout({ children }: LayoutProps) {
   const isManageOpen = showManage || manageActive
   const isExtendOpen = showExtend || extendActive
 
-  const bottomItems = [
-    { icon: UserCircle, path: "/operator-profile", label: "Operator Profile" },
+  const bottomItems: NavItem[] = [
+    { icon: UserCircle, path: "/operator-profile", label: navStrings.operatorProfile ?? "Operator Profile" },
     { icon: Shield, path: "/permissions", label: t.nav.permissions },
     { icon: SettingsIcon, path: "/settings", label: t.nav.settings },
   ]
@@ -148,28 +181,60 @@ export function Layout({ children }: LayoutProps) {
     "/monitor": t.nav.monitor,
     "/permissions": t.nav.permissions,
     "/settings": t.nav.settings,
-    "/dispatch": (t.nav as Record<string, string>).dispatch ?? "Dispatch",
-    "/operator-profile": "Operator Profile",
+    "/dispatch": navStrings.dispatch ?? "Dispatch",
+    "/operator-profile": navStrings.operatorProfile ?? "Operator Profile",
   }
 
   const currentTitle =
     pageTitles[location.pathname] ??
     (location.pathname.startsWith("/tickets/") ? t.nav.ticketDetail : "")
 
-  /* Nav button: 48x48px icon area, 24px icon, 2px left border accent */
-  function renderNavButton(item: { icon: React.ElementType; path: string; label: string }) {
+  /* Sidebar row: pill selection (macOS sidebar), icon + label when
+     expanded; centered icon with hover tooltip when collapsed. */
+  function renderNavButton(item: NavItem) {
     const active = isActive(item.path)
+    if (collapsed) {
+      return (
+        <button
+          key={item.path}
+          onClick={() => navigate(item.path)}
+          className="flex items-center justify-center rounded-md transition-colors"
+          style={{
+            width: 40,
+            height: 36,
+            color: active ? "var(--accent)" : "var(--text-muted)",
+            background: active ? "var(--accent-subtle)" : "transparent",
+          }}
+          onMouseEnter={(e) => {
+            if (!active) {
+              e.currentTarget.style.background = "var(--bg-hover)"
+              e.currentTarget.style.color = "var(--text-primary)"
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!active) {
+              e.currentTarget.style.background = "transparent"
+              e.currentTarget.style.color = "var(--text-muted)"
+            }
+          }}
+          title={item.label}
+          aria-label={item.label}
+          aria-current={active ? "page" : undefined}
+        >
+          <item.icon size={19} strokeWidth={active ? 2 : 1.6} />
+        </button>
+      )
+    }
     return (
       <button
         key={item.path}
         onClick={() => navigate(item.path)}
-        className="group relative flex items-center justify-center"
+        className="flex w-full items-center gap-2.5 rounded-md px-2.5 transition-colors text-left"
         style={{
-          width: NAV_BAR_WIDTH,
-          height: NAV_BAR_WIDTH,
-          color: active ? "var(--text-primary)" : "var(--text-muted)",
-          borderLeft: active ? "2px solid var(--accent)" : "2px solid transparent",
-          background: active ? "rgba(255,255,255,0.07)" : "transparent",
+          height: 32,
+          color: active ? "var(--accent)" : "var(--text-secondary)",
+          background: active ? "var(--accent-subtle)" : "transparent",
+          fontWeight: active ? 600 : 450,
         }}
         onMouseEnter={(e) => {
           if (!active) {
@@ -180,24 +245,46 @@ export function Layout({ children }: LayoutProps) {
         onMouseLeave={(e) => {
           if (!active) {
             e.currentTarget.style.background = "transparent"
-            e.currentTarget.style.color = "var(--text-muted)"
+            e.currentTarget.style.color = "var(--text-secondary)"
           }
         }}
-        aria-label={item.label}
         aria-current={active ? "page" : undefined}
       >
-        <item.icon size={24} strokeWidth={active ? 2 : 1.5} />
-        {/* Tooltip */}
-        <span
-          role="tooltip"
-          className="pointer-events-none absolute left-[52px] px-2 py-1 rounded text-[11px] text-[var(--text-primary)] bg-[var(--bg-overlay)] border border-[var(--border)] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50"
-          style={{ boxShadow: "var(--shadow-popup)" }}
-        >
-          {item.label}
-        </span>
+        <item.icon size={17} strokeWidth={active ? 2 : 1.6} className="shrink-0" />
+        <span className="truncate text-[13px]">{item.label}</span>
       </button>
     )
   }
+
+  /* Section header — uppercase caption when expanded, hairline when railed. */
+  function renderSectionHeader(label: string, open: boolean, onToggle: () => void) {
+    if (collapsed) {
+      return (
+        <button
+          onClick={onToggle}
+          className="mx-auto my-1 flex items-center justify-center rounded"
+          style={{ width: 40, height: 18, color: "var(--text-muted)" }}
+          aria-label={label}
+          aria-expanded={open}
+        >
+          {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+        </button>
+      )
+    }
+    return (
+      <button
+        onClick={onToggle}
+        className="mt-3 mb-1 flex w-full items-center gap-1 rounded px-2.5 py-0.5 text-left transition-colors hover:text-[var(--text-secondary)]"
+        style={{ color: "var(--text-muted)" }}
+        aria-expanded={open}
+      >
+        {open ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+        <span className="text-[10.5px] font-semibold uppercase tracking-[0.08em]">{label}</span>
+      </button>
+    )
+  }
+
+  const sidebarWidth = collapsed ? RAIL_WIDTH : SIDEBAR_WIDTH
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-[var(--bg-base)]">
@@ -205,70 +292,89 @@ export function Layout({ children }: LayoutProps) {
       <a href="#main-content" className="skip-link">
         {t.a11y?.skip_to_main ?? "Skip to main content"}
       </a>
-      {/* Title Bar — 30px */}
+
+      {/* Title Bar */}
       <header
-        className="flex items-center shrink-0 select-none border-b border-[var(--border)]"
+        className="flex items-center shrink-0 select-none border-b border-[var(--border)] px-2 gap-1"
         style={{ height: TITLE_BAR_HEIGHT, background: "var(--bg-titlebar)" }}
       >
-        <div className="flex items-center gap-2 px-3" style={{ width: NAV_BAR_WIDTH }}>
-          <LogoMark size={14} />
+        <div
+          className="flex items-center gap-1 shrink-0"
+          style={{ width: collapsed ? "auto" : sidebarWidth - 8 }}
+        >
+          <div className="flex items-center px-2">
+            <LogoMark size={16} />
+          </div>
+          <button
+            onClick={toggleCollapsed}
+            className="flex items-center justify-center rounded-md text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+            style={{ width: 28, height: 28 }}
+            aria-label={
+              collapsed
+                ? navStrings.expandSidebar ?? "Expand sidebar"
+                : navStrings.collapseSidebar ?? "Collapse sidebar"
+            }
+            aria-expanded={!collapsed}
+          >
+            {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+          </button>
         </div>
         <div className="flex-1 text-center">
-          <span className="text-[11px] font-medium text-[var(--text-secondary)] tracking-wide">
+          <span className="text-[13px] font-semibold text-[var(--text-primary)]">
             {currentTitle}
           </span>
         </div>
-        <div className="w-[60px]" />
+        {/* Search affordance — summons the Command Palette (Ctrl/Cmd+K) */}
+        <button
+          onClick={() => openPalette(true)}
+          className="flex items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--bg-hover)] px-2.5 text-[var(--text-muted)] transition-colors hover:border-[var(--border-strong)] hover:text-[var(--text-secondary)]"
+          style={{ height: 28 }}
+          aria-label={t.common.search}
+        >
+          <Search size={13} />
+          <span className="hidden text-[12px] sm:inline">{t.common.search}</span>
+          <kbd className="rounded-[4px] border border-[var(--border)] px-1 py-px text-[10px]">
+            ⌘K
+          </kbd>
+        </button>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Nav Bar — 48px, Cowork style */}
+        {/* Sidebar — labeled nav that collapses to an icon rail */}
         <nav
-          className="shrink-0 flex flex-col items-center border-r border-[var(--border)]"
-          style={{ width: NAV_BAR_WIDTH, background: "var(--bg-nav-bar)" }}
+          className="shrink-0 flex flex-col overflow-y-auto overflow-x-hidden border-r border-[var(--border)]"
+          style={{
+            width: sidebarWidth,
+            background: "var(--bg-nav-bar)",
+            transition: "width var(--motion-med) var(--motion-ease)",
+            padding: collapsed ? "8px 8px" : "10px 10px",
+          }}
           aria-label={t.nav.navigation}
         >
-          <div className="flex flex-col items-center pt-[4px]">
+          <div className={collapsed ? "flex flex-col items-center gap-0.5" : "flex flex-col gap-0.5"}>
             {/* Core — always visible */}
             {coreItems.map((item) => renderNavButton(item))}
 
             {/* Manage section — collapsible */}
-            <NavBarDivider />
-            <button
-              onClick={() => setShowManage((v) => !v)}
-              className="flex items-center justify-center"
-              style={{
-                width: NAV_BAR_WIDTH,
-                height: 20,
-                color: "var(--text-muted)",
-                opacity: 0.6,
-              }}
-              aria-label="Manage"
-            >
-              {isManageOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-            </button>
+            {renderSectionHeader(
+              navStrings.sectionManage ?? "Manage",
+              isManageOpen,
+              toggleManage,
+            )}
             {isManageOpen && manageItems.map((item) => renderNavButton(item))}
 
             {/* Extend section — collapsible */}
-            <NavBarDivider />
-            <button
-              onClick={() => setShowExtend((v) => !v)}
-              className="flex items-center justify-center"
-              style={{
-                width: NAV_BAR_WIDTH,
-                height: 20,
-                color: "var(--text-muted)",
-                opacity: 0.6,
-              }}
-              aria-label="Extend"
-            >
-              {isExtendOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-            </button>
+            {renderSectionHeader(
+              navStrings.sectionExtend ?? "Extend",
+              isExtendOpen,
+              toggleExtend,
+            )}
             {isExtendOpen && extendItems.map((item) => renderNavButton(item))}
           </div>
           <div className="flex-1" />
-          <div className="flex flex-col items-center pb-[4px]">
-            <NavBarDivider />
+          <div
+            className={`${collapsed ? "flex flex-col items-center" : "flex flex-col"} gap-0.5 border-t border-[var(--border)] pt-2 mt-2`}
+          >
             {bottomItems.map((item) => renderNavButton(item))}
           </div>
         </nav>
@@ -283,37 +389,49 @@ export function Layout({ children }: LayoutProps) {
         </main>
       </div>
 
-      {/* Status Bar — 22px, Cowork-inspired (autonomy dial + dispatch feed) */}
+      {/* Status Bar — quiet hairline chrome (autonomy dial + dispatch feed) */}
       <footer
-        className="flex items-center shrink-0 text-[12px]"
-        style={{ height: STATUS_BAR_HEIGHT, lineHeight: `${STATUS_BAR_HEIGHT}px`, background: "var(--bg-statusbar)" }}
+        className="flex items-center shrink-0 border-t border-[var(--border)] text-[11.5px]"
+        style={{
+          height: STATUS_BAR_HEIGHT,
+          background: "var(--bg-statusbar)",
+          color: "var(--statusbar-fg)",
+        }}
       >
-        <div className="flex items-center h-full text-[var(--statusbar-fg)]">
-          <div className="flex items-center gap-1 px-2 h-full hover:bg-[rgba(255,255,255,0.12)]">
-            <Circle size={7} fill="var(--statusbar-fg)" stroke="none" style={{ opacity: 0.8 }} />
+        <div className="flex items-center h-full">
+          <div className="flex h-full items-center gap-1.5 px-3 transition-colors hover:bg-[var(--bg-hover)]">
+            <span
+              aria-hidden="true"
+              className="inline-block rounded-full"
+              style={{ width: 7, height: 7, background: "var(--success)" }}
+            />
             <span>{t.common.connected ?? "OK"}</span>
           </div>
-          {/* Dispatch count — Cowork activity feed pattern */}
+          {/* Dispatch count — background activity feed */}
           <button
             onClick={() => navigate("/monitor")}
-            className="flex items-center gap-1 px-2 h-full hover:bg-[rgba(255,255,255,0.12)]"
+            className="flex h-full items-center gap-1.5 px-3 transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+            style={{ color: "inherit" }}
           >
-            <Send size={10} />
-            <span>{dispatchCount} {t.common.jobs ?? "Tasks"}</span>
+            <Send size={11} />
+            <span>
+              {dispatchCount} {t.common.jobs ?? "Tasks"}
+            </span>
           </button>
         </div>
         <div className="flex-1" />
-        <div className="flex items-center h-full text-[var(--statusbar-fg)]">
+        <div className="flex items-center h-full">
           {/* Autonomy Dial — per-company default + per-session override */}
           <AutonomyDial />
           <button
             onClick={() => navigate("/settings")}
-            className="flex items-center gap-1 px-2 h-full hover:bg-[rgba(255,255,255,0.12)]"
+            className="flex h-full items-center gap-1.5 px-3 transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+            style={{ color: "inherit" }}
           >
             <Globe size={11} />
             <span>{locale.toUpperCase()}</span>
           </button>
-          <div className="flex items-center gap-1 px-2 h-full hover:bg-[rgba(255,255,255,0.12)]">
+          <div className="flex h-full items-center gap-1.5 px-3">
             <Zap size={11} />
             <span>Quality</span>
           </div>

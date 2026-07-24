@@ -1,58 +1,80 @@
 @import "tailwindcss";
 
-/* ── ZEO Dark Theme (colors: MIT-licensed palette) ─────────── */
-/* Based on: MIT-licensed dark theme palette + Zed status colors */
+/* ═══════════════════════════════════════════════════════════════════
+   ZEO Design System v2 — "Clarity"
+   Material Design 3 tonal surfaces × Apple HIG hierarchy & restraint.
+
+   Principles:
+   - Tonal elevation: surfaces step up in tone (base → surface → raised
+     → overlay); shadows are reserved for genuinely floating layers.
+   - Hairline separation: rgba borders instead of opaque grey lines.
+   - Continuous shape scale: one radius ramp shared by Tailwind
+     utilities (`rounded*`) and component tokens (`var(--radius-*)`).
+   - State layers: hover/pressed are translucent overlays, not new hues.
+   - Deference: chrome (sidebar / title bar / status bar) recedes so
+     content leads; a single accent carries interaction meaning.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Shape scale — themed through Tailwind v4 so `rounded`, `rounded-md`,
+   `rounded-lg` … all draw from the same ramp as `var(--radius-*)`. */
+@theme {
+  --radius: 8px;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+  --radius-3xl: 32px;
+}
+
+/* ── Dark theme (default) — HIG elevated dark, neutral & cool ────── */
 :root,
 [data-theme="dark"] {
-  --bg-base: #1E1E1E;
-  --bg-surface: #252526;
-  --bg-raised: #2D2D2D;
-  --bg-overlay: #303031;
-  --bg-input: #3C3C3C;
-  --bg-hover: #2A2D2E;
-  --bg-active: #37373D;
-  --bg-nav-bar: #333333;
-  --bg-titlebar: #323233;
-  --bg-statusbar: #007ACC;
-  --bg-tab-bar: #252526;
-  --bg-tab-active: #1E1E1E;
+  /* Tonal surface ramp */
+  --bg-base: #141418;        /* window content            */
+  --bg-surface: #1E1E24;     /* cards, panels             */
+  --bg-raised: #26262D;      /* nested surfaces, wells    */
+  --bg-overlay: #2B2B33;     /* menus, popovers           */
+  --bg-input: #212127;       /* text fields               */
+  --bg-hover: rgba(255, 255, 255, 0.06);   /* state layer: hover   */
+  --bg-active: rgba(255, 255, 255, 0.11);  /* state layer: pressed/selected */
+  --bg-nav-bar: #19191E;     /* app chrome: sidebar       */
+  --bg-titlebar: #19191E;    /* app chrome: title bar     */
+  --bg-statusbar: #19191E;   /* app chrome: status bar    */
+  --bg-tab-bar: #19191E;
+  --bg-tab-active: #141418;
 
-  --border: #3E3E42;
-  --border-focus: #007ACC;
+  --border: rgba(255, 255, 255, 0.09);        /* hairline           */
+  --border-strong: rgba(255, 255, 255, 0.16); /* emphasized outline */
+  --border-focus: #0A84FF;
 
-  --text-primary: #D4D4D4;
-  --text-secondary: #BBBBBB;
-  --text-muted: #6E7681;
+  --text-primary: #F2F2F5;
+  --text-secondary: #A9A9B2;
+  --text-muted: #74747E;
 
-  --accent: #007ACC;
-  --accent-hover: #1177BB;
+  /* Accent — Apple system blue (dark variant) */
+  --accent: #0A84FF;
+  --accent-hover: #3B9BFF;
   --accent-fg: #FFFFFF;
+  --accent-subtle: rgba(10, 132, 255, 0.14);
+  --accent-secondary: #BF5AF2;
 
-  --statusbar-fg: #FFFFFF;
+  --statusbar-fg: #A9A9B2;
 
-  /* Status colors — Zed (Apache 2.0), overridable via extensions */
-  --success: #56BA9F;
-  --success-fg: #56BA9F;
-  --error: #E5484D;
-  --warning: #F3D768;
-  --warning-fg: #F3D768;
-  --info: #0090FF;
+  /* Status — Apple dark system palette */
+  --success: #32D74B;
+  --success-fg: #32D74B;
+  --error: #FF453A;
+  --warning: #FFD60A;
+  --warning-fg: #FFD60A;
+  --info: #64D2FF;
 
-  /* Accent variants */
-  --accent-subtle: rgba(0, 122, 204, 0.08);
-  --accent-secondary: #7C3AED;
-
-  /* Elevated surface */
-  --bg-raised: #2D2D2D;
-
-  /* Shadows — minimal, popups/modals only */
-  --shadow-popup: 0 4px 12px rgba(0, 0, 0, 0.3);
-  --shadow-modal: 0 8px 24px rgba(0, 0, 0, 0.4);
-
-  --radius-sm: 3px;
-  --radius-md: 5px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
+  /* Elevation — shadows only for floating layers; cards stay tonal */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-popup: 0 12px 32px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-modal: 0 32px 64px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.4);
+  --scrim: rgba(0, 0, 0, 0.55);
 
   /* Spacing scale — every inter-element gap in the app should pick one of
      these tokens rather than a raw px value so we keep vertical rhythm. */
@@ -65,70 +87,77 @@
   --space-7: 32px;
   --space-8: 48px;
 
-  /* Typography scale */
+  /* Type ramp */
   --text-xs: 11px;
   --text-sm: 12px;
   --text-base: 13px;
   --text-md: 14px;
   --text-lg: 16px;
   --text-xl: 20px;
-  --text-2xl: 24px;
+  --text-2xl: 26px;
 
-  /* Motion tokens — honour prefers-reduced-motion below. */
+  /* Motion — M3 emphasized easing; spring for entering dialogs.
+     Honour prefers-reduced-motion below. */
   --motion-fast: 120ms;
-  --motion-med: 180ms;
-  --motion-slow: 280ms;
-  --motion-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-med: 200ms;
+  --motion-slow: 320ms;
+  --motion-ease: cubic-bezier(0.2, 0, 0, 1);
+  --motion-ease-out: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --motion-spring: cubic-bezier(0.32, 1.25, 0.6, 1);
 
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI Variable",
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "SF Mono", "Fira Code", "Cascadia Code", "JetBrains Mono",
     Menlo, monospace;
 }
 
-/* ── ZEO Light Theme ────────────────────────────────────── */
+/* ── Light theme — HIG light, content on white over soft grey ────── */
 [data-theme="light"] {
-  --bg-base: #FFFFFF;
-  --bg-surface: #F3F3F3;
-  --bg-raised: #ECECEC;
-  --bg-overlay: #E8E8E8;
+  --bg-base: #F5F5F7;        /* soft grey window          */
+  --bg-surface: #FFFFFF;     /* white cards lift off it   */
+  --bg-raised: #F0F0F3;
+  --bg-overlay: #FFFFFF;
   --bg-input: #FFFFFF;
-  --bg-hover: #E8E8E8;
-  --bg-active: #E0E0E0;
-  --bg-nav-bar: #2C2C2C;
-  --bg-titlebar: #DDDDDD;
-  --bg-statusbar: #007ACC;
-  --bg-tab-bar: #ECECEC;
+  --bg-hover: rgba(0, 0, 0, 0.045);
+  --bg-active: rgba(0, 0, 0, 0.08);
+  --bg-nav-bar: #ECECF0;
+  --bg-titlebar: #F3F3F6;
+  --bg-statusbar: #F3F3F6;
+  --bg-tab-bar: #ECECF0;
   --bg-tab-active: #FFFFFF;
 
-  --border: #E5E5E5;
-  --border-focus: #007ACC;
+  --border: rgba(0, 0, 0, 0.1);
+  --border-strong: rgba(0, 0, 0, 0.18);
+  --border-focus: #007AFF;
 
-  --text-primary: #1E1E1E;
-  --text-secondary: #616161;
-  --text-muted: #9E9E9E;
+  --text-primary: #1D1D1F;
+  --text-secondary: #55555C;
+  --text-muted: #86868B;
 
-  --accent: #007ACC;
-  --accent-hover: #106EBE;
+  /* Accent — Apple system blue */
+  --accent: #007AFF;
+  --accent-hover: #0071E3;
   --accent-fg: #FFFFFF;
+  --accent-subtle: rgba(0, 122, 255, 0.1);
+  --accent-secondary: #AF52DE;
 
-  --statusbar-fg: #FFFFFF;
+  --statusbar-fg: #55555C;
 
-  --success: #16825D;
-  --success-fg: #16825D;
-  --error: #CD3131;
-  --warning: #BF8803;
-  --warning-fg: #BF8803;
-  --info: #0451A5;
+  /* Status — accessible variants for text on light surfaces */
+  --success: #248A3D;
+  --success-fg: #248A3D;
+  --error: #D70015;
+  --warning: #B45309;
+  --warning-fg: #B45309;
+  --info: #0071E3;
 
-  --accent-subtle: rgba(0, 122, 204, 0.06);
-  --accent-secondary: #6D28D9;
-
-  --shadow-popup: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-modal: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-card: 0 1px 2px rgba(16, 17, 20, 0.04), 0 1px 6px rgba(16, 17, 20, 0.04);
+  --shadow-popup: 0 12px 32px rgba(16, 17, 20, 0.14), 0 2px 8px rgba(16, 17, 20, 0.08);
+  --shadow-modal: 0 32px 64px rgba(16, 17, 20, 0.18), 0 8px 24px rgba(16, 17, 20, 0.1);
+  --scrim: rgba(28, 28, 30, 0.35);
 }
 
-/* ── ZEO High Contrast Theme ────────────────────────────── */
+/* ── High Contrast theme ─────────────────────────────────────────── */
 [data-theme="high-contrast"] {
   --bg-base: #000000;
   --bg-surface: #0A0A0A;
@@ -139,11 +168,12 @@
   --bg-active: #222222;
   --bg-nav-bar: #000000;
   --bg-titlebar: #000000;
-  --bg-statusbar: #6FC3DF;
+  --bg-statusbar: #000000;
   --bg-tab-bar: #000000;
   --bg-tab-active: #0A0A0A;
 
   --border: #6FC3DF;
+  --border-strong: #6FC3DF;
   --border-focus: #F38518;
 
   --text-primary: #FFFFFF;
@@ -153,8 +183,10 @@
   --accent: #1AEBFF;
   --accent-hover: #4AF0FF;
   --accent-fg: #000000;
+  --accent-subtle: rgba(26, 235, 255, 0.1);
+  --accent-secondary: #B180D7;
 
-  --statusbar-fg: #000000;
+  --statusbar-fg: #FFFFFF;
 
   --success: #89D185;
   --success-fg: #89D185;
@@ -163,14 +195,13 @@
   --warning-fg: #CCA700;
   --info: #75BEFF;
 
-  --accent-subtle: rgba(26, 235, 255, 0.1);
-  --accent-secondary: #B180D7;
-
+  --shadow-card: 0 0 0 1px var(--border);
   --shadow-popup: 0 0 0 1px var(--border);
   --shadow-modal: 0 0 0 1px var(--border);
+  --scrim: rgba(0, 0, 0, 0.8);
 }
 
-/* ── Base Styles ───────────────────────────────────────── */
+/* ── Base Styles ───────────────────────────────────────────────── */
 *,
 *::before,
 *::after {
@@ -189,14 +220,14 @@ body {
   font-size: 13px;
   color: var(--text-primary);
   background: var(--bg-base);
-  line-height: 1.4;
+  line-height: 1.45;
   overflow: hidden;
 }
 
-/* ── Scrollbar (minimal style) ───────────────────────── */
+/* ── Scrollbar — thin overlay style, rounded thumb ───────────── */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
 }
 
 ::-webkit-scrollbar-track {
@@ -204,26 +235,30 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.14);
   border: 2px solid transparent;
+  border-radius: 999px;
   background-clip: padding-box;
 }
 
 [data-theme="light"] ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.18);
   border: 2px solid transparent;
+  border-radius: 999px;
   background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.28);
   border: 2px solid transparent;
+  border-radius: 999px;
   background-clip: padding-box;
 }
 
 [data-theme="light"] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.32);
   border: 2px solid transparent;
+  border-radius: 999px;
   background-clip: padding-box;
 }
 
@@ -231,7 +266,7 @@ body {
   background: transparent;
 }
 
-/* ── Focus (2px ring, offset 2px — WCAG 2.2 target) ───── */
+/* ── Focus (2px ring, offset 2px — WCAG 2.2 target) ───────────── */
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -248,7 +283,7 @@ button:focus-visible {
   box-shadow: 0 0 0 1px var(--accent);
 }
 
-/* ── Interactive Elements ─────────────────────────────── */
+/* ── Interactive Elements ─────────────────────────────────────── */
 button {
   cursor: pointer;
   font-family: inherit;
@@ -273,7 +308,92 @@ textarea {
     background-color var(--motion-fast) var(--motion-ease),
     border-color var(--motion-fast) var(--motion-ease),
     color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
     opacity var(--motion-fast) var(--motion-ease);
+}
+
+button:not(:disabled):active {
+  opacity: 0.85;
+}
+
+/* ── Component classes ────────────────────────────────────────── */
+@layer components {
+  /* Buttons — one base, four intents. Sized for 32px control height
+     (HIG regular); pair with .btn-sm for dense toolbars. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 14px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    font-size: var(--text-base);
+    font-weight: 500;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  .btn-sm {
+    height: 26px;
+    padding: 0 10px;
+    font-size: var(--text-sm);
+    border-radius: var(--radius-sm);
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: var(--accent-hover);
+  }
+
+  .btn-tonal {
+    background: var(--accent-subtle);
+    color: var(--accent);
+  }
+
+  .btn-tonal:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+  }
+
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--bg-hover);
+  }
+
+  .btn-danger {
+    background: color-mix(in srgb, var(--error) 14%, transparent);
+    color: var(--error);
+  }
+
+  .btn-danger:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--error) 22%, transparent);
+  }
+
+  /* Card — tonal surface with hairline; shadow stays whisper-quiet. */
+  .card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Floating menu / popover surface. */
+  .menu-surface {
+    background: var(--bg-overlay);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-popup);
+  }
 }
 
 /* Honour the user's reduced-motion preference.
@@ -289,7 +409,7 @@ textarea {
   }
 }
 
-/* ── Skip-link (WCAG 2.4.1 bypass blocks) ────────────── */
+/* ── Skip-link (WCAG 2.4.1 bypass blocks) ────────────────────── */
 .skip-link {
   position: fixed;
   top: 8px;
@@ -311,17 +431,13 @@ textarea {
   outline-offset: 2px;
 }
 
-button:not(:disabled):active {
-  opacity: 0.8;
-}
-
-/* ── Selection ─────────────────────────────────────────── */
+/* ── Selection ─────────────────────────────────────────────────── */
 ::selection {
   background: color-mix(in srgb, var(--accent) 35%, transparent);
   color: var(--text-primary);
 }
 
-/* ── Animations (standard UI patterns only) ──────────── */
+/* ── Animations (standard UI patterns only) ──────────────────── */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -330,6 +446,17 @@ button:not(:disabled):active {
 @keyframes slideIn {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Dialog entrance — gentle scale + fade (HIG sheet feel). */
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 @keyframes loading {
@@ -346,3 +473,5 @@ button:not(:disabled):active {
 
 .animate-fade-in { animation: fadeIn 150ms ease-out; }
 .animate-slide-in { animation: slideIn 150ms ease-out; }
+.animate-slide-up { animation: slideUp var(--motion-med) var(--motion-ease-out); }
+.animate-scale-in { animation: scaleIn var(--motion-med) var(--motion-spring); }
