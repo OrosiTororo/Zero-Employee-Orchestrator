@@ -172,6 +172,11 @@ class MCPServer:
         self._register_builtin_resources()
         self._register_builtin_prompts()
 
+    @property
+    def tool_count(self) -> int:
+        """Return the number of registered MCP tools."""
+        return len(self._tools)
+
     # ------------------------------------------------------------------
     # Version resolution (dynamic so it always matches pyproject.toml)
     # ------------------------------------------------------------------

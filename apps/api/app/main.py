@@ -162,7 +162,7 @@ async def lifespan(application: FastAPI):
     try:
         from app.integrations.mcp_server import mcp_server
 
-        logger.info("MCP server ready (%d tools)", len(mcp_server._tools))
+        logger.info("MCP server ready (%d tools)", mcp_server.tool_count)
     except Exception as exc:
         logger.debug("MCP init failed (non-fatal): %s", exc)
 
