@@ -8,6 +8,7 @@ from httpx import AsyncClient
 from sqlalchemy import select
 
 from app.api.routes import auth as auth_routes
+from app.api.routes import sso as sso_routes
 from app.core.config import settings
 from app.models.audit import AuditLog
 from app.models.user import OAuthIdentity, User
@@ -52,6 +53,13 @@ async def _poll_google_flow(client: AsyncClient, state: str):
         "/api/v1/auth/google/poll",
         json={"state": state},
     )
+
+
+def _assert_oauth_security_headers(response) -> None:
+    assert response.headers["cache-control"] == "no-store"
+    assert response.headers["pragma"] == "no-cache"
+    assert response.headers["referrer-policy"] == "no-referrer"
+    assert "default-src 'none'" in response.headers["content-security-policy"]
 
 
 @pytest.mark.asyncio
@@ -108,6 +116,7 @@ async def test_google_authorize_requires_configuration(
 
     assert response.status_code == 503
     assert "not configured" in response.json()["detail"]
+    _assert_oauth_security_headers(response)
 
 
 @pytest.mark.asyncio
@@ -129,8 +138,7 @@ async def test_google_authorize_binds_server_state_and_pkce(
     assert query["redirect_uri"] == ["https://app.example.com/api/v1/auth/google/callback"]
     assert "access_type" not in query
     assert "prompt" not in query
-    assert response.headers["cache-control"] == "no-store"
-    assert response.headers["referrer-policy"] == "no-referrer"
+    _assert_oauth_security_headers(response)
 
 
 @pytest.mark.asyncio
@@ -335,6 +343,33 @@ async def test_google_poll_rejects_expired_state(
     response = await _poll_google_flow(client, state)
 
     assert response.status_code == 404
+    _assert_oauth_security_headers(response)
+
+
+@pytest.mark.asyncio
+async def test_legacy_google_sso_routes_are_retired(client: AsyncClient):
+    authorize = await client.get("/api/v1/sso/oauth/google/authorize")
+    callback = await client.get(
+        "/api/v1/sso/oauth/google/callback",
+        params={"code": "must-not-be-logged", "state": "must-not-be-polled"},
+    )
+
+    assert authorize.status_code == 410
+    assert callback.status_code == 410
+    assert "/api/v1/auth/google/authorize" in authorize.json()["detail"]
+    _assert_oauth_security_headers(authorize)
+    _assert_oauth_security_headers(callback)
+
+
+def test_sso_provider_list_does_not_reuse_workspace_google_credentials(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setenv("GOOGLE_CLIENT_ID", "workspace-client")
+    monkeypatch.setenv("GOOGLE_CLIENT_SECRET", "workspace-secret")
+
+    provider_ids = {provider["id"] for provider in sso_routes._get_sso_providers()}
+
+    assert "google-oauth" not in provider_ids
 
 
 @pytest.mark.asyncio

@@ -1,5 +1,19 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useWSStore } from './use-websocket'
+import { resolveWebSocketBase, useWSStore } from './use-websocket'
+
+describe('resolveWebSocketBase', () => {
+  it('uses secure WebSockets for an HTTPS Web UI', () => {
+    expect(resolveWebSocketBase(false, false, 'https:', 'app.example.com')).toBe(
+      'wss://app.example.com',
+    )
+  })
+
+  it('keeps the local API endpoint for a packaged Tauri app', () => {
+    expect(resolveWebSocketBase(true, false, 'https:', 'tauri.localhost')).toBe(
+      'ws://127.0.0.1:18234',
+    )
+  })
+})
 
 describe('useWSStore', () => {
   beforeEach(() => {

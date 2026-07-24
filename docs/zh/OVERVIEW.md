@@ -307,9 +307,9 @@ ZEO 由 9 个层组成，每层拥有独立的职责。
 | SecretaryPage | 已实现 | 脑暴整理、每日摘要、优先级建议 |
 | BrainstormPage | 已实现 | 头脑风暴、多模型比较、按角色设置、AI 组织管理 |
 
-### ORM 模型（29 张表）
+### ORM 模型（30 张表）
 
-Company, CompanyMember, User, Department, Team, Agent, Project, Goal, Ticket, TicketThread, Spec, Plan, Task, TaskRun, Artifact, Review, ApprovalRequest, HeartbeatPolicy, HeartbeatRun, BudgetPolicy, CostLedger, Skill, Plugin, Extension, ToolConnection, ToolCallTrace, PolicyPack, SecretRef, AuditLog
+Company, CompanyMember, User, OAuthIdentity, Department, Team, Agent, Project, Goal, Ticket, TicketThread, Spec, Plan, Task, TaskRun, Artifact, Review, ApprovalRequest, HeartbeatPolicy, HeartbeatRun, BudgetPolicy, CostLedger, Skill, Plugin, Extension, ToolConnection, ToolCallTrace, PolicyPack, SecretRef, AuditLog
 
 ### 测试
 
@@ -448,7 +448,7 @@ OAuth 认证、MCP 连接、通知、Obsidian 集成等
 | **LINE** | Plugin | 已有清单 | 通过 LINE Bot 创建工单、审批、通知 |
 | **Obsidian** | Extension | 已有清单 | 将 Vault 作为 Knowledge Source 进行双向集成 |
 | **MCP** | Extension | 已有清单 | Model Context Protocol 兼容工具连接 |
-| **Google OAuth** | Extension | 已有清单 | Google 账号认证 |
+| **OAuth 连接器** | Extension | 已有清单 | Google Workspace、GitHub 等外部服务授权；与核心用户登录分离 |
 | **通知** | Extension | 已有清单 | Slack / Discord / LINE / 邮件通知 |
 
 ### 分身 AI / 秘书 AI
@@ -594,7 +594,7 @@ Zero-Employee-Orchestrator/
 │   │   │   ├── core/           # 配置、数据库、安全、i18n
 │   │   │   ├── api/routes/     # REST API（24 个路由）
 │   │   │   ├── api/ws/         # WebSocket
-│   │   │   ├── models/         # ORM 模型（29 张表 / 18 个文件）
+│   │   │   ├── models/         # ORM 模型（30 张表 / 18 个文件）
 │   │   │   ├── schemas/        # Pydantic DTO
 │   │   │   ├── services/       # 业务逻辑
 │   │   │   ├── repositories/   # 数据库 I/O 抽象

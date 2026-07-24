@@ -1,10 +1,12 @@
 """SAML/SSO/OAuth2 endpoints for enterprise single sign-on.
 
 Supports:
-- Google OAuth 2.0 (via GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET)
 - SAML 2.0 Generic (via SSO_SAML_IDP_METADATA_URL)
 - Okta SAML (via OKTA_* env vars)
 - Azure AD / Entra ID OIDC (via AZURE_AD_* env vars)
+
+Google user sign-in is a core authentication flow under ``/auth/google/*``.
+The legacy Google endpoints in this router remain only as migration errors.
 """
 
 from __future__ import annotations
@@ -57,24 +59,6 @@ class OAuthCallbackResponse(BaseModel):
 def _get_sso_providers() -> list[dict]:
     """Build SSO providers list based on configured env vars."""
     providers = []
-    if os.environ.get("GOOGLE_CLIENT_ID"):
-        providers.append(
-            {
-                "id": "google-oauth",
-                "name": "Google OAuth 2.0",
-                "protocol": "oauth2",
-                "enabled": True,
-            }
-        )
-    else:
-        providers.append(
-            {
-                "id": "google-oauth",
-                "name": "Google OAuth 2.0",
-                "protocol": "oauth2",
-                "enabled": False,
-            }
-        )
     if os.environ.get("SSO_SAML_IDP_METADATA_URL"):
         providers.append(
             {"id": "saml-generic", "name": "SAML 2.0", "protocol": "saml", "enabled": True}
@@ -162,108 +146,31 @@ async def saml_acs(request: Request) -> SAMLAssertionResponse:
         return SAMLAssertionResponse(status="error", error=str(e))
 
 
-# --- Google OAuth 2.0 ---
+# --- Legacy Google OAuth 2.0 migration endpoints ---
 
 
-@router.get("/oauth/google/authorize", response_class=RedirectResponse)
-async def google_oauth_authorize(request: Request):
-    """Redirect to Google OAuth consent screen."""
-    client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
-    if not client_id:
-        raise HTTPException(400, "GOOGLE_CLIENT_ID not configured")
-
-    base = str(request.base_url).rstrip("/")
-    redirect_uri = f"{base}/api/v1/sso/oauth/google/callback"
-    state = secrets.token_urlsafe(16)
-
-    auth_url = (
-        "https://accounts.google.com/o/oauth2/v2/auth"
-        f"?client_id={client_id}"
-        f"&redirect_uri={redirect_uri}"
-        "&response_type=code"
-        "&scope=openid%20email%20profile"
-        f"&state={state}"
-        "&access_type=offline"
+@router.get("/oauth/google/authorize", deprecated=True)
+async def google_oauth_authorize() -> None:
+    """Reject the retired SSO route so Google sign-in cannot bypass the core flow."""
+    raise HTTPException(
+        status_code=410,
+        detail=(
+            "This Google SSO route has moved. "
+            "Use GET /api/v1/auth/google/authorize and POST /api/v1/auth/google/poll."
+        ),
     )
-    return RedirectResponse(auth_url)
 
 
-@router.get("/oauth/google/callback", response_model=OAuthCallbackResponse)
-async def google_oauth_callback(
-    request: Request,
-    code: str = "",
-    state: str = "",
-    error: str = "",
-) -> OAuthCallbackResponse:
-    """Google OAuth callback — exchanges auth code for tokens."""
-    if error:
-        return OAuthCallbackResponse(
-            status="error",
-            provider="google",
-            error=error,
-        )
-    if not code:
-        return OAuthCallbackResponse(
-            status="error",
-            provider="google",
-            error="No authorization code received",
-        )
-
-    client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
-    client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "")
-    if not client_id or not client_secret:
-        return OAuthCallbackResponse(
-            status="error",
-            provider="google",
-            error="Google OAuth not configured",
-        )
-
-    base = str(request.base_url).rstrip("/")
-    redirect_uri = f"{base}/api/v1/sso/oauth/google/callback"
-
-    try:
-        import httpx
-
-        async with httpx.AsyncClient(timeout=15) as client:
-            # Exchange code for tokens
-            token_resp = await client.post(
-                "https://oauth2.googleapis.com/token",
-                data={
-                    "code": code,
-                    "client_id": client_id,
-                    "client_secret": client_secret,
-                    "redirect_uri": redirect_uri,
-                    "grant_type": "authorization_code",
-                },
-            )
-            token_resp.raise_for_status()
-            tokens = token_resp.json()
-
-            # Get user info
-            userinfo_resp = await client.get(
-                "https://www.googleapis.com/oauth2/v2/userinfo",
-                headers={"Authorization": f"Bearer {tokens['access_token']}"},
-            )
-            userinfo_resp.raise_for_status()
-            userinfo = userinfo_resp.json()
-
-        email = userinfo.get("email", "")
-        session_token = secrets.token_urlsafe(32)
-        logger.info("Google OAuth login successful for %s", email)
-
-        return OAuthCallbackResponse(
-            status="success",
-            user_email=email,
-            session_token=session_token,
-            provider="google",
-        )
-    except Exception as e:
-        logger.error("Google OAuth callback failed: %s", e)
-        return OAuthCallbackResponse(
-            status="error",
-            provider="google",
-            error=str(e),
-        )
+@router.get("/oauth/google/callback", deprecated=True)
+async def google_oauth_callback() -> None:
+    """Reject callbacks for the retired state-less Google SSO implementation."""
+    raise HTTPException(
+        status_code=410,
+        detail=(
+            "This Google SSO callback is retired. "
+            "Start a new sign-in with GET /api/v1/auth/google/authorize."
+        ),
+    )
 
 
 # --- Azure AD OIDC ---

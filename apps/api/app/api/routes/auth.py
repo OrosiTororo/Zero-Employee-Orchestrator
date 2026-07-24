@@ -45,6 +45,10 @@ from app.schemas.auth import (
     SetupStatusResponse,
     UserRead,
 )
+from app.security.security_headers import (
+    OAUTH_RESPONSE_HEADERS,
+    apply_oauth_response_headers,
+)
 from app.services.auth_service import (
     GoogleOAuthConfigurationError,
     GoogleOAuthError,
@@ -122,15 +126,6 @@ async def login(request: Request, req: LoginRequest, db: AsyncSession = Depends(
 # ---------------------------------------------------------------------------
 
 GOOGLE_OAUTH_TRANSACTION_TTL = timedelta(minutes=10)
-OAUTH_RESPONSE_HEADERS = {
-    "Cache-Control": "no-store",
-    "Pragma": "no-cache",
-    "Referrer-Policy": "no-referrer",
-    "X-Content-Type-Options": "nosniff",
-    "Content-Security-Policy": (
-        "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'"
-    ),
-}
 
 
 @dataclass
@@ -175,8 +170,7 @@ def _oauth_html_response(
 
 
 def _set_oauth_response_headers(response: Response) -> None:
-    for name, value in OAUTH_RESPONSE_HEADERS.items():
-        response.headers[name] = value
+    apply_oauth_response_headers(response)
 
 
 @router.get("/google/authorize", response_model=GoogleAuthorizeResponse)

@@ -144,14 +144,34 @@ POST /api/v1/ipaas/workflows
 
 ---
 
-## 3. Google Workspace 集成（OAuth2）
+## 3. Google OAuth
 
-如需与 Google 文档、电子表格等集成:
+### 3.1 Web UI 与 Tauri 的 Google 登录
+
+Google 登录为可选功能，使用带 PKCE 的 Authorization Code 流程。
+
+1. 在 Google Cloud Console 创建 OAuth 2.0 **Web application** 客户端。
+2. 将 `http://localhost:18234/api/v1/auth/google/callback` 注册为授权重定向 URI。
+3. 配置:
+
+```bash
+zero-employee config set GOOGLE_LOGIN_CLIENT_ID <client-id>
+zero-employee config set GOOGLE_LOGIN_CLIENT_SECRET <client-secret>
+zero-employee config set GOOGLE_LOGIN_REDIRECT_URI http://localhost:18234/api/v1/auth/google/callback
+```
+
+API 负责 callback，Web UI 或 Tauri 客户端通过一次性 POST polling 获取结果。
+服务端生成的 state 与 PKCE verifier 在 10 分钟后过期。公开部署时，请将
+redirect URI 替换为准确的 HTTPS API callback URL。
+
+### 3.2 Google Workspace 集成（OAuth2）
+
+Google 文档、电子表格等 Workspace 连接器使用与用户登录分离的凭据:
 
 1. 在 [Google Cloud Console](https://console.cloud.google.com) 中创建项目
 2. 前往「API 和服务」→「凭据」→ 创建 OAuth 2.0 客户端 ID
-3. 在重定向 URI 中添加 `http://localhost:18234/api/v1/auth/google/callback`
-4. 配置:
+3. 注册所配置连接器要求的 redirect URI
+4. 配置连接器凭据:
 
 ```bash
 zero-employee config set GOOGLE_CLIENT_ID <client-id>

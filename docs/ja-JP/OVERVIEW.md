@@ -307,9 +307,9 @@ ZEO は 9 つの層で構成されています。各層が独立した責務を�
 | SecretaryPage | 実装済み | ブレインダンプ・日次サマリー・優先度提案 |
 | BrainstormPage | 実装済み | 壁打ち・マルチモデル比較・役割別設定・AI組織管理 |
 
-### ORM モデル（29 テーブル）
+### ORM モデル（30 テーブル）
 
-Company, CompanyMember, User, Department, Team, Agent, Project, Goal, Ticket, TicketThread, Spec, Plan, Task, TaskRun, Artifact, Review, ApprovalRequest, HeartbeatPolicy, HeartbeatRun, BudgetPolicy, CostLedger, Skill, Plugin, Extension, ToolConnection, ToolCallTrace, PolicyPack, SecretRef, AuditLog
+Company, CompanyMember, User, OAuthIdentity, Department, Team, Agent, Project, Goal, Ticket, TicketThread, Spec, Plan, Task, TaskRun, Artifact, Review, ApprovalRequest, HeartbeatPolicy, HeartbeatRun, BudgetPolicy, CostLedger, Skill, Plugin, Extension, ToolConnection, ToolCallTrace, PolicyPack, SecretRef, AuditLog
 
 ### テスト
 
@@ -448,7 +448,7 @@ OAuth 認証、MCP 接続、通知、Obsidian 連携 等
 | **LINE** | Plugin | manifest あり | LINE Bot でチケット作成・承認・通知 |
 | **Obsidian** | Extension | manifest あり | Vault を Knowledge Source として双方向連携 |
 | **MCP** | Extension | manifest あり | Model Context Protocol 対応ツール接続 |
-| **Google OAuth** | Extension | manifest あり | Google アカウント認証 |
+| **OAuth コネクター** | Extension | manifest あり | Google Workspace、GitHub など外部サービスの認可。コアのユーザーログインとは分離 |
 | **通知全般** | Extension | manifest あり | Slack / Discord / LINE / メール通知 |
 
 ### 分身AI / 秘書AI
@@ -618,7 +618,7 @@ Zero-Employee-Orchestrator/
 │   │   │   ├── core/           # 設定・DB・セキュリティ・i18n
 │   │   │   ├── api/routes/     # REST API (41 ルート)
 │   │   │   ├── api/ws/         # WebSocket
-│   │   │   ├── models/         # ORM モデル（29 テーブル / 18 ファイル）
+│   │   │   ├── models/         # ORM モデル（30 テーブル / 18 ファイル）
 │   │   │   ├── schemas/        # Pydantic DTO
 │   │   │   ├── services/       # ビジネスロジック
 │   │   │   ├── repositories/   # DB 入出力抽象化

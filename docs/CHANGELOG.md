@@ -37,7 +37,11 @@ tonal surfaces and Apple Human Interface Guidelines hierarchy:
 ### Security
 
 - Prevent OAuth login CSRF/code injection, reject implicit email-based account linking,
-  and keep authorization responses out of Nginx access logs and referrers.
+  and keep authorization callbacks out of both Nginx and Uvicorn access logs.
+- Retire the legacy Google SSO endpoints that bypassed PKCE and reused Workspace
+  connector credentials.
+- Apply no-store OAuth headers to success and error responses, block Web UI framing,
+  preserve client-specific rate limits behind Nginx, and use secure WebSockets on HTTPS.
 
 ## [v0.1.7-polish] (2026-04-20)
 

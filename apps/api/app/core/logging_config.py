@@ -24,6 +24,34 @@ from contextvars import ContextVar
 request_id_var: ContextVar[str] = ContextVar("request_id", default="-")
 user_id_var: ContextVar[str] = ContextVar("user_id", default="-")
 
+_SENSITIVE_ACCESS_LOG_PATH_SUFFIXES = (
+    "/auth/google/callback",
+    "/sso/oauth/google/callback",
+)
+
+
+class SensitiveAccessLogFilter(logging.Filter):
+    """Suppress access records whose query string carries OAuth credentials."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        args = record.args
+        if not isinstance(args, tuple) or len(args) < 3:
+            return True
+
+        request_target = args[2]
+        if not isinstance(request_target, str):
+            return True
+
+        path = request_target.partition("?")[0].rstrip("/")
+        return not path.endswith(_SENSITIVE_ACCESS_LOG_PATH_SUFFIXES)
+
+
+def _install_sensitive_access_log_filter() -> None:
+    """Install the callback filter once on Uvicorn's non-propagating access logger."""
+    access_logger = logging.getLogger("uvicorn.access")
+    if not any(isinstance(item, SensitiveAccessLogFilter) for item in access_logger.filters):
+        access_logger.addFilter(SensitiveAccessLogFilter())
+
 
 class StructuredFormatter(logging.Formatter):
     """JSON log formatter that includes request_id and user_id context."""
@@ -87,3 +115,5 @@ def configure_logging(*, json_format: bool = False, level: str = "INFO") -> None
     # Suppress noisy third-party loggers
     for noisy in ("httpcore", "httpx", "hpack", "urllib3"):
         logging.getLogger(noisy).setLevel(logging.WARNING)
+
+    _install_sensitive_access_log_filter()

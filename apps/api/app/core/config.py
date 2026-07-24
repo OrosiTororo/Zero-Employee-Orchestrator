@@ -93,7 +93,7 @@ class Settings(BaseSettings):
     # Default: apps/api/model_catalog.json
     MODEL_CATALOG_PATH: str = ""
 
-    # Google OAuth (optional — users configure via `zero-employee config set`)
+    # Google Workspace connector OAuth (optional; never used for user sign-in)
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
 

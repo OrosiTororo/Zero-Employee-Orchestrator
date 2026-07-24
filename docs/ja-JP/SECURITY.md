@@ -30,7 +30,8 @@ Before deploying this application to production (or making the repository public
 | `JWT_SECRET` | `wrangler secret put JWT_SECRET` | `openssl rand -base64 32` |
 | `CLOUDFLARE_API_TOKEN` | GitHub repo Secrets | [Cloudflare Dashboard](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/) |
 | `CLOUDFLARE_ACCOUNT_ID` | GitHub repo Secrets | Cloudflare Dashboard sidebar |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | `apps/api/.env` (optional) | [Google Cloud Console](https://console.cloud.google.com/) |
+| `GOOGLE_LOGIN_CLIENT_ID` / `GOOGLE_LOGIN_CLIENT_SECRET` | `apps/api/.env`（任意の Web/Tauri ログイン） | [Google Cloud Console](https://console.cloud.google.com/) |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | `apps/api/.env`（任意の Workspace コネクター） | ログイン用とは別の OAuth クライアントを使用 |
 
 > **The application refuses to start** with the default `SECRET_KEY` when `DEBUG=false` (Python backend) and returns `503` with the default `JWT_SECRET` (Cloudflare Workers). This is by design.
 

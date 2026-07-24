@@ -102,7 +102,7 @@ export function LoginPage() {
       window.open(res.url, "_blank", "noopener")
 
       const state = res.state
-      const maxAttempts = 120
+      const maxAttempts = 600
       for (let i = 0; i < maxAttempts; i++) {
         await new Promise((r) => setTimeout(r, 1000))
         try {

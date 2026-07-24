@@ -10,6 +10,36 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.requests import Request
 from starlette.responses import Response
 
+OAUTH_RESPONSE_HEADERS = {
+    "Cache-Control": "no-store",
+    "Pragma": "no-cache",
+    "Referrer-Policy": "no-referrer",
+    "X-Content-Type-Options": "nosniff",
+    "Content-Security-Policy": (
+        "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'"
+    ),
+}
+
+_SENSITIVE_GOOGLE_OAUTH_PATH_SUFFIXES = (
+    "/auth/google/authorize",
+    "/auth/google/callback",
+    "/auth/google/poll",
+    "/sso/oauth/google/authorize",
+    "/sso/oauth/google/callback",
+)
+
+
+def is_sensitive_google_oauth_path(path: str) -> bool:
+    """Return whether a request path belongs to a credential-bearing Google OAuth flow."""
+    normalized_path = path.rstrip("/")
+    return normalized_path.endswith(_SENSITIVE_GOOGLE_OAUTH_PATH_SUFFIXES)
+
+
+def apply_oauth_response_headers(response: Response) -> None:
+    """Apply the non-cacheable, non-referring policy required by OAuth responses."""
+    for name, value in OAUTH_RESPONSE_HEADERS.items():
+        response.headers[name] = value
+
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """Middleware that adds security headers to all responses."""
@@ -61,6 +91,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
                 "no-store, no-cache, must-revalidate, private",
             )
             response.headers.setdefault("Pragma", "no-cache")
+
+        # OAuth exceptions and validation/rate-limit responses are produced outside
+        # the endpoint's injected Response object, so enforce the route policy here.
+        if is_sensitive_google_oauth_path(request.url.path):
+            apply_oauth_response_headers(response)
 
         return response
 

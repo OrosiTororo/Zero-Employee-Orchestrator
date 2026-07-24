@@ -10,7 +10,8 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.api
     ports:
-      - "18234:18234"
+      # Keep direct API/Tauri access local; public Web traffic goes through Nginx.
+      - "127.0.0.1:18234:18234"
     environment:
       - DATABASE_URL=sqlite+aiosqlite:///./data/zero_employee_orchestrator.db
       - 'SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set. Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"}'
@@ -22,6 +23,8 @@ services:
       - GOOGLE_LOGIN_CLIENT_ID=${GOOGLE_LOGIN_CLIENT_ID:-}
       - GOOGLE_LOGIN_CLIENT_SECRET=${GOOGLE_LOGIN_CLIENT_SECRET:-}
       - GOOGLE_LOGIN_REDIRECT_URI=${GOOGLE_LOGIN_REDIRECT_URI:-http://localhost:18234/api/v1/auth/google/callback}
+      # Nginx overwrites X-Forwarded-For and is the only public path to this API.
+      - FORWARDED_ALLOW_IPS=*
       - LANGUAGE=${LANGUAGE:-en}
     volumes:
       - api-data:/app/data

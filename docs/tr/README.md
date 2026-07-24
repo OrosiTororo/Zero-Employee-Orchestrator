@@ -75,6 +75,7 @@ cd Zero-Employee-Orchestrator && pip install .
 
 # Veya Docker (ayrıntılar için Docker bölümüne bakın)
 docker compose -f docker/docker-compose.yml up -d
+# → Web arayüzünü http://localhost:5173 adresinde açın
 ```
 
 ### Adım 2: Yapılandırma

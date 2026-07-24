@@ -5,9 +5,26 @@ import { create } from 'zustand'
 const isTauri =
   typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
 const isDev = import.meta.env.DEV
-const WS_BASE = isTauri && !isDev
-  ? "ws://127.0.0.1:18234"
-  : `ws://${window.location.host}`
+
+export function resolveWebSocketBase(
+  tauriRuntime: boolean,
+  development: boolean,
+  protocol: string,
+  host: string,
+): string {
+  if (tauriRuntime && !development) {
+    return "ws://127.0.0.1:18234"
+  }
+  const websocketProtocol = protocol === "https:" ? "wss:" : "ws:"
+  return `${websocketProtocol}//${host}`
+}
+
+const WS_BASE = resolveWebSocketBase(
+  isTauri,
+  isDev,
+  window.location.protocol,
+  window.location.host,
+)
 
 interface WSEvent {
   event_type: string

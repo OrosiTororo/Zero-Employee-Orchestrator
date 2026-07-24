@@ -594,7 +594,7 @@ Zero-Employee-Orchestrator/
 │   │   │   ├── core/           # Configuration, DB, security, i18n
 │   │   │   ├── api/routes/     # REST API (53 routes, 432 endpoints)
 │   │   │   ├── api/ws/         # WebSocket
-│   │   │   ├── models/         # ORM models (29 tables / 18 files)
+│   │   │   ├── models/         # ORM models (30 tables / 18 files)
 │   │   │   ├── schemas/        # Pydantic DTO
 │   │   │   ├── services/       # Business logic
 │   │   │   ├── repositories/   # DB I/O abstraction

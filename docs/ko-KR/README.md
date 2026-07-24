@@ -75,6 +75,7 @@ cd Zero-Employee-Orchestrator && pip install .
 
 # Docker (자세한 내용은 Docker 섹션 참조)
 docker compose -f docker/docker-compose.yml up -d
+# → http://localhost:5173 에서 Web UI 열기
 ```
 
 ### 2단계: 설정

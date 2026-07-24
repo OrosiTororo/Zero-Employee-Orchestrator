@@ -271,14 +271,14 @@ CONFIGURABLE_KEYS: dict[str, dict[str, str]] = {
     },
     # --- OAuth ---
     "GOOGLE_CLIENT_ID": {
-        "description": "Google OAuth2 client ID",
-        "description_ja": "Google OAuth2 クライアント ID",
+        "description": "Google Workspace connector OAuth2 client ID",
+        "description_ja": "Google Workspace コネクター用 OAuth2 クライアント ID",
         "category": "integration",
         "sensitive": "false",
     },
     "GOOGLE_CLIENT_SECRET": {
-        "description": "Google OAuth2 client secret",
-        "description_ja": "Google OAuth2 クライアントシークレット",
+        "description": "Google Workspace connector OAuth2 client secret",
+        "description_ja": "Google Workspace コネクター用 OAuth2 クライアントシークレット",
         "category": "integration",
         "sensitive": "true",
     },
