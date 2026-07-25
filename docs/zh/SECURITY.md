@@ -30,7 +30,8 @@
 | `JWT_SECRET` | `wrangler secret put JWT_SECRET` | `openssl rand -base64 32` |
 | `CLOUDFLARE_API_TOKEN` | GitHub 仓库 Secrets | [Cloudflare Dashboard](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/) |
 | `CLOUDFLARE_ACCOUNT_ID` | GitHub 仓库 Secrets | Cloudflare Dashboard 侧边栏 |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | `apps/api/.env`（可选） | [Google Cloud Console](https://console.cloud.google.com/) |
+| `GOOGLE_LOGIN_CLIENT_ID` / `GOOGLE_LOGIN_CLIENT_SECRET` | `apps/api/.env`（可选 Web/Tauri 登录） | [Google Cloud Console](https://console.cloud.google.com/) |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | `apps/api/.env`（可选 Workspace 连接器） | 使用与登录客户端分离的 OAuth 客户端 |
 
 > 当 `DEBUG=false` 时，使用默认 `SECRET_KEY` **应用将拒绝启动**（Python 后端），使用默认 `JWT_SECRET` 将返回 `503`（Cloudflare Workers）。这是设计使然。
 

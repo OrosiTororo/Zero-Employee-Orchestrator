@@ -106,10 +106,11 @@ The third-pass review (2026-03-29) addressed remaining test coverage gaps:
 - **Risk**: Omitting preview skips sensitive content detection entirely
 - **Fix**: Require preview or block when preview is empty
 
-### 2.5 Incomplete OAuth / Auth Flows
-- **File**: `apps/api/app/api/routes/auth.py:85-94`
-- **Issue**: Google OAuth and generic OAuth endpoints return 501
-- **Missing**: Password reset, email verification, MFA, token invalidation on logout
+### 2.5 Remaining Auth Gaps
+- **File**: `apps/api/app/api/routes/auth.py`
+- **Resolved**: Google sign-in uses server-bound state, PKCE, stable provider identity,
+  one-shot polling, and credentials separate from Google Workspace connectors
+- **Remaining**: Email verification, MFA, and server-side access-token invalidation on logout
 
 ### 2.6 Frontend Silent API Failures
 - **File**: `apps/desktop/ui/src/pages/DashboardPage.tsx:40-42`

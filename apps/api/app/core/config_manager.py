@@ -271,16 +271,34 @@ CONFIGURABLE_KEYS: dict[str, dict[str, str]] = {
     },
     # --- OAuth ---
     "GOOGLE_CLIENT_ID": {
-        "description": "Google OAuth2 client ID",
-        "description_ja": "Google OAuth2 クライアント ID",
+        "description": "Google Workspace connector OAuth2 client ID",
+        "description_ja": "Google Workspace コネクター用 OAuth2 クライアント ID",
         "category": "integration",
         "sensitive": "false",
     },
     "GOOGLE_CLIENT_SECRET": {
-        "description": "Google OAuth2 client secret",
-        "description_ja": "Google OAuth2 クライアントシークレット",
+        "description": "Google Workspace connector OAuth2 client secret",
+        "description_ja": "Google Workspace コネクター用 OAuth2 クライアントシークレット",
         "category": "integration",
         "sensitive": "true",
+    },
+    "GOOGLE_LOGIN_CLIENT_ID": {
+        "description": "Google Web UI and Tauri sign-in client ID",
+        "description_ja": "Google Web UI・Tauri ログイン用クライアント ID",
+        "category": "authentication",
+        "sensitive": "false",
+    },
+    "GOOGLE_LOGIN_CLIENT_SECRET": {
+        "description": "Google Web UI and Tauri sign-in client secret",
+        "description_ja": "Google Web UI・Tauri ログイン用クライアントシークレット",
+        "category": "authentication",
+        "sensitive": "true",
+    },
+    "GOOGLE_LOGIN_REDIRECT_URI": {
+        "description": "Exact Google sign-in API callback URI",
+        "description_ja": "Google ログイン用 API コールバック URI（完全一致）",
+        "category": "authentication",
+        "sensitive": "false",
     },
     # --- Production ---
     "SECRET_KEY": {

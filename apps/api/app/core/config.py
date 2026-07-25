@@ -93,7 +93,7 @@ class Settings(BaseSettings):
     # Default: apps/api/model_catalog.json
     MODEL_CATALOG_PATH: str = ""
 
-    # Google OAuth (optional — users configure via `zero-employee config set`)
+    # Google Workspace connector OAuth (optional; never used for user sign-in)
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
 
@@ -113,6 +113,11 @@ class Settings(BaseSettings):
         "zero-employee",
         "credentials",
     )
+
+    # Google sign-in (optional; separate from Google Workspace connector credentials)
+    GOOGLE_LOGIN_CLIENT_ID: str = ""
+    GOOGLE_LOGIN_CLIENT_SECRET: str = ""
+    GOOGLE_LOGIN_REDIRECT_URI: str = "http://localhost:18234/api/v1/auth/google/callback"
 
 
 settings = Settings()

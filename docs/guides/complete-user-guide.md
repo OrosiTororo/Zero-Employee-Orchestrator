@@ -55,6 +55,7 @@ cd Zero-Employee-Orchestrator && pip install .
 
 ```bash
 docker compose -f docker/docker-compose.yml up -d
+# Open the Web UI at http://localhost:5173
 ```
 
 This starts the API server (port 18234), frontend (port 5173), and a background worker. Requires a `SECRET_KEY` environment variable for production use.

@@ -102,15 +102,16 @@ export function LoginPage() {
       window.open(res.url, "_blank", "noopener")
 
       const state = res.state
-      const maxAttempts = 120
+      const maxAttempts = 600
       for (let i = 0; i < maxAttempts; i++) {
         await new Promise((r) => setTimeout(r, 1000))
         try {
-          const poll = await api.get<{
+          const poll = await api.post<{
             status: string
             access_token?: string
             setup_completed?: boolean
-          }>(`/auth/google/poll?state=${state}`)
+            error?: string
+          }>("/auth/google/poll", { state })
           if (poll.status === "complete" && poll.access_token) {
             setToken(poll.access_token)
             if (poll.setup_completed) {
@@ -118,6 +119,16 @@ export function LoginPage() {
               navigate("/")
             } else {
               navigate("/setup")
+            }
+            return
+          }
+          if (poll.status === "failed") {
+            if (poll.error === "account_link_required") {
+              setError(t.auth.googleOAuthAccountLinkRequired)
+            } else if (poll.error === "not_configured") {
+              setError(t.auth.googleOAuthNotConfigured)
+            } else {
+              setError(t.auth.googleOAuthNotReady)
             }
             return
           }

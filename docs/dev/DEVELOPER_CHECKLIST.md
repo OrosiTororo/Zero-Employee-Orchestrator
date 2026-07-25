@@ -174,7 +174,8 @@ Built artifacts uploaded to GitHub Releases:
 |---|---|---|---|
 | Google Gemini | `GEMINI_API_KEY` | Yes | https://aistudio.google.com/apikey |
 | Sentry | `SENTRY_DSN` | Yes (free plan) | https://sentry.io → Create project → Copy DSN |
-| Google OAuth | `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` | Yes | Google Cloud Console → Credentials → OAuth 2.0 |
+| Google sign-in | `GOOGLE_LOGIN_CLIENT_ID` + `GOOGLE_LOGIN_CLIENT_SECRET` + `GOOGLE_LOGIN_REDIRECT_URI` | Yes | Google Cloud Console → Credentials → OAuth 2.0 Web application |
+| Google Workspace connectors | `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` | Yes | Use a connector-specific OAuth client; do not reuse the sign-in client |
 | n8n | `N8N_WEBHOOK_URL` | Yes (self-hosted) | n8n instance → Create workflow → Copy webhook URL |
 | Vector DB | `VECTOR_STORE_PROVIDER` + `VECTOR_STORE_URL` + `VECTOR_STORE_API_KEY` | Varies | Supports: pinecone, qdrant, chroma |
 

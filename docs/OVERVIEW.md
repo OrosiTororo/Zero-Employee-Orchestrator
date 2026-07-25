@@ -307,9 +307,9 @@ ZEO is composed of 9 layers. Each layer has independent responsibilities.
 | SecretaryPage | Implemented | Brain dump, daily summary, priority suggestions |
 | BrainstormPage | Implemented | Brainstorming, multi-model comparison, per-role settings, AI org management |
 
-### ORM Models (29 Tables)
+### ORM Models (30 Tables)
 
-Company, CompanyMember, User, Department, Team, Agent, Project, Goal, Ticket, TicketThread, Spec, Plan, Task, TaskRun, Artifact, Review, ApprovalRequest, HeartbeatPolicy, HeartbeatRun, BudgetPolicy, CostLedger, Skill, Plugin, Extension, ToolConnection, ToolCallTrace, PolicyPack, SecretRef, AuditLog
+Company, CompanyMember, User, OAuthIdentity, Department, Team, Agent, Project, Goal, Ticket, TicketThread, Spec, Plan, Task, TaskRun, Artifact, Review, ApprovalRequest, HeartbeatPolicy, HeartbeatRun, BudgetPolicy, CostLedger, Skill, Plugin, Extension, ToolConnection, ToolCallTrace, PolicyPack, SecretRef, AuditLog
 
 ### Tests
 
@@ -448,7 +448,7 @@ For details, see [docs/dev/FEATURE_BOUNDARY.md](../dev/FEATURE_BOUNDARY.md).
 | **LINE** | Plugin | Manifest exists | Ticket creation, approval, notifications via LINE Bot |
 | **Obsidian** | Extension | Manifest exists | Bidirectional integration with Vault as Knowledge Source |
 | **MCP** | Extension | Manifest exists | Model Context Protocol compatible tool connection |
-| **Google OAuth** | Extension | Manifest exists | Google account authentication |
+| **OAuth Connectors** | Extension | Manifest exists | Authorization for Google Workspace, GitHub, and other external services; separate from core user sign-in |
 | **Notifications** | Extension | Manifest exists | Slack / Discord / LINE / Email notifications |
 
 ### AI Avatar / AI Secretary
@@ -594,7 +594,7 @@ Zero-Employee-Orchestrator/
 │   │   │   ├── core/           # Configuration, DB, security, i18n
 │   │   │   ├── api/routes/     # REST API (53 routes, 432 endpoints)
 │   │   │   ├── api/ws/         # WebSocket
-│   │   │   ├── models/         # ORM models (29 tables / 18 files)
+│   │   │   ├── models/         # ORM models (30 tables / 18 files)
 │   │   │   ├── schemas/        # Pydantic DTO
 │   │   │   ├── services/       # Business logic
 │   │   │   ├── repositories/   # DB I/O abstraction

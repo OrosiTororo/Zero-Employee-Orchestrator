@@ -215,28 +215,27 @@ However, the actual `wrangler.toml` files already had real IDs:
 
 ---
 
-### 4.4 Google OAuth — User-Configured (Currently Unimplemented)
+### 4.4 Google Sign-In — User-Configured and Credential-Separated
 
-**Current state**: `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` are defined as user-configurable
-in `config_manager.py` (CONFIGURABLE_KEYS). `USER_SETUP.md` instructs users to create their own
-OAuth app in Google Cloud Console and configure via CLI:
+**Current state**: Web UI and Tauri sign-in are implemented under `/api/v1/auth/google/*`
+using Authorization Code + PKCE, server-generated state, a fixed callback URI, and one-shot
+POST polling. The sign-in client is configured independently:
 
 ```bash
-zero-employee config set GOOGLE_CLIENT_ID <client-id>
-zero-employee config set GOOGLE_CLIENT_SECRET <client-secret>
+zero-employee config set GOOGLE_LOGIN_CLIENT_ID <client-id>
+zero-employee config set GOOGLE_LOGIN_CLIENT_SECRET <client-secret>
+zero-employee config set GOOGLE_LOGIN_REDIRECT_URI \
+  http://localhost:18234/api/v1/auth/google/callback
 ```
 
-**However**: The Google OAuth endpoint in `auth.py` currently returns 501 (Not Implemented):
+`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` remain reserved for Google Workspace
+connectors. They never enable user sign-in. The former `/api/v1/sso/oauth/google/*`
+implementation is retired with HTTP 410 so it cannot bypass PKCE or reuse connector
+credentials.
 
-```python
-@router.get("/google/authorize")
-async def google_authorize():
-    raise HTTPException(status_code=501, detail="Google OAuth is not yet available.")
-```
-
-**Verdict**: The design is user-configured, which aligns with ZEO's "no specific provider recommended"
-principle. When OAuth implementation is complete, users will create their own Google Cloud project
-and OAuth app following the `USER_SETUP.md` instructions.
+**Verdict**: The implemented design remains user-configured, follows ZEO's
+"no specific provider recommended" principle, and maintains a hard boundary between
+authentication credentials and connector credentials.
 
 ---
 
@@ -324,7 +323,7 @@ The current design where users optionally configure it is the most cost-efficien
 | 1 | `PYPI_API_TOKEN` — Not needed for OIDC. Decide: delete or keep as backup | Medium | Developer decision |
 | 2 | `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` — No password; no action needed | — | **Resolved** |
 | 3 | `SECURITY_SETUP_CHECKLIST.md` Cloudflare ID items updated | Medium | **Fixed** |
-| 4 | Google OAuth — User-configured design aligns with policy; guide when implemented | Low | Awaiting implementation (501) |
+| 4 | Google sign-in — user-configured PKCE flow with separate credentials | — | **Implemented** |
 | 5 | Sentry — User-optional (disabled by default) is most cost-efficient | — | **Currently appropriate** |
 | 6 | Deployment secrets — Add after choosing deployment method | — | At deployment time |
 

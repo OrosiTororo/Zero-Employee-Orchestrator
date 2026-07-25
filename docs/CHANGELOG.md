@@ -28,6 +28,21 @@ tonal surfaces and Apple Human Interface Guidelines hierarchy:
   Submit button is now a proper filled primary button (it previously
   rendered without a background).
 
+### Added
+
+- Secure Google sign-in for the Web UI and Tauri using Authorization Code + PKCE,
+  short-lived server-bound state, stable provider identities, and sanitized audit events.
+- Rootless production Web UI container served by Nginx through Docker Compose.
+
+### Security
+
+- Prevent OAuth login CSRF/code injection, reject implicit email-based account linking,
+  and keep authorization callbacks out of both Nginx and Uvicorn access logs.
+- Retire the legacy Google SSO endpoints that bypassed PKCE and reused Workspace
+  connector credentials.
+- Apply no-store OAuth headers to success and error responses, block Web UI framing,
+  preserve client-specific rate limits behind Nginx, and use secure WebSockets on HTTPS.
+
 ## [v0.1.7-polish] (2026-04-20)
 
 ### Completeness — every EVALUATION_v0.1.7 deferred item landed

@@ -20,6 +20,7 @@
 
 ### Authentication & Security
 - Local authentication (user registration, login, session management)
+- Core user sign-in providers (Google sign-in uses Authorization Code + PKCE)
 - Role-based access control (Owner / Admin / User / Auditor / Developer)
 - Secret Manager (encrypted API key storage)
 - Sanitizer (masking of sensitive information)
@@ -155,7 +156,7 @@ See [docs/ja-JP/AI_SELF_IMPROVEMENT_ROADMAP.md](../AI_SELF_IMPROVEMENT_ROADMAP.m
 
 | Extension | Purpose | Status |
 |-----------|---------|--------|
-| `oauth` | OAuth authentication for Google / GitHub, etc. | manifest available |
+| `oauth` | OAuth credentials for external-service connectors (Google Workspace, GitHub, etc.); separate from core user sign-in | manifest available |
 | `mcp` | Tool connection via Model Context Protocol | manifest available |
 | `notifications` | Notifications via Slack / Discord / LINE / email | manifest available |
 | `obsidian` | Bidirectional integration with Obsidian Vault | manifest available |
