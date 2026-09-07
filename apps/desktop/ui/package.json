@@ -15,7 +15,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-query": "^5.102.8",
     "@tauri-apps/plugin-process": "^2.2.0",
-    "@tauri-apps/plugin-updater": "^2.5.0",
+    "@tauri-apps/plugin-updater": "^2.11.0",
     "clsx": "^2.1.1",
     "lucide-react": "^1.40.0",
     "react": "^19.2.8",
